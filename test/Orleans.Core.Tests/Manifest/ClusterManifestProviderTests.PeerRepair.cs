@@ -89,7 +89,7 @@ public partial class ClusterManifestProviderTests
                         return Task.FromResult(summary);
                     }
 
-                    // 这种同行忽略了取消RPC;其晚完成受测试寿命的约束。
+                    // 此对等节点忽略 RPC 取消；其迟到的完成操作受测试生存期限制。
                     return AwaitProbeAsync(hungProbeCompletions[peer].Task, () => Interlocked.Decrement(ref activeProbeCount), TestContext.Current.CancellationToken);
                 },
                 getUpdate: (version, _) =>
@@ -401,8 +401,8 @@ public partial class ClusterManifestProviderTests
                 new GrainProperties(CreatePropertyDictionary(
                     new KeyValuePair<string, string>(WellKnownGrainTypeProperties.TypeName, "LegacyFallbackTest")))),
             ImmutableDictionary<GrainInterfaceType, GrainInterfaceProperties>.Empty);
-        // 使用一个没有其它的合成散列 silo将永远证明
-        // 散列积再利用优化不能与“validate” peerB的不匹配索赔同时发生。
+        // 使用一个任何其他 Silo 的清单都不可能通过验证的虚构哈希，因此
+        // 哈希缓存复用优化不会碰巧“验证”peerB 不匹配的声明。
         var mismatchedHashForB = new ManifestHash("intentionally-invalid-hash-for-peerB");
         Assert.NotEqual(mismatchedHashForB, ManifestHashCalculator.ComputeHash(remoteManifestA));
         Assert.NotEqual(mismatchedHashForB, ManifestHashCalculator.ComputeHash(remoteManifestB));
@@ -444,8 +444,8 @@ public partial class ClusterManifestProviderTests
         {
             var repaired = await repairedManifest.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
 
-            // 广告为 peerB 所发布的不匹配的散列必须拒绝:它的同侪供应从未显示
-            // 输入已公布的结果, 遗留的直接提取最终会解决它。
+            // 必须拒绝为 peerB 通告的不匹配哈希：它提供的清单始终不会
+            // 进入发布结果，最终由旧版直接获取机制解析它。
             Assert.Same(legacyManifestB, repaired.Silos[peerB]);
             Assert.NotEqual(ManifestHashCalculator.ComputeHash(remoteManifestB), ManifestHashCalculator.ComputeHash(repaired.Silos[peerB]));
             Assert.Equal(ManifestHashCalculator.ComputeHash(remoteManifestA), ManifestHashCalculator.ComputeHash(repaired.Silos[peerA]));
@@ -475,9 +475,9 @@ public partial class ClusterManifestProviderTests
         var directCompletions = peers.ToDictionary(
             static peer => peer,
             static _ => new TaskCompletionSource<GrainManifest>(TaskCreationOptions.RunContinuationsAsynchronously));
-        // 每个同行的后退表必须结构上不同: ClusterManifest 共振
-        // 单一公布清单中结构上平等的 GrainManifest 情况,
-        // 否则,不论来源如何,不同的同龄人条目的参考值平等。
+        // 每个对等节点的后备清单必须在结构上不同：ClusterManifest 会在单个已发布清单内对
+        // 结构相等的 GrainManifest 实例进行规范化（去重），
+        // 否则不同对等节点的条目可能不论来源如何都具有相同引用。
         var legacyManifests = peers.ToDictionary(
             peer => peer,
             peer => new GrainManifest(
@@ -510,8 +510,8 @@ public partial class ClusterManifestProviderTests
         {
             await Task.WhenAll(requestLog.WaitForProbeCountAsync(3, TestContext.Current.CancellationToken), requestLog.WaitForLegacyFetchCountAsync(peers.Length, TestContext.Current.CancellationToken));
 
-            // 同行勘测最多与三个同时进行的探针相连接,并选择精确的旋转,
-            // 候选人的相毗环绕部分; 从未调查过第四个对等点。
+            // 对等探测限制为最多三个并发探测，并精确选择候选集合中轮转的
+            // 连续环形区段；永远不会探测第四个对等节点。
             Assert.Equal(expectedProbedPeers, requestLog.ProbeAddresses);
             Assert.Equal(3, requestLog.ProbeAddresses.Count);
             Assert.DoesNotContain(unprobedPeer, requestLog.ProbeAddresses);
@@ -528,8 +528,8 @@ public partial class ClusterManifestProviderTests
 
             var repaired = await repairedManifest.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
 
-            // 所有的被绑的探测器都超时了, 直接接驳的后退是供给每 silo的东西,
-            // 包括从未被选中进行测试的接连旋转的对等点。
+            // 由于所有受限探测均已超时，最终由后备直接获取为每个 Silo 提供清单，
+            // 包括受限轮转从未选中进行探测的对等节点。
             Assert.All(peers, peer => Assert.Same(legacyManifests[peer], repaired.Silos[peer]));
         }
         finally

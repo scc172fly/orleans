@@ -16,7 +16,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// 用于已知 <see cref="StringComparer"/> 型号的序列器。
+    /// 已知 <see cref="StringComparer"/> 类型的序列化器。
     /// </summary>
     [Alias("StringComparer")]
     public sealed class WellKnownStringComparerCodec : IGeneralizedCodec
@@ -127,7 +127,7 @@ namespace Orleans.Serialization.Codecs
                         return StringComparer.InvariantCultureIgnoreCase;
                     }
 
-                    // 否则,也许还会有其他选择,这样我们就可以通过建立新的比较器来进行。
+                    // 否则，可能指定了其他选项，此时继续执行后续逻辑以创建新的比较器。
                 }
 
                 var cultureInfo = CultureInfo.GetCultureInfo(lcid);
@@ -155,7 +155,7 @@ namespace Orleans.Serialization.Codecs
                 var comparer = (IEqualityComparer<string?>)value;
                 if (StringComparer.IsWellKnownOrdinalComparer(comparer, out var ignoreCase))
                 {
-                    // 奥迪纳尔。 这也可以处理 EqualityComparer<string>. Default.
+                    // 序数比较（Ordinal）。这也涵盖 EqualityComparer<string>.Default。
                     type = 1;
                     if (ignoreCase)
                     {
@@ -254,7 +254,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="EqualityComparer{T}"/>的序列器。
+    /// <see cref="EqualityComparer{T}"/> 的序列化器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
@@ -274,7 +274,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="Comparer{T}"/>的序列器。
+    /// <see cref="Comparer{T}"/> 的序列化器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]

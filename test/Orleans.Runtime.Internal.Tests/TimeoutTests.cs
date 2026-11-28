@@ -10,20 +10,20 @@ using Xunit;
 namespace UnitTests
 {
     /// <summary>
-    /// Orleans 超时机制测试和请求取消。
+    /// 测试 Orleans 超时机制及请求取消。
     /// 
-    /// Orleans 执行超时,以防止无限期等待 grain 电话:
-    /// - 每一次 grain 呼叫都有可配置的响应超时
-    /// - 如果 grain 方法在超时内不完全,则会丢弃 TimeoutException
-    /// - 继续执行 silo (未取消)的原始请求
-    /// - 其后打给忙碌 grain 的电话可以丢弃,以防止队列集结
+    /// Orleans 实现超时机制，防止无限期等待 Grain 调用：
+    /// - 每次 Grain 调用都有可配置的响应超时。
+    /// - 如果 Grain 方法未在超时内完成，则抛出 TimeoutException。
+    /// - 原始请求仍在 Silo 上继续执行（未被取消）。
+    /// - 对忙碌 Grain 的后续调用可能被丢弃，以防止队列积压。
     /// 
-    /// 这些测试核实:
-    /// - 在适当时机提出超时例外
-    /// - 请求跟踪在超时后进行适当清理
-    /// - 超载呼叫行为下降 grains
+    /// 这些测试验证：
+    /// - 在适当的时间抛出超时异常。
+    /// - 超时后正确清理请求跟踪记录。
+    /// - 过载 Grain 的调用丢弃行为。
     /// 
-    /// 注:这些试验改变全球超时设置,因此应单独运行。
+    /// 注意：这些测试会修改全局超时设置，因此应隔离运行。
     /// </summary>
     [TestArea("Runtime")]
     public class TimeoutTests : HostedTestClusterEnsureDefaultStarted, IDisposable
@@ -37,24 +37,24 @@ namespace UnitTests
         {
             this.output = output;
             this.runtimeClient = this.HostedCluster.ServiceProvider.GetRequiredService<IRuntimeClient>();
-            // 保存原超时, 在测试后恢复它
+            // 保存原始超时值，以便测试结束后恢复。
             originalTimeout = this.runtimeClient.GetResponseTimeout();
             this.typeResolver = this.HostedCluster.ServiceProvider.GetRequiredService<GrainInterfaceTypeResolver>();
         }
 
         public virtual void Dispose()
         {
-            // 恢复原原超时,以避免影响其他测试
+            // 恢复原始超时值，以免影响其他测试。
             this.runtimeClient.SetResponseTimeout(originalTimeout);
         }
 
         /// <summary>
-        /// 测试在方法需要时间超过响应超时时时正确调用 grain 超时 。
-        /// 核证:
-        /// - TimeoutException 被丢弃, 是在配置的超时期后
-        /// - 超时发生在预期范围内(不早,也不晚)
-        /// - 清理请求追踪(无待处理的请求)
-        /// - 立即重新等待同一任务失败
+        /// 测试 Grain 方法耗时超过响应超时时，Grain 调用是否正确超时。
+        /// 验证：
+        /// - 配置的超时时间过后抛出 TimeoutException。
+        /// - 超时发生在预期范围内（不会过早或过晚）。
+        /// - 请求跟踪记录得到清理（无残留请求）。
+        /// - 再次等待同一个任务时立即失败。
         /// </summary>
         [TestSuite("Functional")]
         [TestProvider("None")]
@@ -66,16 +66,16 @@ namespace UnitTests
             var grainName = typeof(ErrorGrain).FullName;
             IErrorGrain grain = this.GrainFactory.GetGrain<IErrorGrain>(GetRandomGrainId(), grainName);
             var errorGrainType = this.typeResolver.GetGrainInterfaceType(typeof(IErrorGrain));
-            // 设置本次测试的一秒超时
+            // 为此测试设置 1 秒超时。
             TimeSpan timeout = TimeSpan.FromMilliseconds(1000);
             this.runtimeClient.SetResponseTimeout(timeout);
 
-            // 调用比超时长4x时间的方法
+            // 调用耗时为超时值 4 倍的方法。
             Task promise = grain.LongMethod((int)timeout.Multiply(4).TotalMilliseconds);
-            //承诺= grain.LongMethodWithError(2000);
+            //promise = grain.LongMethodWithError(2000);
 
-            // 注:调试器中可能出现种族状况,因此电话可能完成
-            // 测量我们等待超时等多久
+            // 注意：调试器中存在潜在竞争条件，调用可能会完成。
+            // 测量等待超时所需的时间。
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             try
@@ -99,15 +99,15 @@ namespace UnitTests
             }
             output.WriteLine("Waited for " + stopwatch.Elapsed);
             Assert.True(!finished);
-            // 核查超时发生在预期范围内(占配置超时的90%至350%)
+            // 验证超时发生在预期范围内（配置超时的 90% 至 350%）。
             Assert.True(stopwatch.Elapsed >= timeout.Multiply(0.9), "Waited less than " + timeout.Multiply(0.9) + ". Waited " + stopwatch.Elapsed);
             Assert.True(stopwatch.Elapsed <= timeout.Multiply(3.5), "Waited longer than " + timeout.Multiply(3.5) + ". Waited " + stopwatch.Elapsed);
             Assert.True(promise.Status == TaskStatus.Faulted);
 
-            // 清理核查请求追踪,清理核查请求跟踪 -- -- 任何请求不应待处理
+            // 验证请求跟踪记录已清理，不应有挂起请求。
             Assert.Equal(expected: 0, actual: this.runtimeClient.GetRunningRequestsCount(errorGrainType));
 
-            // 等待超时任务应立刻失败
+            // 再次等待已超时的任务应立即失败。
             try
             {
                 stopwatch = new Stopwatch();
@@ -128,16 +128,16 @@ namespace UnitTests
         }
 
         /// <summary>
-        /// 测试称,在 grain 超载时会发生下降行为。
-        /// 当一个 grain 忙于处理长期请求和客户点算时,
-        /// 其后拨打同一激活的电话可以丢弃,以防止队列集结。
+        /// 测试 Grain 过载时丢弃调用的行为。
+        /// 当 Grain 正忙于处理长时间运行的请求且客户端超时时，
+        /// 对同一激活的后续调用可能被丢弃，以避免队列积压。
         /// 
-        /// 假设情景:
-        /// 1. 第一次调用所需时间超过超时 -- -- 客户得到 TimeoutException
-        /// 2. 第一次接通时第二通呼叫到达,而第一次接来时仍在运行----应放弃
-        /// 3. 只核查在 grain上实际执行的第一通电话
+        /// 场景：
+        /// 1. 第一次调用耗时超过超时值，客户端收到 TimeoutException。
+        /// 2. 第一次调用仍在运行时第二次调用到达，应被丢弃。
+        /// 3. 验证 Grain 实际上只执行了第一次调用。
         /// 
-        /// 由于第3995号议题,目前跳过。
+        /// 由于问题 #3995，目前跳过此测试。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -150,11 +150,11 @@ namespace UnitTests
 
             var target = Client.GetGrain<ILongRunningTaskGrain<int>>(Guid.NewGuid());
 
-            // 第一次通话:需要5秒,但客户在2秒钟后会结束
+            // 第一次调用：耗时 5 秒，但客户端在 2 秒后超时。
             var delay = TimeSpan.FromSeconds(5);
             var firstCall = target.LongRunningTask(1, responseTimeout + delay);
             await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
-            // 第二通:应该丢弃,因为 grain 仍然忙着第一通电话
+            // 第二次调用：由于 Grain 仍忙于第一次调用，应被丢弃。
             var secondCall = target.LongRunningTask(2, TimeSpan.Zero);
 
             try
@@ -169,10 +169,10 @@ namespace UnitTests
                 throw;
             }
 
-            // 等待第一个呼叫完成 silo
+            // 等待第一次调用在 Silo 上完成。
             await Task.Delay(delay, cancellationToken);
 
-            // 只核查第一个已执行的呼叫( 值= 1) , 第二个被丢弃
+            // 验证只执行了第一次调用（值 = 1），第二次调用被丢弃。
             Assert.Equal(1, await target.GetLastValue());
         }
     }

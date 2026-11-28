@@ -8,7 +8,7 @@ public class ClusterDiagnosticsService(IGrainFactory grainFactory)
 {
     private readonly Dictionary<SiloAddress, int> _hostKeys = [];
     private readonly Dictionary<SiloAddress, HostDetails> _hostDetails = [];
-    private readonly Dictionary<GrainId, GrainDetails> _grainDetails = []; // 将Grain 作为主机代号
+    private readonly Dictionary<GrainId, GrainDetails> _grainDetails = []; // Grain 到宿主 ID 的映射。
     private readonly Dictionary<Key, ulong> _edges = [];
     private readonly IManagementGrain _managementGrain = grainFactory.GetGrain<IManagementGrain>(0);
     private readonly record struct GrainDetails(int GrainKey, int HostKey);
@@ -64,8 +64,8 @@ public class ClusterDiagnosticsService(IGrainFactory grainFactory)
             if (edge.TargetGrain.IsSystemTarget() || edge.SourceGrain.IsSystemTarget()) continue;
             lock (this)
             {
-                var sourceHostId = GetHostVertex(edge.SourceHost!); // 非系统 grain 调用边总是包括两个主机 。
-                var targetHostId = GetHostVertex(edge.TargetHost!); // 非系统 grain 调用边总是包括两个主机 。
+                var sourceHostId = GetHostVertex(edge.SourceHost!); // 非系统 Grain 的调用边始终包含两个宿主。
+                var targetHostId = GetHostVertex(edge.TargetHost!); // 非系统 Grain 的调用边始终包含两个宿主。
                 var sourceVertex = GetGrainVertex(edge.SourceGrain, sourceHostId);
                 var targetVertex = GetGrainVertex(edge.TargetGrain, targetHostId);
                 maxEdgeValue = Math.Max(maxEdgeValue, (int)edge.CallCount);

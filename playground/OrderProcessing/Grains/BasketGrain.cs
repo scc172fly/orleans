@@ -14,8 +14,8 @@ public interface IBasketGrain : IGrainWithStringKey
     Task<Guid?> CheckoutAsync(CheckoutRequest request);
 }
 
-// 买主的篮子 清盘后分期提交订单
-// 替换 eShop的整合事件日志及其交易发件箱。
+// 买家的购物车。结算在一次日志写入中清空购物车并暂存订单提交消息，
+// 以替代 eShop 的集成事件日志和事务性发件箱。
 public sealed class BasketGrain : DurableGrain, IBasketGrain
 {
     private static readonly TimeSpan CheckoutRetention = TimeSpan.FromDays(7);
@@ -60,9 +60,9 @@ public sealed class BasketGrain : DurableGrain, IBasketGrain
         return _items.Values.ToArray();
     }
 
-    // 请求的ID 成为命令的ID。 篮子会记住它 CheckoutRetention的结结关, 所以重新审阅
-    // 此期间的结结出返回相同的顺序, 即使后来的结结出也返回同样的顺序。 重试写先状态, 所以
-    // 其早期写作失败的退步在返回命令编号前一直持续。
+    // 请求 ID 成为订单 ID。购物车在 CheckoutRetention 指定的期限内保留结算记录，因此
+    // 在此期限内重试结算会返回相同订单，即使此后已有其他结算。重试会先写入状态，从而确保
+    // 先前写入失败的结算在返回其订单 ID 之前完成持久化。
     public async Task<Guid?> CheckoutAsync(CheckoutRequest request)
     {
         if (_checkouts.ContainsKey(request.RequestId))

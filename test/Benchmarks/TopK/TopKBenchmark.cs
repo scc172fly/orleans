@@ -87,15 +87,15 @@ public class TopKBenchmark
         _fssEdge.Clear();
         _fssClass.Clear();
         */
-        //_sink = 新 FrequencySink(Cap);
+        //_sink = new FrequencySink(Cap);
     }
 
     /*
-    [基准]
+    [Benchmark]
     [BenchmarkCategory("Add")]
-    公共无效 FssULongAdd()
+    public void FssULongAdd()
     {
-        每一枚( ULongSamples中的 var 样本)
+        foreach (var sample in ULongSamples)
         {
             _fss.Add(sample);
         }
@@ -103,11 +103,11 @@ public class TopKBenchmark
     */
 
     /*
-    [基准]
+    [Benchmark]
     [BenchmarkCategory("Add")]
-    公共无效 FssClassAdd()
+    public void FssClassAdd()
     {
-        每一枚( EdgeClassSamples中的 var 样本)
+        foreach (var sample in EdgeClassSamples)
         {
             _fssClass.Add(sample);
         }
@@ -162,7 +162,7 @@ public class TopKBenchmark
     }
 
     /// <summary>
-    /// 实施空间拯救算法: https://www.cse.ust.hk/~raywong/comp5331/References/EfficientComputationOfFrequentAndTop-kElementsInDataStreams.pdf
+    /// Space-Saving 算法的实现： https://www.cse.ust.hk/~raywong/comp5331/References/EfficientComputationOfFrequentAndTop-kElementsInDataStreams.pdf
     /// </summary>
     internal sealed class FrequencySink(int capacity)
     {
@@ -214,7 +214,7 @@ public class TopKBenchmark
         private static ulong CombineHashes(uint sourceHash, uint targetHash)
             => (ulong)sourceHash << 32 | targetHash;
 
-        // 灵感来自: https://github.com/DesignEngrLab/TVGL/blob/master/TessellationAndVoxelizationGeometryLibrary/Miscellaneous%20Functions/UpdatablePriorityQueue.cs
+        // 灵感来源： https://github.com/DesignEngrLab/TVGL/blob/master/TessellationAndVoxelizationGeometryLibrary/Miscellaneous%20Functions/UpdatablePriorityQueue.cs
         private class UpdateableMinHeap(int capacity)
         {
             private const int Arity = 4;

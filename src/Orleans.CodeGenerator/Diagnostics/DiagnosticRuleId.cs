@@ -1,4 +1,4 @@
-// Orleans.CodeGenerator中央诊断规则编号
+// Orleans.CodeGenerator 的集中式诊断规则 ID。
 namespace Orleans.CodeGenerator.Diagnostics;
 
 internal static class DiagnosticRuleId

@@ -10,7 +10,7 @@ namespace Orleans.Connections.Transport.Security;
 public delegate bool RemoteCertificateValidator(X509Certificate2 certificate, X509Chain? chain, SslPolicyErrors policyErrors);
 
 /// <summary>
-/// 如何处理 TLS 连接的设置 。
+/// TLS 连接处理方式的设置。
 /// </summary>
 public class TlsOptions
 {
@@ -19,70 +19,70 @@ public class TlsOptions
 
     /// <summary>
     /// <para>
-    /// 指定用于认证 TLS 连接的本地证书。如果设置 <see cref="LocalServerCertificateSelector"/> ,则服务器上忽略此证书。
+    /// 指定用于验证 TLS 连接身份的本地证书。如果设置了 <see cref="LocalServerCertificateSelector"/>，则服务器会忽略此证书。
     /// </para>
     /// <para>
-    /// 将客户端认证设置为 <c>null</c> ,并在服务器上设置 <see cref="RemoteCertificateMode"/> 至 <see cref="RemoteCertificateMode.AllowCertificate"/> 或 <see cref="RemoteCertificateMode.NoCertificate"/> 。
+    /// 若不进行客户端身份验证，将客户端的值设置为 <c>null</c>，并在服务器上将 <see cref="RemoteCertificateMode"/> 设置为 <see cref="RemoteCertificateMode.AllowCertificate"/> 或 <see cref="RemoteCertificateMode.NoCertificate"/>。
     /// </para>
     /// <para>
-    /// 如果证书有扩展密钥使用扩展,则其使用方式必须包括服务器的服务器验证(1.3.6.1.5.5.7.3.1)和客户客户的客户验证(1.3.6.1.5.5.7.3.2)。
+    /// 如果证书具有扩展密钥用法扩展，则服务器证书的用法必须包含服务器身份验证（OID 1.3.6.1.5.5.7.3.1），客户端证书的用法必须包含客户端身份验证（OID 1.3.6.1.5.5.7.3.2）。
     /// </para>
     /// </summary>
     public X509Certificate2? LocalCertificate { get; set; }
 
     /// <summary>
     /// <para>
-    /// 将被引用回调以动态选择本地服务器证书。 这比 LocalCertificate优先级高 。
-    /// 如果 SNI 不可用, 那么名称参数将是空的 。
+    /// 用于动态选择本地服务器证书的回调，其优先级高于 LocalCertificate。
+    /// 如果 SNI 不可用，则 name 参数为 null。
     /// </para>
     /// <para>
-    /// 如果证书有扩展密钥使用扩展名扩展, 则使用法必须包括服务器验证( 1.3. 6.1.5.5.7.3.1 OID)。
+    /// 如果证书具有扩展密钥用法扩展，则用法必须包含服务器身份验证（OID 1.3.6.1.5.5.7.3.1）。
     /// </para>
     /// </summary>
     public Func<MessageTransport, string?, X509Certificate2?>? LocalServerCertificateSelector { get; set; }
 
     /// <summary>
     /// <para>
-    /// 将被引用回调以动态选择本地客户端证书。 这比 LocalCertificate优先级高 。
-    /// 返回 <see langword="null"/> 当 <see cref="ClientCertificateMode"/>时忽略客户端证书
-    /// 是 <see cref="RemoteCertificateMode.AllowCertificate"/> 或 <see cref="RemoteCertificateMode.NoCertificate"/>。
-    /// 当模式为 <see cref="RemoteCertificateMode.RequireCertificate"/>时,无效结果将失败验证。
+    /// 用于动态选择本地客户端证书的回调，其优先级高于 LocalCertificate。
+    /// 返回 <see langword="null"/> 会省略客户端证书，但仅当 <see cref="ClientCertificateMode"/>
+    /// 为 <see cref="RemoteCertificateMode.AllowCertificate"/> 或 <see cref="RemoteCertificateMode.NoCertificate"/> 时。
+    /// 当模式为 <see cref="RemoteCertificateMode.RequireCertificate"/> 时，null 结果会导致身份验证失败。
     /// </para>
     /// <para>
-    /// 如果证书有扩展密钥使用扩展,则使用法必须包括客户验证(1.3.6.1.5.5.7.3.2)。
+    /// 如果证书具有扩展密钥用法扩展，则用法必须包含客户端身份验证（OID 1.3.6.1.5.5.7.3.2）。
     /// </para>
     /// </summary>
     public Func<object, string, X509CertificateCollection, X509Certificate?, string[], X509Certificate2?>? LocalClientCertificateSelector { get; set; }
 
     /// <summary>
-    /// 指定 TLS 连接的远程端点证书要求。 默认为 <see cref="RemoteCertificateMode.RequireCertificate"/>。
+    /// 指定 TLS 连接对远程终结点证书的要求。默认值为 <see cref="RemoteCertificateMode.RequireCertificate"/>。
     /// </summary>
     public RemoteCertificateMode RemoteCertificateMode { get; set; } = RemoteCertificateMode.RequireCertificate;
 
     /// <summary>
-    /// 当 Orleans 启动 TLS 连接时控制本地客户端证书的选择 。
-    /// 默认为 <see cref="RemoteCertificateMode.AllowCertificate"/>。
+    /// 控制 Orleans 发起 TLS 连接时对本地客户端证书的选择。
+    /// 默认值为 <see cref="RemoteCertificateMode.AllowCertificate"/>。
     /// </summary>
     public RemoteCertificateMode ClientCertificateMode { get; set; } = RemoteCertificateMode.AllowCertificate;
 
     /// <summary>
-    /// 指定在认证过程中将引用的附加远程证书验证的回调。 这将被忽略
-    /// 如果调回后调 <see cref="AllowAnyRemoteCertificate"/> 被调用 。
+    /// 指定在身份验证期间调用的回调，用于执行额外的远程证书验证。如果
+    /// 在设置此回调之后调用 <see cref="AllowAnyRemoteCertificate"/>，则忽略此回调。
     /// </summary>
     public RemoteCertificateValidator? RemoteCertificateValidation { get; set; }
 
     /// <summary>
-    /// 指定可允许的 SSL 协议。 默认为 <see cref="SslProtocols.Tls13" /> 和 <see cref="SslProtocols.Tls12" />。
+    /// 指定允许的 SSL 协议。默认值为 <see cref="SslProtocols.Tls13" /> 和 <see cref="SslProtocols.Tls12" />。
     /// </summary>
     public SslProtocols SslProtocols { get; set; } = SslProtocols.Tls13 | SslProtocols.Tls12;
 
     /// <summary>
-    /// 指定证书取消列表是否在认证过程中被检查。
+    /// 指定身份验证期间是否检查证书吊销列表。
     /// </summary>
     public bool CheckCertificateRevocation { get; set; }
 
     /// <summary>
-    /// 覆盖当前 <see cref="RemoteCertificateValidation"/> 回调,允许任何客户端证书 。
+    /// 覆盖当前 <see cref="RemoteCertificateValidation"/> 回调，并允许任意客户端证书。
     /// </summary>
     public void AllowAnyRemoteCertificate()
     {
@@ -90,26 +90,26 @@ public class TlsOptions
     }
 
     /// <summary>
-    /// 提供按连接方式对 <see cref="TlsServerAuthenticationOptions"/> 进行直接配置。
-    /// 是在所有其他设置已经应用之后调用此选项 。
+    /// 提供按连接直接配置 <see cref="TlsServerAuthenticationOptions"/> 的功能。
+    /// 在所有其他设置已应用后调用。
     /// </summary>
     public Action<MessageTransport, TlsServerAuthenticationOptions>? OnAuthenticateAsServer { get; set; }
 
     /// <summary>
-    /// 提供按连接方式对 <see cref="TlsClientAuthenticationOptions"/> 进行直接配置。
-    /// 是在所有其他设置已经应用之后调用此选项 。
+    /// 提供按连接直接配置 <see cref="TlsClientAuthenticationOptions"/> 的功能。
+    /// 在所有其他设置已应用后调用。
     /// </summary>
     public Action<MessageTransport, TlsClientAuthenticationOptions>? OnAuthenticateAsClient { get; set; }
 
     /// <summary>
-    /// 获取或设置记忆池。
+    /// 获取或设置内存池。
     /// </summary>
     public MemoryPool<byte> MemoryPool { get; set; } = MemoryPool<byte>.Shared;
 
     /// <summary>
-    /// 指定 TLS/SSL 握手的最大允许时间。
-    /// 必须是正数,不超过4,294,967,294毫秒(约49.7天);
-    /// 或 <see cref="Timeout.InfiniteTimeSpan"/> 禁用超时。
+    /// 指定 TLS/SSL 握手允许的最长时间。
+    /// 此值必须为正数且不大于 4,294,967,294 毫秒（约 49.7 天），
+    /// 或使用 <see cref="Timeout.InfiniteTimeSpan"/> 禁用超时。
     /// </summary>
     public TimeSpan HandshakeTimeout
     {

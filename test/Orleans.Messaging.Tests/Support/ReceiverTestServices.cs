@@ -15,7 +15,7 @@ internal static class ReceiverTestServices
 
     public static IGrainContext? CurrentGrainContext => ReadCurrentContext();
 
-    // 使用生产登记,用日记捕获取代应用软件外观发箱。
+    // 使用生产环境注册方式，将面向应用程序的发件箱替换为日志化的捕获实现。
     public static void Add(IServiceCollection services, Action<DurableMessagingOptions> configure)
     {
         services.AddMessaging(configure);

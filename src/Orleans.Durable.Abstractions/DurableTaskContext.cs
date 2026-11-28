@@ -4,19 +4,19 @@ using System.Globalization;
 
 namespace Orleans.Durable.Tasks;
 
-/// <summary>描述一项持续进行的任务,提供东道主的服务。</summary>
+/// <summary>描述正在运行的持久化任务，并提供其宿主的服务。</summary>
 /// <remarks>
 /// <para>
-/// 任务代码从 <see cref="DurableTask.Current"/>读取运行中任务的上下文。主机由此类型产生到
-/// 并记录任务操作。
+/// 任务代码通过 <see cref="DurableTask.Current"/> 读取正在运行的任务上下文。宿主从此类型派生，以便
+/// 调度和记录任务的各项操作。
 /// </para>
 /// <para>
-/// 执行的代码运行在一个调度器上, 当主机创建上下文时该程序即为当前, 例如它
-/// grain 激活的调度器, 因此上下文状态不需要同步。 主机创建了上下文、 请求
-/// 任务任务取消, 并取消该调度器的尝试, 而执行的代码分配标识符和运行
-/// 效果:代码在别处运行的操作,例如 `ConfigureAwait(false)`之后,抛掷
-/// <see cref="InvalidOperationException"/>.吊销牌和行刑所观察到的手柄仍然安全
-/// 以用于任何线索。
+/// 执行实例的代码在同一个调度器上运行，即宿主创建上下文时的当前调度器，例如该执行实例所在
+/// Grain 激活实例的调度器，因此上下文的状态无需同步。宿主在该调度器上创建上下文、请求
+/// 任务取消并取消执行尝试，执行实例的代码也在该调度器上分配标识符并运行
+/// 效果：如果代码在其他位置运行操作，例如在 `ConfigureAwait(false)` 之后，则会抛出
+/// <see cref="InvalidOperationException"/>。执行实例所观察的取消令牌和句柄仍可安全使用
+/// ，且可从任何线程访问。
 /// </para>
 /// </remarks>
 public abstract class DurableTaskContext
@@ -36,16 +36,16 @@ public abstract class DurableTaskContext
     private static readonly AsyncLocal<DurableTaskContext?> AmbientContext = new();
     private static readonly AsyncLocal<DurableTaskContext?> ShieldedContext = new();
 
-    // 标记 RunInCoveredFlowAsync 所覆盖的、用于执行其命名的行刑的无同步流。
+    // 标记 RunInCoveredFlowAsync 为所指定执行实例覆盖的异步流。
     private static readonly AsyncLocal<DurableTaskContext?> CoveredFlow = new();
 
     private readonly TaskScheduler _scheduler = TaskScheduler.Current;
 
-    // 取消后,任务取消和尝试取消: CancellationToken的来源。
+    // 在任务取消和执行尝试取消时均会取消：它是 CancellationToken 的来源。
     private readonly CancellationTokenSource _cancellationSource = new();
 
-    // 仅因尝试取消而取消,在_ccanation Presourcrun前被取消。
-    // 尝试取消 。
+    // 仅在执行尝试取消时取消，并且先于 _cancellationSource 取消。因此，观察任一令牌的代码都会发现
+    // 执行尝试已被取消。
     private readonly CancellationTokenSource _attemptCancellationSource = new();
     private bool _taskCancellationRequested;
     private string? _taskCancellationReason;
@@ -53,17 +53,17 @@ public abstract class DurableTaskContext
     private long _nextChildId;
     private Dictionary<string, int>? _nameOccurrences;
 
-    // 覆盖区域:同步区域的深度(这些区域运行时没有等待)和无同步区域的数目
-    // 流经的流量,其流量 CoveredFlow 标记。
+    // 受记录覆盖的区域：同步区域的嵌套深度（这些区域不会执行等待操作），以及异步
+    // 覆盖执行流的数量，这些执行流由 CoveredFlow 标记。
     private int _coveredDepth;
     private int _coveredFlows;
-    /// <summary>启动一项持久任务 <paramref name="taskId"/>.</summary>
-    /// <param name="taskId">尝试运行任务的稳定标识。</param>
+    /// <summary>初始化持久化任务 <paramref name="taskId"/> 的一次执行尝试。</summary>
+    /// <param name="taskId">此次执行尝试所运行任务的稳定标识符。</param>
     /// <remarks>
-    /// 执行执行代码的调度器上,主机创建了运行此任务代码的调度器上的背景。 它要求任务可耐久
-    /// 以 <see cref="RequestTaskCancellation(string?)"/>取消,并停止此尝试
-    /// <see cref="CancelAttempt(DurableTaskAttemptCancellationReason)"/>. 东道主排干取消的尝试,丢弃了
-    /// 并再次在新的背景下执行这项任务,而任务仍然需要结果。
+    /// 宿主在运行执行实例代码的调度器上创建上下文。它通过以下方法请求任务的持久化
+    /// 取消：<see cref="RequestTaskCancellation(string?)"/>，并通过以下方法停止本次执行尝试：
+    /// <see cref="CancelAttempt(DurableTaskAttemptCancellationReason)"/>。宿主会等待已取消的执行尝试结束，丢弃其
+    /// 响应；如果任务仍需要产生结果，则在新上下文中再次运行任务。
     /// </remarks>
     protected DurableTaskContext(TaskId taskId)
     {
@@ -75,109 +75,109 @@ public abstract class DurableTaskContext
         Id = taskId;
     }
 
-    /// <summary>获得呼叫代码(如果有的话)所运行的持久任务的背景。</summary>
-    /// <param name="context">运行中任务上下文, 或 <see langword="null"/> 一项长期任务。</param>
-    /// <returns><see langword="true"/> 当召唤代码运行在一个持久的任务。</returns>
-    /// <remarks>仅用于持久任务守则: <see cref="DurableTask.Current"/>.</remarks>
+    /// <summary>获取调用代码所在的持久化任务上下文（若存在）。</summary>
+    /// <param name="context">正在运行的任务上下文；若位于持久化任务之外，则为 <see langword="null"/>。</param>
+    /// <returns><see langword="true"/> 表示调用代码在持久化任务中运行。</returns>
+    /// <remarks>仅在持久化任务中运行的代码可直接读取 <see cref="DurableTask.Current"/>。</remarks>
     public static bool TryGetCurrent([NotNullWhen(true)] out DurableTaskContext? context)
     {
         context = AmbientContext.Value;
         return context is not null;
     }
 
-    /// <summary>获取调用代码所运行的持久任务的背景,或 <see langword="null"/>。</summary>
+    /// <summary>获取调用代码所在的持久化任务上下文；若不存在，则为 <see langword="null"/>。</summary>
     internal static DurableTaskContext? Ambient => AmbientContext.Value;
 
-    /// <summary>获取此执行的标识符。</summary>
+    /// <summary>获取此执行实例的标识符。</summary>
     public TaskId Id { get; }
 
-    /// <summary>获取一个未识别此执行属于的根任务运行的无。</summary>
+    /// <summary>获取标识此执行实例所属根任务此次运行的唯一值（运行世代标识）。</summary>
     /// <remarks>
     /// <para>
-    /// 东道主在首次储存所援引的根任务时,将化身化为薄荷,并用它来做该任务的日记。
-    /// 包括脚步和附属儿童,报告同样的化形,以及每个
-    /// 重放并尝试运行运行时也报告它。 稍后的同一根标识符, 例如在
-    /// 早期运行完成,历史被删除, 收到一个新的化身。
+    /// 宿主在首次存储被调用根任务时生成运行世代标识，并将其与该任务一起记入日志。每个
+    /// 任务树中的执行实例（包括步骤和附接子任务）都报告相同的运行世代标识，而
+    /// 此次运行的每次重放与执行尝试也都报告该标识。以后再次运行同一根标识符的任务时，例如
+    /// 在此前运行完成且其历史已删除后启动的新运行，都会获得新的运行世代标识。
     /// </para>
     /// <para>
-    /// 超过一次运行的识别符号,例如电文标识、取消和信号记录以及
-    /// 呼叫其他服务单位的“有效”关键功能,包括化成成形,因此以后将同一根标识符转出
-    /// 与前一次运行的记录不符。 它的字符串表是 <c>ToString("N")</c>。
+    /// 生命周期超过一次运行的标识符，例如消息标识符、取消与信号记录，以及
+    /// 调用其他服务所用的幂等键，均包含运行世代标识，因此使用相同根标识符的后续运行
+    /// 不会匹配先前运行的记录。其字符串形式为 <c>ToString("N")</c>。
     /// </para>
     /// </remarks>
     public abstract Guid Incarnation { get; }
 
-    /// <summary>获得由主机提供的逻辑 UTC 执行该执行的时间。</summary>
+    /// <summary>获取宿主为此执行实例提供的逻辑 UTC 时间。</summary>
     public abstract DateTimeOffset UtcNow { get; }
 
     /// <summary>
-    /// 获得一个值,以显示任务身体的此运行是否是重运行操作。
-    /// 记录下来,仅用于记录和诊断。
+    /// 获取一个值，指示此次运行的任务主体是否正在重新执行先前运行
+    /// 已记录的操作。此值仅用于日志记录和诊断。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 主机重播放一个任务,但尚未完成,例如它 grain 被停止使用后,又再次运行了它的体
-    /// 从开始处开始。值是 <see langword="true"/> ,从运行开始时发现较早操作的运行开始
-    /// 记录此任务运行的运行量, 如儿童、 标记和记录效果等, 直到运行达到每个
-    /// 或已启动一项操作,但以前没有记录过,然后停留在 <see langword="false"/>。
-    /// 操作再次运行不会结束重播。整个操作中第一次运行报告 <see langword="false"/> 。
+    /// 对于尚未完成的任务（例如 Grain 已经停用的情况），宿主会重新运行任务主体，
+    /// 从头开始。该值从发现以下内容的运行开始时即为 <see langword="true"/>：之前的运行
+    /// 已为此任务记录的操作，例如子任务、标记及已记录的效果，直到本次运行已到达每个
+    /// 这类操作，或开始执行之前的运行未记录的新操作；之后该值保持为 <see langword="false"/>。再次到达
+    /// 已有操作不会结束重放。首次运行期间始终报告 <see langword="false"/>。
     /// </para>
     /// <para>
-    /// 代码报告事件一次,例如伐木
-    /// <see cref="DurableTaskLoggerExtensions.ReplaySafe(Microsoft.Extensions.Logging.ILogger)"/>,跳过它们
-    /// 任务重放。 国家变化和持久操作不取决于值: 在耐久之前结束的运行
-    /// 写入已承诺的工程, 将重播放它的工作, 所以代码只有在数值为 <see langword="false"/> 时运行, 代码才会运行
-    /// 或两次或两次,或一次或两次,以及代码,其中的分支会以不同的运行方式安排不同操作。
-    /// 运行时属于 <see cref="DurableTask.RunInline{TResult}(string, Func{TResult})"/>,在一个步骤或
-    /// 身体同步尾巴
+    /// 仅报告一次事件的代码（例如通过以下方式记录日志）
+    /// <see cref="DurableTaskLoggerExtensions.ReplaySafe(Microsoft.Extensions.Logging.ILogger)"/>，应在
+    /// 任务重放期间跳过这些事件。状态变更和持久化操作不能依赖此值：如果一次运行在持久化
+    /// 写入提交其工作之前就已结束，该运行会被重放，因此仅在此值为 <see langword="false"/> 时运行的代码可能
+    /// 运行两次，也可能一次都不运行；基于此值进行分支的代码会在不同运行中调度不同的操作。需要
+    /// 仅执行一次的状态变更应放在 <see cref="DurableTask.RunInline{TResult}(string, Func{TResult})"/> 中、某个步骤中，或
+    /// 任务主体的同步结尾部分。
     /// </para>
-    /// <para>不跟踪重播的主机保留默认的安装, 返回 <see langword="false"/>。</para>
+    /// <para>不跟踪重放状态的宿主保留此默认实现，其返回值为 <see langword="false"/>。</para>
     /// </remarks>
     public virtual bool IsReplaying => false;
 
-    /// <summary>获得一个数值,表明是否请求持久取消任务。</summary>
+    /// <summary>获取一个值，指示是否已请求对任务进行持久化取消。</summary>
     /// <remarks>
-    /// 任务取消是持久的:东道主记录请求,记录每项执行,即
-    /// 包括重放在内的每一项任务都观察着取消
-    /// 同一点, 所以身体在每次运行中都走同样的路径, 并记录观察后进行的清理
-    /// 确定持久结果的守则,例如是否赔偿,检查
-    /// 数值,例如 <c>catch (OperationCanceledException) when (DurableTask.Current.IsTaskCancellationRequested)</c>.
-    /// 取消未遂,则 <see langword="false"/>。
+    /// 任务取消是持久化的：宿主记录取消请求，并为每个执行实例记录
+    /// 它首次观察到取消请求的位置。任务的每次执行尝试（包括重放）都在
+    /// 同一位置观察到取消，因此任务主体每次运行都遵循相同的执行路径，观察到取消后的清理操作也会
+    /// 像任务主体的其他操作一样被记录。决定持久化结果的代码（例如决定是否执行补偿）应检查此
+    /// 值，例如在 <c>catch (OperationCanceledException) when (DurableTask.Current.IsTaskCancellationRequested)</c> 中。
+    /// 仅取消执行尝试不会改变此值，它仍为 <see langword="false"/>。
     /// </remarks>
     public bool IsTaskCancellationRequested => _taskCancellationRequested;
 
     /// <summary>
-    /// 获取持久取消请求随行的理由,或任务取消时的 <see langword="null"/>
-    /// 也没有人要求,或者它的要求没有理由。
+    /// 获取持久化取消请求携带的原因，或返回 <see langword="null"/>（当任务取消
+    /// 尚未被请求，或者取消请求未携带原因时）。
     /// </summary>
     /// <remarks>
-    /// 第一次取消请求决定了原因,后来的请求保持不变。
-    /// 重放, 重放时在原始
-    /// 运行前先观察它,读相同的原因。原因被设置在前面
-    /// <see cref="CancellationToken"/> 已被取消, 所以显示此取消的代码, 例如
-    /// 块<see langword="catch"/> 读出来
+    /// 首次取消请求决定原因，后续请求不会更改它。宿主将该
+    /// 原因与任务取消记录一起保留，因此重放时，会在原始运行首次观察到取消的位置
+    /// 观察到取消，并读取相同的原因。原因在以下令牌被取消之前设置：
+    /// <see cref="CancellationToken"/>，因此观察取消的代码，例如
+    /// <see langword="catch"/> 代码块，可以读取该原因。
     /// </remarks>
     public string? TaskCancellationReason => _taskCancellationReason;
 
     /// <summary>
-    /// 获取调用代码是否在 <see cref="DurableTaskExtensions.Shielded(DurableTask)"/> 开始时运行
-    /// 执行,这样它所计划的儿童 就不会因为这个处决的持久取消而到达
+    /// 获取调用代码是否处于此执行实例的 <see cref="DurableTaskExtensions.Shielded(DurableTask)"/> 启动操作之内，
+    /// 从而使其调度的子任务不受该执行实例的持久化取消影响。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 屏蔽组合器作为
-    /// 执行。盾牌跟随起点的无同步流,仅适用于此执行:a
-    /// 取消儿童合同时,孩子自己的子女会像往常一样得到。
+    /// 受屏蔽保护的定义会在屏蔽范围内启动，受屏蔽保护的组合器作为此执行实例一部分启动的输入也
+    /// 同样如此。屏蔽保护随该启动操作的异步执行流传播，并且仅适用于此执行实例：
+    /// 子任务自身的子任务仍照常受到其取消的影响。
     /// </para>
     /// <para>
-    /// 当主机在安排孩子工作前, 与孩子一起记录下:
-    /// 即使在要求取消死刑之后, 并且不传播
-    /// 自动中止并删除执行的树, 仍然可以达到它。
+    /// 宿主在调度子执行实例时、进行任何异步工作之前读取此值，并将其与子执行实例一同记录：
+    /// 即使当前执行实例已经请求取消，宿主仍会创建并运行这种子执行实例，且不会将
+    /// 当前执行实例的取消传播给它。管理操作中的中止及删除执行树仍会影响它。
     /// </para>
     /// </remarks>
     protected internal bool SchedulesShieldedChildren => ReferenceEquals(ShieldedContext.Value, this);
 
-    /// <summary>开始保护呼唤流动时间表的儿童 并归还以前的盾牌</summary>
+    /// <summary>开始对调用流调度的子任务应用取消屏蔽，并返回先前的屏蔽状态。</summary>
     internal DurableTaskContext? EnterShield()
     {
         var previous = ShieldedContext.Value;
@@ -185,77 +185,77 @@ public abstract class DurableTaskContext
         return previous;
     }
 
-    /// <summary>恢复 <see cref="EnterShield"/> 返回的盾牌。</summary>
+    /// <summary>恢复 <see cref="EnterShield"/> 返回的先前屏蔽状态。</summary>
     internal static void RestoreShield(DurableTaskContext? previous) => ShieldedContext.Value = previous;
 
     /// <summary>
-    /// 获取当请求永久取消任务或主机取消此任务时取消的符号
-    /// 。通过普通任务代码发出的电话传递到该命令。
+    /// 获取一个取消令牌，当请求任务的持久化取消或宿主取消本次
+    /// 执行尝试时，该令牌将被取消。将其传递给普通任务代码发起的调用。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 任务电话,如HTTP请求或等待血肿等,在这两种情况下都迅速结束。
-    /// <see cref="IsTaskCancellationRequested"/> 区分它们: 任务取消后运行耐久清理的代码
-    /// 检查和通过 <see cref="AttemptCancellationToken"/> 拨打清理工作所发出的电话,因为
-    /// 已经取消。
+    /// 在这两种情况下，该令牌都会及时终止任务发起的调用，例如 HTTP 请求或信号量等待。
+    /// <see cref="IsTaskCancellationRequested"/> 用于区分这两种情况：在任务取消后执行持久化清理的代码
+    /// 应检查该值，并向清理操作发起的调用传递 <see cref="AttemptCancellationToken"/>，因为本属性返回的
+    /// 令牌已经被取消。
     /// </para>
     /// <para>
-    /// 任务始于 <see cref="DurableTaskExtensions.Shielded(DurableTask)"/> , 其主人的任务无法完成
-    /// 取消, 所以在屏蔽的任务中, 此标记仅因任务本身的取消和
-    /// 取消其企图。
+    /// 使用 <see cref="DurableTaskExtensions.Shielded(DurableTask)"/> 启动的任务不受其所有者任务
+    /// 取消的影响，因此在受屏蔽保护的任务内，只有任务自身被取消或
+    /// 其执行尝试被取消时，此令牌才会被取消。
     /// </para>
     /// <para>
-    /// 此牌牌上注册的都是普通同步 .NET 观察者,当该牌子取消并返回时,这些观察者即运行
-    /// 尽快
+    /// 在此令牌上注册的回调是普通的 .NET 同步观察者，在令牌被取消时运行，并应
+    /// 及时返回。
     /// </para>
     /// </remarks>
     public CancellationToken CancellationToken => _cancellationSource.Token;
 
     /// <summary>
-    /// 获取当主机取消此尝试时取消的标记: 其 grain 激活停止, 或者任务停止
-    /// 被中止或删除。 传递给任务取消后持久清理产生的通话 。
+    /// 获取在宿主取消本次执行尝试时被取消的令牌：此时 Grain 激活实例正在停止，或者任务
+    /// 已被中止或删除。在任务取消后，将其传递给持久化清理操作发起的调用。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 一次取消的尝试每次持久操作都会抛出 <see cref="DurableTaskAttemptCanceledException"/>,东道主也会投下
-    /// 将尝试的响应丢弃。 停止激活的任务重放在新的尝试中, 运行清理
-    /// 再次; 中止或删除的任务已经有结果。 遵守此符号的代码在程序中释放
-    /// 和返回。它给 grain日记状态与 grain下一份日记承诺所作的更改
-    /// 写。
+    /// 已取消的执行尝试中的每项持久化操作都会抛出 <see cref="DurableTaskAttemptCanceledException"/>，宿主会
+    /// 丢弃此次执行尝试的响应。正在停止的激活实例上的任务会在新的执行尝试中重放，从而再次运行
+    /// 清理代码；已中止或删除的任务则已有确定结果。观察到此令牌取消的代码应释放进程内
+    /// 资源并返回。该代码对 Grain 日志化状态所做的更改会随 Grain 的下一次日志
+    /// 写入提交。
     /// </para>
     /// <para>
-    /// 任务取消时, 任务取消时会发出一个电话, 例如 任务取消清理
-    /// 补偿 HTTP 请求, 运行到完成, 除非尝试本身被取消 。
+    /// 任务取消不会取消此令牌，因此，在任务取消后的清理期间使用该令牌进行的调用，例如
+    /// 用于补偿的 HTTP 请求，会一直运行到完成，除非执行尝试本身被取消。
     /// </para>
     /// </remarks>
     public CancellationToken AttemptCancellationToken => _attemptCancellationSource.Token;
 
-    /// <summary>获得一个数值,显示是否由主机或重播的偏差取消了这一尝试。</summary>
+    /// <summary>获取一个值，指示本次执行尝试是否已被宿主取消，或因重放分歧而取消。</summary>
     /// <remarks>
-    /// 将任务作为
-    /// <see cref="AttemptCancellationReason"/> 描述: 它重写重放不同或版本不同的任务
-    /// 任务代码在部署修改后, 任务代码被修改, 任务停止激活的尝试终止
-    /// 中止任务, 或者删除任务 。
+    /// 宿主丢弃已取消执行尝试的响应，并按照
+    /// <see cref="AttemptCancellationReason"/> 所述方式处理任务：对于发生重放分歧或版本
+    /// 不受支持的任务，在部署更新任务代码后重试；对于正在停止的激活实例、
+    /// 已中止或已删除的任务，则结束本次执行尝试。
     /// </remarks>
     protected internal bool IsAttemptCanceled => _attemptCancellationReason is not null;
 
-    /// <summary>知道为什么这次尝试被取消了,或者 <see langword="null"/> 运行时。</summary>
+    /// <summary>获取本次执行尝试被取消的原因；运行期间则为 <see langword="null"/>。</summary>
     protected internal DurableTaskAttemptCancellationReason? AttemptCancellationReason => _attemptCancellationReason;
 
     /// <summary>
-    /// 获得结束作为执行一部分的操作的标记,例如信号等待:在屏蔽内
-    /// 取消企图就是为了结束它,否则任务的长期取消也是为了结束。
+    /// 获取用于结束本执行实例内操作（如信号等待）的令牌：在屏蔽范围内，
+    /// 只有执行尝试取消才会结束操作；否则，任务的持久化取消也会结束操作。
     /// </summary>
     /// <remarks>
-    /// 屏蔽使执行的持久取消 无法到达被屏蔽开始覆盖的行动
-    /// 无论是在童年时还是作为处决的一部分,所以一个屏蔽的等待在取消后完成。
+    /// 屏蔽保护阻止此执行实例的持久化取消传播到受屏蔽启动操作所覆盖的各项操作，
+    /// 无论作为子任务运行，还是作为执行实例的一部分运行，因此受屏蔽的等待在取消后仍会完成。
     /// </remarks>
     internal CancellationToken InlineOperationCancellationToken => SchedulesShieldedChildren ? AttemptCancellationToken : CancellationToken;
 
     /// <summary>
-    /// 当呼叫代码无法运行此执行的持久操作时丢弃 : <see cref="InvalidOperationException"/>
-    /// 关闭执行的排程器或位于 <see cref="DurableTask.RunInline{TResult}(string, Func{TResult})"/>
-    /// 和尝试取消时的 <see cref="DurableTaskAttemptCanceledException"/> 效果。
+    /// 当调用代码无法运行此执行实例的持久化操作时抛出异常：<see cref="InvalidOperationException"/> 对应于
+    /// 在执行实例的调度器之外运行或在 <see cref="DurableTask.RunInline{TResult}(string, Func{TResult})"/>
+    /// 效果内部运行的情况；执行尝试被取消时则抛出 <see cref="DurableTaskAttemptCanceledException"/>。
     /// </summary>
     internal void ThrowIfCannotRunOperation()
     {
@@ -268,8 +268,8 @@ public abstract class DurableTaskContext
     }
 
     /// <summary>
-    /// 将 <see cref="InvalidOperationException"/> 投弃于这一处决的覆盖区域,其记录包括:
-    /// 在那里运行的代码, 所以重播不会运行它。
+    /// 在此执行实例的已覆盖区域内抛出 <see cref="InvalidOperationException"/>；该区域的记录覆盖
+    /// 在该区域内运行的代码，因此重放时不再运行这些代码。
     /// </summary>
     internal void ThrowIfInCoveredRegion()
     {
@@ -279,9 +279,9 @@ public abstract class DurableTaskContext
         }
     }
 
-    /// <summary>创建取消的尝试持久操作所丢出的一个例外 。</summary>
-    /// <param name="innerException">取消操作时抛出的任何例外。</param>
-    /// <exception cref="InvalidOperationException">尝试还没有取消</exception>
+    /// <summary>创建已取消执行尝试中的持久化操作将抛出的异常。</summary>
+    /// <param name="innerException">已取消的操作所抛出的异常（如果有）。</param>
+    /// <exception cref="InvalidOperationException">执行尝试尚未被取消。</exception>
     protected internal DurableTaskAttemptCanceledException CreateAttemptCanceledException(Exception? innerException)
     {
         if (_attemptCancellationReason is not { } reason)
@@ -293,11 +293,11 @@ public abstract class DurableTaskContext
     }
 
     /// <summary>
-    /// 以 <see cref="DurableTaskAttemptCancellationReason.Diverged"/>取消此尝试, 因为它的重放会偏离
-    /// 与先前的尝试记录中的处决结果 并返回了不同的操作所投出的例外
+    /// 以 <see cref="DurableTaskAttemptCancellationReason.Diverged"/> 为原因取消本次执行尝试，因为其重放偏离了
+    /// 此前执行尝试所记录的执行过程，并返回发生分歧的操作所抛出的异常。
     /// </summary>
-    /// <param name="cause">描述差异,例如代码不再预期其类型的结果记录。</param>
-    /// <remarks>一旦部署的代码与记录再次匹配, 主机将重试任务。</remarks>
+    /// <param name="cause">描述重放分歧，例如已记录结果的类型不再符合代码预期。</param>
+    /// <remarks>当部署后的代码再次与记录匹配时，宿主会重试该任务。</remarks>
     internal DurableTaskAttemptCanceledException Diverge(Exception cause)
     {
         CancelAttempt(DurableTaskAttemptCancellationReason.Diverged);
@@ -305,7 +305,7 @@ public abstract class DurableTaskContext
     }
 
     /// <summary>
-    /// 返回 <paramref name="operation"/>,转换取消的取消,结束它,因为此尝试被取消
+    /// 返回 <paramref name="operation"/>；若该操作因本次执行尝试被取消而以取消结束，则将取消转换为
     /// <see cref="DurableTaskAttemptCanceledException"/>.
     /// </summary>
     internal ValueTask<T> ObserveAttempt<T>(ValueTask<T> operation)
@@ -326,12 +326,12 @@ public abstract class DurableTaskContext
     }
 
     /// <summary>
-    /// 返回 <paramref name="operation"/>的回复,转换结束该回复或报告时的取消,因为
-    /// 此尝试已取消至 <see cref="DurableTaskAttemptCanceledException"/>。
+    /// 返回 <paramref name="operation"/> 的响应；若由于本次执行尝试被取消而导致该操作结束或报告取消，
+    /// 则将该取消转换为 <see cref="DurableTaskAttemptCanceledException"/>。
     /// </summary>
     internal ValueTask<DurableTaskResponse> ObserveAttempt(ValueTask<DurableTaskResponse> operation)
     {
-        // ValueTask 能够一次性消耗,因此已完成的作业结果将一次性读取并返回到新的 ValueTask。
+        // ValueTask 只能被消费一次，因此只读取一次已完成操作的结果，并通过新的 ValueTask 返回它。
         if (operation.IsCompletedSuccessfully)
         {
             var response = operation.Result;
@@ -359,8 +359,8 @@ public abstract class DurableTaskContext
     }
 
     /// <summary>
-    /// 返回返回 <paramref name="response"/> 是否报告由于这一尝试而终止了操作的取消
-    /// 取消, 操作随后将它丢弃为 <see cref="DurableTaskAttemptCanceledException"/>。
+    /// 返回 <paramref name="response"/> 是否报告了因本次执行尝试被取消而结束操作的取消；
+    /// 此时操作会将该取消作为 <see cref="DurableTaskAttemptCanceledException"/> 抛出。
     /// </summary>
     private bool IsAttemptCancellation(DurableTaskResponse response, [NotNullWhen(true)] out OperationCanceledException? canceled)
     {
@@ -389,27 +389,27 @@ public abstract class DurableTaskContext
     }
 
     /// <summary>
-    /// 返回是否 <paramref name="exception"/> 关闭一个操作,因为调用者取消
-    /// <paramref name="cancellationToken"/>,而不是因为主机取消了尝试。
+    /// 返回 <paramref name="exception"/> 是否因为调用方取消了
+    /// <paramref name="cancellationToken"/> 而结束操作，而非宿主取消了执行尝试。
     /// </summary>
     internal static bool IsCallerCancellation(OperationCanceledException exception, CancellationToken cancellationToken)
         => cancellationToken.IsCancellationRequested && exception is not DurableTaskAttemptCanceledException;
 
     /// <summary>
-    /// 要求持久取消这一背景下的任务,包括 <paramref name="reason"/>。
+    /// 请求持久化取消此上下文正在运行的任务，并携带 <paramref name="reason"/>。
     /// </summary>
     /// <param name="reason">
-    /// 为何没有报告 <see cref="TaskCancellationReason"/> 或 <see langword="null"/> 的理由。
-    /// 确定原因, 所以重播放取消任务时重放的主机会传递它记录该任务的原因
-    /// 取消。
+    /// <see cref="TaskCancellationReason"/> 所报告的原因，若无原因则为 <see langword="null"/>。首次请求
+    /// 决定该原因，因此宿主在重放已取消的任务时，会传入与任务取消一起记录的
+    /// 原因。
     /// </param>
     /// <remarks>
-    /// 主机对请求记录可持久保存,并记录执行处方首先观察的时间点。
-    /// 当处决达到那个点时, 执行的调度器上写着: 在第一个运行期, 当请求到达的时候,
-    /// 重播时,重放时会看到原运行时的取消。
-    /// 请求设置 <see cref="IsTaskCancellationRequested"/> ,然后取消 <see cref="CancellationToken"/>,
-    /// 登记同步运行,如同对任何 <see cref="CancellationTokenSource"/>一样。后来的请求更改
-    /// 什么都没有。
+    /// 宿主持久化记录请求，并记录此执行实例首次观察到请求的位置。宿主会在
+    /// 执行实例到达该点时，在其调度器上调用此方法：首次运行中为请求到达时，
+    /// 并在重放时于记录的位置调用，因此重放会在原始运行观察到取消的位置观察到取消。该
+    /// 请求设置 <see cref="IsTaskCancellationRequested"/>，然后取消 <see cref="CancellationToken"/>，其
+    /// 注册的回调会同步运行，与任何 <see cref="CancellationTokenSource"/> 的行为相同。后续请求不会改变
+    /// 任何内容。
     /// </remarks>
     protected internal void RequestTaskCancellation(string? reason)
     {
@@ -424,14 +424,14 @@ public abstract class DurableTaskContext
         _cancellationSource.Cancel();
     }
 
-    /// <summary>取消对 <paramref name="reason"/>的这一尝试。</summary>
-    /// <param name="reason">为什么尝试被取消。</param>
+    /// <summary>以 <paramref name="reason"/> 为原因取消本次执行尝试。</summary>
+    /// <param name="reason">取消执行尝试的原因。</param>
     /// <remarks>
-    /// 执行的调度器上调用主机呼叫此功能。 取消设置 <see cref="AttemptCancellationReason"/>, 然后
-    /// 注销 <see cref="AttemptCancellationToken"/> ,然后 <see cref="CancellationToken"/>,登记运行
-    /// 并肩同步 从那时起,尝试的持久操作
-    /// <see cref="DurableTaskAttemptCanceledException"/> 之后的电话一无所有
-    /// 东道国排干一切努力,放弃回应。
+    /// 宿主在执行实例的调度器上调用此方法。取消会设置 <see cref="AttemptCancellationReason"/>，然后
+    /// 依次取消 <see cref="AttemptCancellationToken"/> 和 <see cref="CancellationToken"/>，其注册的回调会
+    /// 同步运行。从此以后，执行尝试中的持久化操作会抛出
+    /// <see cref="DurableTaskAttemptCanceledException"/>，携带首次调用指定的原因；后续调用不会更改任何内容。
+    /// 宿主等待本次执行尝试结束并丢弃其响应。
     /// </remarks>
     protected internal void CancelAttempt(DurableTaskAttemptCancellationReason reason)
     {
@@ -452,15 +452,15 @@ public abstract class DurableTaskContext
         }
     }
 
-    /// <summary>断言主机在运行此执行的调度器上调用这个功能,而该设置是它自己的状态。</summary>
+    /// <summary>断言宿主在运行此执行实例且拥有其状态的调度器上调用此方法。</summary>
     private void AssertOnScheduler()
         => Debug.Assert(
             TaskScheduler.Current == _scheduler,
             "A durable execution's state is confined to the scheduler which was current when its host created its context.");
 
     /// <summary>
-    /// 当任务代码从运行此执行的调度器中脱落时, 丢弃 <see cref="InvalidOperationException"/>
-    /// 无法命令或记录其行动
+    /// 任务代码在运行此执行实例的调度器之外运行时抛出 <see cref="InvalidOperationException"/>，
+    /// 因为在其他调度器上无法对其操作进行排序或记录。
     /// </summary>
     private void ThrowIfOffScheduler()
     {
@@ -471,37 +471,37 @@ public abstract class DurableTaskContext
     }
 
     /// <summary>
-    /// 开始,或重新连接 <paramref name="taskDefinition"/> 下 <paramref name="taskId"/>,记录开始
-    /// 执行中。
+    /// 启动或重新附接到 <paramref name="taskDefinition"/>（使用标识符 <paramref name="taskId"/>），并将启动记录
+    /// 保存到此执行实例中。
     /// </summary>
     /// <param name="taskId">
-    /// 生儿 <see cref="Id"/> 所附任务或一
-    /// <see cref="DurableTaskStartOptions.Detached"/> 任务。
+    /// 对于附接任务，是 <see cref="Id"/> 的子标识符；对于
+    /// <see cref="DurableTaskStartOptions.Detached"/> 任务，则是根标识符。
     /// </param>
-    /// <param name="taskDefinition">要开始的定义。</param>
-    /// <param name="options">任务与执行过程以及开始完成时的关系如何。</param>
-    /// <param name="cancellationToken">放弃开始的象征, 它不会取消任务 。</param>
-    /// <returns>执行时观察任务的一个手柄。</returns>
+    /// <param name="taskDefinition">要启动的任务定义。</param>
+    /// <param name="options">任务与此执行实例的关系，以及启动操作何时完成。</param>
+    /// <param name="cancellationToken">用于放弃启动操作的取消令牌。它不会取消任务本身。</param>
+    /// <returns>供此执行实例观察任务的句柄。</returns>
     /// <remarks>
     /// <para>
-    /// 主机记录执行树的起始点, 以及任务开始, 所以一个重放到
-    /// 附加任务就是孩子
-    /// <paramref name="taskId"/>,该执行人拥有:取消该处决后,儿童将获得其被撤销,除非开始
-    /// 被遮蔽,正如 <see cref="SchedulesShieldedChildren"/> 报告的那样。一个独立的任务是一个独立的根根,没有
-    /// 取消、中止或删除此执行的执行到。在独立任务中的执行名
-    /// 以订阅者开始, 所以返回的控点会收到任务结果; 取消该控点, 或者此
-    /// 执行中,仅结束订阅。
+    /// 宿主将启动记录保存到此执行实例的树中，并与任务的启动一起记录，因此重放到达
+    /// 该记录时会观察同一个任务，而不会启动另一个任务。附接任务是子任务
+    /// <paramref name="taskId"/>，由此执行实例拥有；其取消会传播到子任务，除非启动时
+    /// 受到屏蔽保护（由 <see cref="SchedulesShieldedChildren"/> 报告）。分离任务是独立的根任务，不受此执行实例的
+    /// 取消、中止或删除影响。宿主在分离任务的
+    /// 启动记录中将此执行实例指定为订阅者，因此返回的句柄能够接收任务结果；取消句柄或此
+    /// 执行实例只会结束该订阅。
     /// </para>
     /// <para>
-    /// 在一个标识符下开始,执行时记录在该标识符下,当定义发生时,该标识符与所记录的任务重新连接
-    /// 同一请求, 并返回其处理。 在所记录的识别符号下的另一个请求是差异:
-    /// 主机不启动便以 <see cref="DurableTaskAttemptCancellationReason.Diverged"/> 取消尝试 。
+    /// 当在此执行实例已经记录的标识符下启动任务且定义表示同一个请求时，会重新附接到已记录的任务，
+    /// 并返回其句柄。如果在已记录的标识符下发起不同请求，则发生重放分歧：
+    /// 宿主以 <see cref="DurableTaskAttemptCancellationReason.Diverged"/> 为原因取消执行尝试，不会启动该任务。
     /// </para>
     /// <para>
-    /// 一旦启动时间持久,返回的操作即完成。
-    /// <see cref="DurableTaskStartOptions.WaitForAcceptance"/>,一旦任务所在东道方也接受并完成
-    /// 长期保存任务,或知道任务的结果,这样任务的身份识别特征可以交给其他当事人
-    /// 来解决这个问题。
+    /// 返回的操作会在启动记录持久化后完成。使用
+    /// <see cref="DurableTaskStartOptions.WaitForAcceptance"/> 时，还需要等到任务宿主已接受并
+    /// 持久化存储该任务，或者任务结果已经明确，才会完成；这样任务标识符便可交给其他参与方
+    /// 用于寻址该任务。
     /// </para>
     /// </remarks>
     protected internal abstract ValueTask<IScheduledTaskHandle> StartTaskAsync(
@@ -511,22 +511,22 @@ public abstract class DurableTaskContext
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// 阶段 <paramref name="taskDefinition"/> 开始阶段,在 <paramref name="taskId"/> 之下,并记录在此
-    /// 执行时同步。
+    /// 暂存 <paramref name="taskDefinition"/> 的启动操作（使用标识符 <paramref name="taskId"/>），并将该操作记录在此
+    /// 执行实例中；上述过程同步进行。
     /// </summary>
     /// <param name="taskId">
-    /// 生儿 <see cref="Id"/> 所附任务或一
-    /// <see cref="DurableTaskStartOptions.Detached"/> 任务。
+    /// 对于附接任务，是 <see cref="Id"/> 的子标识符；对于
+    /// <see cref="DurableTaskStartOptions.Detached"/> 任务，则是根标识符。
     /// </param>
-    /// <param name="taskDefinition">要开始的定义。</param>
+    /// <param name="taskDefinition">要启动的任务定义。</param>
     /// <param name="options"><see cref="DurableTaskStartOptions.None"/> 或 <see cref="DurableTaskStartOptions.Detached"/>。</param>
-    /// <returns>执行时观察任务的一个手柄。</returns>
+    /// <returns>供此执行实例观察任务的句柄。</returns>
     /// <remarks>
-    /// 主办方开始阶段和在呼叫代码栏转时的记录, 并承诺执行下一个主办方的耐久性
-    /// 与该转弯时的状态变化一起写入。进入记录中的重放返回相同的
-    /// 将任务与此执行相联系
-    /// <see cref="StartTaskAsync"/> 描述。无法启动启动的主机同步保存此默认值
-    /// 执行中,投出 <see cref="NotSupportedException"/>。
+    /// 宿主在调用代码所在的执行轮次中暂存启动操作及其记录，两者会随宿主的下一次持久化
+    /// 写入一起提交，同时提交该轮次所做的状态变更。重放到达记录时会返回同一个
+    /// 句柄，而不会再次启动任务。各选项所指定的任务与此执行实例的关系如
+    /// <see cref="StartTaskAsync"/> 所述。无法同步暂存启动操作的宿主保留此默认
+    /// 实现，该实现抛出 <see cref="NotSupportedException"/>。
     /// </remarks>
     protected internal virtual IScheduledTaskHandle PostTask(
         TaskId taskId,
@@ -534,28 +534,28 @@ public abstract class DurableTaskContext
         DurableTaskStartOptions options)
         => throw new NotSupportedException("The durable execution host does not support posting tasks.");
 
-    /// <summary>附表12. 截止 <paramref name="dueTime"/>.</summary>
+    /// <summary>调度在 <paramref name="dueTime"/> 到期的持久化延迟。</summary>
     protected internal abstract ValueTask<DurableTaskResponse> ScheduleDelayAsync(
         TaskId taskId,
         DateTimeOffset dueTime,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// 与尸体的最终代码同步 收到行刑时的终端响应
+    /// 当此执行实例的任务体完成时接收其终态响应，与任务体的最后部分代码同步执行。
     /// </summary>
-    /// <param name="response">身体的终端响应。</param>
+    /// <param name="response">任务主体的终态响应。</param>
     /// <remarks>
     /// <para>
-    /// 运行机构在连续运行任何物体之前称为此名称的定义: a <see langword="async"/>
-    /// 长期任务方法称它从完成状态机器的步数起,代表定义则称它
-    /// 或与其工作同步的延续。
+    /// 运行任务主体的定义会在主体的任何延续任务运行之前调用此方法：<see langword="async"/>
+    /// 持久化任务方法从完成其状态机的步骤中调用此方法；委托定义则
+    /// 从完成委托的工作项中调用，或者从与该工作项同步运行的延续任务中调用。
     /// </para>
     /// <para>
-    /// 负责国家变更的东道主将机构与机构结果一起进行修改,例如日记 grain
-    /// 状态, 在此阶段结果。 工作在身体最终代码之后进行, 例如一个承诺
-    /// 操作请求, 然后将结果与代码所做的修改一起实施。 主机仍然接收
-    /// 答复: <see cref="DurableTask.RunAsync(DurableTaskContext)"/>执行返回
-    /// 丢弃。 默认执行无任何作用 。
+    /// 如果宿主将任务主体所做的状态变更（例如 Grain 的日志化
+    /// 状态）与主体结果一起提交，则会在此处暂存结果。在主体的最后一段代码之后运行的工作，例如由另一
+    /// 操作请求的提交，会将此结果与上述代码所做的变更一起提交。宿主仍然通过
+    /// <see cref="DurableTask.RunAsync(DurableTaskContext)"/> 接收响应。实现必须正常返回，不得
+    /// 抛出异常。默认实现不执行任何操作。
     /// </para>
     /// </remarks>
     protected internal virtual void OnBodyCompleted(DurableTaskResponse response)
@@ -563,14 +563,14 @@ public abstract class DurableTaskContext
     }
 
     /// <summary>
-    /// 等待执行中包含该执行的引用任务中名为 <paramref name="name"/> 的信号,
-    /// 返回一个成功响应, 显示信号的记录值。
+    /// 等待包含此执行实例的被调用任务中名为 <paramref name="name"/> 的信号，
+    /// 并返回携带该信号已记录值的成功响应。
     /// </summary>
     /// <remarks>
-    /// 主机记录了它为每个引用任务的名称而收到的第一个值, 以及该任务的状况,
-    /// 并返回到该名字的每一个等待位置, 包括重放中的等待。 等待前发出的信号
-    /// 立即完成。取消 <paramref name="cancellationToken"/> 后放弃等待。不执行的东道主
-    /// 支持信号将保留默认执行, 这会投出 <see cref="NotSupportedException"/>。
+    /// 宿主记录收到的被调用任务每个名称对应的第一个信号值，并与任务状态一起保存，
+    /// 将其返回给等待该名称的每个操作，包括重放期间的等待。如果信号早于等待到达，
+    /// 则立即完成等待。取消 <paramref name="cancellationToken"/> 会放弃等待。不支持
+    /// 信号的宿主保留此默认实现，该实现抛出 <see cref="NotSupportedException"/>。
     /// </remarks>
     protected internal virtual ValueTask<DurableTaskResponse> WaitForSignalAsync(
         string name,
@@ -578,27 +578,27 @@ public abstract class DurableTaskContext
         => throw new NotSupportedException("The durable execution host does not support signals.");
 
     /// <summary>
-    /// 返回一名已完成的候选人,每次通话时返回同一候选人
-    /// <paramref name="decisionId"/>,包括重播时的电话
+    /// 返回一个已完成的候选任务；对于具有相同
+    /// <paramref name="decisionId"/> 的每次调用（包括重放期间的调用），都返回同一个候选任务。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 候选人是先完成的:东道主根据 <paramref name="decisionId"/>继续挑选,
-    /// 或从耐久的完工单中提取,例如每次在东道方
-    /// 长期秩序不需要记录:完成的候选人在每一候选人中顺序最低的完整候选人相同。
-    /// 重播,因为后来完成的候选人得到更高的顺序。
+    /// 选中的候选任务是最先完成的任务：宿主在 <paramref name="decisionId"/> 下持久化选择结果，
+    /// 或依据持久化完成顺序推导出该结果，例如宿主暂存每个终态结果时赋予的序号。
+    /// 这种持久化顺序无需额外记录选择结果：每次重放时，已完成候选任务中序号最小的那个都相同，
+    /// 因为之后完成的候选任务会获得更大的序号。
     /// </para>
     /// <para>
-    /// <see cref="DurableTask.WhenAny(IReadOnlyList{DurableTask})"/> 以一个呼唤选择赢家,
-    /// <see cref="ScheduledTask.WhenEach(IReadOnlyList{ScheduledTask})"/> 选择下一项任务,在
-    /// 其余候选人,根据不同的决定识别符号。 <paramref name="candidates"/> 仅在
-    /// 电话
+    /// <see cref="DurableTask.WhenAny(IReadOnlyList{DurableTask})"/> 通过一次调用选择最先完成的任务，而
+    /// <see cref="ScheduledTask.WhenEach(IReadOnlyList{ScheduledTask})"/> 每次调用都在
+    /// 剩余候选任务中选择下一个任务，且使用不同的决策标识符。宿主读取 <paramref name="candidates"/> 的时机仅限于
+    /// 本次调用期间。
     /// </para>
     /// <para>
-    /// 主机返回一个选择,即使重播的候选人不再包含该选择,但当重放的候选人不再包含它时,主机仍会记录此选择,因为
-    /// 代码已更改。调用操作后取消尝试
-    /// <see cref="DurableTaskAttemptCancellationReason.Diverged"/>,因此任务将一直等待到符合代码
-    /// 记录重播它。
+    /// 即使代码发生变更，导致重放时的候选任务不再包含先前记录的选择结果，宿主仍会返回该结果。
+    /// 随后调用操作会以如下原因取消执行尝试：
+    /// <see cref="DurableTaskAttemptCancellationReason.Diverged"/>，因此任务保持待处理状态，直到与
+    /// 记录匹配的代码再次重放该任务。
     /// </para>
     /// </remarks>
     protected internal abstract ValueTask<TaskId> SelectCompletionAsync(
@@ -607,23 +607,23 @@ public abstract class DurableTaskContext
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// 创建此执行下次操作的标识符, 使用提供时 <paramref name="name"/> 。
+    /// 创建此执行实例下一个操作的标识符；如果提供了 <paramref name="name"/>，则使用该名称。
     /// </summary>
     /// <remarks>
-    /// 重复一次的一个名字按顺序标明其后来发生的情况:第一个是 <paramref name="name"/>,
-    /// 后附其节文,如 <c>reserve$2</c>,以便被环名的儿童保留其识别资料。
-    /// 重放。 命名儿童, 命名组合器, 以及 <see cref="DurableTask.RunInline{TResult}(string, Func{TResult})"/>
-    /// 效果是每个名字共一个数。名称不包含 <c>$</c>,而该名称生成了识别符的使用。
-    /// 和未命名 <see cref="DurableTask.RunInline{TResult}(Func{TResult})"/> 效果共产生一个数
-    /// 身份识别符号, <c>$child-1</c>、 <c>$child-2</c>等。
-    /// 以相同的确定顺序创建操作。
+    /// 同一次运行中重复使用的名称按出现顺序标识后续各次操作：第一次使用 <paramref name="name"/>，
+    /// 后续出现会追加序号，例如 <c>reserve$2</c>，因此循环中命名的子任务能够在
+    /// 重放时保持标识不变。命名子任务、命名组合器和 <see cref="DurableTask.RunInline{TResult}(string, Func{TResult})"/>
+    /// 效果按名称共享计数。名称不能包含生成标识符所使用的 <c>$</c>。无名称的子任务
+    /// 与无名称的 <see cref="DurableTask.RunInline{TResult}(Func{TResult})"/> 效果共享生成标识符的计数，
+    /// 例如 <c>$child-1</c>、<c>$child-2</c> 等。当无名称的
+    /// 操作以相同的确定性顺序创建时，生成的标识符在重放中保持稳定。并发批次可使用
     /// <see cref="DurableTask.WhenAll(IReadOnlyList{DurableTask})"/> 和
-    /// <see cref="DurableTask.WhenAny(IReadOnlyList{DurableTask})"/>,其输入指数提供稳定的逻辑时段。
-    /// 同时进行独立的时间安排工作,包括同时进行分组召集的祈祷、使用明确姓名或
-    /// 以确定性顺序开始
+    /// <see cref="DurableTask.WhenAny(IReadOnlyList{DurableTask})"/>，其输入索引提供稳定的逻辑位置。
+    /// 独立的并发调度操作（包括并发的组合器调用）应使用显式名称，或
+    /// 以其他方式确保按确定性顺序启动。
     /// </remarks>
-    /// <exception cref="ArgumentException"><paramref name="name"/> 是空或包含 <c>$</c>.</exception>
-    /// <exception cref="InvalidOperationException">呼叫代码在效果上运行,或从执行的排程器上运行。</exception>
+    /// <exception cref="ArgumentException"><paramref name="name"/> 为空或包含 <c>$</c>。</exception>
+    /// <exception cref="InvalidOperationException">调用代码正在效果中运行，或在执行实例的调度器之外运行。</exception>
     internal TaskId CreateChildTaskId(string? name)
     {
         if (name is not null)
@@ -638,26 +638,26 @@ public abstract class DurableTaskContext
     }
 
     /// <summary>
-    /// 获取执行此执行的东道主的身份,例如其 grain,它符合根标识符
-    /// 执行的源代码是它开始的分离任务,或 <see langword="null"/> 毫无理由。
+    /// 获取运行此执行实例的宿主标识（例如其 Grain），用于限定
+    /// 此执行实例为所启动的分离任务派生的根标识符；若无宿主标识则为 <see langword="null"/>。
     /// </summary>
     /// <remarks>
-    /// 任务识别符在宿主内部是独特的,所以对两个宿主的处决可以共同执行。
-    /// 开始针对目标执行分离任务, 其他主机也开始提供身份的任务,
-    /// 衍生根标识符不同。
+    /// 任务标识符在其宿主内唯一，因此两个宿主上的执行实例可以拥有相同标识符。若宿主上的执行实例
+    /// 在其他宿主也会启动任务的目标上启动分离任务，则此宿主应提供自身标识，使各执行实例
+    /// 所派生的根标识符互不相同。
     /// </remarks>
     protected internal virtual string? HostId => null;
 
     /// <summary>
-    /// 创建独立任务根标识符,此执行作为运行开始
+    /// 为此执行实例作为自身操作启动的分离任务创建根标识符，操作为
     /// <paramref name="operationId"/>.
     /// </summary>
     /// <remarks>
-    /// 根标识符是一个单段, 当主机有 <see cref="HostId"/>的路径时, 它会保存此路径的剩余路径 。
-    /// 之后的 <paramref name="operationId"/>: <c>{HostId}/{Id}/{segment}</c>,其中每一部分
-    /// 逃离其 <c>/</c> 和 <c>\</c> 年为 <see cref="TaskId"/> 不同的东道主、处决和操作
-    /// 产生不同的根, 达到同一操作的重放产生相同的根, 而其他方则产生同样的根
-    /// 和操作的部件
+    /// 根标识符是一个单独的段，其中包含 <see cref="HostId"/> 的转义路径（如果宿主具有该标识），
+    /// 后接 <paramref name="operationId"/> 的各个段：<c>{HostId}/{Id}/{segment}</c>，其中每个部分
+    /// 都对其中的 <c>/</c> 和 <c>\</c> 进行转义，方式与 <see cref="TaskId"/> 相同。因此，不同宿主、执行实例及操作
+    /// 派生不同的根标识符；重放到达同一操作时会派生出同一根标识符，其他参与方可根据
+    /// 宿主标识、执行实例标识符及操作的段来派生该根标识符。
     /// </remarks>
     internal TaskId CreateDetachedRootId(TaskId operationId)
     {
@@ -666,21 +666,21 @@ public abstract class DurableTaskContext
         return TaskId.CreateRoot(HostId is { } hostId ? $"{TaskId.CreateRoot(hostId)}/{path}" : path);
     }
 
-    /// <summary>创建未命名的组合器或选择类型 <paramref name="kind"/>.</summary>
+    /// <summary>创建类型为 <paramref name="kind"/> 的无名称组合器或选择操作的标识符。</summary>
     /// <remarks>
-    /// 每种种类都计算自己的业务,例如 <c>$when-any-1</c> 和 <c>$when-any-2</c>,因此数量变化
-    /// 一种操作不会改变另一种类型的识别特征。
+    /// 每种类型都独立统计其操作，例如 <c>$when-any-1</c> 和 <c>$when-any-2</c>，因此一种类型的操作数量
+    /// 发生变化时，不会改变另一种类型的标识符。
     /// </remarks>
     internal TaskId CreateOperationId(string kind) => Id.Child($"${kind}-{NextOccurrence(GeneratedSegmentPrefix + kind).ToString(CultureInfo.InvariantCulture)}");
 
     /// <summary>
-    /// 创建类型操作的标识符 <paramref name="kind"/> 中,该观察 <paramref name="subject"/>,
-    /// 诸如儿童等待的暂停期: <c>{segment}${kind}-{n}</c>,其中 <c>{segment}</c> 主题的区段
-    /// 和 <c>{n}</c> 计算有关该主题的此类操作。
+    /// 创建类型为 <paramref name="kind"/> 且观察 <paramref name="subject"/> 的操作标识符，
+    /// 例如子任务等待的超时：<c>{segment}${kind}-{n}</c>，其中 <c>{segment}</c> 是操作对象的路径段
+    /// 其中 <c>{n}</c> 表示针对该对象的此类操作的计数。
     /// </summary>
     /// <remarks>
-    /// 识别特征识别器仅取决于主题和该主题的早期操作,因此其他
-    /// 而不是被处决的孩子 需要下一个识别码
+    /// 该标识符仅取决于观察对象及此前针对该对象的同类操作，因此针对其他
+    /// 对象执行的操作不会改变该标识符。若操作对象不是此执行实例的子任务，则取该类型的下一个标识符。
     /// </remarks>
     internal TaskId CreateOperationId(string kind, TaskId subject)
     {
@@ -693,7 +693,7 @@ public abstract class DurableTaskContext
         return Id.Child($"{name}-{NextOccurrence(name).ToString(CultureInfo.InvariantCulture)}");
     }
 
-    /// <summary>计算在尝试中发生的 <paramref name="key"/> ,并从 1</summary>返回其正则。
+    /// <summary>统计本次执行尝试中 <paramref name="key"/> 的一次出现，并返回其从 1 开始的序号。</summary>
     private int NextOccurrence(string key)
     {
         ThrowIfOffScheduler();
@@ -704,7 +704,7 @@ public abstract class DurableTaskContext
         return occurrence;
     }
 
-    /// <summary>校验一个调用者提供的名称,该名称不能包含生成识别符号使用的 <c>$</c> 。</summary>
+    /// <summary>验证调用方提供的名称；名称不能包含生成标识符所使用的 <c>$</c>。</summary>
     internal static void ValidateName(string name, string paramName)
     {
         ArgumentException.ThrowIfNullOrEmpty(name, paramName);
@@ -717,28 +717,28 @@ public abstract class DurableTaskContext
     }
 
     /// <summary>
-    /// 获取调用代码是否在本次执行的覆盖区域内运行:
-    /// 执行封面,所以重放返回记录而不运行代码。
+    /// 获取调用代码是否正在此执行实例的记录覆盖区域内运行：该区域代码的结果由执行实例中的一条
+    /// 记录覆盖，因此重放时返回记录而不再运行代码。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 被覆盖区域是保存代码的机制之一,记录包含死刑执行历史之外的代码:
-    /// <see cref="DurableTask.RunInline{TResult}(string, Func{TResult})"/> 效果,同步运行, 和主机
-    /// 覆盖代码, 例如在日记状态上操作及其运行的回回调, 或者
-    /// 其结果一记录覆盖整个等待阶段的无与伦比的机构,例如交易。
+    /// 覆盖区域是使已被记录覆盖的代码不进入执行历史的一种机制：
+    /// 例如同步运行的 <see cref="DurableTask.RunInline{TResult}(string, Func{TResult})"/> 效果，以及宿主的
+    /// 覆盖代码，如日志状态上的操作及其运行的回调，或
+    /// 由一条记录跨越其各等待点覆盖其结果的异步任务体（例如事务的任务体）。
     /// </para>
     /// <para>
-    /// 在区域内,作为该区域的一部分,一个区域内的一个嵌套效应直接产生,没有识别特征或记录。
-    /// 和所有其他的持久操作,例如启动、延迟、信号等待、组合器或版本检查等
-    /// 在它取用标识符之前丢弃 <see cref="InvalidOperationException"/> 。主机不记录区域的
-    /// 进入州作为处决的自己。
+    /// 在区域内，嵌套的效果作为该区域的一部分直接运行，不具有自己的标识符或
+    /// 独立记录；其他所有持久化操作（例如启动、延迟、信号等待、组合器或版本检查）
+    /// 都会在取得标识符之前抛出 <see cref="InvalidOperationException"/>。宿主不会将该区域的
+    /// 对状态的访问记录为执行实例自身的访问。
     /// </para>
     /// </remarks>
     internal bool IsInCoveredRegion => _coveredDepth > 0 || (_coveredFlows > 0 && ReferenceEquals(CoveredFlow.Value, this));
 
     /// <summary>
-    /// 输入此执行的同步覆盖区域, 当返回值被在同一区域内处置时结束
-    /// 执行计划仪表上的代码同步运行
+    /// 进入此执行实例的同步记录覆盖区域，该区域在返回的值被释放时结束，且必须在执行实例调度器上的同一段
+    /// 同步代码执行期间结束。
     /// </summary>
     internal CoveredRegion EnterCoveredRegion()
     {
@@ -747,7 +747,7 @@ public abstract class DurableTaskContext
         return new(this);
     }
 
-    /// <summary>在同步覆盖区域运行效果代表。</summary>
+    /// <summary>在同步记录覆盖区域内运行效果的委托。</summary>
     internal TResult RunAsEffect<TState, TResult>(TState state, Func<TState, TResult> body)
     {
         using var region = EnterCoveredRegion();
@@ -755,12 +755,12 @@ public abstract class DurableTaskContext
     }
 
     /// <summary>
-    /// 运行非同步 <paramref name="body"/> ,作为执行整个过程的覆盖区域,包括
-    /// 其等待的继续,直到其完成任务。
+    /// 将异步 <paramref name="body"/> 的整个执行流作为此执行实例的一个记录覆盖区域运行，包括
+    /// 其等待操作的延续任务，直至其任务完成。
     /// </summary>
     /// <remarks>
-    /// 尸体从行刑的调度器开始, 当此方法在身体被处死后恢复时, 区域结束于此区域
-    /// 完成任务。其他执行过程, 尸体没有开始, 也没有覆盖。
+    /// 任务体在执行实例的调度器上启动，并在任务体完成后此方法恢复到该调度器时结束区域，
+    /// 此主体没有启动的执行实例中的其他执行流不在覆盖范围内。
     /// </remarks>
     internal async Task<TResult> RunInCoveredFlowAsync<TResult>(Func<Task<TResult>> body)
     {
@@ -775,7 +775,7 @@ public abstract class DurableTaskContext
             _coveredFlows--;
         }
 
-        // 标记流入身体的无同步流, 这个方法的流体一旦返回就会恢复。
+        // 标记随任务主体的异步执行流传播；主体返回后，此方法的执行流会恢复先前的标记。
         Task<TResult> StartCovered(Func<Task<TResult>> body)
         {
             var previous = CoveredFlow.Value;
@@ -791,7 +791,7 @@ public abstract class DurableTaskContext
         }
     }
 
-    /// <summary>结束一个同步覆盖区域,该区域已输入 <see cref="EnterCoveredRegion"/> 。</summary>
+    /// <summary>结束由 <see cref="EnterCoveredRegion"/> 进入的同步记录覆盖区域。</summary>
     internal readonly struct CoveredRegion(DurableTaskContext context) : IDisposable
     {
         /// <inheritdoc/>
@@ -799,16 +799,16 @@ public abstract class DurableTaskContext
     }
 
     /// <summary>
-    /// 创建此执行执行的命名操作的标识符: <paramref name="name"/> 首次发生于
-    /// 尝试的计算是 <c>{name}</c>,以后每次发生都附加其序号,例如 <c>reserve$2</c>。
+    /// 创建此执行实例中有名称的操作的标识符：<paramref name="name"/> 在本次执行尝试中
+    /// 第一次出现时使用 <c>{name}</c>，之后每次出现都追加序号，例如 <c>reserve$2</c>。
     /// </summary>
-    /// <param name="name">呼叫者提供的名称。</param>
+    /// <param name="name">调用方提供的名称。</param>
     /// <remarks>
-    /// 发生次数按试图制造它们的顺序编号,所以是产生同一名字的重放
-    /// 在同一顺序下,同一顺序中的操作指定相同的识别特征,而添加后一事件时不会更早重命名
-    /// 儿童、组合体和效果每个名字一个数,所以出现一个名字也是一样的
-    /// 找到另一种操作的宿主,该主机在
-    /// 用于报告重放的差异而不是运行操作的 。
+    /// 各次出现按执行尝试创建它们的顺序编号，因此重放时以相同顺序创建同名
+    /// 操作会分配相同的标识符，并且添加后续操作不会改变先前操作的名称。
+    /// 子任务、组合器和效果按名称共享计数，因此同一名称的一次出现具有相同的
+    /// 标识符，无论哪种操作使用它。如果宿主发现某个标识符下记录的是另一种操作，
+    /// 则报告重放分歧，而不是运行该操作。
     /// </remarks>
     internal TaskId CreateNamedChildId(string name)
     {
@@ -819,30 +819,30 @@ public abstract class DurableTaskContext
     }
 
     /// <summary>
-    /// 返回效果 <paramref name="effectId"/>记录的结果,或运行结果并记录其结果。
+    /// 返回效果 <paramref name="effectId"/> 已记录的结果，或者运行该效果并记录其结果。
     /// </summary>
-    /// <typeparam name="TState">国家类型 <paramref name="effect"/> 接收。</typeparam>
-    /// <param name="effectId">效果的识别特征, 儿童这次处决。</param>
-    /// <param name="state"> <paramref name="effect"/> 接收国。</param>
+    /// <typeparam name="TState"><paramref name="effect"/> 接收的状态的类型。</typeparam>
+    /// <param name="effectId">效果的标识符，是此执行实例的子标识符。</param>
+    /// <param name="state"><paramref name="effect"/> 接收的状态。</param>
     /// <param name="effect">
-    /// 运行效果并返回结果:结果,或它投出的例外。它不投出。
+    /// 运行效果并返回其结果：成功结果或其抛出的异常。该函数自身不会抛出异常。
     /// </param>
-    /// <returns>效果的结果, 东道方记录下来。</returns>
+    /// <returns>宿主记录的效果结果。</returns>
     /// <remarks>
     /// <para>
-    /// <see cref="DurableTask.RunInline{TResult}(string, Func{TResult})"/> 与任务身体同步调用此功能。 东道主
-    /// 记录在相同的同步工作中运行效果并分阶段进行记录,因此记录与下一个耐用
-    /// 与效果所生成的状态变化一起写入。 身体的每个后期运行, 包括重放,
-    /// 接收记录的结果时不运行效果。
+    /// <see cref="DurableTask.RunInline{TResult}(string, Func{TResult})"/> 从任务主体同步调用此方法。宿主
+    /// 在同一同步工作项内运行效果并暂存其记录，因此记录会随下一次持久化
+    /// 写入时会与效果所做的状态变更一起提交。任务主体的每次后续运行（包括重放）
+    /// 都会接收已记录的结果，而不再运行该效果。
     /// </para>
     /// <para>
-    /// 无法存储结果的主机, 例如因为其结果不序列化, 记录和返回
-    /// 失败, 所以每次运行都观察到同样的失败。 一个主机投出 <see cref="InvalidOperationException"/>
-    /// 当它无法在记录中播放效果时, 运行效果而不运行效果。 例如当它不能在状态变化中进行该效果的状态变化时
-    /// 调离主机的调度器。 当一个较早运行记录到另一种操作, 例如一步, 在
-    /// 效果的标识符,重放与记录的执行相区别:主机取消了
-    /// <see cref="DurableTaskAttemptCancellationReason.Diverged"/> ,但无效果,并保持任务待定。
-    /// 不支持记录效果的主机保留此默认执行, 即丢弃
+    /// 如果宿主无法存储结果，例如结果无法序列化，则会转而记录并返回该
+    /// 失败，使每次运行都观察到同样的失败。如果宿主无法将记录与效果的状态变更一起暂存，则会抛出 <see cref="InvalidOperationException"/>，
+    /// 而不会运行效果，例如此方法在
+    /// 宿主调度器之外被调用时。如果先前运行在效果的标识符下记录了另一种操作（例如步骤），
+    /// 则重放偏离了已记录的执行过程：宿主会以下列原因为由取消执行尝试：
+    /// <see cref="DurableTaskAttemptCancellationReason.Diverged"/>，而不运行效果，并使任务保持待处理状态。
+    /// 不支持记录效果的宿主保留此默认实现，该实现抛出
     /// <see cref="NotSupportedException"/>.
     /// </para>
     /// </remarks>
@@ -853,32 +853,32 @@ public abstract class DurableTaskContext
         => throw new NotSupportedException("The durable task host does not support DurableTask.RunInline.");
 
     /// <summary>
-    /// 返回此执行之后的修改 <paramref name="name"/> 版本,决定并记录
-    /// 死刑执行处方的第一次呼叫 名字。
+    /// 返回当前执行实例应遵循的变更 <paramref name="name"/> 的版本，并在
+    /// 当前执行实例首次使用该名称调用时确定并记录版本。
     /// </summary>
-    /// <param name="name">更改的验证名称。</param>
-    /// <param name="minSupported">呼叫代码支持的最老版本, 至少 <c>0</c>。</param>
-    /// <param name="maxSupported">最新版本,至少 <paramref name="minSupported"/>。</param>
-    /// <returns>执行版本,来自 <paramref name="minSupported"/> 至 <paramref name="maxSupported"/>.</returns>
+    /// <param name="name">已验证的变更名称。</param>
+    /// <param name="minSupported">调用代码支持的最早版本，至少为 <c>0</c>。</param>
+    /// <param name="maxSupported">最新版本，不小于 <paramref name="minSupported"/>。</param>
+    /// <returns>此执行实例的版本，范围为 <paramref name="minSupported"/> 至 <paramref name="maxSupported"/>。</returns>
     /// <remarks>
     /// <para>
-    /// <see cref="DurableTask.GetVersion(string, int, int)"/> 与任务身体同步调用此功能。 东道主
-    /// 返回执行记录或执行记录所附执行记录;否则它决定
-    /// <c>0</c> ,当先前的尝试记录了尚未达到的操作时,
-    /// <paramref name="maxSupported"/> 当他们没有, 记录下决定与处决。
+    /// <see cref="DurableTask.GetVersion(string, int, int)"/> 从任务主体同步调用此方法。宿主
+    /// 返回此执行实例或其外围执行实例已记录的版本；否则作出如下决定：
+    /// 若先前的执行尝试记录了此次执行尝试尚未到达的操作，则使用 <c>0</c>；否则
+    /// 采用 <paramref name="maxSupported"/>，并将该决策与执行实例一起记录。
     /// </para>
     /// <para>
-    /// 主机取消尝试 <see cref="DurableTaskAttemptCancellationReason.UnsupportedVersion"/> 时
-    /// 执行的版本不在支持范围外, 丢弃
-    /// <see cref="DurableTaskAttemptCanceledException"/> 其内心的例外,是
-    /// <see cref="DurableTaskVersionException"/>;任务待定。不支持版本的东道主保留此任务
-    /// 设置默认值,它会丢弃 <see cref="NotSupportedException"/>。
+    /// 当执行实例的版本超出支持范围时，宿主以 <see cref="DurableTaskAttemptCancellationReason.UnsupportedVersion"/> 为原因取消
+    /// 执行尝试，并抛出
+    /// <see cref="DurableTaskAttemptCanceledException"/>，其内部异常为
+    /// <see cref="DurableTaskVersionException"/>；任务保持待处理状态。不支持版本控制的宿主保留此
+    /// 默认实现，该实现抛出 <see cref="NotSupportedException"/>。
     /// </para>
     /// </remarks>
     protected internal virtual int GetVersion(string name, int minSupported, int maxSupported)
         => throw new NotSupportedException("The durable task host does not support DurableTask.GetVersion.");
 
-    /// <summary>返回此运行尝试所遵循的修改版本 <paramref name="name"/> 。</summary>
+    /// <summary>返回当前执行尝试所遵循的变更 <paramref name="name"/> 的版本。</summary>
     internal int DecideVersion(string name, int minSupported, int maxSupported)
     {
         ThrowIfCannotRunOperation();

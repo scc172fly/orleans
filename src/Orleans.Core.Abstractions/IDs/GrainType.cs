@@ -5,7 +5,7 @@ using System.Text;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 表示 grain的类型。
+    /// 表示 Grain 的类型。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public readonly struct GrainType : IEquatable<GrainType>, IComparable<GrainType>, ISerializable, ISpanFormattable
@@ -14,29 +14,29 @@ namespace Orleans.Runtime
         private readonly IdSpan _value;
 
         /// <summary>
-        /// 初始化 <see cref="GrainType"/> 结构的新实例。 
+        /// 初始化 <see cref="GrainType"/> 结构的新实例。
         /// </summary>
         /// <param name="id">
-        /// 身份证
+        /// 标识符。
         /// </param>
         public GrainType(IdSpan id) => _value = id;
 
         /// <summary>
-        /// 初始化 <see cref="GrainType"/> 结构的新实例。 
+        /// 初始化 <see cref="GrainType"/> 结构的新实例。
         /// </summary>
         /// <param name="value">
-        /// 原始 ID 值 。
+        /// 原始标识符值。
         /// </param>
         public GrainType(byte[] value) => _value = new IdSpan(value);
 
         /// <summary>
-        /// 初始化 <see cref="GrainType"/> 结构的新实例。 
+        /// 初始化 <see cref="GrainType"/> 结构的新实例。
         /// </summary>
         /// <param name="info">
-        /// 序列信息
+        /// 序列化信息。
         /// </param>
         /// <param name="context">
-        /// 背景。
+        /// 上下文。
         /// </param>
         private GrainType(SerializationInfo info, StreamingContext context)
         {
@@ -44,15 +44,15 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获得基本价值。
+        /// 获取底层值。
         /// </summary>
         public IdSpan Value => _value;
 
         /// <summary>
-        /// 返回此实例的跨度代表。
+        /// 返回此实例的 Span 表示。
         /// </summary>
         /// <returns>
-        /// 值的 <see cref="ReadOnlySpan{Byte}"/> 表示值。
+        /// 值的 <see cref="ReadOnlySpan{Byte}"/> 表示。
         /// </returns>
         public ReadOnlySpan<byte> AsSpan() => _value.AsSpan();
 
@@ -60,10 +60,10 @@ namespace Orleans.Runtime
         /// 创建新的 <see cref="GrainType"/> 实例。
         /// </summary>
         /// <param name="value">
-        /// 价值。
+        /// 值。
         /// </param>
         /// <returns>
-        /// 新创建的 <see cref="GrainType"/> 实例 。
+        /// 新创建的 <see cref="GrainType"/> 实例。
         /// </returns>
         public static GrainType Create(string value)
         {
@@ -74,19 +74,19 @@ namespace Orleans.Runtime
         /// <summary>
         /// 将 <see cref="GrainType"/> 转换为 <see cref="IdSpan"/>。
         /// </summary>
-        /// <param name="kind">下 grain 要转换的类型。</param>
-        /// <returns>对应对应 <see cref="IdSpan"/>.</returns>
+        /// <param name="kind">要转换的 Grain 类型。</param>
+        /// <returns>对应的 <see cref="IdSpan"/>。</returns>
         public static explicit operator IdSpan(GrainType kind) => kind._value;
 
         /// <summary>
         /// 将 <see cref="IdSpan"/> 转换为 <see cref="GrainType"/>。
         /// </summary>
-        /// <param name="id">要转换的id 区域。</param>
-        /// <returns>对应对应 <see cref="GrainType"/>.</returns>
+        /// <param name="id">要转换的标识符 Span。</param>
+        /// <returns>对应的 <see cref="GrainType"/>。</returns>
         public static explicit operator GrainType(IdSpan id) => new GrainType(id);
 
         /// <summary>
-        /// 获得一个值,以显示此实例是否为默认值。
+        /// 获取一个指示此实例是否为默认值的值。
         /// </summary>
         public bool IsDefault => _value.IsDefault;
 
@@ -100,20 +100,20 @@ namespace Orleans.Runtime
         public override int GetHashCode() => _value.GetHashCode();
 
         /// <summary>
-        /// 为该类型 grain 生成一个统一的、稳定的散列代码。 
+        /// 为此 Grain 类型生成均匀分布、稳定的哈希码。
         /// </summary>
         /// <returns>
-        /// 这件案子的制服和稳定
+        /// 此实例的均匀分布、稳定的哈希值。
         /// </returns>
         public uint GetUniformHashCode() => _value.GetUniformHashCode();
 
         /// <summary>
-        /// 返回 grain 类型实例下的数组。
+        /// 返回 Grain 类型实例的底层数组。
         /// </summary>
-        /// <param name="id"> grain 类型。</param>
-        /// <returns> grain 类型实例的矩阵。</returns>
+        /// <param name="id">Grain 类型。</param>
+        /// <returns>Grain 类型实例的底层数组。</returns>
         /// <remarks>
-        /// 返回的数组不得修改 。
+        /// 不得修改返回的数组。
         /// </remarks>
         public static byte[]? UnsafeGetArray(GrainType id) => IdSpan.UnsafeGetArray(id._value);
 
@@ -128,10 +128,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 返回此实例的字符串表示,将值解码为 UTF8。
+        /// 返回此实例的字符串表示，使用 UTF-8 解码其值。
         /// </summary>
         /// <returns>
-        /// 此处的 <see cref="string"/> 表示。
+        /// 此实例的 <see cref="string"/> 表示。
         /// </returns>
         public override string ToString() => _value.ToString();
 
@@ -141,19 +141,19 @@ namespace Orleans.Runtime
             => _value.TryFormat(destination, out charsWritten);
 
         /// <summary>
-        /// 与所提供的平等目标相比较。
+        /// 比较给定操作数是否相等。
         /// </summary>
-        /// <param name="left">左侧操作。</param>
-        /// <param name="right">右侧操作。</param>
-        /// <returns><see langword="true"/> 如果规定的数值相等,否则 <see langword="false"/>。</returns>
+        /// <param name="left">左操作数。</param>
+        /// <param name="right">右操作数。</param>
+        /// <returns>如果给定值相等，则为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
         public static bool operator ==(GrainType left, GrainType right) => left.Equals(right);
 
         /// <summary>
-        /// 比较所提供的不平等域。
+        /// 比较给定操作数是否不相等。
         /// </summary>
-        /// <param name="left">左侧操作。</param>
-        /// <param name="right">右侧操作。</param>
-        /// <returns><see langword="true"/> 如果所提供的数值不相等,否则 <see langword="false"/>.</returns>
+        /// <param name="left">左操作数。</param>
+        /// <param name="right">右操作数。</param>
+        /// <returns>如果给定值不相等，则为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
         public static bool operator !=(GrainType left, GrainType right) => !(left == right);
     }
 }

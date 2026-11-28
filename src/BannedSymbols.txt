@@ -1,4 +1,4 @@
-# Blocking task APIs can starve Orleans scheduler and thread pool threads.
+# 阻塞式任务 API 可能使 Orleans 调度器和线程池线程陷入饥饿。
 M:System.Threading.Tasks.Task.Wait;Await the task.
 M:System.Threading.Tasks.Task.Wait(System.Int32);Await the task and apply a cancellation token or WaitAsync timeout.
 M:System.Threading.Tasks.Task.Wait(System.Int32,System.Threading.CancellationToken);Await the task and apply a cancellation token or WaitAsync timeout.
@@ -16,6 +16,6 @@ M:System.Threading.Tasks.Task.WaitAny(System.Threading.Tasks.Task[],System.Int32
 M:System.Threading.Tasks.Task.WaitAny(System.Threading.Tasks.Task[],System.Threading.CancellationToken);Use Task.WhenAny and await it with the cancellation token.
 M:System.Threading.Tasks.Task.WaitAny(System.Threading.Tasks.Task[],System.TimeSpan);Use Task.WhenAny and await it with WaitAsync for the timeout.
 
-# Legacy serialization entry points are unsafe for Orleans payloads.
+# 旧式序列化入口对 Orleans 有效载荷而言不安全。
 T:System.Runtime.Serialization.Formatters.Binary.BinaryFormatter;Use Orleans.Serialization.Serializer for Orleans payloads or System.Text.Json.JsonSerializer for JSON.
 T:System.Runtime.Serialization.IFormatter;Use Orleans.Serialization.Serializer for Orleans payloads or System.Text.Json.JsonSerializer for JSON.

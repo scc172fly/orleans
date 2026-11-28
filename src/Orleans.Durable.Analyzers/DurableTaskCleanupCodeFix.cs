@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Orleans.Durable.Analyzers;
 
-/// <summary>替换 <c>CancellationToken</c> 与 <c>AttemptCancellationToken</c> 任务取消清理, 保存接收器 。</summary>
+/// <summary>在任务取消后的清理代码中将 <c>CancellationToken</c> 替换为 <c>AttemptCancellationToken</c>，并保留其接收对象。</summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(DurableTaskCleanupCodeFix)), Shared]
 public sealed class DurableTaskCleanupCodeFix : CodeFixProvider
 {
@@ -25,7 +25,7 @@ public sealed class DurableTaskCleanupCodeFix : CodeFixProvider
     /// <inheritdoc />
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        // C#文件总是有语法根。
+        // C# 文档始终具有语法根节点。
         var root = (await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false))!;
         var name = root.FindNode(context.Span, getInnermostNodeForTie: true) switch
         {

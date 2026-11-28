@@ -5,10 +5,10 @@ using Xunit;
 namespace DefaultCluster.Tests
 {
     /// <summary>
-    /// 测试 Orleans支持 grain 界面继承等级。
-    /// 验证 grains 能够正确安装扩展其他接口的界面,
-    /// 支持多个继承路径,正确暴露各级的方法
-    /// 界面等级。
+    /// Orleans 对 Grain 接口继承层次结构支持的测试。
+    /// 验证 Grain 能正确实现扩展其他接口的接口，
+    /// 支持多条继承路径，并正确公开接口层次结构中
+    /// 各级的方法。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -25,9 +25,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试一个 grain ,以实施简单的界面等级。
-        /// 在 grain 实施接口时验证基本界面继承
-        /// 来扩展一个基界面。
+        /// 测试实现简单接口层次结构的 Grain。
+        /// 验证基本接口继承，其中 Grain 实现一个
+        /// 扩展基接口的接口。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DoSomethingGrainEmptyTest()
@@ -37,9 +37,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试一个 grain ,以实施扩展的界面等级。
-        /// 验证 grains 能够实施添加额外方法的接口
-        /// 暴露了两组功能
+        /// 测试实现扩展接口层次结构的 Grain。
+        /// 验证 Grain 可以实现向基接口添加额外方法的接口，
+        /// 从而公开两组功能。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DoSomethingGrainEmptyWithMoreTest()
@@ -50,9 +50,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试一个 grain ,与多方法扩展执行接口。
-        /// 当接口扩展基界面时验证正确的方法解析
-        /// 具有额外功能。
+        /// 测试实现具有多个方法扩展的接口的 Grain。
+        /// 验证接口扩展基接口并提供额外功能时，
+        /// 能够正确解析方法。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DoSomethingWithMoreEmptyGrainTest()
@@ -63,9 +63,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 以不同的界面扩展模式测试 grain 。
-        /// 验证 grains 正确执行替代方法成套套件
-        /// 当扩展基界面时。
+        /// 测试具有不同接口扩展模式的 Grain。
+        /// 验证扩展基接口时 Grain 能正确实现
+        /// 不同的方法集合。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DoSomethingWithMoreGrainTest()
@@ -76,9 +76,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试一个 grain 执行多个接口继承路径。
-        /// 验证 grains 可以在以下位置执行复杂的界面等级结构
-        /// 多个界面被组合起来,暴露了所有继承的方法。
+        /// 测试具有多条接口继承路径的 Grain。
+        /// 验证 Grain 能实现复杂的接口层次结构，其中多个接口被组合，
+        /// 从而公开所有继承的方法。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DoSomethingCombinedGrainTest()
@@ -90,9 +90,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试州管理在不同界面等级体系执行中的管理情况。
-        /// 验证 grains 与不同界面等级结构保持独立
-        /// 并且国家业务通过继承的接口正确运作。
+        /// 测试不同接口层次结构实现之间的状态管理。
+        /// 验证具有不同接口层次结构的 Grain 维护独立的状态，
+        /// 且通过继承接口执行的状态操作能够正确工作。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DoSomethingValidateSingleGrainTest()

@@ -1,68 +1,68 @@
--- 在共享主脚本创建 OrleansQuery后应用此脚本设置和重复升级。
--- 在应用前停止使用此数据库的所有 silos , 然后重新启动以重新装入查询 。
--- 在程序重新建立后,再使用常规专项执行赠款。
+-- 共享的 Main 脚本创建 OrleansQuery 后，应用此脚本以执行初始化及可重复升级。
+-- 应用脚本前，停止所有使用此数据库的 Silo，之后重新启动以重新加载查询。
+-- 重新创建存储过程后，重新授予各例程专用的 EXECUTE 权限。
 --
--- 本表的设计标准是:
+-- 此表的设计准则如下：
 --
--- 1. 含有任意内容,其序号为二进制、XML或 JSON。
--- 支持,以便人们能够利用储存处理能力
--- 必要时,这些类型不应产生额外的储存费用。
+-- 1. 能够存储序列化为二进制、XML 或 JSON 的任意内容。支持这些格式，
+-- 是为了在需要时利用存储系统对相应类型的处理能力。
+-- 这不应增加存储开销。
 --
--- 2. 表格设计的规模应达到几十或数百(甚至更多)类型的设想
--- 联 年 月 日 月 日 月 月 日 grains 可能与甚至几十万个 grain 每一
--- 类型 grain。
+-- 2. 表的设计应能扩展至数十、数百（甚至更多）种
+-- Grain 类型，每种类型可能对应数十万个 Grain ID，
+-- 并支持这些 Grain 的运行。
 --
--- 3. 表格及其相关业务应保持稳定。
--- 造成业务意外延误的结构性结构原因,应有可能
--- 以合理的快速度插入数据,不引起资源争议。
+-- 3. 表及其相关操作应保持稳定，不应因
+-- 结构设计导致操作发生意外延迟。同时还应能
+-- 较快地插入数据，而不发生资源争用。
 --
--- 4. 由于2和3中的原因,指数应尽可能缩小范围,以便与
--- 并且如果需要维护, 资源并不密集。 为此
--- 指数因设计而缩小(估计非集群)。
--- 以 grain 类型及其ID在储存中识别,这些 Orleans silo类型和ID是独有的。
--- ID是 grain ID 字节(如果字符串类型UTF-8 字节)和可能的扩展密钥 UTF-8
--- 与身份识别符号连接的字节,然后散列。
+-- 4. 基于第 2、3 点，索引应尽可能窄，以便充分驻留
+-- 内存，并避免索引维护消耗过多资源。因此，
+-- 索引特意设计得较窄（理想情况下为非聚集索引）。目前存储系统
+-- 通过 Grain 类型及其 ID 识别实体，这两者的组合在 Orleans Silo 中唯一。
+-- ID 由 Grain ID 的字节（若为字符串类型则为 UTF-8 字节）与可能存在的扩展键的 UTF-8
+-- 字节拼接后计算哈希得到。
 --
--- 散列原因:数据库引擎通常限制列长度,
--- 即使在限制范围内,也
--- 指数会厚,消耗更多的内存。
+-- 使用哈希的原因：数据库引擎通常限制列的长度，
+-- 这会人为限制 ID 或类型的长度。即使未超限，
+-- 索引也会变得较宽并消耗更多内存。
 --
--- 在目前设置的设置中,ID和该类型被散成两个INT型式的情况,
--- 设定复合索引。当没有碰撞时,该索引可以快速定位
--- 与散列索引值一起, NVARCHAR(nnn) 值也
--- 存储后,它们被用来将散列碰撞处理成仅一个结果行。
+-- 在当前设计中，ID 和类型各自哈希为一个 INT 类型的值，
+-- 并构成复合索引。如果没有哈希冲突，索引可以快速定位
+-- 唯一的行。除了哈希索引值，还存储 NVARCHAR(nnn) 值，
+-- 以在发生哈希冲突时筛选出唯一的结果行。
 --
--- 5. 设计设计导致储存重复,有理由认为会
--- 具有特定服务标识的服务数量少,在任何特定时间都可运行。
--- 与 grain ID的数量相比,不同类型身份证的数目相对较少
--- grain. 捕获量是,如果这些数据被分离到另一个表格中,它就会使INSTERT
--- 以及最新业务复杂,需要合并、临时变数和额外
--- 或一些组合的指数来使其发挥作用。 它看起来像是合适的策略
--- 可以是使用压缩表格。
+-- 5. 此设计会导致存储中的数据重复。可以合理假设，
+-- 任意时刻具有特定服务 ID 的运行中服务数量较少，或者
+-- 相较于 Grain ID 的数量，
+-- 不同的 Grain 类型数量相当少。如果将这些数据拆分到另一张表，则 INSERT
+-- 和 UPDATE 操作会变得复杂，需要连接查询、临时变量、额外的
+-- 索引或这些手段的组合才能实现。比较合适的策略
+-- 可能是使用表压缩。
 --
--- 6. 出于上述原因, grain 州DDELETE将设置数据字段的NULL
--- 并通常更新版本号。这将减轻索引或索引的需要。
--- 统计维持数据,损失一些储存空间。
--- 单独维修操作。
+-- 6. 基于上述原因，Grain 状态的 DELETE 操作将数据字段设为 NULL，
+-- 并正常更新 Version 版本号。这会牺牲少量存储空间，但应能减轻索引或
+-- 统计信息的维护需求。可以在独立的维护操作中
+-- 清理该表。
 --
--- 7. 在储存业务中,各栏的查询顺序必须完全相同
--- 自存储表操作支持可选流以来。
+-- 7. 存储操作的查询结果中，各列的顺序必须完全一致，
+-- 因为存储表操作可选择使用流式处理。
 --
--- 8. 下一份版本的封号从214748364747回折到1,因此经常写 grain ,从不溢出
--- 32位数版本。 Orleans 比较版本时,只对等值进行比较,因此版本必须更改
--- 每一个写入都不需要永久增加, 但不需要永远增加。 版本的旧文本只能在
--- 2147483647 进一步写到同一份 grain。
+-- 8. Version 达到 2147483647 后，下一个值回绕至 1，因此频繁写入的 Grain 不会使
+-- 32 位 Version 溢出。Orleans 仅比较版本是否相等，因此每次写入时版本号必须变化，
+-- 但不需要始终递增。只有在对同一 Grain 又执行
+-- 2147483647 次写入后，旧版本号才可能再次匹配。
 CREATE TABLE IF NOT EXISTS OrleansStorage
 (
-    -- 这些是用来保存书本的 Orleans 计算
-    -- 这些人的( RelationalStorageProvide ),执行))、
-    -- 标记为32位整数,这些整数被映射到 *散列字段。
-    -- 绘图在代码中完成
-    -- *字符串列包含相应的清晰名称字段。
+    -- 这些字段用于记录管理。Orleans 计算
+    -- 这些哈希值（参见 RelationalStorageProvide 实现），
+    -- 它们是映射到 *Hash 字段的有符号 32 位整数。
+    -- 映射在代码中完成。
+    -- *String 列包含相应的原始名称。
     --
-    -- 如果存在重复,则使用 GrainIdN0解决,
-    -- GrainIdN1、 GrainIdExtensionString 和 GrainTypeString 字段。
-    -- 假定这些是很少需要的。
+    -- 若发生哈希冲突，则使用 GrainIdN0、
+    -- GrainIdN1、GrainIdExtensionString 和 GrainTypeString 字段区分发生哈希冲突的记录。
+    -- 预计很少需要这样做。
     GrainIdHash                INT NOT NULL,
     GrainIdN0                BIGINT NOT NULL,
     GrainIdN1                BIGINT NOT NULL,
@@ -71,20 +71,20 @@ CREATE TABLE IF NOT EXISTS OrleansStorage
     GrainIdExtensionString    NVARCHAR(512) NULL,
     ServiceId                NVARCHAR(150) NOT NULL,
 
-    -- 有效载荷
+    -- 有效载荷。
     PayloadBinary    BLOB NULL,
 
-    -- 信息字段,没有其他用途。
+    -- 仅供参考的字段，无其他用途。
     ModifiedOn DATETIME NOT NULL,
 
-    -- 储存的有效载荷的版本。
+    -- 已存储有效载荷的版本。
     Version INT NULL,
     INDEX IX_OrleansStorage (GrainIdHash, GrainTypeHash)
 
-    -- 以下原则上是首要关键,但太厚了
-    -- 需要索引,因此数值被仓散,只有碰撞才能解决
-    -- ,即,在索引查询确定右侧
-    -- 下至 [0, n] 相关行,n 指相对相撞价值对数。
+    -- 以下字段原则上应构成主键，但作为索引会过宽，
+    -- 因此对其值进行哈希，仅在发生哈希冲突时才
+    -- 使用这些字段区分发生哈希冲突的记录。也就是说，在索引查询将匹配的行
+    -- 缩小到 [0, n] 后（n 为发生冲突的值对数量），再使用这些字段。
 ) ROW_FORMAT = COMPRESSED KEY_BLOCK_SIZE = 16;
 
 DROP PROCEDURE IF EXISTS ClearStorage;
@@ -111,7 +111,7 @@ BEGIN
 
     SET _newGrainStateVersion = _GrainStateVersion;
 
-    -- 默认值是可重读的默认值, 可能导致差距锁定问题
+    -- 默认隔离级别为 REPEATABLE READ，可能导致间隙锁问题。
     SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
     START TRANSACTION;
     UPDATE OrleansStorage
@@ -156,7 +156,7 @@ BEGIN
 
     SET _newGrainStateVersion = _GrainStateVersion;
 
-    -- 默认值是可重读的默认值, 可能导致差距锁定问题
+    -- 默认隔离级别为 REPEATABLE READ，可能导致间隙锁问题。
     SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
     START TRANSACTION;
     DELETE FROM OrleansStorage
@@ -201,28 +201,28 @@ BEGIN
 
     SET _newGrainStateVersion = _GrainStateVersion;
 
-    -- 默认值是可重读的默认值, 可能导致差距锁定问题
+    -- 默认隔离级别为 REPEATABLE READ，可能导致间隙锁问题。
     SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
     START TRANSACTION;
 
-    -- Grain 状态并非无效, 因此该国必须已经读过之前存储处的文字 。
-    -- 让我们试着更新它。
+    -- Grain 状态不为 null，因此必定已从存储中读取过该状态。
+    -- 尝试更新该状态。
     --
-    -- 当 Orleans 在正常状态下运行时,如果该状态不分裂,将
-    -- 只有一个 grain ,只有给定的ID和类型组合。此
-    -- grain 如果 Orleans 保证得到坚持,则主要以序列形式保存国家。
-    -- 如果不是,由于版本号,更新应正确工作。
+    -- 当 Orleans 正常运行且未发生脑裂时，
+    -- 给定 ID 和类型组合仅对应一个 Grain。
+    -- 若 Orleans 的保证成立，该 Grain 基本上会串行保存状态。即使
+    -- 不满足这一点，版本号也能确保更新正确执行。
     --
-    -- 在分裂的大脑情况下,可能出现两种或两种以上的情况
-    -- 与给定的ID和类型组合grains 。当他们尝试 INSERT 时
-    -- 同时,表格需要以悲观的方式锁在
-    -- grains 得到 @GrainStateVersion = 1 回报,而另一个 grains 将失败
-    -- 以更新存储。以下安排是为了减少正常操作中的锁定。
+    -- 发生脑裂时，可能会出现两个或更多具有相同 ID 和类型组合的
+    -- Grain。当它们尝试并发执行 INSERT 时，
+    -- 必须先对表采用悲观锁，以确保其中一个
+    -- Grain 收到返回值 @GrainStateVersion = 1，而其他 Grain 无法
+    -- 更新存储。以下设计旨在减少正常运行时的锁定。
     --
-    -- 如果明确返回的版本号仍然相同, Orleans 解释其内容,更新没有成功
-    -- 抛下一箭, InconsistentStateException.
+    -- 如果显式返回的版本号仍未改变，Orleans 将其解释为更新失败，
+    -- 并抛出 InconsistentStateException。
     --
-    -- 见 https://learn.microsoft.com/dotnet/orleans/grains/grain-persistence中的进一步资料。
+    -- 更多信息见 https://learn.microsoft.com/dotnet/orleans/grains/grain-persistence。
     IF _GrainStateVersion IS NOT NULL
     THEN
         UPDATE OrleansStorage
@@ -248,8 +248,8 @@ BEGIN
         END IF;
     END IF;
 
-    -- grain 状态尚未读取。 以下锁的锁定相当悲观
-    -- 以确保只有INSTERT成功。
+    -- 尚未读取 Grain 状态。以下操作采用较严格的悲观锁策略，
+    -- 以确保只有一个 INSERT 成功。
     IF _GrainStateVersion IS NULL
     THEN
         INSERT INTO OrleansStorage
@@ -278,7 +278,7 @@ BEGIN
             1) AS TMP
         WHERE NOT EXISTS
         (
-            -- 不应有任何版本的 grain 状态。
+            -- 此 Grain 状态不应已有任何版本。
             SELECT 1
             FROM OrleansStorage
             WHERE

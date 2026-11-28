@@ -11,7 +11,7 @@ using Orleans.Runtime;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 //
-// #ifs 数量可以减少(或删除), 一旦我们按照特性/区域分开测试项目, 否则我们会最终出现大错特错。
+// 一旦按功能或领域拆分测试项目，就可以减少甚至移除 #if；否则会产生类型歧义及生成错误。
 //
 
 #if ORLEANS_CLUSTERING
@@ -31,21 +31,21 @@ namespace Orleans.Transactions.AzureStorage
 #elif ORLEANS_DIRECTORY
 namespace Orleans.GrainDirectory.AzureStorage
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 {
     /// <summary>
-    /// 用于封装 Azure 表存储的基于行的封闭访问工具类别。
+    /// 封装对 Azure Table Storage 按行访问的实用类。
     /// </summary>
-    /// <typeparam name="T">本表/管理人员使用的表格数据条目。</typeparam>
+    /// <typeparam name="T">此表或管理器使用的表数据记录类型。</typeparam>
     internal partial class AzureTableDataManager<T> where T : class, ITableEntity
     {
         private readonly AzureStorageOperationOptions options;
 
-        /// <summary> 此实例管理的表格名称 。 </summary>
+        /// <summary>此实例所管理的表名称。</summary>
         public string TableName { get; }
 
-        /// <summary> 用于此表管理器实例的 Logger。 </summary>
+        /// <summary>此表管理器实例使用的日志记录器。</summary>
         protected internal ILogger Logger { get; }
 
         public AzureStoragePolicyOptions StoragePolicyOptions { get; }
@@ -56,7 +56,7 @@ namespace Orleans.GrainDirectory.AzureStorage
         /// 创建新的 <see cref="AzureTableDataManager{T}"/> 实例。
         /// </summary>
         /// <param name="options">存储配置。</param>
-        /// <param name="logger">使用 Logger 键。</param>
+        /// <param name="logger">要使用的日志记录器。</param>
         public AzureTableDataManager(AzureStorageOperationOptions options, ILogger logger)
         {
             this.options = options ?? throw new ArgumentNullException(nameof(options));
@@ -69,10 +69,10 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 连接到或创建新 Azure 表格中尚未存在时。
+        /// 连接 Azure 表；如果表尚不存在，则创建并初始化新表。
         /// </summary>
-        /// <param name="cancellationToken">取消表格创建所用的标记。</param>
-        /// <returns>这一行动的完成承诺。</returns>
+        /// <param name="cancellationToken">用于取消表创建的令牌。</param>
+        /// <returns>表示此操作完成情况的异步任务。</returns>
         public async Task InitTableAsync(CancellationToken cancellationToken = default)
         {
             const string operation = "InitTable";
@@ -109,9 +109,9 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 删除 Azure 表格。
+        /// 删除 Azure 表。
         /// </summary>
-        /// <returns>这一行动的完成承诺。</returns>
+        /// <returns>表示此操作完成情况的异步任务。</returns>
         public async Task DeleteTableAsync()
         {
             const string operation = "DeleteTable";
@@ -138,9 +138,9 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 删除 Azure 表格中的所有实体。
+        /// 删除 Azure 表中的全部实体。
         /// </summary>
-        /// <returns>这一行动的完成承诺。</returns>
+        /// <returns>表示此操作完成情况的异步任务。</returns>
         public async Task ClearTableAsync()
         {
             var items = await ReadAllTableEntriesAsync();
@@ -151,19 +151,19 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 在 Azure 表格中创建新数据条目(插入新的,不更新现有数据)。
-        /// 如果数据已经存在,则会失败。
+        /// 在 Azure 表中创建新数据记录（插入新记录，而非更新现有记录）。
+        /// 数据已存在时失败。
         /// </summary>
-        /// <param name="data">数据将插入表格。</param>
-        /// <returns>完成存储操作后,为此数据输入新标签的数值承诺值。</returns>
+        /// <param name="data">要插入表中的数据。</param>
+        /// <returns>异步任务，完成此存储操作后返回该数据条目的新 ETag。</returns>
         public Task<string> CreateTableEntryAsync(T data) => CreateTableEntryAsync(data, CancellationToken.None);
 
         /// <summary>
-        /// 使用所提供取消的代号创建新的表格项。
+        /// 使用提供的取消令牌创建新表记录。
         /// </summary>
-        /// <param name="data">要插入的条目。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>新条目的 ETag。</returns>
+        /// <param name="data">要插入的记录。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>新记录的 ETag。</returns>
         public async Task<string> CreateTableEntryAsync(T data, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -191,10 +191,10 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 在 Azure 表格中插入数据条目:在没有数据条目的情况下创建新的数据条目,如果没有数据条目或已经存在的版本(没有 eTag)的覆盖项(“更新在原地”语义)。
+        /// 在 Azure 表中插入数据记录：若不存在则创建新记录，否则覆盖现有版本（不检查 ETag，采用就地更新语义）。
         /// </summary>
-        /// <param name="data">数据将插入或替换在表格中。</param>
-        /// <returns>完成存储操作后,为此数据输入新标签的数值承诺值。</returns>
+        /// <param name="data">要插入表中或替换现有记录的数据。</param>
+        /// <returns>异步任务，完成此存储操作后返回该数据条目的新 ETag。</returns>
         public async Task<string> UpsertTableEntryAsync(T data)
         {
             const string operation = "UpsertTableEntry";
@@ -220,10 +220,10 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 在 Azure 表格中插入数据条目:在没有数据的情况下创建新数据条目
+        /// 在 Azure 表中插入数据记录：若不存在则创建新记录。
         /// </summary>
-        /// <param name="data">数据将插入或替换在表格中。</param>
-        /// <returns>完成存储操作后,为此数据输入新标签的数值承诺值。</returns>
+        /// <param name="data">要插入表中或替换现有记录的数据。</param>
+        /// <returns>异步任务，完成此存储操作后返回该数据条目的新 ETag。（译注：实际返回包含成功标志和 ETag 的元组，发生插入冲突时返回 (false, null)。）</returns>
         public async Task<(bool isSuccess, string? eTag)> InsertTableEntryAsync(T data)
         {
             const string operation = "InsertTableEntry";
@@ -253,21 +253,21 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 合并 Azure 表格中的数据条目。
+        /// 合并 Azure 表中的数据记录。
         /// </summary>
-        /// <param name="data">数据将合并到表格中。</param>
-        /// <param name="eTag">申请的ETag。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>完成存储操作后,为此数据输入新标签的数值承诺值。</returns>
+        /// <param name="data">要合并到表中的数据。</param>
+        /// <param name="eTag">要应用的 ETag。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>异步任务，完成此存储操作后返回该数据条目的新 ETag。</returns>
         internal Task<string> MergeTableEntryAsync(T data, string eTag, CancellationToken cancellationToken = default) => MergeTableEntryAsync(data, new ETag(eTag), cancellationToken);
 
         /// <summary>
-        /// 合并 Azure 表格中的数据条目。
+        /// 合并 Azure 表中的数据记录。
         /// </summary>
-        /// <param name="data">数据将合并到表格中。</param>
-        /// <param name="eTag">申请的ETag。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>完成存储操作后,为此数据输入新标签的数值承诺值。</returns>
+        /// <param name="data">要合并到表中的数据。</param>
+        /// <param name="eTag">要应用的 ETag。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>异步任务，完成此存储操作后返回该数据条目的新 ETag。</returns>
         internal async Task<string> MergeTableEntryAsync(T data, ETag eTag, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -278,7 +278,7 @@ namespace Orleans.GrainDirectory.AzureStorage
             {
                 try
                 {
-                    // 合并需要一个 ETag (可能是 '*' 通配符)。
+                    // 合并操作要求提供 ETag（可以是 '*' 通配符）。
                     data.ETag = eTag;
                     var opResult = await Table.UpdateEntityAsync(data, data.ETag, TableUpdateMode.Merge, cancellationToken);
                     return opResult.Headers.ETag.GetValueOrDefault().ToString();
@@ -296,30 +296,30 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 更新 Azure 表格中的数据条目:使用 eTag更新表中已有数据。
-        /// 如果数据不存在或 eTag 不符合,则出现故障。
+        /// 更新 Azure 表中的数据记录：使用 ETag 更新表中已经存在的数据。
+        /// 数据尚不存在或 ETag 不匹配时失败。
         /// </summary>
-        /// <param name="data">数据将更新到表格中。</param>
-        /// // <param name="dataEtag">ETag待使用。</param>
-        /// <returns>完成存储操作后,为此数据输入新标签的数值承诺值。</returns>
+        /// <param name="data">要更新到表中的数据。</param>
+        /// /// <param name="dataEtag">要使用的 ETag。</param>
+        /// <returns>异步任务，完成此存储操作后返回该数据条目的新 ETag。</returns>
         public Task<string> UpdateTableEntryAsync(T data, string dataEtag) => UpdateTableEntryAsync(data, new ETag(dataEtag));
 
         /// <summary>
-        /// 更新 Azure 表格中的数据条目:使用 eTag更新表中已有数据。
-        /// 如果数据不存在或 eTag 不符合,则出现故障。
+        /// 更新 Azure 表中的数据记录：使用 ETag 更新表中已经存在的数据。
+        /// 数据尚不存在或 ETag 不匹配时失败。
         /// </summary>
-        /// <param name="data">数据将更新到表格中。</param>
-        /// // <param name="dataEtag">ETag待使用。</param>
-        /// <returns>完成存储操作后,为此数据输入新标签的数值承诺值。</returns>
+        /// <param name="data">要更新到表中的数据。</param>
+        /// /// <param name="dataEtag">要使用的 ETag。</param>
+        /// <returns>异步任务，完成此存储操作后返回该数据条目的新 ETag。</returns>
         public Task<string> UpdateTableEntryAsync(T data, ETag dataEtag) => UpdateTableEntryAsync(data, dataEtag, CancellationToken.None);
 
         /// <summary>
-        /// 有条件地使用提供的取消符号替换表格条目。
+        /// 使用提供的取消令牌有条件地替换表记录。
         /// </summary>
-        /// <param name="data">更新条目。</param>
-        /// <param name="dataEtag">预期的ETag。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>更新条目的ETag。</returns>
+        /// <param name="data">要更新的记录。</param>
+        /// <param name="dataEtag">预期的 ETag。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>更新后记录的 ETag。</returns>
         public async Task<string> UpdateTableEntryAsync(T data, ETag dataEtag, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -334,7 +334,7 @@ namespace Orleans.GrainDirectory.AzureStorage
                     data.ETag = dataEtag;
                     var opResult = await Table.UpdateEntityAsync(data, data.ETag, TableUpdateMode.Replace, cancellationToken);
 
-                    //进一步的行动需要数据解剖。
+                    // 后续操作需要数据的 ETag。
                     return opResult.Headers.ETag.GetValueOrDefault().ToString();
                 }
                 catch (Exception exc) when (exc is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
@@ -350,30 +350,30 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 使用 eTag删除表中已有的数据。
-        /// 如果数据不存在或 eTag 不符合,则出现故障。
+        /// 使用 ETag 删除表中已经存在的数据。
+        /// 数据尚不存在或 ETag 不匹配时失败。
         /// </summary>
-        /// <param name="data">从表格中删除数据条目。</param>
-        /// <param name="eTag">使用ETag。</param>
-        /// <returns>储存作业的完成承诺。</returns>
+        /// <param name="data">要从表中删除的数据记录。</param>
+        /// <param name="eTag">要使用的 ETag。</param>
+        /// <returns>表示此存储操作完成情况的异步任务。</returns>
         public Task DeleteTableEntryAsync(T data, string eTag) => DeleteTableEntryAsync(data, new ETag(eTag));
 
         /// <summary>
-        /// 使用 eTag删除表中已有的数据。
-        /// 如果数据不存在或 eTag 不符合,则出现故障。
+        /// 使用 ETag 删除表中已经存在的数据。
+        /// 数据尚不存在或 ETag 不匹配时失败。
         /// </summary>
-        /// <param name="data">从表格中删除数据条目。</param>
-        /// <param name="eTag">使用ETag。</param>
-        /// <returns>储存作业的完成承诺。</returns>
+        /// <param name="data">要从表中删除的数据记录。</param>
+        /// <param name="eTag">要使用的 ETag。</param>
+        /// <returns>表示此存储操作完成情况的异步任务。</returns>
         public Task DeleteTableEntryAsync(T data, ETag eTag) => DeleteTableEntryAsync(data, eTag, CancellationToken.None);
 
         /// <summary>
-        /// 有条件地使用所提供取消的标记删除表格条目。
+        /// 使用提供的取消令牌有条件地删除表记录。
         /// </summary>
-        /// <param name="data">要删除的条目。</param>
-        /// <param name="eTag">预期的ETag。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>代表删除的任务。</returns>
+        /// <param name="data">要删除的记录。</param>
+        /// <param name="eTag">预期的 ETag。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>表示删除操作的任务。</returns>
         public async Task DeleteTableEntryAsync(T data, ETag eTag, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -404,12 +404,12 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 从存储表读取单表格条目。
+        /// 从存储表读取单条表记录。
         /// </summary>
-        /// <param name="partitionKey">条目的分区密钥。</param>
-        /// <param name="rowKey">条目的行键。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>包含数据输入及其相应标签的图普价值承诺。</returns>
+        /// <param name="partitionKey">记录的分区键。</param>
+        /// <param name="rowKey">记录的行键。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>完成时返回包含数据记录及其 ETag 的元组的异步结果。</returns>
         public async Task<(T? Entity, string? ETag)> ReadSingleTableEntryAsync(
             string partitionKey,
             string rowKey,
@@ -429,7 +429,7 @@ namespace Orleans.GrainDirectory.AzureStorage
                         cancellationToken: cancellationToken);
                     if (result.HasValue)
                     {
-                        //进一步的行动需要数据解剖。
+                        // 后续操作需要数据的 ETag。
                         return (result.Value!, result.Value!.ETag.ToString());
                     }
                 }
@@ -442,7 +442,7 @@ namespace Orleans.GrainDirectory.AzureStorage
                 }
 
                 LogDebugTableEntryNotFound(Logger, partitionKey, rowKey);
-                return (default, default);  // 无数据
+                return (default, default);  // 无数据。
             }
             finally
             {
@@ -451,12 +451,12 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 读取存储表格一个分区中的所有条目。
-        /// 注:对于大型桌位分割区来说,这可能是一个昂贵而缓慢的操作!
+        /// 读取存储表中一个分区的全部记录。
+        /// 注意：对于较大的表分区，此操作可能成本较高且耗时较长！
         /// </summary>
-        /// <param name="partitionKey">分区要搜索的密钥。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>指定表格分区中所有条目的编号。</returns>
+        /// <param name="partitionKey">要搜索的分区的键。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>指定表分区中全部记录的可枚举序列。</returns>
         public Task<List<(T Entity, string ETag)>> ReadAllTableEntriesForPartitionAsync(
             string partitionKey,
             CancellationToken cancellationToken = default)
@@ -466,11 +466,11 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 在一个存储表格分区中读取所有条目, 保留查询是否需要多个页面 。
+        /// 读取存储表中一个分区的全部记录，同时保留查询是否需要多个响应页的信息。
         /// </summary>
-        /// <param name="partitionKey">分区要搜索的密钥。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>分区中的条目以及是否需要一个以上回复页。</returns>
+        /// <param name="partitionKey">要搜索的分区的键。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>分区中的记录，以及是否需要多个响应页。</returns>
         public Task<(List<(T Entity, string ETag)> Entries, bool IsPaginated)> ReadAllTableEntriesForPartitionWithPaginationAsync(
             string partitionKey,
             CancellationToken cancellationToken = default)
@@ -480,11 +480,11 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 读取表格中的所有条目。
-        /// 注:对于大桌来说,这可能是非常昂贵和缓慢的操作!
+        /// 读取表中的全部记录。
+        /// 注意：对于较大的表，此操作可能成本很高且耗时很长！
         /// </summary>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>表格中所有条目的编号。</returns>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>表中全部记录的可枚举序列。</returns>
         public Task<List<(T Entity, string ETag)>> ReadAllTableEntriesAsync(
             CancellationToken cancellationToken = default)
         {
@@ -492,12 +492,12 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 使用 eTag删除表格中已有的一组数据条目。
-        /// 如果数据不存在或 eTag 不符合,则出现故障。
+        /// 使用 ETag 删除表中一组已经存在的数据记录。
+        /// 数据尚不存在或 ETag 不匹配时失败。
         /// </summary>
-        /// <param name="collection">数据条目及其相应标签将从表中删除。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>储存作业的完成承诺。</returns>
+        /// <param name="collection">要从表中删除的数据记录及其对应的 ETag。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>表示此存储操作完成情况的异步任务。</returns>
         public async Task DeleteTableEntriesAsync(List<(T Entity, string ETag)> collection, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -545,11 +545,11 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 读取数据条目及其对应 eTags 从 Azure 表格。
+        /// 从 Azure 表读取数据记录及其对应的 ETag。
         /// </summary>
-        /// <param name="filter">用于查询表格和筛选结果的过滤字符串。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>表格中符合查询条件的条目的编号。</returns>
+        /// <param name="filter">用于查询表并筛选结果的筛选字符串。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>表中满足查询条件的记录的可枚举序列。</returns>
         public async Task<List<(T Entity, string ETag)>> ReadTableEntriesAndEtagsAsync(
             string? filter,
             CancellationToken cancellationToken = default)
@@ -597,11 +597,11 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 在表格中插入一组新数据条目。
-        /// 如果数据已经存在,则会发生故障。
+        /// 向表中插入一组新数据记录。
+        /// 数据已经存在时失败。
         /// </summary>
-        /// <param name="collection">数据条目将插入表格。</param>
-        /// <returns>储存作业的完成承诺。</returns>
+        /// <param name="collection">要插入表中的数据记录。</param>
+        /// <returns>表示此存储操作完成情况的异步任务。</returns>
         public async Task BulkInsertTableEntries(IReadOnlyCollection<T> collection)
         {
             const string operation = "BulkInsertTableEntries";
@@ -713,9 +713,9 @@ namespace Orleans.GrainDirectory.AzureStorage
 
                     var opResults = await Table.SubmitTransactionAsync(transaction, cancellationToken);
 
-                    //分批处理结果按执行顺序退回,
-                    //见 https://msdn.microsoft.com/en-us/library/microsoft.windowsazure.storage.table.cloudtable.executebatch.aspx中引用。
-                    //进一步的行动需要数据解剖。
+                    // 批处理结果按照执行顺序返回，
+                    // 参考：https://msdn.microsoft.com/en-us/library/microsoft.windowsazure.storage.table.cloudtable.executebatch.aspx。
+                    // 后续操作需要数据的 ETag。
                     var resultETag1 = opResults.Value[0].Headers.ETag.GetValueOrDefault().ToString();
                     var resultETag2 = opResults.Value[1].Headers.ETag.GetValueOrDefault().ToString();
                     return (resultETag1, resultETag2);
@@ -770,9 +770,9 @@ namespace Orleans.GrainDirectory.AzureStorage
 
                     var opResults = await Table.SubmitTransactionAsync(entityBatch, cancellationToken);
 
-                    //分批处理结果按执行顺序退回,
-                    //见 https://msdn.microsoft.com/en-us/library/microsoft.windowsazure.storage.table.cloudtable.executebatch.aspx中引用。
-                    //进一步的行动需要数据解剖。
+                    // 批处理结果按照执行顺序返回，
+                    // 参考：https://msdn.microsoft.com/en-us/library/microsoft.windowsazure.storage.table.cloudtable.executebatch.aspx。
+                    // 后续操作需要数据的 ETag。
                     var resultETag1 = opResults.Value[0].Headers.ETag.GetValueOrDefault().ToString();
                     var resultETag2 = opResults.Value[1].Headers.ETag.GetValueOrDefault().ToString();
                     return (resultETag1, resultETag2);
@@ -794,8 +794,8 @@ namespace Orleans.GrainDirectory.AzureStorage
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                // TableServiceClient 并非可一次性处理的。工厂可以由
-                // 应用程序,并且不接受一个标记,所以取消仅约束此等待。
+                // TableServiceClient 不是可释放对象。工厂可以由应用程序提供，
+                // 且不接受取消令牌，因此取消只能限制此处的等待。
                 var clientTask = options.CreateClient();
                 clientTask.Ignore();
                 return await clientTask.WaitAsync(cancellationToken);
@@ -812,7 +812,7 @@ namespace Orleans.GrainDirectory.AzureStorage
             HttpStatusCode httpStatusCode;
             if (AzureTableUtils.EvaluateException(exc, out httpStatusCode, out _) && AzureTableUtils.IsContentionError(httpStatusCode))
             {
-                // Verbose 的日志, 因为有条件的失败不是一个错误。 如果需要的话, 会分析并警告 。
+                // 以 Verbose 级别记录日志，因为条件操作失败并不是错误。如有必要，稍后分析并发出警告。
                 LogWarningTableWrite(Logger, operation, TableName, data1 ?? "null", data2 ?? "null");
             }
             else

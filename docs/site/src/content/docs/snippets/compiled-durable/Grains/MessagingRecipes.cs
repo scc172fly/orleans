@@ -46,7 +46,7 @@ internal static class HierarchyExample
             .CreateChildKey("widget/blue")
             .CreateChildKey("reserve");
 
-        // 命令/第42号/库存/储存/储存/蓝/保留
+        // orders/42/inventory/widget\/blue/reserve
         return (order, step);
     }
 }
@@ -160,7 +160,7 @@ public sealed record PaymentResult(
 
 public interface IIdempotentPaymentGateway
 {
-    // 供应商将金刚石指挥钥匙与其最初的请求和结果联系在一起。
+    // 提供程序将规范化的命令键与原始请求及其结果绑定。
     Task<PaymentResult> ChargeAsync(
         string idempotencyKey, ChargePayment request, CancellationToken cancellationToken);
 }
@@ -195,7 +195,7 @@ public sealed class PaymentGrain(
     {
         if (Validate(request) is { } invalid)
         {
-            // 永远无法生效的永恒命令 一次字母都用不着,没有供应商的电话
+            // 永远无法成为有效请求的不可变命令只进入一次死信队列，而不会调用提供程序。
             context.Fail(invalid);
             return;
         }

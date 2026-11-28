@@ -176,7 +176,7 @@ public sealed class VolatileJournalStorageProviderTests
             Assert.False(second.IsCompactionRequested);
         }
 
-        // 每个手柄都有自己的写作先决条件, 因此手柄在读日记后再写。
+        // 每个句柄保有各自的写入前置条件，因此在另一个句柄之后写入时，该句柄会先读取日志。
         await second.ReadForWriteAsync();
         await second.AppendAsync(new ReadOnlySequence<byte>([2]), token);
         Assert.True(first.IsCompactionRequested);
@@ -274,7 +274,7 @@ public sealed class VolatileJournalStorageProviderTests
         Assert.All(handles, static handle => Assert.True(handle.IsCompactionRequested));
         Assert.False(other.IsCompactionRequested);
 
-        // 每一手柄在写作前读取日记,
+        // 每个句柄都会先读取日志再写入，与接管日志的写入者的行为一致。
         async Task AppendFromEachHandle(int count)
         {
             for (var index = 0; index < count; index++)

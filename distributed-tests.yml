@@ -145,29 +145,29 @@ counters:
   values:
   - name: app-requests
     measurement: orleans-counter/requests-per-second
-    description: Request rate
+    description: 请求速率
 
   - name: activation-count
     measurement: orleans-counter/grain-activation-count
-    description: Total number of grains
+    description: Grain 总数
 
 results:
 # Microsoft.Orleans 计数器
 - name: orleans-counter/requests-per-second
   measurement: orleans-counter/requests-per-second
-  description: Request rate
+  description: 请求速率
   format: "n0"
   aggregate: max
   reduce: max
 - name: orleans-counter/requests-per-second/95
   measurement: orleans-counter/requests-per-second
-  description: Request rate
+  description: 请求速率
   format: "n0"
   aggregate: percentile95
   reduce: max
 - name: activation-count
   measurement: orleans-counter/grain-activation-count
-  description: Active grains
+  description: 活动 Grain
 
 profiles:
   local:

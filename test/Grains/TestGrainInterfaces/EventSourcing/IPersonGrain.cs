@@ -19,7 +19,7 @@ namespace TestGrainInterfaces
     }
 
     /// <summary>
-    /// Orleans grain 通信界面IPERson
+    /// Orleans Grain 通信接口 IPerson
     /// </summary>
     public interface IPersonGrain : Orleans.IGrainWithGuidKey
     {

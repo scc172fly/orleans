@@ -4,8 +4,8 @@ using System;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// 管理一个毗连的内存块。
-    /// 要求清洗行动本身作为清洗请求 当它发出清洗信号时
+    /// 管理一块连续内存。
+    /// 收到清除信号时，以自身作为清除请求调用清除操作。
     /// </summary>
     public class FixedSizeBuffer : PooledResource<FixedSizeBuffer>
     {
@@ -13,19 +13,19 @@ namespace Orleans.Providers.Streams.Common
         private int count;
 
         /// <summary>
-        /// 以字节计的缓冲大小 。
+        /// 缓冲区大小（字节）。
         /// </summary>
         public readonly int SizeInByte;
 
         /// <summary>
-        /// 此缓冲符的独特标识 。
+        /// 此缓冲区的唯一标识符。
         /// </summary>
         public object Id => buffer;
 
         /// <summary>
-        /// 管理对固定字节缓冲的访问。
+        /// 管理对固定大小字节缓冲区的访问。
         /// </summary>
-        /// <param name="blockSizeInByte">区块大小,以字节为单位。</param>
+        /// <param name="blockSizeInByte">块大小（字节）。</param>
         public FixedSizeBuffer(int blockSizeInByte)
         {
             if (blockSizeInByte < 0)
@@ -38,12 +38,12 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// 尝试从此块中获取一个带有指定大小缓冲的段。
-        /// 如果没有足够的空间,则不能
+        /// 尝试从此块中获取包含指定大小缓冲区的内存段。
+        /// 如果剩余空间不足，则失败。
         /// </summary>
         /// <param name="size">大小。</param>
-        /// <param name="value">段</param>
-        /// <returns><see langword="true"/> ,如果该段被收回;否则 <see langword="false"/>。</returns>
+        /// <param name="value">内存段。</param>
+        /// <returns>如果成功获取内存段，则为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
         public bool TryGetSegment(int size, out ArraySegment<byte> value)
         {
             value = default;

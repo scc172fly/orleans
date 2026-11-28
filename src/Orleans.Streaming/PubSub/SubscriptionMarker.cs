@@ -3,10 +3,10 @@ using System;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// a subscriptionId 标为默示订阅代号或明确订阅代号。
-    /// 用户类型旗是国际行会中最后一字节的高位。
-    /// 1: 默示订阅
-    /// 0:明确订阅
+    /// 将 subscriptionId 标记为隐式订阅 ID 或显式订阅 ID。
+    /// Guid 最后一个字节的最高位是订阅类型标志。
+    /// 1：隐式订阅。
+    /// 0：显式订阅。
     /// </summary>
     internal static class SubscriptionMarker
     {
@@ -24,7 +24,7 @@ namespace Orleans.Streams
         {
             Span<byte> guidBytes = stackalloc byte[16];
             subscriptionGuid.TryWriteBytes(guidBytes);
-            // 如果设定了高位的上一个字节返回真实
+            // 如果最后一个字节的最高位已设置，则返回 true。
             return (guidBytes[15] & 0x80) != 0;
         }
 
@@ -34,12 +34,12 @@ namespace Orleans.Streams
             subscriptionGuid.TryWriteBytes(guidBytes);
             if (isImplicitSubscription)
             {
-                // 设置高位的上一个字节
+                // 设置最后一个字节的最高位。
                 guidBytes[15] |= 0x80;
             }
             else
             {
-                // 明显高位的上一个字节
+                // 清除最后一个字节的最高位。
                 guidBytes[15] &= 0x7f;
             }
 

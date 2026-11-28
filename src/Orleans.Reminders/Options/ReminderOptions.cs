@@ -7,43 +7,43 @@ using Orleans.Runtime;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// 提醒服务选项 。
+/// 提醒器服务的选项。
 /// </summary>
 public sealed class ReminderOptions
 {
     /// <summary>
-    /// 获取或设定提醒的最低期限。
+    /// 获取或设置提醒器允许的最短周期。
     /// </summary>
     /// <remarks>
-    /// 高频提醒对生产系统有危险。
+    /// 高频提醒器会给生产系统带来风险。
     /// </remarks>
     public TimeSpan MinimumReminderPeriod { get; set; } = TimeSpan.FromMinutes(ReminderOptionsDefaults.MinimumReminderPeriodMinutes);
 
     /// <summary>
-    /// 获取或设置提醒表格刷新间隔时间。
+    /// 获取或设置提醒器表的刷新间隔。
     /// </summary>
-    /// <value>默认情况下每5分钟刷新提醒表。</value>
+    /// <value>默认每 5 分钟刷新一次提醒器表。</value>
     public TimeSpan RefreshReminderListPeriod { get; set; } = TimeSpan.FromMinutes(ReminderOptionsDefaults.RefreshReminderListPeriodMinutes);
 
     /// <summary>
-    /// 获取或设定下次选中时的间隔时间, 提醒会被装入内存 。
+    /// 获取或设置在提醒器下次触发之前将其加载到内存的提前时间。
     /// </summary>
     /// <remarks>
-    /// 此窗口外的提醒仅保留在提醒存储中。 如果提醒存储无法更新比此窗口更长的时间, 则无法刷新, @ info: whatsthis
-    /// 提醒可以迟发。 增加这一值,以容忍储存时间更长的中断, 成本是存储使用率提高。
+    /// 位于此时间窗口之外的提醒器仅保留在提醒器存储中。如果提醒器存储无法刷新的时长超过此窗口，
+    /// 提醒可能延迟投递。增大此值可以容忍更长的存储服务中断，但会增加内存用量。
     /// </remarks>
-    /// <value>提醒在下次选中之前10分钟装入。</value>
+    /// <value>默认在提醒器下次触发前 10 分钟加载。</value>
     public TimeSpan ReminderLoadingWindow { get; set; } = TimeSpan.FromMinutes(ReminderOptionsDefaults.ReminderLoadingWindowMinutes);
 
     /// <summary>
-    /// 获取或设定最大时间, 以尝试在放弃前先启动提醒 。
+    /// 获取或设置放弃初始化提醒器之前允许尝试的最长时间。
     /// </summary>
-    /// <value>试图在默认放弃前先初始化5分钟。</value>
+    /// <value>默认尝试初始化 5 分钟，之后放弃。</value>
     public TimeSpan InitializationTimeout { get; set; } = TimeSpan.FromMinutes(ReminderOptionsDefaults.InitializationTimeoutMinutes);
 }
 
 /// <summary>
-/// <see cref="ReminderOptions"/>的校验符。
+/// <see cref="ReminderOptions"/> 的验证器。
 /// </summary>
 internal sealed partial class ReminderOptionsValidator : IConfigurationValidator
 {
@@ -54,10 +54,10 @@ internal sealed partial class ReminderOptionsValidator : IConfigurationValidator
     /// 初始化 <see cref="ReminderOptionsValidator"/> 类的新实例。
     /// </summary>
     /// <param name="logger">
-    /// 伐木工
+    /// 日志记录器。
     /// </param>
     /// <param name="reminderOptions">
-    /// 提醒选项。
+    /// 提醒器选项。
     /// </param>
     public ReminderOptionsValidator(ILogger<ReminderOptionsValidator> logger, IOptions<ReminderOptions> reminderOptions)
     {

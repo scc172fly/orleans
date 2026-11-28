@@ -5,17 +5,17 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans
 {
     /// <summary>
-    /// grains的推广方法。
+    /// Grain 的扩展方法。
     /// </summary>
     public static class GrainExtensions
     {
         private const string WRONG_GRAIN_ERROR_MSG = "Passing a half baked grain as an argument. It is possible that you instantiated a grain class explicitly, as a regular object and not via Orleans runtime or via proper test mocking";
 
         /// <summary>
-        /// 返回所提供 grain的引用。
+        /// 返回指向指定 Grain 的引用。
         /// </summary>
-        /// <param name="grain">创建参考的 grain 。</param>
-        /// <returns>提及所提供的内容 grain.</returns>
+        /// <param name="grain">要为其创建引用的 Grain。</param>
+        /// <returns>指定 Grain 的引用。</returns>
         internal static GrainReference AsReference(this IAddressable grain)
         {
             if (grain is null)
@@ -23,7 +23,7 @@ namespace Orleans
                 ThrowGrainNull();
             }
 
-            // 当对一个 grain 参考类的例子被调用时,什么都不做
+            // 如果针对 Grain 引用类的实例调用，则不执行任何操作。
             var reference = grain as GrainReference;
             if (reference != null) return reference;
 
@@ -44,15 +44,15 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 返回所提供 grain的已输入引用。
+        /// 返回指定 Grain 的类型化引用。
         /// </summary>
-        /// <typeparam name="TGrainInterface"> grain 接口的类型。</typeparam>
-        /// <param name="grain">下 grain 要转换。</param>
+        /// <typeparam name="TGrainInterface">Grain 接口的类型。</typeparam>
+        /// <param name="grain">要转换的 Grain。</param>
         /// <remarks>
-        /// 如果提供的值是一个 grain 实例,这将创建一个执行所提供接口的引用。
-        /// 如果提供值已经是 grain 引用, 这将创建一个新的引用, 以实施提供的接口 。
+        /// 如果提供的是 Grain 实例，将创建一个实现指定接口的引用。
+        /// 如果提供的值已经是 Grain 引用，则创建一个实现指定接口的新引用。
         /// </remarks>
-        /// <returns>强烈打印的提及规定 grain 执行 <typeparamref name="TGrainInterface"/>.</returns>
+        /// <returns>指向指定 Grain 且实现 <typeparamref name="TGrainInterface"/> 的强类型引用。</returns>
         public static TGrainInterface AsReference<TGrainInterface>(this IAddressable grain)
         {
             if (grain is null)
@@ -65,49 +65,49 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 返回所提供 grain的已输入引用。
+        /// 返回指定 Grain 的类型化引用。
         /// </summary>
-        /// <typeparam name="TGrainInterface"> grain 接口的类型。</typeparam>
-        /// <param name="grain">下 grain 要转换。</param>
+        /// <typeparam name="TGrainInterface">Grain 接口的类型。</typeparam>
+        /// <param name="grain">要转换的 Grain。</param>
         /// <remarks>
-        /// 这一方法相当于 <see cref="AsReference{TGrainInterface}"/>。
-        /// 如果提供的值是一个 grain 实例,这将创建一个执行所提供接口的引用。
-        /// 如果提供值已经是 grain 引用, 这将创建一个新的引用, 以实施提供的接口 。
+        /// 此方法等效于 <see cref="AsReference{TGrainInterface}"/>。
+        /// 如果提供的是 Grain 实例，将创建一个实现指定接口的引用。
+        /// 如果提供的值已经是 Grain 引用，则创建一个实现指定接口的新引用。
         /// </remarks>
-        /// <returns>强烈打印的提及规定 grain 执行 <typeparamref name="TGrainInterface"/>.</returns>
+        /// <returns>指向指定 Grain 且实现 <typeparamref name="TGrainInterface"/> 的强类型引用。</returns>
         public static TGrainInterface Cast<TGrainInterface>(this IAddressable grain) => grain.AsReference<TGrainInterface>();
 
         /// <summary>
-        /// 返回所提供 grain的已输入引用。
+        /// 返回指定 Grain 的类型化引用。
         /// </summary>
-        /// <param name="grain">下 grain 要转换。</param>
-        /// <param name="interfaceType"> grain 接口的类型。</param>
+        /// <param name="grain">要转换的 Grain。</param>
+        /// <param name="interfaceType">Grain 接口的类型。</param>
         /// <remarks>
-        /// 如果提供的值是一个 grain 实例,这将创建一个执行所提供接口的引用。
-        /// 如果提供值已经是 grain 引用, 这将创建一个新的引用, 以实施提供的接口 。
+        /// 如果提供的是 Grain 实例，将创建一个实现指定接口的引用。
+        /// 如果提供的值已经是 Grain 引用，则创建一个实现指定接口的新引用。
         /// </remarks>
-        /// <returns>强烈打印的提及规定 grain 执行 <paramref name="interfaceType"/>.</returns>
+        /// <returns>指向指定 Grain 且实现 <paramref name="interfaceType"/> 的强类型引用。</returns>
         public static object AsReference(this IAddressable grain, Type interfaceType) => grain.AsReference().Runtime.Cast(grain, interfaceType);
 
         /// <summary>
-        /// 返回所提供 grain的已输入引用。
+        /// 返回指定 Grain 的类型化引用。
         /// </summary>
-        /// <param name="grain">下 grain 要转换。</param>
-        /// <param name="interfaceType"> grain 接口的类型。</param>
+        /// <param name="grain">要转换的 Grain。</param>
+        /// <param name="interfaceType">Grain 接口的类型。</param>
         /// <remarks>
-        /// 这一方法相当于 <see cref="AsReference(IAddressable, Type)"/>。
-        /// 如果提供的值是一个 grain 实例,这将创建一个执行所提供接口的引用。
-        /// 如果提供值已经是 grain 引用, 这将创建一个新的引用, 以实施提供的接口 。
+        /// 此方法等效于 <see cref="AsReference(IAddressable, Type)"/>。
+        /// 如果提供的是 Grain 实例，将创建一个实现指定接口的引用。
+        /// 如果提供的值已经是 Grain 引用，则创建一个实现指定接口的新引用。
         /// </remarks>
-        /// <returns>强烈打印的提及规定 grain 执行 <paramref name="interfaceType"/>.</returns>
+        /// <returns>指向指定 Grain 且实现 <paramref name="interfaceType"/> 的强类型引用。</returns>
         public static object Cast(this IAddressable grain, Type interfaceType) => grain.AsReference().Runtime.Cast(grain, interfaceType);
 
         /// <summary>
-        /// 返回 grain id 与所提供的对应 grain.
+        /// 返回与指定 Grain 对应的 Grain ID。
         /// </summary>
-        /// <param name="grain">下 grain</param>
-        /// <returns>下 grain id 与所提供的对应 grain.</returns>
-        /// <exception cref="ArgumentException">所提供的数值类型错误或没有id。</exception>
+        /// <param name="grain">Grain。</param>
+        /// <returns>指定 Grain 对应的 Grain ID。</returns>
+        /// <exception cref="ArgumentException">提供的值类型错误或没有 ID。</exception>
         public static GrainId GetGrainId(this IAddressable grain)
         {
             var grainId = grain switch
@@ -128,10 +128,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 获取在 grain 参数有非支持的执行类型时所丢出的特殊信息。
+        /// 获取 Grain 参数的实现类型不受支持时所抛出异常的消息。
         /// </summary>
         /// <param name="grain">参数。</param>
-        /// <returns>当 grain 参数有非支持性执行类型时所投出的特殊信息。</returns>
+        /// <returns>Grain 参数的实现类型不受支持时所抛出异常的消息。</returns>
         private static string GetWrongGrainTypeErrorMessage(IAddressable grain) =>
             $"{nameof(GetGrainId)} has been called on an unexpected type: {grain.GetType().FullName}."
             + $" If the parameter is a grain implementation, you can derive from {nameof(Grain)} or implement"
@@ -139,10 +139,10 @@ namespace Orleans
             + $" access the {nameof(IGrainContext.GrainId)} or {nameof(IGrainContext.GrainReference)} property.";
 
         /// <summary>
-        /// 返回主键的一部分是否属于类型 <see langword="long"/>。
+        /// 返回主键的一部分是否为 <see langword="long"/> 类型。
         /// </summary>
-        /// <param name="grain">目标 grain。</param>
-        /// <exception cref="InvalidOperationException">提供的情况 grain 没有 <see cref="long"/>- 以键为基础的</exception>
+        /// <param name="grain">目标 Grain。</param>
+        /// <exception cref="InvalidOperationException">指定 Grain 不具有基于 <see cref="long"/> 的键。</exception>
         public static bool IsPrimaryKeyBasedOnLong(this IAddressable grain)
         {
             var grainId = GetGrainId(grain);
@@ -160,12 +160,12 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 返回 <see langword="long"/> 代表代表 grain 基本键。
+        /// 返回 Grain 主键的 <see langword="long"/> 表示形式。
         /// </summary>
-        /// <param name="grain">查找主密钥的 grain 。</param>
-        /// <param name="keyExt">返回扩展键部分的输出参数 grain 初级关键,如果为此提供了扩展主关键 grain.</param>
-        /// <returns>A <see langword="long"/> 代表此 grain的主要关键字。</returns>
-        /// <exception cref="InvalidOperationException">提供的情况 grain 没有 <see cref="long"/>- 以键为基础的</exception>
+        /// <param name="grain">要获取其主键的 Grain。</param>
+        /// <param name="keyExt">输出参数；如果该 Grain 使用了扩展主键，则返回其主键的扩展部分。</param>
+        /// <returns>表示此 Grain 主键的 <see langword="long"/> 值。</returns>
+        /// <exception cref="InvalidOperationException">指定 Grain 不具有基于 <see cref="long"/> 的键。</exception>
         public static long GetPrimaryKeyLong(this IAddressable grain, out string? keyExt)
         {
             var grainId = GetGrainId(grain);
@@ -183,11 +183,11 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 返回 <see langword="long"/> 代表代表 grain 基本键。
+        /// 返回 Grain 主键的 <see langword="long"/> 表示形式。
         /// </summary>
-        /// <param name="grain">查找主密钥的 grain 。</param>
-        /// <returns>A <see langword="long"/> 代表此 grain的主要关键字。</returns>
-        /// <exception cref="InvalidOperationException">提供的情况 grain 没有 <see cref="long"/>- 以键为基础的</exception>
+        /// <param name="grain">要获取其主键的 Grain。</param>
+        /// <returns>表示此 Grain 主键的 <see langword="long"/> 值。</returns>
+        /// <exception cref="InvalidOperationException">指定 Grain 不具有基于 <see cref="long"/> 的键。</exception>
         public static long GetPrimaryKeyLong(this IAddressable grain)
         {
             var grainId = GetGrainId(grain);
@@ -205,12 +205,12 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 返回 <see cref="Guid"/> 代表代表 grain 基本键。
+        /// 返回 Grain 主键的 <see cref="Guid"/> 表示形式。
         /// </summary>
-        /// <param name="grain">查找主密钥的 grain 。</param>
-        /// <param name="keyExt">返回扩展键部分的输出参数 grain 初级关键,如果为此提供了扩展主关键 grain.</param>
-        /// <returns>A <see cref="Guid"/> 代表此 grain的主要关键字。</returns>
-        /// <exception cref="InvalidOperationException">提供的情况 grain 没有 <see cref="Guid"/>- 以键为基础的</exception>
+        /// <param name="grain">要获取其主键的 Grain。</param>
+        /// <param name="keyExt">输出参数；如果该 Grain 使用了扩展主键，则返回其主键的扩展部分。</param>
+        /// <returns>表示此 Grain 主键的 <see cref="Guid"/> 值。</returns>
+        /// <exception cref="InvalidOperationException">指定 Grain 不具有基于 <see cref="Guid"/> 的键。</exception>
         public static Guid GetPrimaryKey(this IAddressable grain, out string? keyExt)
         {
             var grainId = GetGrainId(grain);
@@ -234,11 +234,11 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 返回 <see cref="Guid"/> 代表代表 grain 基本键。
+        /// 返回 Grain 主键的 <see cref="Guid"/> 表示形式。
         /// </summary>
-        /// <param name="grain">查找主密钥的 grain 。</param>
-        /// <returns>A <see cref="Guid"/> 代表此 grain的主要关键字。</returns>
-        /// <exception cref="InvalidOperationException">提供的情况 grain 没有 <see cref="Guid"/>- 以键为基础的</exception>
+        /// <param name="grain">要获取其主键的 Grain。</param>
+        /// <returns>表示此 Grain 主键的 <see cref="Guid"/> 值。</returns>
+        /// <exception cref="InvalidOperationException">指定 Grain 不具有基于 <see cref="Guid"/> 的键。</exception>
         public static Guid GetPrimaryKey(this IAddressable grain)
         {
             var grainId = GetGrainId(grain);
@@ -258,10 +258,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 返回 <see langword="string"/> 键的 grain.
+        /// 返回 Grain 的 <see langword="string"/> 主键。
         /// </summary>
-        /// <param name="grain">查找主密钥的 grain 。</param>
-        /// <returns>A <see langword="string"/> 代表此 grain的主要关键字。</returns>
+        /// <param name="grain">要获取其主键的 Grain。</param>
+        /// <returns>表示此 Grain 主键的 <see langword="string"/> 值。</returns>
         public static string GetPrimaryKeyString(this IAddressable grain)
         {
             var grainId = GetGrainId(grain);
@@ -274,9 +274,9 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 丢弃 <see cref="ArgumentNullException"/> ,表示 grain 参数无效。
+        /// 抛出 <see cref="ArgumentNullException"/>，指示 Grain 参数为 null。
         /// </summary>
-        /// <exception cref="ArgumentNullException"> grain 参数为无效。</exception>
+        /// <exception cref="ArgumentNullException">Grain 参数为 null。</exception>
         [DoesNotReturn]
         private static void ThrowGrainNull() => throw new ArgumentNullException("grain");
     }

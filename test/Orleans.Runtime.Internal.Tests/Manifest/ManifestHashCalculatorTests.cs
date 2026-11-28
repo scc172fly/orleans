@@ -88,7 +88,7 @@ public sealed class ManifestHashCalculatorTests
 
         Assert.Equal("DD34377AD1C69045F2B55D6DCAB099A7A36C0A6B6909DC2C54D5B6AC1FA9EBF9", actual.Value);
 
-        // 同样的输入的金字塔只有编码版本,从2改成3。
+        // 使用相同的规范化输入，仅将其编码版本从 2 改为 3。
         byte[] versionThreeInput =
         [
             0, 0, 0, 3,

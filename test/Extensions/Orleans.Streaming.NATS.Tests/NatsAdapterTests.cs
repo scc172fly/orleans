@@ -61,7 +61,7 @@ public class NatsAdapterTests : IAsyncLifetime, IClassFixture<TestEnvironmentFix
         }
         catch (NatsJSApiException)
         {
-            // 忽略, 找不到流
+            // 忽略，未找到流。
         }
     }
 
@@ -80,7 +80,7 @@ public class NatsAdapterTests : IAsyncLifetime, IClassFixture<TestEnvironmentFix
             }
             catch (OperationCanceledException) when (TestContext.Current.CancellationToken.IsCancellationRequested)
             {
-                // 保留在受约束的清理后取消原试验。
+                // 在有界清理后保留原始测试的取消状态。
             }
             finally
             {
@@ -194,7 +194,7 @@ public class NatsAdapterTests : IAsyncLifetime, IClassFixture<TestEnvironmentFix
         IQueueAdapter adapter = await adapterFactory.CreateAdapter(cancellationToken);
         IQueueAdapterCache cache = adapterFactory.GetQueueAdapterCache();
 
-        // 每个队列创建接收器
+        // 为每个队列创建接收器。
         IStreamQueueMapper mapper = adapterFactory.GetStreamQueueMapper();
         Dictionary<QueueId, IQueueAdapterReceiver> receivers =
             mapper.GetAllQueues().ToDictionary(queueId => queueId, adapter.CreateReceiver);
@@ -203,7 +203,7 @@ public class NatsAdapterTests : IAsyncLifetime, IClassFixture<TestEnvironmentFix
 
         await Task.WhenAll(receivers.Values.Select(receiver => receiver.Initialize(TimeSpan.FromSeconds(5))));
 
-        // 使用 2 流测试
+        // 使用两个流进行测试。
         Guid streamId1 = Guid.NewGuid();
         Guid streamId2 = Guid.NewGuid();
 
@@ -211,7 +211,7 @@ public class NatsAdapterTests : IAsyncLifetime, IClassFixture<TestEnvironmentFix
         var streamsPerQueue = new ConcurrentDictionary<QueueId, HashSet<StreamId>>();
         var firstTokensPerQueue = new ConcurrentDictionary<(QueueId QueueId, StreamId StreamId), StreamSequenceToken>();
 
-        // 读者线(大多数为2个活动队列,因为只有两个串流)
+        // 读取线程（最多两个活动队列，因为只有两个流）。
         var work = new List<Task>();
         foreach (KeyValuePair<QueueId, IQueueAdapterReceiver> receiverKvp in receivers)
         {
@@ -246,9 +246,9 @@ public class NatsAdapterTests : IAsyncLifetime, IClassFixture<TestEnvironmentFix
                         output.WriteLine("Queue {0} received message on stream {1}", queueId,
                             message.StreamId);
                         Assert.Equal(NumMessagesPerBatch / 2,
-                            message.GetEvents<int>().Count()); // "如果事件是半个"
+                            message.GetEvents<int>().Count()); // "一半的事件为 int 类型"
                         Assert.Equal(NumMessagesPerBatch / 2,
-                            message.GetEvents<string>().Count()); // "如果事情是串通的"
+                            message.GetEvents<string>().Count()); // "一半的事件为 string 类型"
                     }
 
                     Interlocked.Add(ref receivedBatches, messages.Length);
@@ -258,7 +258,7 @@ public class NatsAdapterTests : IAsyncLifetime, IClassFixture<TestEnvironmentFix
             work.Add(task);
         }
 
-        // 发送事件
+        // 发送事件。
         List<object> events = CreateEvents(NumMessagesPerBatch);
         work.Add(Task.Run(async () =>
         {
@@ -273,10 +273,10 @@ public class NatsAdapterTests : IAsyncLifetime, IClassFixture<TestEnvironmentFix
         }, cancellationToken));
         await Task.WhenAll(work);
 
-        // 确保我们把寄送的东西都拿回来
+        // 确保收到我们发送的全部内容。
         Assert.Equal(NumBatches, receivedBatches);
 
-        // NATS序列数是全球流,起始于零以上,所以使用每个流的首个标记。
+        // NATS 序列号在整个流内全局有效且起始值大于零，因此使用每个流首次观察到的令牌。
         foreach (KeyValuePair<QueueId, HashSet<StreamId>> kvp in streamsPerQueue)
         {
             var receiver = receivers[kvp.Key];
@@ -286,7 +286,7 @@ public class NatsAdapterTests : IAsyncLifetime, IClassFixture<TestEnvironmentFix
             {
                 Assert.True(firstTokensPerQueue.TryGetValue((kvp.Key, streamGuid), out var firstInCache));
 
-                // 读取流的缓存中的所有信件
+                // 读取缓存中属于此流的所有消息。
                 var cursorResult = qCache.TryGetCacheCursor(streamGuid, firstInCache);
                 Assert.Equal(QueueCacheCursorResultKind.Success, cursorResult.Kind);
                 var cursor = cursorResult.Cursor;
@@ -314,7 +314,7 @@ public class NatsAdapterTests : IAsyncLifetime, IClassFixture<TestEnvironmentFix
                 Assert.Equal(NumBatches / 2, messageCount);
                 Assert.NotNull(tenthInCache);
 
-                // 读取来自 第10次的所有消息
+                // 从第 10 条消息开始读取所有消息。
                 cursorResult = qCache.TryGetCacheCursor(streamGuid, tenthInCache);
                 Assert.Equal(QueueCacheCursorResultKind.Success, cursorResult.Kind);
                 cursor = cursorResult.Cursor;
@@ -327,7 +327,7 @@ public class NatsAdapterTests : IAsyncLifetime, IClassFixture<TestEnvironmentFix
 
                 output.WriteLine("On Queue {0} we received a total of {1} message on stream {2}", kvp.Key, messageCount,
                     streamGuid);
-                const int expected = NumBatches / 2 - 10 + 1; // 除前10名外,包括第10名(10+1)
+                const int expected = NumBatches / 2 - 10 + 1; // 从第 10 项开始（包含第 10 项）计算其余所有项（10 + 1）
                 Assert.Equal(expected, messageCount);
             }
         }

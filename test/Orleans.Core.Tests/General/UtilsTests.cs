@@ -6,7 +6,7 @@ using Xunit;
 namespace UnitTests.UtilsTests
 {
     /// <summary>
-    /// 包括 IPv4 和 IPv6 地址的网关 URI 转换等通用功能测试。
+    /// 测试辅助函数，包括 IPv4 和 IPv6 地址的网关 URI 转换。
     /// </summary>
     [TestCategory("Utils")]
     [TestSuite("BVT")]

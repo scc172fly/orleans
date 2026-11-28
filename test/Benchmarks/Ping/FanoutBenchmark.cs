@@ -11,7 +11,7 @@ using Orleans.Configuration;
 namespace Benchmarks.Ping;
 
 /// <summary>
-/// 基准 grain 与多个 silos的粉丝型号通信。
+/// 对跨多个 Silo 的扇出通信模式下的 Grain 通信性能进行基准测试。
 /// </summary>
 [MemoryDiagnoser]
 public class FanoutBenchmark : IDisposable

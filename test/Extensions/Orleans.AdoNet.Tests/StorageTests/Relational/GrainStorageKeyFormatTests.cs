@@ -7,15 +7,15 @@ using Xunit;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// 存储关键身份假设情景,由关系后端共享。
-    /// 以便用关键列而不是散列值来区分行。
+    /// 关系型后端共用的存储键标识测试场景。被测存储应使用固定值
+    /// 哈希器，以便根据键列而非哈希值区分数据行。
     /// </summary>
     internal static class GrainStorageKeyFormatTests
     {
         private const string StateName = "state";
 
         /// <summary>
-        /// 具有同一密钥和国名的不同类型Grains 有单独状态。
+        /// 不同类型的 Grain 即使共用键和状态名称，其状态也相互独立。
         /// </summary>
         public static async Task GrainTypesSharingKeyAreIsolated(IGrainStorage storage)
         {
@@ -39,8 +39,8 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// Grain 类型和国名与同一文本相联,只在字母情况下不同,或没有
-        /// 有效的 UTF-8 有单独的状态。
+        /// Grain 类型和状态名称即使拼接后得到相同文本、仅大小写不同，或不是
+        /// 有效的 UTF-8，也具有独立的状态。
         /// </summary>
         public static async Task GrainTypeAndStateNameBoundariesAreIsolated(IGrainStorage storage)
         {
@@ -64,7 +64,7 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// 在一个 grain 上有不同名称的国家有单独国名。
+        /// 同一 Grain 中名称不同的状态相互独立。
         /// </summary>
         public static async Task StateNamesOfOneGrainAreIsolated(IGrainStorage storage)
         {
@@ -74,7 +74,7 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// 独特 grain 键的一键 grain 类型,如果向相同整数或图形用户界面D 键分析,则有独立的状态。
+        /// 同一 Grain 类型的不同键即使解析为相同的整数键或 GUID 键，其状态也相互独立。
         /// </summary>
         public static async Task KeysParsingToSameValueAreIsolated(IGrainStorage storage)
         {
@@ -82,7 +82,7 @@ namespace UnitTests.StorageTests.Relational
             var guidA = Guid.NewGuid().ToString("N");
             var guidB = Guid.NewGuid().ToString("N");
 
-            // 每个键都显示一次: 清除会保留行, 所以无法再次写入一个密钥作为新状态 。
+            // 每个键仅出现一次：清除状态会保留数据行，因此不能再次将该键作为新状态写入。
             (string First, string Second)[] keyPairs =
             [
                 ("20235", "020235"),
@@ -94,7 +94,7 @@ namespace UnitTests.StorageTests.Relational
                 ("trailing", "trailing "),
                 ("é", "e"),
 
-                // 不同的键, 等同默认的杂交。
+                // 不同键在默认哈希器下具有相同哈希值。
                 ("abcdeFghiJkLMNoPqrstuvwx", "AbcdefgHiJKlmnOpQRstuvwx"),
             ];
 
@@ -108,14 +108,14 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// 一种 grain 类型上不同类型键的不同键有独立的状态,即使它们的整数、图形界面D和扩展
-        /// 部件重合。
+        /// 同一 Grain 类型中不同种类的键即使其整数、GUID 和扩展
+        /// 部分相同，状态也相互独立。
         /// </summary>
         public static async Task KeysOfDifferentKindsAreIsolated(IGrainStorage storage)
         {
             var grainType = GrainType.Create($"key-format-kinds-{Guid.NewGuid():N}");
 
-            // 头八个字节为零的图形用户界面D的分解与整数键相同。
+            // 前八个字节为零的 GUID 与整数键具有相同的 N0/N1 分解结果。
             var guidBytes = new byte[16];
             BitConverter.GetBytes(5L).CopyTo(guidBytes, 8);
             var guidMatchingInteger = new Guid(guidBytes);
@@ -126,7 +126,7 @@ namespace UnitTests.StorageTests.Relational
                 (IdSpan.Create("guid-extension"), GrainIdKeyExtensions.CreateGuidKey(Guid.Empty, "guid-extension")),
                 (GrainIdKeyExtensions.CreateIntegerKey(5), GrainIdKeyExtensions.CreateGuidKey(guidMatchingInteger)),
 
-                // 无效的 UTF-8 字节, 用来解码到相同的替换文本 。
+                // 解码后产生相同替换文本的无效 UTF-8 字节。
                 (new IdSpan([0x61, 0xFF]), new IdSpan([0x61, 0xFE])),
             ];
 
@@ -140,8 +140,8 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// 不同类型两种 grains ,其中共用一个键的,在遗留关键键格式中也共享一行,因此第二个
-        /// 第一次写作与第一个冲突 。
+        /// 在旧版键格式中，共用键的两个不同类型 Grain 也会共用同一数据行，因此第二个 Grain 的
+        /// 首次写入会与第一个 Grain 的首次写入发生冲突。
         /// </summary>
         public static async Task LegacyFormatSharesRowAcrossGrainTypes(IGrainStorage storage)
         {

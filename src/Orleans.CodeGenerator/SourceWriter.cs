@@ -4,13 +4,13 @@ using System.Text;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// 直接来自排放计划。
+/// 直接根据生成计划写出 C# 代码。
 /// </summary>
 /// <remarks>
-/// 生成文件使用四个空格
-/// 缩放、 CRLF 线条分隔器、 最后一行之后没有终止者, 以及关闭后一条空白线
-/// 除非下一行关闭附件块或继续相同的语句,否则该词将无法被调用。
-/// 完整、已经拼写好的 C# 碎片; 作者只拥有线条结构和缩进。
+/// 生成文件使用四个空格的
+/// 缩进、CRLF 换行符，最后一行没有终止换行符，并在右大括号之后保留一个空行，
+/// 除非下一行关闭外层块或继续同一条语句。调用方提供
+/// 完整且已生成文本的 C# 片段；写入器仅负责行结构和缩进。
 /// </remarks>
 internal sealed class SourceWriter
 {
@@ -21,15 +21,15 @@ internal sealed class SourceWriter
     private bool _hasLine;
     private bool _blankLinePending;
 
-    /// <param name="capacity">初始字符能力。</param>
-    /// <param name="initialIndentation">第一行的缩进,用于一个在深度插入呼叫者的碎片。</param>
+    /// <param name="capacity">初始字符容量。</param>
+    /// <param name="initialIndentation">第一行缩进，用于调用方在此深度插入的片段。</param>
     public SourceWriter(int capacity = 1024, int initialIndentation = 0)
     {
         _builder = new StringBuilder(capacity);
         _indentation = _initialIndentation = initialIndentation;
     }
 
-    /// <summary>在当前缩进时开始新行。文本附加于 <see cref="Write(string)"/>。</summary>
+    /// <summary>按当前缩进开始新的一行，使用 <see cref="Write(string)"/> 追加文本。</summary>
     public SourceWriter StartLine()
     {
         if (_hasLine)
@@ -76,17 +76,17 @@ internal sealed class SourceWriter
         _blankLinePending = true;
     }
 
-    /// <summary>写一个空的街区, <c>{</c> 和 <c>}</c> 单行。</summary>
+    /// <summary>写出空块，将 <c>{</c> 和 <c>}</c> 放在不同行。</summary>
     public void EmptyBlock()
     {
         OpenBlock();
         CloseBlock();
     }
 
-    /// <summary>当下一行继续该语句时, 将关闭支架之后的空白线封住, 如 <c>else</c>。</summary>
+    /// <summary>当下一行继续当前语句（例如 <c>else</c>）时，取消右大括号后的空行。</summary>
     public void ContinueStatement() => _blankLinePending = false;
 
-    /// <summary>要求在下一行之前有一个空线。</summary>
+    /// <summary>请求在下一行之前插入一个空行。</summary>
     public void BlankLine() => _blankLinePending = true;
 
     public void Indent() => _indentation++;
@@ -98,7 +98,7 @@ internal sealed class SourceWriter
     }
 
     /// <summary>
-    /// 写出由另一位作家在目前的缩进时生成的线条;碎片必须从自己的缩进开始。
+    /// 按当前缩进写入另一写入器产生的各行；片段必须以其自身的缩进开头。
     /// </summary>
     public void WriteFragment(string fragment)
     {

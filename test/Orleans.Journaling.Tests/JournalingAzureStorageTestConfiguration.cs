@@ -25,7 +25,7 @@ internal static class JournalingAzureStorageTestConfiguration
         }
         else
         {
-            options.ConfigureBlobServiceClient(TestDefaultConfiguration.DataConnectionString!); // 下 Azure 存储测试装置提供连接字符串。
+            options.ConfigureBlobServiceClient(TestDefaultConfiguration.DataConnectionString!); // Azure Storage 测试初始化会提供连接字符串。
         }
 
         return options;

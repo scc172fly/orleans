@@ -17,13 +17,13 @@ public sealed class PingGrain : IGrainBase, IPingGrain, IDisposable
         IReminderRegistry reminderRegistry,
         IGrainContext grainContext)
     {
-        // 注册计时器
+        // 注册定时器。
         timerRegistry.RegisterGrainTimer(
             grainContext,
             callback: static async (state, cancellationToken) =>
             {
-                // 短暂的...
-                // 使用状态
+                // 为简洁起见省略实现……
+                // 使用状态。
 
                 await Task.CompletedTask;
             },

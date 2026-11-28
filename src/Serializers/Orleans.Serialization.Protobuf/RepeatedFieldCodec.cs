@@ -11,7 +11,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// <see cref="RepeatedField{T}"/>的序列器。
+/// <see cref="RepeatedField{T}"/> 的序列化器。
 /// </summary>
 /// <typeparam name="T">元素类型。</typeparam>
 [RegisterSerializer]
@@ -24,7 +24,7 @@ public sealed class RepeatedFieldCodec<T> : IFieldCodec<RepeatedField<T>>
     /// <summary>
     /// 初始化 <see cref="RepeatedFieldCodec{T}"/> 类的新实例。
     /// </summary>
-    /// <param name="fieldCodec">字段编码。</param>
+    /// <param name="fieldCodec">字段编解码器。</param>
     public RepeatedFieldCodec(IFieldCodec<T> fieldCodec)
     {
         _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);

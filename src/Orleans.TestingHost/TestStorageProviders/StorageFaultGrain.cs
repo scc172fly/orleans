@@ -10,7 +10,7 @@ using System.Threading;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// 跟踪要注入的存储例外Grain 。
+    /// 跟踪要注入的存储异常的 Grain。
     /// </summary>
     public partial class StorageFaultGrain : Grain, IStorageFaultGrain
     {

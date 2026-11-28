@@ -7,16 +7,16 @@ using Xunit;
 namespace AWSUtils.Tests.Liveness
 {
     /// <summary>
-    /// AWS DynamoDB 成员供应商的活度测试。
+    /// AWS DynamoDB 成员资格提供程序的存活性测试。
     /// 
-    /// 这些测试核实 Orleans 群组成员管理是否正确
-    /// 当使用 DynamoDB 作为成员表提供者时。 DynamoDB 规定:
-    /// - silos之间分配成员跟踪
-    /// - 故障检测和复原
-    /// - 一致的群集地形学观点
+    /// 这些测试验证 Orleans 集群成员资格管理在
+    /// 使用 DynamoDB 作为成员资格表提供程序时能否正常工作。DynamoDB 提供：
+    /// - 跨 Silo 的分布式成员资格跟踪
+    /// - 故障检测与恢复
+    /// - 一致的集群拓扑视图
     /// 
-    /// 测试模拟各种故障假设情景,以确保集群
-    /// 保持一致性,并妥善收回。
+    /// 测试模拟多种故障场景，确保集群
+    /// 保持一致性并正确恢复。
     /// </summary>
     [TestCategory("Membership"), TestCategory("AWS"), TestCategory("DynamoDb")]
     [TestSuite("Functional")]
@@ -37,8 +37,8 @@ namespace AWSUtils.Tests.Liveness
         }
 
         /// <summary>
-        /// 配置配置 silos 使用 DynamoDB 分组成员。
-        /// 设置 DynamoDB 服务端点用于测试(通常是本地模拟器)。
+        /// 配置 Silo 使用 DynamoDB 管理集群成员资格。
+        /// 设置用于测试的 DynamoDB 服务端点（通常为本地模拟器）。
         /// </summary>
         public class SiloBuilderConfigurator : ISiloConfigurator
         {
@@ -49,9 +49,9 @@ namespace AWSUtils.Tests.Liveness
         }
 
         /// <summary>
-        /// 配置客户端, 以使用 DynamoDB 来发现集束网关 。
-        /// 确保客户能够找到并连接到 silos 使用相同
-        /// DynamoDB- 以成员信息为基础的成员信息。
+        /// 配置客户端使用 DynamoDB 发现集群网关。
+        /// 确保客户端能够利用相同的
+        /// 基于 DynamoDB 的成员资格信息定位并连接 Silo。
         /// </summary>
         public class ClientBuilderConfigurator : IClientBuilderConfigurator
         {
@@ -65,9 +65,9 @@ namespace AWSUtils.Tests.Liveness
         }
 
         /// <summary>
-        /// 基本生存测试,核查分组成员业务。
-        /// 测试 silos 能够加入该组群,由其他 silos发现,
-        /// 并保持 DynamoDB的准确成员信息。
+        /// 验证集群成员资格操作的基本存活性测试。
+        /// 测试 Silo 能否加入集群、被其他 Silo 发现，
+        /// 并在 DynamoDB 中维护准确的成员资格信息。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task Liveness_AWS_DynamoDB_1()
@@ -76,9 +76,9 @@ namespace AWSUtils.Tests.Liveness
         }
 
         /// <summary>
-        /// 重新启动主 silo 时测试组群恢复 。
-        /// 证明该组群能够处理损失和追回
-        /// 基本 silo ,但不会失去成员一致性。
+        /// 测试主 Silo 重启时的集群恢复。
+        /// 验证集群能否在不丢失成员资格一致性的情况下处理
+        /// 主 Silo 的丢失及恢复。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task Liveness_AWS_DynamoDB_2_Restart_Primary()
@@ -87,9 +87,9 @@ namespace AWSUtils.Tests.Liveness
         }
 
         /// <summary>
-        /// 当网关 silo 重新启动时测试组群恢复 。
-        /// 证明客户联系能够恢复并找到替代
-        /// 当连接的网关失败时, 将打开网关 。
+        /// 测试网关 Silo 重启时的集群恢复。
+        /// 验证客户端连接能否在当前连接的网关发生故障时恢复，
+        /// 并找到其他可用网关。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task Liveness_AWS_DynamoDB_3_Restart_GW()
@@ -98,9 +98,9 @@ namespace AWSUtils.Tests.Liveness
         }
 
         /// <summary>
-        /// 当非主 silo 重新启动时测试组群恢复。
-        /// 证明 grain 启动程序已适当迁移和
-        /// 组群在 silo 故障时保持运行。
+        /// 测试非主 Silo 重启时的集群恢复。
+        /// 验证 Grain 激活实例能否正确迁移，且
+        /// 集群在 Silo 发生故障期间能否维持运行。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task Liveness_AWS_DynamoDB_4_Restart_Silo_1()
@@ -109,9 +109,9 @@ namespace AWSUtils.Tests.Liveness
         }
 
         /// <summary>
-        /// 当有活动计时器的 silo 被杀死时测试集集恢复 。
-        /// 证明在下列情况下适当收回计时器登记时,即
-        /// grains 在失败后在其他 silos 上重新启动。
+        /// 测试具有活动定时器的 Silo 被终止时的集群恢复。
+        /// 验证在故障后 Grain 在其他 Silo 上重新激活时，
+        /// 定时器注册能否正确恢复。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task Liveness_AWS_DynamoDB_5_Kill_Silo_1_With_Timers()

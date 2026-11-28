@@ -6,11 +6,11 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// 简单 grain 功能在 Orleans中的基本测试。
-    /// 这些测试核查基本 grain 操作,包括激活、
-    /// 职业技术、国家管理和基本控制流动。
-    /// SimpleGrain 表示最基本 grain 模式,使用拾取器/制更
-    /// 并展示核心 Orleans 方案拟订模式概念。
+    /// Orleans 简单 Grain 功能的基础测试。
+    /// 这些测试验证基本 Grain 操作，包括激活、
+    /// 方法调用、状态管理和基本控制流。
+    /// SimpleGrain 表示最基本的 Grain 模式，包含 getter/setter
+    /// 方法，展示 Orleans 编程模型的核心概念。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -27,10 +27,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 基本 grain 激活和方法调试测试。
-        /// 证明可从工厂和工厂获得 grain
-        /// 证明方法可以成功使用,
-        /// 基本 grain 生命周期和RPC机制。
+        /// 测试基本 Grain 激活和方法调用。
+        /// 验证能够从工厂获取 Grain，
+        /// 并成功调用其方法，展示
+        /// 基本 Grain 生命周期和 RPC 机制。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task SimpleGrainGetGrain()
@@ -40,11 +40,11 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试顺序 grain 方法调用和状态持久性。
-        /// 证明: grain 保持状态,在调用时间之间保持
-        /// 通过不同的方法调用设定数值,然后
-        /// 计算基于持续状态的结果。
-        /// 在会话中显示 grain 激活的持久性。
+        /// 测试顺序 Grain 方法调用和状态保留。
+        /// 验证通过不同的方法调用设置值，随后根据
+        /// 已保留的状态计算结果时，
+        /// Grain 状态能在调用之间得到维护。
+        /// 展示 Grain 激活实例在会话内的持续性。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task SimpleGrainControlFlow()
@@ -62,11 +62,11 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试同时 grain 方法调用和数据一致性。
-        /// 证明可同时发出多方法电话
-        /// 使用 Task.WhenAll,而且 grain 正确处理
-        /// 保持国家一致性的同时同时运行。
-        /// 演示 Orleans的转折货币模式。
+        /// 测试并发 Grain 方法调用及数据一致性。
+        /// 验证可以并发发出多个方法调用
+        /// （使用 Task.WhenAll），且 Grain 能正确处理
+        /// 并发操作，同时保持状态一致性。
+        /// 展示 Orleans 基于执行轮次的并发模型。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task SimpleGrainDataFlow()
@@ -82,11 +82,11 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 与多个构造器一起进行测试 grain 激活。
-        /// 将核实 grains 多建构器激活
-        /// 使用默认(无参数)构建器。
-        /// 注:目前被多个建构器跳过,作为 grains 。
-        /// 要求在当前 Orleans 版本中明确注册。
+        /// 测试具有多个构造函数的 Grain 的激活。
+        /// 此测试本应验证具有多个构造函数的 Grain 会使用
+        /// 默认（无参）构造函数激活。
+        /// 注意：当前跳过此测试，因为在当前 Orleans 版本中，具有多个构造函数的 Grain
+        /// 需要显式注册。
         /// </summary>
         [Fact(Skip = "Grains with multiple constructors are not supported without being explicitly registered.")]
         [TestCategory("BVT")]

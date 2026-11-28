@@ -96,7 +96,7 @@ public sealed class SystemTargetMembershipTableConformanceTests : MembershipTabl
                 + $"{_nativeProgress}; elapsed-ms={Stopwatch.GetElapsedTime(_nativePhaseStarted).TotalMilliseconds:F1}{Environment.NewLine}";
         }
 
-        // 抽样检查监视器文物的最新阶段, 不在每次操作中添加文件 I/ O 。
+        // 对最新阶段采样以生成看门狗诊断产物，而不为每次操作增加文件 I/O。
         return File.WriteAllTextAsync(_progressFile, snapshot);
     }
 
@@ -201,7 +201,7 @@ public sealed class SystemTargetMembershipTableConformanceTests : MembershipTabl
                 Options.Create(new DevelopmentClusterMembershipOptions { PrimarySiloEndpoint = _silo.SiloAddress.Endpoint }));
             services.AddSingleton(_silo.ServiceProvider.GetRequiredService<ILocalSiloDetails>());
             services.AddSingleton(GetGrainFactory());
-            // 被动所有人从这个测试表的空头历史开始, 不考虑主机成员身份。
+            // 被动所有者从此测试表的空历史记录开始，独立于主机成员资格。
             var owner = Substitute.For<IMembershipManager>();
             owner.CurrentSnapshot.Returns(new MembershipTableSnapshot(
                 new MembershipVersion(0), ImmutableDictionary<SiloAddress, MembershipEntry>.Empty));

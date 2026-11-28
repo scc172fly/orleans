@@ -1,34 +1,32 @@
 ---
-title: "单行 grain 调用"
-description: "使用单向请求,以获取最佳努力 Orleans 通知。"
+title: 单向 Grain 调用
+description: 使用单向请求实现 Orleans 的尽力而为通知。
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
 <a id="one-way-grain-calls"></a>
+# 单向 Grain 调用
 
-# 单行 grain 调用
+常规 Grain 调用返回一个任务，Orleans 收到方法响应时该任务完成。任务携带返回值或异常，告知调用方请求已经结束。
 
-常规 grain 调用返回一个在 Orleans 收到方法响应时完成的任务。该任务包含一个返回值或例外,并告诉呼叫者请求已完成。
-
-一种方法,标记为 <xref:Orleans.Concurrency.OneWayAttribute> 返回后返回呼叫器 Orleans 接受发送请求。 呼叫者没有收到完成信号、 结果或例外:
+标记了 <xref:Orleans.Concurrency.OneWayAttribute> 的方法，在 Orleans 接受待发送的请求后即返回调用方。调用方不会收到执行完成的信号、结果或异常：
 
 :::code language="csharp" source="../snippets/compiled/Grains/ServicesAndObserversSnippets.cs" id="one_way_audit":::
-单程方法必须返回 <xref:System.Threading.Tasks.Task> 或 <xref:System.Threading.Tasks.ValueTask>,而不是其通用形式。
+单向方法必须返回 <xref:System.Threading.Tasks.Task> 或 <xref:System.Threading.Tasks.ValueTask>，而非它们的泛型形式。
 
 <a id="delivery-semantics"></a>
+## 投递语义
 
-## 交付语义
+单向调用采用尽力而为的投递方式：
 
-单向电话是最佳努力:
+- 返回的任务完成，并不意味着目标已接收或处理请求。
+- 目标抛出的异常不会返回调用方。
+- 调用方无法区分处理成功、消息丢失或目标发生故障。
+- 由于没有响应，取消和响应超时语义无法提供有意义的完成保证。
 
-- 完成返回的任务并不意味着收到或处理请求的目标。
-- 目标的例外不归回呼叫者
-- 呼叫者无法区分成功处理与信息丢失或目标失败。
-- 取消和反应超时语义不能提供有用的完成保证 因为没有回应
+仅对允许丢失且无需结果的通知使用单向调用。例如，遥测提示、缓存失效提示或冗余状态信号可能适合这种模式。
 
-仅使用单向电话通知安全丢失且不需要结果的状态。 遥测提示、缓存失效提示或冗余状态信号可以适合此模式 。
+不要对需要确认的状态变更、金融操作、工作流状态转换或任何调用方可能需要重试的操作使用单向调用。如果投递和故障恢复很重要，应优先使用常规的请求-响应调用、持久化队列或 Orleans 流提供程序。
 
-不要使用单向电话要求国家改变,而这种改变需要确认、财务业务、工作流程过渡或打电话者可能需要重新尝试的任何操作。 最好使用常规请求- 响应呼叫、耐久的队列或者在交付和回收事项时使用 Orleans 流动提供者。
-
-单向电话可以减少响应信息管理费用,但可以作为先进的优化。 在替换常规电话之前先采取措施。
+单向调用可以减少响应消息的开销，但应将其视为高级优化手段。在替换常规调用前，先进行性能测量。

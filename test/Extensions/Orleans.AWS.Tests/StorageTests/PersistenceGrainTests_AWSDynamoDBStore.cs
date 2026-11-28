@@ -13,7 +13,7 @@ using TestExtensions.Runners;
 namespace AWSUtils.Tests.StorageTests
 {
     /// <summary>
-    /// 测试 DynamoDB 储存提供者的 grain 持久性,包括 grain 参考文献的序列化。
+    /// 测试用于 Grain 持久化的 DynamoDB 存储提供程序，包括 Grain 引用的序列化。
     /// </summary>
     [TestCategory("Persistence"), TestCategory("AWS"), TestCategory("DynamoDb")]
     [TestSuite("Functional")]
@@ -59,9 +59,9 @@ namespace AWSUtils.Tests.StorageTests
         [Fact, TestCategory("Functional")]
         public async Task AWSDynamoDBStore_ConvertToFromStorageFormat_GrainReference()
         {
-            // 注:本测试要求 Silo 运行客户端投放并输入,以便在序列化之前解决 grain 参考。
+            // 注意：此测试要求 Silo 正在运行且客户端已初始化，以便在序列化前解析 Grain 引用。
             Guid id = Guid.NewGuid();
-            IUser grain = this.HostedCluster.GrainFactory!.GetGrain<IUser>(id); // 此项测试需要一个初始化客户端。
+            IUser grain = this.HostedCluster.GrainFactory!.GetGrain<IUser>(id); // 此测试需要已初始化的客户端。
 
             var initialState = new GrainStateContainingGrainReferences { Grain = grain };
             var entity = new GrainStateRecord();
@@ -69,19 +69,19 @@ namespace AWSUtils.Tests.StorageTests
                 this.HostedCluster.ServiceProvider.GetRequiredService<IProviderRuntime>(), "TestTable");
             storage.ConvertToStorageFormat(initialState, entity);
             var convertedState = storage.ConvertFromStorageFormat<GrainStateContainingGrainReferences>(entity);
-            Assert.NotNull(convertedState); // 转换状态
+            Assert.NotNull(convertedState); // 转换后的状态
             Assert.Equal(initialState.Grain, convertedState.Grain);  // "Grain"
         }
 
         [Fact, TestCategory("Functional")]
         public async Task AWSDynamoDBStore_ConvertToFromStorageFormat_GrainReference_List()
         {
-            // 注:本测试要求 Silo 运行客户端投放并输入,以便在序列化之前解决 grain 参考。
+            // 注意：此测试要求 Silo 正在运行且客户端已初始化，以便在序列化前解析 Grain 引用。
             Guid[] ids = { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
             IUser[] grains = new IUser[3];
-            grains[0] = this.HostedCluster.GrainFactory!.GetGrain<IUser>(ids[0]); // 此项测试需要一个初始化客户端。
-            grains[1] = this.HostedCluster.GrainFactory!.GetGrain<IUser>(ids[1]); // 此项测试需要一个初始化客户端。
-            grains[2] = this.HostedCluster.GrainFactory!.GetGrain<IUser>(ids[2]); // 此项测试需要一个初始化客户端。
+            grains[0] = this.HostedCluster.GrainFactory!.GetGrain<IUser>(ids[0]); // 此测试需要已初始化的客户端。
+            grains[1] = this.HostedCluster.GrainFactory!.GetGrain<IUser>(ids[1]); // 此测试需要已初始化的客户端。
+            grains[2] = this.HostedCluster.GrainFactory!.GetGrain<IUser>(ids[2]); // 此测试需要已初始化的客户端。
 
             var initialState = new GrainStateContainingGrainReferences();
             foreach (var g in grains)
@@ -96,8 +96,8 @@ namespace AWSUtils.Tests.StorageTests
             storage.ConvertToStorageFormat(initialState, entity);
             var convertedState = storage.ConvertFromStorageFormat<GrainStateContainingGrainReferences>(entity);
             Assert.NotNull(convertedState);
-            Assert.Equal(initialState.GrainList.Count, convertedState.GrainList.Count);  // “GrainList 大小”
-            Assert.Equal(initialState.GrainDict.Count, convertedState.GrainDict.Count);  // “GrainDict 大小”
+            Assert.Equal(initialState.GrainList.Count, convertedState.GrainList.Count);  // "GrainList 大小"
+            Assert.Equal(initialState.GrainDict.Count, convertedState.GrainDict.Count);  // "GrainDict 大小"
             for (int i = 0; i < grains.Length; i++)
             {
                 string iStr = ids[i].ToString();

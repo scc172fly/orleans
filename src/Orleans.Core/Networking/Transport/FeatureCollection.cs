@@ -6,7 +6,7 @@ using System.Linq;
 namespace Orleans.Connections.Transport;
 
 /// <summary>
-/// <see cref="IFeatureCollection"/>的默认执行。
+/// <see cref="IFeatureCollection"/> 的默认实现。
 /// </summary>
 public class FeatureCollection : IFeatureCollection
 {
@@ -17,17 +17,17 @@ public class FeatureCollection : IFeatureCollection
     private volatile int _containerRevision;
 
     /// <summary>
-    /// 初始化 <see cref="FeatureCollection"/>新实例。
+    /// 初始化 <see cref="FeatureCollection"/> 的新实例。
     /// </summary>
     public FeatureCollection()
     {
     }
 
     /// <summary>
-    /// 启动一个 <see cref="FeatureCollection"/> 新实例,并具备指定的初始能力。
+    /// 使用指定初始容量初始化 <see cref="FeatureCollection"/> 的新实例。
     /// </summary>
-    /// <param name="initialCapacity">收藏中可包含元素的初始数。</param>
-    /// <exception cref="System.ArgumentOutOfRangeException"><paramref name="initialCapacity"/> 小于0</exception>
+    /// <param name="initialCapacity">集合最初能够包含的元素数量。</param>
+    /// <exception cref="System.ArgumentOutOfRangeException"><paramref name="initialCapacity"/> 小于 0。</exception>
     public FeatureCollection(int initialCapacity)
     {
         if (initialCapacity < 0)
@@ -39,9 +39,9 @@ public class FeatureCollection : IFeatureCollection
     }
 
     /// <summary>
-    /// 初始化指定默认值的 <see cref="FeatureCollection"/> 新实例。
+    /// 使用指定默认值初始化 <see cref="FeatureCollection"/> 的新实例。
     /// </summary>
-    /// <param name="defaults">特性默认值。</param>
+    /// <param name="defaults">功能的默认值。</param>
     public FeatureCollection(IFeatureCollection defaults)
     {
         _defaults = defaults;
@@ -103,7 +103,7 @@ public class FeatureCollection : IFeatureCollection
 
         if (_defaults != null)
         {
-            // 不要把包装纸遮住的特征还回去
+            // 不返回被包装器屏蔽的功能。
             foreach (var pair in _features == null ? _defaults : _defaults.Except(_features, FeatureKeyComparer))
             {
                 yield return pair;

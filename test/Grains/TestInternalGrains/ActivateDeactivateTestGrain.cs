@@ -147,7 +147,7 @@ namespace UnitTests.Grains
 
             logger.LogInformation("OnActivateAsync");
 
-            // 默认 .NET 线索库运行的自发布任务
+            // 创建 Task，使其在默认的 .NET 线程池上运行
             var task = Task.Factory.StartNew(() =>
             {
                 logger.LogInformation("Started-OnActivateAsync-SubTask");
@@ -240,8 +240,8 @@ namespace UnitTests.Grains
                         Assert.False(doingDeactivate, "Not doing Deactivate");
                         doingActivate = true;
                     });
-            // 我们希望使用 Task.ContinueWith ,用一个async slamda,需要明确输入变量以避免
-            // 写代码不做我认为它正在做的。
+            // 需要对异步 lambda 使用 Task.ContinueWith，必须使用显式类型的变量，
+            // 以免写出的代码与预期行为不符。
             async Task asyncCont()
             {
                 Assert.NotNull(TaskScheduler.Current);

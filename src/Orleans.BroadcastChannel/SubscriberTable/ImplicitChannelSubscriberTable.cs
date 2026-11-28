@@ -105,13 +105,13 @@ namespace Orleans.BroadcastChannel.SubscriberTable
         }
 
         /// <summary>
-        /// 获取一个暗含 subscriptionsIds 的地图给默认用户, 并给其提供一个频道 ID。 如果没有与频道 ID 相关的命名空间, 此方法会丢出例外 。
+        /// 根据通道 ID 获取从隐式订阅 ID 到隐式订阅者的映射。如果通道 ID 没有关联的命名空间，此方法将抛出异常。
         /// </summary>
-        /// <param name="channelId">频道 ID。</param>
-        /// <param name="grainFactory">下 grain 工厂用来获取消费者参考资料。</param>
-        /// <returns>一套提及默示默认的提法 grains.它们预计将支持广播频道的消费者推广。</returns>
-        /// <exception cref="ArgumentException">频道 ID 没有相关的命名空间。</exception>
-        /// <exception cref="InvalidOperationException">内部的无变不化侵犯。</exception>
+        /// <param name="channelId">通道 ID。</param>
+        /// <param name="grainFactory">用于获取消费者引用的 Grain 工厂。</param>
+        /// <returns>隐式订阅的 Grain 引用集合。这些 Grain 应支持广播通道消费者扩展。</returns>
+        /// <exception cref="ArgumentException">通道 ID 没有关联的命名空间。</exception>
+        /// <exception cref="InvalidOperationException">违反内部不变量。</exception>
         internal Dictionary<Guid, IBroadcastChannelConsumerExtension> GetImplicitSubscribers(InternalChannelId channelId, IGrainFactory grainFactory)
         {
             var channelNamespace = channelId.GetNamespace();
@@ -149,7 +149,7 @@ namespace Orleans.BroadcastChannel.SubscriberTable
         }
 
         /// <summary>
-        /// 创建 subscriptionId 唯一 grainId, grainType,命名空间组合。
+        /// 为 grainId、grainType 和命名空间的每种组合创建唯一的 subscriptionId。
         /// </summary>
         private Guid MakeSubscriptionGuid(GrainType grainType, InternalChannelId channelId)
         {
@@ -158,12 +158,12 @@ namespace Orleans.BroadcastChannel.SubscriberTable
             BinaryPrimitives.WriteUInt32LittleEndian(bytes[4..], channelId.ChannelId.GetUniformHashCode());
             BinaryPrimitives.WriteUInt32LittleEndian(bytes[8..], channelId.ChannelId.GetKeyIndex());
             BinaryPrimitives.WriteUInt32LittleEndian(bytes[12..], StableHash.ComputeHash(channelId.ProviderName));
-            bytes[15] |= 0x80; // 设置高位的上一个字节( 暗含订阅)
+            bytes[15] |= 0x80; // 设置最后一个字节的最高位（表示隐式订阅）。
             return new(bytes);
         }
 
         /// <summary>
-        /// 查找给定频道命名空间的所有隐含用户。
+        /// 查找给定通道命名空间的所有隐式订阅者。
         /// </summary>
         private static HashSet<BroadcastChannelSubscriber> FindImplicitSubscribers(string channelNamespace, List<BroadcastChannelSubscriberPredicate> predicates)
         {
@@ -180,11 +180,11 @@ namespace Orleans.BroadcastChannel.SubscriberTable
         }
 
         /// <summary>
-        /// 创建一个 grain 的引用, 我们希望它能支持广播频道消费者推广。
+        /// 创建应支持广播通道消费者扩展的 Grain 的引用。
         /// </summary>
-        /// <param name="grainFactory">下 grain 工厂用来获取消费者参考资料。</param>
-        /// <param name="channelId">用于 grain ID构建的通道 。</param>
-        /// <param name="channelSubscriber">下 GrainBindings 排排 grain 要创建</param>
+        /// <param name="grainFactory">用于获取消费者引用的 Grain 工厂。</param>
+        /// <param name="channelId">用于构造 Grain ID 的通道 ID。</param>
+        /// <param name="channelSubscriber">要创建的 Grain 的 GrainBindings。</param>
         /// <returns></returns>
         private static IBroadcastChannelConsumerExtension MakeConsumerReference(
             IGrainFactory grainFactory,

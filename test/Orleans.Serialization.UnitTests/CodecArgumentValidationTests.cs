@@ -18,8 +18,8 @@ using Orleans.Serialization.TestKit;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// 检验论证的验证和无效保留序列化及复制合同
-/// 内置代码
+/// 测试内置编解码器的参数校验，以及序列化和复制过程中
+/// 保留 null 值的契约。
 /// </summary>
 [Trait("Category", "BVT")]
 [TestSuite("BVT")]
@@ -40,11 +40,11 @@ public sealed class CodecArgumentValidationTests : IDisposable
     private T DeepCopyValue<T>(T value) => _serviceProvider.GetRequiredService<DeepCopier<T>>().Copy(value)!;
 
     /// <summary>
-    /// 解决来自《京都议定书》的 <typeparamref name="T"/> 具体代码实例
-    /// <see cref="CodecProvider"/>普通 <c>AddSerializer()</c> 仅根据
-    /// 其 <see cref="Codecs.IFieldCodec{T}"/> 服务类型,而不是混凝土类,所以
-    /// 需要具体类型额外公共成员(e.g. <c>Serialize</c>/
-    /// <c>Deserialize</c> ,从 <c>IBaseCodec&lt;T&gt;</c>必须解决并采用这种方式。
+    /// 从以下提供程序解析 <typeparamref name="T"/> 的具体编解码器实例：
+    /// <see cref="CodecProvider"/>。普通的 <c>AddSerializer()</c> 仅按
+    /// <see cref="Codecs.IFieldCodec{T}"/> 服务类型注册编解码器，而不按具体类注册，因此
+    /// 需要访问具体类型额外公共成员的测试（例如 <c>Serialize</c>/
+    /// <c>Deserialize</c>，它们来自 <c>IBaseCodec&lt;T&gt;</c>）必须以此方式解析并转换类型。
     /// </summary>
     private TCodec GetConcreteCodec<T, TCodec>() where TCodec : IFieldCodec<T>
         => (TCodec)_serviceProvider.GetRequiredService<CodecProvider>().GetCodec<T>();
@@ -70,9 +70,9 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     /// <summary>
-    /// 间谍 <see cref="IDeepCopier{T}"/> 记录援引数并应用
-    /// 区分变异,所以测试可以证明两个 “是否引用了这个合作者?”
-    /// "副本真的通过这个合作者流经吗?"
+    /// 用于监测的 <see cref="IDeepCopier{T}"/> 会记录调用次数，并执行
+    /// 可区分的转换，以便测试同时证明“是否调用了这个协作者？”和
+    /// “复制操作是否确实经过了这个协作者？”。
     /// </summary>
     private sealed class TrackingCopier<T>(Func<T, T> transform) : IDeepCopier<T>
     {
@@ -151,8 +151,8 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     // ------------------------------------------------------------------------------------
-    // 第1组: IDeepCopier<T>。DeepCopy(T输入, CopyContext 上下文) -- -- 2-弧超载。
-    // 经核实的合同:无效上下文抛出;无效输入返回无效,不投掷。
+    // 第 1 组：IDeepCopier<T>.DeepCopy(T input, CopyContext context)，双参数重载。
+    // 验证的契约：context 为 null 时引发异常；input 为 null 时直接返回 null，不引发异常。
     // ------------------------------------------------------------------------------------
 
     [Fact]
@@ -185,9 +185,9 @@ public sealed class CodecArgumentValidationTests : IDisposable
     [Fact]
     public void ArrayCopier_NullInputAndNullContext_ThrowsForContextValidatedFirst()
     {
-        // 证明有证据证明,不仅每个警卫独立存在:如果输入
-        // 上下文前检查, DeepCopy将走"回归无"的道路
-        // 因为上下文首先被验证,它必须还是在这里扔。
+        // 证明的是防护检查的顺序，而非仅证明各检查独立存在：如果
+        // 先检查 input 再检查 context，DeepCopy(null!, null!) 就会走“返回 null”的路径，
+        // 而不会引发异常。由于先校验 context，此处仍必须引发异常。
         var elementCopier = new TrackingCopier<int>(v => v + 1000);
         var sut = new ArrayCopier<int>(elementCopier);
 
@@ -428,9 +428,9 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     // ------------------------------------------------------------------------------------
-    // 第2组: IBaseCopier<T>.DeepCopy(T投入,T产出, CopyContext 3-弧
-    // 复制到超载。经验证的合同:所有三个参数在无效时投出, 在无效之前
-    // 输出变异或引用任何元素复印机。
+    // 第 2 组：IBaseCopier<T>.DeepCopy(T input, T output, CopyContext context)，三参数
+    // “复制到”重载。验证的契约：任一参数为 null 都会引发异常，且发生在
+    // 修改 output 或调用任何元素复制器之前。
     // ------------------------------------------------------------------------------------
 
     [Fact]
@@ -481,10 +481,10 @@ public sealed class CodecArgumentValidationTests : IDisposable
     [Fact]
     public void ListCopier_CopyIntoAllNull_ThrowsForInputValidatedFirst()
     {
-        // 补充上面的2-arg“两个无”订购证明:3arg“复制到”
-        // 超载, 所有三个参数都以文件形式被投放, 输入/ 输出/ 文本
-        // 命令,而不仅仅是单列。
-        // 警卫孤立地存在。
+        // 补充上方双参数“均为 null”的顺序证明：对于三参数“复制到”
+        // 重载，文档规定三个参数的 null 检查按 input/output/context 顺序
+        // 引发异常。将三个参数均传为 null 可以证明该顺序，而不只是证明各个
+        // 防护检查独立存在。
         var elementCopier = new TrackingCopier<int>(v => v + 1000);
         var sut = new ListCopier<int>(elementCopier);
 
@@ -624,7 +624,7 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     // ------------------------------------------------------------------------------------
-    // 第3组:独立帮手类型/会期边界。
+    // 第 3 组：独立辅助方法的 Type/session 参数边界。
     // ------------------------------------------------------------------------------------
 
     [Fact]
@@ -677,9 +677,9 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     // ------------------------------------------------------------------------------------
-    // 第4组: IBaseCodec<T>. 定序/降序边界,直接调用(通过)
-    // WriteField的参考短路短路路。可验证:警卫是第一个
-    // 语句,因此没有页眉字节的文字,也没有消耗读者字节。
+    // 第 4 组：IBaseCodec<T> 的 Serialize/Deserialize 边界，直接调用（绕过
+    // WriteField 的引用短路逻辑）。验证该检查确实可达：防护检查是第一条
+    // 语句，因此不会写入头部字节，也不会消耗读取器中的任何字节。
     // ------------------------------------------------------------------------------------
 
     [Fact]
@@ -690,9 +690,9 @@ public sealed class CodecArgumentValidationTests : IDisposable
         using var session = SessionPool.GetSession();
         var writer = Writer.Create(buffer, session);
 
-        // Writer<TBufferWriter> 是ref 支架, 所以“ ref” 调用无法从内部
-        // lambda (Assert.Throws(行动)需要将其捕获在封闭中);使用 a
-        // 改为明示试捕/捕获。
+        // Writer<TBufferWriter> 是 ref struct，因而不能在 lambda 内部进行
+        // “ref”调用（Assert.Throws(Action) 需要将其捕获到闭包中）；应改用
+        // 显式 try/catch。
         ArgumentNullException? exception = null;
         try
         {
@@ -778,8 +778,8 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     // ------------------------------------------------------------------------------------
-    // 组 5: ReferenceCodec 将无效有效载荷写成无效符号,作为在
-    // 代码编码访问值。
+    // 第 5 组：在编解码器访问值之前，ReferenceCodec 将可空负载中的 null 值
+    // 写为 null 引用标记。
     // ------------------------------------------------------------------------------------
 
     [Fact]
@@ -847,8 +847,8 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     // ------------------------------------------------------------------------------------
-    // 第6组:有效、有代表性的非空集装箱仍深影印和圆环
-    // 通过参数验证的编码/复印机正确无误。
+    // 第 6 组：具有代表性的有效非空容器通过已加入参数校验的编解码器和复制器，
+    // 仍可正确执行深度复制及序列化往返。
     // ------------------------------------------------------------------------------------
 
     [Fact]
@@ -1006,9 +1006,9 @@ public sealed class CodecArgumentValidationTests : IDisposable
         var copy = DeepCopyValue(original);
         var roundTripped = RoundTripSerialize(original);
 
-        // 图<T1, T2> 本身是不可变的, 内字和弦都是浅可读的, 所以
-        // TupleCopier的 IsShallowCopyable() 快速路径合法返回相同情况
-        // 而不是分配新的一个—— 这是正确的行为, 不是遗漏的复制件。
+        // Tuple<T1, T2> 本身不可变，且 int 和 string 都可浅复制，因此
+        // TupleCopier 的 IsShallowCopyable() 快速路径返回同一实例是合理的，
+        // 无需分配新实例，这是正确行为，并非遗漏复制。
         Assert.Same(original, copy);
         Assert.Equal(original, copy);
         Assert.Equal(original, roundTripped);
@@ -1022,15 +1022,15 @@ public sealed class CodecArgumentValidationTests : IDisposable
         var copy = DeepCopyValue(original);
         var roundTripped = RoundTripSerialize(original);
 
-        // 与两个图例相同的理由理由:内注/弦/布尔均可浅读,因此
-        // 永久图普<T1,T2,T3> 与原样合法归还。
+        // 与二元元组的情况同理：int/string/bool 均可浅复制，因此
+        // 不可变的 Tuple<T1,T2,T3> 合理地返回同一实例。
         Assert.Same(original, copy);
         Assert.Equal(original, copy);
         Assert.Equal(original, roundTripped);
     }
 
     // ------------------------------------------------------------------------------------
-    // 第7组:必须保留假名和周期,并保持其深度复制和序列。
+    // 第 7 组：深度复制和序列化必须保留共享引用关系与循环引用。
     // ------------------------------------------------------------------------------------
 
     [Fact]
@@ -1075,8 +1075,8 @@ public sealed class CodecArgumentValidationTests : IDisposable
     }
 
     // ------------------------------------------------------------------------------------
-    // 第8组:多形态/参考行为必须通过对象类型保持完整
-    // 收藏( 执行 ObjectCodec的快递和 ObjectCopier无效返回路径) 。
+    // 第 8 组：通过元素类型为 object 的集合时，必须保留多态及引用行为
+    // （测试 ObjectCodec 的分派和 ObjectCopier 的 null 返回路径）。
     // ------------------------------------------------------------------------------------
 
     [Fact]

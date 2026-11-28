@@ -8,17 +8,17 @@ using Orleans.Core.Internal;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 本类持有有关目前正在处理的请求的信息。
-    /// 明确打算将其用于应用代码。
+    /// 此类保存当前正在处理的请求的相关信息。
+    /// 它专门设计为可由应用程序代码访问。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 请求的背景作为财产袋来说明。
-    /// 有些值是默认提供的; 其它值来自
-    /// 请求导致当前处理。
+    /// 请求上下文表示为一个属性包。
+    /// 部分值由系统默认提供，其余值来自触发当前处理过程的
+    /// 请求的消息头。
     /// </para>
     /// <para>
-    /// 储存在 <see cref="RequestContext"/> 传播自 Orleans 客户端到客户端 Orleans grains 自动由 Orleans 运行时间。
+    /// 存储在 <see cref="RequestContext"/> 中的信息由 Orleans 运行时自动从 Orleans 客户端传播到 Orleans Grain。
     /// </para>
     /// </remarks>
     public static class RequestContext
@@ -29,7 +29,7 @@ namespace Orleans.Runtime
         internal static readonly AsyncLocal<ContextProperties> CallContextData = new();
 
         /// <summary>
-        /// 获取或设置用于在当前呼叫链中允许重新响应的调用的标识符。
+        /// 获取或设置用于允许当前调用链中发生可重入调用的标识符。
         /// </summary>
         public static Guid ReentrancyId
         {
@@ -48,7 +48,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 允许在处置所归还的 <see cref="ReentrancySection"/> 之前重新发出随后发出的电话。
+        /// 允许在返回的 <see cref="ReentrancySection"/> 被释放之前发出的后续调用发生重入。
         /// </summary>
         public static ReentrancySection AllowCallChainReentrancy()
         {
@@ -58,16 +58,16 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 处理退款 <see cref="ReentrancySection"/> 之前发出的后续电话,禁止重新打电话。
+        /// 禁止在返回的 <see cref="ReentrancySection"/> 被释放之前发出的后续调用发生重入。
         /// </summary>
         public static ReentrancySection SuppressCallChainReentrancy() => new(ReentrancyId, Guid.Empty);
 
         /// <summary>
-        /// 从请求上下文中获取一个值 。
+        /// 从请求上下文中检索值。
         /// </summary>
-        /// <param name="key">需要检索值的密钥。</param>
+        /// <param name="key">要检索的值对应的键。</param>
         /// <returns>
-        /// 与所提供的密钥当前相关的价值,否则 <see langword="null"/> 如果该密钥没有数据, 则该密钥将不存在数据 。
+        /// 当前与给定键关联的值；如果该键没有对应的数据，则返回 <see langword="null"/>。
         /// </returns>
         public static object? Get(string key)
         {
@@ -83,10 +83,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 设定请求上下文中的值。
+        /// 在请求上下文中设置值。
         /// </summary>
-        /// <param name="key">要更新或添加值的密钥 。</param>
-        /// <param name="value">将存储到请求上下文的价值。</param>
+        /// <param name="key">要更新或添加的值对应的键。</param>
+        /// <param name="value">要存入请求上下文的值。</param>
         public static void Set(string key, object value)
         {
             var properties = CallContextData.Value;
@@ -98,9 +98,9 @@ namespace Orleans.Runtime
             }
             else
             {
-                // 复制实际字典值, 将其变换并放回原位 。
-                // 这是由于 AsyncLocal 副本链接到字典, 而不是创建新链接 。
-                // 所以我们需要确保改变价值, 我们不会影响其他线索。
+                // 必须复制实际的 Dictionary 值，修改副本后再将其设置回去。
+                // 这是因为 AsyncLocal 复制的是对字典的引用，而不是创建新字典。
+                // 因此必须确保修改值时不会影响其他线程。
                 var hadPreviousValue = values.ContainsKey(key);
                 var newValues = new Dictionary<string, object>(values.Count + (hadPreviousValue ? 0 : 1));
                 foreach (var pair in values)
@@ -119,10 +119,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 从请求上下文中删除值 。
+        /// 从请求上下文中移除一个值。
         /// </summary>
-        /// <param name="key">要删除值的密钥。</param>
-        /// <returns><see langword="true"/> 如果该数值先前是在请求的上下文中,而现在已被删除,则 <see langword="false"/>.</returns>
+        /// <param name="key">要移除的值对应的键。</param>
+        /// <returns>如果该值此前存在于请求上下文中且现已移除，则为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
         public static bool Remove(string key)
         {
             var properties = CallContextData.Value;
@@ -154,11 +154,11 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 清除当前请求的背景。
+        /// 清空当前请求上下文。
         /// </summary>
         public static void Clear()
         {
-            // 删除防止其值从此点传过的关键键
+            // 移除该键，以免从此处起继续传递其值。
             if (!CallContextData.Value.IsDefault)
             {
                 CallContextData.Value = default;
@@ -166,12 +166,12 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取当前请求上下文中值的密钥收藏。
+        /// 获取请求上下文中当前各值对应的键集合。
         /// </summary>
         public static IEnumerable<string> Keys => CallContextData.Value.Values?.Keys ?? Enumerable.Empty<string>();
 
         /// <summary>
-        /// 获取当前请求上下文中的条目收藏。
+        /// 获取请求上下文中当前的条目集合。
         /// </summary>
         public static IEnumerable<KeyValuePair<string, object>> Entries => CallContextData.Value.Values ?? Enumerable.Empty<KeyValuePair<string, object>>();
 
@@ -182,7 +182,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 表示对呼叫链回放的幅度变化。
+        /// 表示在特定作用域内对调用链可重入性的修改。
         /// </summary>
         [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "This disposable scope token controls runtime reentrancy state and does not represent a comparable value.")]
         public readonly struct ReentrancySection : IDisposable
@@ -193,8 +193,8 @@ namespace Orleans.Runtime
             /// <summary>
             /// 初始化 <see cref="ReentrancySection"/> 结构的新实例。
             /// </summary>
-            /// <param name="originalReentrancyId">处理此段时要恢复的再生识别符 。</param>
-            /// <param name="newReentrancyId">用于该节的再生识别符号。</param>
+            /// <param name="originalReentrancyId">释放此作用域时要恢复的可重入性标识符。</param>
+            /// <param name="newReentrancyId">此作用域内使用的可重入性标识符。</param>
             public ReentrancySection(Guid originalReentrancyId, Guid newReentrancyId)
             {
                 _originalReentrancyId = originalReentrancyId;

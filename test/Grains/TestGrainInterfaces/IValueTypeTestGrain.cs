@@ -108,8 +108,8 @@ namespace UnitTests.GrainInterfaces
             return stringIntDict[name];
         }
 
-        // 此类在任何地方都没有实际使用。 这是在这里测试序列生成器是否正确操作
-        // 嵌套通用类。 如果它不这样做, 那么生成的本类序列器将无法编译 。
+        // 此类实际上未在任何地方使用。它用于测试序列化器生成器能否正确处理
+        // 嵌套泛型类。否则，为此类生成的序列化器将无法编译。
         [Serializable]
         [GenerateSerializer]
         public class NestedGeneric<T>
@@ -155,9 +155,9 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// Grain 用于测试收藏表达式返回 grain 方法
-    /// 当申报的返回类型是一个收藏界面时, 序列化和取消正序化 。
-    /// 涵盖由界面收集编码(问题#8934/PR#10104)确定的情景。
+    /// 用于测试 Grain 方法返回的集合表达式的 Grain 接口，
+    /// 验证在声明的返回类型为集合接口时能够正确序列化和反序列化。
+    /// 覆盖由集合接口编解码器修复的场景（issue #8934 / PR #10104）。
     /// </summary>
     public interface ICollectionExpressionGrain : IGrainWithIntegerKey
     {

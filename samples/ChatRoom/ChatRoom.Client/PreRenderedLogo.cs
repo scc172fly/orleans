@@ -6,7 +6,7 @@ internal sealed class PreRenderedLogo : Renderable
 {
     private const int PixelWidth = 2;
     private const int MaxWidth = 25 * PixelWidth;
-    // 条目覆盖1-25 像素, 每像素有两个控制台单元格 。
+    // 每个条目覆盖 1 至 25 个像素，每个像素占两个控制台字符单元。
     private readonly string[] _markup;
 
     public PreRenderedLogo()

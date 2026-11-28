@@ -11,7 +11,7 @@ using Xunit;
 namespace UnitTests.LivenessTests
 {
     /// <summary>
-    /// 测试环散装物供应商的功能和虚拟桶分配是否一致。
+    /// 测试一致性哈希环提供程序的功能及虚拟桶的分布。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -132,7 +132,7 @@ namespace UnitTests.LivenessTests
 
         private static void VerifyRing(List<ConsistentRingProvider> rings, uint key)
         {
-            // 签名和未签名的分类因轮换而异,保留现有的环程范围。
+            // 有符号与无符号排序仅相差一次循环旋转，保留现有环形范围。
             var legacyOrder = rings.OrderBy(ring => ring.MyAddress.GetConsistentHashCode()).ToArray();
             for (var i = 0; i < legacyOrder.Length; i++)
             {

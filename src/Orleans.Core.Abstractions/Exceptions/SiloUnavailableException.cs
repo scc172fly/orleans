@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 表示一项请求因目标 silo 无法满足而被取消。
+    /// 表示由于目标 Silo 不可用，请求已被取消。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -22,7 +22,7 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="SiloUnavailableException"/> 类的新实例。
         /// </summary>
         /// <param name="msg">
-        /// 密歇根州
+        /// 消息。
         /// </param>
         public SiloUnavailableException(string msg)
             : base(msg)
@@ -33,10 +33,10 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="SiloUnavailableException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// 信息
+        /// 消息。
         /// </param>
         /// <param name="innerException">
-        /// 内在的例外
+        /// 内部异常。
         /// </param>
         public SiloUnavailableException(string message, Exception innerException)
             : base(message, innerException)
@@ -47,13 +47,13 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="SiloUnavailableException"/> 类的新实例。
         /// </summary>
         /// <param name="info">
-        /// 资料
+        /// 序列化信息。
         /// </param>
         /// <param name="context">
-        /// 背景。
+        /// 上下文。
         /// </param>
-        /// <exception cref="SerializationException">类名为 <see langword="null" /> 或 <see cref="P:System.Exception.HResult" /> 为零(0)</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="info" /> 是 <see langword="null" />.</exception>
+        /// <exception cref="SerializationException">类名为 <see langword="null" />，或者 <see cref="P:System.Exception.HResult" /> 为零（0）。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="info" /> 为 <see langword="null" />。</exception>
         [Obsolete]
         private SiloUnavailableException(SerializationInfo info, StreamingContext context)
             : base(info, context)

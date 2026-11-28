@@ -9,15 +9,15 @@ using Orleans.Configuration;
 namespace Orleans.BroadcastChannel
 {
     /// <summary>
-    /// 向制作人提供广播频道的功能。
+    /// 为生产者提供广播通道的功能。
     /// </summary>
     public interface IBroadcastChannelProvider
     {
         /// <summary>
-        /// 找一个作家去频道
+        /// 获取通道的写入器。
         /// </summary>
-        /// <typeparam name="T">频道元素类型。</typeparam>
-        /// <param name="streamId">频道标识符。</param>
+        /// <typeparam name="T">通道元素类型。</typeparam>
+        /// <param name="streamId">通道标识符。</param>
         /// <returns></returns>
         IBroadcastChannelWriter<T> GetChannelWriter<T>(ChannelId streamId);
     }
@@ -65,11 +65,11 @@ namespace Orleans.BroadcastChannel
         }
 
         /// <summary>
-        /// 创建新频道提供者 。
+        /// 创建新的通道提供程序。
         /// </summary>
-        /// <param name="sp">服务供应商。</param>
-        /// <param name="name">提供者的名称。</param>
-        /// <returns>指定的频道提供者。</returns>
+        /// <param name="sp">服务提供程序。</param>
+        /// <param name="name">提供程序名称。</param>
+        /// <returns>命名通道提供程序。</returns>
         public static IBroadcastChannelProvider Create(IServiceProvider sp, string name)
         {
             var opt = sp.GetOptionsByName<BroadcastChannelOptions>(name);

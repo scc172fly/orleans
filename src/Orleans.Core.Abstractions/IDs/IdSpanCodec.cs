@@ -9,7 +9,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// 序列化和取消 <see cref="IdSpan"/> 实例的功能。
+/// 提供 <see cref="IdSpan"/> 实例的序列化和反序列化功能。
 /// </summary>
 [RegisterSerializer]
 public sealed class IdSpanCodec : IFieldCodec<IdSpan>
@@ -28,7 +28,7 @@ public sealed class IdSpanCodec : IFieldCodec<IdSpan>
         ReferenceCodec.MarkValueField(writer.Session);
         writer.WriteFieldHeader(fieldIdDelta, expectedType, _codecType, WireType.LengthPrefixed);
         var bytes = value.AsSpan();
-        if (bytes.IsEmpty) writer.WriteByte(1); // 等值于 `writer.WriteVarUInt32(0);`
+        if (bytes.IsEmpty) writer.WriteByte(1); // 等效于 `writer.WriteVarUInt32(0);`。
         else
         {
             writer.WriteVarUInt32((uint)(sizeof(int) + bytes.Length));
@@ -38,11 +38,11 @@ public sealed class IdSpanCodec : IFieldCodec<IdSpan>
     }
 
     /// <summary>
-    /// 将 <see cref="IdSpan"/> 值写入给提供作家,而不设置字段框。
+    /// 将 <see cref="IdSpan"/> 值写入提供的写入器，不写入字段帧结构。
     /// </summary>
-    /// <param name="writer">作家。</param>
+    /// <param name="writer">写入器。</param>
     /// <param name="value">要写入的值。</param>
-    /// <typeparam name="TBufferWriter">后含缓冲写作类型。</typeparam>
+    /// <typeparam name="TBufferWriter">底层缓冲区写入器类型。</typeparam>
     public static void WriteRaw<TBufferWriter>(
         ref Writer<TBufferWriter> writer,
         IdSpan value)
@@ -58,11 +58,11 @@ public sealed class IdSpanCodec : IFieldCodec<IdSpan>
     }
 
     /// <summary>
-    /// 从读者那里读取 <see cref="IdSpan"/> 值,但不设置字段。
+    /// 从读取器中读取 <see cref="IdSpan"/> 值，不读取任何字段帧结构。
     /// </summary>
-    /// <typeparam name="TInput">基础读者输入类型。</typeparam>
-    /// <param name="reader">读者</param>
-    /// <returns>A 音 A <see cref="IdSpan"/>.</returns>
+    /// <typeparam name="TInput">底层读取器输入类型。</typeparam>
+    /// <param name="reader">读取器。</param>
+    /// <returns><see cref="IdSpan"/> 值。</returns>
     public static unsafe IdSpan ReadRaw<TInput>(ref Reader<TInput> reader)
     {
         var length = reader.ReadVarUInt32();

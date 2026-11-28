@@ -32,7 +32,7 @@ namespace Orleans.Transactions.DynamoDB.Tests
     }
 
     /// <summary>
-    /// 交易性国家储存 DynamoDB 实施测试。
+    /// 测试事务状态存储的 DynamoDB 实现。
     /// </summary>
     [TestCategory("DynamoDB"), TestCategory("Transactions"), TestCategory("Functional")]
     [TestSuite("Functional")]

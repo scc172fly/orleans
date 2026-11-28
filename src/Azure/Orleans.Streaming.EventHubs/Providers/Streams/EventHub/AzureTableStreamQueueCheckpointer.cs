@@ -9,7 +9,7 @@ using Orleans.Streaming.EventHubs;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 使用 Azure 表格存储器的长途排队检查站。
+    /// 使用 Azure Table Storage 持久化流队列检查点。
     /// </summary>
     public partial class AzureTableStreamQueueCheckpointer : IStreamQueueCheckpointer<string>
     {
@@ -75,7 +75,7 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 创建并初始化 Azure 表列队列检查器。
+        /// 创建并初始化 Azure Table 流队列检查点管理器。
         /// </summary>
         public static Task<IStreamQueueCheckpointer<string>> Create(
             AzureTableStreamCheckpointerOptions options,

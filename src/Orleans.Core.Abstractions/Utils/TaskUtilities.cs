@@ -8,7 +8,7 @@ namespace Orleans.Internal;
 internal static class TaskUtilities
 {
     /// <summary>
-    /// 等待每项提供的任务,将单个失败直接或多次失败作为 <see cref="AggregateException"/>来宣传。
+    /// 等待所有提供的任务，直接传播单个失败，或将多个失败包装为 <see cref="AggregateException"/> 进行传播。
     /// </summary>
     internal static Task WhenAllWithAggregateException(IEnumerable<Task> tasks)
     {

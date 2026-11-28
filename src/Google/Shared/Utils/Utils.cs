@@ -14,7 +14,7 @@ namespace Orleans.Reminders.Firestore;
 #elif ORLEANS_DIRECTORY
 namespace Orleans.GrainDirectory.Firestore;
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 
 internal static partial class Utils

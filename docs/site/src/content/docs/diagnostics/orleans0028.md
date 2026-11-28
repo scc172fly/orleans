@@ -1,32 +1,32 @@
 ---
-title: "ORLEANS0028:无效的 Orleans 身份"
-description: "解析无效字符的 Orleans 别名、 grain 类型和 grain 接口类型。"
+title: "ORLEANS0028: 无效的 Orleans 标识"
+description: 解决 Orleans 别名、Grain 类型和 Grain 接口类型中的无效字符问题。
 ms.date: 10/26/2026
 ms.topic: reference
 ---
 
 <a id="orleans0028-invalid-orleans-identity"></a>
 
-# ORLEANS0028:无效的 Orleans 身份
+# ORLEANS0028: 无效的 Orleans 标识
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 类别类 | 用法 |
-| 严重性 | 错误错误 |
-| 代码修正 | 不详 |
+| 类别 | 用法 |
+| 严重性 | 错误 |
+| 代码修复 | 不可用 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-源 <xref:Orleans.AliasAttribute>、 <xref:Orleans.GrainTypeAttribute>或 <xref:Orleans.Runtime.GrainInterfaceTypeAttribute> 指定了无效或空身份、含有引号的数值、白空间、控制字符、或保留类型名称分隔符(`[](),*&`),或无效的通用异性后缀。
+源码中的 <xref:Orleans.AliasAttribute>、<xref:Orleans.GrainTypeAttribute> 或 <xref:Orleans.Runtime.GrainInterfaceTypeAttribute> 指定了 null 或空标识、含有引号、空白字符、控制字符或保留类型名分隔符（`[](),*&`）的值，或者无效的泛型元数后缀。
 
 <a id="how-to-fix"></a>
 
-## 如何修补
+## 修复方法
 
-选择一个非空身份, 不带引号、 空白空间、 控制字符或保留类型名称分隔符。 限定名称、 嵌套型名、 通用等同后缀和字面反线保留其意义 。 Orleans 在 [合同货单](../grains/grain-versioning/contract-compatibility-analyzer.md)中逐字记录有效身份 。
+选择不含引号、空白字符、控制字符和保留类型名分隔符的非空标识。限定名称、嵌套类型名称、泛型元数后缀和字面量反斜杠仍保留原有含义。Orleans 将有效标识原样记录在[契约清单](../grains/grain-versioning/contract-compatibility-analyzer.md)中。
 
-将通用性写为反向, 然后在每个嵌套型名称结尾处的 ASCII 小数位数, 总计最多64。 例如, ``counter`1+Nested`2`` 是有效的; ``counter`1v2] 在其正数后有文字, 必须重新命名 。
+在每个嵌套类型名称末尾用反引号和随后的 ASCII 十进制数字表示泛型元数，元数总计不得超过 64。例如，``counter`1+Nested`2`` 有效；``counter`1v2`` 在元数后缀之后还有其他文本，必须重命名。
 
-属性构造器和配置的型名登记在运行时执行同样的有效规则。对现有的货单和固定的别名遵循 [身份移徙指南](../migration/contract-identities.md) 标准。
+部署前检查标识变更的线协议兼容性。特性构造函数和配置的类型别名注册在运行时执行相同的有效性规则。对于现有清单及持久化别名，请遵循[标识迁移指南](../migration/contract-identities.md)。

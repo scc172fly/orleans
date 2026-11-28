@@ -7,29 +7,29 @@ using System.Text;
 namespace Orleans.TestingHost.Utils
 {
     /// <summary>
-    /// 遗留窗口的折纸夹 Azure 存储模拟器
+    /// 旧版 Windows Azure Storage Emulator 的包装器。
     /// </summary>
     /// <remarks>
-    /// 此助手仅管理以下所列遗留模拟程序执行文件;
-    /// 无法启动或阻止 Azurite。使用
-    /// <see href="https://learn.microsoft.com/azure/storage/common/storage-use-azurite">用于本地 Azure 储存开发的阿祖里特</see>
-    /// 支持的本地仿真。
+    /// 此辅助工具仅管理下方列出的旧版模拟器可执行文件；它
+    /// 不会启动或停止 Azurite。请使用
+    /// <see href="https://learn.microsoft.com/azure/storage/common/storage-use-azurite">Azurite 进行本地 Azure Storage 开发</see>，
+    /// 以获得受支持的本地模拟环境。
     /// </remarks>
     public static class StorageEmulator
     {
         /// <summary>
-        /// 存储模拟进程名称。 引用运行中进程名称的一种方法是
-        /// Get- process {} 格式表Id, ProcessName - 自动大小。 如果存在多个存储模拟器
-        /// 运行的过程,他们会命名为WASTOR~1,WASTOR~2, ...WASTOR~N。
+        /// 存储模拟器的进程名称。枚举运行中进程名称的一种方法是
+        /// Get-Process | Format-Table Id, ProcessName -autosize。如果运行多个存储模拟器
+        /// 进程，它们将命名为 WASTOR~1、WASTOR~2、……、WASTOR~n。
         /// </summary>
         private static readonly string[] storageEmulatorProcessNames = new[]
         {
-            "AzureStorageEmulator", // 最新
+            "AzureStorageEmulator", // 最新的。
             "Windows Azure Storage Emulator Service", // >= 2.7
             "WAStorageEmulator", // < 2.7
         };
 
-        //文件名和进程名不一样 。
+        // 文件名称与进程名称并不相同。
         private static readonly string[] storageEmulatorFilenames = new[]
         {
             "AzureStorageEmulator.exe", // >= 2.7
@@ -37,9 +37,9 @@ namespace Orleans.TestingHost.Utils
         };
 
         /// <summary>
-        /// 存储模拟器已经启动吗 。
+        /// 存储模拟器是否已启动。
         /// </summary>
-        /// <returns><see langword="true" /> 如果开始采用这一实例;否则, <see langword="false" />。</returns>
+        /// <returns><see langword="true" /> 表示此实例已启动；否则为 <see langword="false" />。</returns>
         public static bool IsStarted()
         {
             return GetStorageEmulatorProcess();
@@ -47,9 +47,9 @@ namespace Orleans.TestingHost.Utils
 
 
         /// <summary>
-        /// 检查存储模拟器是否存在, i.e是否安装。
+        /// 检查存储模拟器是否存在，即是否已安装。
         /// </summary>
-        /// <value><see langword="true" /> ,如果储存模拟器存在;否则, <see langword="false" />。</value>
+        /// <value><see langword="true" /> 表示存储模拟器存在；否则为 <see langword="false" />。</value>
         public static bool Exists
         {
             get
@@ -59,7 +59,7 @@ namespace Orleans.TestingHost.Utils
         }
 
         /// <summary>
-        /// 存储模拟器帮助 。
+        /// Storage Emulator 帮助。
         /// </summary>
         /// <returns>存储模拟器帮助。</returns>
         public static string Help()
@@ -68,7 +68,7 @@ namespace Orleans.TestingHost.Utils
 
             try
             {
-                //此程序会立即处理返回事宜 。
+                // 此进程句柄立即返回。
                 using (var process = Process.Start(CreateProcessArguments("help"))!)
                 {
                     process.WaitForExit();
@@ -88,9 +88,9 @@ namespace Orleans.TestingHost.Utils
         }
 
         /// <summary>
-        /// 尝试启动存储模拟器 。
+        /// 尝试启动存储模拟器。
         /// </summary>
-        /// <returns><see langword="true"/> ,如果进程成功启动; <see langword="false"/> ,否则。</returns>
+        /// <returns><see langword="true"/> 表示进程成功启动；否则为 <see langword="false"/>。</returns>
         public static bool TryStart()
         {
             if (!StorageEmulator.Exists)
@@ -100,16 +100,16 @@ namespace Orleans.TestingHost.Utils
         }
 
         /// <summary>
-        /// 如果尚未启动存储模拟器,则启动该模拟器。
+        /// 如果存储模拟器尚未启动，则启动它。
         /// </summary>
-        /// <returns><see langword="true"/> ,如果进程成功启动; <see langword="false"/> ,否则。</returns>
+        /// <returns><see langword="true"/> 表示进程成功启动；否则为 <see langword="false"/>。</returns>
         public static bool Start()
         {
             if (IsStarted()) return true;
 
             try
             {
-                //此程序会立即处理返回事宜 。
+                // 此进程句柄立即返回。
                 using (var process = Process.Start(CreateProcessArguments("start")))
                 {
                     if (process == null) return false;
@@ -124,16 +124,16 @@ namespace Orleans.TestingHost.Utils
         }
 
         /// <summary>
-        /// 如果启动, 停止存储模拟器 。
+        /// 如果存储模拟器已启动，则停止它。
         /// </summary>
-        /// <returns><see langword="true"/> ,如果进程成功停止或已经停止; <see langword="false"/> ,否则。</returns>
+        /// <returns><see langword="true"/> 表示进程成功停止或已经停止；否则为 <see langword="false"/>。</returns>
         public static bool Stop()
         {
             if (!IsStarted()) return false;
 
             try
             {
-                //此程序会立即处理返回事宜 。
+                // 此进程句柄立即返回。
                 using (var process = Process.Start(CreateProcessArguments("stop"))!)
                 {
                     process.WaitForExit();
@@ -147,14 +147,14 @@ namespace Orleans.TestingHost.Utils
         }
 
         /// <summary>
-        /// 创建一个新的 <see cref="ProcessStartInfo">ProcessStartInfo</see> ,用作参数
-        /// 用于本类的其他操作。
+        /// 创建新的 <see cref="ProcessStartInfo">ProcessStartInfo</see>，用于作为
+        /// 此类中其他操作的参数。
         /// </summary>
         /// <param name="arguments">参数。</param>
-        /// <returns>一个新的 <see cref="ProcessStartInfo"/> 并有既定的论点。</returns>
+        /// <returns>具有给定参数的新 <see cref="ProcessStartInfo"/>。</returns>
         private static ProcessStartInfo CreateProcessArguments(string arguments)
         {
-#pragma warning disable CA1416 // Validate platform compatibility
+#pragma warning disable CA1416 // 验证平台兼容性。
             return new ProcessStartInfo(GetStorageEmulatorPath()!)
             {
                 WindowStyle = ProcessWindowStyle.Hidden,
@@ -170,9 +170,9 @@ namespace Orleans.TestingHost.Utils
         }
 
         /// <summary>
-        /// 从系统中查询存储模拟器程序。
+        /// 从系统查询存储模拟器进程。
         /// </summary>
-        /// <returns><see langword="true" /> 如果找到存储模拟程序, <see langword="false" /> 否则。</returns>
+        /// <returns><see langword="true" /> 表示找到了存储模拟器进程；否则为 <see langword="false" />。</returns>
         private static bool GetStorageEmulatorProcess()
         {
             foreach (var name in storageEmulatorProcessNames)
@@ -189,12 +189,12 @@ namespace Orleans.TestingHost.Utils
         }
 
         /// <summary>
-        /// 返回存储模拟器可执行文件的完整路径,包括可执行文件名称和扩展名。
+        /// 返回存储模拟器可执行文件的完整路径，包括可执行文件名称及扩展名。
         /// </summary>
-        /// <returns>存储模拟器可执行的完整路径,如果找不到则无效。</returns>
+        /// <returns>存储模拟器可执行文件的完整路径；未找到时为 null。</returns>
         private static string? GetStorageEmulatorPath()
         {
-            //尝试使用最新的已知模拟器路径。 如果它不存在, 请试用旧的路径 。
+            // 尝试获取最新的已知模拟器路径。如果不存在，则尝试较旧的路径。
             string exeBasePath = Path.Combine(GetProgramFilesBasePath(), @"Microsoft SDKs\Azure\Storage Emulator\");
 
             return storageEmulatorFilenames
@@ -204,9 +204,9 @@ namespace Orleans.TestingHost.Utils
 
 
         /// <summary>
-        /// 确定程序文件基准目录。
+        /// 确定 Program Files 基础目录。
         /// </summary>
-        /// <returns>程序文件基础目录。</returns>
+        /// <returns>Program Files 基础目录。</returns>
         private static string GetProgramFilesBasePath()
         {
             return Environment.Is64BitOperatingSystem ? Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) : Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);

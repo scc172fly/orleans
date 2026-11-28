@@ -10,11 +10,11 @@ using Orleans.Durable.Tasks.Runtime;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// 耐久演习 grain 跨区域资源、全区域、全区域、全区域、全区域、全区域、 grains 发件人和发件人之间
+/// 测试通过消息传递收件箱和发件箱实现的跨 Grain 持久化 RPC。
 /// </summary>
 /// <remarks>
-/// 一位协调员向一个工人发出几个持久的电话,所以该工人的收件箱和协调员的收件箱
-/// 每个接收若干耐久的RPC信息,这些信息可以分一个盒处理,每箱中有一批单批书写。
+/// 协调者向同一工作 Grain 扇出多次持久化调用，因此工作 Grain 的收件箱和协调者的收件箱
+/// 各自收到多条持久化 RPC 消息，可在一个收件箱批次内通过一次批量写入完成处理。
 /// </remarks>
 public abstract class DurableTaskMessagingTests(string journalFormatKey) : IAsyncLifetime
 {
@@ -42,8 +42,8 @@ public abstract class DurableTaskMessagingTests(string journalFormatKey) : IAsyn
     [Fact]
     public async Task SiloHostedCallerOutsideGrainSchedulesAndCancelsRootTasks()
     {
-        // 在 silo主机中运行但位于 grain以外的代码,例如联合主持网站端点、时间表
-        // 与外部客户端一样, silo的工厂 grain 。
+        // 在 Silo 宿主中但在 Grain 之外运行的代码（例如共同托管的 Web 终结点）通过
+        // Silo 的 Grain 工厂调度任务，方式与外部客户端相同。
         var cancellationToken = TestContext.Current.CancellationToken;
         var grainFactory = _fixture.Cluster.GetSiloServiceProvider().GetRequiredService<IGrainFactory>();
         var worker = grainFactory.GetGrain<IDurableTaskWorkerGrain>(Guid.NewGuid());
@@ -67,8 +67,8 @@ public abstract class DurableTaskMessagingTests(string journalFormatKey) : IAsyn
         var waiting = await worker.WaitForCancellationAsync(1).WithId("long-poll").ScheduleAsync(cancellationToken);
         await started.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
 
-        // 民意测验超过测试,所以在调查完成后提出的请求只有在 grain 等待着,
-        // 客户端不能拖曳请求和信箱信息完成任务的 grain 。
+        // 轮询持续时间超过测试时长，因此在发起轮询之后发送的请求只有在 Grain 允许两者交错运行时才能完成。正在等待的
+        // 客户端不得阻塞负责通过请求与收件箱消息完成该任务的 Grain。
         var poll = worker.AsReference<IDurableTaskGrainExtension>().SubscribeOrPollAsync(
             waiting.Id,
             new SubscribeOrPollOptions { PollTimeout = TimeSpan.FromMinutes(5) },
@@ -103,8 +103,8 @@ public abstract class DurableTaskMessagingTests(string journalFormatKey) : IAsyn
         var workerId = _fixture.Client.GetGrain<IDurableTaskWorkerGrain>(workerKey).GetGrainId();
         for (var index = 0; index < FanOut; index++)
         {
-            // 工人保留每个被取消的孩子的终点状态 在电话范围下,直到打电话者的收件箱
-            // 接受其完成,然后删除它。
+            // 工作 Grain 在调用方作用域下保留各被取消子任务的终态，直到调用方收件箱
+            // 接受其完成消息，然后删除该子任务。
             var childId = await events.WaitForCallerChildAsync(workerId, coordinator.GetGrainId(), TaskId.CreateRoot("fan-out").Child($"wait-{index}"));
             Assert.Equal(DurableTaskStatus.Canceled, (await events.WaitForCompletedAsync(workerId, childId)).Status);
             await events.WaitForDeletedAsync(workerId, childId);
@@ -112,14 +112,14 @@ public abstract class DurableTaskMessagingTests(string journalFormatKey) : IAsyn
     }
 }
 
-/// <summary>运行跨grain 信息覆盖,任务状态以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行跨 Grain 消息传递相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskMessagingTests() : DurableTaskMessagingTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行跨grain 信息覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行跨 Grain 消息传递相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -137,7 +137,7 @@ public interface IDurableTaskWorkerGrain : IGrainWithGuidKey
     DurableTask<int> EchoAsync(int value);
     DurableTask<int> WaitForCancellationAsync(int value);
 
-    /// <summary>弄清楚工人信箱里写了什么死信的原因</summary>
+    /// <summary>获取工作 Grain 收件箱死信的原因。</summary>
     Task<string[]> GetInboxDeadLetterReasonsAsync();
 }
 
@@ -257,7 +257,7 @@ public sealed class DurableTaskWorkerGrain(DurableTaskMessagingProbe probe, IMes
 
     private static readonly DurableSignal<int> Never = new("never");
 
-    // 空闲的公园在信号上,但一直没有到来,所以它 grain 承认了其他请求,直到任务取消结束等待。
+    // 挂起以等待永远不会到达的信号，因此在任务取消结束等待前，所属 Grain 可接纳其他请求。
     public async DurableTask<int> WaitForCancellationAsync(int value)
     {
         probe.RecordStarted(this.GetPrimaryKey());

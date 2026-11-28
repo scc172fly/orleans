@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// 以时间戳分类的循环缓冲存储交易记录的队列数据结构。
+    /// 在环形缓冲区中按时间戳排序存储事务记录的队列数据结构。
     /// </summary>
     /// <typeparam name="T"></typeparam>
     internal struct CommitQueue<T>
@@ -15,7 +15,7 @@ namespace Orleans.Transactions
 
         public int Count { get; private set; }
 
-        // 索引器可提供文件的读写访问权限。
+        // 提供对文件的读写访问的索引器。
         public readonly TransactionRecord<T> this[int index]
         {
             get
@@ -45,7 +45,7 @@ namespace Orleans.Transactions
 
         public void Add(TransactionRecord<T> entry)
         {
-            // 保证我们有空间
+            // 确保有足够空间。
             if (_buffer == null)
             {
                 _buffer = new TransactionRecord<T>[DefaultCapacity];
@@ -62,7 +62,7 @@ namespace Orleans.Transactions
             if (Count > 0 && _buffer[(_pos + Count - 1) % _buffer.Length].Timestamp > entry.Timestamp)
                 throw new ArgumentException($"elements must be added in timestamp order, but {entry.Timestamp:o} is before {_buffer[(_pos + Count - 1) % _buffer.Length].Timestamp:o}", nameof(entry));
 
-            // 添加元素
+            // 添加元素。
             _buffer[(_pos + Count) % _buffer.Length] = entry;
             Count++;
         }
@@ -87,7 +87,7 @@ namespace Orleans.Transactions
                 throw new ArgumentException("cannot remove more elements than are in the queue", nameof(howMany));
             }
 
-            // 清空条目,以便它们能够 geGCd
+            // 清空条目，使其能够被垃圾回收。
             for (int i = 0; i < howMany; i++)
                 _buffer[(_pos + i) % _buffer.Length] = null!;
 
@@ -101,7 +101,7 @@ namespace Orleans.Transactions
             if (howMany > 0 && (_buffer == null || howMany > Count))
                 throw new ArgumentException("cannot remove more elements than are in the queue", nameof(howMany));
 
-            // 清空条目,以便它们能够 geGCd
+            // 清空条目，使其能够被垃圾回收。
             for (int i = 0; i < howMany; i++)
                 _buffer[(_pos + Count - i - 1) % _buffer.Length] = null!;
 
@@ -110,7 +110,7 @@ namespace Orleans.Transactions
 
         public readonly int Find(Guid TransactionId, DateTime key)
         {
-            // 进行二进搜索
+            // 执行二分查找。
             int left = 0;
             int right = Count;
             while (left < right)
@@ -133,7 +133,7 @@ namespace Orleans.Transactions
                 }
                 else
                 {
-                    // 左对左
+                    // 向左查找。
                     for (int j = mid - 1; j >= left; j--)
                     {
                         record = _buffer[(_pos + j) % _buffer.Length];
@@ -142,7 +142,7 @@ namespace Orleans.Transactions
                         if (record.Timestamp != key)
                             break;
                     }
-                    // 右对上搜索
+                    // 向右查找。
                     for (int j = mid + 1; j < right; j++)
                     {
                         record = _buffer[(_pos + j) % _buffer.Length];

@@ -13,7 +13,7 @@ using Xunit;
 namespace NonSilo.Tests
 {
     /// <summary>
-    /// 测试从 <c>Orleans</c> 配置部分读取的 silo 和客户端构建器输入值。
+    /// 测试 Silo 和客户端生成器从 <c>Orleans</c> 配置节读取的带类型值。
     /// </summary>
     [TestCategory("BVT")]
     [TestCategory("Providers")]

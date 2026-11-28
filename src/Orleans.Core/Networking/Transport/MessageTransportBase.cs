@@ -1,12 +1,12 @@
 namespace Orleans.Connections.Transport;
 
 /// <summary>
-/// <see cref="MessageTransport"/> 执行的基准等级。
+/// <see cref="MessageTransport"/> 实现的基类。
 /// </summary>
 public abstract class MessageTransportBase : MessageTransport
 {
     /// <summary>
-    /// 获得运输的特征。
+    /// 获取此传输层的功能。
     /// </summary>
     public override FeatureCollection Features { get; } = new FeatureCollection();
 }

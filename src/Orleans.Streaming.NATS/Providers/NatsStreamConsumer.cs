@@ -10,7 +10,7 @@ using NATS.Client.JetStream.Models;
 namespace Orleans.Streaming.NATS;
 
 /// <summary>
-/// 围绕一个NATS JetStream 消费者包装
+/// NATS JetStream 消费者的包装类。
 /// </summary>
 internal sealed partial class NatsStreamConsumer(
     ILoggerFactory loggerFactory,
@@ -34,7 +34,7 @@ internal sealed partial class NatsStreamConsumer(
     private INatsJSConsumer? _consumer;
     private int _consecutiveInitFailures;
 
-    // 第一次尝试的纪录, 然后每100次 以避免洪水在~100米的投票。
+    // 首次尝试记录日志，此后每 100 次记录一次，以免约每 100 ms 的轮询频率造成日志泛滥。
     private const int InitLogInterval = 100;
 
     public async Task<(NatsStreamMessage[] Messages, int Count)> GetMessages(int messageCount = 0,
@@ -42,9 +42,9 @@ internal sealed partial class NatsStreamConsumer(
     {
         if (this._consumer is null)
         {
-            // 懒惰的重新尝试:尝试在每个投票周期中重新恢复原样。
-            // 此操作处理初始化( ) 时的瞬态失败
-            // (领导人选举、超时、网络停机)
+            // 惰性重试：每个轮询周期尝试重新初始化。
+            // 此机制处理初始 Initialize() 期间的暂时性故障
+            // （主节点选举、超时或短暂网络异常）。
             var shouldLog = this._consecutiveInitFailures % InitLogInterval == 0;
             try
             {
@@ -72,7 +72,7 @@ internal sealed partial class NatsStreamConsumer(
                 return ([], 0);
             }
 
-            // 如果再试后仍无效,保释(下一轮投票将再次重新)
+            // 若重试后仍为 null，则退出；下次轮询会再次重试。
             if (this._consumer is null)
             {
                 return ([], 0);

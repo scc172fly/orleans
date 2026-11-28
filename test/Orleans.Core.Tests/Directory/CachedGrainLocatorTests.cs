@@ -1,4 +1,4 @@
-// 忽略拼写: 定位器
+// Ignore Spelling: Locator
 
 using System.Collections.Immutable;
 using System.Net;
@@ -19,9 +19,9 @@ using Xunit;
 namespace UnitTests.Directory
 {
     /// <summary>
-    /// CachedGrainLocator测试,即 Orleans' 用于在整个组群中定位 grain 启动的主要机制。
-    /// 定位器维持一个 grain 地点的本地缓存,以尽量减少目录查询和改进性能。
-    /// 它处理 grain 启动的登记、查询和清理,同时与分布式目录保持一致。
+    /// 测试 CachedGrainLocator，这是 Orleans 在整个集群中定位 Grain 激活的主要机制。
+    /// 定位器维护 Grain 位置的本地缓存，以尽量减少目录查找并提高性能。
+    /// 它处理 Grain 激活的注册、查找及清理，同时保持与分布式目录的一致性。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Directory")]
     [TestSuite("BVT")]
@@ -72,18 +72,18 @@ namespace UnitTests.Directory
             this.grainLocator.Participate(this.lifecycle);
         }
 
-        // 待待 待 待 待 办
-        //[真
-        //公共无效 ConvertActivationAddressToGrainAddress()
+        // TODO
+        //[Fact]
+        //public void ConvertActivationAddressToGrainAddress()
         //{
         //    var expected = GenerateActivationAddress();
         //    var grainAddress = expected.ToGrainAddress();
-        //    Assert.Equal(预期, grainAddress.ToActivationAddress());
+        //    Assert.Equal(expected, grainAddress.ToActivationAddress());
         //}
 
         /// <summary>
-        /// 当没有先前登记时测试启动 grain 的基本登记。
-        /// 证明激活在目录中登记并隐藏在本地。
+        /// 测试不存在先前注册时 Grain 激活的基本注册过程。
+        /// 验证激活已在目录中注册并缓存于本地。
         /// </summary>
         [Fact]
         public async Task RegisterWhenNoOtherEntryExists()
@@ -91,7 +91,7 @@ namespace UnitTests.Directory
             var cancellationToken = TestContext.Current.CancellationToken;
             var silo = GenerateSiloAddress();
 
-            // 设立成员资格服务
+            // 设置成员资格服务。
             this.mockMembershipService.UpdateSiloStatus(silo, SiloStatus.Active, "exp");
             await this.lifecycle.OnStart(cancellationToken);
             await WaitUntilClusterChangePropagated(cancellationToken);
@@ -104,7 +104,7 @@ namespace UnitTests.Directory
             Assert.Equal(expected, actual);
             Assert.Equal(1, GetLegacyCallCount(nameof(IGrainDirectory.Register), expected, null));
 
-            // 现在应该已经快藏起来了
+            // 现在应该已在缓存中。
             Assert.True(this.grainLocator.TryLookupInCache(expected.GrainId, out var result));
             Assert.NotNull(result);
             Assert.Equal(expected, result);
@@ -427,7 +427,7 @@ namespace UnitTests.Directory
             var expectedSilo = GenerateSiloAddress();
             var otherSilo = GenerateSiloAddress();
 
-            // 设立成员资格服务
+            // 设置成员资格服务。
             this.mockMembershipService.UpdateSiloStatus(expectedSilo, SiloStatus.Active, "exp");
             await this.lifecycle.OnStart(cancellationToken);
             await WaitUntilClusterChangePropagated(cancellationToken);
@@ -441,7 +441,7 @@ namespace UnitTests.Directory
             Assert.Equal(expectedAddr, actual);
             Assert.Equal(1, GetLegacyCallCount(nameof(IGrainDirectory.Register), otherAddr, null));
 
-            // 现在应该已经快藏起来了
+            // 现在应该已在缓存中。
             Assert.True(this.grainLocator.TryLookupInCache(expectedAddr.GrainId, out var result));
             Assert.NotNull(result);
             Assert.Equal(expectedAddr, result);
@@ -453,7 +453,7 @@ namespace UnitTests.Directory
             var cancellationToken = TestContext.Current.CancellationToken;
             var silo = GenerateSiloAddress();
 
-            // 设立成员资格服务
+            // 设置成员资格服务。
             this.mockMembershipService.UpdateSiloStatus(silo, SiloStatus.Active, "exp");
             await this.lifecycle.OnStart(cancellationToken);
             await WaitUntilClusterChangePropagated(cancellationToken);
@@ -479,7 +479,7 @@ namespace UnitTests.Directory
             Assert.Equal(1, GetLegacyCallCount(nameof(IGrainDirectory.Register), replacement, existing));
             Assert.Equal(replacement, actual);
 
-            // 现在应该已经快藏起来了
+            // 现在应该已在缓存中。
             Assert.True(this.grainLocator.TryLookupInCache(replacement.GrainId, out var result));
             Assert.NotNull(result);
             Assert.Equal(replacement, result);
@@ -491,7 +491,7 @@ namespace UnitTests.Directory
             var cancellationToken = TestContext.Current.CancellationToken;
             var silo = GenerateSiloAddress();
 
-            // 设立成员资格服务
+            // 设置成员资格服务。
             this.mockMembershipService.UpdateSiloStatus(silo, SiloStatus.Active, "exp");
             await this.lifecycle.OnStart(cancellationToken);
             await WaitUntilClusterChangePropagated(cancellationToken);
@@ -524,7 +524,7 @@ namespace UnitTests.Directory
             Assert.Equal(1, GetLegacyCallCount(nameof(IGrainDirectory.Register), replacement, nonMatching));
             Assert.Equal(existing, actual);
 
-            // 缓存应包含原始地址
+            // 缓存应包含原始地址。
             Assert.True(this.grainLocator.TryLookupInCache(replacement.GrainId, out var result));
             Assert.NotNull(result);
             Assert.Equal(existing, result);
@@ -537,7 +537,7 @@ namespace UnitTests.Directory
             var expectedSilo = GenerateSiloAddress();
             var outdatedSilo = GenerateSiloAddress();
 
-            // 设立成员资格服务
+            // 设置成员资格服务。
             this.mockMembershipService.UpdateSiloStatus(expectedSilo, SiloStatus.Active, "exp");
             this.mockMembershipService.UpdateSiloStatus(outdatedSilo, SiloStatus.Dead, "old");
             await this.lifecycle.OnStart(cancellationToken);
@@ -555,7 +555,7 @@ namespace UnitTests.Directory
             Assert.Equal(1, GetLegacyCallCount(nameof(IGrainDirectory.Register), expectedAddr, outdatedAddr));
             Assert.Equal(0, GetLegacyCallCount(nameof(IGrainDirectory.Unregister), outdatedAddr));
 
-            // 现在应该已经快藏起来了
+            // 现在应该已在缓存中。
             Assert.True(this.grainLocator.TryLookupInCache(expectedAddr.GrainId, out var result));
             Assert.NotNull(result);
             Assert.Equal(expectedAddr, result);
@@ -569,7 +569,7 @@ namespace UnitTests.Directory
             var cancellationToken = TestContext.Current.CancellationToken;
             var expectedSilo = GenerateSiloAddress();
 
-            // 设立成员资格服务
+            // 设置成员资格服务。
             this.mockMembershipService.UpdateSiloStatus(expectedSilo, SiloStatus.Active, "exp");
             await this.lifecycle.OnStart(cancellationToken);
             await WaitUntilClusterChangePropagated(cancellationToken);
@@ -578,15 +578,15 @@ namespace UnitTests.Directory
 
             ConfigureLegacyLookup(grainAddress.GrainId, grainAddress);
 
-            // 缓存应该是空的
+            // 缓存应为空。
             Assert.False(this.grainLocator.TryLookupInCache(grainAddress.GrainId, out _));
 
-            // 进行远程搜索
+            // 执行远程查找。
             var result = await this.grainLocator.Lookup(grainAddress.GrainId).AsTask().WaitAsync(cancellationToken);
             Assert.NotNull(result);
             Assert.Equal(grainAddress, result);
 
-            // 现在缓存应该被显示
+            // 此时缓存应已填充。
             Assert.True(this.grainLocator.TryLookupInCache(grainAddress.GrainId, out var cachedValue));
             Assert.NotNull(cachedValue);
             Assert.Equal(grainAddress, cachedValue);
@@ -598,7 +598,7 @@ namespace UnitTests.Directory
             var cancellationToken = TestContext.Current.CancellationToken;
             var outdatedSilo = GenerateSiloAddress();
 
-            // 设立成员资格服务
+            // 设置成员资格服务。
             this.mockMembershipService.UpdateSiloStatus(outdatedSilo, SiloStatus.Dead, "old");
             await this.lifecycle.OnStart(cancellationToken);
             await WaitUntilClusterChangePropagated(cancellationToken);
@@ -623,7 +623,7 @@ namespace UnitTests.Directory
             var cancellationToken = TestContext.Current.CancellationToken;
             var outdatedSilo = GenerateSiloAddress();
 
-            // 设立成员资格服务
+            // 设置成员资格服务。
             this.mockMembershipService.UpdateSiloStatus(outdatedSilo, SiloStatus.Dead, "old");
             await this.lifecycle.OnStart(cancellationToken);
             await WaitUntilClusterChangePropagated(cancellationToken);
@@ -633,7 +633,7 @@ namespace UnitTests.Directory
             ConfigureLegacyLookup(outdatedAddr.GrainId, outdatedAddr);
             Assert.False(this.grainLocator.TryLookupInCache(outdatedAddr.GrainId, out _));
 
-            // 本地端查找不应该给目录打电话
+            // 本地查找永远不应调用目录。
             Assert.Equal(0, GetLegacyCallCount(nameof(IGrainDirectory.Lookup), outdatedAddr.GrainId));
             Assert.Equal(0, GetLegacyCallCount(nameof(IGrainDirectory.Unregister), outdatedAddr));
 
@@ -648,7 +648,7 @@ namespace UnitTests.Directory
             var cancellationToken = TestContext.Current.CancellationToken;
             var silo = GenerateSiloAddress();
 
-            // 设立成员资格服务
+            // 设置成员资格服务。
             this.mockMembershipService.UpdateSiloStatus(silo, SiloStatus.Active, "silo");
             await this.lifecycle.OnStart(cancellationToken);
             await WaitUntilClusterChangePropagated(cancellationToken);
@@ -671,8 +671,8 @@ namespace UnitTests.Directory
         }
 
         /// <summary>
-        /// 测试定位器在 silo 死亡时适当清除缓存条目。
-        /// 这对于防止请求被送至死亡 silos至关重要。
+        /// 测试 Silo 死亡时定位器能否正确清理缓存条目。
+        /// 这对于防止请求发送至已死亡的 Silo 至关重要。
         /// </summary>
         [Fact]
         public async Task CleanupWhenSiloIsDead()
@@ -681,7 +681,7 @@ namespace UnitTests.Directory
             var expectedSilo = GenerateSiloAddress();
             var outdatedSilo = GenerateSiloAddress();
 
-            // 设立成员资格服务
+            // 设置成员资格服务。
             this.mockMembershipService.UpdateSiloStatus(expectedSilo, SiloStatus.Active, "exp");
             this.mockMembershipService.UpdateSiloStatus(outdatedSilo, SiloStatus.Active, "old");
             await this.lifecycle.OnStart(cancellationToken);
@@ -690,23 +690,23 @@ namespace UnitTests.Directory
             var expectedAddr = GenerateGrainAddress(expectedSilo);
             var outdatedAddr = GenerateGrainAddress(outdatedSilo);
 
-            // 登记两个条目
+            // 注册两个条目。
             ConfigureLegacyRegister(expectedAddr, previousAddress: null, expectedAddr);
             ConfigureLegacyRegister(outdatedAddr, previousAddress: null, outdatedAddr);
 
             await this.grainLocator.Register(expectedAddr, previousAddress: null, cancellationToken);
             await this.grainLocator.Register(outdatedAddr, previousAddress: null, cancellationToken);
 
-            // 模拟已死 silo
+            // 模拟已死亡的 Silo。
             this.mockMembershipService.UpdateSiloStatus(outdatedAddr.SiloAddress!, SiloStatus.Dead, "old");
 
-            // 等待更新处理
+            // 稍等片刻，使更新得到处理。
             await WaitUntilClusterChangePropagated(cancellationToken);
 
-            // grain 目录的清理功能应该被调用
+            // 应已调用 Grain 目录的清理函数。
             Assert.Equal(1, GetLegacyUnregisterSilosCallCount(list => list.Count == 1 && list.Contains(outdatedAddr.SiloAddress!)));
 
-            // 缓存应该已经清理干净
+            // 缓存应已清理。
             Assert.False(this.grainLocator.TryLookupInCache(outdatedAddr.GrainId, out var unused1));
             Assert.True(this.grainLocator.TryLookupInCache(expectedAddr.GrainId, out var unused2));
 
@@ -766,7 +766,7 @@ namespace UnitTests.Directory
             var cancellationToken = TestContext.Current.CancellationToken;
             var expectedSilo = GenerateSiloAddress();
 
-            // 设立成员资格服务
+            // 设置成员资格服务。
             this.mockMembershipService.UpdateSiloStatus(expectedSilo, SiloStatus.Active, "exp");
             await this.lifecycle.OnStart(cancellationToken);
             await WaitUntilClusterChangePropagated(cancellationToken);
@@ -775,10 +775,10 @@ namespace UnitTests.Directory
 
             ConfigureLegacyRegister(expectedAddr, previousAddress: null, expectedAddr);
 
-            // 注册以填充缓存
+            // 通过注册填充缓存。
             await this.grainLocator.Register(expectedAddr, previousAddress: null, cancellationToken);
 
-            // 解除登记并检查缓存是否被清理
+            // 注销，并检查缓存是否已清理。
             await this.grainLocator.Unregister(expectedAddr, UnregistrationCause.Force).WaitAsync(cancellationToken);
             Assert.False(this.grainLocator.TryLookupInCache(expectedAddr.GrainId, out _));
         }
@@ -789,24 +789,24 @@ namespace UnitTests.Directory
             var cancellationToken = TestContext.Current.CancellationToken;
             var expectedSilo = GenerateSiloAddress();
 
-            // 设立成员资格服务
+            // 设置成员资格服务。
             this.mockMembershipService.UpdateSiloStatus(expectedSilo, SiloStatus.Active, "exp");
             await this.lifecycle.OnStart(cancellationToken);
             await WaitUntilClusterChangePropagated(cancellationToken);
 
             var expectedAddr = GenerateGrainAddress(expectedSilo);
 
-            // 在测试取消之前不完成 。
+            // 在测试取消之前不要完成。
             var unregisterCompletion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             using var cancellationRegistration = cancellationToken.Register(() => unregisterCompletion.TrySetCanceled(cancellationToken));
             ConfigureLegacyUnregister(expectedAddr, unregisterCompletion.Task);
 
             ConfigureLegacyRegister(expectedAddr, previousAddress: null, expectedAddr);
 
-            // 注册以填充缓存
+            // 通过注册填充缓存。
             await this.grainLocator.Register(expectedAddr, previousAddress: null, cancellationToken);
 
-            // 解除登记并检查缓存是否被清理
+            // 注销，并检查缓存是否已清理。
             var unregisterTask = this.grainLocator.Unregister(expectedAddr, UnregistrationCause.Force);
             Assert.False(this.grainLocator.TryLookupInCache(expectedAddr.GrainId, out _));
 
@@ -820,7 +820,7 @@ namespace UnitTests.Directory
             var cancellationToken = TestContext.Current.CancellationToken;
             var expectedSilo = GenerateSiloAddress();
 
-            // 设立成员资格服务
+            // 设置成员资格服务。
             this.mockMembershipService.UpdateSiloStatus(expectedSilo, SiloStatus.Active, "exp");
             await this.lifecycle.OnStart(cancellationToken);
             await WaitUntilClusterChangePropagated(cancellationToken);
@@ -833,18 +833,18 @@ namespace UnitTests.Directory
 
             ConfigureLegacyRegister(expectedAddr, previousAddress: null, expectedAddr);
 
-            // 注册以填充缓存
+            // 通过注册填充缓存。
             await this.grainLocator.Register(expectedAddr, previousAddress: null, cancellationToken);
 
-            // 解除登记并检查缓存是否被清理
+            // 注销，并检查缓存是否已清理。
             Task t = this.grainLocator.Unregister(expectedAddr, UnregistrationCause.Force);
             Assert.False(this.grainLocator.TryLookupInCache(expectedAddr.GrainId, out _));
 
-            // 添加到缓存, 以模拟从查找中进行的竞赛
+            // 重新添加至缓存，以模拟查找导致的竞争。
             await this.grainLocator.Register(expectedAddr, previousAddress: null, cancellationToken);
             Assert.True(this.grainLocator.TryLookupInCache(expectedAddr.GrainId, out _));
 
-            // 确保不登记者完成比赛时, 种族是否在同一代号上发生, 即被删除
+            // 确保 Unregister 完成时，如果竞态发生在同一个 ID 上，则该 ID 已被移除。
             unregisterCompletion.TrySetResult();
             await t.WaitAsync(cancellationToken);
             Assert.False(this.grainLocator.TryLookupInCache(expectedAddr.GrainId, out _));
@@ -857,7 +857,7 @@ namespace UnitTests.Directory
             var expectedSilo = GenerateSiloAddress();
             var secondSilo = GenerateSiloAddress();
 
-            // 设立成员资格服务
+            // 设置成员资格服务。
             this.mockMembershipService.UpdateSiloStatus(expectedSilo, SiloStatus.Active, "exp");
             this.mockMembershipService.UpdateSiloStatus(secondSilo, SiloStatus.Active, "exp");
             await this.lifecycle.OnStart(cancellationToken);
@@ -873,18 +873,18 @@ namespace UnitTests.Directory
             ConfigureLegacyRegister(expectedAddr, previousAddress: null, expectedAddr);
             ConfigureLegacyRegister(secondAddr, previousAddress: null, secondAddr);
 
-            // 注册以填充缓存
+            // 通过注册填充缓存。
             await this.grainLocator.Register(expectedAddr, previousAddress: null, cancellationToken);
 
-            // 解除登记并检查缓存是否被清理
+            // 注销，并检查缓存是否已清理。
             Task t = this.grainLocator.Unregister(expectedAddr, UnregistrationCause.Force);
             Assert.False(this.grainLocator.TryLookupInCache(expectedAddr.GrainId, out _));
 
-            // 添加到缓存, 以模拟从查找中进行的竞赛
+            // 重新添加至缓存，以模拟查找导致的竞争。
             await this.grainLocator.Register(secondAddr, previousAddress: null, cancellationToken);
             Assert.True(this.grainLocator.TryLookupInCache(secondAddr.GrainId, out _));
 
-            // 确保不登记者完成比赛时, 种族是否在同一代号上发生, 即被删除
+            // 确保 Unregister 完成时，如果竞态发生在同一个 ID 上，则该 ID 已被移除。
             unregisterCompletion.TrySetResult();
             await t.WaitAsync(cancellationToken);
             Assert.True(this.grainLocator.TryLookupInCache(secondAddr.GrainId, out _));

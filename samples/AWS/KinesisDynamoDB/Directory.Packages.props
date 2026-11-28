@@ -1,8 +1,7 @@
 <Project>
   <!--
-    注: Microsoft.Orleans.Streaming.Kinesis 尚未公布至 NuGet ,因此目前这一样本
-    仅从 Orleans 仓库,其中 Samples.slnx 以
-    当前的来源。 下面版本的插针在此, 一旦包装船舶完成后, 它就会正常运行 。
+    注意：Microsoft.Orleans.Streaming.Kinesis 尚未发布到 NuGet，因此目前只能在 Orleans 仓库内构建此示例，Samples.slnx 提供从当前源码构建的包。
+    下面固定的包版本使包正式发布后无需修改即可工作。
   -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>

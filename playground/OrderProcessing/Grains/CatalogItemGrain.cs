@@ -8,8 +8,8 @@ public interface ICatalogItemGrain : IGrainWithIntegerKey
     Task<CatalogItem?> GetAsync();
 }
 
-// 每产品一个 grain 拥有其库存。
-// 支付后,应缴还,注销时,应发还。
+// 每种商品由一个 Grain 管理其库存。订单在等待验证时预留库存，
+// 支付后确认扣减库存，取消时释放库存。
 public sealed class CatalogItemGrain : DurableGrain, ICatalogItemGrain
 {
     private readonly IOutbox _outbox;
@@ -32,13 +32,13 @@ public sealed class CatalogItemGrain : DurableGrain, ICatalogItemGrain
 
     private int ProductId => (int)this.GetPrimaryKeyLong();
 
-    // 日记在股票首次变化时持有该物品;在此之前,它是种子条目。
+    // 商品首次发生库存变更后，日志中才会保存该商品；此前使用初始数据条目。
     private CatalogItem? Item => _item.Value ?? CatalogData.Find(ProductId);
 
     public Task<CatalogItem?> GetAsync() => Task.FromResult(Item);
 
-    // 答复是在股票变动前进行,所以发送的剩余存货未再作重试。
-    // 每项订单在释放或实施后保留其结果,而不论信箱重复。
+    // 在库存发生变更前暂存回复，因此发送失败时库存保持不变，可供后续重试。
+    // 在释放或确认库存后仍保留每个订单的结果，独立于收件箱去重机制。
     private void HandleReserve(ReserveStock request, IInboxHandlerContext context)
     {
         if (_reservationOutcomes.TryGetValue(request.OrderId, out var outcome))
@@ -75,7 +75,7 @@ public sealed class CatalogItemGrain : DurableGrain, ICatalogItemGrain
 
     private void HandleRelease(ReleaseStock request, IInboxHandlerContext context)
     {
-        // 超过储备的释放记录了该命令的终局否决
+        // 如果释放请求先于预留请求到达，则记录该订单的终态拒绝结果。
         _reservationOutcomes.TryAdd(request.OrderId, new(null, false));
         if (_reservations.Remove(request.OrderId, out var units))
         {

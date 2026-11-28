@@ -5,28 +5,28 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.TestKit.Correctnesss
 {
     /// <summary>
-    /// 定义运行交易点数组状态的操作。
+    /// 定义用于测试事务位数组状态的操作。
     /// </summary>
     public interface ITransactionalBitArrayGrain : IGrainWithGuidKey
     {
         /// <summary>
-        /// 证明 grain 在无法进入交易状态的情况下是可以达到的。
+        /// 在不访问事务状态的情况下验证 Grain 可达。
         /// </summary>
-        /// <returns>一项已完成的任务。</returns>
+        /// <returns>已完成的任务。</returns>
         Task Ping();
 
         /// <summary>
-        /// 在每个交易状态下设置一点。
+        /// 设置每个事务状态中的指定位。
         /// </summary>
-        /// <param name="newValue">零基位数指数要设置。</param>
-        /// <returns>一项代表交易操作的任务。</returns>
+        /// <param name="newValue">要设置的位索引（从零开始）。</param>
+        /// <returns>表示事务操作的任务。</returns>
         [Transaction(TransactionOption.CreateOrJoin)]
         Task SetBit(int newValue);
 
         /// <summary>
-        /// 读取每一个交易性的微数状态。
+        /// 读取每个事务位数组状态。
         /// </summary>
-        /// <returns>国家秩序中的现行状态</returns>
+        /// <returns>按事务状态顺序排列的当前状态。</returns>
         [Transaction(TransactionOption.CreateOrJoin)]
         Task<List<BitArrayState>> Get();
     }

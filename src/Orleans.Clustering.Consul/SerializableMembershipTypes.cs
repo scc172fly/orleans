@@ -8,72 +8,72 @@ using Newtonsoft.Json;
 namespace Orleans.Runtime.Host
 {
     /// <summary>
-    /// JSON 串列物体,在序列和Base64编码后构成 Silo领事KVPair的值值部分
+    /// 可进行 JSON 序列化的对象；序列化并进行 Base64 编码后，构成 Silo 的 Consul KVPair 的 Value 部分。
     /// </summary>
     [JsonObject]
     public class ConsulSiloRegistration
     {
         /// <summary>
-        /// 因此作为 KV 密钥的一部分存在, 没有序列化 。
+        /// 作为 KV 键的一部分持久化，因此不进行序列化。
         /// </summary>
         [JsonIgnore]
         internal string DeploymentId { get; set; } = null!;
 
         /// <summary>
-        /// 因此作为 KV 密钥的一部分存在, 没有序列化 。
+        /// 作为 KV 键的一部分持久化，因此不进行序列化。
         /// </summary>
         [JsonIgnore]
         internal SiloAddress Address { get; set; } = null!;
 
         /// <summary>
-        /// 以单独的 KV 子键为基号,因此没有序列,而是在这里举行,以便更清洁的组装 MembershipEntry。
+        /// 持久化到单独的 KV 子键，因此不进行序列化，但保留在此处以便更清晰地组装 MembershipEntry。
         /// </summary>
         /// <remarks>
-        /// 以单独的 KV 存储, 否则对 IAmAlive 的定期更新更新导致 Silo KV.ModifyIndex 更改 
-        /// 从而导致 UpdateRow 操作失败。
+        /// 存储于单独的 KV 键，否则 IAmAlive 的定期更新会导致 Silo 的 KV.ModifyIndex 发生变化，
+        /// 进而导致 UpdateRow 操作失败。
         /// </remarks>
         [JsonIgnore]
         internal DateTime IAmAliveTime { get; set; }
 
         /// <summary>
-        /// 用于在更新时比较CAS值,一直以 KV.ModifyIndex 为单位,因此没有序列。
+        /// 更新时用于比较 CAS 值；持久化为 KV.ModifyIndex，因此不进行序列化。
         /// </summary>
         [JsonIgnore]
         internal ulong LastIndex { get; set; }
 
-        //公共财产序列编号为 KV.Value
+        // 公共属性序列化到 KV.Value。
         /// <summary>
-        /// 获取或设置 silo 主机名称。
+        /// 获取或设置 Silo 主机名。
         /// </summary>
         [JsonProperty]
         public string Hostname { get; set; } = null!;
 
         /// <summary>
-        /// 获取或设置 silo 网关端口。
+        /// 获取或设置 Silo 网关端口。
         /// </summary>
         [JsonProperty]
         public int ProxyPort { get; set; }
 
         /// <summary>
-        /// 获取或设置 silo 启动的时间。
+        /// 获取或设置 Silo 启动时间。
         /// </summary>
         [JsonProperty]
         public DateTime StartTime { get; set; }
 
         /// <summary>
-        /// 获取或设置 silo 成员资格。
+        /// 获取或设置 Silo 的成员资格状态。
         /// </summary>
         [JsonProperty]
         public SiloStatus Status { get; set; }
 
         /// <summary>
-        /// 获取或设置 silo 名称。
+        /// 获取或设置 Silo 名称。
         /// </summary>
         [JsonProperty]
         public string SiloName { get; set; } = null!;
 
         /// <summary>
-        /// 设置 silos 怀疑此事 silo.
+        /// 获取或设置怀疑此 Silo 出现故障的 Silo。
         /// </summary>
         [JsonProperty]
         public List<SuspectingSilo>? SuspectingSilos { get; set; }
@@ -86,31 +86,31 @@ namespace Orleans.Runtime.Host
     }
 
     /// <summary>
-    /// JSON 串列物体,在序列和Base64编码后,填入 SuspectingSilos 清单中的每一条目
+    /// 可进行 JSON 序列化的对象；序列化并进行 Base64 编码后，构成 SuspectingSilos 列表中的每个条目。
     /// </summary>
     [JsonObject]
     public class SuspectingSilo
     {
         /// <summary>
-        /// 获取或设置疑似 silo的身份识别符。
+        /// 获取或设置发出怀疑的 Silo 标识。
         /// </summary>
         [JsonProperty]
         public string Id { get; set; } = null!;
 
         /// <summary>
-        /// 获取或设定了嫌疑记录的时间。
+        /// 获取或设置记录怀疑的时间。
         /// </summary>
         [JsonProperty]
         public DateTime Time { get; set; }
     }
 
     /// <summary>
-    /// 含有将KVPair领事转换为 MembershipEntry的方法。  
-    /// 这将 ConsulSiloRegistration 对象用作可连号 KV.Value ,并最大限度地减少转换操作。
+    /// 包含在 Consul KVPair 与 MembershipEntry 之间相互转换的方法。
+    /// 使用 ConsulSiloRegistration 对象作为可序列化的 KV.Value，尽量减少转换操作。
     /// </summary>
     internal class ConsulSiloRegistrationAssembler
     {
-        private const string DeploymentKVPrefix = "orleans";  //在领事中确保 orleans 的根 KV 命名空间
+        private const string DeploymentKVPrefix = "orleans";  // 确保 Consul 中存在 Orleans 的根 KV 命名空间。
         private const char KeySeparator = '/';
         internal const string SiloIAmAliveSuffix = "iamalive";
         internal const string VersionSuffix = "version";
@@ -119,7 +119,7 @@ namespace Orleans.Runtime.Host
 
         internal static string FormatDeploymentKVPrefix(string deploymentId, string? rootKvFolder)
         {
-            //后向兼容
+            // 向后兼容。
             if (string.IsNullOrEmpty(rootKvFolder))
             {
                 return $"{DeploymentKVPrefix}{KeySeparator}{deploymentId}";
@@ -209,7 +209,7 @@ namespace Orleans.Runtime.Host
                 IAmAliveTime = siloRegistration.IAmAliveTime,
                 SiloName = siloRegistration.SiloName,
 
-                // 仅允许 - 仅用于此处已启动的 Azure 角色
+                // 可选，仅适用于 Azure 角色，因此在此初始化。
                 RoleName = string.Empty,
                 UpdateZone = 0,
                 FaultZone = 0

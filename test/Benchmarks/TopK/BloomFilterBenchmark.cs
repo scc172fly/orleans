@@ -135,21 +135,21 @@ public class BloomFilterBenchmark
     }
 
     /*
-    [基准( 基线=真
-    BenchmarkCategory(“FP率”)
-    公共内注 OriginalBloomFilter_FPR()
+    [Benchmark(Baseline = true)]
+    [BenchmarkCategory("FP rate")]
+    public int OriginalBloomFilter_FPR()
     {
         var correct = 0;
         var incorrect = 0;
-        每一类(按人口数 _人口排列的样本)
+        foreach (var sample in _population)
         {
-            是否(!)_originalBloomFilterWithSamples.Contains(sample) == _set.Contains(抽样))
+            if (!_originalBloomFilterWithSamples.Contains(sample) == _set.Contains(sample))
             {
-                正确++;
+                correct++;
             }
-            其它
+            else
             {
-                不正确++;
+                incorrect++;
             }
         }
 
@@ -177,7 +177,7 @@ public class BloomFilterBenchmark
         }
     }
 
-    // 由于调频,预计这会产生接近较高的按自由兑换率
+    // 由于参数调优，预计这会产生略高的假阳性率
     [Benchmark]
     [BenchmarkCategory("FP rate")]
     public int BlockedBloomFilter_FPR()
@@ -219,7 +219,7 @@ public class FalsePositiveRateColumnAttribute : Attribute, IConfigSource
 }
 public class OriginalBloomFilter
 {
-    private const int bitArraySize = 1_198_132; // 公式 8 * n / IN(2) - > , 用于1000元素, 0.01%
+    private const int bitArraySize = 1_198_132; // 公式 8 * n / ln(2) -> 对于 1000 个元素，为 0.01%
     private readonly int[] hashFuncSeeds = Enumerable.Range(0, 6).Select(p => (int)unchecked(p * 0xFBA4C795 + 1)).ToArray();
     private readonly BitArray filterBits = new(bitArraySize);
 
@@ -256,14 +256,14 @@ internal sealed class BloomFilter
 
     public BloomFilter(int capacity, double falsePositiveRate)
     {
-        // 计算给定(估计)容量和预期假正率的理想开花过滤器大小和散列代码数。
-        // 见 https://en.wikipedia.org/wiki/Bloom_filter。
+        // 根据给定的（估计）容量和目标假阳性率，计算理想的布隆过滤器大小及哈希值数量。
+        // 参见 https://en.wikipedia.org/wiki/Bloom_filter。
         var minBitCount = (int)(-1 / Ln2Squared * capacity * Math.Log(falsePositiveRate)) / 8;
         var arraySize = (int)CeilingPowerOfTwo((uint)(minBitCount - 1 + (1 << 5)) >> 5);
         _indexMask = arraySize - 1;
         _filter = new int[arraySize];
 
-        // 将大麻脂数除以2,因为我们使用的是64比赫的大麻脂代码,分为两个32比赫的大麻脂代码。
+        // 将哈希数量除以 2，因为这里使用的 64 位哈希值会拆分为两个 32 位哈希值。
         var hashFuncCount = (int)Math.Min(minBitCount * 8 / capacity * Ln2 / 2, 8);
         Debug.Assert(hashFuncCount > 0);
         _hashFuncSeeds = Enumerable.Range(0, hashFuncCount).Select(p => unchecked((ulong)p * 0xFBA4C795FBA4C795 + 1)).ToArray();
@@ -305,12 +305,12 @@ internal sealed class BloomFilter
     public void Set(int index) => _filter[(index >> 5) & _indexMask] |= 1 << index;
 
     /// <summary>
-    /// 计算64位混合函数的 Stafford 变式13。
+    /// 计算 Stafford 64 位混合函数的第 13 个变体。
     /// </summary>
     /// <param name="z">输入参数。</param>
-    /// <returns>输入参数的位组合。</returns>
+    /// <returns>对输入参数进行位混合后的结果。</returns>
     /// <remarks>
-    /// 见 http://zimbry.blogspot.com/2011/09/better-bit-mixing-improving-on.html
+    /// 参见 http://zimbry.blogspot.com/2011/09/better-bit-mixing-improving-on.html
     /// </remarks>
     public static ulong Mix64(ulong z)
     {

@@ -4,8 +4,8 @@ namespace Presence.Grains.Models;
 
 /// <summary>
 /// 游戏当前状态的数据。
-/// 这门课是不可改变的
-/// 此类操作总是返回新副本 。
+/// 此类不可变。
+/// 对此类的操作始终返回新的副本。
 /// </summary>
 [GenerateSerializer]
 public record class GameStatus(
@@ -13,7 +13,7 @@ public record class GameStatus(
     string Score)
 {
     /// <summary>
-    /// 创建当前游戏状态的不可更改副本, 并使用给定分 。
+    /// 创建包含指定分数的当前游戏状态的不可变副本。
     /// </summary>
     public GameStatus WithNewScore(string newScore) =>
         this with { Score = newScore };

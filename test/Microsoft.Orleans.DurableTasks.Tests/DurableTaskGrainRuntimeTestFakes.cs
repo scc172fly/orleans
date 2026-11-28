@@ -19,13 +19,13 @@ using Orleans.Serialization.Invocation;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 专门为 <c>DurableTaskGrainRuntimeTests</c>使用的手写假冒。
-/// 存放在与 <c>TestFakes.cs</c> 分开的文件中,以避免与其他测试作者同时编辑冲突。
+/// 专供 <c>DurableTaskGrainRuntimeTests</c> 使用的手写测试替身。
+/// 与 <c>TestFakes.cs</c> 分开存放，以避免与其他测试作者发生并行编辑冲突。
 /// </summary>
 
 /// <summary>
-/// 内部 <see cref="IDurableTaskMessageTransport"/> 接口的录音假。记录每通电话,以便
-/// 测试可以根据 <see cref="Orleans.Durable.Tasks.Runtime.DurableTaskGrainRuntime"/>通过的确切参数进行主张。
+/// 内部 <see cref="IDurableTaskMessageTransport"/> 接口的记录型测试替身。记录每次调用，以便
+/// 测试能够断言 <see cref="Orleans.Durable.Tasks.Runtime.DurableTaskGrainRuntime"/> 传入的确切参数。
 /// </summary>
 internal sealed partial class RecordingDurableTaskMessageTransport : IDurableTaskMessageTransport
 {
@@ -64,9 +64,9 @@ internal sealed partial class RecordingDurableTaskMessageTransport : IDurableTas
     }
 
     /// <summary>
-    /// 创建带有运输身份的援引和有效载荷,该有效载荷按方法确定其请求,因此
-    /// 无需编码器的测试请求可以发送,在一种身份下使用一种方法可合并
-    /// 参数,就像运行时间连接它们一样。
+    /// 使用传输层的标识创建调用，并使用按方法标识请求的有效载荷，从而使
+    /// 没有编解码器的测试请求也能发送；同一标识下同一方法的调用无论参数如何均会合并，
+    /// 与运行时合并调用的方式一致。
     /// </summary>
     private OutboxMessage CreateInvocationMessage(
         GrainId sender,
@@ -83,10 +83,10 @@ internal sealed partial class RecordingDurableTaskMessageTransport : IDurableTas
     public OutboxMessage CreateInvocation(MessageId messageId, GrainId target, byte[] payload) =>
         Encoder.CreateInvocation(messageId, target, payload);
 
-    /// <summary>获取运行时间参照所进行工作的时间的编号。</summary>
+    /// <summary>按顺序获取运行时按引用暂存的调用 ID。</summary>
     public List<MessageId> SentInvocations { get; } = [];
 
-    /// <summary>获得援引 <paramref name="taskId"/> 减去 <paramref name="sender"/> 发送到 <paramref name="target"/>.</summary>
+    /// <summary>获取 <paramref name="taskId"/> 的调用 ID，该调用由 <paramref name="sender"/> 发送至 <paramref name="target"/>。</summary>
     public MessageId GetInvocationMessageId(GrainId sender, GrainId target, TaskId taskId, TaskId? subscriberId) =>
         DurableTaskMessageTransport.CreateMessageId(
             sender,
@@ -124,7 +124,7 @@ internal sealed partial class RecordingDurableTaskMessageTransport : IDurableTas
         DurableTaskResponse response) =>
         Encoder.CreateCompletionMessage(messageId, sender, destination, taskId, response);
 
-    /// <summary>将信息编码为适配器的传输方式,而不进行中转。</summary>
+    /// <summary>按适配器传输层的方式编码消息，但不暂存消息。</summary>
     private static readonly DurableTaskMessageTransport Encoder = MessagingTestHelpers.CreateTransport(new RecordingOutbox());
 
     public void SendCancellation(GrainId sender, GrainId target, TaskId taskId, string? reason = null)
@@ -151,10 +151,10 @@ internal sealed partial class RecordingDurableTaskMessageTransport : IDurableTas
     }
 }
 
-/// <summary>完成运行时间, 发送时是参照其存储结果、 任务 <see cref="SubscriberId"/> 联 年 月 日 月 日 月 月 日 <see cref="Target"/>.</summary>
+/// <summary>运行时以已存储结果的引用形式发送的完成消息，发送至任务 <see cref="SubscriberId"/>（属于 <see cref="Target"/>）。</summary>
 internal sealed record RecordedCompletion(GrainId Sender, GrainId Target, TaskId TaskId, MessageId MessageId, TaskId SubscriberId)
 {
-    /// <summary>使完成时间从运行时开始成为物质,就像发送尝试的发件箱那样。</summary>
+    /// <summary>从运行时实体化完成消息，与发件箱为一次投递尝试所做的操作相同。</summary>
     public DurableTaskCompletionMessage Materialize(DurableTaskGrainRuntime runtime)
     {
         Xunit.Assert.True(((IOutboxMessageSource)runtime).TryGetMessage(MessageId, out var message));
@@ -165,14 +165,14 @@ internal sealed record RecordedCompletion(GrainId Sender, GrainId Target, TaskId
 }
 
 /// <summary>
-/// 手写、实际(不装)执行 <see cref="IDurableTaskRequest"/>.
+/// <see cref="IDurableTaskRequest"/> 的手写真实实现（非模拟对象）。
 /// </summary>
 /// <remarks>
-/// 动态代理模拟( )e.g. 替代人 <c>Substitute.For&lt;IDurableTaskRequest&gt;()</c>)无法被真实的复制
-/// Orleans <see cref="DeepCopier{T}"/>: Orleans代码提供者扔 <c>CodecNotFoundException</c> 用于
-/// 普通手写类和小的组合
-/// <see cref="RuntimeTestDurableTaskRequestCopier"/> 完全避免了这个问题,同时仍然让测试完全控制
-/// 并遵守要求的行为。
+/// 动态代理模拟对象（例如 NSubstitute 的 <c>Substitute.For&lt;IDurableTaskRequest&gt;()</c>）无法由真实的
+/// Orleans <see cref="DeepCopier{T}"/> 复制：对于从未遇到过的动态代理类型，Orleans 的编解码器提供程序会抛出 <c>CodecNotFoundException</c>（
+/// 已实际验证）。采用普通手写类，配合下方的简单
+/// <see cref="RuntimeTestDurableTaskRequestCopier"/>，可以完全避免该问题，同时仍允许测试充分控制
+/// 和观察请求行为。
 /// </remarks>
 internal class RuntimeTestDurableTaskRequest(
     Func<DurableTask>? createTask = null,
@@ -229,15 +229,15 @@ internal class RuntimeTestDurableTaskRequest(
 }
 
 /// <summary>
-/// 用于另一种接口方法的 <see cref="RuntimeTestDurableTaskRequest"/> :运行时间用
-/// 其可解释的类型, 就像它对于代码生成器按方法发出一次的可解释的可解释性。
+/// 另一接口方法的 <see cref="RuntimeTestDurableTaskRequest"/>：运行时根据请求的
+/// 可调用对象类型识别其方法，与代码生成器为每个方法分别生成的可调用对象一致。
 /// </summary>
 internal sealed class RuntimeTestOtherMethodRequest(Func<DurableTask>? createTask = null, params object?[] arguments)
     : RuntimeTestDurableTaskRequest(createTask, "ITestGrain", "OtherMethod", arguments);
 
 /// <summary>
-/// 用于 <see cref="RuntimeTestDurableTaskRequest"/>的三维参考保存复印机,已注册,以便有一个真实的 Orleans
-/// <see cref="DeepCopier{T}"/> 能够复制引用 <see cref="RuntimeTestDurableTaskRequest"/>的值。
+/// 用于 <see cref="RuntimeTestDurableTaskRequest"/> 的简单保留引用的复制器，注册后真实的 Orleans
+/// <see cref="DeepCopier{T}"/> 即可复制引用 <see cref="RuntimeTestDurableTaskRequest"/> 的值。
 /// </summary>
 [RegisterCopier]
 internal sealed class RuntimeTestDurableTaskRequestCopier : IDeepCopier<RuntimeTestDurableTaskRequest>
@@ -246,9 +246,9 @@ internal sealed class RuntimeTestDurableTaskRequestCopier : IDeepCopier<RuntimeT
 }
 
 /// <summary>
-/// 手写 <see cref="DurableTask"/> ,它也执行 <see cref="ISchedulableTask"/>,允许测试完全
-/// 控制“可排任务”的分支 <c>DurableTaskGrainRuntime.ScheduleChildAsync</c> 无需取决于环境
-/// <see cref="DurableTaskContext.CurrentContext"/> 状态(与 e.g不同., <c>DurableTask.Delay</c>)。
+/// 手写 <see cref="DurableTask"/>，同时实现 <see cref="ISchedulableTask"/>，使测试能够充分
+/// 控制 <c>DurableTaskGrainRuntime.ScheduleChildAsync</c> 的“可调度任务”分支，而不依赖环境中的
+/// <see cref="DurableTaskContext.CurrentContext"/> 状态（不同于 <c>DurableTask.Delay</c> 等）。
 /// </summary>
 internal sealed class TestSchedulableTask(
     Func<TaskId, CancellationToken, ValueTask<DurableTaskResponse>> scheduleAsync,

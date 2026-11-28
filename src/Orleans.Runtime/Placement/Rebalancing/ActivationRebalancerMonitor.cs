@@ -25,7 +25,7 @@ internal sealed partial class ActivationRebalancerMonitor : SystemTarget, IActiv
     private readonly ILogger<ActivationRebalancerMonitor> _logger;
     private readonly List<IActivationRebalancerReportListener> _statusListeners = [];
 
-    // 检查工人的工作时间是他们向我报告的两倍。
+    // 以工作器报告的周期的两倍作为检查工作器的周期。
     private readonly static TimeSpan TimerPeriod = 2 * IActivationRebalancerMonitor.WorkerReportPeriod;
 
     public ActivationRebalancerMonitor(
@@ -61,7 +61,7 @@ internal sealed partial class ActivationRebalancerMonitor : SystemTarget, IActiv
            OnStart,
            _ => Task.CompletedTask);
 
-        // 重新平衡者必须在目录关闭期间正常停止使用 grains 之前迁移。
+        // 关闭期间，再均衡器必须在 激活实例目录 停用普通 Grain 之前完成迁移。
         observer.Subscribe(
            $"{nameof(ActivationRebalancerMonitor)}.Migration",
            ServiceLifecycleStage.GrainDeactivation + 1,
@@ -96,8 +96,8 @@ internal sealed partial class ActivationRebalancerMonitor : SystemTarget, IActiv
                     catch (OperationCanceledException oce) when (oce.CancellationToken == ct) { }
                     catch (Exception ex)
                     {
-                        // 这是为了避免由于成员资格等问题而冲撞 silo
-                        // 满载而死 silos 之后,一个可忍的停业。
+                        // 这样可避免因成员表在非正常关闭后
+                        // 被死亡 Silo 填满等问题导致 Silo 崩溃。
                         LogRebalancerReportFailed(ex);
                     }
                 }
@@ -116,7 +116,7 @@ internal sealed partial class ActivationRebalancerMonitor : SystemTarget, IActiv
                 _activationDirectory.FindTarget(_rebalancerGrain.GetGrainId()) is { } activation)
             {
                 LogMigratingRebalancer(Silo);
-                activation.Migrate(null, cancellationToken); // 移民至其他地方
+                activation.Migrate(null, cancellationToken); // 将其迁移到其他任意位置。
                 await activation.Deactivated.WaitAsync(cancellationToken);
             }
         });

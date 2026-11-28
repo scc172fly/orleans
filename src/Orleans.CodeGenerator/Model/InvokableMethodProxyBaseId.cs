@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// 指定代理服务器基础,包括代理服务器是 grain 参考还是扩展。
+/// 标识代理基类，包括代理是 Grain 引用还是扩展。
 /// </summary>
 internal readonly struct InvokableMethodProxyBaseId : IEquatable<InvokableMethodProxyBaseId>
 {
@@ -31,22 +31,22 @@ internal readonly struct InvokableMethodProxyBaseId : IEquatable<InvokableMethod
     }
 
     /// <summary>
-    /// 获取代理服务器基类型,例如 <c>GrainReference</c>。
+    /// 获取代理基类型，例如 <c>GrainReference</c>。
     /// </summary>
     public INamedTypeSymbol ProxyBaseType { get; }
 
     /// <summary>
-    /// 获得一个值,以显示该描述符是否代表扩展名。
+    /// 获取一个值，指示此描述符是否表示扩展。
     /// </summary>
     public bool IsExtension { get; }
 
     /// <summary>
-    /// 获取用于指此代理基点的化合物型别名的组件。
+    /// 获取用于引用此代理基类的复合类型别名组成部分。
     /// </summary>
     public ImmutableArray<CompoundTypeAliasComponent> CompositeAliasComponents { get; }
 
     /// <summary>
-    /// 获取用于在生成类名中区分此代理基数和其它基数的字符串。
+    /// 获取用于在生成的类名称中区分此代理基类和其他代理基类的字符串。
     /// </summary>
     public string GeneratedClassNameComponent { get; }
 

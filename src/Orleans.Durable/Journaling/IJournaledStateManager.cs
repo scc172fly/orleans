@@ -3,12 +3,12 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 拥有日记并持续使用注册的国家机器。
+/// 负责已注册状态机的日志恢复及持久化。
 /// </summary>
 /// <remarks>
-/// 所有人登记国家机器,在使用回收状态之前先开始开具日记。
-/// 国家机器实例及其依赖性保留了打电话者指定的寿命。
-/// 处置该经理停止日记处理并发布其日记资源。
+/// 所有者在使用已恢复状态之前注册状态机并初始化日志。
+/// 状态机实例及其依赖项保持调用方指定的生命周期。
+/// 释放此管理器会停止日志处理并释放其日志资源。
 /// </remarks>
 public interface IJournaledStateManager : IAsyncDisposable
 {
@@ -16,72 +16,72 @@ public interface IJournaledStateManager : IAsyncDisposable
     ValueTask IAsyncDisposable.DisposeAsync() => default;
 
     /// <summary>
-    /// 重播国家经理的日记,从而初始化了该经理。
+    /// 通过重放日志初始化状态管理器。
     /// </summary>
     /// <remarks>
-    /// 恢复失败未能完成当前启动尝试,使这种情况无法开始。
-    /// 之后,调用机从一开始恢复,重新设置和重播注册的国家机器。
-    /// 启动成功后可以提供书面材料。 被长期性故障围住的经理需要一个新的实例。
-    /// 取消回收的所有者关闭取消初始化, 并终止此事件 。
-    /// 取消呼叫者的象征性的结束 只有该呼叫者等待 同时继续自有恢复
+    /// 恢复失败会使当前初始化尝试失败，并使该实例保持未初始化状态。
+    /// 后续调用从头重试恢复，重置并重放已注册的状态机。
+    /// 初始化成功后可以执行写入。因持久化失败而被隔离的管理器需要新实例。
+    /// 所有者关闭并取消恢复时，将取消初始化并使此实例处于停止状态。
+    /// 取消调用方的令牌只结束该调用方的等待；所有者负责的恢复继续运行。
     /// </remarks>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>A <see cref="ValueTask"/> 表示操作。</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>表示操作的 <see cref="ValueTask"/>。</returns>
     ValueTask InitializeAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 启动前登记国家机器。
+    /// 在初始化开始之前注册状态机。
     /// </summary>
-    /// <param name="name">州立机器的稳定识别特征</param>
-    /// <param name="stateMachine">国家机器机构要注册。</param>
-    /// <exception cref="InvalidOperationException">初始化已经开始或名称已经登记。</exception>
+    /// <param name="name">状态机的稳定标识符。</param>
+    /// <param name="stateMachine">要注册的状态机实例。</param>
+    /// <exception cref="InvalidOperationException">初始化已经开始或名称已注册。</exception>
     void RegisterStateMachine(string name, IStateMachine stateMachine);
 
     /// <summary>
-    /// 试图检索注册的国家机器。
+    /// 尝试检索已注册的状态机。
     /// </summary>
-    /// <param name="name">州立机器的稳定识别特征</param>
-    /// <param name="stateMachine">注册的国家机器,如果发现的话。</param>
-    /// <returns><see langword="true"/> ,如果国家机器已注册;否则, <see langword="false"/>。</returns>
+    /// <param name="name">状态机的稳定标识符。</param>
+    /// <param name="stateMachine">已注册的状态机（如果找到）。</param>
+    /// <returns><see langword="true"/> 表示状态机已注册；否则为 <see langword="false"/>。</returns>
     bool TryGetStateMachine(string name, [NotNullWhen(true)] out IStateMachine? stateMachine);
 
     /// <summary>
-    /// 一直等待从注册的国家机器到日记的修改。
+    /// 将已注册状态机的待提交变更持久化到日志。
     /// </summary>
     /// <remarks>
-    /// 只有在确定它们可以安全承诺之后才发生突变。
-    /// 由所有使用此管理器的呼叫者来决定。 存储确认后确定耐久性 。
-    /// 日记操作失败,使经理围住;恢复需要一名新的经理和州机器。
-    /// 在捕获前,管理人员通过 <see cref="IStateMachine.PrepareWriteAsync"/>为每个登记国做好准备。
-    /// 准备故障报告 <see cref="JournaledStatePreCommitException"/> ,保留待更改
-    /// 以便他们尝试明显的再造。
-    /// 取消停止了呼叫者的等待; 已经排队的写作继续到存储结果 。
+    /// 仅在确认变更可安全提交之后才暂存变更。使用此管理器的所有调用方
+    /// 共享待提交变更。存储确认确立持久性。
+    /// 失败的日志操作隔离管理器；恢复需要新的管理器及状态机实例。
+    /// 捕获之前，管理器通过 <see cref="IStateMachine.PrepareWriteAsync"/> 准备每个已注册状态。
+    /// 准备失败会报告 <see cref="JournaledStatePreCommitException"/>，并保留待提交变更，
+    /// 以便显式重试。
+    /// 取消操作停止调用方的等待；已排队的写入继续执行，直至产生存储结果。
     /// </remarks>
-    /// <param name="cancellationToken">取消调用者等候的标记。</param>
-    /// <returns>代表书面确认的任务。</returns>
+    /// <param name="cancellationToken">用于取消调用方等待的令牌。</param>
+    /// <returns>表示写入确认的任务。</returns>
     ValueTask WriteStateAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 重设此实例, 删除任何持久性状态 。
+    /// 重置此实例，移除任何持久化状态。
     /// </summary>
     /// <remarks>
-    /// 电话机使其他操作在完成时保持发音:删除每台注册的国家机器的重新配置。
-    /// 成功存储删除的丢弃,等待日记条目,同时重置状态。
-    /// 取消终止了呼叫者的等待; 已经排队的删除继续到存储和重置结果 。
-    /// 未能永久删除该经理的栅栏,并要求解除其自有 grain。
+    /// 调用方保持其他操作静止直至删除完成：删除会重置每个已注册状态机。
+    /// 存储删除成功会将待提交日志条目与正在重置的状态一起丢弃。
+    /// 取消操作结束调用方的等待；已排队的删除继续执行，直至产生存储及重置结果。
+    /// 删除失败永久隔离管理器，并请求停用其所属 Grain。
     /// </remarks>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>A <see cref="ValueTask"/> 表示操作。</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>表示操作的 <see cref="ValueTask"/>。</returns>
     ValueTask DeleteStateAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获得一个大约的计数, 以在模拟日记缓冲中累积的字节计数
-    /// 尚未冲洗到存储中。 当执行没有被执行时返回负值
-    /// 支持抽样待处理字节。
+    /// 获取累积在内存日志缓冲区中、尚未刷新到存储的字节数的
+    /// 近似值。如果实现不支持对待提交字节数采样，
+    /// 则返回负值。
     /// </summary>
     /// <remarks>
-    /// 用于诊断和仪器仪表;返回值可能与
-    /// 不应用于作出正确性决定。
+    /// 此功能用于诊断及指标采集；返回值可能与
+    /// 并发写入发生竞争，不应作为正确性判断的依据。
     /// </remarks>
     long PendingWriteByteCount => -1;
 }

@@ -8,7 +8,7 @@ using Xunit;
 namespace Tester.AzureUtils
 {
     /// <summary>
-    /// Azure 表格存储数据管理员 CRODD 操作和有条件更新测试。
+    /// 测试 Azure Table Storage 数据管理器的 CRUD 操作和条件更新。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Storage")]
     [TestSuite("Functional")]
@@ -26,7 +26,7 @@ namespace Tester.AzureUtils
 
         public AzureTableDataManagerTests()
         {
-            // 必要时,预创建表格
+            // 如有必要，预先创建表
             manager = new UnitTestAzureTableDataManager(TestContext.Current.CancellationToken);
             PartitionKey = "PK-AzureTableDataManagerTests-" + Guid.NewGuid();
         }
@@ -45,7 +45,7 @@ namespace Tester.AzureUtils
             }
             catch (RequestFailedException exc)
             {
-                Assert.Equal((int)HttpStatusCode.Conflict, exc.Status);  // "创建一个已有的条目"
+                Assert.Equal((int)HttpStatusCode.Conflict, exc.Status);  // "创建已存在的条目。"
                 HttpStatusCode httpStatusCode;
                 string? restStatus;
                 AzureTableUtils.EvaluateException(exc, out httpStatusCode, out restStatus, true);
@@ -95,7 +95,7 @@ namespace Tester.AzureUtils
             }
             catch (RequestFailedException exc)
             {
-                Assert.Equal((int)HttpStatusCode.NotFound, exc.Status);  // "更新前插入"
+                Assert.Equal((int)HttpStatusCode.NotFound, exc.Status);  // "在插入之前执行更新。"
                 HttpStatusCode httpStatusCode;
                 string? restStatus;
                 AzureTableUtils.EvaluateException(exc, out httpStatusCode, out restStatus, true);
@@ -138,7 +138,7 @@ namespace Tester.AzureUtils
             }
             catch (RequestFailedException exc)
             {
-                Assert.Equal((int)HttpStatusCode.PreconditionFailed, exc.Status);  // "恶 eTag"
+                Assert.Equal((int)HttpStatusCode.PreconditionFailed, exc.Status);  // "错误的 eTag"
                 HttpStatusCode httpStatusCode;
                 string? restStatus;
                 AzureTableUtils.EvaluateException(exc, out httpStatusCode, out restStatus, true);
@@ -158,7 +158,7 @@ namespace Tester.AzureUtils
             }
             catch (RequestFailedException exc)
             {
-                Assert.Equal((int)HttpStatusCode.NotFound, exc.Status);  // "在创造之前删除"
+                Assert.Equal((int)HttpStatusCode.NotFound, exc.Status);  // "在创建之前执行删除。"
                 HttpStatusCode httpStatusCode;
                 AzureTableUtils.EvaluateException(exc, out httpStatusCode, out _, true);
                 Assert.Equal(HttpStatusCode.NotFound, httpStatusCode);
@@ -174,7 +174,7 @@ namespace Tester.AzureUtils
             }
             catch (RequestFailedException exc)
             {
-                Assert.Equal((int)HttpStatusCode.NotFound, exc.Status);  // "删除一个已经删除的项目"
+                Assert.Equal((int)HttpStatusCode.NotFound, exc.Status);  // "删除已经删除的项。"
                 HttpStatusCode httpStatusCode;
                 AzureTableUtils.EvaluateException(exc, out httpStatusCode, out _, true);
                 Assert.Equal(HttpStatusCode.NotFound, httpStatusCode);
@@ -199,7 +199,7 @@ namespace Tester.AzureUtils
             }
             catch (RequestFailedException exc)
             {
-                Assert.Equal((int)HttpStatusCode.NotFound, exc.Status);  // "在创造之前,能发芽"
+                Assert.Equal((int)HttpStatusCode.NotFound, exc.Status);  // "在创建之前执行合并。"
                 HttpStatusCode httpStatusCode;
                 string? restStatus;
                 AzureTableUtils.EvaluateException(exc, out httpStatusCode, out restStatus, true);
@@ -219,7 +219,7 @@ namespace Tester.AzureUtils
             }
             catch (RequestFailedException exc)
             {
-                Assert.Equal((int)HttpStatusCode.PreconditionFailed, exc.Status);  // "反 eTag"
+                Assert.Equal((int)HttpStatusCode.PreconditionFailed, exc.Status);  // "错误的 eTag。"
                 HttpStatusCode httpStatusCode;
                 string? restStatus;
                 AzureTableUtils.EvaluateException(exc, out httpStatusCode, out restStatus, true);
@@ -259,7 +259,7 @@ namespace Tester.AzureUtils
             }
             catch (RequestFailedException exc)
             {
-                Assert.Equal((int)HttpStatusCode.NotFound, exc.Status);  // "在创造第2项之前更新它"
+                Assert.Equal((int)HttpStatusCode.NotFound, exc.Status);  // "在创建项 2 之前更新它。"
                 HttpStatusCode httpStatusCode;
                 string? restStatus;
                 AzureTableUtils.EvaluateException(exc, out httpStatusCode, out restStatus, true);
@@ -279,7 +279,7 @@ namespace Tester.AzureUtils
             }
             catch (RequestFailedException exc)
             {
-                Assert.Equal((int)HttpStatusCode.Conflict, exc.Status);  // "插入一个已经存在的项目1"
+                Assert.Equal((int)HttpStatusCode.Conflict, exc.Status);  // "插入已存在的项 1。"
                 HttpStatusCode httpStatusCode;
                 string? restStatus;
                 AzureTableUtils.EvaluateException(exc, out httpStatusCode, out restStatus, true);
@@ -297,7 +297,7 @@ namespace Tester.AzureUtils
             }
             catch (RequestFailedException exc)
             {
-                Assert.Equal((int)HttpStatusCode.Conflict, exc.Status);  // "插入已经存在的项目1和皱 eTag"
+                Assert.Equal((int)HttpStatusCode.Conflict, exc.Status);  // "插入已存在的项 1，并且 eTag 错误"
                 HttpStatusCode httpStatusCode;
                 string? restStatus;
                 AzureTableUtils.EvaluateException(exc, out httpStatusCode, out restStatus, true);
@@ -324,7 +324,7 @@ namespace Tester.AzureUtils
             }
             catch (RequestFailedException exc)
             {
-                Assert.Equal((int)HttpStatusCode.NotFound, exc.Status);  // "更新前插入"
+                Assert.Equal((int)HttpStatusCode.NotFound, exc.Status);  // "在插入之前执行更新。"
                 HttpStatusCode httpStatusCode;
                 string? restStatus;
                 AzureTableUtils.EvaluateException(exc, out httpStatusCode, out restStatus, true);
@@ -349,7 +349,7 @@ namespace Tester.AzureUtils
             }
             catch (RequestFailedException exc)
             {
-                Assert.Equal((int)HttpStatusCode.PreconditionFailed, exc.Status);  // "恶 eTag"
+                Assert.Equal((int)HttpStatusCode.PreconditionFailed, exc.Status);  // "错误的 eTag"
                 HttpStatusCode httpStatusCode;
                 string? restStatus;
                 AzureTableUtils.EvaluateException(exc, out httpStatusCode, out restStatus, true);

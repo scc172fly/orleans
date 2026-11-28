@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
-/// <summary>儿童被长期处决,开始被保护。</summary>
+/// <summary>持久化执行实例以取消屏蔽方式启动的子任务。</summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
     [Fact]
@@ -91,7 +91,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         await waiting.Task.WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken);
 
-        // 执行等待时取消, 稍后到达的信号完成等待。
+        // 取消在执行实例等待期间提交，而随后到达的信号使等待完成。
         await tasks.CancelAsync(rootId, "buyer", TestContext.Current.CancellationToken);
         await tasks.SignalAsync(rootId, ShippedSignal, "parcel", TestContext.Current.CancellationToken);
 
@@ -126,7 +126,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await delaying.Task.WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken);
         await transport.ResumeSent.WaitAsync(CancellationTestTimeout, TestContext.Current.CancellationToken);
 
-        // 取消合同既没有延误,也没有完成独立任务的记录,结果也告终。
+        // 取消既不传递到延迟操作，也不传递到分离任务的记录；该记录会随分离任务的结果而完成。
         await ((IDurableTaskManager)runtime).CancelAsync(rootId, "buyer", TestContext.Current.CancellationToken);
         Assert.Null(storage.Get(recordId).Result);
         Assert.Empty(transport.Cancellations);
@@ -160,7 +160,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             ready.TrySetResult();
             await resume.Task;
 
-            // 儿童若没有被保护, 取消后开始,
+            // 未启用取消屏蔽且在取消之后启动的子任务不会运行，而是直接进入已取消状态。
             var outside = new TestStateManager.TestRemoteDurableTask(CreateRemoteRequest(3)).WithId("outside").Post();
             var after = new TestStateManager.TestRemoteDurableTask(CreateRemoteRequest(4)).WithId("after").Shielded().Post();
 

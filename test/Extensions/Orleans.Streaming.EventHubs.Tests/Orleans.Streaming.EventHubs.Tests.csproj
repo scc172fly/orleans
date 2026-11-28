@@ -6,7 +6,7 @@
     <OrleansBuildTimeCodeGen>true</OrleansBuildTimeCodeGen>
     <IsAspireHost>false</IsAspireHost>
     <Nullable>enable</Nullable>
-    <!-- 只需要内部建筑就有必要使用精密的工具来汇编集成测试。 -->
+    <!-- 仅编译集成测试的内部构建需要 Aspire 工具。 -->
     <SkipAddAspireDefaultReferences Condition="'$(TargetFramework)' == ''">true</SkipAddAspireDefaultReferences>
   </PropertyGroup>
 

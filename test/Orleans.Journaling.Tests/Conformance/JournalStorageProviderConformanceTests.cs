@@ -47,8 +47,8 @@ public sealed class AzureBlobJournalStorageConformanceTests : JournalStorageConf
 
     protected override long? MaxAppendBytes => AzureBlobJournalStorage.MaxAppendBlockBytes;
 
-    // Azurite 停止满足附加区块请求, 在客户中断附加区块请求机构后终止此附加区块请求, 所以Blob 符合
-    // 只注射失灵反应
+    // 当客户端中止 append-block 请求正文的发送后，Azurite 会停止处理 append-block 请求，因此 Blob 一致性测试
+    // 只注入响应丢失故障。
     protected override IReadOnlySet<JournalStorageFaultKind> SupportedFaults { get; } = new HashSet<JournalStorageFaultKind> { JournalStorageFaultKind.LoseResponse };
 
     protected override async ValueTask<IJournalStorageProvider> CreateProviderAsync(JournalStorageFaultInjector? faults, CancellationToken cancellationToken)
@@ -189,7 +189,7 @@ public sealed class S3JournalStorageConformanceTests : JournalStorageConformance
     }
 }
 
-// 主机日记存储提供者采用 silo 的方式:注册了日记格式,并开始了 silo 生命周期。
+// 以与 Silo 相同的方式托管日志存储提供程序：注册日志格式并启动 Silo 生命周期。
 internal sealed class ConformanceProviderHost : IAsyncDisposable
 {
     private readonly List<SiloLifecycleSubject> _lifecycles = [];
@@ -232,7 +232,7 @@ internal sealed class ConformanceProviderHost : IAsyncDisposable
     }
 }
 
-// 在运输过程中,在客户的再试循环中将日记存储缺陷输入SDK客户的 Azure 书面请求。
+// 在 Azure SDK 客户端的传输层向其写入请求注入日志存储故障，位置在客户端重试循环内部。
 internal sealed class AzureFaultInjectionHandler(JournalStorageFaultInjector faults) : DelegatingHandler(new SocketsHttpHandler())
 {
     public static TOptions ConfigureClientOptions<TOptions>(TOptions options, JournalStorageFaultInjector? faults)
@@ -272,7 +272,7 @@ internal sealed class AzureFaultInjectionHandler(JournalStorageFaultInjector fau
         return response;
     }
 
-    // 将请求信头及其身体上前半部发送专用连接,然后重置连接。
+    // 在专用连接上发送请求头和前半部分请求正文，然后重置连接。
     private static async Task SendPartialRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var body = await request.Content!.ReadAsByteArrayAsync(cancellationToken);

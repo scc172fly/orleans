@@ -5,26 +5,26 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.TestKit.Consistency
 {
     /// <summary>
-    /// 定义用于产生一致性历史的随机交易操作。
+    /// 定义用于生成一致性历史记录的随机事务操作。
     /// </summary>
     public interface IConsistencyTestGrain : IGrainWithIntegerKey
     {
         /// <summary>
-        /// 执行随机化的交易读写或嵌套 grain 呼叫。
+        /// 执行随机的事务读取、写入或嵌套 Grain 调用。
         /// </summary>
         /// <param name="options">一致性测试配置。</param>
-        /// <param name="depth">当前嵌套的呼叫深度。</param>
-        /// <param name="stack">交易呼叫的诊断路径。</param>
-        /// <param name="max">嵌套 grain 选择的独家上吊框。</param>
-        /// <param name="stopAfter">安排更多嵌套电话的截止日期。</param>
-        /// <returns>交易所观察到的州版本。</returns>
+        /// <param name="depth">当前嵌套调用深度。</param>
+        /// <param name="stack">事务调用的诊断路径。</param>
+        /// <param name="max">嵌套 Grain 选择范围的上界（不含该值）。</param>
+        /// <param name="stopAfter">调度额外嵌套调用的截止时间。</param>
+        /// <returns>事务观测到的状态版本。</returns>
         [Transaction(TransactionOption.CreateOrJoin)]
         Task<Observation[]> Run(ConsistencyTestOptions options, int depth, string stack, int max, DateTime stopAfter);
     }
 
 
     /// <summary>
-    /// 表示用户故意发起的交易中止。
+    /// 表示用户有意发起的事务中止。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -36,10 +36,10 @@ namespace Orleans.Transactions.TestKit.Consistency
         public UserAbort() : base("User aborted transaction") { }
 
         /// <summary>
-        /// 从序列数据初始化了 <see cref="UserAbort"/> 类的新实例。
+        /// 从序列化数据初始化 <see cref="UserAbort"/> 类的新实例。
         /// </summary>
-        /// <param name="info">序列的例外数据。</param>
-        /// <param name="context">序列化操作的背景。</param>
+        /// <param name="info">已序列化的异常数据。</param>
+        /// <param name="context">序列化操作的上下文。</param>
         [Obsolete]
         protected UserAbort(SerializationInfo info, StreamingContext context)
             : base(info, context)

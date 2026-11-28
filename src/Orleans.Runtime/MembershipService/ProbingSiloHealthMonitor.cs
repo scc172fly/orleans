@@ -9,14 +9,14 @@ using Orleans.Runtime.Messaging;
 namespace Orleans.Runtime.MembershipService;
 
 /// <summary>
-/// 默认执行 <see cref="IProbeHealthMonitor"/> 用途 Orleans内置
-/// 监测健康检测的 ping 协议
+/// <see cref="IProbeHealthMonitor"/> 的默认实现，使用 Orleans 内置的
+/// ping 协议监控探测健康状况。
 /// </summary>
 /// <remarks>
-/// 执行轨道 :
+/// 此实现跟踪：
 /// <list type="bullet">
-///   <item><description>收到查询请求 <see cref="ProbeRequestMonitor"/></description></item>
-///   <item><description>收到通过 <see cref="IClusterHealthMonitor.SiloMonitors"/></description></item>
+/// <item><description>通过 <see cref="ProbeRequestMonitor"/> 接收的探测请求</description></item>
+/// <item><description>通过 <see cref="IClusterHealthMonitor.SiloMonitors"/> 接收的探测响应</description></item>
 /// </list>
 /// </remarks>
 internal sealed partial class ProbingSiloHealthMonitor : IProbeHealthMonitor
@@ -43,8 +43,8 @@ internal sealed partial class ProbingSiloHealthMonitor : IProbeHealthMonitor
     {
         complaint = null;
 
-        // 只有在有不止一个其他节点时,才考虑最后收到的探测请求是否属常态。
-        // 否则,它可能无法对一两个节点组中的另一个节点投下表决票。
+        // 仅在存在多个其他节点时，才考虑最近一次收到探测请求的时间。
+        // 否则，在只有一个或两个节点的集群中，它可能无法投票将另一个节点判定为死亡。
         if (activeNodeCount <= 2)
         {
             return 0;
@@ -76,7 +76,7 @@ internal sealed partial class ProbingSiloHealthMonitor : IProbeHealthMonitor
     {
         complaint = null;
 
-        // 确定最近收到的最新成功电话回音回复。
+        // 确定最近一次成功收到 ping 响应距今有多长时间。
         var siloMonitors = _clusterHealthMonitor.SiloMonitors;
         var elapsedSinceLastResponse = default(TimeSpan?);
 
@@ -89,8 +89,8 @@ internal sealed partial class ProbingSiloHealthMonitor : IProbeHealthMonitor
             }
         }
 
-        // 只有在最后一个成功点对另一个节点进行不止一个监测时,才考虑最后成功点的静态性。
-        // 否则,它可能无法对一两个节点组中的另一个节点投下表决票。
+        // 仅在当前节点监控多个其他节点时，才考虑最近一次成功 ping 的时间。
+        // 否则，在只有一个或两个节点的集群中，它可能无法投票将另一个节点判定为死亡。
         if (siloMonitors.Count <= 1)
         {
             return 0;

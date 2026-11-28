@@ -7,12 +7,12 @@ using Orleans.Runtime;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// GeneratorStreamProvider 和 MemoryStreamProvider中作为默认选项使用的块群监视器。
+    /// GeneratorStreamProvider 和 MemoryStreamProvider 默认使用的内存块池监视器。
     /// </summary>
     public class DefaultBlockPoolMonitor : IBlockPoolMonitor
     {
         /// <summary>
-        /// 该监测仪报告的计量尺度的尺寸。
+        /// 附加到此监视器报告的指标上的维度。
         /// </summary>
         protected KeyValuePair<string, object>[] _dimensions;
         private readonly ObservableCounter<long> _totalMemoryCounter;
@@ -29,8 +29,8 @@ namespace Orleans.Providers.Streams.Common
         /// <summary>
         /// 初始化 <see cref="DefaultBlockPoolMonitor"/> 类的新实例。
         /// </summary>
-        /// <param name="dimensions">块状池公积维度。</param>
-        /// <param name="instruments">下 Orleans 运行工具。</param>
+        /// <param name="dimensions">内存块池指标维度。</param>
+        /// <param name="instruments">Orleans 运行时度量工具。</param>
         public DefaultBlockPoolMonitor(BlockPoolMonitorDimensions dimensions, OrleansInstruments instruments)
             : this(CreateDimensions(dimensions), GetMeter(instruments))
         {
@@ -39,8 +39,8 @@ namespace Orleans.Providers.Streams.Common
         /// <summary>
         /// 初始化 <see cref="DefaultBlockPoolMonitor"/> 类的新实例。
         /// </summary>
-        /// <param name="dimensions">该监测仪报告的计量尺度的尺寸。</param>
-        /// <param name="instruments">下 Orleans 运行工具。</param>
+        /// <param name="dimensions">附加到此监视器报告的指标上的维度。</param>
+        /// <param name="instruments">Orleans 运行时度量工具。</param>
         protected DefaultBlockPoolMonitor(KeyValuePair<string, object>[] dimensions, OrleansInstruments instruments)
             : this(dimensions, GetMeter(instruments))
         {
@@ -68,9 +68,9 @@ namespace Orleans.Providers.Streams.Common
             _allocatedMemoryCounter = meter.CreateObservableCounter<long>(InstrumentNames.STREAMS_BLOCK_POOL_ALLOCATED_MEMORY, GetAllocatedMemory, unit: "bytes");
         }
 
-        // _dimension 中的标记值从不实际无效; 投影只会扩大数组的无效性注释
-        // 满足以下(可附加说明的) System.Diagnostics.Metrics.Measurement<T> 构建器
-        // 因为后方的 CLR 数组类型是相同的, 不论元素的无效注释值如何 。
+        // _dimensions 中的标记值实际上从不为 null；此转换仅放宽数组
+        // 元素类型的可空性注解，以满足下面带可空性注解的 System.Diagnostics.Metrics.Measurement<T> 构造函数的要求。
+        // 这是安全的，因为无论元素的可空性注解如何，底层 CLR 数组类型都相同。
         private Measurement<long> GetTotalMemory() => new(_totalMemory, (KeyValuePair<string, object?>[])(object)_dimensions);
         private Measurement<long> GetAvailableMemory() => new(_availableMemory, (KeyValuePair<string, object?>[])(object)_dimensions);
         private Measurement<long> GetClaimedMemory() => new(_claimedMemory, (KeyValuePair<string, object?>[])(object)_dimensions);

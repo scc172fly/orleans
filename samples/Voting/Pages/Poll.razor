@@ -14,7 +14,7 @@
 }
 else if (!_loaded)
 {
-	<h2>Loading poll @(PollId)...</h2>
+	<h2>正在加载投票 @(PollId)...</h2>
 }
 else if (!_voted)
 {
@@ -31,7 +31,7 @@ else if (!_voted)
 	</div>
 	<br />
 	<div>
-		<h2>Share this poll: @PollId</h2>
+		<h2>分享此投票：@PollId</h2>
 	</div>
 }
 else
@@ -44,7 +44,7 @@ else
 			<div class="bg-light p-2 m-2 rounded">
 				<h3>@option:</h3>
 				<div class="progress" style="height: 50px;">
-				  <div class="progress-bar" role="progressbar" style="width: @(percentage)%;" aria-valuenow="@percentage" aria-valuemin="0" aria-valuemax="100"><h4>@percentage% (@votes votes)</h4></div>
+				  <div class="progress-bar" role="progressbar" style="width: @(percentage)%;" aria-valuenow="@percentage" aria-valuemin="0" aria-valuemax="100"><h4>@percentage% (@votes 票)</h4></div>
 				</div>
 			</div>
 		}
@@ -52,8 +52,8 @@ else
     <br />
     <br />
     <div class="border bg-light">
-        <button class="btn btn-danger" @onclick="DemoTryDoubleVoting">DEMO: try double-voting</button>
-        <button class="btn btn-danger" @onclick="DemoSimulateVoters">DEMO: simulate other voters</button>
+        <button class="btn btn-danger" @onclick="DemoTryDoubleVoting">演示：尝试重复投票</button>
+        <button class="btn btn-danger" @onclick="DemoSimulateVoters">演示：模拟其他投票者</button>
     </div>
 }
 @code
@@ -131,8 +131,8 @@ else
 
     private void UpdateResults(PollState results)
     {
-        // 我们用 InvokeAsync 来安排UI线上的最新消息
-        // 而不是从不允许的背景线上更新它
+        // 使用 InvokeAsync 将更新调度到 UI 线程，
+        // 而不是直接从不允许执行 UI 更新的后台线程更新。
         InvokeAsync(() =>
         {
             _results = results;

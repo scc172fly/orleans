@@ -5,7 +5,7 @@ namespace Orleans.Runtime
 {
 
     /// <summary>
-    /// 表示试图对无效的 SchedulingContext进行操作。
+    /// 表示尝试在无效的 SchedulingContext 中执行操作。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -15,7 +15,7 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="InvalidSchedulingContextException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// 信息
+        /// 消息。
         /// </param>
         public InvalidSchedulingContextException(string message) : base(message) { }
 
@@ -23,10 +23,10 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="InvalidSchedulingContextException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// 信息
+        /// 消息。
         /// </param>
         /// <param name="innerException">
-        /// 内在的例外
+        /// 内部异常。
         /// </param>
         public InvalidSchedulingContextException(string message, Exception innerException) : base(message, innerException) { }
 
@@ -34,10 +34,10 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="InvalidSchedulingContextException"/> 类的新实例。
         /// </summary>
         /// <param name="info">
-        /// 序列信息
+        /// 序列化信息。
         /// </param>
         /// <param name="context">
-        /// 背景。
+        /// 上下文。
         /// </param>
         [Obsolete]
         private InvalidSchedulingContextException(SerializationInfo info, StreamingContext context) : base(info, context) { }

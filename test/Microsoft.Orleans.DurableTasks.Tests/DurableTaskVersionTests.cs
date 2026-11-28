@@ -7,8 +7,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 验证哪个版本的更改 <see cref="DurableTask.GetVersion(string, int, int)"/> 返回处决
-/// 以及如何处决无支持版本的版本。
+/// 验证 <see cref="DurableTask.GetVersion(string, int, int)"/> 对不同时间启动的执行实例返回哪个变更版本，
+/// 这些执行实例分别在部署之前、期间及之后启动；同时验证使用不受支持的版本的执行实例如何停滞。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -33,7 +33,7 @@ public sealed class DurableTaskVersionTests
             Assert.Equal(2, record.State.Result!.GetResult<int>());
         }
 
-        // 后部署增加第3版。 处决保留了记录中的版本。
+        // 后续部署添加版本 3，执行实例保留它此前记录的版本。
         harness.Workflow = grain => Workflow(grain, maxSupported: 3);
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await replay.Grain.AtGate.WaitAsync(Timeout, TestCancellation);
@@ -66,8 +66,8 @@ public sealed class DurableTaskVersionTests
         await replay.Grain.AtGate.WaitAsync(Timeout, TestCancellation);
         replay.Grain.OpenGate();
 
-        // 之前记录在“第二”的运行时间, 以当前支票所在点之后的检查结果为开始, 所以执行后
-        // 修改前的代码,记录该决定。
+        // 此前运行在当前版本检查所在位置之后记录了 "second"，因此执行实例遵循
+        // 变更前的代码，并记录该版本选择决定。
         Assert.Equal("0:second", (await replay.GetResponseAsync(workflowId, TestCancellation)).GetResult<string>());
         var record = Assert.Single(replay.Storage.Tasks, task => task.Id == workflowId.Child("$version:change"));
         Assert.Equal(0, record.State.Result!.GetResult<int>());
@@ -107,7 +107,7 @@ public sealed class DurableTaskVersionTests
         await replay.Grain.AtGate.WaitAsync(Timeout, TestCancellation);
         replay.Grain.OpenGate();
 
-        // 早先的跑步在大门等候,
+        // 先前运行在当前版本检查位置之前等待同步关卡打开。
         Assert.Equal("1:replacement", (await replay.GetResponseAsync(workflowId, TestCancellation)).GetResult<string>());
 
         static async DurableTask<string> Before(ReplayGrain grain)
@@ -146,7 +146,7 @@ public sealed class DurableTaskVersionTests
         await replay.Grain.AtGate.WaitAsync(Timeout, TestCancellation);
         replay.Grain.OpenGate();
 
-        // 插入的步结束了重播, “ 第二” 仍然显示早期运行经过了检查。
+        // 插入的步骤使重放结束，而 "second" 仍表明先前运行已越过版本检查的位置。
         Assert.Equal("0:second", (await replay.GetResponseAsync(workflowId, TestCancellation)).GetResult<string>());
         Assert.False(replayingAtCheck);
 
@@ -183,8 +183,8 @@ public sealed class DurableTaskVersionTests
             await CommitAtGateAsync(activation);
         }
 
-        // 早期运行在大门前完成两次迭代。 后继迭代, 在重放后运行, 仍然
-        // 遵循第一次迭代决定的版本。
+        // 先前运行在同步关卡之前完成了两次迭代。重放之后运行的后续迭代仍然
+        // 遵循第一次迭代所确定的版本。
         harness.Workflow = grain => Loop(grain, versions, check: true);
         await using (var replay = await harness.ActivateAsync(TestCancellation))
         {
@@ -193,7 +193,7 @@ public sealed class DurableTaskVersionTests
 
         Assert.Equal([0, 0, 0, 0], versions);
 
-        // 进一步重播了该记录的决定。
+        // 再次重放时读取已记录的决定。
         versions.Clear();
         await using var recovered = await harness.ActivateAsync(TestCancellation);
         await recovered.Grain.AtGate.WaitAsync(Timeout, TestCancellation);
@@ -231,7 +231,7 @@ public sealed class DurableTaskVersionTests
             await CommitAtGateAsync(activation);
         }
 
-        // 部署取消了对“退休”的检查,其记录保留在行刑树上。
+        // 某次部署移除了对 "retired" 的检查，其记录仍保留在执行实例的任务树中。
         harness.Workflow = grain => After(grain, observations);
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await replay.Grain.AtGate.WaitAsync(Timeout, TestCancellation);
@@ -267,7 +267,7 @@ public sealed class DurableTaskVersionTests
 
         Assert.Equal((1, 1, 2), (await activation.GetResponseAsync(workflowId, TestCancellation)).GetResult<(int, int, int)>());
 
-        // 继承父母决定的步骤没有记录任何自己的决定;没有记录的任何步骤。
+        // 继承父任务决定的步骤不记录自己的决定；未找到父任务决定的步骤会记录自己的决定。
         var records = activation.Storage.Tasks
             .Select(static task => task.Id.ToString())
             .Where(static id => id.Contains("/$version:", StringComparison.Ordinal))
@@ -303,14 +303,14 @@ public sealed class DurableTaskVersionTests
             await CommitAtGateAsync(activation);
         }
 
-        // 仅支持版本1的代码,如在滚动部署期间早期建造的代码,重播任务。
+        // 仅支持版本 1 的代码（例如滚动部署期间的较早构建版本）重放任务。
         harness.Workflow = grain => Workflow(grain, maxSupported: 1);
         await using (var older = await harness.ActivateAsync(TestCancellation))
         {
             var exception = await stalled.Task.WaitAsync(Timeout, TestCancellation);
             Assert.Equal(("change", 2, 0, 1), (exception.Name, exception.Version, exception.MinSupported, exception.MaxSupported));
 
-            // 任务未完成,其尝试结束, grain 为以后的启动而缓慢地警醒。
+            // 任务保持待完成状态，本次执行尝试已结束，Grain 保留低频唤醒操作，以供后续激活实例恢复执行。
             Assert.True(older.Storage.TryGetTask(workflowId, out var state));
             Assert.False(state.Result is { IsCompleted: true });
             await WaitUntilAsync(() => older.Runtime.GetWakeupDelay() == TimeSpan.FromMinutes(1));
@@ -352,9 +352,9 @@ public sealed class DurableTaskVersionTests
             await CommitAtGateAsync(activation);
         }
 
-        // 代码提高了最小支持的版本最小值, 并重新播放了记录 0 版的执行。 检查和
-        // 键,当该正文在抓取取消报告后开始的
-        // 不支持的版本, 身体的状态变化成功 。
+        // 提高最低支持版本的代码重放已记录版本 0 的执行实例。版本检查以及
+        // 任务体捕获取消异常后启动的步骤，都会报告执行尝试因
+        // 不支持该版本而被取消，且任务体的状态更改成功。
         harness.Workflow = grain => Handling(grain, failures.Enqueue);
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await stalled.Task.WaitAsync(Timeout, TestCancellation);
@@ -416,7 +416,7 @@ public sealed class DurableTaskVersionTests
             await CommitAtGateAsync(activation);
         }
 
-        // 下一次部署将增加第二版;待执行部分保留第一版。
+        // 下一次部署添加版本 2；待完成的执行实例继续使用版本 1。
         harness.Workflow = static grain => Workflow(grain, Extended);
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await replay.Grain.AtGate.WaitAsync(Timeout, TestCancellation);
@@ -436,7 +436,7 @@ public sealed class DurableTaskVersionTests
 
     private static readonly DurableVersion Extended = new("descriptor", minSupported: 0, maxSupported: 2);
 
-    /// <summary>等待工作流程在大门等候,然后执行它用不相关的写作所演的。</summary>
+    /// <summary>等待工作流在同步关卡处进入等待，再通过一次无关的写入提交工作流已暂存的更改。</summary>
     private static async Task CommitAtGateAsync(ReplayActivation activation)
     {
         await activation.Grain.AtGate.WaitAsync(Timeout, TestCancellation);

@@ -4,7 +4,7 @@ using Orleans.Providers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 增加集装箱服务。
+// 向容器添加服务。
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -20,11 +20,11 @@ builder.Services.AddSingleton<TodoService>();
 
 var app = builder.Build();
 
-// 配置 HTTP 请求管道 。
+// 配置 HTTP 请求管道。
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // 默认 HSTS 值为 30 天。 您可能想要更改此选项用于生产方案, 见 https://aka.ms/aspnetcore-hsts。
+    // 默认 HSTS 值为 30 天。生产环境可能需要调整此值，请参阅 https://aka.ms/aspnetcore-hsts。
     app.UseHsts();
 }
 

@@ -1,13 +1,13 @@
 namespace Orleans.Streams;
 
 /// <summary>
-/// 用于解决来自按键依赖的流子子 <see cref="System.TimeProvider"/> 的连接
-/// 。请参见核心运行时间区域 <see cref="Orleans.Runtime.TimeProviderNames"/> 。
+/// 用于从键控依赖注入中解析流处理子系统的 <see cref="System.TimeProvider"/> 的服务键。
+/// 有关核心运行时区域，请参见 <see cref="Orleans.Runtime.TimeProviderNames"/>。
 /// </summary>
 public static class StreamingTimeProviderNames
 {
     /// <summary>
-    /// 流子系统(拉动剂和管理人员、队列平衡器)使用的时钟。
+    /// 流处理子系统使用的时钟（拉取代理及其管理器、队列均衡器）。
     /// </summary>
     public const string Streaming = "Orleans.Streaming";
 }

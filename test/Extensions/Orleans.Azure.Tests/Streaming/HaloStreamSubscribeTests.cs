@@ -143,7 +143,7 @@ namespace UnitTests.HaloTests.Streaming
             Guid producerGuid,
             CancellationToken cancellationToken)
         {
-            // 消费者首先加入,然后生产者加入
+            // 消费者先加入，生产者随后加入。
             IConsumerEventCountingGrain consumer = this.fixture.GrainFactory.GetGrain<IConsumerEventCountingGrain>(consumerGuid);
             await consumer.BecomeConsumer(_streamId, _streamProvider);
 
@@ -172,7 +172,7 @@ namespace UnitTests.HaloTests.Streaming
             Guid consumerGuid,
             CancellationToken cancellationToken)
         {
-            // 生产者先加入,消费者晚加入
+            // 生产者先加入，消费者随后加入。
             IProducerEventCountingGrain producer = this.fixture.GrainFactory.GetGrain<IProducerEventCountingGrain>(producerGuid);
             await producer.BecomeProducer(_streamId, _streamProvider);
 

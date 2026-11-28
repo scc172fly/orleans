@@ -11,7 +11,7 @@ using Xunit;
 namespace UnitTests.MembershipTests
 {
     /// <summary>
-    /// 测试对可读性 silo 停机的处理及其对待决 grain 请求的影响。
+    /// 测试 Silo 非正常关闭的处理及其对尚未完成的 Grain 请求的影响。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

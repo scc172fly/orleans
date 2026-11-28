@@ -9,26 +9,26 @@ using Orleans.EventSourcing.LogStorage;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 提供用于配置原日志存储源的扩展源。
+    /// 提供用于配置日志存储日志一致性提供程序的扩展方法。
     /// </summary>
     public static class LogStorageSiloBuilderExtensions
     {
         /// <summary>
-        /// 添加一个日志存储记录一致性提供商作为默认日志一致性提供商。
+        /// 将日志存储日志一致性提供程序添加为默认日志一致性提供程序。
         /// </summary>
-        /// <param name="builder">下 silo 建筑商</param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <param name="builder">Silo 构建器。</param>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder AddLogStorageBasedLogConsistencyProviderAsDefault(this ISiloBuilder builder)
         {
             return builder.AddLogStorageBasedLogConsistencyProvider(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME);
         }
 
         /// <summary>
-        /// 添加一个名为日志存储日志一致性的提供者。
+        /// 添加命名的日志存储日志一致性提供程序。
         /// </summary>
-        /// <param name="builder">下 silo 建筑商</param>
-        /// <param name="name">提供者名称。</param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <param name="builder">Silo 构建器。</param>
+        /// <param name="name">提供程序名称。</param>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder AddLogStorageBasedLogConsistencyProvider(this ISiloBuilder builder, string name = "LogStorage")
         {
             return builder.ConfigureServices(services => services.AddLogStorageBasedLogConsistencyProvider(name));

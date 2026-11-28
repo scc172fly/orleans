@@ -22,7 +22,7 @@ using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// 将 grain 状态数据写入 Azure 表存储的简单储存。
+    /// 用于将 Grain 状态数据写入 Azure Table Storage 的简单存储。
     /// </summary>
     public partial class AzureTableGrainStorage : IGrainStorage, IRestExceptionDecoder, ILifecycleParticipant<ISiloLifecycle>
     {
@@ -33,8 +33,8 @@ namespace Orleans.Storage
         private readonly IActivatorProvider _activatorProvider;
         private GrainStateTableDataManager? tableDataManager;
 
-        // 每个财产可以持有64KB的数据,每个实体可以总共取1MB,因此15个完整的属性可以使用
-        // * 64=960 KB 离开房间,以获取主键、时间戳等
+        // 每个属性可容纳 64 KB 数据，每个实体总共可容纳 1 MB，因此 15 个写满的属性占用
+        // 15 * 64 = 960 KB，为主键、时间戳等预留空间。
         private const int MAX_DATA_CHUNK_SIZE = 64 * 1024;
         private const int MAX_STRING_PROPERTY_LENGTH = 32 * 1024;
         private const int MAX_DATA_CHUNKS_COUNT = 15;
@@ -44,9 +44,9 @@ namespace Orleans.Storage
 
         private readonly string name;
 
-        /// <summary> 默认构建器 </summary>
+        /// <summary>默认构造函数。</summary>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="options"/> 或 <paramref name="clusterOptions"/> 是 <see langword="null"/>。
+        /// <paramref name="options"/> 或 <paramref name="clusterOptions"/> 为 <see langword="null"/>。
         /// </exception>
         public AzureTableGrainStorage(
             string name,
@@ -66,10 +66,10 @@ namespace Orleans.Storage
             _activatorProvider = activatorProvider;
         }
 
-        /// <summary> 为此存储提供者读取国家数据函数。 </summary>
+        /// <summary>此存储提供程序的状态数据读取方法。</summary>
         /// <see cref="IGrainStorage.ReadStateAsync{T}(string, GrainId, IGrainState{T})"/>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="grainType"/> 或 <paramref name="grainState"/> 是 <see langword="null"/>。
+        /// <paramref name="grainType"/> 或 <paramref name="grainState"/> 为 <see langword="null"/>。
         /// </exception>
         public Task ReadStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
             => ReadStateAsync(grainType, grainId, grainState, CancellationToken.None);
@@ -103,10 +103,10 @@ namespace Orleans.Storage
             }
         }
 
-        /// <summary> 为此存储提供者写入状态数据函数 。 </summary>
+        /// <summary>此存储提供程序的状态数据写入方法。</summary>
         /// <see cref="IGrainStorage.WriteStateAsync{T}(string, GrainId, IGrainState{T})"/>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="grainType"/> 或 <paramref name="grainState"/> 是 <see langword="null"/>。
+        /// <paramref name="grainType"/> 或 <paramref name="grainState"/> 为 <see langword="null"/>。
         /// </exception>
         public Task WriteStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
             => WriteStateAsync(grainType, grainId, grainState, CancellationToken.None);
@@ -126,7 +126,7 @@ namespace Orleans.Storage
             var rowKey = AzureTableUtils.SanitizeTableProperty(grainType);
             var entity = new TableEntity(pk, rowKey)
             {
-                // 下 Azure SDK 接受默认默认值 grain- 即使弦构造器是不可破坏的,但阿塔格州也不得触摸。
+                // 尽管 ETag 的字符串构造函数参数被标注为非可空，Azure SDK 仍接受 Grain 状态的默认 ETag。
                 ETag = new ETag(grainState.ETag!)
             };
             ConvertToStorageFormat(grainState.State, entity);
@@ -143,15 +143,15 @@ namespace Orleans.Storage
             }
         }
 
-        /// <summary> 清除/删除此存储提供者的状态数据函数。 </summary>
+        /// <summary>此存储提供程序的清除或删除状态数据功能。</summary>
         /// <remarks>
-        /// 如果 <c>DeleteStateOnClear</c> 被设为 <c>true</c> ,那么表格行
-        /// 此 grain 将会被删除/ 删除, 否则表格行将
-        /// 以默认/无效值覆盖清除。
+        /// 如果将 <c>DeleteStateOnClear</c> 设置为 <c>true</c>，则
+        /// 删除该 Grain 对应的表行；否则
+        /// 通过写入默认值或 null 值清空表行。
         /// </remarks>
         /// <see cref="IGrainStorage.ClearStateAsync{T}(string, GrainId, IGrainState{T})"/>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="grainType"/> 或 <paramref name="grainState"/> 是 <see langword="null"/>。
+        /// <paramref name="grainType"/> 或 <paramref name="grainState"/> 为 <see langword="null"/>。
         /// </exception>
         public Task ClearStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
             => ClearStateAsync(grainType, grainId, grainState, CancellationToken.None);
@@ -170,7 +170,7 @@ namespace Orleans.Storage
             var rowKey = AzureTableUtils.SanitizeTableProperty(grainType);
             var entity = new TableEntity(pk, rowKey)
             {
-                // 下 Azure SDK 接受默认默认值 grain- 即使弦构造器是不可破坏的,但阿塔格州也不得触摸。
+                // 尽管 ETag 的字符串构造函数参数被标注为非可空，Azure SDK 仍接受 Grain 状态的默认 ETag。
                 ETag = new ETag(grainState.ETag!)
             };
             string operation = "Clearing";
@@ -185,7 +185,7 @@ namespace Orleans.Storage
                 else
                 {
                     await DoOptimisticUpdate(() => tableDataManager.Write(entity, cancellationToken), grainType, grainId, this.options.TableName, grainState.ETag).ConfigureAwait(false);
-                    grainState.ETag = entity.ETag.ToString(); // 更新新ETag 的模拟数据
+                    grainState.ETag = entity.ETag.ToString(); // 将内存中的数据更新为新的 ETag。
                 }
 
                 grainState.RecordExists = false;
@@ -211,14 +211,14 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// 序列化为 Azure 以二进制或 JSON 格式。
+        /// 序列化为 Azure 存储格式，使用二进制或 JSON 格式。
         /// </summary>
-        /// <param name="grainState"> grain 国家数据将按序号</param>
-        /// <param name="entity"> Azure 表格实体应将其数据储存在</param>
+        /// <param name="grainState">要序列化的 Grain 状态数据。</param>
+        /// <param name="entity">应存储数据的 Azure Table 实体。</param>
         /// <remarks>
-        /// 见:
+        /// 参见：
         /// http://msdn.microsoft.com/en-us/library/system.web.script.serialization.javascriptserializer.aspx
-        /// 更多 JSON 连环器
+        /// 了解有关 JSON 序列化器的更多信息。
         /// </remarks>
         internal void ConvertToStorageFormat<T>(T grainState, TableEntity entity)
         {
@@ -309,7 +309,7 @@ namespace Orleans.Storage
                             }
                             break;
 
-                        // 如果使用任何有效载荷类型提供元数据
+                        // 如果使用任何提供元数据的有效载荷类型
                         case byte[] binaryValue:
                             if (binaryValue.Length > 0)
                             {
@@ -355,12 +355,12 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// 从 Azure 存储格式降序
+        /// 从 Azure 存储格式反序列化。
         /// </summary>
-        /// <param name="entity"> Azure 表格中储存的数据</param>
+        /// <param name="entity">包含已存储数据的 Azure Table 实体。</param>
         internal T? ConvertFromStorageFormat<T>(TableEntity entity)
         {
-            // 从两个列类型中读取后向兼容性
+            // 为向后兼容，从两种列类型读取。
             var binaryData = ReadBinaryData(entity);
             var stringData = ReadStringData(entity);
 
@@ -445,7 +445,7 @@ namespace Orleans.Storage
                     {
                         LogTraceDataNotFoundReadingException(partitionKey, rowKey, TableName, exc);
 
-                        return default;  // 无数据
+                        return default;  // 无数据。
                     }
                     throw;
                 }
@@ -475,7 +475,7 @@ namespace Orleans.Storage
                 entity.ETag = default;
             }
 
-            // GrainStateTableDataManager部分日志方法
+            // GrainStateTableDataManager 的分部日志方法。
 
             [LoggerMessage(
                 EventId = (int)AzureProviderErrorCode.AzureTableProvider_Storage_Reading,
@@ -520,11 +520,11 @@ namespace Orleans.Storage
             private partial void LogTraceNotAttemptingDelete(string partitionKey, string rowKey, string tableName, string eTag);
         }
 
-        /// <summary> 储存例外。</summary>
+        /// <summary>解码存储异常。</summary>
         public bool DecodeException(Exception e, out HttpStatusCode httpStatusCode, out string restStatus, bool getRESTErrors = false)
         {
             var result = AzureTableUtils.EvaluateException(e, out httpStatusCode, out var decodedRestStatus, getRESTErrors);
-            // IRestExceptionDecoder 日期在可失效的注释之前,而解码器不能返回任何 REST 状态。
+            // IRestExceptionDecoder 早于可空性注解，而解码器可能不返回 REST 状态。
             restStatus = decodedRestStatus!;
             return result;
         }
@@ -632,16 +632,16 @@ namespace Orleans.Storage
     }
 
     /// <summary>
-    /// 创建已配置 <see cref="AzureTableGrainStorage"/> 实例。
+    /// 创建已配置的 <see cref="AzureTableGrainStorage"/> 实例。
     /// </summary>
     public static class AzureTableGrainStorageFactory
     {
         /// <summary>
-        /// 创建有指定名称的 Azure 表 grain 存储提供者。
+        /// 创建具有指定名称的 Azure Table Grain 存储提供程序。
         /// </summary>
-        /// <param name="services">服务供应商。</param>
-        /// <param name="name">存储提供者的名称。</param>
-        /// <returns>配置的 grain 存储提供者。</returns>
+        /// <param name="services">服务提供程序。</param>
+        /// <param name="name">存储提供程序名称。</param>
+        /// <returns>已配置的 Grain 存储提供程序。</returns>
         public static AzureTableGrainStorage Create(IServiceProvider services, string name)
         {
             var optionsSnapshot = services.GetRequiredService<IOptionsMonitor<AzureTableStorageOptions>>();

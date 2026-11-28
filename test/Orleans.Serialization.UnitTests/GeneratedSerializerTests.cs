@@ -22,21 +22,21 @@ using Orleans;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// Orleans代码生成序列器测试。
+/// Orleans 代码生成序列化器的测试。
 /// 
-/// Orleans 使用源发电机在为类型编译时创建高性能序列器
-/// 加上 [GenerateSerializer生成的序列器提供:
-/// - 通用设想情况零分配序列化
-/// - 支持附有循环参考资料的复杂对象图表
-/// - 通过实地序列化进行版本容忍
-/// - 有效处理继承等级制度
-/// - 支持记录、班级和支架
-/// - 通过组装级属性与外部类型结合
+/// Orleans 使用源生成器在编译时为类型创建高性能序列化器，
+/// 这些类型带有 [GenerateSerializer] 标记。生成的序列化器提供以下功能：
+/// - 常见场景中的零分配序列化
+/// - 支持包含循环引用的复杂对象图
+/// - 通过基于字段的序列化实现版本容错
+/// - 高效处理继承层次结构
+/// - 支持 record、class 和 struct
+/// - 通过程序集级特性集成外部类型
 /// 
-/// 生成代码遵循 Orleans的序列化协议,确保:
-/// - 前后兼容
-/// - 最低电线格式
-/// - 支持计划演变
+/// 生成的代码遵循 Orleans 序列化协议，该协议确保：
+/// - 向后及向前兼容性
+/// - 尽可能小的传输格式开销
+/// - 支持架构演进
 /// </summary>
 [Trait("Category", "BVT")]
 [Trait("Suite", "BVT")]
@@ -62,8 +62,8 @@ public class GeneratedSerializerTests : IDisposable
     }
 
     /// <summary>
-    /// 证明生成的序列器正确处理基本分类序列,
-    /// 包括字段、属性和多形态对象引用。
+    /// 验证生成的序列化器正确处理基本类的序列化，
+    /// 包括字段、属性及多态对象引用。
     /// </summary>
     [Fact]
     public void GeneratedSerializersRoundTripThroughCodec()
@@ -78,9 +78,9 @@ public class GeneratedSerializerTests : IDisposable
     }
 
     /// <summary>
-    /// 证明C#记录已适当进行序列整理和消密,
-    /// 既维持主建参数,又保持其他特性。
-    /// 在 Orleans 序列化中充分支持记录。
+    /// 验证 C# record 正确完成序列化和反序列化，
+    /// 同时保留主构造函数参数和额外属性。
+    /// Orleans 序列化全面支持 record。
     /// </summary>
     [Fact]
     public void GeneratedRecordSerializersRoundTripThroughCodec()
@@ -122,9 +122,9 @@ public class GeneratedSerializerTests : IDisposable
     }
 
     /// <summary>
-    /// 测试循环参考资料和循环数据结构的序列。
-    /// Orleans 正确处理循环对象图,保持参考等值
-    /// 进行消毒后,保持物体图完整性。
+    /// 测试循环引用和递归数据结构的序列化。
+    /// Orleans 正确处理含有循环的对象图，在反序列化后保留引用相等关系，
+    /// 从而维持对象图的完整性。
     /// </summary>
     [Fact]
     public void RecursiveTypeSerializersRoundTripThroughSerializer()
@@ -332,7 +332,7 @@ public class GeneratedSerializerTests : IDisposable
     }
 
     /// <summary>
-    /// 测试记录类型可以与同一布局的常规(非记录)类相同,按序列比值顺序排列。
+    /// 测试 record 类型与布局相同的普通（非 record）类能否序列化为逐位完全一致的数据。
     /// </summary>
     [Fact]
     public void RecordSerializedAsRegularClass()
@@ -346,8 +346,8 @@ public class GeneratedSerializerTests : IDisposable
         Assert.Equal(original.FavouriteColor, result.FavouriteColor);
         Assert.Equal(original.StarSign, result.StarSign);
 
-        // 请注意,这只有效,因为我们正在使用“预期类型”优化和
-        // 因此,省略了具体名称。
+        // 注意，这仅在使用“预期类型”优化来序列化各个对象时成立，
+        // 因为此时省略了具体类型名称。
         var originalAsArray = _serializer.SerializeToArray(original);
         var classVersion = new Person5_Class { Age = 2, Name = "harry", FavouriteColor = "redborine", StarSign = "Aquaricorn" };
         var classAsArray = _serializer.SerializeToArray(classVersion);
@@ -518,8 +518,8 @@ public class GeneratedSerializerTests : IDisposable
         Assert.Equal(original.concurrentQueueField, result.concurrentQueueField);
         Assert.Equal(original.ConcurrentQueueProperty, result.ConcurrentQueueProperty);
 
-        // 这些收藏在上文上方进行初始化,序列化保留了它们的存在。
-        // 回报值中关键价值对的顺序可能与替代物中关键价值对的顺序不符。
+        // 这些集合已在上方初始化，序列化会保留它们的存在状态。
+        // 返回值中键值对的顺序可能与替代类型中键值对的顺序不同。
         Assert.Equal(original.concurrentDictField!["nine"], result.concurrentDictField!["nine"]);
         Assert.Equal(original.ConcurrentDictProperty!["ten"], result.ConcurrentDictProperty!["ten"]);
         Assert.Equal(original.ConcurrentDictProperty["eleven"], result.ConcurrentDictProperty["eleven"]);
@@ -675,9 +675,9 @@ public class GeneratedSerializerTests : IDisposable
         Assert.Equal(original.UntypedValue, result.UntypedValue);
         Assert.Equal(original.Type2, result.Type2);
 
-        Assert.Contains("[#4 LengthPrefixed Id: 1 SchemaType: Expected]", formattedBitStream); // 类型1
+        Assert.Contains("[#4 LengthPrefixed Id: 1 SchemaType: Expected]", formattedBitStream); // Type1
         Assert.Contains("[#5 TagDelimited Id: 2 SchemaType: Encoded RuntimeType: MyValue", formattedBitStream); // UntypedValue
-        Assert.Contains("[#7 Reference Id: 3 SchemaType: Expected", formattedBitStream); // 类型2
+        Assert.Contains("[#7 Reference Id: 3 SchemaType: Expected", formattedBitStream); // Type2
     }
 
     [Fact]
@@ -690,10 +690,10 @@ public class GeneratedSerializerTests : IDisposable
         Assert.Equal(original.UntypedValue, result.UntypedValue);
         Assert.Equal(original.Type2, result.Type2);
 
-        Assert.Contains("[#2 Reference Id: 1 SchemaType: Expected Reference: 0]", formattedBitStream); // 类型1
+        Assert.Contains("[#2 Reference Id: 1 SchemaType: Expected Reference: 0]", formattedBitStream); // Type1
         Assert.Contains("[#3 TagDelimited Id: 2 SchemaType: Encoded RuntimeType: MyValue", formattedBitStream); // UntypedValue
-        Assert.Contains("[#5 TagDelimited Id: 3 SchemaType: Expected]", formattedBitStream); // 类型2
-        Assert.Contains("[#7 VarInt Id: 2 SchemaType: Expected] Value: 2", formattedBitStream); // 类型 2 字段中的参考类型,指向 UntypedValue编码字段类型
+        Assert.Contains("[#5 TagDelimited Id: 3 SchemaType: Expected]", formattedBitStream); // Type2
+        Assert.Contains("[#7 VarInt Id: 2 SchemaType: Expected] Value: 2", formattedBitStream); // 来自 Type2 字段的类型引用，指向 UntypedValue 已编码的字段类型。
     }
 
     [Fact]
@@ -722,7 +722,7 @@ public class GeneratedSerializerTests : IDisposable
         Assert.Equal(original.Count, result.Count);
         Assert.Equal(original.IntProperty, result.IntProperty);
 
-        // 设置一个重复的密钥, 且因大小而异, 以检查平等比较器是否正确设定了 。
+        // 设置一个仅大小写不同的重复键，以检查相等性比较器是否已正确设置。
         result["A"] = 1;
         result["a"] = 1;
 
@@ -881,7 +881,7 @@ public class GeneratedSerializerTests : IDisposable
         using (var writeSession = _sessionPool.GetSession())
         {
             var writer = Writer.Create(pipe.Writer, writeSession);
-            // AddSerializer 登记了本次测试所使用的封闭序列器。
+            // AddSerializer 注册本测试使用的封闭构造类型序列化器。
             var serializer = _serviceProvider.GetService<Serializer<object>>()!;
             serializer.Serialize(original, ref writer);
 

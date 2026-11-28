@@ -5,38 +5,38 @@ using Newtonsoft.Json;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// 配置 Newtonsoft.Json 框架类型中的序列化 Orleans 。
+    /// 为 Orleans 框架类型配置 Newtonsoft.Json 序列化。
     /// </summary>
     public class OrleansJsonSerializerOptions
     {
         /// <summary>
-        /// 获取或设置序列器设置。
+        /// 获取或设置序列化器设置。
         /// </summary>
         /// <remarks>
-        /// 设置在 Orleans 默认值下初始化,并用 Orleans 序列化夹增强
-        /// 配置后选项期间的转换器和转换器。
+        /// 设置使用 Orleans 的默认值进行初始化，并在选项后置配置期间加入 Orleans 序列化绑定器
+        /// 和转换器。
         /// </remarks>
         public JsonSerializerSettings JsonSerializerSettings { get; set; }
 
         /// <summary>
-        /// 获取或设定值,以显示在
-        /// 包括经
+        /// 获取或设置指示是否可以在反序列化期间构造任何可解析类型的值，
+        /// 包括序列化有效载荷中通过以下方式指定名称的类型：
         /// <see cref="Newtonsoft.Json.TypeNameHandling"/>.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// 默认值为 <see langword="false"/>。当 <see langword="false"/>时,仅允许类型
-        /// 以 Orleans 类型允许列表为基准,可在解序 &#8212; 期间构建,例如
-        /// 标有 <c>[GenerateSerializer]</c>中,添加到
-        /// <see cref="Orleans.Serialization.Configuration.TypeManifestOptions.AllowedTypes"/>或类型
-        /// 被注册的 <see cref="ITypeNameFilter"/> 或 <see cref="ITypeFilter"/>所允许。这防止了
-        /// 被无信任地摧毁的空气化时,不立即将具有潜在危险的类型即刻即予处理
-        /// 持续状态或流态。
+        /// 默认值为 <see langword="false"/>。当值为 <see langword="false"/> 时，仅允许在反序列化期间构造
+        /// Orleans 类型允许列表许可的类型 &#8212; 例如，
+        /// 使用 <c>[GenerateSerializer]</c> 标记的类型、添加到
+        /// <see cref="Orleans.Serialization.Configuration.TypeManifestOptions.AllowedTypes"/> 的类型，或者
+        /// 由已注册的 <see cref="ITypeNameFilter"/> 或 <see cref="ITypeFilter"/> 许可的类型。这样可以防止
+        /// 在反序列化不可信的持久化状态或通过流传入的状态时，实例化任意的、可能具有危险性的
+        /// 类型。
         /// </para>
         /// <para>
-        /// 设置此选项为 <see langword="true"/> 恢复了先前允许任何可装入的行为
-        /// 类型将在解序期间构建。 这是 <b>无保障</b> , 不推荐;
-        /// 更倾向于将个别类型列入允许清单。
+        /// 将此值设置为 <see langword="true"/> 会恢复之前的行为，允许反序列化期间构造任何可加载的
+        /// 类型。这种行为 <b>不安全</b>，不建议使用；
+        /// 应优先将具体类型逐一加入允许列表。
         /// </para>
         /// </remarks>
         public bool AllowAllTypes { get; set; }
@@ -51,7 +51,7 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// 配置 <see cref="OrleansJsonSerializerOptions"/> ,配有 Orleans 序列绑定和转换器。
+    /// 使用 Orleans 序列化绑定器及转换器配置 <see cref="OrleansJsonSerializerOptions"/>。
     /// </summary>
     public class ConfigureOrleansJsonSerializerOptions : IPostConfigureOptions<OrleansJsonSerializerOptions>
     {
@@ -60,7 +60,7 @@ namespace Orleans.Serialization
         /// <summary>
         /// 初始化 <see cref="ConfigureOrleansJsonSerializerOptions"/> 类的新实例。
         /// </summary>
-        /// <param name="serviceProvider">用于解决序列器依赖关系的服务供应商。</param>
+        /// <param name="serviceProvider">用于解析序列化器依赖项的服务提供程序。</param>
         public ConfigureOrleansJsonSerializerOptions(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;

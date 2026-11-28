@@ -4,7 +4,7 @@ using Xunit;
 namespace UnitTests.OrleansRuntime.Streams
 {
     /// <summary>
-    /// 目标集合分配、回收利用和资源管理测试。
+    /// 对象池分配、回收及资源管理测试。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -42,13 +42,13 @@ namespace UnitTests.OrleansRuntime.Streams
         {
             var accumulator = new Accumulator();
             IObjectPool<TestPooledResource> pool = new ObjectPool<TestPooledResource>(() => new TestPooledResource(accumulator));
-            // 分配和免费10项
+            // 分配并释放 10 个对象
             for (int i = 0; i < 10; i++)
             {
                 TestPooledResource resource = pool.Allocate();
                 resource.Dispose();
             }
-            // 分配的时间只一次一个,所以最大分配时间应为1
+            // 每次仅分配 1 个对象，因此最大分配数量应为 1
             Assert.Equal(1, accumulator.MaxAllocated);
         }
 
@@ -58,23 +58,23 @@ namespace UnitTests.OrleansRuntime.Streams
             var accumulator = new Accumulator();
             IObjectPool<TestPooledResource> pool = new ObjectPool<TestPooledResource>(() => new TestPooledResource(accumulator));
 
-            // 分配10项
+            // 分配 10 个对象
             var resources = Enumerable.Range(0, 10).Select(i => pool.Allocate()).ToList();
 
-            // 空闲 10
+            // 释放 10 个对象
             resources.ForEach(r => r.Dispose());
 
-            // 预先人口集中的池中10人,分配的最大数应为10
+            // 池已预先填充 10 个对象，因此最大分配数量应为 10
             Assert.Equal(10, accumulator.MaxAllocated);
 
-            // 分配和免费10项
+            // 分配并释放 10 个对象
             for (int i = 0; i < 10; i++)
             {
                 TestPooledResource resource = pool.Allocate();
                 resource.Dispose();
             }
 
-            // 一次只分配一个,但池子预先容纳了10人,所以最多分配10人
+            // 每次仅分配 1 个对象，但池已预先填充 10 个对象，因此最大分配数量应为 10
             Assert.Equal(10, accumulator.MaxAllocated);
         }
 
@@ -87,28 +87,28 @@ namespace UnitTests.OrleansRuntime.Streams
 
             for (int i = 0; i < 5; i++)
             {
-                // 分配 WorkngSet 项目
+                // 分配 WorkngSet 个对象
                 var resources = Enumerable.Range(0, WorkngSet).Select(v => pool.Allocate()).ToList();
 
-                resources.Reverse(); // e. 处理时维持秩序
+                resources.Reverse(); // 反转已分配对象的顺序，以在释放时保持顺序
 
-                // 空 WorkngSet
+                // 释放 WorkngSet 个对象
                 resources.ForEach(r => r.Dispose());
 
-                // 预 WorkngSet,因此最大分配量应为10
+                // 池已预先填充 WorkngSet 个对象，因此最大分配数量应为 10（原文如此，断言实际使用 WorkngSet）。
                 Assert.Equal(WorkngSet, accumulator.MaxAllocated);
 
-                // 分配和免费5项
+                // 分配并释放 5 个对象
                 for (int j = 0; j < 5; j++)
                 {
                     TestPooledResource resource = pool.Allocate();
-                    int expectedAllocationCount = (i * (5 + 1)) // 先前循环中累积的分配款
-                                                  + (j + 1); // 在此循环中累积的批量
+                    int expectedAllocationCount = (i * (5 + 1)) // 之前各循环累计的分配次数
+                                                  + (j + 1); // 当前循环累计的分配次数
                     Assert.Equal(expectedAllocationCount, resource.AllocationCount);
                     resource.Dispose();
                 }
 
-                // 一次只分配1个,但池储预先 WorkngSet,所以最多分配10个
+                // 每次仅分配 1 个对象，但池已预先填充 WorkngSet 个对象，因此最大分配数量应为 10（原文如此，断言实际使用 WorkngSet）。
                 Assert.Equal(WorkngSet, accumulator.MaxAllocated);
             }
         }

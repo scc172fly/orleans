@@ -8,7 +8,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// 测试直接源代码作者及其所构成的词汇碎片。
+/// 测试直接源码写入器及其组合的词法片段。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -97,7 +97,7 @@ public sealed class SourceWriterTests
     [Fact]
     public void ComposedTypeSpellingIsIdiomatic()
     {
-        // 所拼成的名称没有三部曲;其拼写仍然把书面论点分开,并加上省略的论据。
+        // 组合后的名称不含附属语法元素；其拼写仍将已写出的参数分开，并将省略的参数连接起来。
         (TypeSyntax Type, string Expected)[] cases =
         [
             (QualifiedName(ParseName("global::N"), GenericName(Identifier("G"), TypeArgumentList(SeparatedList<TypeSyntax>(

@@ -26,9 +26,9 @@ namespace Orleans.TestingHost.Tests.Grains
     }
 
     /// <summary>
-    /// A 常设经常定期 grain 将响应按住一个呼叫的响应, 以打开
-    /// 调用者在飞行中停留。国家用 grain主密钥键系国家,因此每个测试都是孤立的
-    /// 由其他方使用的全过程静态中产生的。
+    /// 普通 Grain，在测试释放它之前一直阻塞，使调用的响应保持未完成状态，
+    /// 从而让调用方的调用保持进行中。状态以 Grain 的主键为键，因此各测试与其他测试使用的
+    /// 进程级静态状态相互隔离。
     /// </summary>
     public class RemoteBlockerGrain : Grain, IRemoteBlockerGrain
     {
@@ -59,10 +59,10 @@ namespace Orleans.TestingHost.Tests.Grains
     }
 
     /// <summary>
-    /// 无国籍工人(当地人,由当地人打来),他发出外向的呼唤,等待着
-    /// 。当其 silo 在呼声在飞行中时被杀死时, grain 上下文处置
-    /// 如果在停工期间发生第一个呼叫故障,工人将重新计票。
-    /// 以核实在关闭回击扫描后, 任何新的回调都无法登记 。
+    /// 无状态工作者（放置在调用方本地），它发出出站调用并等待
+    /// 响应。若在此调用进行中终止其 Silo，Grain 上下文的释放过程会
+    /// 等待此工作者停用。若首次调用在关闭期间失败，工作者会重试，
+    /// 以验证关闭时清理回调之后不能再注册新回调。
     /// </summary>
     [StatelessWorker(1)]
     public class LocalWorkerGrain : Grain, ILocalWorkerGrain
@@ -81,8 +81,8 @@ namespace Orleans.TestingHost.Tests.Grains
     }
 
     /// <summary>
-    /// 通常使用一种(身份 -- -- 地点) grain ,触发无国籍工人的呼唤,因此该工人
-    /// 将 grain silo放在此处,给测试一个确定性 silo 来杀死。
+    /// 用于触发无状态工作者调用的普通 Grain（按标识放置），使工作者
+    /// 与此 Grain 位于同一 Silo，从而为测试提供一个确定的待终止 Silo。
     /// </summary>
     public class LauncherGrain : Grain, ILauncherGrain
     {
@@ -91,8 +91,8 @@ namespace Orleans.TestingHost.Tests.Grains
 
         public Task StartBlockingCall(ILocalWorkerGrain worker, IRemoteBlockerGrain remote)
         {
-            // 火烧而忘记,所以这 grain 本身并不能阻挡。
-            // 下个 silo 将阻挡远程响应
+            // 发起调用后不等待结果，因此此 Grain 本身不会阻塞。无状态工作者放置在
+            // 此 Silo 上，并将阻塞等待远程响应。
             _ = worker.CallRemote(remote);
             return Task.CompletedTask;
         }

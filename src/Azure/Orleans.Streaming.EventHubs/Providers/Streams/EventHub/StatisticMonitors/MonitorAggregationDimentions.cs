@@ -2,18 +2,18 @@
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// 监测聚合尺寸的基础级,这是监测目标的信息袋。 
-    /// 监测器可以利用这个信息袋构建其聚合尺寸。
+    /// 监控聚合维度的基类，用于保存监控目标的相关信息。
+    /// 监视器可使用这些信息构建自己的聚合维度。
     /// </summary>
     public class EventHubMonitorAggregationDimensions
     {
         /// <summary>
-        /// 平均路径
+        /// Event Hub 路径。
         /// </summary>
         public string EventHubPath { get; set; } = null!;
 
         /// <summary>
-        /// 构造建构器
+        /// 构造函数。
         /// </summary>
         /// <param name="ehHubPath"></param>
         public EventHubMonitorAggregationDimensions(string ehHubPath)
@@ -22,7 +22,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 构造建构器
+        /// 构造函数。
         /// </summary>
         /// <param name="dimensions"></param>
         public EventHubMonitorAggregationDimensions(EventHubMonitorAggregationDimensions dimensions)
@@ -31,7 +31,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 零参数构建器
+        /// 无参构造函数。
         /// </summary>
         public EventHubMonitorAggregationDimensions()
         {
@@ -39,17 +39,17 @@ namespace Orleans.Streaming.EventHubs
     }
 
     /// <summary>
-    /// EventHubReceiverMonitor的聚合尺寸
+    /// EventHubReceiverMonitor 的聚合维度。
     /// </summary>
     public class EventHubReceiverMonitorDimensions : EventHubMonitorAggregationDimensions
     {
         /// <summary>
-        /// 偶形分区
+        /// Event Hub 分区。
         /// </summary>
         public string EventHubPartition { get; set; } = null!;
 
         /// <summary>
-        /// 构造建构器
+        /// 构造函数。
         /// </summary>
         /// <param name="dimensions"></param>
         /// <param name="ehPartition"></param>
@@ -60,7 +60,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 零参数构建器
+        /// 无参构造函数。
         /// </summary>
         public EventHubReceiverMonitorDimensions()
         {
@@ -68,17 +68,17 @@ namespace Orleans.Streaming.EventHubs
     }
 
     /// <summary>
-    /// Eventhub河提供系统生态系统使用的缓存监测器的聚合尺寸
+    /// Event Hub 流提供程序体系中缓存监视器的聚合维度。
     /// </summary>
     public class EventHubCacheMonitorDimensions : EventHubReceiverMonitorDimensions
     {
         /// <summary>
-        /// 此缓存属于的块块集合
+        /// 此缓存所属的块池。
         /// </summary>
         public string BlockPoolId { get; set; } = null!;
 
         /// <summary>
-        /// 构造建构器
+        /// 构造函数。
         /// </summary>
         /// <param name="dimensions"></param>
         /// <param name="ehPartition"></param>
@@ -90,7 +90,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 零参数构建器
+        /// 无参构造函数。
         /// </summary>
         public EventHubCacheMonitorDimensions()
         {
@@ -98,17 +98,17 @@ namespace Orleans.Streaming.EventHubs
     }
 
     /// <summary>
-    /// Eventhub 流提供方生态系统使用的区块池监测器的聚合尺寸
+    /// Event Hub 流提供程序体系中块池监视器的聚合维度。
     /// </summary>
     public class EventHubBlockPoolMonitorDimensions : EventHubMonitorAggregationDimensions
     {
         /// <summary>
-        /// 块池
+        /// 块池 ID。
         /// </summary>
         public string BlockPoolId { get; set; } = null!;
 
         /// <summary>
-        /// 构造建构器
+        /// 构造函数。
         /// </summary>
         /// <param name="dimensions"></param>
         /// <param name="blockPoolId"></param>
@@ -119,7 +119,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 零参数构建器
+        /// 无参构造函数。
         /// </summary>
         public EventHubBlockPoolMonitorDimensions()
         {

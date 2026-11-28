@@ -6,31 +6,31 @@ using System.Text.Json.Serialization;
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// 以应用程序供应方式 <see cref="HierarchicalKey"/>指明一条电文。
+/// 使用应用提供的 <see cref="HierarchicalKey"/> 标识一条消息。
 /// </summary>
 /// <remarks>
-/// 接收器通过此身份复制信件, 所以在重试发送时应用再使用它 。
-/// 平等、散列、解析和格式化使用钥匙的卡通道。
+/// 接收方依据此标识进行消息去重，因此应用在重试发送时复用它。
+/// 相等性判断、哈希计算、解析和格式化均使用键的规范转义路径。
 /// </remarks>
 [Immutable, Alias("Orleans.Durable.Messaging.MessageId")]
 [JsonConverter(typeof(MessageIdJsonConverter))]
 public readonly struct MessageId : ISpanFormattable, IEquatable<MessageId>, IParsable<MessageId>, ISpanParsable<MessageId>
 {
-    /// <summary>从等级键创建信件身份。</summary>
-    /// <param name="key">电文的应用身份。</param>
+    /// <summary>从层次键创建消息标识。</summary>
+    /// <param name="key">消息的应用标识。</param>
     public MessageId(HierarchicalKey key) => Key = key;
 
-    /// <summary>获取识别电文的等级键。</summary>
+    /// <summary>获取用于标识消息的层次键。</summary>
     public HierarchicalKey Key { get; }
 
-    /// <summary>获取是否该值未设定。</summary>
+    /// <summary>获取此值是否尚未设置。</summary>
     public bool IsDefault => Key.IsDefault;
 
-    /// <summary>从根一顺序的字面段创建信件身份。</summary>
-    /// <param name="segments">非空字区段。</param>
-    /// <returns>电文身份。</returns>
-    /// <exception cref="ArgumentNullException">段无效。</exception>
-    /// <exception cref="ArgumentException">输入或一个段为空,或者一个段含有未受偏移的代孕。</exception>
+    /// <summary>从字面量段按根节点优先的顺序创建消息标识。</summary>
+    /// <param name="segments">非空字面量段。</param>
+    /// <returns>消息标识。</returns>
+    /// <exception cref="ArgumentNullException">某个段为 null。</exception>
+    /// <exception cref="ArgumentException">输入为空、某个段为空，或某个段包含未配对的代理项。</exception>
     public static MessageId Create(params ReadOnlySpan<string> segments) => new(HierarchicalKey.Create(segments));
 
     /// <inheritdoc/>
@@ -64,16 +64,16 @@ public readonly struct MessageId : ISpanFormattable, IEquatable<MessageId>, IPar
     /// <inheritdoc/>
     public override int GetHashCode() => Key.GetHashCode();
 
-    /// <summary>比较信件身份。</summary>
-    /// <param name="left">第一个身份。</param>
-    /// <param name="right">第二个身份。</param>
-    /// <returns>身份是否相等。</returns>
+    /// <summary>比较消息标识是否相等。</summary>
+    /// <param name="left">第一个标识。</param>
+    /// <param name="right">第二个标识。</param>
+    /// <returns>标识是否相等。</returns>
     public static bool operator ==(MessageId left, MessageId right) => left.Equals(right);
 
-    /// <summary>比较不平等的信息身份。</summary>
-    /// <param name="left">第一个身份。</param>
-    /// <param name="right">第二个身份。</param>
-    /// <returns>身份是否不同。</returns>
+    /// <summary>比较消息标识是否不相等。</summary>
+    /// <param name="left">第一个标识。</param>
+    /// <param name="right">第二个标识。</param>
+    /// <returns>标识是否不同。</returns>
     public static bool operator !=(MessageId left, MessageId right) => !left.Equals(right);
 
     /// <inheritdoc/>
@@ -86,10 +86,10 @@ public readonly struct MessageId : ISpanFormattable, IEquatable<MessageId>, IPar
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
         Key.TryFormat(destination, out charsWritten, format, provider);
 
-    /// <summary>将信件身份序列成可控的逃出 JSON 字符串。</summary>
+    /// <summary>将消息标识序列化为经过规范转义的 JSON 字符串。</summary>
     public sealed class MessageIdJsonConverter : JsonConverter<MessageId>
     {
-        /// <summary>创建信件身份 JSON 转换器。</summary>
+        /// <summary>创建消息标识 JSON 转换器。</summary>
         public MessageIdJsonConverter() { }
 
         /// <inheritdoc/>

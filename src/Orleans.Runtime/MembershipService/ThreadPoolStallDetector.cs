@@ -7,11 +7,11 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Runtime.MembershipService;
 
 /// <summary>
-/// 使用定期计时器回调检测到 .NET 线索库执行中的延误。
+/// 使用周期性定时器回调检测 .NET 线程池执行延迟。
 /// </summary>
 /// <remarks>
-/// 时间回调执行在线索库中执行。每次回调都比较其执行时间和下一个预期
-/// 禁区边界,在回击延迟时产生不重叠的间隔。
+/// 定时器回调在线程池上执行。每次回调将其执行时间与下一次预期的
+/// 周期边界进行比较，当回调调度延迟时，产生互不重叠的停顿时间区间。
 /// </remarks>
 internal sealed partial class ThreadPoolStallDetector : IDisposable
 {

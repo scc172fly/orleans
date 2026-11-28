@@ -14,21 +14,21 @@ using Orleans.Configuration;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// 延长至 <see cref="ISiloBuilder"/> ,用于配置耐久工作。
+/// 用于配置持久化作业的 <see cref="ISiloBuilder"/> 扩展方法。
 /// </summary>
 public static class DurableJobsExtensions
 {
     /// <summary>
-    /// 添加对耐久工作的支持。 silo。
+    /// 为此 Silo 添加持久化作业支持。
     /// </summary>
-    /// <param name="builder">建筑工。</param>
-    /// <returns>下 silo 建筑商</returns>
+    /// <param name="builder">构建器。</param>
+    /// <returns>Silo 构建器。</returns>
     public static ISiloBuilder AddDurableJobs(this ISiloBuilder builder) => builder.ConfigureServices(services => AddDurableJobs(services));
 
     /// <summary>
-    /// 添加对耐久工作的支持。 silo。
+    /// 为此 Silo 添加持久化作业支持。
     /// </summary>
-    /// <param name="services">服务。</param>
+    /// <param name="services">服务集合。</param>
     public static void AddDurableJobs(this IServiceCollection services)
     {
         if (services.Any(service => service.ServiceType.Equals(typeof(LocalDurableJobManager))))
@@ -74,13 +74,13 @@ public static class DurableJobsExtensions
     }
 
     /// <summary>
-    /// 配置使用内存、非持久性存储器的耐用工作储存。
+    /// 使用内存中的非持久化存储配置持久化作业存储。
     /// </summary>
     /// <remarks>
-    /// 请注意,这只用于开发和测试设想情景,不应用于生产。
+    /// 注意：此功能仅用于开发和测试场景，不应在生产环境使用。
     /// </remarks>
-    /// <param name="builder">下 silo 建筑主机</param>
-    /// <returns>提供的情况 <see cref="ISiloBuilder"/>用来绑链</returns>
+    /// <param name="builder">Silo 宿主构建器。</param>
+    /// <returns>提供的 <see cref="ISiloBuilder"/>，用于链式调用。</returns>
     public static ISiloBuilder UseInMemoryDurableJobs(this ISiloBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -88,13 +88,13 @@ public static class DurableJobsExtensions
     }
 
     /// <summary>
-    /// 配置使用内存、非持久性存储器的耐用工作储存。
+    /// 使用内存中的非持久化存储配置持久化作业存储。
     /// </summary>
     /// <remarks>
-    /// 请注意,这只用于开发和测试设想情景,不应用于生产。
+    /// 注意：此功能仅用于开发和测试场景，不应在生产环境使用。
     /// </remarks>
-    /// <param name="services">服务收藏。</param>
-    /// <returns>提供的情况 <see cref="IServiceCollection"/>用来绑链</returns>
+    /// <param name="services">服务集合。</param>
+    /// <returns>提供的 <see cref="IServiceCollection"/>，用于链式调用。</returns>
     internal static IServiceCollection UseInMemoryDurableJobs(this IServiceCollection services)
     {
         new ServiceCollectionSiloBuilder(services).UseInMemoryDurableJobs();
@@ -102,12 +102,12 @@ public static class DurableJobsExtensions
     }
 
     /// <summary>
-    /// 配置在选定写日记账提供商中创建碎片的可持久工作
-    /// 并排干所有选定提供者的现有碎片。
+    /// 配置持久化作业，使其在所选的写入日志提供程序中创建分片，
+    /// 并处理完所有选定提供程序中的现有分片。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <param name="configure">任选的可持久工作组合代表。</param>
-    /// <returns>下 silo 建筑商</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <param name="configure">可选的持久化作业配置委托。</param>
+    /// <returns>Silo 构建器。</returns>
     public static ISiloBuilder UseJournaledDurableJobs(this ISiloBuilder builder, Action<DurableJobsOptions>? configure = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -136,11 +136,11 @@ public static class DurableJobsExtensions
     }
 
     /// <summary>
-    /// 配置可使用选定命名日记提供者的持久任务。
+    /// 配置持久化作业使用选定的命名日志提供程序。
     /// </summary>
-    /// <param name="services">服务收藏。</param>
-    /// <param name="configure">任选的可持久工作组合代表。</param>
-    /// <returns>服务收藏。</returns>
+    /// <param name="services">服务集合。</param>
+    /// <param name="configure">可选的持久化作业配置委托。</param>
+    /// <returns>服务集合。</returns>
     public static IServiceCollection UseJournaledDurableJobs(this IServiceCollection services, Action<DurableJobsOptions>? configure = null)
     {
         ArgumentNullException.ThrowIfNull(services);

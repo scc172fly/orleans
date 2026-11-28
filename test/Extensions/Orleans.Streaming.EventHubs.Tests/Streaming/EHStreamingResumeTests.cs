@@ -9,7 +9,7 @@ using TestExtensions;
 namespace ServiceBus.Tests.Streaming
 {
     /// <summary>
-    /// 测试 EventHub 流流恢复功能,可配置缓存驱逐和流不活动环境。
+    /// 测试 Event Hub 流恢复功能，包括可配置的缓存逐出及流非活动设置。
     /// </summary>
     [TestCategory("Functional"), TestCategory("Streaming"), TestCategory("StreamingResume")]
     [TestSuite("Functional")]

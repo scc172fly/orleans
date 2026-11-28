@@ -9,7 +9,7 @@ using Orleans.Serialization.Buffers;
 namespace Orleans.Connections.Transport.Streams;
 
 /// <summary>
-/// <see cref="Stream"/> 执行中读写 <see cref="MessageTransport"/>.
+/// <see cref="Stream"/> 的实现，对 <see cref="MessageTransport"/> 执行读取和写入。
 /// </summary>
 internal sealed class MessageTransportStream(MessageTransport transport, MemoryPool<byte> memoryPool) : Stream
 {

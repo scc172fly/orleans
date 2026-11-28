@@ -6,7 +6,7 @@ public sealed class StockGrain : DurableGrain
     // <orleans0210_violation>
     public async DurableTask<bool> ReserveAllAsync(int[] productIds)
     {
-        // 每个羊羔按输入顺序安排孩子的日程,为每次祈祷单写日记。
+        // 每个 Lambda 表达式按输入顺序调度其子任务，每次调用分别进行一次日志写入。
         var reserved = await Task.WhenAll(productIds.Select(async id => await Reserve(id).WithId($"reserve-{id}")));
         return reserved.All(r => r);
     }
@@ -16,7 +16,7 @@ public sealed class StockGrain : DurableGrain
     // <orleans0210_fix_when_all>
     public async DurableTask<bool> ReserveEveryLineAsync(int[] productIds)
     {
-        // 投入是储备/0,储备/1等,按投入顺序排列,其工作以一个书面形式进行。
+        // 输入按顺序标识为 reserve/0、reserve/1 等，其调用在一次写入中提交。
         var reserved = await DurableTask.WhenAll(productIds.Select(Reserve)).WithId("reserve");
         return reserved.All(r => r);
     }
@@ -25,7 +25,7 @@ public sealed class StockGrain : DurableGrain
     // <orleans0210_fix_race>
     public async DurableTask<int> ReserveFromFirstWarehouseAsync(int[] warehouses)
     {
-        // 代替 Task.WhenAny:第一个回答的仓库获胜,其他仓库则被取消并等待。
+        // 代替 Task.WhenAny：最先响应的仓库获胜，其余请求被取消并等待其结束。
         var (index, _) = await DurableTask.Race(warehouses.Select(Reserve)).WithId("first-warehouse");
         return warehouses[index];
     }

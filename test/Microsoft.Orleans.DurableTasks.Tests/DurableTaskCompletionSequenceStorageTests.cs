@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
-/// <summary>证明已公布的任务状态维持完成顺序,并在恢复后继续。</summary>
+/// <summary>验证日志化任务状态能够持久化完成序号，并在恢复后接着分配后续序号。</summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]

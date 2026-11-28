@@ -61,7 +61,7 @@ namespace TestExtensions
                 var systemAccessToken = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
                 if (!string.IsNullOrEmpty(systemAccessToken))
                 {
-                    // 如果在有系统_ACCESSTOKEN的 AzDo 管道中运行,则尝试使用 AzurePipelinesCredential
+                    // 如果在 Azure DevOps 管道中运行且 SYSTEM_ACCESSTOKEN 可用，则尝试使用 AzurePipelinesCredential。
                     var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
                     var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
                     var serviceConnectionId = Environment.GetEnvironmentVariable("SERVICE_CONNECTION_ID");
@@ -101,7 +101,7 @@ namespace TestExtensions
         }
 
         /// <summary>
-        /// Hack, 允许使用json 进行 PhysicalFileProvider 序列化
+        /// 变通处理，使 PhysicalFileProvider 可以使用 JSON 序列化。
         /// </summary>
         private class SerializablePhysicalFileProvider : IFileProvider
         {
@@ -131,10 +131,10 @@ namespace TestExtensions
             }
         }
 
-        /// <summary>尝试在文件夹级别上找到一个指定名称的文件, 因为有些 CI 环境是以此配置的 。</summary>
+        /// <summary>尝试沿目录层次向上查找指定名称的文件，因为一些 CI 环境采用这种配置方式。</summary>
         private static bool TryAddJsonFileInAncestorFolder(IConfigurationBuilder builder, string fileName)
         {
-            // 可能还有其他的不可行方法
+            // 不过可能还有其他现成的实现方式。
             var currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
             while (currentDir != null && currentDir.Exists)
             {

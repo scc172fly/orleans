@@ -8,7 +8,7 @@ using Xunit;
 namespace UnitTests;
 
 /// <summary>
-/// <see cref="ConstructorStreamNamespacePredicateProvider"/> 上游型号登记和分辨率测试。
+/// 测试 <see cref="ConstructorStreamNamespacePredicateProvider"/> 的谓词类型注册和解析。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

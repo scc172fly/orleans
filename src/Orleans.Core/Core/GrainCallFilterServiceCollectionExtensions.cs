@@ -6,16 +6,16 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// <see cref="IServiceCollection"/> 扩展。
+    /// <see cref="IServiceCollection"/> 的扩展方法。
     /// </summary>
     public static class GrainCallFilterServiceCollectionExtensions
     {
         /// <summary>
-        /// 在过滤管道中添加 <see cref="IIncomingGrainCallFilter"/> 。
+        /// 向筛选器管道添加 <see cref="IIncomingGrainCallFilter"/>。
         /// </summary>
-        /// <param name="services">服务收藏。</param>
-        /// <param name="filter">过滤器。</param>
-        /// <returns>服务收藏。</returns>
+        /// <param name="services">服务集合。</param>
+        /// <param name="filter">筛选器。</param>
+        /// <returns>服务集合。</returns>
         [Obsolete("Use ISiloBuilder." + nameof(AddIncomingGrainCallFilter), error: true)]
         public static IServiceCollection AddGrainCallFilter(this IServiceCollection services, IIncomingGrainCallFilter filter)
         {
@@ -23,11 +23,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 在过滤管道中添加 <see cref="IIncomingGrainCallFilter"/> 。
+        /// 向筛选器管道添加 <see cref="IIncomingGrainCallFilter"/>。
         /// </summary>
-        /// <typeparam name="TImplementation">过滤器执行类型。</typeparam>
-        /// <param name="services">服务收藏。</param>
-        /// <returns>服务收藏。</returns>
+        /// <typeparam name="TImplementation">筛选器实现类型。</typeparam>
+        /// <param name="services">服务集合。</param>
+        /// <returns>服务集合。</returns>
         [Obsolete("Use ISiloBuilder." + nameof(AddIncomingGrainCallFilter), error: true)]
         public static IServiceCollection AddGrainCallFilter<TImplementation>(this IServiceCollection services)
             where TImplementation : class, IIncomingGrainCallFilter
@@ -36,11 +36,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 通过代表向过滤管道添加 <see cref="IIncomingGrainCallFilter"/> 。
+        /// 通过委托向筛选器管道添加 <see cref="IIncomingGrainCallFilter"/>。
         /// </summary>
-        /// <param name="services">服务收藏。</param>
-        /// <param name="filter">过滤器。</param>
-        /// <returns>服务收藏。</returns>
+        /// <param name="services">服务集合。</param>
+        /// <param name="filter">筛选器。</param>
+        /// <returns>服务集合。</returns>
         [Obsolete("Use ISiloBuilder." + nameof(AddIncomingGrainCallFilter), error: true)]
         public static IServiceCollection AddGrainCallFilter(this IServiceCollection services, GrainCallFilterDelegate filter)
         {
@@ -48,22 +48,22 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 在过滤管道中添加 <see cref="IIncomingGrainCallFilter"/> 。
+        /// 向筛选器管道添加 <see cref="IIncomingGrainCallFilter"/>。
         /// </summary>
-        /// <param name="services">服务收藏。</param>
-        /// <param name="filter">过滤器。</param>
-        /// <returns>服务收藏。</returns>
+        /// <param name="services">服务集合。</param>
+        /// <param name="filter">筛选器。</param>
+        /// <returns>服务集合。</returns>
         internal static IServiceCollection AddIncomingGrainCallFilter(this IServiceCollection services, IIncomingGrainCallFilter filter)
         {
             return services.AddSingleton(filter);
         }
 
         /// <summary>
-        /// 在过滤管道中添加 <see cref="IIncomingGrainCallFilter"/> 。
+        /// 向筛选器管道添加 <see cref="IIncomingGrainCallFilter"/>。
         /// </summary>
-        /// <typeparam name="TImplementation">过滤器执行类型。</typeparam>
-        /// <param name="services">服务收藏。</param>
-        /// <returns>服务收藏。</returns>
+        /// <typeparam name="TImplementation">筛选器实现类型。</typeparam>
+        /// <param name="services">服务集合。</param>
+        /// <returns>服务集合。</returns>
         internal static IServiceCollection AddIncomingGrainCallFilter<
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(
             this IServiceCollection services)
@@ -73,33 +73,33 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 通过代表向过滤管道添加 <see cref="IIncomingGrainCallFilter"/> 。
+        /// 通过委托向筛选器管道添加 <see cref="IIncomingGrainCallFilter"/>。
         /// </summary>
-        /// <param name="services">服务收藏。</param>
-        /// <param name="filter">过滤器。</param>
-        /// <returns>服务收藏。</returns>
+        /// <param name="services">服务集合。</param>
+        /// <param name="filter">筛选器。</param>
+        /// <returns>服务集合。</returns>
         internal static IServiceCollection AddIncomingGrainCallFilter(this IServiceCollection services, IncomingGrainCallFilterDelegate filter)
         {
             return services.AddSingleton<IIncomingGrainCallFilter>(new IncomingGrainCallFilterWrapper(filter));
         }
 
         /// <summary>
-        /// 在过滤管道中添加 <see cref="IOutgoingGrainCallFilter"/> 。
+        /// 向筛选器管道添加 <see cref="IOutgoingGrainCallFilter"/>。
         /// </summary>
-        /// <param name="services">服务收藏。</param>
-        /// <param name="filter">过滤器。</param>
-        /// <returns>服务收藏。</returns>
+        /// <param name="services">服务集合。</param>
+        /// <param name="filter">筛选器。</param>
+        /// <returns>服务集合。</returns>
         internal static IServiceCollection AddOutgoingGrainCallFilter(this IServiceCollection services, IOutgoingGrainCallFilter filter)
         {
             return services.AddSingleton(filter);
         }
 
         /// <summary>
-        /// 在过滤管道中添加 <see cref="IOutgoingGrainCallFilter"/> 。
+        /// 向筛选器管道添加 <see cref="IOutgoingGrainCallFilter"/>。
         /// </summary>
-        /// <typeparam name="TImplementation">过滤器执行类型。</typeparam>
-        /// <param name="services">服务收藏。</param>
-        /// <returns>服务收藏。</returns>
+        /// <typeparam name="TImplementation">筛选器实现类型。</typeparam>
+        /// <param name="services">服务集合。</param>
+        /// <returns>服务集合。</returns>
         internal static IServiceCollection AddOutgoingGrainCallFilter<
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(
             this IServiceCollection services)
@@ -109,18 +109,18 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 通过代表向过滤管道添加 <see cref="IOutgoingGrainCallFilter"/> 。
+        /// 通过委托将 <see cref="IOutgoingGrainCallFilter"/> 添加到筛选器管道。
         /// </summary>
-        /// <param name="services">服务收藏。</param>
-        /// <param name="filter">过滤器。</param>
-        /// <returns>服务收藏。</returns>
+        /// <param name="services">服务集合。</param>
+        /// <param name="filter">筛选器。</param>
+        /// <returns>服务集合。</returns>
         internal static IServiceCollection AddOutgoingGrainCallFilter(this IServiceCollection services, OutgoingGrainCallFilterDelegate filter)
         {
             return services.AddSingleton<IOutgoingGrainCallFilter>(new OutgoingGrainCallFilterWrapper(filter));
         }
 
         /// <summary>
-        /// 将 <see cref="OutgoingGrainCallFilterDelegate"/> 代表制适应 <see cref="IOutgoingGrainCallFilter"/> 接口。
+        /// 将 <see cref="OutgoingGrainCallFilterDelegate"/> 委托适配为 <see cref="IOutgoingGrainCallFilter"/> 接口。
         /// </summary>
         private class OutgoingGrainCallFilterWrapper : IOutgoingGrainCallFilter
         {
@@ -130,7 +130,7 @@ namespace Orleans.Hosting
             /// 初始化 <see cref="OutgoingGrainCallFilterWrapper"/> 类的新实例。
             /// </summary>
             /// <param name="interceptor">
-            /// 拦截器
+            /// 拦截器。
             /// </param>
             public OutgoingGrainCallFilterWrapper(OutgoingGrainCallFilterDelegate interceptor)
             {
@@ -142,7 +142,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 实施执行 <see cref="IIncomingGrainCallFilter"/> 授权所有 <see cref="IIncomingGrainCallFilter.Invoke"/> 致电所派代表。
+        /// 实现 <see cref="IIncomingGrainCallFilter"/>，将所有 <see cref="IIncomingGrainCallFilter.Invoke"/> 调用交给所提供的委托。
         /// </summary>
         private class IncomingGrainCallFilterWrapper : IIncomingGrainCallFilter
         {
@@ -152,7 +152,7 @@ namespace Orleans.Hosting
             /// 初始化 <see cref="IncomingGrainCallFilterWrapper"/> 类的新实例。
             /// </summary>
             /// <param name="interceptor">
-            /// 拦截器
+            /// 拦截器。
             /// </param>
             public IncomingGrainCallFilterWrapper(IncomingGrainCallFilterDelegate interceptor)
             {
@@ -160,10 +160,10 @@ namespace Orleans.Hosting
             }
 
             /// <summary>
-            /// 启动此过滤器 。
+            /// 调用此筛选器。
             /// </summary>
-            /// <param name="context">下 grain 调用上下文。</param>
-            /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
+            /// <param name="context">Grain 调用上下文。</param>
+            /// <returns>表示所执行工作的 <see cref="Task"/>。</returns>
             public Task Invoke(IIncomingGrainCallContext context) => this.interceptor.Invoke(context);
         }
     }

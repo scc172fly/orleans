@@ -25,49 +25,49 @@ namespace UnitTests.General
         [Fact, TestCategory("Functional"), TestCategory("Ring"), TestCategory("RingStandalone")]
         public void RingStandalone_Failures()
         {
-            TestChurn(new int[] { 0 }, new int[] { });    // 开始 1 失败
-            TestChurn(new int[] { 0, 1 }, new int[] { }); // 开始有2次失败
+            TestChurn(new int[] { 0 }, new int[] { });    // 开头有 1 个故障节点。
+            TestChurn(new int[] { 0, 1 }, new int[] { }); // 开头有 2 个故障节点。
 
-            TestChurn(new int[] { count - 1 }, new int[] { });            // 结尾处有1个失败
-            TestChurn(new int[] { count - 1, count - 2 }, new int[] { }); // 结尾时有2次失败
+            TestChurn(new int[] { count - 1 }, new int[] { });            // 末尾有 1 个故障节点。
+            TestChurn(new int[] { count - 1, count - 2 }, new int[] { }); // 末尾有 2 个故障节点。
 
-            TestChurn(new int[] { count / 2 }, new int[] { });                // 中间有一个失败
-            TestChurn(new int[] { count / 2, 1 + count / 2 }, new int[] { }); // 中间有2个失败
+            TestChurn(new int[] { count / 2 }, new int[] { });                // 中间有 1 个故障节点。
+            TestChurn(new int[] { count / 2, 1 + count / 2 }, new int[] { }); // 中间有 2 个故障节点。
 
-            TestChurn(new int[] { 1, count - 2 }, new int[] { }); // 距离2次故障
-            TestChurn(new int[] { 0, count - 1 }, new int[] { }); // 距离2次故障
+            TestChurn(new int[] { 1, count - 2 }, new int[] { }); // 相隔一定距离的 2 个故障节点。
+            TestChurn(new int[] { 0, count - 1 }, new int[] { }); // 相隔一定距离的 2 个故障节点。
         }
 
         [Fact, TestCategory("Functional"), TestCategory("Ring"), TestCategory("RingStandalone")]
         public void RingStandalone_Joins()
         {
-            TestChurn(new int[] { }, new int[] { 0 });     // 1 加入开始
-            TestChurn(new int[] { }, new int[] { 0, 1 });  // 2 加入起始部分
+            TestChurn(new int[] { }, new int[] { 0 });     // 开头有 1 个加入节点。
+            TestChurn(new int[] { }, new int[] { 0, 1 });  // 开头有 2 个加入节点。
 
-            TestChurn(new int[] { }, new int[] { count - 1 });             // 1 加入结尾处
-            TestChurn(new int[] { }, new int[] { count - 1, count - 2 });  // 2 个加入到结尾处
+            TestChurn(new int[] { }, new int[] { count - 1 });             // 末尾有 1 个加入节点。
+            TestChurn(new int[] { }, new int[] { count - 1, count - 2 });  // 末尾有 2 个加入节点。
 
-            TestChurn(new int[] { }, new int[] { count / 2 });                 // 1人加入中间
-            TestChurn(new int[] { }, new int[] { count / 2, 1 + count / 2 });  // 中间两队
+            TestChurn(new int[] { }, new int[] { count / 2 });                 // 中间有 1 个加入节点。
+            TestChurn(new int[] { }, new int[] { count / 2, 1 + count / 2 });  // 中间有 2 个加入节点。
 
-            TestChurn(new int[] { }, new int[] { 1, count - 2 });  // 2个在一定距离接连
-            TestChurn(new int[] { }, new int[] { 0, count - 1 });  // 2个在一定距离接连
+            TestChurn(new int[] { }, new int[] { 1, count - 2 });  // 相隔一定距离的 2 个加入节点。
+            TestChurn(new int[] { }, new int[] { 0, count - 1 });  // 相隔一定距离的 2 个加入节点。
         }
 
         [Fact, TestCategory("Functional"), TestCategory("Ring"), TestCategory("RingStandalone")]
         public void RingStandalone_Mixed()
         {
-            TestChurn(new int[] { 0 }, new int[] { 1 });     // 一开始是FJ
-            TestChurn(new int[] { 1 }, new int[] { 0 });     // 一开始是JF
+            TestChurn(new int[] { 0 }, new int[] { 1 });     // 开头的节点依次为故障节点、加入节点（FJ）。
+            TestChurn(new int[] { 1 }, new int[] { 0 });     // 开头的节点依次为加入节点、故障节点（JF）。
 
-            TestChurn(new int[] { count - 2 }, new int[] { count - 1 });     // 末端是FJ
-            TestChurn(new int[] { count - 1 }, new int[] { count - 2 });     // 最终的JF
+            TestChurn(new int[] { count - 2 }, new int[] { count - 1 });     // 末尾的节点依次为故障节点、加入节点（FJ）。
+            TestChurn(new int[] { count - 1 }, new int[] { count - 2 });     // 末尾的节点依次为加入节点、故障节点（JF）。
 
-            TestChurn(new int[] { count / 2 }, new int[] { 1 + count / 2 });     // 中间是FJ
-            TestChurn(new int[] { 1 + count / 2 }, new int[] { count / 2 });     // 中间的JF
+            TestChurn(new int[] { count / 2 }, new int[] { 1 + count / 2 });     // 中间的节点依次为故障节点、加入节点（FJ）。
+            TestChurn(new int[] { 1 + count / 2 }, new int[] { count / 2 });     // 中间的节点依次为加入节点、故障节点（JF）。
 
-            TestChurn(new int[] { 0 }, new int[] { count - 1 });     // F第一,J最后
-            TestChurn(new int[] { count - 1 }, new int[] { 0 });     // 最后一个是F,开头是J
+            TestChurn(new int[] { 0 }, new int[] { count - 1 });     // 开头故障（F），末尾加入（J）。
+            TestChurn(new int[] { count - 1 }, new int[] { 0 });     // 末尾故障（F），开头加入（J）。
 
         }
 
@@ -80,7 +80,7 @@ namespace UnitTests.General
 
             sortedServers = rings.Keys.ToList();
             sortedServers.Sort(CompareSiloAddressesByHash);
-            // 失败失败
+            // 故障
             foreach (int i in indexesFails)
             {
                 fail.Add(sortedServers[i]);
@@ -92,8 +92,8 @@ namespace UnitTests.General
                 rings.Remove(sortedServers[i]);
             }
             rings = Combine(rings, rings);
-            RemoveServers(rings, fail);     // 失败结点
-            rings = Combine(rings, holder); // 加入新节点
+            RemoveServers(rings, fail);     // 使节点故障。
+            rings = Combine(rings, holder); // 加入新节点。
             VerifyRing(rings);
         }
 
@@ -111,7 +111,7 @@ namespace UnitTests.General
 
         private static Dictionary<SiloAddress, ConsistentRingProvider> Combine(Dictionary<SiloAddress, ConsistentRingProvider> set1, Dictionary<SiloAddress, ConsistentRingProvider> set2)
         {
-            // 显示所有节点的设置1
+            // 将 set2 中的每个节点告知 set1。
             foreach (ConsistentRingProvider crp in set1.Values)
             {
                 foreach (ConsistentRingProvider other in set2.Values)
@@ -123,7 +123,7 @@ namespace UnitTests.General
                 }
             }
 
-            // 设置1中每个节点的设置2 告诉 设置1 中的每一个节点 。 即使设置1 和 设置2 重叠, ConsistentRingProvider 也应该能够处理
+            // 将 set1 中的每个节点告知 set2……即使 set1 和 set2 重叠，ConsistentRingProvider 也应能处理。
             foreach (ConsistentRingProvider crp in set2.Values)
             {
                 foreach (ConsistentRingProvider other in set1.Values)
@@ -135,7 +135,7 @@ namespace UnitTests.General
                 }
             }
 
-            // 设置2 显示所有节点的 设置2... 注意, 设置1 已经知道 设置 1 中 的节点
+            // 将 set2 中的每个节点告知 set2……注意，set1 已经知道 set1 中的节点。
             foreach (ConsistentRingProvider crp in set2.Values)
             {
                 foreach (ConsistentRingProvider other in set2.Values)
@@ -147,7 +147,7 @@ namespace UnitTests.General
                 }
             }
 
-            // 合并各组
+            // 合并集合。
             return set1.Union(set2).ToDictionary(pair => pair.Key, pair => pair.Value);
         }
 
@@ -158,7 +158,7 @@ namespace UnitTests.General
                 rings.Remove(addr);
             }
 
-            // 告诉每个节点失败的节点
+            // 将故障节点告知每个节点。
             foreach (ConsistentRingProvider crp in rings.Values)
             {
                 foreach (SiloAddress addr in remove)
@@ -174,14 +174,14 @@ namespace UnitTests.General
 
             foreach (ConsistentRingProvider r in rings.Values)
             {
-                // 查看两个节点的责任之间是否有重叠
+                // 检查两个节点的负责范围是否互不重叠。
                 Assert.True(fullring.Remove(r.GetMyRange()), string.Format("Couldn't find & break range {0} in {1}. Some other node already claimed responsibility.", r.GetMyRange(), fullring));
             }
             Assert.True(fullring.NumRanges == 0, string.Format("Range not completely covered. Uncovered ranges: {0}", fullring));
         }
 
         /// <summary>
-        /// 比较 SiloAddress-基于其一致的散列代码
+        /// 根据 SiloAddress 的一致性哈希码进行比较。
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -200,7 +200,7 @@ namespace UnitTests.General
                 }
                 else
                 {
-                    // 实际比较在此
+                    // 实际比较在此处进行。
                     return x.GetConsistentHashCode().CompareTo(y.GetConsistentHashCode());
                 }
             }
@@ -284,18 +284,18 @@ namespace UnitTests.General
                 bool found = false;
                 foreach (var m in ranges)
                 {
-                    if (m.Begin == m.End) // 将全带作为特例处理
+                    if (m.Begin == m.End) // 将完整范围作为特殊情况处理。
                     {
                         found = true;
                         ranges.Remove(m);
-                        if (s.Begin != s.End) // 如果 s 也完全范围, 那么故事的结尾... 覆盖整个范围
+                        if (s.Begin != s.End) // 若 s 也是完整范围，则无需继续……整个范围已被覆盖。
                         {
                             ranges.Add((RangeFactory.CreateRange(s.End, s.Begin) as SingleRange)!);
                         }
                         break;
                     }
 
-                    if (m.InRange(s.Begin + 1) && m.InRange(s.End)) // 平方公尺
+                    if (m.InRange(s.Begin + 1) && m.InRange(s.End)) // s 不能与两个单一范围重叠。
                     {
                         found = true;
                         ranges.Remove(m);

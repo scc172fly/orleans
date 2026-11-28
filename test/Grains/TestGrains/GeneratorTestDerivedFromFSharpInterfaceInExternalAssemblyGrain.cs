@@ -2,9 +2,9 @@ using UnitTests.GrainInterfaces;
 
 namespace UnitTests.Grains
 {
-    // 取消以下等级的注释, 以验证 # 1349 正确的代码生成
-    // (一旦代码生成成功,就这样做)
-    // 注:在试验器/GeneratorGrainTests.cs中未加注相应的试验。
+    // 取消以下类的注释，以验证 #1349 的代码生成是否正确
+    // （在代码生成成功后执行此操作）
+    // 注意：还需要取消 Tester/GeneratorGrainTests.cs 中相应测试的注释
 
     public class GeneratorTestDerivedFromFSharpInterfaceInExternalAssemblyGrain : Grain, IGeneratorTestDerivedFromFSharpInterfaceInExternalAssemblyGrain
     {

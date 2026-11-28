@@ -16,10 +16,10 @@ builder.Services.AddHealthChecks()
 
 builder.UseOrleans(siloBuilder =>
 {
-    // UseAzureBlobDurableJobs 登记默认 Azure 布球日记账提供者(AddAzureBlobJournalStorage),该服务
-    // grain 以及《持久工作》杂志的发行量, 所以每份复制都恢复了同样的任务状态和延迟。
-    // BlobServiceClient 来自于下面的 AddOptions 调用。 Orleans 二进制日记格式存储样本
-    // GenerateSerializer国家类型。
+    // UseAzureBlobDurableJobs 注册默认的 Azure Blob 日志提供程序（AddAzureBlobJournalStorage），
+    // Grain 日志和 Durable Jobs 共享该提供程序，因此每个副本都能恢复相同的任务状态及延迟操作。其
+    // BlobServiceClient 由下面的 AddOptions 调用提供。Orleans 二进制日志格式用于存储示例中
+    // 带有 [GenerateSerializer] 特性的状态类型。
     siloBuilder
         .AddJournaling()
         .UseAzureBlobDurableJobs(options => options.ContainerName = "durable-workflows")

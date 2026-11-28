@@ -2,11 +2,11 @@ namespace Orleans.Runtime;
 
 internal static class InstrumentNames
 {
-    // 建立网络
+    // 网络通信
     public const string NETWORKING_SOCKETS_CLOSED = "orleans-networking-sockets-closed";
     public const string NETWORKING_SOCKETS_OPENED = "orleans-networking-sockets-opened";
 
-    // 通信通信
+    // 消息传递
     public const string MESSAGING_SENT_MESSAGES_SIZE = "orleans-messaging-sent-messages-size";
     public const string MESSAGING_RECEIVED_MESSAGES_SIZE = "orleans-messaging-received-messages-size";
     public const string MESSAGING_SENT_BYTES_HEADER = "orleans-messaging-sent-header-size";
@@ -35,17 +35,17 @@ internal static class InstrumentNames
     public const string GATEWAY_RECEIVED = "orleans-gateway-received";
     public const string GATEWAY_LOAD_SHEDDING = "orleans-gateway-load-shedding";
 
-    // 运行时间
+    // 运行时
     public const string SCHEDULER_NUM_LONG_RUNNING_TURNS = "orleans-scheduler-long-running-turns";
 
-    // 群集显示器
+    // 集群清单
     public const string MANIFEST_CACHE_LOOKUPS = "orleans-manifest-cache-lookups";
     public const string MANIFEST_FALLBACKS = "orleans-manifest-fallbacks";
     public const string MANIFEST_PEER_PROBES = "orleans-manifest-peer-probes";
     public const string MANIFEST_PEER_REPAIRS = "orleans-manifest-peer-repairs";
     public const string MANIFEST_RETRIEVAL_DURATION = "orleans-manifest-retrieval-duration";
 
-    // 星表
+    // 激活实例目录（Catalog）
     public const string CATALOG_ACTIVATION_COUNT = "orleans-catalog-activations";
     public const string CATALOG_ACTIVATION_WORKING_SET = "orleans-catalog-activation-working-set";
     public const string CATALOG_ACTIVATION_CREATED = "orleans-catalog-activation-created";
@@ -58,7 +58,7 @@ internal static class InstrumentNames
     public const string CATALOG_ACTIVATION_NON_EXISTENT_ACTIVATIONS = "orleans-catalog-activation-non-existent";
     public const string CATALOG_ACTIVATION_CONCURRENT_REGISTRATION_ATTEMPTS = "orleans-catalog-activation-concurrent-registration-attempts";
 
-    // 目录目录目录目录目录目录
+    // Grain 目录
     public const string DIRECTORY_LOOKUPS_LOCAL_ISSUED = "orleans-directory-lookups-local-issued";
     public const string DIRECTORY_LOOKUPS_LOCAL_SUCCESSES = "orleans-directory-lookups-local-successes";
     public const string DIRECTORY_LOOKUPS_FULL_ISSUED = "orleans-directory-lookups-full-issued";
@@ -95,33 +95,33 @@ internal static class InstrumentNames
     public const string DIRECTORY_RANGE_RECOVERY_DURATION = "orleans-directory-recovery-duration";
     public const string DIRECTORY_RANGE_LOCK_HELD_DURATION = "orleans-directory-range-lock-held-duration";
 
-    // ConsistentRing
+    // 一致性哈希环
     public const string CONSISTENTRING_SIZE = "orleans-consistent-ring-size";
     public const string CONSISTENTRING_LOCAL_SIZE_PERCENTAGE = "orleans-consistent-ring-range-percentage-local";
     public const string CONSISTENTRING_AVERAGE_SIZE_PERCENTAGE = "orleans-consistent-ring-range-percentage-average";
 
-    // 监视狗
+    // 看门狗
     public const string WATCHDOG_NUM_HEALTH_CHECKS = "orleans-watchdog-health-checks";
     public const string WATCHDOG_NUM_FAILED_HEALTH_CHECKS = "orleans-watchdog-health-checks-failed";
 
-    // 客户客户
+    // 客户端
     public const string CLIENT_CONNECTED_GATEWAY_COUNT = "orleans-client-connected-gateways";
 
-    // 杂项
+    // 其他
     public const string GRAIN_COUNTS = "orleans-grains";
     public const string SYSTEM_TARGET_COUNTS = "orleans-system-targets";
 
-    // 申请请求
+    // 应用请求
     public const string APP_REQUESTS_LATENCY_HISTOGRAM = "orleans-app-requests-latency";
     public const string APP_REQUESTS_TIMED_OUT = "orleans-app-requests-timedout";
     public const string APP_REQUESTS_CANCELED = "orleans-app-requests-canceled";
 
-    // 提醒提醒
+    // 提醒器
     public const string REMINDERS_TARDINESS = "orleans-reminders-tardiness";
     public const string REMINDERS_NUMBER_ACTIVE_REMINDERS = "orleans-reminders-active";
     public const string REMINDERS_COUNTERS_TICKS_DELIVERED = "orleans-reminders-ticks-delivered";
 
-    // 储存
+    // 存储
     public const string STORAGE_READ_ERRORS = "orleans-storage-read-errors";
     public const string STORAGE_WRITE_ERRORS = "orleans-storage-write-errors";
     public const string STORAGE_CLEAR_ERRORS = "orleans-storage-clear-errors";
@@ -129,7 +129,7 @@ internal static class InstrumentNames
     public const string STORAGE_WRITE_LATENCY = "orleans-storage-write-latency";
     public const string STORAGE_CLEAR_LATENCY = "orleans-storage-clear-latency";
 
-    // 流流
+    // 流
     public const string STREAMS_PUBSUB_PRODUCERS_ADDED = "orleans-streams-pubsub-producers-added";
     public const string STREAMS_PUBSUB_PRODUCERS_REMOVED = "orleans-streams-pubsub-producers-removed";
     public const string STREAMS_PUBSUB_PRODUCERS_TOTAL = "orleans-streams-pubsub-producers";

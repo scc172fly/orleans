@@ -76,11 +76,11 @@ internal static class GeneratedCodeUtilities
     private static readonly string GeneratedCodeAttributeArguments =
         $"{CodeText.QuotedText(CodeGeneratorName)}, {CodeText.QuotedText(typeof(GeneratedCodeUtilities).Assembly.GetName().Version.ToString())}";
 
-    /// <summary>适用于每个生成类型属性列表。</summary>
+    /// <summary>应用于每个生成类型的特性列表。</summary>
     internal static readonly string GeneratedCodeAttributeText =
         $"[global::System.CodeDom.Compiler.GeneratedCodeAttribute({GeneratedCodeAttributeArguments}), global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never), global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]";
 
-    /// <summary>属性列表适用于生成的用户申报类型成员。</summary>
+    /// <summary>应用于用户声明类型中生成成员的特性列表。</summary>
     internal static readonly string GeneratedMemberAttributeText =
         $"[global::System.CodeDom.Compiler.GeneratedCodeAttribute({GeneratedCodeAttributeArguments}), global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]";
 

@@ -3,8 +3,8 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// 描述一个 <c>[GenerateSerializer]</c>-- -- 附加说明的递增发现和元数据生成类型。
-/// 序列式制导器、复印机和活性物排放解决了与当前汇编相比更多的语义依赖。
+/// 描述使用 <c>[GenerateSerializer]</c> 标注的类型，用于增量发现及元数据生成。
+/// 生成序列化器、复制器和激活器时，依据当前编译解析其他语义依赖项。
 /// </summary>
 internal sealed record class SerializableTypeModel(
     Accessibility Accessibility,

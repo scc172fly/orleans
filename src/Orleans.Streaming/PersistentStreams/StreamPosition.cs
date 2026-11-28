@@ -5,16 +5,16 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 流位置为在流中指定事件的位置。
-    /// 如果为一系列事件获取流位置, 则流位置将是批次中的第一个事件 。
+    /// 流位置唯一标识事件在流中的位置。
+    /// 如果获取一批事件的流位置，则返回批次中第一个事件的位置。
     /// </summary>
     public class StreamPosition
     {
         /// <summary>
-        /// 流流位置由流流身份和序列符号组成
+        /// 流位置由流标识和序列令牌组成。
         /// </summary>
-        /// <param name="streamId">流体身份。</param>
-        /// <param name="sequenceToken">流序序列符号。</param>
+        /// <param name="streamId">流标识。</param>
+        /// <param name="sequenceToken">流序列令牌。</param>
         public StreamPosition(StreamId streamId, StreamSequenceToken sequenceToken)
         {
             if (sequenceToken == null)
@@ -26,12 +26,12 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 获取流的特性
+        /// 获取流的标识。
         /// </summary>
         public StreamId StreamId { get; }
 
         /// <summary>
-        /// 获得流中的位置
+        /// 获取在流中的位置。
         /// </summary>
         public StreamSequenceToken SequenceToken { get; }
     }

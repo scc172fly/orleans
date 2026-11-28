@@ -6,7 +6,7 @@ using System.Collections.Specialized;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="NameValueCollection"/>的序列器。
+    /// <see cref="NameValueCollection"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class NameValueCollectionCodec : GeneralizedReferenceTypeSurrogateCodec<NameValueCollection, NameValueCollectionSurrogate>
@@ -14,7 +14,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="NameValueCollectionCodec"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">代孕序列器</param>
+        /// <param name="surrogateSerializer">代理类型序列化器。</param>
         public NameValueCollectionCodec(IValueSerializer<NameValueCollectionSurrogate> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -64,33 +64,33 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="NameValueCollectionCodec"/>所使用的代金矿类型。
+    /// <see cref="NameValueCollectionCodec"/> 所使用的代理类型。
     /// </summary>
     [GenerateSerializer]
     public struct NameValueCollectionSurrogate
     {
         /// <summary>
-        /// 获取或设置值。
+        /// 获取或设置值集合。
         /// </summary>
-        /// <value>价值。</value>
+        /// <value>值集合。</value>
         [Id(0)]
         public Dictionary<string, string?>? Values;
 
         /// <summary>
-        /// 获取或设置一个值,以显示收藏是否包含空键。
+        /// 获取或设置一个值，指示集合是否包含 null 键。
         /// </summary>
         [Id(1)]
         public bool HasNullKey;
 
         /// <summary>
-        /// 获取或设置与空键相关的值。
+        /// 获取或设置与 null 键关联的值。
         /// </summary>
         [Id(2)]
         public string? NullKeyValue;
     }
 
     /// <summary>
-    /// <see cref="NameValueCollection"/>的复印机。
+    /// <see cref="NameValueCollection"/> 的复制器。
     /// </summary>
     [RegisterCopier]
     public sealed class NameValueCollectionCopier : IDeepCopier<NameValueCollection>

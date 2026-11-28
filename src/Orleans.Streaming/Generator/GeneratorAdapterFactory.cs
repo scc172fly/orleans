@@ -15,25 +15,25 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.Generator
 {
     /// <summary>
-    /// 流流发电机指令
+    /// 流生成器命令
     /// </summary>
     public enum StreamGeneratorCommand
     {
         /// <summary>
-        /// 配置发电机的命令
+        /// 配置生成器的命令
         /// </summary>
         Configure = PersistentStreamProviderCommand.AdapterFactoryCommandStartRange
     }
 
     /// <summary>
-    /// 河发电机流供应商的适应器工厂
-    /// 这个工厂作为适配器和适配装置厂,制造使用可配置发电机的接收器。
-    ///   生成事件流,而不是从存储中读取。
+    /// 流生成器流提供程序的适配器工厂。
+    /// 此工厂同时充当适配器和适配器工厂。它创建使用可配置生成器的接收器，
+    /// 用于生成事件流，而不是从存储中读取事件流。
     /// </summary>
     public partial class GeneratorAdapterFactory : IQueueAdapterFactory, IQueueAdapter, IQueueAdapterCache, IControllable
     {
         /// <summary>
-        /// 发电机配置类型配置的配置属性名称
+        /// 生成器配置类型对应的配置属性名称
         /// </summary>
         private readonly HashRingStreamQueueMapperOptions queueMapperOptions;
         private readonly StreamStatisticOptions statisticOptions;
@@ -45,9 +45,9 @@ namespace Orleans.Providers.Streams.Generator
         private IStreamGeneratorConfig? generatorConfig;
         private IStreamQueueMapper? streamQueueMapper;
         private IStreamFailureHandler? streamFailureHandler;
-        private ConcurrentDictionary<QueueId, Receiver> receivers = null!; // 在使用前设置 Init 。
+        private ConcurrentDictionary<QueueId, Receiver> receivers = null!; // 在使用之前由 Init 设置。
         private IObjectPool<FixedSizeBuffer>? bufferPool;
-        private BlockPoolMonitorDimensions blockPoolMonitorDimensions = null!; // 使用前设置 bufferPool 。
+        private BlockPoolMonitorDimensions blockPoolMonitorDimensions = null!; // 在使用之前随 bufferPool 一同设置。
 
         /// <inheritdoc />
         public bool IsRewindable => true;
@@ -59,32 +59,32 @@ namespace Orleans.Providers.Streams.Generator
         public string Name { get; }
 
         /// <summary>
-        /// 创建一个缓存监视器, 以报告缓存相关度
-        /// 返回 a ICacheMonitor
+        /// 创建缓存监视器以报告缓存相关指标。
+        /// 返回 ICacheMonitor。
         /// </summary>
         protected Func<CacheMonitorDimensions, ICacheMonitor>? CacheMonitorFactory;
 
         /// <summary>
-        /// 创建块块池监测器,以监测块块池相关计量
-        /// 返回 a IBlockPoolMonitor
+        /// 创建内存块池监视器以监控内存块池相关指标。
+        /// 返回 IBlockPoolMonitor。
         /// </summary>
         protected Func<BlockPoolMonitorDimensions, IBlockPoolMonitor>? BlockPoolMonitorFactory;
 
         /// <summary>
-        /// 创建监测器以监测 QueueAdapterReceiver 相关计量
-        /// 返回 a IQueueAdapterReceiverMonitor
+        /// 创建监视器以监控 QueueAdapterReceiver 相关指标。
+        /// 返回 IQueueAdapterReceiverMonitor。
         /// </summary>
         protected Func<ReceiverMonitorDimensions, IQueueAdapterReceiverMonitor>? ReceiverMonitorFactory;
 
         /// <summary>
         /// 初始化 <see cref="GeneratorAdapterFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="providerName">流体提供者名称。</param>
-        /// <param name="queueMapperOptions">队列映像仪选项。</param>
+        /// <param name="providerName">流提供程序名称。</param>
+        /// <param name="queueMapperOptions">队列映射器选项。</param>
         /// <param name="statisticOptions">流统计选项。</param>
-        /// <param name="serviceProvider">服务供应商。</param>
-        /// <param name="serializer">下 Orleans 连环器</param>
-        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="serviceProvider">服务提供程序。</param>
+        /// <param name="serializer">Orleans 序列化器。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
         public GeneratorAdapterFactory(
             string providerName,
             HashRingStreamQueueMapperOptions queueMapperOptions,
@@ -128,10 +128,10 @@ namespace Orleans.Providers.Streams.Generator
         {
             if (this.bufferPool == null)
             {
-                // 1兆克区块大小池
+                // 使用 1 MB 内存块的池。
                 this.blockPoolMonitorDimensions = new BlockPoolMonitorDimensions($"BlockPool-{Guid.NewGuid()}");
                 var oneMb = 1 << 20;
-                var blockPoolMonitorFactory = this.BlockPoolMonitorFactory!; // Init () 期间设置 。
+                var blockPoolMonitorFactory = this.BlockPoolMonitorFactory!; // 在 Init() 中设置。
                 var objectPoolMonitor = new ObjectPoolMonitorBridge(blockPoolMonitorFactory(blockPoolMonitorDimensions), oneMb);
                 this.bufferPool = new ObjectPool<FixedSizeBuffer>(() => new FixedSizeBuffer(oneMb), objectPoolMonitor, this.statisticOptions.StatisticMonitorWriteInterval);
             }
@@ -174,7 +174,7 @@ namespace Orleans.Providers.Streams.Generator
             if (!receivers.TryGetValue(queueId, out var receiver))
             {
                 var dimensions = new ReceiverMonitorDimensions(queueId.ToString());
-                var receiverMonitorFactory = this.ReceiverMonitorFactory!; // Init () 期间设置 。
+                var receiverMonitorFactory = this.ReceiverMonitorFactory!; // 在 Init() 中设置。
                 var receiverMonitor = receiverMonitorFactory(dimensions);
                 receiver = receivers.GetOrAdd(queueId, new Receiver(receiverMonitor));
             }
@@ -195,7 +195,7 @@ namespace Orleans.Providers.Streams.Generator
                 throw new ArgumentOutOfRangeException(nameof(arg), "Arg must by of type IStreamGeneratorConfig");
             }
 
-            // 更新接收器上的发电机
+            // 更新接收器上的生成器
             foreach (var receiver in receivers)
             {
                 SetGeneratorOnReceiver(receiver.Value);
@@ -270,7 +270,7 @@ namespace Orleans.Providers.Streams.Generator
 
         private void SetGeneratorOnReceiver(Receiver receiver)
         {
-            // 如果我们没有发电机配置, 不要设置发电机
+            // 如果没有生成器配置，则不设置生成器
             var generatorConfig = this.generatorConfig;
             if (generatorConfig == null)
             {
@@ -289,10 +289,10 @@ namespace Orleans.Providers.Streams.Generator
         /// <inheritdoc />
         public IQueueCache CreateQueueCache(QueueId queueId)
         {
-            //将块状池创建从 Init 方法移到这里, 以避免在流提供商初始化时在客户端启动不必要的块状集合创建 。
+            // 将内存块池的创建从初始化方法移到这里，避免在客户端初始化流提供程序时创建不必要的内存块池。
             CreateBufferPoolIfNotCreatedYet();
             var dimensions = new CacheMonitorDimensions(queueId.ToString(), this.blockPoolMonitorDimensions.BlockPoolId);
-            var cacheMonitorFactory = this.CacheMonitorFactory!; // Init () 期间设置 。
+            var cacheMonitorFactory = this.CacheMonitorFactory!; // 在 Init() 中设置。
             var cacheMonitor = cacheMonitorFactory(dimensions);
             return new GeneratorPooledCache(
                 bufferPool,
@@ -305,9 +305,9 @@ namespace Orleans.Providers.Streams.Generator
         /// <summary>
         /// 创建新的 <see cref="GeneratorAdapterFactory"/> 实例。
         /// </summary>
-        /// <param name="services">服务。</param>
-        /// <param name="name">提供者名称。</param>
-        /// <returns>新建的 <see cref="GeneratorAdapterFactory"/> 实例。</returns>
+        /// <param name="services">服务提供程序。</param>
+        /// <param name="name">提供程序名称。</param>
+        /// <returns>新创建的 <see cref="GeneratorAdapterFactory"/> 实例。</returns>
         public static GeneratorAdapterFactory Create(IServiceProvider services, string name)
         {
             var queueMapperOptions = services.GetOptionsByName<HashRingStreamQueueMapperOptions>(name);
@@ -317,7 +317,7 @@ namespace Orleans.Providers.Streams.Generator
             return factory;
         }
 
-        // “找不到流提供者 {StreamProvider} 的发电机配置。 直到命令提供配置之前, 没有活动 。”
+        // "No generator configuration found for stream provider {StreamProvider}.  Inactive until provided with configuration by command."
         [LoggerMessage(
             Level = LogLevel.Information,
             Message = "No generator configuration found for stream provider {StreamProvider}.  Inactive until provided with configuration by command."

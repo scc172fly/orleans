@@ -15,7 +15,7 @@ namespace ServiceBus.Tests.StreamingTests
         private static readonly DateTime NowUtc = DateTime.UtcNow;
 
         /// <summary>
-        /// 信件在缓存时间不够长,不足以清洗,信息使用年老也不足以清洗
+        /// 消息在缓存中的驻留时间尚不足以清理，且消息年龄也尚未达到清理条件
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public void TimePurgePredicate_NoPurgeThreshold_Tests()
@@ -28,7 +28,7 @@ namespace ServiceBus.Tests.StreamingTests
         }
 
         /// <summary>
-        /// 信息在暗藏中已经足够长的时间可以清洗, 信息使用年龄也足够老到可以清洗
+        /// 消息在缓存中的驻留时间足以清理，且消息年龄也达到清理条件
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public void TimePurgePredicate_PurgeDataThreshold_Tests()
@@ -41,7 +41,7 @@ namespace ServiceBus.Tests.StreamingTests
         }
 
         /// <summary>
-        /// 消息在缓存中已足够长的时间可以清洗, 但信件使用年龄不足以清除
+        /// 消息在缓存中的驻留时间足以清理，但消息年龄尚未达到清理条件
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public void TimePurgePredicate_NoPurgeAgeThreshold_Tests()
@@ -54,7 +54,7 @@ namespace ServiceBus.Tests.StreamingTests
         }
 
         /// <summary>
-        /// 信件在缓存时间不够长,不足以清洗,但信息使用年老已足够长,足以清洗
+        /// 消息在缓存中的驻留时间尚不足以清理，但消息年龄已达到清理条件
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public void TimePurgePredicate_NoPurgeTimeInCacheThreshold_Tests()

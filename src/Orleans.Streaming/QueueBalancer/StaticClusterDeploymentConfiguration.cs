@@ -4,14 +4,14 @@ using Orleans.Streams;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 部署配置,原自 orleans 群组组合
+    /// 从 Orleans 集群配置读取信息的部署配置。
     /// </summary>
     public class StaticClusterDeploymentOptions : IDeploymentConfiguration
     {
         /// <summary>
-        /// 获取或设置 silo 名称。
+        /// 获取或设置 Silo 名称。
         /// </summary>
-        /// <value> silo 名称。</value>
+        /// <value>Silo 名称。</value>
         public IList<string> SiloNames { get; set; } = new List<string>();
 
         /// <inheritdoc/>

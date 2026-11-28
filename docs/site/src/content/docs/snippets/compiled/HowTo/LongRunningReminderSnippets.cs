@@ -72,7 +72,7 @@ public sealed class LongRunningReminderGrain(
         catch (OperationCanceledException)
             when (_shutdownCancellation.IsCancellationRequested)
         {
-            // 取消是正常的激活关闭路径。
+            // 取消是激活实例正常关闭的途径。
         }
         catch (Exception exception)
         {

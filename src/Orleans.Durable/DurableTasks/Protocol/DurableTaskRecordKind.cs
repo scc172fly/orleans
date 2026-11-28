@@ -3,55 +3,55 @@ using System.Text.Json.Serialization;
 namespace Orleans.Durable.Tasks.Protocol;
 
 /// <summary>
-/// 存储任务记录时的操作类型, 当运行时间创建该记录时设置它 。
+/// 已存储任务所记录的操作类型，由运行时在创建记录时设置。
 /// </summary>
 /// <remarks>
-/// 重放比照其请求在识别特征下进行的操作与记录的类型,因此
-/// 另一种类型的差异,它阻碍尝试,而不是观察或改变另一类操作的记录。
-/// 只有当一个祈祷到达可成为其记录的 <see cref="EarlyCancellation"/> 记录时,才会更改该记录。
-/// <see cref="Invocation"/>. JSON 期刊以名称存储该类。
+/// 重放会将它在某个标识符下请求的操作与已记录的类型比较，因此另一类型的操作会
+/// 导致重放分歧，使该次执行尝试停滞，而不是观察或变更另一操作的记录。仅当
+/// 针对 <see cref="EarlyCancellation"/> 记录的调用到达时，类型才会变化，成为其
+/// <see cref="Invocation"/>。JSON 日志按名称存储类型。
 /// </remarks>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Tasks.Protocol.DurableTaskRecordKind")]
 [JsonConverter(typeof(JsonStringEnumConverter<DurableTaskRecordKind>))]
 internal enum DurableTaskRecordKind : byte
 {
-    /// <summary>一项任务,即客户或 grain 请求中注明了执行树的产地。</summary>
+    /// <summary>客户端或 Grain 作为请求调度的任务，它拥有自己的执行树。</summary>
     Invocation,
 
-    /// <summary>是在援引其任务之前取消的。</summary>
+    /// <summary>先于其任务调用到达的取消请求。</summary>
     EarlyCancellation,
 
-    /// <summary>持久处决对另一个人的号召 grain.</summary>
+    /// <summary>持久化执行实例对另一个 Grain 的调用。</summary>
     RemoteCall,
 
-    /// <summary>持久处决的当地儿童,例如 <c>DurableTask.Run</c> 步骤。</summary>
+    /// <summary>持久化执行实例的本地子任务，例如 <c>DurableTask.Run</c> 步骤。</summary>
     LocalStep,
 
-    /// <summary>持久拖延。</summary>
+    /// <summary>持久化延迟。</summary>
     Delay,
 
-    /// <summary>记录的结果 <c>DurableTask.RunInline</c> 效果。</summary>
+    /// <summary><c>DurableTask.RunInline</c> 效果的已记录结果。</summary>
     Effect,
 
-    /// <summary>一份决定的文本。</summary>
+    /// <summary>版本决策。</summary>
     Version,
 
-    /// <summary>信号的价值, 在所援引的任务之下 接收它。</summary>
+    /// <summary>信号值，位于接收该信号的被调用任务之下。</summary>
     SignalValue,
 
-    /// <summary>持久处决的信号发出</summary>
+    /// <summary>持久化执行实例发送信号的操作。</summary>
     SignalSend,
 
-    /// <summary>选择在组合候选人中完成的第一个任务。</summary>
+    /// <summary>选择组合器候选任务中最先完成的任务。</summary>
     Selection,
 
-    /// <summary>订阅一项现有任务的结果。</summary>
+    /// <summary>对现有任务结果的订阅。</summary>
     Subscription,
 
-    /// <summary>独立任务的开始, 且该任务同意任务结果。</summary>
+    /// <summary>分离任务的启动操作，并订阅该任务的结果。</summary>
     DetachedStart,
 
-    /// <summary>持久执行机关首次观察其取消任务时的取消点。</summary>
+    /// <summary>持久化执行实例的主体首次观察到其任务取消的取消点。</summary>
     CancellationObserved,
 }

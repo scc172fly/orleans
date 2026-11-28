@@ -1,19 +1,19 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// 这个元件提供了控制字段代代逻辑的选项。
+/// 此枚举提供控制字段 ID 生成逻辑的选项。
 /// </summary>
 public enum GenerateFieldIds
 {
     /// <summary>
-    /// 只有带有字段id的明确说明成员才会被序列。 这是默认的 。
+    /// 仅序列化显式标注字段 ID 的成员。这是默认设置。
     /// </summary>
     None,
     /// <summary>
-    /// 字段代号将自动指定给合格的公共财产。 要获得资格, 产权必须有一个无障碍的获取器, 以及一个无障碍的设置器或相应的构建参数 。
+    /// 自动为符合条件的公共属性分配字段 ID。属性必须具有可访问的 getter，并且具有可访问的 setter 或对应的构造函数参数。
     /// </summary>
     /// <remarks>
-    /// 任何类型成员上存在明确的实地识别注释,将自动使该类型的自动字段代号产生失效。
+    /// 如果类型的任何成员显式标注了字段 ID，则自动禁用该类型的自动字段 ID 生成。
     /// </remarks>
     PublicProperties
 }

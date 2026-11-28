@@ -2,7 +2,7 @@ namespace UnitTests.GrainInterfaces
 {
     public interface ILivenessTestGrain : IGrainWithIntegerKey
     {
-        // 能够设置的单独标签
+        // 可以独立设置的标签
         Task<string> GetLabel();
 
         Task SetLabel(string label);

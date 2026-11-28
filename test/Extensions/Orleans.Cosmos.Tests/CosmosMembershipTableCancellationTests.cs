@@ -69,7 +69,7 @@ public class CosmosMembershipTableCancellationTests
         Assert.Equal(cancellation.Token, exception.CancellationToken);
         Assert.False(creation.Task.IsCompleted);
         creation.SetResult(client);
-        // 重试是共同工厂完工后的一种决定性的围栏。
+        // 共享工厂完成后，重试提供了确定性的同步边界。
         await provider.InitializeGatewayListProviderAsync(TestContext.Current.CancellationToken);
         Assert.Equal(2, factoryCalls);
         Assert.Equal(1, client.ContainerCalls);
@@ -107,7 +107,7 @@ public class CosmosMembershipTableCancellationTests
         });
         var table = initialized ? storage.Table : CreateTable(services, options);
         const string guidance = "Use ReadAllAsync and MembershipTableData.TryGet instead.";
-#pragma warning disable CS0618 // Verify the retired compatibility entry points.
+#pragma warning disable CS0618 // 验证已停用的兼容性入口点。
         var legacy = table.ReadRow(null!);
         var asynchronous = table.ReadRowAsync(null!, Token);
         var token = new CancellationToken(canceled: true);

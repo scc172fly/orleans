@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Connections.Transport.Security;
 
 /// <summary>
-/// 使用 TLS 进行信件传输加密和解密所有数据, 并用远程端点作为服务器验证 。
+/// 消息传输层使用 TLS 加密和解密所有数据，以服务器身份与远程终结点进行身份验证。
 /// </summary>
 internal sealed class ServerTlsMessageTransport : TlsMessageTransport
 {
@@ -16,7 +16,7 @@ internal sealed class ServerTlsMessageTransport : TlsMessageTransport
 
     public ServerTlsMessageTransport(MessageTransport transport, TlsOptions options, ILogger logger) : base(transport, options, logger)
     {
-        // 获取证书后无法转换
+        // 现在捕获证书，以防验证后证书被替换。
         _certificate = options.LocalCertificate;
         _certificateSelector = options.LocalServerCertificateSelector;
 
@@ -25,10 +25,10 @@ internal sealed class ServerTlsMessageTransport : TlsMessageTransport
             throw new InvalidOperationException($"Either {nameof(TlsOptions)}.{nameof(TlsOptions.LocalCertificate)} or {nameof(TlsOptions)}.{nameof(TlsOptions.LocalServerCertificateSelector)} must be set to a non-null value.");
         }
 
-        // 如果提供了选择器,则忽略证书,它可能是默认证书。
+        // 如果提供了选择器，则忽略证书，因为它可能是默认证书。
         if (_certificateSelector is not null)
         {
-            // SslStream 不允许两者兼有。
+            // SslStream 不允许同时使用两者。
             _certificate = null;
         }
         else if (_certificate is not null)
@@ -39,7 +39,7 @@ internal sealed class ServerTlsMessageTransport : TlsMessageTransport
 
     protected override async Task AuthenticateAsyncCore(MessageTransport transport, bool certificateRequired, CancellationToken cancellationToken)
     {
-        // 适应到 SslStream 签名
+        // 适配 SslStream 的签名。
         ServerCertificateSelectionCallback? selector = null;
         if (_certificateSelector != null)
         {
@@ -57,7 +57,7 @@ internal sealed class ServerTlsMessageTransport : TlsMessageTransport
         }
         else if (_certificate != null)
         {
-            // 即使有固定的证书 也得抓住客户的SNI主机名
+            // 即使使用固定证书，也要捕获客户端的 SNI 主机名。
             selector = (sender, name) =>
             {
                 TlsConnectionFeature.HostName = name ?? string.Empty;

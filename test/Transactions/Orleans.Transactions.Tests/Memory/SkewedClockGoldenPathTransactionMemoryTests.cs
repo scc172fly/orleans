@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.Tests
 {
     /// <summary>
-    /// 使用模拟存储的扭曲时钟测试交易金路图情景。
+    /// 测试使用内存存储时存在时钟偏差场景下的事务正常成功路径。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Transactions")]
     [TestSuite("BVT")]

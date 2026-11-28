@@ -5,12 +5,12 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|--------------------
-ORLEANS0109 | Usage | Error | 方法有多个 CancellationToken 参数
+ORLEANS0109 | Usage | Error | Method has multiple CancellationToken parameters
 ORLEANS0110 | Usage | Error | ReferenceAssemblyWithGenerateSerializerDiagnostic
-ORLEANS0111 | Usage | Error | 无效的可引用的基型基本类型映射
-ORLEANS0112 | Usage | Error | 无效的 RPC 参数字段识别符
-ORLEANS0113 | Usage | Warning | CancellationToken 参数不是最后一个
-ORLEANS0114 | Usage | Error | 无效生成的上下文声明
-ORLEANS0115 | Usage | Error | 无支持生成的上下文依赖
-ORLEANS0116 | Usage | Error | 无法获取的化合物型别名
-ORLEANS0117 | Usage | Error | 无效的联盟或已关闭类型大小写
+ORLEANS0111 | Usage | Error | Invalid invokable base type mapping
+ORLEANS0112 | Usage | Error | Invalid RPC parameter field identifier
+ORLEANS0113 | Usage | Warning | CancellationToken parameter is not last
+ORLEANS0114 | Usage | Error | Invalid generated context declaration
+ORLEANS0115 | Usage | Error | Unsupported generated context dependency
+ORLEANS0116 | Usage | Error | Inaccessible compound type alias
+ORLEANS0117 | Usage | Error | Invalid union or closed type case

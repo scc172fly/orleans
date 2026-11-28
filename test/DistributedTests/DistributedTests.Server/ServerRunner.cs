@@ -60,7 +60,7 @@ namespace DistributedTests.Server
 
                 if (msg != null)
                 {
-                    // 我们确实重新启动了 silo
+                    // 确实已重新启动 Silo
                     await channel.SendAck(msg, cancellationToken);
                     msg = null;
                 }
@@ -83,7 +83,7 @@ namespace DistributedTests.Server
                         stopCancellation.IsCancellationRequested
                         && !cancellationToken.IsCancellationRequested)
                     {
-                        // 封隔停止尝试后,主机处置完成突然关闭。
+                        // 在有时限的停止尝试之后，释放 Host 以完成非正常关闭。
                     }
                 }
 

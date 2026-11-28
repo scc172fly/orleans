@@ -20,16 +20,16 @@ namespace Orleans.GrainDirectory.AdoNet.Storage
 #elif TESTER_SQLUTILS
 namespace Orleans.Tests.SqlUtils
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 {
     /// <summary>
-    /// 含有一些便利方法,可结合 <see cref="IRelationalStorage">IRelationalStorage</see> 和 <see cref="RelationalStorage">GenericRelationalStorage</see>.
+    /// 包含一些便捷方法，可与 <see cref="IRelationalStorage">IRelationalStorage</see> 和 <see cref="RelationalStorage">GenericRelationalStorage</see> 配合使用。
     /// </summary>
     internal static class DbExtensions
     {
         /// <summary>
-        /// CLR viz 数据库类型转换的清晰地图。
+        /// CLR 类型与数据库类型转换的显式映射。
         /// </summary>
         private static readonly ReadOnlyDictionary<Type, DbType> typeMap = new ReadOnlyDictionary<Type, DbType>(new Dictionary<Type, DbType>
         {
@@ -63,7 +63,7 @@ namespace Orleans.Tests.SqlUtils
             { typeof(char?),    DbType.StringFixedLength },
             { typeof(Guid),     DbType.Guid },
             { typeof(Guid?),    DbType.Guid },
-            //使用 DateTime 来交叉 DB 兼容。 基础 DB 表列类型可以是 DateTime 或 DateTime2
+            // 为实现跨数据库兼容性而使用 DateTime。底层数据库表的列类型可以是 DateTime 或 DateTime2。
             { typeof(DateTime),     DbType.DateTime },
             { typeof(DateTime?),    DbType.DateTime },
             { typeof(TimeSpan),     DbType.Time },
@@ -76,17 +76,17 @@ namespace Orleans.Tests.SqlUtils
         /// <summary>
         /// 使用给定参数创建新的 SQL 参数。
         /// </summary>
-        /// <typeparam name="T">参数的类型。</typeparam>
-        /// <param name="command">创建参数要使用的命令。</param>
-        /// <param name="direction">参数的方向。</param>
-        /// <param name="parameterName">参数的名称。</param>
+        /// <typeparam name="T">参数类型。</typeparam>
+        /// <param name="command">用于创建参数的命令。</param>
+        /// <param name="direction">参数方向。</param>
+        /// <param name="parameterName">参数名称。</param>
         /// <param name="value">参数值。</param>
         /// <param name="size">参数值的大小。</param>
-        /// <param name="dbType">排 <see cref="DbType"/> 参数。</param>
-        /// <returns>参数,该参数使用给定参数创建。</returns>
+        /// <param name="dbType">参数的 <see cref="DbType"/>。</param>
+        /// <returns>使用给定参数创建的参数对象。</returns>
         public static IDbDataParameter CreateParameter<T>(this IDbCommand command, ParameterDirection direction, string parameterName, T? value, int? size = null, DbType? dbType = null)
         {
-            //价值类型不应有框框。 见:
+            // 值类型不应发生装箱。请参阅：
             //http://stackoverflow.com/questions/8823239/comparing-a-generic-against-null-that-could-be-a-value-or-reference-type
             var parameter = command.CreateParameter();
             parameter.ParameterName = parameterName;
@@ -99,29 +99,29 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// 创建并添加新的 SQL 参数到命令中。
+        /// 创建新的 SQL 参数，并将其添加到命令中。
         /// </summary>
-        /// <typeparam name="T">参数的类型。</typeparam>
-        /// <param name="command">创建参数要使用的命令。</param>
-        /// <param name="parameterName">参数的名称。</param>
+        /// <typeparam name="T">参数类型。</typeparam>
+        /// <param name="command">用于创建参数的命令。</param>
+        /// <param name="parameterName">参数名称。</param>
         /// <param name="value">参数值。</param>
-        /// <param name="direction">参数的方向。</param>
+        /// <param name="direction">参数方向。</param>
         /// <param name="size">参数值的大小。</param>
-        /// <param name="dbType">排 <see cref="DbType"/> 参数。</param>
+        /// <param name="dbType">参数的 <see cref="DbType"/>。</param>
         public static void AddParameter<T>(this IDbCommand command, string parameterName, T? value, ParameterDirection direction = ParameterDirection.Input, int? size = null, DbType? dbType = null)
         {
             command.Parameters.Add(command.CreateParameter(direction, parameterName, value, size, dbType));
         }
 
         /// <summary>
-        /// 如果不是 <see cref="System.DBNull"/>, <em>默认(电视)</em> ,则返回一个数值。
+        /// 如果值不为 <see cref="System.DBNull"/>，则返回该值；否则返回 <em>default(TValue)</em>。
         /// </summary>
-        /// <typeparam name="TValue">请求值的类型。</typeparam>
-        /// <param name="record">从记录中检索值。</param>
+        /// <typeparam name="TValue">请求的值的类型。</typeparam>
+        /// <param name="record">从中获取值的记录。</param>
         /// <param name="fieldName">要检索的字段名称。</param>
-        /// <param name="default">如果定值为 <see cref="System.DBNull"/>,则默认值。</param>
-        /// <returns>要么给定值,要么请求类型中的默认值。</returns>
-        /// <remarks>如果给定 <see paramref="fieldName"/> 不存在, 此函数将丢弃 。</remarks>
+        /// <param name="default">该位置的值为 <see cref="System.DBNull"/> 时使用的默认值。</param>
+        /// <returns>给定的值，或所请求类型的默认值。</returns>
+        /// <remarks>如果给定的 <see paramref="fieldName"/> 不存在，则此函数抛出异常。</remarks>
         public static TValue? GetValueOrDefault<TValue>(this IDataRecord record, string fieldName, TValue? @default = default)
         {
 
@@ -136,16 +136,16 @@ namespace Orleans.Tests.SqlUtils
             }
         }
         /// <summary>
-        /// 如果不是 <see cref="System.DBNull"/>、 <em>默认值</em> ,则返回数值。
+        /// 如果值不为 <see cref="System.DBNull"/>，则返回该值；否则返回 <em>default</em>。
         /// </summary>
-        /// <param name="record">从记录中检索值。</param>
+        /// <param name="record">从中获取值的记录。</param>
         /// <param name="fieldName">要检索的字段名称。</param>
-        /// <param name="default">如果定值为 <see cref="System.DBNull"/>,则默认值。</param>
-        /// <returns>要么给定值,要么 <see cref="System.DateTime"/>的默认值?</returns>
+        /// <param name="default">该位置的值为 <see cref="System.DBNull"/> 时使用的默认值。</param>
+        /// <returns>给定的值，或 <see cref="System.DateTime"/>? 的默认值。</returns>
         /// <exception cref="DataException"/>
-        /// <remarks>在连接器推断出不可取的类型时,需要这种明确功能。
-        /// 这里的例子就是 Npgsql.NodaTime,它使 Npgsql 返回 Noda 类型,因此 Orleans 无法
-        /// 因为它期望 .NET <see cref="System.DateTime"/>。如果给定 <see paramref="fieldName"/> 不存在, 此函数会丢弃 。</remarks>
+        /// <remarks>当连接器推断出不符合预期的类型时，需要这样的显式函数。
+        /// 例如，Npgsql.NodaTime 会使 Npgsql 返回 Noda 类型，导致 Orleans 无法
+        /// 使用该值，因为它期望 .NET <see cref="System.DateTime"/>。如果给定的 <see paramref="fieldName"/> 不存在，则此函数抛出异常。</remarks>
         public static DateTime? GetDateTimeValueOrDefault(this IDataRecord record, string fieldName, DateTime? @default = default)
         {
             try
@@ -160,15 +160,15 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// 如果不是 <see cref="System.DBNull"/>, <em>默认(电视)</em> ,则返回一个数值。
+        /// 如果值不为 <see cref="System.DBNull"/>，则返回该值；否则返回 <em>default(TValue)</em>。
         /// </summary>
-        /// <typeparam name="TValue">请求值的类型。</typeparam>
-        /// <param name="record">从记录中检索值。</param>
+        /// <typeparam name="TValue">请求的值的类型。</typeparam>
+        /// <param name="record">从中获取值的记录。</param>
         /// <param name="fieldName">要检索的字段名称。</param>
-        /// <param name="default">如果定值为 <see cref="System.DBNull"/>,则默认值。</param>
-        /// <returns>要么给定值,要么请求类型中的默认值。</returns>
+        /// <param name="default">该位置的值为 <see cref="System.DBNull"/> 时使用的默认值。</param>
+        /// <returns>给定的值，或所请求类型的默认值。</returns>
         /// <exception cref="DataException"/>
-        /// <remarks>如果给定 <see paramref="fieldName"/> 不存在, 此函数将丢弃 。</remarks>
+        /// <remarks>如果给定的 <see paramref="fieldName"/> 不存在，则此函数抛出异常。</remarks>
         public static async Task<TValue?> GetValueOrDefaultAsync<TValue>(this DbDataReader record, string fieldName, TValue? @default = default)
         {
             try
@@ -186,13 +186,13 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// 如果不是 <see cref="System.DBNull"/>, <em>默认(电视)</em> ,则返回一个数值。
+        /// 如果值不为 <see cref="System.DBNull"/>，则返回该值；否则返回 <em>default(TValue)</em>。
         /// </summary>
-        /// <typeparam name="TValue">请求值的类型。</typeparam>
-        /// <param name="record">从记录中检索值。</param>
-        /// <param name="ordinal">字段名称的正则。</param>
-        /// <param name="default">如果定值为 <see cref="System.DBNull"/>,则默认值。</param>
-        /// <returns>要么给定值,要么请求类型中的默认值。</returns>
+        /// <typeparam name="TValue">请求的值的类型。</typeparam>
+        /// <param name="record">从中获取值的记录。</param>
+        /// <param name="ordinal">字段名称对应的序号。</param>
+        /// <param name="default">该位置的值为 <see cref="System.DBNull"/> 时使用的默认值。</param>
+        /// <returns>给定的值，或所请求类型的默认值。</returns>
         /// <exception cref="IndexOutOfRangeException"/>                
         public static TValue? GetValueOrDefault<TValue>(this IDataRecord record, int ordinal, TValue? @default = default)
         {
@@ -201,13 +201,13 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// 如果不是 <see cref="System.DBNull"/>, <em>默认(电视)</em> ,则返回一个数值。
+        /// 如果值不为 <see cref="System.DBNull"/>，则返回该值；否则返回 <em>default(TValue)</em>。
         /// </summary>
-        /// <typeparam name="TValue">请求值的类型。</typeparam>
-        /// <param name="record">从记录中检索值。</param>
-        /// <param name="ordinal">字段名称的正则。</param>
-        /// <param name="default">如果定值为 <see cref="System.DBNull"/>,则默认值。</param>
-        /// <returns>要么给定值,要么请求类型中的默认值。</returns>
+        /// <typeparam name="TValue">请求的值的类型。</typeparam>
+        /// <param name="record">从中获取值的记录。</param>
+        /// <param name="ordinal">字段名称对应的序号。</param>
+        /// <param name="default">该位置的值为 <see cref="System.DBNull"/> 时使用的默认值。</param>
+        /// <returns>给定的值，或所请求类型的默认值。</returns>
         /// <exception cref="IndexOutOfRangeException"/>                
         public static async Task<TValue?> GetValueOrDefaultAsync<TValue>(this DbDataReader record, int ordinal, TValue? @default = default)
         {
@@ -217,14 +217,14 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// 返回给定 <see paramref="fieldName"/>的值。
+        /// 返回指定 <see paramref="fieldName"/> 对应的值。
         /// </summary>
-        /// <typeparam name="TValue">要检索的值类型。</typeparam>
-        /// <param name="record">从记录中检索值。</param>
-        /// <param name="fieldName">字段的名称。</param>
-        /// <returns>指定字段中数值的 <see paramref="fieldName"/>.</returns>
+        /// <typeparam name="TValue">要检索的值的类型。</typeparam>
+        /// <param name="record">从中获取值的记录。</param>
+        /// <param name="fieldName">字段名称。</param>
+        /// <returns>由 <see paramref="fieldName"/> 指定的字段中的值。</returns>
         /// <exception cref="DataException"/>
-        /// <remarks>如果给定 <see paramref="fieldName"/> 不存在, 此函数将丢弃 。</remarks>        
+        /// <remarks>如果给定的 <see paramref="fieldName"/> 不存在，则此函数抛出异常。</remarks>
         public static TValue GetValue<TValue>(this IDataRecord record, string fieldName)
         {
             try
@@ -238,15 +238,15 @@ namespace Orleans.Tests.SqlUtils
             }
         }
         /// <summary>
-        /// 回返a <see cref="System.DateTime"/> 给定值的数值 <see paramref="fieldName"/>.
+        /// 返回指定 <see cref="System.DateTime"/> 类型的值，其字段由 <see paramref="fieldName"/> 指定。
         /// </summary>
-        /// <param name="record">从记录中检索值。</param>
-        /// <param name="fieldName">字段的名称。</param>
-        /// <returns>DateTime 特定字段中的值。</returns>
+        /// <param name="record">从中获取值的记录。</param>
+        /// <param name="fieldName">字段名称。</param>
+        /// <returns>给定字段中的 DateTime 值。</returns>
         /// <exception cref="DataException"/>
-        /// <remarks>在连接器推断出不可取的类型时,需要这种明确功能。
-        /// 这里的例子就是 Npgsql.NodaTime,它使 Npgsql 返回 Noda 类型,因此 Orleans 无法
-        /// 因为它期望 .NET <see cref="System.DateTime"/>。如果给定 <see paramref="fieldName"/> 不存在, 此函数会丢弃 。</remarks>
+        /// <remarks>当连接器推断出不符合预期的类型时，需要这样的显式函数。
+        /// 例如，Npgsql.NodaTime 会使 Npgsql 返回 Noda 类型，导致 Orleans 无法
+        /// 使用该值，因为它期望 .NET <see cref="System.DateTime"/>。如果给定的 <see paramref="fieldName"/> 不存在，则此函数抛出异常。</remarks>
         public static DateTime GetDateTimeValue(this IDataRecord record, string fieldName)
         {
             try
@@ -261,12 +261,12 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// 使用变量文化将给定 <see paramref="fieldName"/> 的值转换为内置。
+        /// 使用固定区域性（invariant culture）将指定 <see paramref="fieldName"/> 对应的值转换为 int。
         /// </summary>
-        /// <param name="record">从记录中检索值。</param>
-        /// <param name="fieldName">字段的名称。</param>
+        /// <param name="record">从中获取值的记录。</param>
+        /// <param name="fieldName">字段名称。</param>
         /// <exception cref="DataException"/>
-        /// <returns>指定字段中的整数值 <see paramref="fieldName"/>.</returns>
+        /// <returns>由 <see paramref="fieldName"/> 指定的字段中的整数值。</returns>
         public static int GetInt32(this IDataRecord record, string fieldName)
         {
             try
@@ -281,18 +281,18 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// 返回给定 <see paramref="fieldName"/> 的值,以其长者为准。
+        /// 将指定 <see paramref="fieldName"/> 对应的值作为 long 返回。
         /// </summary>
-        /// <param name="record">从记录中检索值。</param>
-        /// <param name="fieldName">字段的名称。</param>
+        /// <param name="record">从中获取值的记录。</param>
+        /// <param name="fieldName">字段名称。</param>
         /// <exception cref="DataException"/>
-        /// <returns>指定字段中的整数值 <see paramref="fieldName"/>.</returns>
+        /// <returns>由 <see paramref="fieldName"/> 指定的字段中的整数值。</returns>
         public static long GetInt64(this IDataRecord record, string fieldName)
         {
             try
             {
                 var ordinal = record.GetOrdinal(fieldName);
-                // 使用旧的原制式时原始铸造。 这里用于保持后向兼容性
+                // 使用旧版架构时的原始强制类型转换。为保持向后兼容性而保留。
                 return record.GetFieldType(ordinal) == typeof(int) ? record.GetInt32(ordinal) : record.GetInt64(ordinal);
             }
             catch (IndexOutOfRangeException e)
@@ -302,13 +302,13 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// 使用变量文化将给定的 <see paramref="fieldName"/> 值转换为无效内注,
-        /// 返回 <see cref="DBNull.Value"/>无效。
+        /// 使用固定区域性（invariant culture）将指定 <see paramref="fieldName"/> 对应的值转换为可空 int，
+        /// 对于 <see cref="DBNull.Value"/> 返回 null。
         /// </summary>
-        /// <param name="record">从记录中检索值。</param>
-        /// <param name="fieldName">字段的名称。</param>
+        /// <param name="record">从中获取值的记录。</param>
+        /// <param name="fieldName">字段名称。</param>
         /// <exception cref="DataException"/>
-        /// <returns>指定字段中以 <see paramref="fieldName"/>.</returns>
+        /// <returns>由 <see paramref="fieldName"/> 指定的字段中的可空 int 值。</returns>
         public static int? GetNullableInt32(this IDataRecord record, string fieldName)
         {
             try
@@ -327,15 +327,15 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// 返回给定 <see paramref="fieldName"/>的值。
+        /// 返回指定 <see paramref="fieldName"/> 对应的值。
         /// </summary>
-        /// <typeparam name="TValue">要检索的值类型。</typeparam>
-        /// <param name="record">从记录中检索值。</param>
-        /// <param name="fieldName">字段的名称。</param>
-        /// <param name="cancellationToken">取消牌。 默认为 <see cref="CancellationToken.None"/>。</param>
-        /// <returns>指定字段中数值的 <see paramref="fieldName"/>.</returns>
+        /// <typeparam name="TValue">要检索的值的类型。</typeparam>
+        /// <param name="record">从中获取值的记录。</param>
+        /// <param name="fieldName">字段名称。</param>
+        /// <param name="cancellationToken">取消令牌。默认为 <see cref="CancellationToken.None"/>。</param>
+        /// <returns>由 <see paramref="fieldName"/> 指定的字段中的值。</returns>
         /// <exception cref="DataException"/>
-        /// <remarks>如果给定 <see paramref="fieldName"/> 不存在, 此函数将丢弃 。</remarks>        
+        /// <remarks>如果给定的 <see paramref="fieldName"/> 不存在，则此函数抛出异常。</remarks>
         public static async Task<TValue> GetValueAsync<TValue>(this DbDataReader record, string fieldName, CancellationToken cancellationToken = default)
         {
             try
@@ -357,8 +357,8 @@ namespace Orleans.Tests.SqlUtils
         /// <typeparam name="T">参数的类型。</typeparam>
         /// <param name="command">命令。</param>
         /// <param name="parameters">参数。</param>
-        /// <param name="nameMap">映射地图中定义的另外一个属性名称。</param>
-        /// <remarks>不支持当前收藏参数。 不缓存反射结果 。</remarks>
+        /// <param name="nameMap">将给定属性名称映射到映射中定义的另一个名称。</param>
+        /// <remarks>目前不支持集合参数。不缓存反射结果。</remarks>
         public static void ReflectionParameterProvider<T>(this IDbCommand command, T? parameters, IReadOnlyDictionary<string, string>? nameMap = null)
         {
             if (!EqualityComparer<T>.Default.Equals(parameters, default))
@@ -381,17 +381,17 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// 从查询结果中创建给定类型对象。
+        /// 根据查询结果创建给定类型的对象。
         /// </summary>
-        /// <typeparam name="TResult">要构建的类型。</typeparam>
-        /// <param name="record">读取结果的记录。</param>
-        /// <returns>类型对象 <see typeparam="TResult"/>.</returns>
-        /// <remarks>不支持 <see typeparam="TResult"/> 类型 <em>动态动态</em>.</remarks>
+        /// <typeparam name="TResult">要构造的类型。</typeparam>
+        /// <param name="record">用于读取结果的记录。</param>
+        /// <returns><see typeparam="TResult"/> 类型的对象。</returns>
+        /// <remarks>不支持类型为 <em>dynamic</em> 的 <see typeparam="TResult"/>。</remarks>
         public static TResult ReflectionSelector<TResult>(this IDataRecord record)
         {
-            //这样可以用来框框价值类型。
-            //否则 property.SetValue()()将拥有一块支架的复制件,这样
-            //获取回收的垃圾。 因此无法设置原始的支架值 。            
+            // 这样做是为了对值类型进行装箱。
+            // 否则，property.SetValue() 会操作结构体的副本，而该副本随后会被垃圾回收。
+            // 因此无法设置原始结构体的值。
             object obj = Activator.CreateInstance<TResult>()!;
             var properties = obj.GetType().GetProperties();
             for (int i = 0; i < properties.Length; ++i)

@@ -4,49 +4,49 @@ using System.Threading.Tasks;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// 提供关于持久工作执行的背景资料。
+/// 提供持久化作业执行的上下文信息。
 /// </summary>
 public interface IJobRunContext
 {
     /// <summary>
-    /// 执行持久工作。
+    /// 获取正在执行的持久化作业。
     /// </summary>
     DurableJob Job { get; }
 
     /// <summary>
-    /// 获取此执行运行的唯一身份标识符。每次任务被卸排时都会产生新的身份标识符
-    /// 并且不保存于每条线或散装调任之间。
+    /// 获取本次执行实例的唯一标识符。每次作业出队时均生成新标识符，
+    /// 不会在重试或分片重新分配时保留。
     /// </summary>
     string RunId { get; }
 
     /// <summary>
-    /// 获得这项工作被卸排执行的次数,包括重试。
+    /// 获取此作业为执行而出队的次数，包括重试。
     /// </summary>
     int DequeueCount { get; }
 }
 
 /// <summary>
-/// 代表持久工作的执行背景。
+/// 表示持久化作业的执行上下文。
 /// </summary>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Jobs.JobRunContext")]
 internal class JobRunContext : IJobRunContext
 {
     /// <summary>
-    /// 执行持久工作。
+    /// 获取正在执行的持久化作业。
     /// </summary>
     [Id(0)]
     public DurableJob Job { get; }
 
     /// <summary>
-    /// 获取此执行运行的唯一身份标识符。每次任务被卸排时都会产生新的身份标识符
-    /// 并且不保存于每条线或散装调任之间。
+    /// 获取本次执行实例的唯一标识符。每次作业出队时均生成新标识符，
+    /// 不会在重试或分片重新分配时保留。
     /// </summary>
     [Id(1)]
     public string RunId { get; }
 
     /// <summary>
-    /// 获得这项工作被卸排执行的次数,包括重试。
+    /// 获取此作业为执行而出队的次数，包括重试。
     /// </summary>
     [Id(2)]
     public int DequeueCount { get; }
@@ -54,9 +54,9 @@ internal class JobRunContext : IJobRunContext
     /// <summary>
     /// 初始化 <see cref="JobRunContext"/> 类的新实例。
     /// </summary>
-    /// <param name="job">持久执行的工作。</param>
-    /// <param name="runId">此执行运行的唯一标识符。</param>
-    /// <param name="retryCount">这项工作被取消排队的次数,包括重试次数。</param>
+    /// <param name="job">要执行的持久化作业。</param>
+    /// <param name="runId">本次执行实例的唯一标识符。</param>
+    /// <param name="retryCount">此作业的出队次数，包括重试。</param>
     public JobRunContext(DurableJob job, string runId, int retryCount)
     {
         Job = job;
@@ -66,30 +66,30 @@ internal class JobRunContext : IJobRunContext
 }
 
 /// <summary>
-/// 定义处理持久任务执行的界面。
-/// Grains 实施此接口以接收和处理持久工作。
+/// 定义处理持久化作业执行的接口。
+/// Grain 实现此接口以接收并处理持久化作业。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 实施此接口的Grains 可针对长期工作。
-/// 当工作达到规定时间时,即援用 <see cref="ExecuteJobAsync"/> 方法。
+/// 实现此接口的 Grain 可以成为持久化作业的目标。
+/// 到达作业到期时间时调用 <see cref="ExecuteJobAsync"/> 方法。
 /// </para>
 /// <example>
-/// 以下示例表明 grain 执行 <see cref="IDurableJobHandler"/>:
+/// 以下示例展示实现 <see cref="IDurableJobHandler"/> 的 Grain：
 /// <code>
 /// public class MyGrain : Grain, IDurableJobHandler
 /// {
 ///     public Task ExecuteJobAsync(IJobRunContext context, CancellationToken attemptCancellationToken)
 ///     {
-///         // 处理持久作业
+///         // Process the durable job
 ///         var jobName = context.Job.Name;
 ///         var dueTime = context.Job.DueTime;
 ///
-///         // 此令牌用于请求取消本次执行，例如在 Silo 关闭时。
-///         // 持久作业仍可在另一台主机上重试。
+///         // This token requests cancellation of this execution attempt, for example during silo shutdown.
+///         // The durable job remains eligible for another attempt on another host.
 ///         attemptCancellationToken.ThrowIfCancellationRequested();
 ///
-///         // 在此执行作业逻辑
+///         // Perform job logic here
 ///
 ///         return Task.CompletedTask;
 ///     }
@@ -100,27 +100,27 @@ internal class JobRunContext : IJobRunContext
 public interface IDurableJobHandler
 {
     /// <summary>
-    /// 以所提供的背景执行持久工作。
+    /// 使用提供的上下文执行持久化作业。
     /// </summary>
-    /// <param name="context">包含持久工作执行信息的背景。</param>
+    /// <param name="context">包含持久化作业执行信息的上下文。</param>
     /// <param name="attemptCancellationToken">
-    /// 合作要求取消目前执行企图的象征。
-    /// 取消企图并不取消持久工作本身;该工作仍有资格再次尝试。
+    /// 用于协作式请求取消当前执行尝试的令牌。
+    /// 取消执行尝试并不取消持久化作业本身；该作业仍可再次尝试执行。
     /// </param>
-    /// <returns>代表着无休止的 工作执行操作的任务</returns>
+    /// <returns>表示异步作业执行操作的任务。</returns>
     /// <remarks>
     /// <para>
-    /// 使用这种方法的 Orleans 工作达到适当时间后,可持久就业基础设施。
-    /// 执行应处理工作执行逻辑,并可以使用来自 <paramref name="context"/>
-    /// 获取工作元数据、删除重试逻辑的计数和其他执行细节。
+    /// 到达作业到期时间时，Orleans 持久化作业基础设施调用此方法。
+    /// 实现应负责处理作业执行逻辑，并可利用 <paramref name="context"/> 中的信息
+    /// 访问作业元数据、用于重试逻辑的出队计数及其他执行细节。
     /// </para>
     /// <para>
-    /// 如果该方法丢弃了例外, 并配置重试策略, 可以重新尝试该工作 。
-    /// <see cref="IJobRunContext.DequeueCount"/> 属性可用于确定是否尝试重试。
+    /// 如果方法抛出异常且已配置重试策略，则可能重试作业。
+    /// 可使用 <see cref="IJobRunContext.DequeueCount"/> 属性判断本次是否为重试尝试。
     /// </para>
     /// <para>
-    /// 要求通过 <see cref="ILocalDurableJobManager.CancelAsync"/>持久取消工作。
-    /// 这项请求防止了今后企图,但并未强行制止已经进行中的企图。
+    /// 通过 <see cref="ILocalDurableJobManager.CancelAsync"/> 请求取消持久化作业。
+    /// 此请求阻止将来的执行尝试，但不会强制停止已在运行的尝试。
     /// </para>
     /// </remarks>
     Task ExecuteJobAsync(IJobRunContext context, CancellationToken attemptCancellationToken);

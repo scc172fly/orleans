@@ -393,14 +393,14 @@ public sealed class InboxIdentityTests : MessagingBehaviorTestBase
 
         await OnTurnAsync(rig.Context, () =>
         {
-            // 处理过的命令:接受取代先前的死信。
+            // 由处理程序处理的命令：接受记录替换之前的死信。
             InboxTestAccess.Emit(rig.Inbox, DeadLettered());
             Assert.Contains(key, rig.Inbox.DeadLetterState.Keys);
             InboxTestAccess.Emit(rig.Inbox, new InboxCommand.Accept(message));
             Assert.DoesNotContain(key, rig.Inbox.DeadLetterState.Keys);
             InboxTestAccess.Emit(rig.Inbox, new InboxCommand.Complete(key, message.SentAt, null, null));
 
-            // 由水槽拥有的指挥系统完成后,没有接受。
+            // 由消息接收器拥有的命令，无须接受记录即可完成。
             InboxTestAccess.Emit(rig.Inbox, DeadLettered());
             InboxTestAccess.Emit(rig.Inbox, new InboxCommand.Complete(key, message.SentAt, null, null));
             Assert.DoesNotContain(key, rig.Inbox.DeadLetterState.Keys);

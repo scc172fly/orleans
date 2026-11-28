@@ -173,7 +173,7 @@ public sealed class TaggedUnionCompositionTests : IDisposable
         codec.WriteField(ref writer, 0, typeof(TUnion), value);
         var unionIds = writerSession.ReferencedObjects.CurrentReferenceId;
 
-        // 与独立的案件编码器相比:确切地说,一个身份是信封的。
+        // 独立与分支编解码器进行比较：恰好有一个 ID 属于封装层。
         using var caseSession = pool.GetSession();
         var caseBuffer = new ArrayBufferWriter<byte>();
         var caseWriter = Writer.Create(caseBuffer, caseSession);
@@ -225,7 +225,7 @@ public sealed class TaggedUnionCompositionTests : IDisposable
         writer.WriteStartUnion(0, typeof(TUnion), typeof(TUnion));
         provider.GetCodec<TCase>().WriteField(ref writer, caseId, typeof(TCase), payload);
         var hidden = new List<int> { 13, 17 };
-        // 阅读了案件后消耗了额外内容,可以拥有信封外使用的参考资料。
+        // 读取分支后还会消耗额外内容，这些内容可以拥有封装层外部使用的引用。
         listCodec.WriteField(ref writer, 1, typeof(List<int>), hidden);
         writer.WriteEndObject();
         listCodec.WriteField(ref writer, 1, typeof(List<int>), hidden);
@@ -319,7 +319,7 @@ public sealed class TaggedUnionCompositionTests : IDisposable
         Assert.NotSame(value, rightMutable);
         Assert.NotSame(items, rightMutable.Item);
         Assert.Equal(new[] { 7, 11 }, rightMutable.Item);
-        // 与第一起案件相同的通用论点倒塌,但绝不能打破复制边界。
+        // 相同的泛型实参会归并至第一个分支，但不得因此合并复制边界。
         var equalInput = CreateLeft<List<int>, List<int>>(value);
         var equalArguments = Copy(new List<Either<List<int>, List<int>>> { equalInput, equalInput });
         var equalCase = Assert.IsType<Value<List<int>>>(equalArguments[0].Value);
@@ -444,7 +444,7 @@ public sealed class TaggedUnionCompositionTests : IDisposable
         Assert.Equal(new[] { 13, 17 }, result.Trailing);
         Assert.Same(result.Trailing, result.TrailingAlias);
 
-        // 旧的读者跳过转换器支持的联盟,但后田仍参考其字符串有效载荷。
+        // 旧版 reader 会跳过基于转换器的联合类型，但后续字段仍引用其字符串负载。
         var serializer = _services.GetRequiredService<Serializer>();
         var skipped = serializer.Deserialize<CustomCopyHolderWithoutValue>(serializer.SerializeToArray(input))!;
         Assert.Equal(3, skipped.Items.Count);
@@ -513,7 +513,7 @@ public sealed class TaggedUnionCompositionTests : IDisposable
         _ = ((ITaggedUnionCopyProxy)proxy).Send(root, new GraphBox { Value = root }, [root], "shallow", immutable, 42, 17);
 
         AssertRequestPolicy(request!, root, immutable, 117);
-        // 产生的可被援引的复印机是方法参数分类的另一个消费者,不同于代理。
+        // 生成的可调用对象复制器是方法参数分类的另一个使用者，与代理不同。
         var copiedRequest = Copy(request!);
         AssertRequestPolicy(copiedRequest, Assert.IsType<GraphNode>(Assert.IsType<GraphUnion>(request!.GetArgument(0)).Value), immutable, 217);
         Assert.NotSame(request, copiedRequest);
@@ -643,7 +643,7 @@ public sealed record MutableContact : Contact
     [Id(0)] public List<int> Values { get; set; } = [];
 }
 
-// no GenerateSerializer:尽管这两个案例都很浅,但打电话者必须尊重注册复印机。
+// 未使用 GenerateSerializer：即使两个分支都可浅复制，调用方也必须遵循已注册的复制器。
 public union CustomNumber(int, string);
 
 [RegisterCopier]

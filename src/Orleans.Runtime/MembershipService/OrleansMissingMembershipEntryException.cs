@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime.MembershipService
 {
     /// <summary>
-    /// 例外之处用来表明,预计会出现分组成员进入的情况。
+    /// 表示预期存在的集群成员资格条目的异常。
     /// </summary>
     /// <seealso cref="Orleans.Runtime.OrleansException" />
     [Serializable]
@@ -20,20 +20,20 @@ namespace Orleans.Runtime.MembershipService
         /// <summary>
         /// 初始化 <see cref="OrleansMissingMembershipEntryException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">电文。</param>
+        /// <param name="message">消息。</param>
         public OrleansMissingMembershipEntryException(string message) : base(message) { }
 
         /// <summary>
         /// 初始化 <see cref="OrleansMissingMembershipEntryException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">电文。</param>
-        /// <param name="innerException">内在的例外</param>
+        /// <param name="message">消息。</param>
+        /// <param name="innerException">内部异常。</param>
         public OrleansMissingMembershipEntryException(string message, Exception innerException) : base(message, innerException) { }
 
         /// <summary>
         /// 初始化 <see cref="OrleansMissingMembershipEntryException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">序列号信息。</param>
+        /// <param name="info">序列化信息。</param>
         /// <param name="context">上下文。</param>
         [Obsolete]
         private OrleansMissingMembershipEntryException(SerializationInfo info, StreamingContext context)

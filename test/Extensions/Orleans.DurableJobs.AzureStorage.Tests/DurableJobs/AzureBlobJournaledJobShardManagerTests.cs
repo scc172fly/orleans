@@ -273,7 +273,7 @@ public sealed class AzureBlobJournaledJobShardManagerTests(AzureBlobJournaledJob
             }
             else
             {
-                // 拥有者元数据已经改变,但两个存储承诺仍然被封存。
+                // 所有者元数据已发生变化，但两个存储提交仍被阻塞。
                 firstGate.Resume.SetResult();
                 await Assert.ThrowsAsync<InconsistentStateException>(() => firstClaim.WaitAsync(token));
                 lastGate.Resume.SetResult();
@@ -773,7 +773,7 @@ public sealed class AzureBlobJournaledJobShardManagerTestFixture : IJobShardMana
             }
             catch (OperationCanceledException) when (TestContext.Current.CancellationToken.IsCancellationRequested)
             {
-                // 保留在受约束的清理后取消原试验。
+                // 在有界清理后保留原始测试的取消状态。
             }
 
             await base.DisposeAsync();
@@ -783,7 +783,7 @@ public sealed class AzureBlobJournaledJobShardManagerTestFixture : IJobShardMana
             }
             catch (OperationCanceledException) when (TestContext.Current.CancellationToken.IsCancellationRequested)
             {
-                // 保留在受约束的清理后取消原试验。
+                // 在有界清理后保留原始测试的取消状态。
             }
         }
     }

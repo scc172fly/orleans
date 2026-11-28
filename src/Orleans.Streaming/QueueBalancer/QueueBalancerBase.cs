@@ -13,42 +13,42 @@ using Orleans.Runtime.Internal;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// StreamQueueBalancer的基准类
+    /// StreamQueueBalancer 的基类。
     /// </summary>
     public abstract partial class QueueBalancerBase : IStreamQueueBalancer
     {
         private readonly IAsyncEnumerable<ClusterMembershipSnapshot> clusterMembershipUpdates;
         private readonly List<IStreamQueueBalanceListener> queueBalanceListeners;
         private readonly CancellationTokenSource cts;
-        private Task _listenForClusterChangesTask = null!; // 初始化时开始。
+        private Task _listenForClusterChangesTask = null!; // 在 Initialize 中初始化。
 
         /// <summary>
-        /// 获取当此平衡器关闭时所信号的取消符。
+        /// 获取此均衡器关闭时发出信号的取消令牌。
         /// </summary>
         protected CancellationToken Cancellation => this.cts.Token;
 
         /// <summary>
-        /// 获取本地 silo的地址。
+        /// 获取本地 Silo 的地址。
         /// </summary>
         protected SiloAddress SiloAddress { get; }
 
         /// <summary>
-        /// 得到伐木者。
+        /// 获取日志记录器。
         /// </summary>
         protected ILogger Logger { get; }
 
         /// <summary>
         /// 初始化 <see cref="QueueBalancerBase"/> 类的新实例。
         /// </summary>
-        /// <param name="sp">服务供应商。</param>
-        /// <param name="logger">日志器。</param>
+        /// <param name="sp">服务提供程序。</param>
+        /// <param name="logger">日志记录器。</param>
         protected QueueBalancerBase(IServiceProvider sp, ILogger logger)
             : this(sp.GetRequiredService<IClusterMembershipService>(), sp.GetRequiredService<ILocalSiloDetails>(), logger)
         {
         }
 
         /// <summary>
-        /// 应在 IAsyncEnumerable 一旦释放后成为主建建筑工
+        /// IAsyncEnumerable 发布后，此处应使用主构造函数。
         /// </summary>
         private QueueBalancerBase(IClusterMembershipService clusterMembership, ILocalSiloDetails localSiloDetails, ILogger logger)
         {
@@ -112,16 +112,16 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 通知订户队列分布已改变。
+        /// 通知订阅者队列分布发生变化。
         /// </summary>
-        /// <returns>一项任务,代表通知操作。</returns>
+        /// <returns>表示通知操作的任务。</returns>
         protected Task NotifyListeners()
         {
             if (this.Cancellation.IsCancellationRequested) return Task.CompletedTask;
             List<IStreamQueueBalanceListener> queueBalanceListenersCopy;
             lock (queueBalanceListeners)
             {
-                queueBalanceListenersCopy = queueBalanceListeners.ToList(); // 复制
+                queueBalanceListenersCopy = queueBalanceListeners.ToList(); // 创建副本。
             }
             return Task.WhenAll(queueBalanceListenersCopy.Select(listener => listener.QueueDistributionChangeNotification()));
         }
@@ -134,12 +134,12 @@ namespace Orleans.Streams
             {
                 try
                 {
-                    // 获取活跃成员。
+                    // 获取活动成员。
                     var update = new HashSet<SiloAddress>(membershipSnapshot.Members.Values
                         .Where(member => member.Status == SiloStatus.Active)
                         .Select(member => member.SiloAddress));
 
-                    // 如果活动列表已更改, 请跟踪新列表并通知 。
+                    // 如果活动成员列表发生变化，则跟踪新列表并发出通知。
                     if (!current.SetEquals(update))
                     {
                         current = update;
@@ -154,9 +154,9 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 处理对活动 silos的一组修改。
+        /// 处理活动 Silo 集合的变化。
         /// </summary>
-        /// <param name="activeSilos">活动 silos的地址。</param>
+        /// <param name="activeSilos">活动 Silo 的地址集合。</param>
         protected abstract void OnClusterMembershipChange(HashSet<SiloAddress> activeSilos);
 
         [LoggerMessage(

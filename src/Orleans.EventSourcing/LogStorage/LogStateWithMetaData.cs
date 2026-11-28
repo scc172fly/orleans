@@ -5,16 +5,16 @@ using System.Collections.Generic;
 namespace Orleans.EventSourcing.LogStorage
 {
     /// <summary>
-    /// 扩展的类 grain 状态与元数据版本的元数据,因此 a grain 具有日志一致性
-    /// 使用标准的储存提供者。
+    /// 使用版本元数据扩展 Grain 状态的类，使具有日志视图一致性的 Grain
+    /// 可以使用标准存储提供程序。
     /// </summary>
-    /// <typeparam name="TEntry">日志条目使用的类型</typeparam>
+    /// <typeparam name="TEntry">日志条目使用的类型。</typeparam>
     [Serializable]
     [GenerateSerializer]
     public sealed class LogStateWithMetaDataAndETag<TEntry> : IGrainState<LogStateWithMetaData<TEntry>> where TEntry : class
     {
         /// <summary>
-        /// 获取和设置 StateAndMetaData
+        /// 获取或设置 StateAndMetaData。
         /// </summary>
         [Id(0)]
         public LogStateWithMetaData<TEntry> StateAndMetaData
@@ -24,7 +24,7 @@ namespace Orleans.EventSourcing.LogStorage
         }
 
         /// <summary>
-        /// 获取和设置标签
+        /// 获取或设置 Etag。
         /// </summary>
         [Id(1)]
         public string? ETag { get; set; }
@@ -43,7 +43,7 @@ namespace Orleans.EventSourcing.LogStorage
         }
 
         /// <summary>
-        /// 初始化 GrainStateWithMetaDataAndETag 类的新实例
+        /// 初始化 GrainStateWithMetaDataAndETag 类的新实例。
         /// </summary>
         public LogStateWithMetaDataAndETag()
         {
@@ -51,7 +51,7 @@ namespace Orleans.EventSourcing.LogStorage
         }
 
         /// <summary>
-        /// 将当前 GrainStateWithMetaDataAndETag 对象信息转换为字符串
+        /// 将当前 GrainStateWithMetaDataAndETag 对象的信息转换为字符串。
         /// </summary>
         public override string ToString()
         {
@@ -60,31 +60,31 @@ namespace Orleans.EventSourcing.LogStorage
     }
 
     /// <summary>
-    /// 包含元元元版本的扩展 grain 状态的分类,以便符合日志的 grain
-    /// 使用标准的储存提供者。
+    /// 使用版本元数据扩展 Grain 状态的类，使具有日志一致性的 Grain
+    /// 可以使用标准存储提供程序。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class LogStateWithMetaData<TEntry> where TEntry : class
     {
         /// <summary>
-        /// 日志的存储视图
+        /// 已存储的日志视图。
         /// </summary>
         [Id(0)]
         public List<TEntry> Log { get; set; }
 
         /// <summary>
-        /// 日志长度
+        /// 日志的长度。
         /// </summary>
         public int GlobalVersion { get { return Log.Count; } }
 
         /// <summary>
-        /// 用于避免重复附件的元数据。
-        /// 逻辑上, 这是一张( 字符串- >bit) 映射图, 键是复制代码
-        /// 但这张地图的缩写 简单代表一个字符串 以减少序列化/后级化间接费用
-        /// 位数由 <see cref="GetBit"/> 读取,而由 <see cref="FlipBit"/>翻转。
-        /// 写时会将位元混在一起, 这样重试逻辑可以避免两次附加条目
-        /// 重试失败的附加件时。
+        /// 用于避免重复追加的元数据。
+        /// 从逻辑上看，这是一个从字符串到位的映射，键为副本 ID。
+        /// 但为减少序列化及反序列化开销，此映射以一个简单字符串紧凑表示。
+        /// 通过 <see cref="GetBit"/> 读取位，通过 <see cref="FlipBit"/> 翻转位。
+        /// 写入时翻转位，以使重试逻辑在重试失败的追加操作时
+        /// 避免将同一条目追加两次。
         /// </summary>
         [Id(1)]
         public string WriteVector { get; set; }
@@ -99,9 +99,9 @@ namespace Orleans.EventSourcing.LogStorage
         }
 
         /// <summary>
-        /// 在 <see cref="WriteVector"/>中获取一个位数
+        /// 获取 <see cref="WriteVector"/> 中的某一位。
         /// </summary>
-        /// <param name="replica">我们希望查找位数的复制件</param>
+        /// <param name="replica">要查询其对应位的副本。</param>
         /// <returns></returns>
         public bool GetBit(string replica)
         {
@@ -109,10 +109,10 @@ namespace Orleans.EventSourcing.LogStorage
         }
 
         /// <summary>
-        /// 切换 <see cref="WriteVector"/> 中的比特之一并返回新值。
+        /// 翻转 <see cref="WriteVector"/> 中的某一位，并返回新值。
         /// </summary>
-        /// <param name="replica">复制我们想要翻转位</param>
-        /// <returns>翻转时位数的状态</returns>
+        /// <param name="replica">要翻转其对应位的副本。</param>
+        /// <returns>翻转后该位的状态。</returns>
         public bool FlipBit(string replica)
         {
             var str = WriteVector;

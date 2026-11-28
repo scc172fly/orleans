@@ -26,7 +26,7 @@ namespace Orleans.Runtime.GrainDirectory
             this.getGrainDirectoryInternal = GetGrainDirectoryPerType;
             this.resolvers = resolvers.ToArray();
 
-            // 装入所有已注册目录
+            // 加载全部已注册目录。
             var services = serviceProvider.GetGrainDirectories();
             foreach (var svc in services)
             {

@@ -119,7 +119,7 @@ public class DurableTaskStartTests
             await definition;
         });
 
-        // 提供根标识符时没有执行的识别符号, 因此以下未命名的孩子是第一个 。
+        // 显式提供的根标识符不占用执行实例的标识符，因此随后未命名的子任务为第一个。
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, response.Status);
         Assert.Equal(
             [
@@ -221,8 +221,8 @@ public class DurableTaskStartTests
             await definition.Detached("receipt");
         });
 
-        // 在不同主机上使用相同识别符的执行结果产生不同的根标识符,而提供根
-        // 每个主机都使用相同的识别符号。主机的身份会逃避它的“ / ” 。
+        // 位于不同宿主、使用相同标识符的执行实例会派生出不同的根标识符；显式提供的根
+        // 标识符在每个宿主上都相同。宿主标识中的 '/' 会被转义。
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, response.Status);
         Assert.Equal(
             [
@@ -284,8 +284,8 @@ public class DurableTaskStartTests
             handles = [.. handles, (scheduled.Id, scheduled.TargetTaskId)];
         });
 
-        // 手控器指定其主控件仓库的任务, 以及将任务存储在该手柄识别符下的主机
-        // 那个名字
+        // 句柄标识宿主存储的任务；如果宿主使用该句柄的标识符存储任务，
+        // 则句柄标识的正是该任务。
         Assert.Equal(
             [
                 (TaskId.CreateRoot("scheduled"), TaskId.CreateRoot("stored")),
@@ -335,7 +335,7 @@ public class DurableTaskStartTests
             await new RootDefinition().Detached();
         });
 
-        // 被拒绝的启动没有使用识别符号, 因此以下的分离根任务产生第一个。
+        // 被拒绝的启动未占用标识符，因此随后的分离根任务派生出第一个标识符。
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, response.Status);
         Assert.All(failures, static failure => Assert.Contains("ORLEANS0228", failure.Message, StringComparison.Ordinal));
         Assert.Equal([TaskId.CreateRoot("starter/$child-1")], context.Starts.Select(static start => start.TaskId));
@@ -352,7 +352,7 @@ public class DurableTaskStartTests
 
         var response = await RunAsync(context, async () =>
         {
-            // 代码在另一个调度器上继续,如 ConfigureAwait(假)之后,无法命令或记录操作。
+            // 在其他调度器上继续运行的代码（例如 ConfigureAwait(false) 之后的代码）无法为操作排序或记录操作。
             await Task.Factory.StartNew(
                 () =>
                 {
@@ -366,7 +366,7 @@ public class DurableTaskStartTests
             await new RootDefinition().WithId("child");
         });
 
-        // 拒绝的操作没有使用任何识别资料或发生事件。
+        // 被拒绝的操作未占用任何标识符或出现位置。
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, response.Status);
         Assert.Equal(3, failures.Count);
         Assert.All(failures, static failure => Assert.Contains("ConfigureAwait(false)", failure.Message, StringComparison.Ordinal));
@@ -389,7 +389,7 @@ public class DurableTaskStartTests
             await scheduled;
         });
 
-        // 民意测验观察任务运行时的状况, 因此重播可以不同地进行; 尸体等待着。
+        // 轮询会观察任务在轮询运行时的状态，因此重放可能选择不同分支；任务体应改为等待任务。
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, response.Status);
         Assert.Equal(3, polls.Count);
         Assert.Single(context.Starts);
@@ -492,7 +492,7 @@ public class DurableTaskStartTests
 
     private sealed record HostLocation(string Host);
 
-    /// <summary>根定义,其主机在没有耐久发件箱的情况下接受启动。</summary>
+    /// <summary>宿主无需持久化发件箱即可接受启动的根任务定义。</summary>
     private class ScheduleOnlyDefinition : DurableTask, ISchedulableTask
     {
         public List<TaskId> Scheduled { get; } = [];

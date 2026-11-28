@@ -3,10 +3,10 @@ using Orleans.Internal;
 namespace Orleans.Placement.Rebalancing;
 
 /// <summary>
-/// 确定如果前一届会议失败,在相继的重新平衡会议之间要等多久。
+/// 如果前一次再均衡会话失败，则确定连续再均衡会话之间的等待时间。
 /// </summary>
 /// <remarks>
-/// 如果周期的连续周期数目没有显著改善,则将视为“失败”一课
-/// 组群的星体
+/// 如果连续 n 个周期未能显著改善
+/// 集群的熵，则认为该会话失败。
 /// </remarks>
 public interface IFailedSessionBackoffProvider : IBackoffProvider { }

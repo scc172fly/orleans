@@ -17,7 +17,7 @@ public sealed class CompletionSurveyGrain : DurableGrain, ICompletionSurveyGrain
     {
         await Pack().WithId("pack");
 
-        // 本地方法作为执行过程的一部分运行, 所以开始时会分离投出 InvalidOperationException。
+        // 本地方法作为当前执行实例的一部分运行，因此以分离模式启动会抛出 InvalidOperationException。
         _ = SurveyAsync(customer).WithId("survey").Detached().Post();
     }
     // </orleans0228_violation>
@@ -28,7 +28,7 @@ public sealed class CompletionSurveyGrain : DurableGrain, ICompletionSurveyGrain
     {
         await Pack().WithId("pack");
 
-        // 调查 grain 存储并运行该电话,作为一项根任务,在完成后继续。
+        // 调查 Grain 将调用作为根任务存储并运行；该任务在当前执行实例完成后仍继续运行。
         _ = GrainFactory.GetGrain<ICustomerSurveys>(customer).SendSurveyAsync(customer).WithId("survey").Detached().Post();
     }
     // </orleans0228_fix_grain>
@@ -38,7 +38,7 @@ public sealed class CompletionSurveyGrain : DurableGrain, ICompletionSurveyGrain
     {
         await Pack().WithId("pack");
 
-        // 一步步在行刑时还是个孩子,等待着它。
+        // 该步骤作为此执行实例的子任务运行，当前执行实例等待它完成。
         await SurveyAsync(customer).WithId("survey");
     }
     // </orleans0228_fix_attached>

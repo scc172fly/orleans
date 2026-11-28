@@ -2,31 +2,31 @@ using Microsoft.Accordant;
 
 namespace Orleans.Clustering.TestKit;
 
-/// <summary>矿井的钻探活动导致成员身份的勘探。</summary>
+/// <summary>限制生成的成员资格操作序列的探索范围。</summary>
 public sealed class MembershipTableModelBasedConformanceOptions
 {
-    /// <summary>获取或设置非机密供应商标签。</summary>
+    /// <summary>获取或设置不含机密信息的提供程序标签。</summary>
     public string ProviderName { get; set; } = "MembershipTable";
-    /// <summary>获取或设置可复制的身份种子。</summary>
+    /// <summary>获取或设置可复现的标识生成种子。</summary>
     public int Seed { get; set; }
-    /// <summary>获取或设定一般过渡勘探深度(至少三个)。</summary>
+    /// <summary>获取或设置常规状态转换探索深度（至少为三）。</summary>
     public int MaxDepth { get; set; } = 3;
-    /// <summary>获取或设置一般生成序列长度(至少三个)。</summary>
+    /// <summary>获取或设置常规生成序列的长度（至少为三）。</summary>
     public int MaxSequenceLength { get; set; } = 3;
 }
 
-/// <summary>运行每个案例在新鲜工厂拥有的工程范围内实际的个体过渡阶段生成/执行。</summary>
+/// <summary>每个用例均在工厂所拥有的新作用域中执行实际的 Accordant 状态转换生成和执行过程。</summary>
 public sealed class MembershipTableModelBasedTestRunner
 {
     private readonly Func<MembershipTableTestFixture> _factory;
     private readonly MembershipTableModelBasedConformanceOptions _options;
     private readonly Action<string>? _output;
 
-    /// <summary>使用默认的连接勘探创建生成的运行者。</summary>
+    /// <summary>创建采用默认探索边界的生成式测试运行器。</summary>
     public MembershipTableModelBasedTestRunner(Func<MembershipTableTestFixture> fixtureFactory, string providerName, Action<string>? output = null)
         : this(fixtureFactory, new MembershipTableModelBasedConformanceOptions { ProviderName = providerName }, output) { }
 
-    /// <summary>创建一个生成的运行者。 工厂必须归还每个呼叫的新固定符。</summary>
+    /// <summary>创建生成式测试运行器。工厂每次调用都必须返回新的测试夹具。</summary>
     public MembershipTableModelBasedTestRunner(Func<MembershipTableTestFixture> fixtureFactory, MembershipTableModelBasedConformanceOptions options, Action<string>? output = null)
     {
         _factory = fixtureFactory ?? throw new ArgumentNullException(nameof(fixtureFactory));
@@ -38,7 +38,7 @@ public sealed class MembershipTableModelBasedTestRunner
         _output = output;
     }
 
-    /// <summary>产生法律转型,需要可达的前缀,并核实每项行动的预期状态。</summary>
+    /// <summary>生成合法状态转换及所需的可达前缀，并验证每项操作的预期状态。</summary>
     public Task RunGeneratedConformanceTests(CancellationToken cancellationToken = default)
         => RunGeneratedConformanceTests(0, 1, cancellationToken);
 
@@ -109,7 +109,7 @@ public sealed class MembershipTableModelBasedTestRunner
                         current = _factory() ?? throw new InvalidOperationException("The model fixture factory returned null.");
                         ClusteringTestKitDiagnostics.Require(scopes.Add(current.ClusterId), "model factory reused a fixture/scope between cases");
                         ReportProgress("initialize", current);
-                        // 保护电话的固定 当供应商回调区同步。
+                        // 当提供程序的回调同步阻塞时，保留调用方指定的时间界限。
                         var fixture = current;
                         await Task.Run(() => fixture.InitializeAsync(ct).AsTask(), ct).WaitAsync(ct);
                         ReportProgress("initialized", current);
@@ -199,7 +199,7 @@ public sealed class MembershipTableModelBasedTestRunner
             var initial = new MembershipModelState();
             var cases = spec.GenerateTests(initial, spec.CreateInputSet(prefix?.Distinct()), new TestGenerationOptions
             {
-                // 承租人计算勘探深度的初始状态。
+                // Accordant 将初始状态计入探索深度。
                 MaxDepth = prefix is null ? _options.MaxDepth : prefix.Length + 1,
                 SequentialTestCaseAlgorithm = SequentialTestCaseAlgorithms.CreateTransitionCoverage(prefix?.Length ?? _options.MaxSequenceLength),
                 ShouldApply = (input, state) =>
@@ -244,7 +244,7 @@ public sealed class MembershipTableModelBasedTestRunner
         if (partitionCount > cases.Length)
             throw new ArgumentOutOfRangeException(nameof(partitionCount), "Partition count cannot exceed the generated case count.");
         if (partitionCount == 1) return batches;
-        // 等级的卡尼科身份平衡了整个案件,而没有依赖程序上被随机调整的散列代码。
+        // 对规范标识进行排序，以均衡选取完整用例，而不依赖进程随机化的哈希码。
         var selected = cases.Where((_, index) => index % partitionCount == partitionIndex)
             .Select(testCase => testCase.Identity).ToHashSet(StringComparer.Ordinal);
         return batches.Select(batch =>

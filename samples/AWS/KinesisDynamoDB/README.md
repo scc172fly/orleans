@@ -1,54 +1,54 @@
 <a id="aws-kinesis-and-dynamodb"></a>
 
-# AWS 基尼西斯和 DynamoDB
+# AWS Kinesis 与 DynamoDB
 
-本样本运行一个 Orleans silo ,对每个耐久子系统使用AWS服务:
+本示例运行一个 Orleans Silo，其所有持久化子系统均使用 AWS 服务：
 
-- DynamoDB 分组成员
-- DynamoDB grain 状态和 `PubSubStore`
-- DynamoDB 提醒
-- 亚马孙 Kinesis 数据流
-- DynamoDB 基尼西斯流检查站
+- DynamoDB 集群成员资格
+- DynamoDB Grain 状态及 `PubSubStore`
+- DynamoDB 提醒器
+- Amazon Kinesis Data Streams
+- DynamoDB Kinesis 流检查点
 
-样本每五秒钟公布一次事件。 默认的 grain 消耗了每个事件,维持了其状态,并登记了一个持久的提醒。
+示例每五秒发布一个事件。一个隐式订阅的 Grain 消费每个事件、持久化其状态，并注册持久化提醒器。
 
 <a id="prerequisites"></a>
 
 ## 先决条件
 
-1. 安装 [.NET SDK 斯丁克](https://dotnet.microsoft.com/download) 由存储库选择 `global.json`.
-1. 配置 AWS 证书,使用标准 [AWS SDK 证书链](https://docs.aws.amazon.com/sdk-for-net/v4/developer-guide/creds-assign.html)。
-1. 创建 Kinesis 数据流 :
+1. 安装仓库 `global.json` 所选定的 [.NET SDK](https://dotnet.microsoft.com/download)。
+1. 使用标准 [AWS SDK 凭据链](https://docs.aws.amazon.com/sdk-for-net/v4/developer-guide/creds-assign.html)配置 AWS 凭据。
+1. 创建 Kinesis 数据流：
 
    ```shell
    aws kinesis create-stream --stream-name orleans-sample --shard-count 1 --region us-east-1
    aws kinesis wait stream-exists --stream-name orleans-sample --region us-east-1
    ```
 
-样本自动创建其 DynamoDB 表,并随需求开具账单。对于生产部署、通过基础设施提供表格作为代码和禁用自动创建。
+示例自动创建 DynamoDB 表，并采用按需计费。在生产部署中，请通过基础设施即代码预配表，并禁用自动创建。
 
 <a id="run-the-sample"></a>
 
-## 运行样本
+## 运行示例
 
-从仓库根 :
+在仓库根目录中执行：
 
 ```shell
 dotnet run --project samples/AWS/KinesisDynamoDB/KinesisDynamoDB.csproj
 ```
 
-按 <kbd>Ctrl</kbd>+<kbd>C</kbd> 停止。
+按 <kbd>Ctrl</kbd>+<kbd>C</kbd> 停止运行。
 
-下列环境变量自定义资源:
+以下环境变量可用于自定义资源：
 
-| 变量 | 默认默认 | 目的目的宗旨 |
+| 变量 | 默认值 | 用途 |
 |---|---|---|
-| `AWS_REGION` 或 `AWS_DEFAULT_REGION` | `us-east-1` | 基奈西和 DynamoDB 区域  |
-| `ORLEANS_KINESIS_STREAM` | `orleans-sample` | 现有的 Kinesis 数据流 |
-| `ORLEANS_DYNAMODB_PREFIX` | `OrleansSample` | 全部五个 DynamoDB 表的前缀 |
-| `ORLEANS_CLUSTER_ID` | `aws-kinesis-sample` | Orleans 部署识别标识符 |
-| `ORLEANS_SERVICE_ID` | `aws-kinesis-sample` | 稳定 Orleans 应用程序标识符 |
+| `AWS_REGION` 或 `AWS_DEFAULT_REGION` | `us-east-1` | Kinesis 与 DynamoDB 所在区域 |
+| `ORLEANS_KINESIS_STREAM` | `orleans-sample` | 现有 Kinesis 数据流 |
+| `ORLEANS_DYNAMODB_PREFIX` | `OrleansSample` | 所有五个 DynamoDB 表的前缀 |
+| `ORLEANS_CLUSTER_ID` | `aws-kinesis-sample` | Orleans 部署标识符 |
+| `ORLEANS_SERVICE_ID` | `aws-kinesis-sample` | 稳定的 Orleans 应用程序标识符 |
 
-使用单独的集束识别码来对同时进行部署的每个单位使用。 当替换部署必须保持 grain 状态、提醒、订阅和检查站时, 使服务标识保持稳定 。
+每个同时运行的部署应使用不同的集群 ID。如果替换部署需要保留 Grain 状态、提醒器、订阅和检查点，请保持服务 ID 稳定。
 
-检查站行为和业务指导见 [亚马逊 Kinesis 流](../../../docs/site/src/content/docs/streaming/kinesis-streaming.md) 。
+有关检查点行为及运维指导，请参阅[使用 Amazon Kinesis 处理流](../../../docs/site/src/content/docs/streaming/kinesis-streaming.md)。

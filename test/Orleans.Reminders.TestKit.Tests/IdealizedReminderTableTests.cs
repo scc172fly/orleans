@@ -7,13 +7,13 @@ using Xunit;
 namespace Orleans.Reminders.TestKit.Tests;
 
 /// <summary>
-/// 运行完整的提醒表符合与理想的神器对照的套装,并核查神器本身
-/// 反省和确定控制。
+/// 对理想化的判定基准运行完整提醒器表一致性测试套件，并验证该基准自身的
+/// 内省功能与确定性控制功能。
 /// </summary>
 /// <remarks>
-/// 甲骨文是证明执行有文件证明的合同的参照,因此它必须满足所有保证
-/// 测试包表示。为每种测试方法创建了新的神器,因为 xUnit 一旦
-/// 保证每个保证都是独立的
+/// 判定基准是已文档化契约的参考实现，因此必须满足测试工具包表达的每项保证。
+/// 由于 xUnit 为每项测试实例化一次测试类，因此每个测试方法均创建新的判定基准，
+/// 使每项保证的验证相互独立。
 /// </remarks>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -35,7 +35,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
     }
 
     // -------------------------------------------------------------------------------------------------------------
-    // 完整的直接相配套房
+    // 完整的直接一致性测试套件。
     // -------------------------------------------------------------------------------------------------------------
 
     [Fact]
@@ -118,7 +118,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
     public override Task ReminderTable_TestOnlyClearTable_RemovesAllReminders() => base.RunReminderTable_TestOnlyClearTable_RemovesAllReminders(TestContext.Current.CancellationToken);
 
     // -------------------------------------------------------------------------------------------------------------
-    // 以模型为基础的一致性。
+    // 基于模型的一致性测试。
     // -------------------------------------------------------------------------------------------------------------
 
     [Fact, TestCategory("ModelBased")]
@@ -167,7 +167,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
     }
 
     // -------------------------------------------------------------------------------------------------------------
-    // 内省
+    // 内省功能。
     // -------------------------------------------------------------------------------------------------------------
 
     [Fact]
@@ -218,7 +218,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
             new[] { ReminderTableOperationKind.UpsertRow, ReminderTableOperationKind.ReadRow, ReminderTableOperationKind.RemoveRow },
             operations.Select(operation => operation.Kind));
 
-        // 序列数是单声道和密度高的,因此产生的故障可以说明确切的失败步骤。
+        // 序列号单调递增且连续，因此生成的失败报告可以指明发生故障的确切步骤。
         Assert.Equal(operations.Select((_, index) => operations[0].Sequence + index), operations.Select(operation => operation.Sequence));
 
         var upsert = operations[0];
@@ -251,7 +251,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
         Assert.Equal(etags.Count, etags.Distinct(StringComparer.Ordinal).Count());
         Assert.Equal(new[] { "etag-000001", "etag-000002", "etag-000003", "etag-000004" }, etags);
 
-        // 清除和再添加不能回收ETag。
+        // 移除后重新添加不得复用 ETag。
         Assert.True(await ReminderTable.RemoveRow(grainId, "etag-sequence-0", etags[0], TestContext.Current.CancellationToken));
         var reAdded = await UpsertAsync(
             NewEntry(grainId, "etag-sequence-0"),
@@ -262,7 +262,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
     }
 
     // -------------------------------------------------------------------------------------------------------------
-    // 决定性的控制:停电、注射失败、屏障、僵硬的快照。
+    // 确定性控制：服务中断、注入故障、阻塞屏障、陈旧快照。
     // -------------------------------------------------------------------------------------------------------------
 
     [Fact]
@@ -284,10 +284,10 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
         await Assert.ThrowsAsync<ReminderTableUnavailableException>(
             () => ReminderTable.UpsertRow(NewEntry(grainId, "outage-2"), TestContext.Current.CancellationToken));
 
-        // 记录出局情况,以便测试能确定在储存减少时提醒服务尝试了什么。
+        // 记录服务中断情况，使测试可以断言存储不可用期间提醒器服务尝试执行了哪些操作。
         Assert.Equal(3, _oracle.Operations.Count(operation => operation.Failure == nameof(ReminderTableUnavailableException)));
 
-        // 耐久状态在断电中幸存下来:这是供应失败,不是删除。
+        // 持久化状态在中断后仍然存在：这是可用性故障，而不是数据删除。
         _oracle.SetAvailable(true);
         var recovered = await ReminderTable.ReadRow(grainId, "outage", TestContext.Current.CancellationToken);
         Assert.NotNull(recovered);
@@ -307,14 +307,14 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => ReminderTable.UpsertRow(NewEntry(grainId, "injected-failure"), TestContext.Current.CancellationToken));
 
-        // 第三次尝试没有受到影响,失败并没有造成局部状态。
+        // 第三次尝试不受影响，而且此前的失败没有产生部分状态。
         var etag = await ReminderTable.UpsertRow(NewEntry(grainId, "injected-failure"), TestContext.Current.CancellationToken);
         Assert.NotNull(etag);
         Assert.Equal("etag-000001", etag);
         Assert.Equal(2, _oracle.Operations.Count(operation => operation.Failure == nameof(InvalidOperationException)));
         Assert.Single(_oracle.Snapshot());
 
-        // 读者从未被锁定目标,所以他们从未失败。
+        // 从未将读取操作作为故障注入目标，因此读取从未失败。
         Assert.NotNull(await ReminderTable.ReadRow(grainId, "injected-failure", TestContext.Current.CancellationToken));
     }
 
@@ -353,7 +353,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
         await gate.WaitUntilBlockedAsync(cancellation.Token);
         Assert.False(rangeRead.IsCompleted);
 
-        // 阅读范围停在屏障上,同时写作由神谕使用和观察。
+        // 范围读取在屏障处阻塞期间，执行并发写入，且该写入被判定基准观察到。
         var updated = await UpsertAsync(
             NewEntry(grainId, "barrier", BaseTime.AddMinutes(5), TimeSpan.FromMinutes(2)),
             nameof(Oracle_BlockNext_ProvidesADeterministicBarrierWithoutSleeping),
@@ -413,7 +413,7 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
             Assert.Equal(original, stale.ETag);
             Assert.Equal(BaseTime.Ticks, stale.StartAt.Ticks);
 
-            // 耐久记录已经是新纪录:只有读数被冻结。
+            // 持久化记录已经更新：仅冻结读取操作。
             Assert.Equal(updated, _oracle.Find(grainId, "stale-snapshot")!.ETag);
         }
 
@@ -465,19 +465,19 @@ public sealed class IdealizedReminderTableTests : ReminderTableTestRunner
     [Fact]
     public static void Oracle_InRange_ImplementsExclusiveBeginInclusiveEndAndWrapAround()
     {
-        // 非包装: (10, 20)
+        // 不回绕：(10, 20]
         Assert.False(IdealizedReminderTable.InRange(10, 10, 20));
         Assert.True(IdealizedReminderTable.InRange(11, 10, 20));
         Assert.True(IdealizedReminderTable.InRange(20, 10, 20));
         Assert.False(IdealizedReminderTable.InRange(21, 10, 20));
 
-        // 包装: (20,10)
+        // 回绕：(20, 10]
         Assert.True(IdealizedReminderTable.InRange(21, 20, 10));
         Assert.True(IdealizedReminderTable.InRange(10, 20, 10));
         Assert.False(IdealizedReminderTable.InRange(11, 20, 10));
         Assert.False(IdealizedReminderTable.InRange(20, 20, 10));
 
-        // 下层:开始 ==========================
+        // 退化情形：begin == end 表示整个环。
         Assert.True(IdealizedReminderTable.InRange(0, 0, 0));
         Assert.True(IdealizedReminderTable.InRange(uint.MaxValue, 0, 0));
     }

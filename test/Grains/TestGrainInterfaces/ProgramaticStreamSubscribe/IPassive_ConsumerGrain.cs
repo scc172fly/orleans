@@ -1,8 +1,8 @@
 namespace UnitTests.GrainInterfaces
 {
     /// <summary>
-    /// 消费者 grain 对代表用户
-    /// 使用程序订阅 
+    /// 被动响应以编程方式
+    /// 代表其建立的订阅的消费者 Grain
     /// </summary>
     public interface IPassive_ConsumerGrain : IGrainWithGuidKey
     {
@@ -11,7 +11,7 @@ namespace UnitTests.GrainInterfaces
         Task<int> GetNumberConsumed();
     }
 
-    //消费者 grain 将取消订阅任何用户添加的 StreamSubscriptionManager
+    //消费者 Grain 的标记接口，该 Grain 会取消 StreamSubscriptionManager 添加的任何订阅
     public interface IJerk_ConsumerGrain : IGrainWithGuidKey
     {
     }

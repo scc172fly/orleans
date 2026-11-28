@@ -57,10 +57,10 @@ public sealed class RedisJournalStorageTests
                 switch (++callCount)
                 {
                     case 1:
-                        // 恢复观察不存在。
+                        // 恢复过程观察到记录不存在。
                         return RedisResult.Create(new RedisValue[] { 0 });
                     case 2:
-                        // 相竞创建程序在有条件删除脚本之前胜出, 条件删除需要空闲 。
+                        // 在要求记录不存在的条件删除脚本执行之前，竞争的创建操作率先成功。
                         Assert.Equal(string.Empty, call.Arg<RedisValue[]>()[0].ToString());
                         return RedisResult.Create(new RedisValue[] { -1 });
                     case 3:

@@ -3,9 +3,9 @@ using System.Text;
 namespace Presence.Grains.Models;
 
 /// <summary>
-/// 游戏会话的心跳数据 。
-/// 这门课是不可改变的
-/// 此类操作总是返回新副本 。
+/// 游戏会话的心跳数据。
+/// 此类不可变。
+/// 对此类的操作始终返回新的副本。
 /// </summary>
 [GenerateSerializer]
 public record class HeartbeatData(
@@ -13,7 +13,7 @@ public record class HeartbeatData(
     GameStatus Status)
 {
     /// <summary>
-    /// 创建当前心跳的不可变副本, 并使用给定分 。
+    /// 创建包含指定分数的当前心跳数据的不可变副本。
     /// </summary>
     public HeartbeatData WithNewScore(string newScore) =>
         this with { Status = Status.WithNewScore(newScore) };

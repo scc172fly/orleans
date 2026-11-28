@@ -35,8 +35,8 @@ public sealed class FulfillmentGrain : DurableGrain, IFulfillmentGrain
     {
         await Reserve(orderId).WithId("reserve");
 
-        // 版本0是经由仓库发运的代码。版本1载有承运人,版本2也包含承运人
-        // 通知客户,等待处决时保留其记录版本。
+        // 版本 0 是通过仓库发货的代码。版本 1 预订承运人，版本 2 还会
+        // 通知客户。尚未完成的执行实例保留它们已记录的版本。
         var shipping = DurableTask.GetVersion("carrier-booking", minSupported: 0, maxSupported: 2);
         if (shipping >= 1)
         {
@@ -63,7 +63,7 @@ public sealed class DescribedFulfillmentGrain : DurableGrain, IFulfillmentGrain
     private IWarehouseGrain Warehouse => GrainFactory.GetGrain<IWarehouseGrain>("main");
 
     // <durable_tasks_versioning_descriptor>
-    // 一份声明声明更改名称和该代码支持的版本。
+    // 一条声明指定变更名称及当前代码支持的版本。
     private static readonly DurableVersion CarrierBooking = new("carrier-booking", minSupported: 0, maxSupported: 2);
 
     public async DurableTask<string> FulfillAsync(string orderId)
@@ -93,8 +93,8 @@ public sealed class RetiredFulfillmentGrain : DurableGrain, IFulfillmentGrain
     {
         await Reserve(orderId).WithId("reserve");
 
-        // 零版后没有待执行的执行,所以仓库分支已不复存在。
-        // 0个在这里拖放,直到支持它代码的代码重播,或者直到操作员中止。
+        // 没有待处理执行实例采用版本 0，因此移除了仓库分支。已记录版本
+        // 0 的执行实例会停滞在此，直至由支持该版本的代码重放，或运维人员将其终止。
         var shipping = DurableTask.GetVersion("carrier-booking", minSupported: 1, maxSupported: 2);
         var trackingId = await Carrier.BookAsync(orderId).WithId("book");
         if (shipping >= 2)
@@ -122,7 +122,7 @@ public sealed class VersionMonitor : IObserver<DurableTaskEvents.DurableTaskEven
         switch (value)
         {
             case DurableTaskEvents.VersionRecorded recorded:
-                // 记录旧版本的处决显示它仍在使用中。
+                // 记录了旧版本的执行实例表明该版本仍在使用。
                 lock (_recorded)
                 {
                     _recorded[(recorded.Name, recorded.Version)] = _recorded.GetValueOrDefault((recorded.Name, recorded.Version)) + 1;
@@ -130,7 +130,7 @@ public sealed class VersionMonitor : IObserver<DurableTaskEvents.DurableTaskEven
 
                 break;
             case DurableTaskEvents.ExecutionStalled stalled:
-                // 原因 UnsupportedVersion 或分歧;任务一直等待到代码重放为止。
+                // 原因是 UnsupportedVersion 或 Diverged；任务保持待处理，直到可重放它的代码运行。
                 Console.WriteLine($"{stalled.GrainContext.GrainId} {stalled.TaskId} stalled ({stalled.Reason}): {stalled.Exception.Message}");
                 break;
         }

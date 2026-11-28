@@ -1,25 +1,25 @@
 ---
-title: "ORLEANS0202:分阶段或最后一次持久行动之后等待外部业务"
-description: "理解 ORLEANS0202, 其中报告等待服务的耐久任务代码、 grain 呼叫或其他外部工作, 重播再次运行时使用该功能, 用步骤或同步尾巴来修正它 。"
+title: "ORLEANS0202: 在步骤中或最后一次持久化操作之后等待外部操作"
+description: 了解 ORLEANS0202：持久化任务代码在重放时会再次执行的位置等待服务、Grain 调用或其他外部工作。使用步骤或同步尾部修复。
 ms.date: 10/15/2026
 ms.topic: reference
 ---
 
 <a id="orleans0202-await-external-operations-in-steps-or-after-the-last-durable-operation"></a>
 
-# ORLEANS0202:分阶段或最后一次持久行动之后等待外部业务
+# ORLEANS0202: 在步骤中或最后一次持久化操作之后等待外部操作
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
 | 严重性 | 警告 |
-| 类别类 | 用法 |
-| 代码修正 | 无无无无 |
+| 类别 | 用法 |
+| 代码修复 | 无 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-长期任务机构等待一项无法持久的行动,例如 `HttpClient` 调用、数据库查询、普通 grain 调用或 `Task`等待长期任务、其配置和处理、持久的任务API, `Task.Yield`,以及从事持久操作的同一编集中的助手不是外部的。以下发票在第一步之前就得到了汇率:
+持久化任务主体在之后仍会到达持久化操作的位置等待非持久化操作，例如 `HttpClient` 调用、数据库查询、普通 Grain 调用或返回 `Task` 的服务方法。等待持久化任务及其配置和句柄、持久化任务 API、`Task.Yield`，以及同一编译单元中执行持久化操作的辅助方法，不属于外部等待。以下发票流程在第一个步骤之前获取汇率：
 
 :::code source="snippets/durable-tasks/Orleans0202.cs" id="orleans0202_violation" language="csharp":::
 
@@ -27,36 +27,36 @@ ms.topic: reference
 
 ## 规则说明
 
-重播在尸体最后一次耐久手术之前播放代码,包括每部都在等待。
+重放会再次执行主体最后一次持久化操作之前的代码，包括其中每一次等待。外部等待因而可能：
 
-- **重复其效果。** 更改另一个系统(如发送信件或创建记录)的呼叫,每次重播一次。
-- **观察另一个结果** 重播接收另一种汇率,再通过另一数额入账 `bill` 步骤,当该步骤是呼叫另一个 grain,否则返回以不同数额记录的总额。
-- **失败时,第一个运行成功。** 重播在服务不可用时运行,但任务失败,尽管每个记录操作都成功。
+- **重复产生效果。** 修改其他系统的调用（例如发送消息或创建记录）在每次重放中都会执行。
+- **观察到不同结果。** 重放收到另一个汇率，并向已记录的 `bill` 步骤传入另一个金额。如果该步骤是对另一个 Grain 的调用，执行会出现分歧并停滞；否则会返回针对不同金额的已记录总额。
+- **在首次运行成功的位置失败。** 如果重放期间服务不可用，任务会失败，即使所有已记录操作均成功。
 
-一步记录其结果, 所以重放返回结果, 不等待操作再次。
+步骤会记录结果，因此重放无需再次等待操作即可返回结果。
 
-规则和重放模型见 [重演安全规则](../grains/durable-tasks-replay-rules.md)。
+有关规则与重放模型，请参阅[重放安全规则](../grains/durable-tasks-replay-rules.md)。
 
 <a id="how-to-fix-violations"></a>
 
-## 如何纠正违反情况
+## 如何修复违规
 
-**等待 `DurableTask.Run`.** 的操作。代表以儿童步骤行事,结果记录下来,该步骤收到一个吊销标记,其中发出持久的取消信号:
+**在 `DurableTask.Run` 中等待操作。** 委托作为子步骤运行，其结果被记录；步骤接收一个由持久化取消发出信号的取消令牌：
 
 :::code source="snippets/durable-tasks/Orleans0202.cs" id="orleans0202_fix_run" language="csharp":::
 
-**等行动在当地一步。** A 音 A `async DurableTask` 方法的相同 grain 记录完成的完整。 当它做了不止一件事或者当其他工作流程再使用时, 请给它命名 :
+**在本地步骤中等待操作。** 同一 Grain 的 `async DurableTask` 方法会记录其完成情况。如果步骤执行多项工作，或其他工作流会复用它，则为其命名：
 
 :::code source="snippets/durable-tasks/Orleans0202.cs" id="orleans0202_fix_step" language="csharp":::
 
-**尸体最后一次耐久操作后等待手术。** 同步尾巴只在完成身体的运行时运行:
+**在主体最后一次持久化操作之后等待操作。** 同步尾部仅在完成主体的运行中执行：
 
 :::code source="snippets/durable-tasks/Orleans0202.cs" id="orleans0202_fix_tail" language="csharp":::
 
-其结果发生之前结束的一步, 其结果被执行前结束的一步会再次运行, 而任务结果被执行之前结束的运行尾尾尾也随之再次运行。 因此, 一个步骤或尾尾部的外部操作至少运行一次, 所以给它一个从任务中产生的应急密钥, 例如 `$"{grainId}/{DurableTask.Current.Id}/{DurableTask.Current.Incarnation:N}"`当它改变另一个系统时;见 [持久任务中具有的](../grains/durable-tasks-idempotency.md) 和 [将耐久任务与其他系统整合](../grains/durable-tasks-integrations.md)。后一种任务识别符的运行是新的,而后一种任务识别符则不同。
+在结果提交前结束的步骤会再次运行；在任务结果提交前结束的运行，其尾部也会再次运行。因此步骤或尾部中的外部操作至少运行一次；当它修改其他系统时，应赋予它从任务派生的幂等键，例如 `$"{grainId}/{DurableTask.Current.Id}/{DurableTask.Current.Incarnation:N}"`。参阅[持久化任务中的幂等性](../grains/durable-tasks-idempotency.md)和[将持久化任务与其他系统集成](../grains/durable-tasks-integrations.md)。运行世代标识区分使用同一任务标识符的后续运行，其操作属于新的操作。
 
 <a id="when-to-suppress"></a>
 
-## 何时压缩
+## 何时抑制
 
-抑制读数诊断, 它在每次运行中返回相同值, 并且无法在重放时失败, 比如读取不可变配置 。
+对于幂等、每次运行返回相同值且重放期间不会失败的读取，可以抑制诊断，例如读取不可变配置。

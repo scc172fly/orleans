@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// 换算功能 <see cref="IPEndPoint"/> 与从这些天起 JSON 代表。
+    /// 用于在 <see cref="IPEndPoint"/> 实例及其 JSON 表示形式之间相互转换的功能。
     /// </summary>
     public sealed class IPEndPointJsonConverter : JsonConverter<IPEndPoint>
     {
@@ -20,7 +20,7 @@ namespace Orleans.Serialization
             => Parse(ref reader);
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 为 <see langword="null"/>。</exception>
         public override void Write(Utf8JsonWriter writer, IPEndPoint value, JsonSerializerOptions options)
         {
             ArgumentNullException.ThrowIfNull(writer);
@@ -56,7 +56,7 @@ namespace Orleans.Serialization
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 为 <see langword="null"/>。</exception>
         public override void WriteAsPropertyName(Utf8JsonWriter writer, [DisallowNull] IPEndPoint value, JsonSerializerOptions options)
         {
             ArgumentNullException.ThrowIfNull(writer);

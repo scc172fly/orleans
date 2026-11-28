@@ -22,11 +22,11 @@ namespace Orleans.Streams
     }
 
     /// <summary>
-    /// 扩展多路转换将所有流信息都包含到不同流及其流观察者之间与此 grain 有关的信息。
+    /// 此扩展将发送到此 Grain 的所有流相关消息多路分派给不同的流及其流观察者。
     ///
-    /// 在 silo上,我们每激活一个扩展对象, 而此扩展多ex将所有流都用于此激活
-    ///     (所有类型和ids的流体:不同的流体代号以及不同的流体提供者)。
-    /// 客户每流都有一个扩展(我们为每 StreamConsumer设定一个扩展,因此每一流都有自己的扩展)。
+    /// 在 Silo 上，每个激活实例对应一个扩展对象，该扩展对该激活实例上的所有流进行多路分派
+    /// （包含所有类型和 ID 的流，即不同的流 ID 及不同的流提供程序）。
+    /// 在客户端上，每个流对应一个扩展（为每个 StreamConsumer 绑定一个扩展，因此每个流有自己的扩展）。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -35,7 +35,7 @@ namespace Orleans.Streams
         [Id(0)]
         private readonly IStreamProviderRuntime providerRuntime;
         [Id(1)]
-        private readonly ConcurrentDictionary<GuidId, IStreamSubscriptionHandle> allStreamObservers = new(); // 以不同的 Ts 的 ObserversCollection<T> 地图为对象。
+        private readonly ConcurrentDictionary<GuidId, IStreamSubscriptionHandle> allStreamObservers = new(); // 映射到不同 T 对应的 ObserversCollection<T>。
         [Id(2)]
         private readonly ILogger logger;
         [NonSerialized]
@@ -90,7 +90,7 @@ namespace Orleans.Streams
             {
                 LogDebugAddObserver(providerRuntime.ExecutingEntityIdentity(), stream.InternalStreamId);
 
-                // 注:呼叫器StreamConsumer已经处理添加/删除操作的锁定, 所以我们不需要在此重复 。
+                // 注意：调用方（StreamConsumer）已处理 Add/Remove 操作的加锁，因此此处无需重复加锁。
                 var handle = new StreamSubscriptionHandleImpl<T>(
                     subscriptionId,
                     observer,
@@ -138,7 +138,7 @@ namespace Orleans.Streams
                 {
                     var subscriptionHandlerFactory = new StreamSubscriptionHandlerFactory(streamProvider, streamId, streamId.ProviderName, subscriptionId);
                     await streamSubscriptionObserver.OnSubscribed(subscriptionHandlerFactory);
-                    //处理新订阅后是否附观察员,如附观察员,请在印上
+                    // 处理新订阅后，检查是否已附加观察者；如果已附加，则向其投递。
                     if (allStreamObservers.TryGetValue(subscriptionId, out observer))
                     {
                         return await observer.DeliverItem(item, currentToken, handshakeToken);
@@ -150,8 +150,8 @@ namespace Orleans.Streams
                 providerRuntime.ExecutingEntityIdentity(),
                 subscriptionId);
 
-            // 我们有一个项目,当我们不认为自己是订户。这是正常的种族条件。
-            // 我们可以把东西扔到地上 或把它送到会合点 或者...
+            // 我们收到了一个数据项，但认为自己并非订阅者。这是一种正常的竞态条件。
+            // 可以直接丢弃该数据项，也可以将它传给汇合点，或者采取其他处理方式……
             return default;
         }
 
@@ -171,7 +171,7 @@ namespace Orleans.Streams
                 {
                     var subscriptionHandlerFactory = new StreamSubscriptionHandlerFactory(streamProvider, streamId, streamId.ProviderName, subscriptionId);
                     await streamSubscriptionObserver.OnSubscribed(subscriptionHandlerFactory);
-                    // 处理新订阅后是否附观察员,如附观察员,请在印上
+                    // 处理新订阅后，检查是否已附加观察者；如果已附加，则向其投递。
                     if (allStreamObservers.TryGetValue(subscriptionId, out observer))
                     {
                         return await observer.DeliverBatch(batch, handshakeToken);
@@ -183,8 +183,8 @@ namespace Orleans.Streams
                 providerRuntime.ExecutingEntityIdentity(),
                 subscriptionId);
 
-            // 我们有一个项目,当我们不认为自己是订户。这是正常的种族条件。
-            // 我们可以把东西扔到地上 或把它送到会合点 或者...
+            // 我们收到了一个数据项，但认为自己并非订阅者。这是一种正常的竞态条件。
+            // 可以直接丢弃该数据项，也可以将它传给汇合点，或者采取其他处理方式……
             return default;
         }
 
@@ -200,8 +200,8 @@ namespace Orleans.Streams
                 providerRuntime.ExecutingEntityIdentity(),
                 subscriptionId);
 
-            // 我们有一个项目,当我们不认为自己是订户。这是正常的种族条件。
-            // 我们可以把东西扔到地上 或把它送到会合点 或者...
+            // 我们收到了一个数据项，但认为自己并非订阅者。这是一种正常的竞态条件。
+            // 可以直接丢弃该数据项，也可以将它传给汇合点，或者采取其他处理方式……
             return Task.CompletedTask;
         }
 
@@ -218,8 +218,8 @@ namespace Orleans.Streams
                 subscriptionId,
                 exc);
 
-            // 我们有一个项目,当我们不认为自己是订户。这是正常的种族条件。
-            // 我们可以把东西扔到地上 或把它送到会合点 或者...
+            // 我们收到了一个数据项，但认为自己并非订阅者。这是一种正常的竞态条件。
+            // 可以直接丢弃该数据项，也可以将它传给汇合点，或者采取其他处理方式……
             return Task.CompletedTask;
         }
 

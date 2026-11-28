@@ -1,7 +1,7 @@
 namespace Orleans.BroadcastChannel
 {
     /// <summary>
-    /// 串行命名空间前置, 它与所有命名空间匹配 。
+    /// 匹配所有命名空间的流命名空间谓词。
     /// </summary>
     internal class AllStreamNamespacesPredicate : IChannelNamespacePredicate
     {

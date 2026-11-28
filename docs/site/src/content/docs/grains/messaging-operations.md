@@ -1,372 +1,374 @@
 ---
-title: "运行发送信息"
-description: "配置能力和保留、诊断交付、重放死字母和测量输送量。"
+title: 消息传递运维指南
+description: 配置容量和保留期、诊断投递、重放死信并测量吞吐量。
 ms.date: 10/10/2026
 ms.topic: how-to
 ---
 
 <a id="operate-messaging"></a>
 
-# 运行发送信息
+# 消息传递运维指南
 
-使用此指南配置和操作
-[通信通信](messaging.md).关于企业重播政策,见
-[能力与等级键](messaging-idempotency.md).
+使用本指南配置和运维
+[消息传递](messaging.md)中介绍的收件箱与发件箱。有关业务重放策略，参见
+[幂等性与层次键](messaging-idempotency.md)。
 
 <a id="configure-storage-and-execution"></a>
 
-## 配置存储和执行
+## 配置存储与执行
 
-配置日记存储和持久工作存储,然后发送信息。
-商业状态、结果查询状态和信息传递状态都通过同样的方式持续存在
-grain 日记。 收件箱和发件箱登记该日记
-`orleans.messaging.inbox` 和 `orleans.messaging.outbox`;提供申请说明
-其它名称。 信件使用 grain配置的日记格式、 JSON 或 Orleans
-二进制。
+在启用消息传递之前，配置 Journaling 存储及 Durable Jobs 存储。
+业务状态、结果查询状态和消息传递状态通过同一个
+Grain 日志持久化。收件箱与发件箱注册日志状态
+`orleans.messaging.inbox` 和 `orleans.messaging.outbox`；应为应用状态使用
+其他名称。消息传递使用 Grain 配置的日志格式，即 JSON 或 Orleans
+二进制格式。
 
-每个启动程序都在其调度器上运行一个信息泵,处理收件箱信息
-准备期间等待的处理器延迟, 下一个 grain
-独立地在其它 grains 信息的同时独立进行进度。
-诸如租户/账户、租户/SKU或订单等所有权。 grain 设定约束
-相继输送量; 如果有独立所有人, 添加 silos 增加能力
-以分配。
+每个激活实例在其调度器上运行一个消息泵，每次处理一条收件箱消息。
+在准备期间执行 await 的处理器会延迟该 Grain 的下一条消息，
+其他 Grain 则独立推进。按业务
+所有权划分工作负载，例如租户/账户、租户/SKU 或订单。少量热点 Grain 会限制
+串行吞吐量；当存在独立的业务所有者可以分散部署时，增加 Silo 可扩展
+容量。
 
-存储配置,见 [日记日报配置](journaling/configuration.md),
-[Azure 储存供应商](journaling/azure-storage.md), 和
-[持久就业移徙](journaling/durable-jobs-migration.md).
+有关存储配置，参见[Journaling 配置](journaling/configuration.md)、
+[Azure Storage 提供程序](journaling/azure-storage.md)和
+[Durable Jobs 迁移](journaling/durable-jobs-migration.md)。
 
 <a id="capacity-retries-and-retention"></a>
 
-## 能力、重试和保留
+## 容量、重试与保留期
 
-<xref:Orleans.Durable.Messaging.Configuration.DurableMessagingOptions> configures both inbox and outbox
-通过 `AddMessaging`行为,并在启动时验证。
+<xref:Orleans.Durable.Messaging.Configuration.DurableMessagingOptions> 用于配置收件箱和发件箱的
+行为，通过 `AddMessaging` 注册配置，并在启动时验证。
 
-| 设置设置设置设置 | 默认默认 | 实际效果 |
+| 设置 | 默认值 | 运维影响 |
 | --- | --- | --- |
-| `MaxCapacity` | 1,000 | 正在打开待发的收件箱信息。 `DeliverAt` 时间, 从接受时计数到完成。 新信件收 `Backpressured` 键;重复现有信件接收 `Duplicate`信息a grain 不论期限长短,凡被派往自己的单位,都可获准入境。 |
-| `DeduplicationWindow` | 7天7天 | 将完整的身份保留到其被接受的 `SentAt` 在或低于持久录取底层时。观察到的“持久工作”的预付地面工资减去这一时期;确认的快照和收回合格记录。楼层上未跟踪的交货时间由接收器时间加上这个窗口相隔;自发发送使用当地时钟,或者回滚后第一次在地板上方。 |
-| `RetryInitialInterval` | 1 秒 | 第一次处理信箱的重新尝试或发件箱交付之前的延迟。 每次重试都会将延误加倍, 最多为本间隔的64倍 。 |
-| `InboxRetryTimeout` | 6小时6时 | 当处理器在第一次失败后如此长的一段时间一直失败, 信件会移动到收件箱中已死的信件。 最后一次尝试是在超时过后, 而重试信件将保留它的位置 `MaxCapacity`. `TimeSpan.Zero` 第二个失败时的遗书, 因为恢复无法从崩溃中断前的失败中看出失败尝试。 错误停止后( 如崩溃或处理失败未遂)的恢复过程对每条正确信息都算一个尝试; 优雅的解除功能不算一个。 |
-| `OutboxRetryTimeout` | 6小时6时 | 绕过尝试直到 `SentAt + OutboxRetryTimeout`,包括后压。发送的日记本 `SentAt`,以及每一次尝试和收回都保存着它。必须短于 `DeduplicationWindow`。 |
-| `DeadLetterRetentionPeriod` | 30天 | 删除超过此年龄的死信,使用 grain时钟进行时间戳和保留。 |
-| `MaxRetainedDeadLetters` | 1,000 | 隔开信箱和寄件箱的死信 将最老的信封先移走 |
-| `InboxBatchSize` | 32 | 检查每个泵通行证处理的收件箱信息。 |
-| `OutboxBatchSize` | 32 | 绕过一个 grain的飞行中发送尝试。每次尝试都自行完成并释放空位,因此慢速接收器有一个空位,不延迟向其他接收器发来信息。 |
+| `MaxCapacity` | 1,000 | 限制待处理收件箱消息数量。每条待处理消息（包括等待其 `DeliverAt` 时间的已调度消息）从接纳至完成均计入容量。达到容量上限时，新消息收到 `Backpressured`，已有消息的重复投递收到 `Duplicate`。Grain 发送给自身的消息不受此限制地接纳，并计入容量直至完成。 |
+| `DeduplicationWindow` | 7 天 | 保留已完成的标识，直至其已接纳的 `SentAt` 不晚于持久化准入下限。下限依据观测到的 Durable Jobs 时间减去此期限向前推进；已确认的快照及恢复回收符合条件的记录。高于下限的未跟踪投递时间受接收方时间加上此窗口的限制；自发送采用本地时钟或回拨后高于下限的第一个时间。 |
+| `RetryInitialInterval` | 1 秒 | 收件箱首次处理重试或发件箱首次投递重试之前的延迟。每次重试使延迟加倍，最高为此间隔的 64 倍。 |
+| `InboxRetryTimeout` | 6 小时 | 自首次失败起，若处理器尝试持续失败达此时长，则将消息转入收件箱死信。超时到期时执行最后一次尝试，重试消息保留其在 `MaxCapacity` 中的位置。`TimeSpan.Zero` 在第二次失败时转入死信，因为恢复时无法区分失败的尝试与尚未运行便因崩溃中断的尝试。崩溃或处理器尝试失败等非干净停止后的恢复，对每条到期消息计入一次尝试；正常停用则不计入。 |
+| `OutboxRetryTimeout` | 6 小时 | 限制截至 `SentAt + OutboxRetryTimeout` 的投递尝试期限，包括背压期间。发送时的写入将 `SentAt` 记入日志，每次尝试及恢复均保留该值。必须小于 `DeduplicationWindow`。 |
+| `DeadLetterRetentionPeriod` | 30 天 | 移除早于此保留期限的死信，其时间戳与保留期限均依据 Grain 的时钟。 |
+| `MaxRetainedDeadLetters` | 1,000 | 分别限制收件箱及发件箱死信数量，优先移除最早的记录。 |
+| `InboxBatchSize` | 32 | 限制消息泵单轮处理的收件箱消息数。 |
+| `OutboxBatchSize` | 32 | 限制单个 Grain 在途投递尝试数量。每次尝试独立完成并释放其槽位，因此较慢的接收方只占用一个槽位，不会延迟发往其他接收方的消息。 |
 
-选择用于可容忍的断线和后压、 接纳的重试预算
-保留保存历史费用留存期的留存期。
-原始日记 <xref:Orleans.Durable.Messaging.InboxMessage.SentAt>。接收器
-首先是追踪身份:待处理或已完成的记录答复
-每次重复并保持发送时间 收件箱接受。
-下层或下层的未跟踪发送时间返回 `Expired`。
-地层只能进步,恢复才能存活。
-或保留更多历史,而寄出时间和可持久底层则保留
-接收原始发送决定。
+根据可容忍的中断与背压确定重试预算，并根据历史记录的保留成本
+确定准入保留期。每次尝试均携带
+原始的已记入日志的 <xref:Orleans.Durable.Messaging.InboxMessage.SentAt>。接收方
+优先对已跟踪标识去重：待处理或已完成记录响应
+每次重复投递，并保持收件箱已接纳的发送时间。
+未跟踪且发送时间不晚于下限的投递返回 `Expired`。
+下限只会向前推进，并在恢复后保持有效。时钟跳变可能使新工作
+提前过期或使更多历史记录保留，但发送时间和持久化下限仍保持
+原始发送的准入决定。
 
-未来确认后,在接收楼层以上未跟踪的交货将受约束。
-不论 `SentAt`如何,其追踪身份都得到记录答复,包括
-时钟倒回后。 在入场层或下方的未跟踪时间可接收
-`Expired`,即使一个大的回滚 让它超过接收时间加上窗口。
-超过这一界限的任何其他未跟踪的时间
-<xref:System.ArgumentOutOfRangeException> without a journal change or sink offer;
-承认在约束方面的平等。
+未来时间验证对高于准入下限的未跟踪投递施加上限。
+已跟踪标识无论其 `SentAt` 为何，都会收到已记录的响应，
+即使时钟回拨也如此。不晚于准入下限的未跟踪时间收到
+`Expired`，即使大幅回拨使该时间高于接收方时间加上窗口。
+其他超出该上限的未跟踪时间都会抛出
+<xref:System.ArgumentOutOfRangeException>，既不更改日志，也不将消息提供给接收器；
+等于上限的时间允许准入。
 
-A grain给自己使用本地中转时间或首次以上时间的电文
-第一次还是
-超过现有压缩下限的
-交货时间- 约束。
+Grain 发送给自身的消息使用本地暂存时间，或时钟回拨后高于
+准入下限的第一个时间。对于历史压实而言，这个第一个时间仍恰好位于
+既有下限之后，即使其超出
+投递时间上限也是如此。
 
-保留 " 死字保留 " 适用于启动激活和新死亡时
-简快的一幕持续着其入场底和紧凑的历史
-模拟完成记录一直保留到承认底楼。
-按处理率和配置的留存期分列的预算历史,包括
-由钟声和后来重新提交时保留的额外历史。
+激活实例启动及每次新增死信时均应用死信保留策略。
+快照将其准入下限与压实后的历史记录
+原子持久化。在下限得到确认前，内存中的完成记录仍被保留。
+根据处理速率及配置的保留期规划历史记录容量，并考虑
+时钟变化及后续重复提交导致的额外历史记录。
 
-收件箱能力供应
-输出箱深度增长时应用。设定每个租户有效载荷和提交限制:
-字节和序列化成本事项以及信息计数。
-拒绝信件编号超过 1 024 UTF-8 字节,主题大于 256 UTF-8
-任何耐久变化之前的字节。
+收件箱容量向接收方提供背压机制；当发件箱深度增长时，应在
+应用中限制发送方准入。设置每个租户的有效载荷和提交限制：
+除消息数量外，字节数与序列化成本同样重要。发送及投递
+会在任何持久化变更前拒绝长度超过 1,024 个 UTF-8 字节的消息 ID，以及长度超过 256 个 UTF-8
+字节的主题。
 
-一次性活泵的故障保险是每 grain 一个耐用工作,即:
-工作一旦持久,即立即恢复。
-恢复后的工作,以及后来应完成的工作,在重新试验时唤醒 grain 或
-`DeliverAt` 时间。 写作时, 只有当没有跟踪工作时, 只有在该工作到期时才安排工作
-第二, 因此忙碌的 grain 无法执行每个写作的持久工作操作。 抽动任务
-激活失败时, 以后端上限值进行无限期重试, 每次激活都失败
-重新武装从收复状态中唤醒的提醒。 恢复时间将重试合并
-计划、持久就业投票和启动延迟。
+每个 Grain 的一个持久化作业为在线消息泵提供崩溃保障；消息泵在到期工作已持久化后
+立即处理。恢复时已到期的工作会在约一秒内恢复，
+之后到期的工作则在其重试时间或
+`DeliverAt` 时间唤醒 Grain。仅当没有已跟踪作业会在该一秒内到期时，写入才调度作业，
+因此繁忙的 Grain 不必每次写入都执行 Durable Jobs 操作。消息泵作业
+在激活失败期间无限期重试，采用有上限的退避；每个激活实例
+根据恢复的状态重新安排唤醒。恢复时间取决于重试
+调度、Durable Jobs 轮询及激活延迟。
 
-排定的邮件保留在接收器日记和快照中,直到到期为止
-占领和占领 `MaxCapacity` 将他们的容量、储存和回收预算
-收件箱深度计数器包括了这些内容。
+已调度的消息保留在接收方日志和快照中直至到期，
+期间占用 `MaxCapacity`，因此应与其他待处理消息一并规划容量、存储及恢复
+成本。收件箱深度计数器也包含这些消息。
 
 <a id="interpret-delivery-and-completion"></a>
 
-## 口译的交付和完成
+## 理解投递与完成
 
-| 交付状态 | 意义和反应 |
+| 投递状态 | 含义及应对方式 |
 | --- | --- |
-| `Accepted` | 接收器将消息记下来。 请用相同的命令编号等待持久回复或询问商务状态 。 |
-| `Duplicate` | 收件人在保留范围内有该信件的代号, 正在保存中等待或完成。 发件箱删除了此信件; 业务结果来自答复或查询。 重复一个信箱汇拒绝的信息, 则得到原始 `DeadLettered` 结果 。 |
-| `Backpressured` | 接收器在容量上, 发箱重试。 检查接收器深度、 最老的电文使用年龄和处理器的延时时间 。 |
-| `HandlerNotFound` | 接收器没有注册的操作员。 发件箱记录错误和重试。 在激活和部署期间检查处理器登记时被扭曲 。 |
-| `DeadLettered` | 收件人以一个理由和可选应用程序定义的代码,长期拒绝该电文。 发件箱删除了电文,源提供的信息则以该原因和代码作为 `Rejected` 退位。 |
-| `Expired` | 发送时间在接收器的持久接收层或以下,例如交付延迟过 `SentAt + DeduplicationWindow` 或接收器时钟跳出后。 早期接受未知。 发件箱保留了一纸空文, 将源信息退为 `DeadLettered`。 在批准再次发送前通过应用程序对调 。 |
-| 任何其他地位 | 发送者无法解释状态, 例如从新接收器中读取一个, 所以结果未知。 发件人重试直到 `OutboxRetryTimeout`。 |
+| `Accepted` | 接收方已将消息记入日志。等待持久化回复，或通过相同命令 ID 查询业务状态。 |
+| `Duplicate` | 接收方在保留期内拥有该消息 ID 的待处理或已完成记录。发件箱移除消息；业务结果来自回复或查询。如果重复投递的是收件箱接收器已拒绝的消息，则返回原始的 `DeadLettered` 结果。 |
+| `Backpressured` | 接收方达到容量上限。发件箱重试。检查接收方队列深度、最早消息的等待时长及处理器延迟。 |
+| `HandlerNotFound` | 接收方没有注册处理器。发件箱记录错误并重试。检查激活期间的处理器注册和部署版本差异。 |
+| `DeadLettered` | 接收方已持久化拒绝消息，包含原因及可选的应用定义代码。发件箱移除消息；由来源提供的消息以 `Rejected` 状态退出，并附带该原因及代码。 |
+| `Expired` | 发送时间不晚于接收方的持久化准入下限，例如投递延迟超过 `SentAt + DeduplicationWindow`，或接收方时钟向前跳变。此前接纳结果未知。发件箱保留死信，并将由来源提供的消息按 `DeadLettered` 状态退出。授权另一项发送前，通过应用核实结果。 |
+| 其他任何状态 | 发送方无法解释状态，例如来自较新版本接收方的状态，因此结果未知。发件箱重试直至 `OutboxRetryTimeout`。 |
 
-`Accepted`、 `Duplicate`、 `DeadLettered`和 `Expired` 是终点状态。
+`Accepted`、`Duplicate`、`DeadLettered` 和 `Expired` 为终态。
 
-发件人的日记写确定了其发出信件的耐久性。
-接受后确定收件箱条目的耐久性。处理器的日记写
-使用相关回复
-端对端业务确认。
+发送方的日志写入确立出站消息的持久性。接收方的
+接纳操作确立收件箱条目的持久性。处理器的日志写入
+确立业务处理的持久性。使用关联回复来实现
+端到端业务确认。
 
 <a id="diagnose-failures-by-boundary"></a>
 
-## 按边界划分的诊断失败
+## 按边界诊断故障
 
-| 症状 | 边界和补救 |
+| 症状 | 边界及解决方法 |
 | --- | --- |
-| 重复处理器错误 | 验证标的登记、 机构兼容性、 命令标识、 响应目的地和准备依赖性。 手持者例外情形解除 grain ,在恢复后重新尝试直到 `InboxRetryTimeout`,同时持有一个容量档位, 以便保留它们用于短暂故障。 使用 `Fail(reason)`的字母为永久无效输入, 或者发送打印拒绝回复并拨打 `Complete()`。 |
-| 信件中以“ 没有注册处理者” 挂载的字母 | 处理器已注册注册, 但没有人接受主题。 信件在被重新搜索到 `InboxRetryTimeout`。为每个主题注册一个处理者 grain 接收。 |
-| 正在对待指令重新使用发生冲突 | 发送者或接收者丢弃 `InvalidOperationException`。保留原命令编号、主题、目的地和有效载荷;使用单独的ID来实施新的命令。 |
-|  处理器故障后停止使用 Grain | 处理器丢弃或返回时未拨打 `Complete()` 或 `Fail(reason)`。从日记回收后,将放弃其分阶段的更改并计算尝试,所以信件会回溯到 `InboxRetryTimeout`。保留短暂错误的例外,并在第一次修改之前移动可撤销的工作 。 |
-| 带 `The activation stopped without recording the outcome of an attempt.` 的死信  | 恢复计数不干净的停止在信件重新试窗口启动后中断, 窗口也过期了。 在 grain日志中寻找一个失败的处理者或多次撞车。 一次坠机就计算了一个尝试, 并且从未用死字来写信息 。 |
-|  处理器返回后 Grain 停止使用 | 处理者调用 `Complete()` 和 `Fail(reason)` ,但结果有冲突。确保每个分支阶段都完全有一个结果。 |
-| `Complete()` 后记录的处理器错误  | 分阶段完成和发送信件的状态持续。 使用指定状态诊断错误 。 |
-| Grain 储存或中继故障后停止使用 | 使用否决权的日记记录会将激活和 grain 失效进行逐个发布。 下一次启动会收回承诺的日记并恢复未完成的工作。 |
-| 发件箱的死信,其理由说明重新尝试超时已过 | 原始发送 `OutboxRetryTimeout`中未记录终端回复。 请检查接收器可用性和处理器注册, 然后在授权重播前核对可能接受的命令 。 |
-| 发送者用 `Expired` 和未知接收机结果的死信 | 发货被延迟过 `SentAt + DeduplicationWindow`, 或者前方接收器钟跳过了其持久的入场底。 通过应用程序来调和商业状态,检查发送/收件器钟以及大小 `DeduplicationWindow` , 以备容忍的发货延误和时钟变异。 `OutboxRetryTimeout` 保持比窗口更短的时间 。 |
-| 收件人警告 `SentAt` 远超前; 发送者重试 `ArgumentOutOfRangeException` | 接收站楼上方的未跟踪身份在接收时间之前,超过 `DeduplicationWindow`。检查时钟和直接调用的时间戳创建情况。 记录的身份在回滚后仍然得到记录的答复。 保留原始逻辑发送时间到重试; 一旦其最初的预算重试结束, 在批准新提交文件前核对通过申请书发送的已写字母。 |
-| 取消调用器 | 被接受的书写或交付继续通过实际结果进行。 询问持久的商业地位或用同一指令身份证重新尝试。 |
+| 反复出现处理器错误 | 验证主题注册、正文兼容性、命令 ID、回复目标及准备阶段依赖项。处理器异常导致 Grain 停用，并在恢复后重试直至 `InboxRetryTimeout`，期间占用容量槽位，因此仅将异常用于暂时性故障。使用 `Fail(reason)` 将永久无效的输入转入死信，或者发送强类型拒绝回复并调用 `Complete()`。 |
+| 消息以 "No handler is registered"（未注册处理器）原因转入死信 | 已注册处理器，但没有处理器接纳该主题。消息已重试至 `InboxRetryTimeout`。为 Grain 接收的每个主题注册处理器。 |
+| 待处理命令复用冲突 | 发送方或接收方抛出 `InvalidOperationException`。保持原始命令 ID、主题、目标和有效载荷；新命令使用不同的 ID。 |
+| 处理器失败后 Grain 停用 | 处理器抛出异常，或者未调用 `Complete()` 或 `Fail(reason)` 就返回。日志恢复丢弃其暂存变更并计入该尝试，因此消息采用退避策略重试直至 `InboxRetryTimeout`。仅将异常用于暂时性故障，并在首次变更之前完成可能失败的工作。 |
+| 死信包含 `The activation stopped without recording the outcome of an attempt.` | 恢复时计入了由非干净停止中断的尝试；该消息的重试窗口此前已开始且已经到期。在 Grain 日志中检查失败的处理器或反复发生的崩溃。单次崩溃计入一次尝试，本身绝不会使消息转入死信。 |
+| 处理器返回后 Grain 停用 | 处理器以相互冲突的结果调用了 `Complete()` 与 `Fail(reason)`。确保每条分支恰好暂存一个结果。 |
+| 在 `Complete()` 之后记录处理器错误 | 暂存的完成操作及出站消息会持久化。使用已提交状态诊断错误。 |
+| 存储或暂存失败后 Grain 停用 | 消息传递否决该激活实例此后的每次日志写入，Grain 停用。下一个激活实例恢复已提交日志并继续待处理工作。 |
+| 发件箱死信的原因说明重试超时已到期 | 原始发送的 `OutboxRetryTimeout` 内未记录终态响应。检查接收方可用性和处理器注册，再核实可能已被接纳的命令，然后才授权重放。 |
+| 发送方以 `Expired` 转入死信，且接收方结果未知 | 投递延迟超过 `SentAt + DeduplicationWindow`，或接收方时钟向前跳变导致其持久化准入下限推进。通过应用对账核实业务状态，检查发送方和接收方时钟，并根据可容忍的投递延迟和时钟变化设置 `DeduplicationWindow`。保持 `OutboxRetryTimeout` 小于该窗口。 |
+| 接收方警告 `SentAt` 超前过多；发送方重试 `ArgumentOutOfRangeException` | 高于准入下限的未跟踪标识投递时间超前接收方时间超过 `DeduplicationWindow`。检查双方时钟及直接调用方创建时间戳的方式。时钟回拨后，已跟踪标识仍返回已记录响应。重试时保留原始逻辑发送时间；原始重试预算耗尽后，先通过应用核实已转入死信的发送，再授权新提交。 |
+| 调用方取消 | 已接纳的写入或投递会继续直至其实际结果确定。查询持久化业务状态，或使用相同命令 ID 重试。 |
 
-处理器采用两阶段模式:所有非同步和不可靠的制作用途
-本地值, 以及最后阶段发送信息, 应用业务变化,
-在一个同步块中调用 `Complete()` 。任何日记都写在激活上
-捕捉 grain的分阶段更改,在
-调查意外部分影响。
+处理器遵循两阶段模式：所有异步及可能失败的准备工作仅使用
+局部值，最终阶段在一个同步操作块中发送消息、应用业务变更并
+调用 `Complete()`。激活实例上的任何日志写入都会捕获 Grain 暂存的变更，
+因此在调查非预期的部分效果时，应复查处理器的
+状态变更边界。
 
 <a id="inspect-and-replay-dead-letters"></a>
 
-## 检查和重放已死字母
+## 检查及重放死信
 
-说明经应用授权的诊断方法
+公开经过应用授权的诊断方法，以读取
 <xref:Orleans.Durable.Messaging.IMessagingDiagnostics.InboxDeadLetters>
 和 <xref:Orleans.Durable.Messaging.IMessagingDiagnostics.OutboxDeadLetters>。
-每一记录都包括信息、尝试数、失败原因和死字时间。
-收件箱信息汇的拒绝是一种处理过的记录,而不是一纸空文;
-发件人发信的发件人的发件人发信箱收到其理由和代码。
-<xref:Orleans.Durable.Messaging.IOutboxMessageSource> failed to provide it carries only the
-电文代示 ID,带有空有效载荷和默认接收器;其原因记录
-源代码失败 。
+每条记录均包含消息、尝试次数、失败原因及转入死信的时间。
+收件箱消息接收器的拒绝属于已处理记录，而非死信；
+发送方发件箱收到其原因及代码。对于由来源提供、但
+<xref:Orleans.Durable.Messaging.IOutboxMessageSource> 未能提供消息而产生的发件箱死信，仅保留
+消息 ID，使用空有效载荷及默认接收方；原因记录
+来源的失败。
 
-<xref:Orleans.Durable.Messaging.IInboxHandlerContext.Fail*> 创建一个收件箱已绝信
-将信息识别码记录为处理过的 所以
-处理后邮件对计报告 `dead_lettered` 和重复返回 `Duplicate`
-正常业务拒绝被键入应用程序
-承诺作出的答复中承诺作出 `Complete()`; ; 和
-[清单清单配制](messaging-recipes.md#reserve-inventory-once-per-order-line)
-明确接受和拒绝保留结果的模式。
+<xref:Orleans.Durable.Messaging.IInboxHandlerContext.Fail*> 为诊断出的永久故障创建收件箱死信，
+并将消息 ID 记录为已处理，因此
+已处理消息计数器报告 `dead_lettered`，重复投递返回 `Duplicate`，
+只要记录仍被保留。正常业务拒绝通过强类型应用
+回复与 `Complete()` 一起提交；
+[库存示例](messaging-recipes.md#reserve-inventory-once-per-order-line)
+明确建模了接受与拒绝的预留结果。
 
-远程检查时,应披露一种 grain 方法,该方法复制记录的身份,
-应用 DTO 时标、主题、理由、时间戳和相关有效载荷场。
-死信封持有原始有效载荷和信头阵列;当
-应用需要可变缓冲。
+对于远程检查，公开一个 Grain 方法，将记录的标识、
+主题、原因、时间戳及相关有效载荷字段复制到应用 DTO。
+死信持有原始有效载荷与标头数组；应用需要可变缓冲区时，
+应复制字节。
 
-留存的故障记录提供有约束性的业务证据:
-调节外部效应,修理生产商或
-处理器, 并授权更正提交文件。 在保留前先采集证据
-将它除去,并授权重放和诊断访问,与普通的分开
-提交材料。
+保留的失败记录提供有界的运维证据：识别
+不兼容的主题或有效载荷，核实外部效果，修复生产者或
+处理器，并授权修正后的提交。在保留策略移除这些证据之前采集它们，
+并将重放及诊断访问的授权与普通
+提交的授权分开。
 
 <a id="guarantee-application-follow-up"></a>
 
-### 保证申请后续保障
+### 保证应用后续处理
 
-终端交付时使用 <xref:Orleans.Durable.Messaging.IOutboxMessageSource>
-要求应用行动的结果。
-<xref:Orleans.Durable.Messaging.IOutboxMessageSource.OnRetired*>,同步地
-编辑应用程序中自处理的后续信息
-输出箱清除、结果和后续
-重新输入待处理条目和
-回调; 承诺后恢复恢复通过收件箱的耐用性继续跟进
-后续处理者可以询问参与者,调和未知影响,
-并承诺执行申请的下一个决定。
+当终态投递结果需要应用采取行动时，使用 <xref:Orleans.Durable.Messaging.IOutboxMessageSource>。
+在
+<xref:Orleans.Durable.Messaging.IOutboxMessageSource.OnRetired*> 中，将终态结果与一条发送给自身的后续消息同步暂存到
+应用日志状态中，同时暂存有效载荷的释放操作。
+发件箱移除、结果及后续消息接纳原子提交。
+提交前恢复会重试待处理条目及回调；
+提交后恢复则通过收件箱的持久化唤醒继续后续处理。
+后续处理器可以查询参与者、核实未知效果，并提交
+应用的下一步决策。
 
-`DeadLettered` 退休包括重新尝试用尽、 `Expired` 答案和来源
-早期接受失败。 接受日期早于是否为未知; `Rejected` 确定一个耐久
-接受拒绝。保持通过恢复登记源所有权。
-例外是启动失败, 并保存最后承诺的待入。
-应用结果和工作保留遵循应用的商业政策;
-诊断性死单收集 遵循其配置的能力和年龄
+`DeadLettered` 状态的退出涵盖重试耗尽、`Expired` 响应及来源
+失败。此前接纳结果仍未知；`Rejected` 标识接收方的持久化拒绝。
+恢复期间保持来源所有权的注册。回调
+异常会使激活实例失败，并保留最后提交的待处理条目。
+应用结果与工作记录的保留遵循应用业务策略；
+诊断死信集合遵循配置的容量和时长。
 
-接收器记录了每个收件箱 死亡信件的讯息 身份和处理,所以
-原始发送接收 `Duplicate` ,完成部分保留和 `Expired`
-发信时间过后,会场上不设发信时间,记录压缩。
-表示先前接受时丢失了答案。重放后将进行对账。
+接收方将每条收件箱死信的消息 ID 记录为已处理，因此
+在完成记录保留期间原始发送收到 `Duplicate`，并在其发送时间被下限排除且其记录已通过压实移除后收到 `Expired`。
+发件箱死信可能代表此前已接纳的消息，
+但响应已经丢失。应在核实结果之后进行重放。
 
-重放一个发箱的死信:
+要重放发件箱死信：
 
-1. 维修接收机可用性、操作器登记或有效载荷兼容性
-   问题,并查询参与企业状态 原始指令编号。
-2. 调和原始结果,然后仅在以下情况下授权提交新划界案:
-   商业协议允许使用。 <xref:Orleans.Durable.Messaging.IOutbox.Send*> 在
-   原始条目已退出。
-   结果; 被接纳的新发送时间可以创建另一个
-   身份保留结束后生效。在授权时使用修改编号
-   a 纠正或重复产生,并记录其与原件的关系。
-3. 记录重放配置,删除记录
-   <xref:Orleans.Durable.Messaging.IMessagingDiagnostics.RemoveOutboxDeadLetter*>. The
-   下一期日记的写作中, 保留着处置、删除和重播信件。
+1. 修复接收方可用性、处理器注册或有效载荷兼容性
+   问题，并使用原始命令 ID 查询参与者业务状态。
+2. 核实原始结果，仅在业务协议允许时
+   授权新提交。<xref:Orleans.Durable.Messaging.IOutbox.Send*> 在原始条目退出后设置新的暂存时间。
+   已跟踪的原始 ID 返回已知结果；
+   在该标识的保留期结束之后，获准的新发送时间可能产生另一项
+   效果。在授权修正或重复效果时使用修订 ID，
+   并记录其与原始 ID 的关系。
+3. 记录重放处置结果，并使用
+   <xref:Orleans.Durable.Messaging.IMessagingDiagnostics.RemoveOutboxDeadLetter*> 移除记录。
+   处置结果、移除操作和重放消息在下一次日志写入中持久化。
 
-重放收件箱的死信:
+要重放收件箱死信：
 
-1. 修理备用性依赖、操作员或有效载荷兼容性问题。
-2. 以《京都议定书》为关键
-   并调和失败尝试应用的任何效果。
-3. 重新根据新的修订身份识别码(例如该命令的子密钥)重新上传命令
-   例如, `{original}/replay/1`原案文,通过经授权的 grain 方法。
-   记录修订与原始ID之间的关系。
-4. 记录重放配置,删除记录
-   <xref:Orleans.Durable.Messaging.IMessagingDiagnostics.RemoveInboxDeadLetter*>. The
-   下一期期刊的著作中,仍然保留着处置、删除和外向修订。
+1. 修复准备阶段依赖项、处理器或有效载荷兼容性问题。
+2. 使用原始消息 ID 查询参与者业务状态和外部提供程序的结果，
+   并核实失败尝试已经应用的任何效果。
+3. 通过已授权的 Grain 方法，以新修订 ID（例如原始键的子键）重新提交命令，
+   例如 `{original}/replay/1`。
+   记录修订与原始 ID 之间的关系。
+4. 记录重放处置结果，并使用
+   <xref:Orleans.Durable.Messaging.IMessagingDiagnostics.RemoveInboxDeadLetter*> 移除记录。
+   处置结果、移除操作及出站修订消息在下一次日志写入中持久化。
 
-外部提供者的留存和查询协议管辖原始方是否
-能够安全地重新研究效果;在批准前将其与原始密钥调和
-a 订正。
+外部提供程序的保留及查询协议决定原始副作用能否安全重试；
+授权修订之前，使用原始键
+核实该副作用的结果。
 
 <a id="observe-progress-and-size-the-system"></a>
 
-## 观察系统的进展和规模
+## 观察进度与规划系统容量
 
-下 `Microsoft.Orleans` 公尺数暴露了这些信息工具。
-带有 `grain_type` 标签;有结果的对数也带有 `status` 标记。
+`Microsoft.Orleans` Meter 公开以下消息传递指标工具。每个指标
+均携带 `grain_type` 标签；具有结果分类的计数器还携带 `status` 标签。
 
-| 文书文书文书文书 | 类型类型 | 口译口译 口译口译口译口译口译口译口译口译口译口译口译口译口译口译口译口译 |
+| 指标 | 类型 | 解释 |
 | --- | --- | --- |
-| `orleans-messaging-inbox-messages-received` | 柜台 | 接收方的交付结果: `accepted`、 `duplicate`、 `backpressured`、 `handler_not_found`或 `expired` (发送时间太旧)。发出后, grain 会自动记录 `accepted` 或 `duplicate` 。信箱槽会记录 `accepted`,或者当水槽拒绝时,则 `dead_lettered` 。 |
-| `orleans-messaging-inbox-messages-processed` | 柜台 | 处理结果: `success`、 `retry`或 `dead_lettered`。汇的接收记录 `success`;汇的拒绝记录 `dead_lettered`。 |
-| `orleans-messaging-outbox-messages-sent` | 柜台 | 以 `Send`制备的信件,包括向自己发送的 grain 信件,该信件绕过发件箱。 |
-| `orleans-messaging-outbox-messages-delivered` | 柜台 | 发送者交付尝试结果: `accepted`, `duplicate`, `deadlettered` (持久的接受拒绝), `expired` (那日,是太旧了) `backpressured`, `handler_not_found`,或 `error` 没有任何记录地退职的讯息 `withdrawn` (来源撤回电文) `expired` (以重新试验已逝者的名义) `source_error` (自有来源未提供电文),或 `unprovided` 发送者无法解释记录其小写名称的状态 。 |
-| `orleans-messaging-inbox-processing-duration` | 直方图, ms | 处理时间。 |
-| `orleans-messaging-outbox-delivery-duration` | 直方图, ms | 执行期。 |
-| `orleans-messaging-inbox-depth` | UpDownCounter | 正在运行 grains的待发收件箱信息 。 |
-| `orleans-messaging-outbox-depth` | UpDownCounter | 正在运行 grains的发件箱信件。 |
+| `orleans-messaging-inbox-messages-received` | Counter | 接收方的投递结果：`accepted`、`duplicate`、`backpressured`、`handler_not_found` 或 `expired`（发送时间过早）。Grain 发送给自身的消息在发送时记录 `accepted` 或 `duplicate`。收件箱接收器接手的消息记录 `accepted`，若接收器拒绝则记录 `dead_lettered`。 |
+| `orleans-messaging-inbox-messages-processed` | Counter | 处理器结果：`success`、`retry` 或 `dead_lettered`。接收器接纳记录 `success`；接收器拒绝记录 `dead_lettered`。 |
+| `orleans-messaging-outbox-messages-sent` | Counter | 通过 `Send` 暂存的消息，包括 Grain 发送给自身而绕过发件箱的消息。 |
+| `orleans-messaging-outbox-messages-delivered` | Counter | 发送方的投递尝试结果：`accepted`、`duplicate`、`deadlettered`（接收方的持久化拒绝）、`expired`（发送时间过早）、`backpressured`、`handler_not_found` 或 `error`（调用失败且没有响应）。未经尝试即退出的消息记录 `withdrawn`（来源撤回消息）、`expired`（重试超时已到期）、`source_error`（所属来源未能提供消息）或 `unprovided`（没有已注册来源提供已恢复的消息）。发送方无法解释的状态记录其小写名称。 |
+| `orleans-messaging-inbox-processing-duration` | Histogram，毫秒 | 处理器处理时长。 |
+| `orleans-messaging-outbox-delivery-duration` | Histogram，毫秒 | 投递时长。 |
+| `orleans-messaging-inbox-depth` | UpDownCounter | 所有活跃 Grain 的待处理收件箱消息。 |
+| `orleans-messaging-outbox-depth` | UpDownCounter | 所有活跃 Grain 的待处理发件箱消息。 |
 
-深度仪器报告在信息添加和删除后,深度仪器报告变化,发布时间
-当一个启动的讯息停止时, 激活会贡献。 他们的总和是当前
-正在运行 grains中待完成的工作。
+队列深度指标随消息的添加和移除报告变化，并在激活实例的消息传递停止时
+释放其贡献值。这些贡献值的总和为所有活跃 Grain 当前的
+待处理工作。
 
-`Orleans.Messaging` 诊断倾听器、 `MessagingEvents`报告过渡情况
-同步地激活它们,同时使用其 `IGrainContext`:
+`Orleans.Messaging` 诊断侦听器 `MessagingEvents` 在发生转换的激活实例上
+同步报告转换，并携带其 `IGrainContext`：
 
-| 活动活动 | 升升 |
+| 事件 | 触发时机 |
 | --- | --- |
-| `InboxMessageReceiving` | 新的发送时间在接收层以上, 在信箱阶段信件效果之前。 观察者的例外情形失败了, 就像一个汇的例外, 所以发送者会重新检修它 。 |
-| `OutboxRetryScheduled` | 一次失败的运送尝试被重新安排,并计算出其企图、错误和下一次尝试时间。 |
-| `OutboxMessageRetired` | 以已发、已发或已发或已发或已发的文字形式已退休的电文。 |
+| `InboxMessageReceiving` | 新投递的发送时间高于准入下限，在收件箱暂存消息效果之前触发。观察者异常与接收器异常一样导致尝试失败，因此发送方会重试。 |
+| `OutboxRetryScheduled` | 失败的投递尝试已重新调度，附带尝试次数、错误及下次尝试时间。 |
+| `OutboxMessageRetired` | 消息以已投递、已拒绝或已转入死信的方式退出，并附带退出结果。 |
 
-测试是否订阅 `MessagingEvents.AllEvents`,或使用 `DiagnosticEventCollector`
-等待过渡而不是投票,并从一个
-`InboxMessageReceiving` 观察员。
+测试订阅 `MessagingEvents.AllEvents`，或者使用 `DiagnosticEventCollector` 来
+等待状态转换而非轮询，并通过
+`InboxMessageReceiving` 观察者注入投递故障。
 
-发件箱记录其送货单、发送信息,并在 `Debug`记录后压;
-无法在 `Warning`解释的过期未提供的邮件和状态;以及
-`HandlerNotFound` 答复、交付错误和源源失效 `Error`.
+发件箱以 `Debug` 级别记录投递轮次、已投递消息及背压；
+以 `Warning` 级别记录已过期、未提供的消息及无法解释的状态；
+对 `HandlerNotFound` 响应、投递错误及来源失败，以 `Error` 级别记录。
 
-与该应用软件遥测管道有关的出口指标。
-发育,最晚的等待年龄 从应用诊断, 反复失败的结果,
-结合这些与《日刊》和《持久工作》的健康信号。
-逻辑直指指令身份和事件调查对象,并保留
-高心胸房客,在日志或痕迹中订购钥匙。
+通过应用遥测管道导出指标。对持续的队列深度
+增长、应用诊断中最早待处理消息的等待时长、重复失败结果
+及存储延迟发出告警。将它们与 Journaling 和 Durable Jobs 健康信号结合。
+记录规范命令 ID 和主题以便调查事件，并将
+高基数的租户键和订单键保留在日志或跟踪中。
 
-能力包括待定信息、有序列的机构、完成记录,
-业务查询结果,并保留了不写的信件。
-测量激活回放时间和存储量
-与稳定状态处理同时进行。
+容量涵盖待处理消息、序列化正文、完成记录、
+业务查询结果及保留的死信。快照与存储成本
+取决于这些保留集合。在测量稳态处理的同时，
+测量激活重放时间及存储吞吐量。
+
+<a id="budget-allocations-and-owned-memory"></a>
 
 <a id="budget-allocations-and-owned-memory"></a>
 
 <a id="budget-allocations-and-managed-memory"></a>
 
-### 预算拨款和管理下的记忆
+### 规划分配量与托管内存
 
-每个信件都持有有效载荷阵列和可选的指定信头阵列, 所以信息大小
-预算待编编码
-字元、阵列间接费用和GC活动,以及信息传递记录和应用
-。根据
-日记能力和潜伏预算。
+每条消息持有有效载荷数组和可选的命名标头数组，因此消息大小
+与速率直接影响托管内存分配速率。在规划消息传递记录及应用
+结果时，同时考虑待处理编码字节数、数组开销及 GC 活动。
+按照日志容量与延迟预算在入口应用有效载荷大小和提交数量
+限制。
 
-发箱状态、箱状态、处理人背景和交付业务参考
-使用有效载荷数矩阵时,它们会使用。删除信件使其数组符合条件
-其它引用端后收藏的参考文件。 见
-[有效载荷和信头阵列](messaging.md#use-gc-owned-payload-arrays).
+发件箱状态、收件箱状态、处理器上下文及投递操作在使用
+有效载荷数组期间持有其引用。移除消息后，其他引用结束时，其数组即可被
+回收。参见
+[有效载荷与标头数组](messaging.md#use-gc-owned-payload-arrays)。
 
-| 预算预算预算预算预算预算预算预算预算预算预算预算预算预算预算预算预算预算预算 | 计量度量 |
+| 预算项目 | 测量方式 |
 | --- | --- |
-| 处理处理分配款 | 热调后, 管理整个进程分配的字节, 由已确认的信件除以 。 |
-| 待 待 工 | 收件箱和发件箱深度、主动投送量计数以及序列有效载荷字节。 |
-| 留存数据 | 已完成的信息标识和查询/审计结果,包括已配置的留存以及日记历史和快照。 |
-| 支持内存 | 序列-元数据主要内容、序列-缓冲能力以及飞行中作业参考。 |
-| 持久性和恢复工作 | 日记附录和快照以及持久工作提醒时间安排。 |
+| 处理分配量 | 预热后，整个进程分配的托管字节数除以已确认消息数。 |
+| 待处理工作 | 收件箱与发件箱深度、活跃投递数量及序列化有效载荷字节数。 |
+| 保留数据 | 配置保留期内的已完成消息 ID 与查询/审计结果，以及日志历史和快照。 |
+| 支撑内存 | 序列化元数据的基数、序列化缓冲区容量及在途操作引用。 |
+| 持久化与恢复工作 | 日志追加、快照及 Durable Jobs 唤醒调度。 |
 
-测量长期和许多目的地工作量的连续链
-分配式堆放追踪将成本归因于生产成本
-路径。比较同一有效载荷、链长、供应商和
-使用未跟踪运行的运行进行潜伏比较。
+使用串行链测量延迟，使用多目标工作负载测量
+待处理工作容量。分配调用栈跟踪将成本归因于产生它们的
+路径。比较采用相同有效载荷、链长度、提供程序和
+保留设置的预热运行；比较延迟时使用未启用跟踪的运行。
 
 <a id="evolve-application-payload-records"></a>
 
-## 演变应用有效有效有效有效载荷记录
+## 演进应用有效载荷记录
 
-保持应用程序主题、命令标识和序列识别符稳定。
-使用 `GenerateSerializer` 和稳定 `Id` 成员的有效有效载荷记录;保持阅读器
-版本业务术语和主题
-与有效载荷或操作政策变化不兼容。
+保持应用主题、命令 ID 及序列化标识符稳定。强类型
+有效载荷记录使用 `GenerateSerializer` 和稳定的 `Id` 成员；保留对
+先前编码记录的读取支持。当不兼容的有效载荷或操作策略发生变化时，
+明确对业务语义与主题进行版本控制。
 
-生产商发布新主题前, 安装新主题的处理器。 退出后
-处理的有待发信息、保留已写完的信件和授权重播。
-坐标卡尼基编码更改, 以便现有命令保持身份 。
+在生产者发出新主题之前部署其处理器。在
+待处理消息、保留的死信及已授权的重放均处理完毕后，才停用主题。
+协调规范键编码的变更，使现有命令保持其标识。
 
-受信任的入侵的衍生房客所有权和授权目的地。
-要求命令编号、对象和身体响应目的地
-准备外部影响或改变商业状态之前先拥有所有权。
-序列有效载荷大小,并保密 身体、钥匙和诊断日志。
+从受信任的入口派生租户所有权和已授权目标。在准备外部效果或
+改变业务状态之前，依据该可信所有权验证声明的命令 ID、主题和正文中的
+回复目标。限制
+序列化有效载荷大小，不要在正文、键和诊断日志中包含秘密信息。
 
 <a id="measure-sequential-throughput"></a>
 
-## 连续测量量
+## 测量串行吞吐量
 
-存储库 `Messaging.Sequential` 基准衡量单链至2,
-4, 8 交互 grains 在一个 silo连续执行 1 024个连续耐久性
-每一发件人每次发送的电话,等待每个处理者的日记确认
-每个 grain 的制表器中都有一个固定代表,在结构器中登记一个打字处理器
-以接受该 grain 作为其论点。处理者用打字的方式分期进行下一跳
-`Send`,更新其柜台并完成信息。
-`runs/{invocation}/hops/{hop}` 命令ID,带有变量数格式化。
-检查确认和清理检查的准确总数
-/ 人- 人grain 商业效果计数。
+仓库的 `Messaging.Sequential` 基准测试测量一个 Silo 上由 2 个、
+4 个或 8 个相互交互的 Grain 构成的单条链。每次调用执行 1,024 次串行持久化
+投递，并等待每个处理器步骤的日志确认。
+每个 Grain 在构造函数中使用静态委托注册强类型处理器，
+委托接收 Grain 作为参数。处理器使用强类型
+`Send` 暂存下一跳，更新计数器并完成消息处理。每一跳使用
+`runs/{invocation}/hops/{hop}` 命令 ID，并采用区域性无关的数值格式。一个
+日志状态观察确认，清理过程检查精确的总业务效果次数及
+每个 Grain 的业务效果次数。
 
-从仓库根运行 :
+从仓库根目录运行：
 
 ```powershell
 dotnet run --project test\Benchmarks\Benchmarks.csproj --configuration Release --framework net11.0 -- Messaging.Sequential --filter "*SequentialMessagingBenchmark*" --job Dry --buildTimeout 600 --noOverwrite
 dotnet run --project test\Benchmarks\Benchmarks.csproj --configuration Release --framework net11.0 --no-build -- Messaging.Sequential --filter "*SequentialMessagingBenchmark*" --buildTimeout 600 --noOverwrite
 ```
 
-建设超时,可容纳孤立地建立基准依赖性
-图形。“干运行”验证执行。测量的报表将 `Mean` 对一个报告进行正对
-已经确认的消息:通过量为 `1 / Mean` , `Mean` 以秒表示。
-基准重新创造,温暖每个测量迭代值之外组群的热度
-其变化不定的日记和记忆中的作业分离出本地
-使用部署的持久性提供者,交叉silo 安置,
-和独立的生产能力计量连锁和并行链。
-硬件、运行时间、承诺、提供者和基准预设,每次比较都设定。
+构建超时设置容纳基准测试依赖图的隔离构建。
+Dry 运行验证执行。测量报告将 `Mean` 归一化为一条
+已确认消息：吞吐量为 `1 / Mean`，其中 `Mean` 以秒表示。
+基准测试在每次测量迭代之外重新创建并预热集群，以
+限制保留的历史记录。其易失性日志与内存作业隔离出本地
+框架开销。生产容量测量应使用部署中的持久化提供程序、跨 Silo 放置，
+以及独立并发链。每次比较均记录
+硬件、运行时、提交、提供程序和基准测试预设。
 
-使用 `--memory` 来报告每条已确认的全天电文所分配的经管理字节
-。比较相同的 grain 计数、链长和存储阈值。
-移动存储默认为100个附件或1 MiB , 以相片间隔; 见
-[发展储存](journaling/configuration.md#development-storage) 两者的
-以及它们的记忆和重现权衡
+使用 `--memory` 报告整个进程每条已确认消息分配的托管字节数。
+比较时采用相同的 Grain 数量、链长度及存储阈值。
+易失性存储默认以追加 100 次或写入 1 MiB 作为快照间隔阈值；参见
+[开发存储](journaling/configuration.md#development-storage)，了解这两项
+限制及其内存与重放方面的权衡。

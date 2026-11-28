@@ -11,7 +11,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="List{T}"/>的序列器。
+    /// <see cref="List{T}"/> 的序列化器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
@@ -24,7 +24,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ListCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldCodec">字段编码。</param>
+        /// <param name="fieldCodec">字段编解码器。</param>
         public ListCodec(IFieldCodec<T> fieldCodec)
         {
             _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -126,8 +126,8 @@ namespace Orleans.Serialization.Codecs
         {
             ArgumentNullExceptionPolyfill.ThrowIfNull(value);
 
-            // 如果该值有建筑商添加的某种值,请清除这些值。
-            // 如果这些数值在序列式有效载荷中,则将添加到下文。
+            // 如果集合中包含构造函数添加的元素，则将其清空。
+            // 如果序列化有效载荷中包含这些元素，则会在后续代码中重新添加它们。
             value.Clear();
 
             uint fieldId = 0;
@@ -162,7 +162,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="List{T}"/>的复印机。
+    /// <see cref="List{T}"/> 的复制器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
@@ -173,7 +173,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ListCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="valueCopier">价值复印机。</param>
+        /// <param name="valueCopier">元素复制器。</param>
         public ListCopier(IDeepCopier<T> valueCopier)
         {
             _copier = OrleansGeneratedCodeHelper.UnwrapService(this, valueCopier);

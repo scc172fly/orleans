@@ -7,9 +7,9 @@ namespace UnitTests.OrleansRuntime
 {
     /// <summary>
     /// Orleans 管理 Grain 功能测试。
-    /// 管理 Grain 是一个提供集群管理业务的系统 grain
-    /// 例如查询 grain 启动信息、收集统计数据,以及
-    /// 在整个 Orleans 组中履行行政任务。
+    /// 管理 Grain 是提供集群管理操作的系统 Grain，
+    /// 例如查询 Grain 激活信息、收集统计信息以及
+    /// 在 Orleans 集群范围内执行管理任务。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -21,12 +21,12 @@ namespace UnitTests.OrleansRuntime
         }
 
         /// <summary>
-        /// 测试查询 grain 通过管理层激活地址 grain.
-        /// 证明:
-        /// - 未激活 grains 返回无效地址
-        /// - 激活 grains 返回仍然稳定的有效地址
-        /// - 无国籍工人 grains 放弃适当的例外(没有单一激活)
-        /// 这一功能对于诊断和监测 grain 定位至关重要。
+        /// 测试通过管理 Grain 查询 Grain 激活地址。
+        /// 验证以下情况：
+        /// - 未激活的 Grain 返回 null 地址
+        /// - 已激活的 Grain 返回有效且保持稳定的地址
+        /// - 无状态工作者 Grain 引发适当的异常（没有单一激活实例）
+        /// 此功能对于诊断及监视 Grain 放置至关重要。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -67,8 +67,8 @@ namespace UnitTests.OrleansRuntime
     }
 
     /// <summary>
-    /// 无国籍工人的测试界面 grain。
-    /// 用于核实管理业务是否正确处理无国籍工人。
+    /// 无状态工作者 Grain 的测试接口。
+    /// 用于验证管理操作能正确处理无状态工作者。
     /// </summary>
     public interface IDumbWorker : IGrainWithIntegerKey
     {
@@ -76,9 +76,9 @@ namespace UnitTests.OrleansRuntime
     }
 
     /// <summary>
-    /// 无国籍工人的测试 grain。
-    /// 无国籍工人可以有多个激活器, 并且没有单一的地址,
-    /// 这使得管理业务有特殊的情况。
+    /// 无状态工作者 Grain 的测试实现。
+    /// 无状态工作者可以具有多个激活实例，而没有单一地址，
+    /// 因此是管理操作中的特殊情况。
     /// </summary>
     [StatelessWorker(1)]
     public class DumbWorker : Grain, IDumbWorker
@@ -87,8 +87,8 @@ namespace UnitTests.OrleansRuntime
     }
 
     /// <summary>
-    /// 正常状态 grain的测试界面。
-    /// 用于校验正常的 grain 激活地址查询。
+    /// 普通有状态 Grain 的测试接口。
+    /// 用于验证普通 Grain 激活地址查询。
     /// </summary>
     public interface IDumbGrain : IGrainWithGuidKey
     {
@@ -96,9 +96,9 @@ namespace UnitTests.OrleansRuntime
     }
 
     /// <summary>
-    /// 测试定期状态 grain的测试。
-    /// 常规 grains 随时有一个单一的激活装置,
-    /// 使他们的地址通过管理业务可以查询。
+    /// 普通有状态 Grain 的测试实现。
+    /// 普通 Grain 在任意时刻仅有一个激活实例，
+    /// 因此可通过管理操作查询其地址。
     /// </summary>
     public class DumbGrain : Grain, IDumbGrain
     {

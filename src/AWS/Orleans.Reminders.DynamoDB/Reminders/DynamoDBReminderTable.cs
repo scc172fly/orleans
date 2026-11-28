@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace Orleans.Reminders.DynamoDB
 {
     /// <summary>
-    /// 执行《公约》 IReminderTable 使用 DynamoDB 作为基本储存。
+    /// 使用 DynamoDB 作为底层存储的 IReminderTable 实现。
     /// </summary>
     internal sealed partial class DynamoDBReminderTable : IReminderTable
     {
@@ -33,8 +33,8 @@ namespace Orleans.Reminders.DynamoDB
 
         private DynamoDBStorage storage = null!;
 
-        /// <summary>初始化一个 <see cref="DynamoDBReminderTable"/> 类的新实例。</summary>
-        /// <param name="loggerFactory">用于使用</param>的对帐厂
+        /// <summary>初始化 <see cref="DynamoDBReminderTable"/> 类的新实例。</summary>
+        /// <param name="loggerFactory">要使用的日志记录器工厂。</param>
         /// <param name="clusterOptions"></param>
         /// <param name="storageOptions"></param>
         public DynamoDBReminderTable(
@@ -47,7 +47,7 @@ namespace Orleans.Reminders.DynamoDB
             this.options = storageOptions.Value;
         }
 
-        /// <summary>启动当前实例,使用特定的全球配置和日志器</summary>
+        /// <summary>使用指定的全局配置和日志记录器初始化当前实例。</summary>
         public Task Init()
         {
             this.storage = new DynamoDBStorage(
@@ -104,12 +104,12 @@ namespace Orleans.Reminders.DynamoDB
         }
 
         /// <summary>
-        /// 读取提醒 grain 引用的提醒,以提醒的名称表示。
-        /// 从提醒表格中读取一行
+        /// 根据提醒器名称读取指定 Grain 引用的提醒器。
+        /// 从提醒器表读取一条记录。
         /// </summary>
-        /// <param name="grainId"> grain 参考文件,以查找行的位置 </param>
-        /// <param name="reminderName"> 提醒名称以查找行 </param>
-        /// <returns> 返回 ReminderTableData 如果行读取成功 </returns>
+        /// <param name="grainId">用于定位记录的 Grain 引用。</param>
+        /// <param name="reminderName">用于定位记录的提醒器名称。</param>
+        /// <returns>成功读取记录时返回 ReminderTableData。</returns>
         public async Task<ReminderEntry?> ReadRow(GrainId grainId, string reminderName)
         {
             var reminderId = ConstructReminderId(this.serviceId, grainId, reminderName);
@@ -132,10 +132,10 @@ namespace Orleans.Reminders.DynamoDB
         }
 
         /// <summary>
-        /// 从提醒表格中读取一行
+        /// 从提醒器表读取一条记录。
         /// </summary>
-        /// <param name="grainId">grain 参考文件,以查找行的位置 </param>
-        /// <returns> 返回 ReminderTableData 如果行读取成功 </returns>
+        /// <param name="grainId">用于定位记录的 Grain 引用。</param>
+        /// <returns>成功读取记录时返回 ReminderTableData。</returns>
         public async Task<ReminderTableData> ReadRows(GrainId grainId)
         {
             var expressionValues = new Dictionary<string, AttributeValue>
@@ -159,11 +159,11 @@ namespace Orleans.Reminders.DynamoDB
         }
 
         /// <summary>
-        /// 用于特定散列范围的读取提醒表数据。
+        /// 读取指定哈希范围的提醒器表数据。
         /// </summary>
         /// <param name="begin"></param>
         /// <param name="end"></param>
-        /// <returns> 返回 RemiderTableData 如果行读取成功 </returns>
+        /// <returns>成功读取记录时返回 ReminderTableData。</returns>
         public async Task<ReminderTableData> ReadRows(uint begin, uint end)
         {
             Dictionary<string, AttributeValue>? expressionValues = null;
@@ -226,12 +226,12 @@ namespace Orleans.Reminders.DynamoDB
         }
 
         /// <summary>
-        /// 从提醒表格中删除一行
+        /// 从提醒器表删除一条记录。
         /// </summary>
-        /// <param name="grainId"> 具体 grain ref 以查找行的位置 </param>
-        /// <param name="reminderName"> 提醒名称以查找行 </param>
-        /// <param name="eTag"> e标记 </param>
-        /// <returns> 如果删除了行, 返回为真 </returns>
+        /// <param name="grainId">用于定位记录的指定 Grain 引用。</param>
+        /// <param name="reminderName">用于定位记录的提醒器名称。</param>
+        /// <param name="eTag">ETag。</param>
+        /// <returns>记录删除成功时返回 true。</returns>
         public async Task<bool> RemoveRow(GrainId grainId, string reminderName, string eTag)
         {
             var reminderId = ConstructReminderId(this.serviceId, grainId, reminderName);
@@ -257,7 +257,7 @@ namespace Orleans.Reminders.DynamoDB
         }
 
         /// <summary>
-        /// 测试钩来清除提醒表格数据。
+        /// 用于清除提醒器表数据的测试钩子。
         /// </summary>
         /// <returns></returns>
         public async Task TestOnlyClearTable()
@@ -299,10 +299,10 @@ namespace Orleans.Reminders.DynamoDB
         }
 
         /// <summary>
-        /// 将条目放入提醒表的自动同步方法
+        /// 将条目写入提醒器表的异步方法。
         /// </summary>
-        /// <param name="entry"> 要放置的条目 </param>
-        /// <returns> 如果条目上调成功返回条目 ETag </returns>
+        /// <param name="entry">要写入的条目。</param>
+        /// <returns>成功插入或更新条目时返回该条目的 ETag。</returns>
         public async Task<string?> UpsertRow(ReminderEntry entry)
         {
             var reminderId = ConstructReminderId(this.serviceId, entry.GrainId, entry.ReminderName);

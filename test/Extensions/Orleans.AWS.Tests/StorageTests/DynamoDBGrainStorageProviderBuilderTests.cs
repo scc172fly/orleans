@@ -147,7 +147,7 @@ public sealed class DynamoDBGrainStorageProviderBuilderTests
         Assert.Contains($"type '{expectedType}'", exception.Message);
     }
 
-    // 配置绑定源生成器将空值视为不存在 。
+    // 配置绑定源生成器将空值视为不存在。
     [Theory]
     [InlineData(nameof(DynamoDBStorageOptions.ReadCapacityUnits))]
     [InlineData(nameof(DynamoDBStorageOptions.UseProvisionedThroughput))]

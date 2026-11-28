@@ -1,69 +1,69 @@
--- 在共享主脚本创建 OrleansQuery后应用此脚本设置和重复升级。
--- 在应用前停止使用此数据库的所有 silos , 然后重新启动以重新装入查询 。
+-- 共享的 Main 脚本创建 OrleansQuery 后，应用此脚本以执行初始化及可重复升级。
+-- 应用脚本前，停止所有使用此数据库的 Silo，之后重新启动以重新加载查询。
 --
--- 本表的设计标准是:
+-- 此表的设计准则如下：
 --
--- 1. 含有任意内容,其序号为二进制、XML或 JSON。
--- 支持,以便人们能够利用储存处理能力
--- 必要时,这些类型不应产生额外的储存费用。
+-- 1. 能够存储序列化为二进制、XML 或 JSON 的任意内容。支持这些格式，
+-- 是为了在需要时利用存储系统对相应类型的处理能力。
+-- 这不应增加存储开销。
 --
--- 2. 表格设计的规模应达到几十或数百(甚至更多)类型的设想
--- 联 年 月 日 月 日 月 月 日 grains 可能与甚至几十万个 grain 每一
--- 类型 grain。
+-- 2. 表的设计应能扩展至数十、数百（甚至更多）种
+-- Grain 类型，每种类型可能对应数十万个 Grain ID，
+-- 并支持这些 Grain 的运行。
 --
--- 3. 表格及其相关业务应保持稳定。
--- 造成业务意外延误的结构性结构原因,应有可能
--- 以合理的快速度插入数据,不引起资源争议。
+-- 3. 表及其相关操作应保持稳定，不应因
+-- 结构设计导致操作发生意外延迟。同时还应能
+-- 较快地插入数据，而不发生资源争用。
 --
--- 4. 由于2和3中的原因,指数应尽可能缩小范围,以便与
--- 并且如果需要维护, 资源并不密集。 为此
--- 指数因设计而缩小(估计非集群)。
--- 以 grain 类型及其ID在储存中识别,这些 Orleans silo类型和ID是独有的。
--- ID是 grain ID 字节(如果字符串类型UTF-8 字节)和可能的扩展密钥 UTF-8
--- 与身份识别符号连接的字节,然后散列。
+-- 4. 基于第 2、3 点，索引应尽可能窄，以便充分驻留
+-- 内存，并避免索引维护消耗过多资源。因此，
+-- 索引特意设计得较窄（理想情况下为非聚集索引）。目前存储系统
+-- 通过 Grain 类型及其 ID 识别实体，这两者的组合在 Orleans Silo 中唯一。
+-- ID 由 Grain ID 的字节（若为字符串类型则为 UTF-8 字节）与可能存在的扩展键的 UTF-8
+-- 字节拼接后计算哈希得到。
 --
--- 散列原因:数据库引擎通常限制列长度,
--- 即使在限制范围内,也
--- 指数会厚,消耗更多的内存。
+-- 使用哈希的原因：数据库引擎通常限制列的长度，
+-- 这会人为限制 ID 或类型的长度。即使未超限，
+-- 索引也会变得较宽并消耗更多内存。
 --
--- 在目前设置的设置中,ID和该类型被散成两个INT型式的情况,
--- 设定复合索引。当没有碰撞时,该索引可以快速定位
--- 与散列索引值一起, NVARCHAR(nnn) 值也
--- 存储后,它们被用来将散列碰撞处理成仅一个结果行。
+-- 在当前设计中，ID 和类型各自哈希为一个 INT 类型的值，
+-- 并构成复合索引。如果没有哈希冲突，索引可以快速定位
+-- 唯一的行。除了哈希索引值，还存储 NVARCHAR(nnn) 值，
+-- 以在发生哈希冲突时筛选出唯一的结果行。
 --
--- 5. 设计设计导致储存重复,有理由认为会
--- 具有特定服务标识的服务数量少,在任何特定时间都可运行。
--- 与 grain ID的数量相比,不同类型身份证的数目相对较少
--- grain. 捕获量是,如果这些数据被分离到另一个表格中,它就会使INSTERT
--- 以及最新业务复杂,需要合并、临时变数和额外
--- 或一些组合的指数来使其发挥作用。 它看起来像是合适的策略
--- 可以是使用压缩表格。
+-- 5. 此设计会导致存储中的数据重复。可以合理假设，
+-- 任意时刻具有特定服务 ID 的运行中服务数量较少，或者
+-- 相较于 Grain ID 的数量，
+-- 不同的 Grain 类型数量相当少。如果将这些数据拆分到另一张表，则 INSERT
+-- 和 UPDATE 操作会变得复杂，需要连接查询、临时变量、额外的
+-- 索引或这些手段的组合才能实现。比较合适的策略
+-- 可能是使用表压缩。
 --
--- 6. 出于上述原因, grain 州DDELETE将设置数据字段的NULL
--- 并通常更新版本号。这将减轻索引或索引的需要。
--- 统计维持数据,损失一些储存空间。
--- 单独维修操作。
+-- 6. 基于上述原因，Grain 状态的 DELETE 操作将数据字段设为 NULL，
+-- 并正常更新 Version 版本号。这会牺牲少量存储空间，但应能减轻索引或
+-- 统计信息的维护需求。可以在独立的维护操作中
+-- 清理该表。
 --
--- 7. 在储存业务中,各栏的查询顺序必须完全相同
--- 自存储表操作支持可选流以来。
+-- 7. 存储操作的查询结果中，各列的顺序必须完全一致，
+-- 因为存储表操作可选择使用流式处理。
 --
--- 8. 下一份版本的封号从214748364747回折到1,因此经常写 grain ,从不溢出
--- 32位数版本。 Orleans 比较版本时,只对等值进行比较,因此版本必须更改
--- 每一个写入都不需要永久增加, 但不需要永远增加。 版本的旧文本只能在
--- 2147483647 进一步写到同一份 grain。
+-- 8. Version 达到 2147483647 后，下一个值回绕至 1，因此频繁写入的 Grain 不会使
+-- 32 位 Version 溢出。Orleans 仅比较版本是否相等，因此每次写入时版本号必须变化，
+-- 但不需要始终递增。只有在对同一 Grain 又执行
+-- 2147483647 次写入后，旧版本号才可能再次匹配。
 IF OBJECT_ID(N'[OrleansStorage]', 'U') IS NULL
 BEGIN
 CREATE TABLE OrleansStorage
 (
-    -- 这些是用来保存书本的 Orleans 计算
-    -- 这些人的( RelationalStorageProvide ),执行))、
-    -- 标记为32位整数,这些整数被映射到 *散列字段。
-    -- 绘图在代码中完成
-    -- *字符串列包含相应的清晰名称字段。
+    -- 这些字段用于记录管理。Orleans 计算
+    -- 这些哈希值（参见 RelationalStorageProvide 实现），
+    -- 它们是映射到 *Hash 字段的有符号 32 位整数。
+    -- 映射在代码中完成。
+    -- *String 列包含相应的原始名称。
     --
-    -- 如果存在重复,则使用 GrainIdN0解决,
-    -- GrainIdN1、 GrainIdExtensionString 和 GrainTypeString 字段。
-    -- 假定这些是很少需要的。
+    -- 若发生哈希冲突，则使用 GrainIdN0、
+    -- GrainIdN1、GrainIdExtensionString 和 GrainTypeString 字段区分发生哈希冲突的记录。
+    -- 预计很少需要这样做。
     GrainIdHash                INT NOT NULL,
     GrainIdN0                BIGINT NOT NULL,
     GrainIdN1                BIGINT NOT NULL,
@@ -72,19 +72,19 @@ CREATE TABLE OrleansStorage
     GrainIdExtensionString    NVARCHAR(512) NULL,
     ServiceId                NVARCHAR(150) NOT NULL,
 
-    -- 有效载荷
+    -- 有效载荷。
     PayloadBinary    VARBINARY(MAX) NULL,
 
-    -- 信息字段,没有其他用途。
+    -- 仅供参考的字段，无其他用途。
     ModifiedOn DATETIME2(3) NOT NULL,
 
-    -- 储存的有效载荷的版本。
+    -- 已存储有效载荷的版本。
     Version INT NULL
 
-    -- 以下原则上是首要关键,但太厚了
-    -- 需要索引,因此数值被仓散,只有碰撞才能解决
-    -- ,即,在索引查询确定右侧
-    -- 下至 [0, n] 相关行,n 指相对相撞价值对数。
+    -- 以下字段原则上应构成主键，但作为索引会过宽，
+    -- 因此对其值进行哈希，仅在发生哈希冲突时才
+    -- 使用这些字段区分发生哈希冲突的记录。也就是说，在索引查询将匹配的行
+    -- 缩小到 [0, n] 后（n 为发生冲突的值对数量），再使用这些字段。
 );
 
 IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'IX_OrleansStorage' AND object_id = OBJECT_ID('OrleansStorage'))
@@ -92,13 +92,13 @@ BEGIN
 	CREATE NONCLUSTERED INDEX IX_OrleansStorage ON OrleansStorage(GrainIdHash, GrainTypeHash);
 END
 
--- 这确保了锁升级不会锁定整个桌子,因为整桌可能非常庞大。
--- 见 https://www.littlekendra.com/2016/02/04/why-rowlock-hints-can-make-queries-slower-and-blocking-worse-in-sql-server/。
+-- 这可确保锁升级不会锁定整个表，因为表可能非常大。
+-- 更多信息见 https://www.littlekendra.com/2016/02/04/why-rowlock-hints-can-make-queries-slower-and-blocking-worse-in-sql-server/。
 ALTER TABLE OrleansStorage SET(LOCK_ESCALATION = DISABLE);
 
--- 带有 ID 的特性是压缩。如果支持,它用于 OrleansStorage 表。这是一个 Enterprises 特性。
--- 这消耗了更多的处理周期,但应该节省 GrainIdString、 GrainTypeString 和 ServiceId的空间,而
--- 有效载荷将压缩。
+-- 一种功能是压缩。如果受支持，则对 OrleansStorage 表启用压缩。这是企业版功能。
+-- 这会消耗更多 CPU 周期，但应能减少 GrainIdString、GrainTypeString 和 ServiceId 的存储空间，
+-- 因为这些字段主要包含重复值。有效载荷也会被压缩。
 IF EXISTS (SELECT 1 FROM sys.dm_db_persisted_sku_features WHERE feature_id = 100)
 BEGIN
     ALTER TABLE OrleansStorage REBUILD PARTITION = ALL WITH(DATA_COMPRESSION = PAGE);

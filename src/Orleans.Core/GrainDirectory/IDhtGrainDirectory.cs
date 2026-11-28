@@ -6,90 +6,90 @@ using Orleans.Runtime;
 namespace Orleans.GrainDirectory
 {
     /// <summary>
-    /// grain 目录中递归的分布操作 。
-    /// 每项作业均可将请求转交远程所有人,增加 hopCount。
+    /// 对 Grain 目录执行的递归分布式操作。
+    /// 每个操作都可以将请求转发到远程所有者，并增加 hopCount。
     ///
-    /// 这里的方法可以远程命名(如果扩展为 IRemoteGrainDirectory)或
-    /// 当地(以 ILocalGrainDirectory延长)
+    /// 这些方法可在远程调用（由 IRemoteGrainDirectory 扩展时），也可
+    /// 在本地调用（由 ILocalGrainDirectory 扩展时）。
     /// </summary>
     internal interface IDhtGrainDirectory
     {
         /// <summary>
-        /// 将新 grain 激活添加到目录中, 记录它。
-        /// <para>此方法必须从排程器线索中调用 。</para>
+        /// 将新的 Grain 激活实例添加到目录中以记录它。
+        /// <para>必须从调度器线程调用此方法。</para>
         /// </summary>
-        /// <param name="address">新激活的地址。</param>
-        /// <param name="hopCount">计数递回深度 silos</param>
-        /// <returns>注册地址和与该目录映射相关的版本。</returns>
+        /// <param name="address">新激活实例的地址。</param>
+        /// <param name="hopCount">记录跨 Silo 的递归深度。</param>
+        /// <returns>已注册的地址及与此目录映射关联的版本。</returns>
         Task<AddressAndTag> RegisterAsync(GrainAddress address, int hopCount = 0);
 
         /// <summary>
-        /// 将新 grain 激活添加到目录中, 记录它。
-        /// <para>此方法必须从排程器线索中调用 。</para>
+        /// 将新的 Grain 激活实例添加到目录中以记录它。
+        /// <para>必须从调度器线程调用此方法。</para>
         /// </summary>
-        /// <param name="address">新激活的地址。</param>
-        /// <param name="currentRegistration">现有的登记,可能无效。</param>
-        /// <param name="hopCount">计数递回深度 silos</param>
-        /// <returns>注册地址和与该目录映射相关的版本。</returns>
+        /// <param name="address">新激活实例的地址。</param>
+        /// <param name="currentRegistration">现有注册记录，可能为 null。</param>
+        /// <param name="hopCount">记录跨 Silo 的递归深度。</param>
+        /// <returns>已注册的地址及与此目录映射关联的版本。</returns>
         Task<AddressAndTag> RegisterAsync(GrainAddress address, GrainAddress? currentRegistration, int hopCount = 0);
 
         /// <summary>
-        /// 从目录服务中删除现有激活的记录。
-        /// 当激活被删除时使用此选项 。
-        /// <para>此方法必须从排程器线索中调用 。</para>
+        /// 从目录服务中移除现有激活实例的记录。
+        /// 在删除激活实例时使用此方法。
+        /// <para>必须从调度器线程调用此方法。</para>
         /// </summary>
-        /// <param name="address">激活要删除的地址。</param>
-        /// <param name="hopCount">计数在 silos之间重复的深度。</param>
-        /// <param name="cause">取消登记的原因。</param>
-        /// <returns>确认已完成注销登记。</returns>
+        /// <param name="address">要移除的激活实例的地址。</param>
+        /// <param name="hopCount">计算跨 Silo 的递归深度。</param>
+        /// <param name="cause">注销的原因。</param>
+        /// <returns>确认注销已完成。</returns>
         Task UnregisterAsync(GrainAddress address, UnregistrationCause cause, int hopCount = 0);
 
         /// <summary>
-        /// 立即解登记一批地址
-        /// <para>此方法必须从排程器线索中调用 。</para>
+        /// 一次注销一批地址。
+        /// <para>必须从调度器线程调用此方法。</para>
         /// </summary>
-        /// <param name="addresses">解除登记地址。</param>
-        /// <param name="hopCount">计数在 silos之间重复的深度。</param>
-        /// <param name="cause">取消登记的原因。</param>
-        /// <returns>确认未登记工作已经完成。</returns>
+        /// <param name="addresses">要注销的地址。</param>
+        /// <param name="hopCount">计算跨 Silo 的递归深度。</param>
+        /// <param name="cause">注销的原因。</param>
+        /// <returns>确认注销已完成。</returns>
         Task UnregisterManyAsync(List<GrainAddress> addresses, UnregistrationCause cause, int hopCount = 0);
 
         /// <summary>
-        /// 删除有关 grain的全部目录信息。
-        /// <para>此方法必须从排程器线索中调用 。</para>
+        /// 移除有关某个 Grain 的所有目录信息。
+        /// <para>必须从调度器线程调用此方法。</para>
         /// </summary>
-        /// <param name="grainId">身份识别 grain.</param>
-        /// <param name="hopCount">计数在 silos之间重复的深度。</param>
+        /// <param name="grainId">Grain 的 ID。</param>
+        /// <param name="hopCount">计算跨 Silo 的递归深度。</param>
         /// <returns>
-        /// 确认删除已经完成。
+        /// 确认删除已完成。
         /// </returns>
         Task DeleteGrainAsync(GrainId grainId, int hopCount = 0);
 
         /// <summary>
-        /// 获取 grain的完整目录信息。
-        /// 如果没有本地信息, 则此方法会查询合适的远程目录节点 。
-        /// <para>此方法必须从排程器线索中调用 。</para>
+        /// 获取 Grain 的完整目录信息。
+        /// 如果没有本地信息，则此方法将查询相应的远程目录节点。
+        /// <para>必须从调度器线程调用此方法。</para>
         /// </summary>
-        /// <param name="grainId">要查找的 grain 代号。</param>
-        /// <param name="hopCount">计数在 silos之间重复的深度。</param>
-        /// <returns> grain和电子标签所有已知激活的列表。</returns>
+        /// <param name="grainId">要查找的 Grain 的 ID。</param>
+        /// <param name="hopCount">计算跨 Silo 的递归深度。</param>
+        /// <returns>此 Grain 的所有已知激活实例的列表及 ETag。</returns>
         Task<AddressAndTag> LookupAsync(GrainId grainId, int hopCount = 0);
     }
 
     /// <summary>
-    /// 表示 grain 的地址和版本标记。
+    /// 表示 Grain 的地址及版本标记。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     internal readonly struct AddressAndTag
     {
         /// <summary>
-        /// 地址 地址 地址
+        /// 地址。
         /// </summary>
         [Id(0)]
         public readonly GrainAddress? Address;
 
         /// <summary>
-        /// 本条目的版本 。
+        /// 此条目的版本。
         /// </summary>
         [Id(1)]
         public readonly int VersionTag;
@@ -102,18 +102,18 @@ namespace Orleans.GrainDirectory
     }
 
     /// <summary>
-    /// 表示从目录中删除激活的原因。
-    /// 这影响到在决定是否删除条目时适用的条件。
+    /// 指示从目录移除激活实例的原因。
+    /// 此原因影响判断是否移除条目时所应用的条件。
     /// </summary>
     public enum UnregistrationCause : byte
     {
         /// <summary>
-        /// 强行删除目录条目, 不带任何条件
+        /// 无条件强制移除目录条目。
         /// </summary>
         Force = 0,
 
         /// <summary>
-        /// 仅在目录条目不新鲜时删除该条目(以避免在新注册上进行竞赛)
+        /// 仅当目录条目不是刚注册不久时才移除它（以避免与新注册产生竞态）。
         /// </summary>
         NonexistentActivation = 1,
     }

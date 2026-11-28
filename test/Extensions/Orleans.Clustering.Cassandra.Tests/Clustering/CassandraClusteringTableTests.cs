@@ -13,7 +13,7 @@ using Xunit;
 namespace Tester.Cassandra.Clustering;
 
 /// <summary>
-/// 以阿帕奇·卡桑德拉作为后援商店,测试 Orleans 成员表操作。
+/// 测试以 Apache Cassandra 为后端存储的 Orleans 成员资格表操作。
 /// </summary>
 [TestCategory("Cassandra"), TestCategory("Clustering"), TestCategory("Functional")]
 [Collection("Cassandra")]
@@ -63,10 +63,10 @@ public sealed partial class CassandraClusteringTableTests : MembershipTableFullC
 
         var entries = new List<string>(gateways.Select(g => g.ToString()));
 
-        // 只有非零网关端成员
+        // 仅包含 Gateway 端口非零的成员
         Assert.DoesNotContain(membershipEntries[3].SiloAddress.ToGatewayUri().ToString(), entries);
 
-        // 只有在职成员
+        // 仅包含处于 Active 状态的成员
         Assert.Contains(membershipEntries[5].SiloAddress.ToGatewayUri().ToString(), entries);
         Assert.Contains(membershipEntries[9].SiloAddress.ToGatewayUri().ToString(), entries);
         Assert.Equal(2, entries.Count);
@@ -473,7 +473,7 @@ public sealed partial class CassandraClusteringTableTests : MembershipTableFullC
 
         var amAliveTime = GetUtcNowWithSecondsResolution().AddSeconds(5);
 
-        // 模拟参数 MembershipOracle.OnIAmAliveUpdateInTableTimer 的通过
+        // 模拟 MembershipOracle.OnIAmAliveUpdateInTableTimer 传入的参数
         var entry = new MembershipEntry
         {
             SiloAddress = newEntry.SiloAddress,
@@ -490,7 +490,7 @@ public sealed partial class CassandraClusteringTableTests : MembershipTableFullC
         Assert.Equal(amAliveTime, updatedMember.IAmAliveTime);
         Assert.Equal(newTableVersion.Version, tableData.Version.Version);
 
-        // 更新后对其余数据进行校验时,数据中的数据保持不变
+        // 验证更新后其余数据保持不变
         Assert.Equal(originalMembershipEntry.SiloAddress, updatedMember.SiloAddress);
         Assert.Equal(originalMembershipEntry.SiloName, updatedMember.SiloName);
         Assert.Equal(originalMembershipEntry.HostName, updatedMember.HostName);
@@ -513,8 +513,8 @@ public sealed partial class CassandraClusteringTableTests : MembershipTableFullC
 
         async Task ValidateTtlValues()
         {
-            // 作为主密钥一部分的卡珊德拉列无法使用 TTL 命令
-            // 见 https://issues.apache.org/jira/browse/CASSANDRA-9312
+            // TTL 命令不能用于 Cassandra 主键中的列
+            // 参见 https://issues.apache.org/jira/browse/CASSANDRA-9312
             Row ttlResult = (await ttlSession.ExecuteAsync(new SimpleStatement(
                     """
                     SELECT
@@ -834,7 +834,7 @@ public sealed partial class CassandraClusteringTableTests : MembershipTableFullC
 
         Assert.Equal(3, data.Members.Count);
 
-        // 缩放保留版本视图中每一非死行。
+        // 压实操作会保留版本化视图中所有非 Dead 状态的记录。
         foreach (var siloStatus in Enum.GetValues<SiloStatus>().Where(status => status != SiloStatus.None))
         {
             var oldEntry = CreateMembershipEntryForTest();
@@ -870,7 +870,7 @@ public sealed partial class CassandraClusteringTableTests : MembershipTableFullC
             repeated.Members.OrderBy(row => row.Item1.SiloAddress).Select(row => (row.Item1.ToFullString(), row.Item2)));
     }
 
-    // 实用方法
+    // 辅助方法
     private static MembershipEntry CreateMembershipEntryForTest()
     {
         var siloAddress = CreateSiloAddressForTest();

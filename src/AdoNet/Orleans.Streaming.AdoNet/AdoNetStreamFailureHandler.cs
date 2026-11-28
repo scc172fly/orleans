@@ -1,33 +1,33 @@
 namespace Orleans.Streaming.AdoNet;
 
 /// <summary>
-/// 试图将信息移到死字的 <see cref="IStreamFailureHandler"/>
+/// 尝试将消息移入死信的 <see cref="IStreamFailureHandler"/> 实现。
 /// </summary>
 internal partial class AdoNetStreamFailureHandler(bool faultOnFailure, AdoNetStreamOptions streamOptions, ClusterOptions clusterOptions, AdoNetStreamQueueMapper mapper, RelationalOrleansQueries queries, AdoNetStreamPositions positions, ILogger<AdoNetStreamFailureHandler> logger) : IStreamFailureHandler
 {
     private readonly ILogger<AdoNetStreamFailureHandler> _logger = logger;
 
     /// <summary>
-    /// 获得一个值,显示在错误发生时订阅是否应该失败。
+    /// 获取一个值，指示发生错误时订阅是否应进入故障状态。
     /// </summary>
     public bool ShouldFaultSubsriptionOnError { get; } = faultOnFailure;
 
     /// <summary>
-    /// 试图在送货失败时将信息移到死信。
+    /// 在投递失败时尝试将消息移入死信。
     /// </summary>
     public Task OnDeliveryFailure(GuidId subscriptionId, string streamProviderName, StreamId streamIdentity, StreamSequenceToken? sequenceToken) => OnFailureAsync(streamProviderName, streamIdentity, sequenceToken);
 
     /// <summary>
-    /// 试图在送货失败时将信息移到死信。
+    /// 在投递失败时尝试将消息移入死信。
     /// </summary>
     public Task OnSubscriptionFailure(GuidId subscriptionId, string streamProviderName, StreamId streamIdentity, StreamSequenceToken? sequenceToken) => OnFailureAsync(streamProviderName, streamIdentity, sequenceToken);
 
     /// <summary>
-    /// 试图在送货失败时将信息移到死信。
+    /// 在投递失败时尝试将消息移入死信。
     /// </summary>
     /// <remarks>
-    /// 此序列命令持有由此提供者接收器指定的队列缓存位置 。
-    /// 不再解决的位置属于接收器释放、重新交付或过期的信件,所以被跳过。
+    /// 序列令牌保存由此提供程序的接收器分配的队列缓存位置。
+    /// 无法再解析的位置对应接收器已经释放、重新投递或已过期的消息，因此跳过这些位置。
     /// </remarks>
     private async Task OnFailureAsync(string streamProviderName, StreamId streamIdentity, StreamSequenceToken? sequenceToken)
     {

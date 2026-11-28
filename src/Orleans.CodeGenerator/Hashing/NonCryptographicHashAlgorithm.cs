@@ -1,5 +1,5 @@
-// 根据一项或多项协定获得 .NET 基金会许可证。
-// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Buffers;
 using System.ComponentModel;
@@ -8,25 +8,25 @@ using System.Diagnostics;
 namespace Orleans.CodeGenerator.Hashing;
 
 /// <summary>
-///   代表非加密散列算法。
+/// 表示非加密哈希算法。
 /// </summary>
 internal abstract class NonCryptographicHashAlgorithm
 {
     /// <summary>
-    ///   获取从这个散列算法中生成的字节数 。
+    /// 获取此哈希算法生成的字节数。
     /// </summary>
-    /// <value>从这个散列算法中生成的字节数。</value>
+    /// <value>此哈希算法生成的字节数。</value>
     public int HashLengthInBytes { get; }
 
     /// <summary>
-    ///   由衍生类别中建筑商调来启动
-    ///   <see cref="NonCryptographicHashAlgorithm"/> 类.
+    /// 由派生类的构造函数调用，用于初始化
+    /// <see cref="NonCryptographicHashAlgorithm"/> 类。
     /// </summary>
     /// <param name="hashLengthInBytes">
-    ///   由这个散列算法生成的字节数 。
+    /// 此哈希算法生成的字节数。
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    ///   <paramref name="hashLengthInBytes"/> 不到1。
+    /// <paramref name="hashLengthInBytes"/> 小于 1。
     /// </exception>
     protected NonCryptographicHashAlgorithm(int hashLengthInBytes)
     {
@@ -37,46 +37,46 @@ internal abstract class NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   当从阶级中被推翻的时候,
-    ///   将 <paramref name="source"/> 的内容附加到数据中
-    ///   用于当前散列计算处理。
+    /// 在派生类中重写时，
+    /// 将 <paramref name="source"/> 的内容追加到当前哈希计算已经
+    /// 处理的数据中。
     /// </summary>
-    /// <param name="source">要处理的数据 。</param>
+    /// <param name="source">要处理的数据。</param>
     public abstract void Append(ReadOnlySpan<byte> source);
 
     /// <summary>
-    ///   当从阶级中被推翻的时候,
-    ///   将散列计算重新切换到初始状态。
+    /// 在派生类中重写时，
+    /// 将哈希计算重置为初始状态。
     /// </summary>
     public abstract void Reset();
 
     /// <summary>
-    ///   当从阶级中被推翻的时候,
-    ///   将计算成散列值写入 <paramref name="destination"/>
-    ///   但不修改累积状态。
+    /// 在派生类中重写时，
+    /// 将计算得到的哈希值写入 <paramref name="destination"/>，
+    /// 而不修改累积状态。
     /// </summary>
-    /// <param name="destination">接收计算散列值的缓冲。</param>
+    /// <param name="destination">接收计算所得哈希值的缓冲区。</param>
     /// <remarks>
     ///   <para>
-    ///     采用这种方法必须精确写
-    ///     <see cref="HashLengthInBytes"/> 字节为 <paramref name="destination"/>。
-    ///     不可假设缓冲区是零初始化的。
+    /// 此方法的实现必须恰好写入
+    /// <see cref="HashLengthInBytes"/> 个字节到 <paramref name="destination"/>。
+    /// 不要假设缓冲区已经初始化为零。
     ///   </para>
     ///   <para>
-    ///     <see cref="NonCryptographicHashAlgorithm"/> 类验证
-    ///     调用此方法前的缓冲点大小,然后切除
-    ///     以精确的长度 <see cref="HashLengthInBytes"/> 向下。
+    /// <see cref="NonCryptographicHashAlgorithm"/> 类在调用此方法之前验证
+    /// 缓冲区大小，并将 span 切分为
+    /// 长度恰好为 <see cref="HashLengthInBytes"/> 的切片。
     ///   </para>
     /// </remarks>
     protected abstract void GetCurrentHashCore(Span<byte> destination);
 
     /// <summary>
-    ///   将 <paramref name="source"/> 的内容附加到已经的数据中
-    ///   用于当前散列计算处理。
+    /// 将 <paramref name="source"/> 的内容追加到当前哈希计算已经
+    /// 处理的数据中。
     /// </summary>
-    /// <param name="source">要处理的数据 。</param>
+    /// <param name="source">要处理的数据。</param>
     /// <exception cref="ArgumentNullException">
-    ///   <paramref name="source"/> 是 <see langword="null"/>。
+    /// <paramref name="source"/> 为 <see langword="null"/>。
     /// </exception>
     public void Append(byte[] source)
     {
@@ -89,12 +89,12 @@ internal abstract class NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   将 <paramref name="stream"/> 的内容附加到已经的数据中
-    ///   用于当前散列计算处理。
+    /// 将 <paramref name="stream"/> 的内容追加到当前哈希计算已经
+    /// 处理的数据中。
     /// </summary>
-    /// <param name="stream">要处理的数据 。</param>
+    /// <param name="stream">要处理的数据。</param>
     /// <exception cref="ArgumentNullException">
-    ///   <paramref name="stream"/> 是 <see langword="null"/>。
+    /// <paramref name="stream"/> 为 <see langword="null"/>。
     /// </exception>
     /// <seealso cref="AppendAsync(Stream, CancellationToken)"/>
     public void Append(Stream stream)
@@ -122,20 +122,20 @@ internal abstract class NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   却不时读取 <paramref name="stream"/>
-    ///   并把它们附加到数据上
-    ///   用于当前散列计算处理。
+    /// 异步读取 <paramref name="stream"/> 的内容，
+    /// 并将其追加到当前哈希计算已经
+    /// 处理的数据中。
     /// </summary>
-    /// <param name="stream">要处理的数据 。</param>
+    /// <param name="stream">要处理的数据。</param>
     /// <param name="cancellationToken">
-    ///   用于监测取消请求的标记 。
-    ///   默认值为 <see cref="CancellationToken.None"/>。
+    /// 用于监视取消请求的令牌。
+    /// 默认值为 <see cref="CancellationToken.None"/>。
     /// </param>
     /// <returns>
-    ///   代表非同步附加操作的任务 。
+    /// 表示异步追加操作的任务。
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    ///   <paramref name="stream"/> 是 <see langword="null"/>。
+    /// <paramref name="stream"/> 为 <see langword="null"/>。
     /// </exception>
     public Task AppendAsync(Stream stream, CancellationToken cancellationToken = default)
     {
@@ -171,10 +171,10 @@ internal abstract class NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   获取当前计算成散列值,而不修改累积状态。
+    /// 获取当前计算得到的哈希值，不修改累积状态。
     /// </summary>
     /// <returns>
-    ///   已经提供数据的散列值 。
+    /// 已提供数据的哈希值。
     /// </returns>
     public byte[] GetCurrentHash()
     {
@@ -184,16 +184,16 @@ internal abstract class NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   试图将计算成散列值写入 <paramref name="destination"/>
-    ///   但不修改累积状态。
+    /// 尝试将计算得到的哈希值写入 <paramref name="destination"/>，
+    /// 而不修改累积状态。
     /// </summary>
-    /// <param name="destination">接收计算散列值的缓冲。</param>
+    /// <param name="destination">接收计算所得哈希值的缓冲区。</param>
     /// <param name="bytesWritten">
-    ///   成功时, 收到写到 <paramref name="destination"/>的字节数 。
+    /// 成功时，接收写入 <paramref name="destination"/> 的字节数。
     /// </param>
     /// <returns>
-    ///   <see langword="true"/> 如果 <paramref name="destination"/> 足够长的时间来接收
-    ///   计算散列值;否则, <see langword="false"/>。
+    /// 返回 <see langword="true"/>，前提是 <paramref name="destination"/> 足够长，能够容纳
+    /// 计算得到的哈希值；否则为 <see langword="false"/>。
     /// </returns>
     public bool TryGetCurrentHash(Span<byte> destination, out int bytesWritten)
     {
@@ -209,16 +209,16 @@ internal abstract class NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   将计算成散列值写入 <paramref name="destination"/>
-    ///   但不修改累积状态。
+    /// 将计算出的哈希值写入 <paramref name="destination"/>。
+    /// 而不修改累积状态。
     /// </summary>
-    /// <param name="destination">接收计算散列值的缓冲。</param>
+    /// <param name="destination">接收计算所得哈希值的缓冲区。</param>
     /// <returns>
-    ///   写入 <paramref name="destination"/>的字节数,
-    ///   总是 <see cref="HashLengthInBytes"/>。
+    /// 写入 <paramref name="destination"/> 的字节数，
+    /// 始终为 <see cref="HashLengthInBytes"/>。
     /// </returns>
     /// <exception cref="ArgumentException">
-    ///   <paramref name="destination"/> 短于 <see cref="HashLengthInBytes"/>。
+    /// <paramref name="destination"/> 的长度小于 <see cref="HashLengthInBytes"/>。
     /// </exception>
     public int GetCurrentHash(Span<byte> destination)
     {
@@ -232,10 +232,10 @@ internal abstract class NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   获取当前计算出的散列值,并清除累积状态。
+    /// 获取当前计算得到的哈希值，并清除累积状态。
     /// </summary>
     /// <returns>
-    ///   已经提供数据的散列值 。
+    /// 已提供数据的哈希值。
     /// </returns>
     public byte[] GetHashAndReset()
     {
@@ -245,17 +245,17 @@ internal abstract class NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   试图将计算成散列值写入 <paramref name="destination"/>。
-    ///   如果成功,则清除累积状态。
+    /// 尝试将计算得到的哈希值写入 <paramref name="destination"/>。
+    /// 成功时清除累积状态。
     /// </summary>
-    /// <param name="destination">接收计算散列值的缓冲。</param>
+    /// <param name="destination">接收计算所得哈希值的缓冲区。</param>
     /// <param name="bytesWritten">
-    ///   成功时, 收到写到 <paramref name="destination"/>的字节数 。
+    /// 成功时，接收写入 <paramref name="destination"/> 的字节数。
     /// </param>
     /// <returns>
-    ///   <see langword="true"/> 并清除累计状态
-    ///   如果 <paramref name="destination"/> 足够长,可以接受
-    ///   计算散列值;否则, <see langword="false"/>。
+    /// 返回 <see langword="true"/> 并清除累积状态，
+    /// 前提是 <paramref name="destination"/> 足够长，能够容纳
+    /// 计算得到的哈希值；否则返回 <see langword="false"/>。
     /// </returns>
     public bool TryGetHashAndReset(Span<byte> destination, out int bytesWritten)
     {
@@ -271,16 +271,16 @@ internal abstract class NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   将计算成散列值写入 <paramref name="destination"/>
-    ///   然后清除累积状态。
+    /// 将计算出的哈希值写入 <paramref name="destination"/>。
+    /// 然后清除累积状态。
     /// </summary>
-    /// <param name="destination">接收计算散列值的缓冲。</param>
+    /// <param name="destination">接收计算所得哈希值的缓冲区。</param>
     /// <returns>
-    ///   写入 <paramref name="destination"/>的字节数,
-    ///   总是 <see cref="HashLengthInBytes"/>。
+    /// 写入 <paramref name="destination"/> 的字节数，
+    /// 始终为 <see cref="HashLengthInBytes"/>。
     /// </returns>
     /// <exception cref="ArgumentException">
-    ///   <paramref name="destination"/> 短于 <see cref="HashLengthInBytes"/>。
+    /// <paramref name="destination"/> 的长度小于 <see cref="HashLengthInBytes"/>。
     /// </exception>
     public int GetHashAndReset(Span<byte> destination)
     {
@@ -294,26 +294,26 @@ internal abstract class NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   将计算成散列值写入 <paramref name="destination"/>
-    ///   然后清除累积状态。
+    /// 将计算出的哈希值写入 <paramref name="destination"/>。
+    /// 然后清除累积状态。
     /// </summary>
-    /// <param name="destination">接收计算散列值的缓冲。</param>
+    /// <param name="destination">接收计算所得哈希值的缓冲区。</param>
     /// <remarks>
     ///   <para>
-    ///     采用这种方法必须精确写
-    ///     <see cref="HashLengthInBytes"/> 字节为 <paramref name="destination"/>。
-    ///     不可假设缓冲区是零初始化的。
+    /// 此方法的实现必须恰好写入
+    /// <see cref="HashLengthInBytes"/> 个字节到 <paramref name="destination"/>。
+    /// 不要假设缓冲区已经初始化为零。
     ///   </para>
     ///   <para>
-    ///     <see cref="NonCryptographicHashAlgorithm"/> 类验证
-    ///     调用此方法前的缓冲点大小,然后切除
-    ///     以精确的长度 <see cref="HashLengthInBytes"/> 向下。
+    /// <see cref="NonCryptographicHashAlgorithm"/> 类在调用此方法之前验证
+    /// 缓冲区大小，并将 span 切分为
+    /// 长度恰好为 <see cref="HashLengthInBytes"/> 的切片。
     ///   </para>
     ///   <para>
-    ///     默认使用此方法调用
-    ///     <see cref="GetCurrentHashCore"/> 之后是 <see cref="Reset"/>。
-    ///     这种方法的重叠不需要使用这两种方法中的任何一个,
-    ///     但要保证打电话的人不能观察到行为上的差别
+    /// 此方法的默认实现调用
+    /// <see cref="GetCurrentHashCore"/>，然后调用 <see cref="Reset"/>。
+    /// 此方法的重写无需调用这两个方法中的任何一个，
+    /// 但必须确保调用方无法观察到行为上的差异。
     ///   </para>
     /// </remarks>
     protected virtual void GetHashAndResetCore(Span<byte> destination)
@@ -325,12 +325,12 @@ internal abstract class NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   这种方法不支持,也不应该被称作。
-    ///   调用 <see cref="GetCurrentHash()"/> 或 <see cref="GetHashAndReset()"/>
-    ///   而不是。
+    /// 此方法不受支持，不应调用。
+    /// 请改用 <see cref="GetCurrentHash()"/> 或 <see cref="GetHashAndReset()"/>，
+    /// 而不要调用此方法。
     /// </summary>
-    /// <returns>此方法总是丢弃 <see cref="NotSupportedException"/>。</returns>
-    /// <exception cref="NotSupportedException">在任何情况下</exception>
+    /// <returns>此方法始终抛出 <see cref="NotSupportedException"/>。</returns>
+    /// <exception cref="NotSupportedException">所有情况下均会抛出。</exception>
     [EditorBrowsable(EditorBrowsableState.Never)]
     [Obsolete("Use GetCurrentHash() to retrieve the computed hash code.", true)]
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member

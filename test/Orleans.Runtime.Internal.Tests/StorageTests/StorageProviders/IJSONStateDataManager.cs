@@ -1,53 +1,53 @@
 //*********************************************************
 //    Copyright (c) Microsoft. All rights reserved.
 //    
-//    Apache 2. 0 许可证
+//    Apache 2.0 License
 //    
-//    持有许可的芬兰公民可前往移民局申请居留许可。
+//    You may obtain a copy of the License at
 //    http://www.apache.org/licenses/LICENSE-2.0
 //    
-//    除非适用法要求或书面约定,软件 
-//    许可证下发放的,在“ASIS”BASISS上分发。 
-//    没有任何战争或任何种类的战争或条件,无论是明示的还是 
-//    意指的语种,请见有关 
-//    许可证规定的许可和限制。
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+//    implied. See the License for the specific language governing
+//    permissions and limitations under the License.
 //
 //*********************************************************
 
 namespace Samples.StorageProviders
 {
     /// <summary>
-    /// 定义 JSON 存储提供者 i.e较低级别的储存供应商的接口。
-    /// 将 JSON 字符串写入底存储的字符串。较高水平
-    /// grain 国家数据和 JSON之间地图。
+    /// 定义 JSON 存储提供程序的底层接口，即
+    /// 将 JSON 字符串写入底层存储的部分。上层负责
+    /// Grain 状态数据与 JSON 之间的映射。
     /// </summary>
     /// <remarks>
-    /// 拥有此界面可以使大多数序列级逻辑
-    /// 将在储存提供者的基级类别中实施。
+    /// 有了此接口，大部分序列化层逻辑便可
+    /// 在存储提供程序的基类中实现。
     /// </remarks>
     public interface IJSONStateDataManager : IDisposable
     {
         /// <summary>
-        /// 从收藏中删除与给定密钥相关的 grain 状态
+        /// 从集合中删除与指定键关联的 Grain 状态。
         /// </summary>
-        /// <param name="collectionName">收藏库的名称,例如类型名称</param>
-        /// <param name="key">删除对象的主要关键字</param>
+        /// <param name="collectionName">集合名称，例如类型名称。</param>
+        /// <param name="key">要删除的对象的主键。</param>
         System.Threading.Tasks.Task Delete(string collectionName, string key);
 
         /// <summary>
-        /// 从存储中读取 grain 状态。
+        /// 从存储读取 Grain 状态。
         /// </summary>
-        /// <param name="collectionName">收藏库的名称,如类型名称。</param>
-        /// <param name="key">对象要读取的主键。</param>
-        /// <returns>一个含有实体 JSON 表示的字符串,如果有的话;否则无效。</returns>
+        /// <param name="collectionName">集合名称，例如类型名称。</param>
+        /// <param name="key">要读取的对象的主键。</param>
+        /// <returns>如果实体存在，则返回包含实体 JSON 表示的字符串；否则返回 null。</returns>
         System.Threading.Tasks.Task<string?> Read(string collectionName, string key);
 
         /// <summary>
-        /// 将 grain 状态写入存储状态。
+        /// 将 Grain 状态写入存储。
         /// </summary>
-        /// <param name="collectionName">收藏库的名称,如类型名称。</param>
+        /// <param name="collectionName">集合名称，例如类型名称。</param>
         /// <param name="key">要写入的对象的主键。</param>
-        /// <param name="entityData">含有 JSON 代表实体。</param>
+        /// <param name="entityData">包含实体 JSON 表示的字符串。</param>
         System.Threading.Tasks.Task Write(string collectionName, string key, string entityData);
     }
 }

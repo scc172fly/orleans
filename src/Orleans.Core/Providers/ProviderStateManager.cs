@@ -72,7 +72,7 @@ namespace Orleans.Providers
     }
 
     /// <summary>
-    /// 代表无效的供应商生命周期状态或国家过渡。
+    /// 表示无效的提供程序生命周期状态或状态转换。
     /// </summary>
     [Serializable, GenerateSerializer]
     public sealed class ProviderStateException : OrleansException
@@ -86,14 +86,14 @@ namespace Orleans.Providers
         /// <summary>
         /// 初始化 <see cref="ProviderStateException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">描述错误的电文。</param>
+        /// <param name="message">描述错误的消息。</param>
         public ProviderStateException(string message) : base(message) { }
 
         /// <summary>
         /// 初始化 <see cref="ProviderStateException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">描述错误的电文。</param>
-        /// <param name="innerException">造成当前例外的例外。</param>
+        /// <param name="message">描述错误的消息。</param>
+        /// <param name="innerException">导致当前异常的异常。</param>
         public ProviderStateException(string message, Exception innerException) : base(message, innerException) { }
 
         [Obsolete]

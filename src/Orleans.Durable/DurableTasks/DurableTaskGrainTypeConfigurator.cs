@@ -9,27 +9,27 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// 将耐用任务运行时间和信息发送与耐用 grain 类型的启动相连接。
+/// 将持久化任务运行时和消息传递绑定到持久化 Grain 类型的激活实例。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 应用 grain 所分类的, <see cref="DurableGrain"/>. 启动机制的建立解决了 grain收件箱和
-/// 输出框, 它为 grain提供消息, 并在日记恢复前运行, 所以运行时间的日记勾, 插件
-/// 发送信箱信息源在回收状态或恢复之前登记
-/// 处理信件。
+/// 适用于派生自 <see cref="DurableGrain"/> 的 Grain 类。激活设置解析该 Grain 的收件箱和
+/// 发件箱，从而启用其消息传递功能，并在日志恢复之前运行，因此运行时的日志钩子、收件箱
+/// 接收器、处理程序及唤醒延迟，以及发件箱消息源，都会在处理已恢复的状态或已恢复的
+/// 消息之前完成注册。
 /// </para>
 /// <para>
-/// 运行周期的生命周期阶段如下: <see cref="GrainLifecycleStage.Activate"/>,即信息发
-/// grain收件箱和发件箱,然后是 <see cref="GrainLifecycleStage.SetupState"/>,该日记在其中
-/// 恢复。 因此运行时间恢复任务状态, 一旦日记、 收件箱和发件箱准备好, 并在停止前停止
-/// 恢复的处决开始一次
-/// 排 grain's <c>OnActivateAsync</c> 已经完成,执行中的处决在处决之前就已中止
-/// <c>OnDeactivateAsync</c> 运行;见 <see cref="DurableTaskActivationObserver"/>。
+/// 运行时的生命周期阶段在 <see cref="GrainLifecycleStage.Activate"/> 之后，该阶段中消息传递启动
+/// Grain 的收件箱和发件箱；该阶段又在 <see cref="GrainLifecycleStage.SetupState"/> 之后，后者执行日志
+/// 恢复。因此，运行时在日志、收件箱和发件箱均就绪后恢复任务状态，并在
+/// 消息传递和日志停止之前停止，因此它排空的执行实例仍可提交和发送消息。恢复的执行实例在
+/// Grain 的 <c>OnActivateAsync</c> 完成后启动；运行中的执行实例会在其
+/// <c>OnDeactivateAsync</c> 运行之前收到中止通知；参见 <see cref="DurableTaskActivationObserver"/>。
 /// </para>
 /// <para>
-/// 任务状态生活 grain杂志是《美国新闻杂志》的真相来源 grain处决,所以启动
-/// 设置需要 grain的日记国家管理器和日记支持的任务存储,并且无法激活
-/// 当其中之一失踪时。
+/// 任务状态存储在 Grain 的日志中，这是 Grain 执行实例的权威数据来源，因此激活
+/// 设置要求 Grain 具有日志化状态管理器及基于日志的任务存储；如果其中任何一项缺失，
+/// 激活就会失败。
 /// </para>
 /// </remarks>
 internal sealed class DurableTaskGrainTypeConfigurator(GrainClassMap grainClasses) : IConfigureGrainTypeComponents
@@ -65,10 +65,10 @@ internal sealed class DurableTaskGrainTypeConfigurator(GrainClassMap grainClasse
     }
 
     /// <summary>
-    /// 确保服务 <paramref name="services"/> 的启动在其日记中保存其任务状态。
+    /// 确保服务为 <paramref name="services"/> 的激活实例将其任务状态存储在日志中。
     /// </summary>
     /// <exception cref="InvalidOperationException">
-    /// 启动没有日记国家经理, 或者它的任务存储不是日记支持的存储。
+    /// 激活实例没有日志化状态管理器，或其任务存储不是基于日志的存储。
     /// </exception>
     internal static void ValidateJournaledStorage(IServiceProvider services, GrainId grainId)
     {

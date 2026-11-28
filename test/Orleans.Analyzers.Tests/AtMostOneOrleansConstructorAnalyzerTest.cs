@@ -186,7 +186,7 @@ public class AtMostOneOrleansConstructorAnalyzerTest : DiagnosticAnalyzerTestBas
             .Select(x => MetadataReference.CreateFromFile(x.Location))
             .ToList();
 
-        // System.Private.CoreLib 从文件支持的组装装入 。
+        // System.Private.CoreLib 是从基于文件的程序集加载的。
         var assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
         metadataReferences.Add(MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "mscorlib.dll")));
         metadataReferences.Add(MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.dll")));

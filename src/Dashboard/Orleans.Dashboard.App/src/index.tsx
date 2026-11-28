@@ -1,10 +1,10 @@
-// 第三方风格是从 JavaScript 进口的,因此大楼的许可证通知包括这些。
+// 从 JavaScript 导入第三方样式，以便构建生成的许可证声明包含这些样式。
 import 'bootstrap/dist/css/bootstrap.css';
 import '@fortawesome/fontawesome-free/css/all.css';
 import 'admin-lte/dist/css/adminlte.css';
 import './styles.css';
 
-// 登记册 Chart.js 组成部分
+// 注册 Chart.js 组件。
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -71,7 +71,7 @@ interface MenuItem {
 const target = document.getElementById('content');
 initializeSidebar();
 
-// 重现主题偏好 。
+// 恢复主题偏好设置。
 let defaultTheme = storage.get('theme') || 'dark';
 if (defaultTheme === 'dark') {
   document.getElementById('body')!.classList.add('dark-mode');
@@ -80,13 +80,13 @@ if (defaultTheme === 'dark') {
   light();
 }
 
-// 恢复 grain 可见度偏好。
+// 恢复 Grain 可见性偏好设置。
 let settings: Settings = {
   dashboardGrainsHidden: storage.get('dashboardGrains') === 'hidden',
   systemGrainsHidden: storage.get('systemGrains') === 'hidden'
 };
 
-// 全球状况
+// 全局状态。
 let dashboardCounters: any = {};
 let routeIndex = 0;
 
@@ -94,7 +94,7 @@ function scroll() {
   try {
     document.getElementsByClassName('wrapper')[0].scrollTo(0, 0);
   } catch {
-    // 旧浏览器可能不支持滚动包装元素 。
+    // 较旧的浏览器可能不支持滚动外层容器元素。
   }
 }
 
@@ -122,7 +122,7 @@ function setIntervalDebounced(action: () => Promise<any>, interval: number) {
   });
 }
 
-// 持续调查仪表板计数器
+// 持续轮询 Dashboard 计数器。
 function loadDashboardCounters() {
     return http.get(`DashboardCounters${getFilter(settings)}`, function (err, data) {
     dashboardCounters = data;
@@ -160,7 +160,7 @@ function getVersion() {
   loadData();
 }
 
-// 我们总是想刷新仪表板柜台
+// 始终刷新 Dashboard 计数器。
 setIntervalDebounced(loadDashboardCounters, 1000);
 loadDashboardCounters();
 let render: () => void = () => { };
@@ -172,7 +172,7 @@ function renderLoading() {
 const menuElement = document.getElementById('menu');
 const brandHeaderElement = document.getElementById('brand-header');
 
-// 一次 Render 品牌头
+// 仅渲染一次品牌页眉。
 ReactDom.render(<BrandHeader />, brandHeaderElement);
 
 function renderPage(jsx: JSX.Element, path: string) {
@@ -655,22 +655,22 @@ function getFilter(settings: Settings): string {
 }
 
 function light() {
-  // 首选项保存到 localStorage。
+  // 将偏好设置保存到 localStorage。
   storage.put('theme', 'light');
   defaultTheme = 'light';
 
-  // 从身体中删除暗模式类, 并将布斯布带主题设置为光。
+  // 从 body 移除深色模式类，并将 Bootstrap 主题设为浅色。
   const body = document.getElementById('body')!;
   body.classList.remove('dark-mode');
   body.setAttribute('data-bs-theme', 'light');
 }
 
 function dark() {
-  // 首选项保存到 localStorage。
+  // 将偏好设置保存到 localStorage。
   storage.put('theme', 'dark');
   defaultTheme = 'dark';
 
-  // 将暗模式类添加到身体,并将布斯布兹主题设置到黑暗。
+  // 向 body 添加深色模式类，并将 Bootstrap 主题设为深色。
   const body = document.getElementById('body')!;
   body.classList.add('dark-mode');
   body.setAttribute('data-bs-theme', 'dark');

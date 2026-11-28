@@ -5,21 +5,21 @@ using Orleans.Reminders.Cosmos;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// 配置 Azure Cosmos DB 提醒表提供者的扩展方法。
+/// 用于配置 Azure Cosmos DB 提醒器表提供程序的扩展方法。
 /// </summary>
 public static class HostingExtensions
 {
     /// <summary>
-    /// 添加 Azure 支持的提醒存储 宇宙 DB 。
+    /// 添加由 Azure Cosmos DB 支持的提醒器存储。
     /// </summary>
     /// <param name="builder">
-    /// 建筑工
+    /// 构建器。
     /// </param>
     /// <param name="configure">
-    /// 代表用于配置提醒存储器 。
+    /// 用于配置提醒器存储的委托。
     /// </param>
     /// <returns>
-    /// 提供的情况 <see cref="ISiloBuilder"/>用来绑链
+    /// 提供的 <see cref="ISiloBuilder"/>，用于链式调用。
     /// </returns>
     public static ISiloBuilder UseCosmosReminderService(this ISiloBuilder builder, Action<CosmosReminderTableOptions> configure)
     {
@@ -31,16 +31,16 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// 添加 Azure 支持的提醒存储 宇宙 DB 。
+    /// 添加由 Azure Cosmos DB 支持的提醒器存储。
     /// </summary>
     /// <param name="builder">
-    /// 建筑工
+    /// 构建器。
     /// </param>
     /// <param name="configure">
-    /// 代表用于配置提醒存储器 。
+    /// 用于配置提醒器存储的委托。
     /// </param>
     /// <returns>
-    /// 提供的情况 <see cref="ISiloBuilder"/>用来绑链
+    /// 提供的 <see cref="ISiloBuilder"/>，用于链式调用。
     /// </returns>
     public static ISiloBuilder UseCosmosReminderService(this ISiloBuilder builder, Action<OptionsBuilder<CosmosReminderTableOptions>> configure)
     {
@@ -52,16 +52,16 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// 添加 Azure 支持的提醒存储 宇宙 DB 。
+    /// 添加由 Azure Cosmos DB 支持的提醒器存储。
     /// </summary>
     /// <param name="services">
-    /// 服务收藏
+    /// 服务集合。
     /// </param>
     /// <param name="configure">
-    /// 代表用于配置提醒存储器 。
+    /// 用于配置提醒器存储的委托。
     /// </param>
     /// <returns>
-    /// 提供的情况 <see cref="IServiceCollection"/>用来绑链
+    /// 提供的 <see cref="IServiceCollection"/>，用于链式调用。
     /// </returns>
     public static IServiceCollection UseCosmosReminderService(this IServiceCollection services, Action<CosmosReminderTableOptions> configure)
     {
@@ -72,16 +72,16 @@ public static class HostingExtensions
     }
 
     /// <summary>
-    /// 添加 Azure 支持的提醒存储 宇宙 DB 。
+    /// 添加由 Azure Cosmos DB 支持的提醒器存储。
     /// </summary>
     /// <param name="services">
-    /// 服务收藏
+    /// 服务集合。
     /// </param>
     /// <param name="configure">
-    /// 代表用于配置提醒存储器 。
+    /// 用于配置提醒器存储的委托。
     /// </param>
     /// <returns>
-    /// 提供的情况 <see cref="IServiceCollection"/>用来绑链
+    /// 提供的 <see cref="IServiceCollection"/>，用于链式调用。
     /// </returns>
     public static IServiceCollection UseCosmosReminderService(this IServiceCollection services, Action<OptionsBuilder<CosmosReminderTableOptions>> configure)
     {

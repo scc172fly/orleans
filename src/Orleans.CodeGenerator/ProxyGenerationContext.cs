@@ -57,7 +57,7 @@ internal sealed class ProxyGenerationContext : IGeneratorServices
 
     internal void VisitInterface(INamedTypeSymbol interfaceType, INamedTypeSymbol proxyBaseType, bool isExtension)
     {
-        // 获取或生成原始方法定义的可引用值。
+        // 获取或生成原始方法定义的可调用对象。
         if (!SymbolEqualityComparer.Default.Equals(interfaceType, interfaceType.OriginalDefinition))
         {
             interfaceType = interfaceType.OriginalDefinition;
@@ -116,7 +116,7 @@ internal sealed class ProxyGenerationContext : IGeneratorServices
 
         Dictionary<INamedTypeSymbol, INamedTypeSymbol> GetInvokableBaseTypes(INamedTypeSymbol baseClass)
         {
-            // 设置在单个方法的属性不覆盖其特性时使用的可引用基本类型。
+            // 设置可调用对象的基类型，当各方法上的特性未重写它们时使用。
             if (!MetadataModel.ProxyBaseTypeInvokableBaseTypes.TryGetValue(baseClass, out var invokableBaseTypes))
             {
                 invokableBaseTypes = new Dictionary<INamedTypeSymbol, INamedTypeSymbol>(SymbolEqualityComparer.Default);
@@ -153,7 +153,7 @@ internal sealed class ProxyGenerationContext : IGeneratorServices
         description = new ProxyInterfaceDescription(this, proxyBaseType, originalInterface);
         MetadataModel.InvokableInterfaces.Add(originalInterface, description);
 
-        // 代理计划发现其可引用的物;
+        // 规划代理时发现其可调用对象；生成阶段写出此计划。
         _proxyPlans.Add(originalInterface, ProxyGenerator.CreatePlan(description));
 
         return description;
@@ -175,16 +175,16 @@ internal sealed class ProxyGenerationContext : IGeneratorServices
                 InvokableBaseTypeMappingDiagnostic.CreateDiagnostic(resolverDiagnostic));
         }
 
-        // 对于扩展名,我们希望确保包含型号始终是扩展名。
-        // 这确保我们永远知道,在我们的 SetTarget 方法中,哪些“组件”是用来获取的。
-        // 如果该类型不是扩展名,请使用原方法定义中包含类型的定义。
-        // 这是最初定义类型时的界面 。
+        // 对于扩展，需要确保所在类型始终为扩展。
+        // 这可确保我们始终知道在 SetTarget 方法中应获取哪个组件。
+        // 如果该类型不是扩展，则使用原始方法定义所在的类型。
+        // 这是最初定义该类型的接口。
         var containingType = proxyBaseInfo.IsExtension ? interfaceType : originalMethod.ContainingType;
 
         var invokableId = new InvokableMethodId(proxyBaseInfo, containingType, originalMethod);
         var interfaceDescription = GetInvokableInterfaceDescription(invokableId.ProxyBase.ProxyBaseType, interfaceType);
 
-        // 获取或生成原始方法定义的可引用值。
+        // 获取或生成原始方法定义的可调用对象。
         if (!MetadataModel.GeneratedInvokables.TryGetValue(invokableId, out var generatedInvokable))
         {
             if (!_invokableMethodDescriptions.TryGetValue(invokableId, out var methodDescription))
@@ -197,7 +197,7 @@ internal sealed class ProxyGenerationContext : IGeneratorServices
 
         var proxyMethodDescription = ProxyMethodDescription.Create(interfaceDescription, generatedInvokable, method);
 
-        // 对于逆向兼容性,在具体执行类型不同时,也产生不同的援引者。
+        // 为保持向后兼容，如果具体实现类型不同，也为这些实现类型生成调用器。
         if (Options.GenerateCompatibilityInvokers && !SymbolEqualityComparer.Default.Equals(method.OriginalDefinition.ContainingType, interfaceType))
         {
             var compatInvokableId = new InvokableMethodId(proxyBaseInfo, interfaceType, method);
@@ -209,7 +209,7 @@ internal sealed class ProxyGenerationContext : IGeneratorServices
                 declarations = _compatibilityDeclarations[interfaceType.OriginalDefinition] = new(StringComparer.Ordinal);
             }
 
-            // 即使在另一个所有人要求使用相同的别名时,每个所有人仍保留其声明。
+            // 即使其他所有者占用了相同别名，每个所有者仍保留其声明。
             if (!declarations.ContainsKey(compatInvokable.MetadataName))
             {
                 declarations.Add(compatInvokable.MetadataName, (compatInvokable.GeneratedNamespace, compatInvokable.EmissionPlan));

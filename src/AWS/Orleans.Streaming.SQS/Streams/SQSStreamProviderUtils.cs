@@ -9,19 +9,19 @@ using OrleansAWSUtils.Storage;
 namespace OrleansAWSUtils.Streams
 {
     /// <summary>
-    /// SQS SQS 通用功能
+    /// SQS 实用函数。
     /// </summary>
     public class SQSStreamProviderUtils
     {
         /// <summary>
-        /// 用于删除特定提供者和 clusterId的所有已使用的队列的自动同步方法
+        /// 异步删除指定提供程序与 clusterId 使用的所有队列。
         /// </summary>
-        /// <returns> 用于此同步方法的任务对象 </returns>
+        /// <returns>表示此异步方法的 Task 对象。</returns>
         public static Task DeleteAllUsedQueues(string providerName, string clusterId, string storageConnectionString, ILoggerFactory loggerFactory)
             => DeleteAllUsedQueues(providerName, clusterId, storageConnectionString, loggerFactory, fifoQueue: false);
 
         /// <summary>
-        /// 删除提供者和集组使用的所有队列。
+        /// 删除提供程序及集群使用的全部队列。
         /// </summary>
         public static async Task DeleteAllUsedQueues(string providerName, string clusterId, string storageConnectionString, ILoggerFactory loggerFactory, bool fifoQueue)
         {

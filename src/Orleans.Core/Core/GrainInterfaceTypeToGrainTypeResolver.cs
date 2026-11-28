@@ -10,10 +10,10 @@ using Orleans.Utilities;
 namespace Orleans
 {
     /// <summary>
-    /// 协理律师 <see cref="GrainInterfaceType"/>与兼容的 s 相 <see cref="GrainType"/>.
+    /// 将 <see cref="GrainInterfaceType"/> 与兼容的 <see cref="GrainType"/> 关联。
     /// </summary>
     /// <remarks>
-    /// 这主要用于最终用户呼唤 <see cref="IGrainFactory"/> 方法,而不需要过于明确。
+    /// 主要供最终用户调用 <see cref="IGrainFactory"/> 方法时使用，使其无须过多地显式指定类型。
     /// </remarks>
     public class GrainInterfaceTypeToGrainTypeResolver
     {
@@ -23,16 +23,16 @@ namespace Orleans
         private Cache? _cache;
 
         /// <summary>
-        /// 创建 <see cref="GrainInterfaceTypeToGrainTypeResolver"/> 类的新实例。
+        /// 初始化 <see cref="GrainInterfaceTypeToGrainTypeResolver"/> 类的新实例。
         /// </summary>
-        /// <param name="clusterManifestProvider">集束货单提供者。</param>
+        /// <param name="clusterManifestProvider">集群清单提供程序。</param>
         public GrainInterfaceTypeToGrainTypeResolver(IClusterManifestProvider clusterManifestProvider)
         {
             _clusterManifestProvider = clusterManifestProvider;
         }
 
         /// <summary>
-        /// 返回 <see cref="GrainType"/> 支持所提供的 <see cref="GrainInterfaceType"/> 并且该字符串有一个执行型号,从提供的前缀字符串开始。
+        /// 返回一个 <see cref="GrainType"/>，它支持所提供的 <see cref="GrainInterfaceType"/>，且实现类型名称以所提供的前缀字符串开头。
         /// </summary>
         public GrainType GetGrainType(GrainInterfaceType interfaceType, string prefix)
         {
@@ -63,7 +63,7 @@ namespace Orleans
                     {
                         if (impl.Prefix.Length == prefix.Length)
                         {
-                            // 精确匹配优先
+                            // 完全匹配优先。
                             result = impl.GrainType;
                             break;
                         }
@@ -94,7 +94,7 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 回返a <see cref="GrainType"/> 执行规定 <see cref="GrainInterfaceType"/>.
+        /// 返回实现所提供接口类型的 <see cref="GrainType"/>，接口类型为 <see cref="GrainInterfaceType"/>。
         /// </summary>
         public GrainType GetGrainType(GrainInterfaceType interfaceType)
         {
@@ -107,9 +107,9 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 确定一个 <see cref="GrainType"/> 来实施所提供的 <see cref="GrainInterfaceType"/>,如果发现已经执行,则返回 <see langword="true"/> ;否则 <see langword="false"/>。
+        /// 解析实现所提供接口类型的 <see cref="GrainType"/>，接口类型为 <see cref="GrainInterfaceType"/>；如果找到实现则返回 <see langword="true"/>，否则返回 <see langword="false"/>。
         /// </summary>
-        /// <returns><see langword="true"/> 如果发现已执行;否则 <see langword="false"/>。</returns>
+        /// <returns><see langword="true"/> 表示已找到实现，否则返回 <see langword="false"/>。</returns>
         public bool TryGetGrainType(GrainInterfaceType interfaceType, out GrainType result)
         {
             result = default;
@@ -131,7 +131,7 @@ namespace Orleans
                 }
                 else
                 {
-                    // 无执行
+                    // 没有实现。
                 }
             }
             else if (_genericMapping.TryGetValue(interfaceType, out result))
@@ -166,7 +166,7 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 返回缓存,如果它过时则重建它。
+        /// 返回缓存；如果缓存已过期，则重新构建。
         /// </summary>
         /// <returns>缓存。</returns>
         private Cache GetCache()
@@ -190,9 +190,9 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 构建缓存分辨率映射。
+        /// 构建缓存的解析映射。
         /// </summary>
-        /// <param name="clusterManifest">当前组群显示。</param>
+        /// <param name="clusterManifest">当前集群清单。</param>
         /// <returns>缓存。</returns>
         private static Cache BuildCache(ClusterManifest clusterManifest)
         {
@@ -219,7 +219,7 @@ namespace Orleans
                             interfaceTypeName = null;
                         }
 
-                        // 尝试制定最佳初级实施
+                        // 尝试确定最合适的主要实现。
                         result.TryGetValue(implemented, out var entry);
 
                         var implementations = entry.Implementations ?? new List<(string Prefix, GrainType GrainType)>();
@@ -232,12 +232,12 @@ namespace Orleans
                         }
                         else if (interfaceProperties?.Properties is { } props && props.TryGetValue(WellKnownGrainInterfaceProperties.DefaultGrainType, out var defaultTypeString))
                         {
-                            // 指定默认 grain 类型比其他类型要高。
+                            // 显式指定的默认 Grain 类型优先于其他类型。
                             primaryImplementation = GrainType.Create(defaultTypeString);
                         }
                         else if (string.Equals(interfaceTypeName?[1..], typeName, StringComparison.Ordinal))
                         {
-                            // 否则,将使用接口名称上的子字符串匹配, 下划“ I” 。
+                            // 否则，去掉接口名称中的“I”前缀后执行子字符串匹配。
                             primaryImplementation = id;
                         }
                         else
@@ -253,15 +253,15 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 包含从 grain 接口类型到该接口执行的映射。
+        /// 包含从 Grain 接口类型到其实现的映射。
         /// </summary>
         private class Cache
         {
             /// <summary>
             /// 初始化 <see cref="Cache"/> 类的新实例。
             /// </summary>
-            /// <param name="version">本例对应的组群表单版本。</param>
-            /// <param name="map">接口映射图。</param>
+            /// <param name="version">此实例对应的集群清单版本。</param>
+            /// <param name="map">接口映射。</param>
             public Cache(MajorMinorVersion version, Dictionary<GrainInterfaceType, CacheEntry> map)
             {
                 this.Version = version;
@@ -269,26 +269,26 @@ namespace Orleans
             }
 
             /// <summary>
-            /// 获取此缓存对应的集表列表版本 。
+            /// 获取此缓存对应的集群清单版本。
             /// </summary>
             public MajorMinorVersion Version { get; }
 
             /// <summary>
-            /// 将映射从 grain 接口类型获取到执行。
+            /// 获取从 Grain 接口类型到其实现的映射。
             /// </summary>
             public Dictionary<GrainInterfaceType, CacheEntry> Map { get; }
         }
 
         /// <summary>
-        /// 代表执行 <see cref="GrainType"/> a 数值的值 grain 界面类型。
+        /// 表示某个 Grain 接口类型的各个实现对应的 <see cref="GrainType"/> 值。
         /// </summary>
         private readonly struct CacheEntry
         {
             /// <summary>
             /// 初始化 <see cref="CacheEntry"/> 结构的新实例。
             /// </summary>
-            /// <param name="primaryImplementation">主要执行类型。</param>
-            /// <param name="implementations">其他执行的组及其 grain 型前缀。</param>
+            /// <param name="primaryImplementation">主要实现类型。</param>
+            /// <param name="implementations">其他实现及其 Grain 类型前缀的集合。</param>
             public CacheEntry(GrainType primaryImplementation, List<(string Prefix, GrainType GrainType)> implementations)
             {
                 this.PrimaryImplementation = primaryImplementation;
@@ -296,12 +296,12 @@ namespace Orleans
             }
 
             /// <summary>
-            /// 获得主要实施类型。
+            /// 获取主要实现类型。
             /// </summary>
             public GrainType PrimaryImplementation { get; }
 
             /// <summary>
-            /// 收集实施类型及其类名前缀。
+            /// 获取实现类型及其类名前缀的集合。
             /// </summary>
             public List<(string Prefix, GrainType GrainType)> Implementations { get; }
         }

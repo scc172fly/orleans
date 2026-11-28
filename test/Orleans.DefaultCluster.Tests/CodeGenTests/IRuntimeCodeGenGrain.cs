@@ -9,7 +9,7 @@ namespace Tester.CodeGenTests
     using Orleans;
     using Orleans.Providers;
 
-    // 清晰接口方法实施回归测试 https://github.com/dotnet/orleans/issues/8991
+    // 显式接口方法实现的回归测试 https://github.com/dotnet/orleans/issues/8991
     public interface IExplicitInterfaceMethodImplementationTestGenericBase<in T>
     {
         Task M(T arg);
@@ -32,15 +32,15 @@ namespace Tester.CodeGenTests
         }
     }
 
-    // https://github.com/dotnet/orleans/issues/8991的结束回归测试
+    // https://github.com/dotnet/orleans/issues/8991 的回归测试结束
 
     public interface IGrainWithNonPublicMethods : IGrainWithGuidKey
     {
         internal class P1;
         internal Task M1(P1 arg);
 
-        //P2受保护等级;
-        //受保护的任务 M2(P2 arg) ;
+        //protected class P2;
+        //protected Task M2(P2 arg);
 
         internal protected class P3;
         internal protected Task M3(P3 arg);
@@ -171,16 +171,16 @@ namespace Tester.CodeGenTests
     public interface IRuntimeCodeGenGrain<T> : IGrainWithGuidKey
     {
         /// <summary>
-        /// 设置并返回 grain状态。
+        /// 设置并返回 Grain 的状态。
         /// </summary>
         /// <param name="value">新状态。</param>
-        /// <returns>现状。</returns>
+        /// <returns>当前状态。</returns>
         Task<T> SetState(T value);
 
         /// <summary>
-        /// 测试代码生成正确处理方法的方法是否与保留的关键字识别符号正确。
+        /// 测试代码生成能否正确处理使用保留关键字作为标识符的方法。
         /// </summary>
-        /// <returns>当前状态事件。</returns>
+        /// <returns>当前状态的 event。</returns>
         Task<@event> @static();
     }
 
@@ -193,7 +193,7 @@ namespace Tester.CodeGenTests
     }
 
     /// <summary>
-    /// 用于测试代码生成正确处理保留关键字的类别。
+    /// 用于测试代码生成能否正确处理保留关键字的类。
     /// </summary>
     [GenerateSerializer]
     public class @event : IEquatable<@event>
@@ -207,31 +207,31 @@ namespace Tester.CodeGenTests
         }
 
         /// <summary>
-        /// 公共领域。
+        /// 公共字段。
         /// </summary>
         [Id(0)]
         public Guid Id;
 
         /// <summary>
-        /// 私人田地
+        /// 私有字段。
         /// </summary>
         [Id(1)]
         private Guid privateId;
 
         /// <summary>
-        /// 带有保留关键字类型和识别符号的属性。
+        /// 类型和标识符均使用保留关键字的属性。
         /// </summary>
         [Id(2)]
         public @event @public { get; set; } = null!;
 
         /// <summary>
-        /// 设置或设置大号
+        /// 获取或设置枚举。
         /// </summary>
         [Id(3)]
         public @enum Enum { get; set; }
 
         /// <summary>
-        /// 有保留关键词通用类型和识别符号的属性。
+        /// 泛型类型实参和属性标识符均使用保留关键字的属性。
         /// </summary>
         [Id(4)]
         public List<@event> @if { get; set; } = null!;
@@ -245,7 +245,7 @@ namespace Tester.CodeGenTests
         }
 
         /// <summary>
-        /// 获取或设置私人身份。
+        /// 获取或设置私有 id。
         /// </summary>
         // ReSharper disable once ConvertToAutoProperty
         public Guid PrivateId
@@ -359,7 +359,7 @@ namespace Tester.CodeGenTests
     }
 
     /// <summary>
-    /// 嵌套类不会失败代码生成的测试 。
+    /// 测试嵌套类不会导致代码生成失败。
     /// </summary>
     public class NestedGenericGrain : Grain, INestedGenericGrain
     {

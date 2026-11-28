@@ -8,21 +8,21 @@ using Orleans.Configuration;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 提供配置顾问集群的扩展方法。
+    /// 提供用于配置 Consul 集群成员管理的扩展方法。
     /// </summary>
     public static class ConsulUtilsHostingExtensions
     {
         /// <summary>
-        /// 配置 silo 使用领事进行分组。
+        /// 配置 Silo 使用 Consul 进行集群成员管理。
         /// </summary>
         /// <param name="builder">
-        /// 建筑工
+        /// 构建器。
         /// </param>
         /// <param name="configureOptions">
-        /// 组合代表
+        /// 配置委托。
         /// </param>
         /// <returns>
-        /// 提供 <see cref="ISiloBuilder"/>。
+        /// 提供的 <see cref="ISiloBuilder"/>。
         /// </returns>
         public static ISiloBuilder UseConsulSiloClustering(
             this ISiloBuilder builder,
@@ -41,16 +41,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 silo 使用领事进行分组。
+        /// 配置 Silo 使用 Consul 进行集群成员管理。
         /// </summary>
         /// <param name="builder">
-        /// 建筑工
+        /// 构建器。
         /// </param>
         /// <param name="configureOptions">
-        /// 组合代表
+        /// 配置委托。
         /// </param>
         /// <returns>
-        /// 提供 <see cref="ISiloBuilder"/>。
+        /// 提供的 <see cref="ISiloBuilder"/>。
         /// </returns>
         public static ISiloBuilder UseConsulSiloClustering(
             this ISiloBuilder builder,
@@ -65,16 +65,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置客户端使用领事进行分组。
+        /// 配置客户端使用 Consul 进行集群连接。
         /// </summary>
         /// <param name="builder">
-        /// 建筑工
+        /// 构建器。
         /// </param>
         /// <param name="configureOptions">
-        /// 组合代表
+        /// 配置委托。
         /// </param>
         /// <returns>
-        /// 提供 <see cref="IClientBuilder"/>。
+        /// 提供的 <see cref="IClientBuilder"/>。
         /// </returns>
         public static IClientBuilder UseConsulClientClustering(
             this IClientBuilder builder,
@@ -92,16 +92,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置客户端使用领事进行分组。
+        /// 配置客户端使用 Consul 进行集群连接。
         /// </summary>
         /// <param name="builder">
-        /// 建筑工
+        /// 构建器。
         /// </param>
         /// <param name="configureOptions">
-        /// 组合代表
+        /// 配置委托。
         /// </param>
         /// <returns>
-        /// 提供 <see cref="IClientBuilder"/>。
+        /// 提供的 <see cref="IClientBuilder"/>。
         /// </returns>
         public static IClientBuilder UseConsulClientClustering(
             this IClientBuilder builder,

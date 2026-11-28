@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
-/// <summary>测试 <see cref="DurableTask.GetVersion(string, int, int)"/>的参数合同。</summary>
+/// <summary>测试 <see cref="DurableTask.GetVersion(string, int, int)"/> 的参数契约。</summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]

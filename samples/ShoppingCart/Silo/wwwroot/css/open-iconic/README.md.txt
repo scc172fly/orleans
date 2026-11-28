@@ -1,39 +1,39 @@
 [Open Iconic v1.1.1](http://useiconic.com/open)
 ===========
 
-### Open Iconic is the open source sibling of [Iconic](http://useiconic.com). It is a hyper-legible collection of 223 icons with a tiny footprint&mdash;ready to use with Bootstrap and Foundation. [View the collection](http://useiconic.com/open#icons)
+### Open Iconic 是 [Iconic](http://useiconic.com) 的开源姊妹项目。它包含 223 个清晰易辨、体积小巧的图标&mdash;可直接与 Bootstrap 和 Foundation 配合使用。[查看图标集](http://useiconic.com/open#icons)
 
 
 
-## What's in Open Iconic?
+## Open Iconic 包含哪些内容？
 
-* 223 icons designed to be legible down to 8 pixels
-* Super-light SVG files - 61.8 for the entire set
-* SVG sprite&mdash;the modern replacement for icon fonts
-* Webfont (EOT, OTF, SVG, TTF, WOFF), PNG and WebP formats
-* Webfont stylesheets (including versions for Bootstrap and Foundation) in CSS, LESS, SCSS and Stylus formats
-* PNG and WebP raster images in 8px, 16px, 24px, 32px, 48px and 64px.
+* 223 个图标，缩小到 8 像素仍然清晰易辨
+* 超轻量 SVG 文件：整套大小为 61.8
+* SVG 精灵&mdash;图标字体的现代替代方案
+* Web 字体（EOT、OTF、SVG、TTF、WOFF）、PNG 和 WebP 格式
+* CSS、LESS、SCSS 和 Stylus 格式的 Web 字体样式表（包含适用于 Bootstrap 和 Foundation 的版本）
+* 尺寸为 8px、16px、24px、32px、48px 和 64px 的 PNG 和 WebP 栅格图像。
 
 
-## Getting Started
+## 入门
 
-#### For code samples and everything else you need to get started with Open Iconic, check out our [Icons](http://useiconic.com/open#icons) and [Reference](http://useiconic.com/open#reference) sections.
+#### 如需代码示例以及开始使用 Open Iconic 所需的其他信息，请查看[图标](http://useiconic.com/open#icons)和[参考](http://useiconic.com/open#reference)部分。
 
-### General Usage
+### 常规用法
 
-#### Using Open Iconic's SVGs
+#### 使用 Open Iconic 的 SVG 图像
 
-We like SVGs and we think they're the way to display icons on the web. Since Open Iconic are just basic SVGs, we suggest you display them like you would any other image (don't forget the `alt` attribute).
+我们喜欢 SVG，并认为它是网页显示图标的合适方式。Open Iconic 的图像都是基本的 SVG，因此建议像显示其他图像一样使用它们（别忘了 `alt` 属性）。
 
 ```
 <img src="/open-iconic/svg/icon-name.svg" alt="icon name">
 ```
 
-#### Using Open Iconic's SVG Sprite
+#### 使用 Open Iconic 的 SVG 精灵
 
-Open Iconic also comes in a SVG sprite which allows you to display all the icons in the set with a single request. It's like an icon font, without being a hack.
+Open Iconic 还提供 SVG 精灵，只需一次请求即可显示图标集中的所有图标。它类似于图标字体，但无需采用变通手段。
 
-Adding an icon from an SVG sprite is a little different than what you're used to, but it's still a piece of cake. *Tip: To make your icons easily style able, we suggest adding a general class to the* `<svg>` *tag and a unique class name for each different icon in the* `<use>` *tag.*
+从 SVG 精灵中添加图标的方式与您习惯的做法略有不同，不过依然很简单。*提示：为了便于设置图标样式，建议为* `<svg>` *标签添加一个通用类，并在* `<use>` *标签上为每个不同的图标指定唯一的类名。*
 
 ```
 <svg class="icon">
@@ -41,7 +41,7 @@ Adding an icon from an SVG sprite is a little different than what you're used to
 </svg>
 ```
 
-Sizing icons only needs basic CSS. All the icons are in a square format, so just set the `<svg>` tag with equal width and height dimensions.
+只需基本的 CSS 即可设置图标大小。所有图标均为正方形，因此只要为 `<svg>` 标签设置相等的宽度和高度即可。
 
 ```
 .icon {
@@ -50,7 +50,7 @@ Sizing icons only needs basic CSS. All the icons are in a square format, so just
 }
 ```
 
-Coloring icons is even easier. All you need to do is set the `fill` rule on the `<use>` tag.
+为图标设置颜色更加简单，只需将 `fill` 规则设置在 `<use>` 标签上。
 
 ```
 .icon-account-login {
@@ -58,14 +58,14 @@ Coloring icons is even easier. All you need to do is set the `fill` rule on the 
 }
 ```
 
-To learn more about SVG Sprites, read [Chris Coyier's guide](http://css-tricks.com/svg-sprites-use-better-icon-fonts/).
+如需深入了解 SVG 精灵，请阅读 [Chris Coyier 的指南](http://css-tricks.com/svg-sprites-use-better-icon-fonts/)。
 
-#### Using Open Iconic's Icon Font...
+#### 使用 Open Iconic 的图标字体……
 
 
-##### …with Bootstrap
+##### ……配合 Bootstrap 使用
 
-You can find our Bootstrap stylesheets in `font/css/open-iconic-bootstrap.{css, less, scss, styl}`
+可在 `font/css/open-iconic-bootstrap.{css, less, scss, styl}` 中找到适用于 Bootstrap 的样式表。
 
 
 ```
@@ -77,9 +77,9 @@ You can find our Bootstrap stylesheets in `font/css/open-iconic-bootstrap.{css, 
 <span class="oi oi-icon-name" title="icon name" aria-hidden="true"></span>
 ```
 
-##### …with Foundation
+##### ……配合 Foundation 使用
 
-You can find our Foundation stylesheets in `font/css/open-iconic-foundation.{css, less, scss, styl}`
+可在 `font/css/open-iconic-foundation.{css, less, scss, styl}` 中找到适用于 Foundation 的样式表。
 
 ```
 <link href="/open-iconic/font/css/open-iconic-foundation.css" rel="stylesheet">
@@ -90,9 +90,9 @@ You can find our Foundation stylesheets in `font/css/open-iconic-foundation.{css
 <span class="fi-icon-name" title="icon name" aria-hidden="true"></span>
 ```
 
-##### …on its own
+##### ……独立使用
 
-You can find our default stylesheets in `font/css/open-iconic.{css, less, scss, styl}`
+可在 `font/css/open-iconic.{css, less, scss, styl}` 中找到默认样式表。
 
 ```
 <link href="/open-iconic/font/css/open-iconic.css" rel="stylesheet">

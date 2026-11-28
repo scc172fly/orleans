@@ -5,7 +5,7 @@ using System.Text;
 namespace Orleans.Serialization.TypeSystem;
 
 /// <summary>
-/// 用于分析类型名称的实用类,以 <see cref="RuntimeTypeNameFormatter"/>格式格式格式。
+/// 用于解析由 <see cref="RuntimeTypeNameFormatter"/> 格式化的类型名称的实用工具类。
 /// </summary>
 public static class RuntimeTypeNameParser
 {
@@ -28,17 +28,17 @@ public static class RuntimeTypeNameParser
     internal static ReadOnlySpan<char> TypeNameDelimiters => "[]*&,`+";
 
     /// <summary>
-    /// 将提供的值作为类型名称分析 。
+    /// 将给定值解析为类型名称。
     /// </summary>
     /// <param name="input">输入。</param>
-    /// <returns>解析型号规格。</returns>
+    /// <returns>解析得到的类型规范。</returns>
     public static TypeSpec Parse(string input) => Parse(input.AsSpan());
 
     /// <summary>
-    /// 将提供的值作为类型名称分析 。
+    /// 将给定值解析为类型名称。
     /// </summary>
     /// <param name="input">输入。</param>
-    /// <returns>解析型号规格。</returns>
+    /// <returns>解析得到的类型规范。</returns>
     public static TypeSpec Parse(ReadOnlySpan<char> input) => ParseInternal(ref input);
 
     private static TypeSpec ParseInternal(ref ReadOnlySpan<char> input)
@@ -58,7 +58,7 @@ public static class RuntimeTypeNameParser
 
         TypeSpec coreType = null!;
 
-        // 读取图字
+        // 读取元组。
         if (input.TryPeek(out c) && c == CompoundAliasStartIndicator)
         {
             input.ConsumeCharacter(CompoundAliasStartIndicator);
@@ -112,7 +112,7 @@ public static class RuntimeTypeNameParser
         }
         else
         {
-            // 读取命名空间和类名,包括通用性,这是类名的一部分。
+            // 读取命名空间和类名，包括作为类名组成部分的泛型参数个数。
             NamedTypeSpec? named = null;
             while (true)
             {
@@ -122,7 +122,7 @@ public static class RuntimeTypeNameParser
 
                 if (input.TryPeek(out c) && c == NestedTypeIndicator)
                 {
-                    // 折叠嵌套类型指示器, 然后循环分析嵌套类型 。
+                    // 消耗嵌套类型指示符，然后循环解析嵌套类型。
                     input.ConsumeCharacter(NestedTypeIndicator);
                     continue;
                 }
@@ -133,7 +133,7 @@ public static class RuntimeTypeNameParser
             coreType = named!;
         }
 
-        // 分析通用类型参数
+        // 解析泛型类型实参。
         if (input.TotalGenericArity > 0 && input.TryPeek(out c, out var d) && c == ArrayStartIndicator && d == ArrayStartIndicator)
         {
             input.ConsumeCharacter(ArrayStartIndicator);
@@ -145,7 +145,7 @@ public static class RuntimeTypeNameParser
                     input.ConsumeCharacter(ParameterSeparator);
                 }
 
-                // 分析参数类型
+                // 解析实参类型。
                 input.ConsumeCharacter(ArrayStartIndicator);
                 var remaining = input.Remaining;
                 arguments[i] = ParseInternal(ref remaining);
@@ -159,11 +159,11 @@ public static class RuntimeTypeNameParser
         }
         else
         {
-            // 这不是构建的通用类型
+            // 这不是构造后的泛型类型。
             result = coreType;
         }
 
-        // 解析修饰器
+        // 解析修饰符。
         bool hadModifier;
         do
         {
@@ -194,7 +194,7 @@ public static class RuntimeTypeNameParser
             }
         } while (hadModifier);
 
-        // 如果指定的话, 提取组件 。
+        // 如果指定了程序集，则提取该程序集。
         if (input.TryPeek(out c) && c == AssemblyIndicator)
         {
             input.ConsumeCharacter(AssemblyIndicator);
@@ -226,8 +226,8 @@ public static class RuntimeTypeNameParser
 
         if (genericArityStart >= 0)
         {
-            // 通用性是添加性的,因此,在普通类中嵌套的通用类具有异性
-            // 等于指定正数值的和。例如,“C`1+N`2”的乘积为3。
+            // 泛型参数个数具有可加性，因此嵌套于泛型类中的泛型类，其参数个数
+            // 等于各个指定参数个数之和。例如，"C`1+N`2" 的泛型参数个数为 3。
             var aritySlice = s.Input[genericArityStart..s.Index];
 #if NETCOREAPP3_1_OR_GREATER
             var arity = int.Parse(aritySlice);
@@ -240,7 +240,7 @@ public static class RuntimeTypeNameParser
                 ThrowGenericArityTooLarge(s.TotalGenericArity);
             }
 
-            // 类型名称中包含通用的对数。
+            // 在类型名称中包含泛型参数个数。
             typeName = s.Input[start..s.Index];
         }
 
@@ -288,7 +288,7 @@ public static class RuntimeTypeNameParser
     {
         char c;
 
-        // 读数字数
+        // 读取字面量值。
         if (input.TryPeek(out c))
         {
             if (c == LiteralDelimiter)
@@ -300,7 +300,7 @@ public static class RuntimeTypeNameParser
             }
             else if (c == ArrayStartIndicator)
             {
-                // 分析参数类型
+                // 解析实参类型。
                 input.ConsumeCharacter(ArrayStartIndicator);
                 var remaining = input.Remaining;
                 var result = ParseInternal(ref remaining);

@@ -1,80 +1,73 @@
 ---
-title: "取消 Orleans grain 调用"
-description: "使用 CancellationToken 合作取消 Orleans grain 电话。"
+title: 取消 Orleans Grain 调用
+description: 使用 CancellationToken 对 Orleans Grain 调用进行协作式取消。
 ms.date: 08/07/2026
 ms.topic: concept-article
 ---
 
 <a id="cancel-orleans-grain-calls"></a>
+# 取消 Orleans Grain 调用
 
-# 取消 Orleans grain 调用
-
-Orleans 支持 <xref:System.Threading.CancellationToken> 参数的参数 grain 取消是合作性的: Orleans 发送取消信号, grain 执行决定了停止安全的地方。
+Orleans 支持在 Grain 方法中使用 <xref:System.Threading.CancellationToken> 参数。取消是协作式的：Orleans 投递取消信号，由 Grain 的实现决定在何处可以安全停止执行。
 
 <a id="add-cancellation-to-a-contract"></a>
+## 为接口契约添加取消支持
 
-## 添加取消合同到合同
-
-最多添加一个 <xref:System.Threading.CancellationToken> 参数。 将其放在最后, 当调用者通常不需要取消时, 让它可以选择 :
+最多添加一个 <xref:System.Threading.CancellationToken> 参数。将其放在参数列表末尾；如果调用方通常不需要取消操作，则将其声明为可选参数：
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="cancellable_grain_interface":::
 
-执行时要注意该标记,
+在实现中观察令牌的取消状态，并将令牌传递给支持取消的 API：
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="observe_cancellation":::
 
-如果在发出此呼叫之前一个命令已被取消, Orleans 就不会发出请求。 如果取消已到达而请求被排队, Orleans 可以在执行前将其删除。 一旦执行开始, grain 方法必须遵守该标记 。
+如果发送调用前令牌已经取消，Orleans 不会发出请求。如果取消信号在请求排队期间到达，Orleans 可以在执行前将请求移出队列。一旦开始执行，Grain 方法就必须自行观察令牌的取消状态。
 
 <a id="cancel-a-call"></a>
+## 取消调用
 
-## 取消呼叫
-
-从一个 <xref:System.Threading.CancellationTokenSource>传递一个标记 :
+传入由 <xref:System.Threading.CancellationTokenSource> 提供的令牌：
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="cancel_grain_call":::
 
-取消可以跨客户端到grain 和 grain- 到grain 调用。 发送是网络故障下的最大努力, 取消不会使在 grain 观察标记之前完成的副作用倒转。
+取消信号可以跨客户端到 Grain 以及 Grain 到 Grain 的调用传播。网络发生故障时，只能尽力投递取消信号；取消也不会回滚 Grain 观察到令牌取消前已经完成的副作用。
 
 <a id="timeouts-and-cancellation"></a>
+## 超时与取消
 
-## 超时和取消
+响应超时与取消解决的是不同的问题：
 
-反应超时和取消回答不同的问题:
+- **超时**：未及时收到响应时，调用方停止等待。
+- **取消**：请求被调用方协作式地停止执行。
 
-- A **超时** 等没有反应时,
-- **取消** 要求被调用者停止合作。
-
-默认情况下, 超时的调用不会取消。 <xref:Orleans.Configuration.MessagingOptions.CancelRequestOnTimeout> 默认为 `false`。 当超时操作接收取消信号时, 明确启用它 :
+默认情况下，超时的调用不会被取消。<xref:Orleans.Configuration.MessagingOptions.CancelRequestOnTimeout> 默认为 `false`。如果希望超时操作收到取消信号，需要显式启用：
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="cancel_request_on_timeout":::
 
-即使启用了, 超时并不能证明操作已停止。 取消信件可能会被延迟, 方法可能没有观察到它的迹象, 或者副作用可能已经完成 。
+即使启用该选项，超时也无法证明操作已经停止。取消消息可能延迟，方法可能没有观察其令牌，或者副作用可能已经完成。
 
-<xref:Orleans.Configuration.MessagingOptions.WaitForCancellationAcknowledgement> also defaults to `false`. Enabling it makes the caller wait for acknowledgement from the callee rather than completing local cancellation immediately. Use it only when that stronger coordination is worth the added latency and messaging.
+<xref:Orleans.Configuration.MessagingOptions.WaitForCancellationAcknowledgement> 同样默认为 `false`。启用后，调用方会等待被调用方的取消确认，而不是立即完成本地取消。仅当这种更强的协调机制值得额外的延迟和消息开销时才启用。
 
 <a id="design-cancellable-operations"></a>
+## 设计可取消的操作
 
-## 可切换设计操作
+- 在执行开销较大的工作之前，以及各自可安全停止的工作单元之间，检查令牌。
+- 将令牌传递给 I/O 操作及其他异步依赖项。
+- 在每个取消点都保证状态一致。
+- 完成清理后重新抛出 <xref:System.OperationCanceledException>，使调用方能够区分取消和故障。
+- 如果调用方可能在结果不确定时重试，应使对外可见的操作具有幂等性。
 
-- 贵重工作之前检查标牌,独立安全的工作单位之间核对。
-- 将牌照传递给 I/ O 和其他非同步依赖关系 。
-- 在每个取消点保持请假状态一致 。
-- 清理后重新丢弃 <xref:System.OperationCanceledException> , 这样调用者可以区分取消和失败 。
-- 当一个打电话者在结果不确定后可能重新尝试时,让外部可见的行动成为一等的。
-
-登记取消回调 grain 代码执行 grain时间框架。 请保持回调短, 避免阻塞 。
+从 Grain 代码注册的取消回调在该 Grain 的调度上下文中执行。保持回调简短，避免阻塞。
 
 <a id="contract-evolution"></a>
+## 契约演进
 
-## 合同演变
+Orleans 在生成请求契约时对 <xref:System.Threading.CancellationToken> 进行特殊处理。添加或移除令牌参数，与针对另一种接口形式编译的调用方在通信协议上兼容：缺失的令牌表示为 <xref:System.Threading.CancellationToken.None?displayProperty=nameWithType>，旧版调用方额外传入的令牌则可以忽略。将新增参数声明为可选参数，也可使常见调用点保持 C# 源代码兼容性。
 
-Orleans 处理 <xref:System.Threading.CancellationToken> , 特别是在生成的请求合同中。 添加或删除一个象征性参数是与根据其它表格编译的调用器有线兼容的。 缺少的质物以 <xref:System.Threading.CancellationToken.None?displayProperty=nameWithType>表示, 旧调用器的额外代号可以忽略。 设置新添加的参数也可以保护通用调用站点的 C# 源兼容性 。
-
-旧的 <xref:Orleans.GrainCancellationToken> API 已经过时。 请使用 <xref:System.Threading.CancellationToken> 和 <xref:System.Threading.CancellationTokenSource> 。
+旧版 <xref:Orleans.GrainCancellationToken> API 已过时。请改用 <xref:System.Threading.CancellationToken> 和 <xref:System.Threading.CancellationTokenSource>。
 
 <a id="related-net-guidance"></a>
+## 相关 .NET 指南
 
-## 相关 .NET 指导
-
-- [管理线索中注销](https://learn.microsoft.com/dotnet/standard/threading/cancellation-in-managed-threads)
-- [取消任务取消](https://learn.microsoft.com/dotnet/standard/parallel-programming/task-cancellation)
+- [托管线程中的取消](https://learn.microsoft.com/dotnet/standard/threading/cancellation-in-managed-threads)
+- [任务取消](https://learn.microsoft.com/dotnet/standard/parallel-programming/task-cancellation)

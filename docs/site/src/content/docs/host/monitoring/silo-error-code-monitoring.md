@@ -1,6 +1,6 @@
 ---
-title: "Silo 诊断事件"
-description: "查找当前 Orleans silo 事件编号,并使用基于症状的观察指导。"
+title: Silo 诊断事件
+description: 查找当前 Orleans Silo 事件 ID，并使用基于症状的可观测性指南。
 ms.date: 08/02/2026
 ms.topic: reference
 ---
@@ -9,18 +9,18 @@ ms.topic: reference
 
 # Silo 诊断事件
 
-生成的 <xref:Orleans.ErrorCode> API 参考跟踪运行时当前 silo 事件定义。 [`main` 分支错误代码源](https://github.com/dotnet/orleans/blob/main/src/Orleans.Core.Abstractions/Logging/ErrorCodes.cs) 显示正在开发中的定义 。
+生成的 <xref:Orleans.ErrorCode> API 参考反映运行时当前的 Silo 事件定义。[`main` 分支中的错误码源码](https://github.com/dotnet/orleans/blob/main/src/Orleans.Core.Abstractions/Logging/ErrorCodes.cs) 展示正在开发的定义。
 
-在 <xref:Orleans.ErrorCode>中查找结构化事件编号,然后使用日志类别、例外和周围的度量来选择补救:
+在 <xref:Orleans.ErrorCode> 中搜索结构化事件 ID，然后根据其日志类别、异常及相关指标选择处理方法：
 
-| 诊断区 | 补救措施 |
+| 诊断领域 | 处理方法 |
 |---|---|
-| 成员、未选中的 pings、 silo 状态或 grain 目录 | [成员和目录](troubleshooting-symptom-catalog.md#membership-and-directory-churn) |
-| 拒绝、无法使用 silo、连接或网关 | [Silo 无法或信件被拒绝](troubleshooting-symptom-catalog.md#silo-unavailable-or-message-rejected) |
-| 调度或长运行启动转 | [长途或陷入僵局 grain](troubleshooting-symptom-catalog.md#long-running-or-deadlocked-grain-turns) |
-| 储存提供商、状态版本或节流 | [存储一致性失灵](troubleshooting-symptom-catalog.md#storage-consistency-failures) 和 [储存节压](troubleshooting-symptom-catalog.md#storage-throttling) |
-| 串级化或编码 | [版本更改后发生串级失败](troubleshooting-symptom-catalog.md#serialization-failures-after-a-version-change) |
-| 提醒或计时器 | [提醒和计时时间](troubleshooting-symptom-catalog.md#reminder-and-timer-timing) |
-| 超载、拒绝、记忆或关闭 | [Orleans 症状和信号目录](troubleshooting-symptom-catalog.md) |
+| 成员资格、探测未收到响应、Silo 状态或 Grain 目录 | [成员资格及目录频繁变动](troubleshooting-symptom-catalog.md#membership-and-directory-churn) |
+| 消息拒绝、Silo 不可用、连接或网关 | [Silo 不可用或消息被拒绝](troubleshooting-symptom-catalog.md#silo-unavailable-or-message-rejected) |
+| 调度器或长时间运行的激活实例执行轮次 | [长时间运行或死锁的 Grain 执行轮次](troubleshooting-symptom-catalog.md#long-running-or-deadlocked-grain-turns) |
+| 存储提供程序、状态版本或限流 | [存储一致性故障](troubleshooting-symptom-catalog.md#storage-consistency-failures)和[存储限流](troubleshooting-symptom-catalog.md#storage-throttling) |
+| 序列化或编解码器 | [版本变更后的序列化故障](troubleshooting-symptom-catalog.md#serialization-failures-after-a-version-change) |
+| 提醒器或定时器 | [提醒器与定时器的触发时序](troubleshooting-symptom-catalog.md#reminder-and-timer-timing) |
+| 过载、拒绝、内存或关闭 | [Orleans 症状与信号目录](troubleshooting-symptom-catalog.md) |
 
-以持续服务症状为根据,与事件识别和运行信号相关联。 [解释 Orleans 可观测信号](signals.md).
+基于与事件 ID 及运行时信号关联的持续服务症状设置告警。遵循[解读 Orleans 可观测性信号](signals.md) 中的指南。

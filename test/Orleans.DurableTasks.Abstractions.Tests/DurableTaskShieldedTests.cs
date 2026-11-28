@@ -133,7 +133,7 @@ public class DurableTaskShieldedTests
             }),
             context);
 
-        // 被屏蔽的等待作为执行的一部分, 拿着一个取消无法到达的标记等待。
+        // 作为执行实例一部分运行的屏蔽式等待，使用不会受到该取消请求影响的令牌进行等待。
         Assert.Equal("shielded|unshielded", response.GetResult<string>());
         Assert.False(log["wait:shielded"]);
         Assert.True(log["wait:unshielded"]);
@@ -146,7 +146,7 @@ public class DurableTaskShieldedTests
             DurableTask.Run(async _ => await body()),
             new RecordingContext(TaskId.CreateRoot("root"), log));
 
-    /// <summary>记录,每个孩子开始, 是否启动代码保护它。</summary>
+    /// <summary>对启动的每个子任务，记录启动代码是否对其应用取消屏蔽。</summary>
     private sealed class RecordingContext(TaskId id, ConcurrentDictionary<string, bool> log) : DurableTaskContext(id)
     {
         public override DateTimeOffset UtcNow => DateTimeOffset.UnixEpoch;
@@ -181,7 +181,7 @@ public class DurableTaskShieldedTests
             IReadOnlyList<TaskId> candidates,
             CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        /// <summary>记录等待的牌子是否被取消, 并返回信号的名称作为值。</summary>
+        /// <summary>记录等待操作的令牌是否已取消，并将信号名称作为其值返回。</summary>
         protected override ValueTask<DurableTaskResponse> WaitForSignalAsync(string name, CancellationToken cancellationToken)
         {
             log[$"wait:{name}"] = cancellationToken.IsCancellationRequested;

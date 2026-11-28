@@ -13,39 +13,39 @@ using Orleans.Storage;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// 配置 Azure 布行 grain 存储提供者。
+    /// 配置 Azure Blob Grain 存储提供程序。
     /// </summary>
     public class AzureBlobStorageOptions : IStorageProviderSerializerOptions
     {
         private BlobServiceClient? _blobServiceClient;
 
         /// <summary>
-        /// 储存 grain 阶段的容器名称
+        /// 存储 Grain 状态的容器名称。
         /// </summary>
         public string ContainerName { get; set; } = DEFAULT_CONTAINER_NAME;
 
         /// <summary>
-        /// 默认默认 Azure 存储时使用的布布容器名称 grain 状态。
+        /// 用于存储 Grain 状态的默认 Azure Blob 容器名称。
         /// </summary>
         public const string DEFAULT_CONTAINER_NAME = "grainstate";
 
         /// <summary>
-        /// 当配置 blob 存储客户端时, 或者 <see langword="null"/> 使用默认选项时要使用的选项 。
+        /// 配置 Blob Storage 客户端时使用的选项，或使用 <see langword="null"/> 采用默认选项。
         /// </summary>
         public BlobClientOptions? ClientOptions { get; set; }
 
         /// <summary>
-        /// 用于创建 <see cref="BlobServiceClient"/> 实例的可选代表 。
+        /// 用于创建 <see cref="BlobServiceClient"/> 实例的可选委托。
         /// </summary>
         internal Func<Task<BlobServiceClient>> CreateClient { get; private set; } = null!;
 
         /// <summary>
-        /// 储存应初始化的 silo 生命周期阶段,储存必须在使用前初始化。
+        /// 应初始化存储的 Silo 生命周期阶段。存储必须在使用前完成初始化。
         /// </summary>
         public int InitStage { get; set; } = DEFAULT_INIT_STAGE;
 
         /// <summary>
-        /// 存储提供者初始化的默认 silo 生命周期阶段。
+        /// 初始化存储提供程序的默认 Silo 生命周期阶段。
         /// </summary>
         public const int DEFAULT_INIT_STAGE = ServiceLifecycleStage.ApplicationServices;
 
@@ -53,7 +53,7 @@ namespace Orleans.Configuration
         public IGrainStorageSerializer GrainStorageSerializer { get; set; } = null!;
 
         /// <summary>
-        /// 获取或设置用于访问 Azure 球形服务的客户端。
+        /// 获取或设置用于访问 Azure Blob 服务的客户端。
         /// </summary>
         [DisallowNull]
         public BlobServiceClient? BlobServiceClient
@@ -68,18 +68,18 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// 获取或设置值,以显示是否在调用 <see cref="IGrainStorage.ClearStateAsync{T}(string, GrainId, IGrainState{T})"/> 时删除状态。默认为真。
+        /// 获取或设置一个值，指示调用 <see cref="IGrainStorage.ClearStateAsync{T}(string, GrainId, IGrainState{T})"/> 时是否删除状态。默认为 true。
         /// </summary>
         public bool DeleteStateOnClear { get; set; } = true;
 
         /// <summary>
-        /// 建造集装箱工厂的功能
+        /// 用于构建容器工厂实例的函数。
         /// </summary>
         public Func<IServiceProvider, AzureBlobStorageOptions, IBlobContainerFactory> BuildContainerFactory { get; set; }
             = static (provider, options) => ActivatorUtilities.CreateInstance<DefaultBlobContainerFactory>(provider, options);
 
         /// <summary>
-        /// 使用连接字符串配置 <see cref="BlobServiceClient"/> 。
+        /// 使用连接字符串配置 <see cref="BlobServiceClient"/>。
         /// </summary>
         [Obsolete($"Set the {nameof(BlobServiceClient)} property directly.")]
         public void ConfigureBlobServiceClient(string connectionString)
@@ -88,7 +88,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// 使用验证的服务 URI 配置 <see cref="BlobServiceClient"/> 。
+        /// 使用经过身份验证的服务 URI 配置 <see cref="BlobServiceClient"/>。
         /// </summary>
         [Obsolete($"Set the {nameof(BlobServiceClient)} property directly.")]
         public void ConfigureBlobServiceClient(Uri serviceUri)
@@ -97,7 +97,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// 使用所提供的回调配置 <see cref="BlobServiceClient"/> 。
+        /// 使用提供的回调配置 <see cref="BlobServiceClient"/>。
         /// </summary>
         [Obsolete($"Set the {nameof(BlobServiceClient)} property directly.")]
         public void ConfigureBlobServiceClient(Func<Task<BlobServiceClient>> createClientCallback)
@@ -106,7 +106,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// 配置 <see cref="BlobServiceClient"/> 使用认证服务 URI 和 a <see cref="Azure.Core.TokenCredential"/>.
+        /// 配置 <see cref="BlobServiceClient"/>，使用经过身份验证的服务 URI 和 <see cref="Azure.Core.TokenCredential"/>。
         /// </summary>
         [Obsolete($"Set the {nameof(BlobServiceClient)} property directly.")]
         public void ConfigureBlobServiceClient(Uri serviceUri, TokenCredential tokenCredential)
@@ -115,7 +115,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// 配置 <see cref="BlobServiceClient"/> 使用认证服务 URI 和 a <see cref="Azure.AzureSasCredential"/>.
+        /// 配置 <see cref="BlobServiceClient"/>，使用经过身份验证的服务 URI 和 <see cref="Azure.AzureSasCredential"/>。
         /// </summary>
         [Obsolete($"Set the {nameof(BlobServiceClient)} property directly.")]
         public void ConfigureBlobServiceClient(Uri serviceUri, AzureSasCredential azureSasCredential)
@@ -124,7 +124,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// 配置 <see cref="BlobServiceClient"/> 使用认证服务 URI 和 a <see cref="StorageSharedKeyCredential"/>.
+        /// 配置 <see cref="BlobServiceClient"/>，使用经过身份验证的服务 URI 和 <see cref="StorageSharedKeyCredential"/>。
         /// </summary>
         [Obsolete($"Set the {nameof(BlobServiceClient)} property directly.")]
         public void ConfigureBlobServiceClient(Uri serviceUri, StorageSharedKeyCredential sharedKeyCredential)
@@ -134,7 +134,7 @@ namespace Orleans.Configuration
     }
 
     /// <summary>
-    /// AzureBlobStorageOptions的配置验证符
+    /// AzureBlobStorageOptions 的配置验证器。
     /// </summary>
     public class AzureBlobStorageOptionsValidator : IConfigurationValidator
     {
@@ -142,10 +142,10 @@ namespace Orleans.Configuration
         private readonly string name;
 
         /// <summary>
-        /// 构造建构器
+        /// 构造函数。
         /// </summary>
-        /// <param name="options">选项将生效。</param>
-        /// <param name="name">需要验证的选项名称。</param>
+        /// <param name="options">要验证的选项。</param>
+        /// <param name="name">要验证的选项名称。</param>
         public AzureBlobStorageOptionsValidator(AzureBlobStorageOptions options, string name)
         {
             this.options = options;

@@ -1,39 +1,39 @@
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 读取并写下用于持续国家日记条目的物理字节格式。
+/// 读取及写入用于持久化状态日志条目的物理字节格式。
 /// </summary>
 /// <remarks>
-/// 日记格式拥有条目的物理框架。 耐用的国家编码器仅写入
-/// 单项输入的有效载荷。
+/// 日志格式负责条目的物理分帧。持久化状态编解码器仅写入
+/// 单个条目的有效载荷。
 /// </remarks>
 public interface IJournalFormat
 {
     /// <summary>
-    /// 获取在存储元数据和密钥服务注册中识别该日记格式的密钥。
+    /// 获取在存储元数据和带键服务注册中标识此日志格式的键。
     /// </summary>
     string FormatKey { get; }
 
     /// <summary>
-    /// 获取以此格式写入的日记存储的 MIME 类型,或者 <see langword="null"/> 使用存储提供者的默认值。
+    /// 获取使用此格式写入的日志存储的 MIME 类型，或使用 <see langword="null"/> 表示采用存储提供程序的默认类型。
     /// </summary>
     string? MimeType { get; }
 
     /// <summary>
-    /// 为新的可变日记批量创建作家 。
+    /// 为新的可变日志批次创建写入器。
     /// </summary>
-    /// <returns>新日记缓冲写器。</returns>
+    /// <returns>新的日志缓冲区写入器。</returns>
     JournalBufferWriter CreateWriter();
 
     /// <summary>
-    /// 尽可能多地从 <paramref name="input"/> 读取完整日记条目,并将其应用到已解决的状态。
+    /// 从 <paramref name="input"/> 读取尽可能多的完整日志条目，并将它们应用到已解析的状态。
     /// </summary>
-    /// <param name="input">缓冲的日记数据,包括其完成状态。</param>
-    /// <param name="context">用于解决状态和日记服务问题的重播上下文。</param>
+    /// <param name="input">缓冲的已持久化日志数据，包括其完成状态。</param>
+    /// <param name="context">用于解析状态及日志服务的重放上下文。</param>
     /// <remarks>
-    /// <see cref="JournalBufferReader.IsCompleted"/> 是 <see langword="false"/>的,此方法返回
-    /// 没有足够的数据读取另一个完整的日记项。 如果 <see cref="JournalBufferReader.IsCompleted"/>
-    /// is <see langword="true"/>,如果剩余数据不包含完整的日记条目,则采用此方法。
+    /// 如果 <see cref="JournalBufferReader.IsCompleted"/> 为 <see langword="false"/>，则在
+    /// 数据不足以读取另一个完整日志条目时返回。如果 <see cref="JournalBufferReader.IsCompleted"/>
+    /// 为 <see langword="true"/>，而剩余数据不包含完整日志条目，则此方法抛出异常。
     /// </remarks>
     void Replay(JournalBufferReader input, JournalReplayContext context);
 }

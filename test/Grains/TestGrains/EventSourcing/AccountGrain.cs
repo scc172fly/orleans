@@ -5,12 +5,12 @@ using TestGrainInterfaces;
 namespace TestGrains
 {
     /// <summary>
-    /// 例如,一个以银行账户为模型的日记 grain 。
+    /// 对银行账户进行建模的日志化 Grain 示例。
     /// 
-    /// 配置后使用默认的存储提供者。
-    /// 配置后使用 LogStorage 一致性提供商。
+    /// 配置为使用默认存储提供程序。
+    /// 配置为使用 LogStorage 一致性提供程序。
     /// 
-    /// 提供商坚持所有事件,使我们能够收回所有事件。
+    /// 此提供程序持久化所有事件，并允许我们检索全部事件。
     /// </summary>
 
     [StorageProvider(ProviderName = "Default")]
@@ -19,7 +19,7 @@ namespace TestGrains
     public class AccountGrain : JournaledGrain<AccountGrain.GrainState, Transaction>, IAccountGrain
     {
         /// <summary>
-        /// 现状 grain 仅仅是当前平衡。
+        /// 此 Grain 的状态仅为当前余额。
         /// </summary>
         [Serializable]
         [Orleans.GenerateSerializer]
@@ -57,21 +57,21 @@ namespace TestGrains
                 Description = description
             });
 
-            // 我们等待储存的当
+            // 等待存储确认
             return ConfirmEvents();
         }
 
         public Task<bool> Withdraw(uint amount, Guid guid, string description)
         {
-            // 如果余额太低,不能退
-            // 立即拒绝
+            // 如果余额不足，则不能提款
+            // 立即拒绝该请求
             if (State.Balance < amount)
                 return Task.FromResult(false);
 
-            // 使用有条件退出事件
-            // (有条件的事件只有在版本尚未改变的情况下才会发生)
-            // 这一点很重要,所以我们才能保证 我们不会过度借债
-            // 即使与其他组群赛跑,但属于短暂重复 grain 情况
+            // 使用条件事件进行提款
+            // （只有版本在此期间尚未改变时，条件事件才会提交）
+            // 这一点很重要，它可以保证我们绝不会透支，
+            // 即使与其他集群发生竞争或临时出现重复 Grain 激活实例，也能如此
             return RaiseConditionalEvent(new WithdrawalTransaction()
             {
                 Guid = guid,
@@ -88,8 +88,8 @@ namespace TestGrains
     }
 
 
-    /// 同一 grain 的变异,该变异不持续日志,而仅维持最新的 grain 状态
-    /// (因此它并不真正产生事件来源) 
+    /// 同一 Grain 的一种变体，不持久化日志，仅持久化最新 Grain 状态
+    /// （因此不是真正的事件溯源）。
     [LogConsistencyProvider(ProviderName = "StateStorage")]
     public class AccountGrain_PersistStateOnly : AccountGrain
     {

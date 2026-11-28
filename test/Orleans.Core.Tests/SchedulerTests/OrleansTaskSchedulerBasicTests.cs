@@ -9,7 +9,7 @@ using Orleans.TestingHost.Utils;
 namespace UnitTests.SchedulerTests
 {
     /// <summary>
-    /// 测试 IGrainContext ,用于单位测试 Orleans 任务调度器,无需完全启动 grain 。
+    /// IGrainContext 的测试实现，用于对 Orleans 任务调度器进行单元测试，无需完整的 Grain 激活实例。
     /// </summary>
     internal class UnitTestSchedulingContext : IGrainContext, IDisposable
     {
@@ -70,9 +70,9 @@ namespace UnitTests.SchedulerTests
     }
 
     /// <summary>
-    /// Orleans 任务调度器的基本测试,该排程器是负责安排 grain 工作项目的核心组成部分。
-    /// 调度器确保 grains 的单行执行语义,同时有效利用线性集合资源。
-    /// 这些测试核实基本时间安排操作,无需全部 Orleans 运行时间。
+    /// Orleans 任务调度器的基础测试，该调度器是负责调度 Grain 工作项的核心组件。
+    /// 调度器在高效利用线程池资源的同时，确保 Grain 的单线程执行语义。
+    /// 这些测试无需完整的 Orleans 运行时即可验证基本调度操作。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Scheduler")]
     [TestSuite("BVT")]
@@ -98,8 +98,8 @@ namespace UnitTests.SchedulerTests
         }
 
         /// <summary>
-        /// 测试任务可在 Orleans 激活任务调度器上排期和执行。
-        /// 在 grain单行执行背景下验证基本任务执行流程。
+        /// 测试能否在 Orleans 激活实例任务调度器上调度和执行任务。
+        /// 验证 Grain 单线程执行上下文中的基本任务执行流程。
         /// </summary>
         [Fact, TestCategory("AsynchronyPrimitives")]
         public async Task Async_Task_Start_ActivationTaskScheduler()
@@ -226,8 +226,8 @@ namespace UnitTests.SchedulerTests
         [Fact]
         public async Task Sched_SimpleFifoTest()
         {
-            // 这不是一个伟大的测试 因为有一个50/50的镜头 即使时间安排,它也会有效
-            // 封锁完全彻底被打破,
+            // 这个测试并不理想，因为即使调度完全失效，两个闭包被“同时”执行，
+            // 测试也有一半的概率通过
 
             var n = 0;
             var completed = new TaskCompletionSource<bool>();
@@ -241,7 +241,7 @@ namespace UnitTests.SchedulerTests
             // 等待完成
             await completed.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-            // N应为15岁,因为这两项任务应执行
+            // N 应为 15，因为两个任务应按顺序执行
             Assert.True(n != 0, "Work items did not get executed");
             Assert.Equal(15, n);
             _output.WriteLine("Test executed OK.");
@@ -250,8 +250,8 @@ namespace UnitTests.SchedulerTests
         [Fact]
         public async Task Sched_Task_TplFifoTest()
         {
-            // 这不是一个伟大的测试 因为有一个50/50的镜头 即使时间安排,它也会有效
-            // 封锁完全彻底被打破,
+            // 这个测试并不理想，因为即使调度完全失效，两个闭包被“同时”执行，
+            // 测试也有一半的概率通过
 
             var n = 0;
             var gate = new SemaphoreSlim(0, 1);
@@ -264,14 +264,14 @@ namespace UnitTests.SchedulerTests
             _rootContext.Scheduler.QueueTask(task1);
             _rootContext.Scheduler.QueueTask(task2);
 
-            // 释放任务1要继续
+            // 释放 task1，使其继续执行
             gate.Release();
 
             await Task.WhenAll(task1, task2).WaitAsync(
                 TimeSpan.FromSeconds(5),
                 TestContext.Current.CancellationToken);
 
-            // N应为15岁,因为这两项任务应执行
+            // N 应为 15，因为两个任务应按顺序执行
             Assert.True(n != 0, "Work items did not get executed");
             Assert.Equal(15, n);
         }
@@ -303,9 +303,9 @@ namespace UnitTests.SchedulerTests
                 {
                     _output.WriteLine("Inside ClosureWorkItem-" + taskIndex);
                     tasks[taskIndex].Start(TaskScheduler.Default);
-#pragma warning disable xUnit1031 // Do not use blocking task operations in test method
+#pragma warning disable xUnit1031 // 不要在测试方法中使用阻塞式任务操作。
                     tasks[taskIndex].Wait();
-#pragma warning restore xUnit1031 // Do not use blocking task operations in test method
+#pragma warning restore xUnit1031 // 不要在测试方法中使用阻塞式任务操作。
                 }, taskNum);
             }
 
@@ -358,9 +358,9 @@ namespace UnitTests.SchedulerTests
             Assert.True(result0.Task.Exception == null, "Task-0 should not throw exception: " + result0.Task.Exception);
             Assert.True(await result0.Task, "Task-0 completed");
 
-            Assert.NotNull(t1); // 任务-1开始
+            Assert.NotNull(t1); // 任务 1 已启动
             await result1.Task.WaitAsync(TimeSpan.FromMinutes(1), TestContext.Current.CancellationToken);
-            // 给一个最小的额外机会, 在结果0 设定后再产生, 因为它可能没有完成 t1 任务
+            // 设置 result0 后再给一点让出执行权的机会，因为 t1 任务可能尚未结束
             await t1.WaitAsync(TimeSpan.FromMilliseconds(1), TestContext.Current.CancellationToken);
 
             Assert.True(t1.IsCompleted, "Task-1 completed");
@@ -416,7 +416,7 @@ namespace UnitTests.SchedulerTests
                     });
                 }
 
-                // 释放所有门,按顺序排列,以确保相继执行
+                // 依次释放所有同步闸门，以确保顺序执行
                 for (var i = 0; i < 10; i++)
                 {
                     gates[i].Release();
@@ -430,9 +430,9 @@ namespace UnitTests.SchedulerTests
             await finished.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
             _output.WriteLine("Main-task done");
 
-            // N应为10,因为所有任务都应连续执行
+            // N 应为 10，因为所有任务应串行执行
             Assert.True(n != 0, "Work items did not get executed");
-            Assert.Equal(10, n);  // “同时执行的工作项目”
+            Assert.Equal(10, n);  // "Work items executed concurrently"
         }
 
         [Fact]
@@ -445,7 +445,7 @@ namespace UnitTests.SchedulerTests
             _output.WriteLine("Initial - SynchronizationContext.Current={0} TaskScheduler.Current={1}",
                 SynchronizationContext.Current!, TaskScheduler.Current!);
 
-            Assert.Equal(val, RequestContext.Get(key));  // “RequestContext.Get 初始”
+            Assert.Equal(val, RequestContext.Get(key));  // "RequestContext.Get Initial"
 
             Task t0 = Task.Factory.StartNew(async () =>
             {
@@ -478,16 +478,16 @@ namespace UnitTests.SchedulerTests
             var key = Guid.NewGuid().ToString();
             var value = Guid.NewGuid().ToString();
 
-            // RequestContext 调用器在 QueueTask内不受清除
+            // QueueTask 内的清除操作不会影响调用方的 RequestContext
             RequestContext.Set(key, value);
             await _rootContext.QueueTask(() => AsyncCheckClearRequestContext(key));
             Assert.Equal(value, (string)RequestContext.Get(key)!);
 
-            // 调用者 RequestContext 在 QueueTask 内不受清除,即使工作实际上不是无序的。
+            // 即使工作实际并非异步执行，QueueTask 内的清除操作也不会影响调用方的 RequestContext。
             await _rootContext.QueueTask(() => NonAsyncCheckClearRequestContext(key));
             Assert.Equal(value, (string)RequestContext.Get(key)!);
 
-            // 工作非同步时,调用者 RequestContext 不受清晰保护。
+            // 工作异步执行时，调用方的 RequestContext 不受清除操作影响。
             async Task asyncCheckClearRequestContext()
             {
                 RequestContext.Clear();
@@ -497,7 +497,7 @@ namespace UnitTests.SchedulerTests
             await asyncCheckClearRequestContext();
             Assert.Equal(value, (string)RequestContext.Get(key)!);
 
-            // 调用者 RequestContext 在工作不是无序时没有被保护不受清除。
+            // 工作非异步执行时，调用方的 RequestContext 不受保护，可能被清除。
             Task nonAsyncCheckClearRequestContext()
             {
                 RequestContext.Clear();

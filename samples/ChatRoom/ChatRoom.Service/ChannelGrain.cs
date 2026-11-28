@@ -7,8 +7,8 @@ public sealed class ChannelGrain : Grain, IChannelGrain
     private readonly List<ChatMsg> _messages = [];
     private readonly List<string> _onlineMembers = [];
 
-    // 初始化在之前运行的 OnActivateAsync
-    // 使用 _流字段的其他方法可以被引用。
+    // 在 OnActivateAsync 中初始化；它在
+    // 其他使用 _stream 字段的方法可被调用之前运行。
     private IAsyncStream<ChatMsg> _stream = default!;
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)

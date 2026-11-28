@@ -5,7 +5,7 @@ using Orleans.Runtime;
 
 namespace Orleans.Durable.Messaging.Tests.Support;
 
-/// <summary>将演员的工作钟分开,而不提前推进背景调度器的时钟或定时器。</summary>
+/// <summary>将 Actor 的作业时钟彼此分离，而不推进后台调度器的时钟或定时器。</summary>
 internal sealed class IndependentJobClockFixture : FaultInjectionClusterFixture
 {
     public IndependentJobClockFixture() => Clocks = new(JobClock);

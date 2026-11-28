@@ -4,13 +4,13 @@ using Orleans.Storage;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// 返回所有输入的恒定散列值。 这用于诱发散列碰撞
-    /// 一种情况涉及一个以上的情况。
+    /// 对所有输入返回相同的哈希值。用于在涉及多个用例的场景中
+    /// 人为引发哈希冲突。
     /// </summary>
     public class ConstantHasher : IHasher
     {
         /// <summary>
-        /// 每个输入都将被仓列到的散列值 。
+        /// 所有输入都会被哈希为此值。
         /// </summary>
         public const int ConstantHash = 1;
 

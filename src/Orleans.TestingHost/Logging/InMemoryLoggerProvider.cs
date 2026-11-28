@@ -10,38 +10,38 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.TestingHost.Logging;
 
 /// <summary>
-/// 所有 <see cref="InMemoryLogger"/> 例数共享的模拟日志缓冲 。
-/// 可用于模拟测试,因为需要采集和检查日志。
+/// 所有 <see cref="InMemoryLogger"/> 实例共享的内存日志缓冲区。
+/// 适用于需要捕获并检查日志的模拟测试。
 /// </summary>
 /// <remarks>
-/// 创建一个新的记忆中日志缓冲。
+/// 创建新的内存日志缓冲区。
 /// </remarks>
 public sealed class InMemoryLogBuffer
 {
     private readonly ConcurrentQueue<LogEntry> _entries = new();
 
     /// <summary>
-    /// 获取当前缓冲的所有日志条目 。
+    /// 获取当前缓冲的全部日志条目。
     /// </summary>
     public IReadOnlyList<LogEntry> AllEntries => [.. _entries];
 
     /// <summary>
-    /// 获取通过最低日志水平过滤的日志条目 。
+    /// 获取按最低日志级别筛选后的日志条目。
     /// </summary>
     public IEnumerable<LogEntry> GetEntries(LogLevel minimumLevel) => _entries.Where(e => e.LogLevel >= minimumLevel);
 
     /// <summary>
-    /// 如果在指定的日志级别上或以上存在任何条目,则返回真实 。
+    /// 如果存在达到或超过指定日志级别的任何条目，则返回 true。
     /// </summary>
     public bool HasEntriesAtOrAbove(LogLevel level) => _entries.Any(e => e.LogLevel >= level);
 
     /// <summary>
-    /// 如果存在任何警告或错误条目, 返回 True 。
+    /// 如果存在任何警告或错误条目，则返回 true。
     /// </summary>
     public bool HasWarningsOrErrors => HasEntriesAtOrAbove(LogLevel.Warning);
 
     /// <summary>
-    /// 记录缓冲线的一条消息。
+    /// 将消息记录到缓冲区。
     /// </summary>
     public void Log<TState>(
         LogLevel logLevel,
@@ -67,7 +67,7 @@ public sealed class InMemoryLogBuffer
     }
 
     /// <summary>
-    /// 清除所有缓冲日志条目。
+    /// 清除全部缓冲的日志条目。
     /// </summary>
     public void Clear() => _entries.Clear();
 
@@ -77,27 +77,27 @@ public sealed class InMemoryLogBuffer
     public string FormatAllEntries() => FormatEntries(_entries);
 
     /// <summary>
-    /// 将指定最低级别上或以上的日志条目格式化为字符串。
+    /// 将达到或超过指定最低级别的日志条目格式化为字符串。
     /// </summary>
     public string FormatEntries(LogLevel minimumLevel) => FormatEntries(GetEntries(minimumLevel));
 
     /// <summary>
-    /// 在所有格式化日志条目中以字节获取大约大小。
+    /// 获取全部格式化日志条目的近似字节大小。
     /// </summary>
     public long ApproximateSizeBytes
     {
         get
         {
-            // 基于条目的估算大小 - 这是近似, 但避免
-            // 格式化所有条目以检查大小
+            // 根据条目估算大小。这是近似值，但可以避免
+            // 仅为检查大小而格式化所有条目。
             long size = 0;
             foreach (var entry in _entries)
             {
-                // 估计:时间戳(30)+级别(10)+类别(50)+信息+例外
-                size += 90 + (entry.Message?.Length ?? 0) * 2; // UTF-16 字符
+                // 估算值：时间戳(30) + 级别(10) + 类别(50) + 消息 + 异常。
+                size += 90 + (entry.Message?.Length ?? 0) * 2; // UTF-16 字符。
                 if (entry.Exception != null)
                 {
-                    size += 500; // 例外案文粗略估计
+                    size += 500; // 异常文本的粗略估算值。
                 }
             }
 
@@ -106,7 +106,7 @@ public sealed class InMemoryLogBuffer
     }
 
     /// <summary>
-    /// 格式化实际条目并返回格式化字符串及其字节大小。
+    /// 格式化实际条目，同时返回格式化后的字符串及其字节大小。
     /// </summary>
     public (string Content, long SizeBytes) FormatAllEntriesWithSize()
     {
@@ -116,7 +116,7 @@ public sealed class InMemoryLogBuffer
     }
 
     /// <summary>
-    /// 将条目格式化在指定级别或以上,并返回格式化的字符串及其字节大小。
+    /// 格式化达到或超过指定级别的条目，同时返回格式化后的字符串及其字节大小。
     /// </summary>
     public (string Content, long SizeBytes) FormatEntriesWithSize(LogLevel minimumLevel)
     {
@@ -126,9 +126,9 @@ public sealed class InMemoryLogBuffer
     }
 
     /// <summary>
-    /// 声称没有记录任何警告或错误,如果有例外的话,则予以排除。
+    /// 断言没有记录警告或错误；如果存在，则抛出异常。
     /// </summary>
-    /// <exception cref="InvalidOperationException">当日志中存在警告或错误时丢弃。</exception>
+    /// <exception cref="InvalidOperationException">日志中存在警告或错误时抛出。</exception>
     public void AssertNoWarningsOrErrors()
     {
         var issues = GetEntries(LogLevel.Warning).ToList();
@@ -235,8 +235,8 @@ public sealed class InMemoryLogBuffer
 }
 
 /// <summary>
-/// 缓冲记录信息在模拟中进行记录以便日后检索的 Aloger 提供商。
-/// 可用于试验,因为试验结果必须附带附日志。
+/// 将日志消息缓冲在内存中以便稍后检索的日志提供程序。
+/// 适用于需要有条件地将日志附加到测试结果的测试。
 /// </summary>
 public sealed class InMemoryLoggerProvider : ILoggerProvider
 {
@@ -244,7 +244,7 @@ public sealed class InMemoryLoggerProvider : ILoggerProvider
     private bool _disposed;
 
     /// <summary>
-    /// 创建新的有其自身缓冲的模拟登录器供应商。
+    /// 创建拥有自己缓冲区的新内存日志提供程序。
     /// </summary>
     public InMemoryLoggerProvider()
     {
@@ -253,10 +253,10 @@ public sealed class InMemoryLoggerProvider : ILoggerProvider
     }
 
     /// <summary>
-    /// 创建一个新的同名记录器供应商,该服务器可以写入共享缓冲。
-    /// 多个提供者可以共享来自多个主机的日志集存的相同缓冲 。
+    /// 创建写入共享缓冲区的新内存日志提供程序。
+    /// 多个提供程序可以共享同一缓冲区，以聚合多个宿主的日志。
     /// </summary>
-    /// <param name="sharedBuffer">用于写入日志的共享缓冲。</param>
+    /// <param name="sharedBuffer">日志写入的共享缓冲区。</param>
     public InMemoryLoggerProvider(InMemoryLogBuffer sharedBuffer)
     {
         ArgumentNullException.ThrowIfNull(sharedBuffer);
@@ -265,7 +265,7 @@ public sealed class InMemoryLoggerProvider : ILoggerProvider
     }
 
     /// <summary>
-    /// 获取包含所有登录条目的日志缓冲。
+    /// 获取包含全部已记录条目的日志缓冲区。
     /// </summary>
     public InMemoryLogBuffer Buffer { get; }
 
@@ -278,7 +278,7 @@ public sealed class InMemoryLoggerProvider : ILoggerProvider
         if (_disposed) return;
         _disposed = true;
 
-        // 只有拥有缓冲带才能清除
+        // 仅在拥有缓冲区时清空它。
         if (_ownsBuffer)
         {
             Buffer.Clear();
@@ -287,7 +287,7 @@ public sealed class InMemoryLoggerProvider : ILoggerProvider
 }
 
 /// <summary>
-/// 正在通过 InMemoryLogBuffer向一个模拟缓冲器写字的 Alogger 。
+/// 通过 InMemoryLogBuffer 写入内存缓冲区的日志记录器。
 /// </summary>
 public sealed class InMemoryLogger(string categoryName, InMemoryLogBuffer buffer) : ILogger
 {
@@ -326,7 +326,7 @@ public sealed class InMemoryLogger(string categoryName, InMemoryLogBuffer buffer
 }
 
 /// <summary>
-/// 代表与其相关元数据单项日志条目。
+/// 表示单个日志条目及其关联元数据。
 /// </summary>
 public readonly record struct LogEntry(
     DateTimeOffset Timestamp,

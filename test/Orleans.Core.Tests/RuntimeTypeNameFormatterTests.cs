@@ -5,9 +5,9 @@ using Xunit;
 namespace NonSilo.Tests
 {
     /// <summary>
-    /// 测试 Orleans RuntimeTypeNameFormatter,负责格式化和分割 .NET 字词名名称
-    /// 以可恢复和在不同环境中保持一致的方式,对于 Orleans的序列化至关重要
-    /// silos 与客户进行沟通时,应使用系统类型和型号分辨率。
+    /// Orleans RuntimeTypeNameFormatter 的测试，该组件负责设置及解析 .NET 类型名称的格式，
+    /// 使其能在不同环境中恢复且保持一致。这对 Orleans 的序列化
+    /// 系统以及 Silo 与客户端通信时的类型解析至关重要。
     /// </summary>
     [TestCategory("BVT")]
     [TestSuite("BVT")]
@@ -51,7 +51,7 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// 测试,以 <see cref="RuntimeTypeNameFormatter"/> 格式格式排列的各种字符串格式可以用 <see cref="Type.GetType(string)"/>装入。
+        /// 测试由 <see cref="RuntimeTypeNameFormatter"/> 格式化的各种字符串能否通过 <see cref="Type.GetType(string)"/> 加载。
         /// </summary>
         [Fact]
         public void FormattedTypeNamesAreRecoverable()
@@ -70,7 +70,7 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// 测试 <see cref="RuntimeTypeNameParser"/> 所分析的各种字符串在输入由 <see cref="RuntimeTypeNameFormatter"/>生成时被重新配置,与输入相同。
+        /// 测试由 <see cref="RuntimeTypeNameParser"/> 解析的各种字符串能否重新格式化为与输入完全相同的字符串（前提是输入由 <see cref="RuntimeTypeNameFormatter"/> 生成）。
         /// </summary>
         [Fact]
         public void ParsedTypeNamesAreIdenticalToFormattedNames()
@@ -91,8 +91,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// 测试解析无效类型名称会产生带有位置指标的描述性错误信息。
-        /// 这有助于开发者在 Orleans 序列化中调试类型解答问题。
+        /// 测试解析无效类型名称时是否生成包含位置指示符的描述性错误消息。
+        /// 这有助于开发人员调试 Orleans 序列化中的类型解析问题。
         /// </summary>
         [Fact]
         public void InvalidNamesThrowDescriptiveErrorMessage()
@@ -101,7 +101,7 @@ namespace NonSilo.Tests
             var exception = Assert.Throws<InvalidOperationException>(() => RuntimeTypeNameParser.Parse(input));
             _output.WriteLine(exception.Message);
             Assert.Contains(input, exception.Message);
-            Assert.Contains("^", exception.Message); // 位置指标
+            Assert.Contains("^", exception.Message); // 位置指示符
         }
 
         public class Inner<T>

@@ -5,61 +5,61 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Runtime.Diagnostics;
 
 /// <summary>
-/// 提供 Orleans 激活再平衡事件诊断听者及事件有效载荷类型。
+/// 提供 Orleans 激活实例再均衡器事件的诊断监听器及事件数据类型。
 /// </summary>
 /// <remarks>
-/// 这些类型是公开的,但可能在不同版本之间发生变化。
-/// 模拟测试和诊断等先进假设情景。
+/// 这些类型是公共类型，但可能在次版本之间发生变化。它们适用于
+/// 模拟测试和诊断等高级场景。
 /// </remarks>
 public static class ActivationRebalancerEvents
 {
     /// <summary>
-    /// 激活再平衡事件诊断倾听器的名称 。
+    /// 激活实例再均衡器事件的诊断监听器名称。
     /// </summary>
     public const string ListenerName = "Orleans.ActivationRebalancer";
 
     private static readonly DiagnosticListener Listener = new(ListenerName);
 
     /// <summary>
-    /// 获得所有激活的重新平衡事件的可观测序列。
+    /// 获取所有激活实例再均衡器事件的可观察序列。
     /// </summary>
     public static IObservable<RebalancerEvent> AllEvents { get; } = new Observable();
 
     /// <summary>
-    /// 用于激活再平衡诊断事件的基准等级。
+    /// 激活实例再均衡器诊断事件使用的基类。
     /// </summary>
     public abstract class RebalancerEvent(SiloAddress siloAddress)
     {
         /// <summary>
-        /// 重新平衡主机所在的 silo 地址 。
+        /// 承载再均衡器的 Silo 的地址。
         /// </summary>
         public readonly SiloAddress SiloAddress = siloAddress;
     }
 
     /// <summary>
-    /// 当重新平衡周期开始时, 事件有效载荷。
+    /// 再均衡轮次开始时的事件数据。
     /// </summary>
-    /// <param name="siloAddress">大会主席的地址 silo 正在重新平衡。</param>
-    /// <param name="cycleNumber">本届会议的周期编号。</param>
+    /// <param name="siloAddress">承载再均衡器的 Silo 地址。</param>
+    /// <param name="cycleNumber">当前会话中的轮次编号。</param>
     public sealed class CycleStart(
         SiloAddress siloAddress,
         int cycleNumber) : RebalancerEvent(siloAddress)
     {
         /// <summary>
-        /// 本届会议的周期编号。
+        /// 当前会话中的轮次编号。
         /// </summary>
         public readonly int CycleNumber = cycleNumber;
     }
 
     /// <summary>
-    /// 事件有效载荷 当重新平衡周期完成。
+    /// 再均衡轮次完成时的事件数据。
     /// </summary>
-    /// <param name="siloAddress">大会主席的地址 silo 正在重新平衡。</param>
-    /// <param name="cycleNumber">本届会议的周期编号。</param>
-    /// <param name="activationsMigrated">周期期间迁移的激活数量。</param>
-    /// <param name="entropyDeviation">周期后的星环偏差。</param>
-    /// <param name="elapsed">完成周期所需时间。</param>
-    /// <param name="sessionCompleted">这一周期是否导致届会结束。</param>
+    /// <param name="siloAddress">承载再均衡器的 Silo 地址。</param>
+    /// <param name="cycleNumber">当前会话中的轮次编号。</param>
+    /// <param name="activationsMigrated">该轮次迁移的激活实例数量。</param>
+    /// <param name="entropyDeviation">该轮次结束后的熵偏差。</param>
+    /// <param name="elapsed">完成该轮次所用的时间。</param>
+    /// <param name="sessionCompleted">该轮次是否使会话完成。</param>
     public sealed class CycleStop(
         SiloAddress siloAddress,
         int cycleNumber,
@@ -69,57 +69,57 @@ public static class ActivationRebalancerEvents
         bool sessionCompleted) : RebalancerEvent(siloAddress)
     {
         /// <summary>
-        /// 本届会议的周期编号。
+        /// 当前会话中的轮次编号。
         /// </summary>
         public readonly int CycleNumber = cycleNumber;
 
         /// <summary>
-        /// 周期内迁移的激活次数。
+        /// 该轮次迁移的激活实例数量。
         /// </summary>
         public readonly int ActivationsMigrated = activationsMigrated;
 
         /// <summary>
-        /// 循环后的环流变化
+        /// 该轮次结束后的熵偏差。
         /// </summary>
         public readonly double EntropyDeviation = entropyDeviation;
 
         /// <summary>
-        /// 完成周期所需时间。
+        /// 完成该轮次所用的时间。
         /// </summary>
         public readonly TimeSpan Elapsed = elapsed;
 
         /// <summary>
-        /// 表明这一周期是否导致届会结束。
+        /// 指示该轮次是否使会话完成。
         /// </summary>
         public readonly bool SessionCompleted = sessionCompleted;
     }
 
     /// <summary>
-    /// 当重新平衡会话开始时的事件有效载荷。
+    /// 再均衡会话开始时的事件数据。
     /// </summary>
-    /// <param name="siloAddress">大会主席的地址 silo 正在重新平衡。</param>
+    /// <param name="siloAddress">承载再均衡器的 Silo 地址。</param>
     public sealed class SessionStart(SiloAddress siloAddress) : RebalancerEvent(siloAddress)
     {
     }
 
     /// <summary>
-    /// 当再平衡会话停止时, 事件有效载荷。
+    /// 再均衡会话停止时的事件数据。
     /// </summary>
-    /// <param name="siloAddress">大会主席的地址 silo 正在重新平衡。</param>
-    /// <param name="reason">届会停止的原因。</param>
-    /// <param name="totalCycles">届会完成的周期总数。</param>
+    /// <param name="siloAddress">承载再均衡器的 Silo 地址。</param>
+    /// <param name="reason">会话停止的原因。</param>
+    /// <param name="totalCycles">会话中已完成的轮次总数。</param>
     public sealed class SessionStop(
         SiloAddress siloAddress,
         string reason,
         int totalCycles) : RebalancerEvent(siloAddress)
     {
         /// <summary>
-        /// 之所以会停止了
+        /// 会话停止的原因。
         /// </summary>
         public readonly string Reason = reason;
 
         /// <summary>
-        /// 届会完成的周期总数。
+        /// 会话中已完成的轮次总数。
         /// </summary>
         public readonly int TotalCycles = totalCycles;
     }

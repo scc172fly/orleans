@@ -201,7 +201,7 @@ internal sealed class CatalogInstruments(OrleansInstruments instruments)
             return result;
         }
 
-        // 分层登记,即使同时的第一次启动 也共享一个字符串
+        // 将注册操作串行化，使并发的首次激活也共享同一个字符串。
         lock (_grainTypes)
         {
             if (!_grainTypes.TryGetValue(grainType, out result))

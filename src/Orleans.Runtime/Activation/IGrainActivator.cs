@@ -3,23 +3,23 @@ using System.Threading.Tasks;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 创建 grain 以给定 grain 上下文。
+    /// 为给定的 Grain 上下文创建 Grain 实例。
     /// </summary>
     public interface IGrainActivator
     {
         /// <summary>
-        /// 返回新 grain 提供的情况 grain 上下文。
+        /// 为提供的 Grain 上下文返回新的 Grain 实例。
         /// </summary>
-        /// <param name="context"> grain 上下文。</param>
-        /// <returns> grain 实例。</returns>
+        /// <param name="context">Grain 上下文。</param>
+        /// <returns>Grain 实例。</returns>
         object CreateInstance(IGrainContext context);
 
         /// <summary>
-        /// 将规定 grain 与提供的情况有关的案例 grain 上下文。
+        /// 释放与提供的 Grain 上下文关联的指定 Grain 实例。
         /// </summary>
-        /// <param name="context"> grain 上下文。</param>
-        /// <param name="instance"> grain 实例。</param>
-        /// <returns>A <see cref="ValueTask"/> 代表所完成的工作。</returns>
+        /// <param name="context">Grain 上下文。</param>
+        /// <param name="instance">Grain 实例。</param>
+        /// <returns>表示所执行工作的 <see cref="ValueTask"/>。</returns>
         ValueTask DisposeInstance(IGrainContext context, object instance);
     }
 }

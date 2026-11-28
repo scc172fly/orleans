@@ -7,18 +7,18 @@ using Orleans.Runtime.Configuration;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 配置的扩展方法 <see cref="EndpointOptions"/>。
+    /// 用于配置 <see cref="EndpointOptions"/> 的扩展方法。
     /// </summary>
     public static class EndpointOptionsExtensions
     {
         /// <summary>
-        /// 配置 silo的端点 。
+        /// 配置 Silo 的终结点。
         /// </summary>
-        /// <param name="builder">要配置的主机构建器 。</param>
-        /// <param name="advertisedIP">成员表格中公布的IPIP地址</param>
-        /// <param name="siloPort">此处端口 silo 用途的用途 silo- 来...silo 通信。</param>
-        /// <param name="gatewayPort">此处端口 silo 客户端到-silo 指定 0 来禁用网关功能 。</param>
-        /// <param name="listenOnAnyHostAddress">设置为真实性, 以收听主机的所有 IP 地址, 而不是仅收听 advertiseIP。</param>
+        /// <param name="builder">要配置的宿主构建器。</param>
+        /// <param name="advertisedIP">要在成员资格表中公布的 IP 地址。</param>
+        /// <param name="siloPort">此 Silo 用于 Silo 间通信的端口。</param>
+        /// <param name="gatewayPort">此 Silo 用于客户端到 Silo（网关）通信的端口。指定 0 可禁用网关功能。</param>
+        /// <param name="listenOnAnyHostAddress">设为 true 时，监听主机的所有 IP 地址，而不仅仅是 advertiseIP。</param>
         /// <returns></returns>
         public static ISiloBuilder ConfigureEndpoints(
             this ISiloBuilder builder,
@@ -43,14 +43,14 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 silo的端点 。
+        /// 配置 Silo 的终结点。
         /// </summary>
-        /// <param name="builder">要配置的主机构建器 。</param>
-        /// <param name="hostname">主机名称 silo 正在运行。</param>
-        /// <param name="siloPort">此处端口 silo 用途的用途 silo- 来...silo 通信。</param>
-        /// <param name="gatewayPort">此处端口 silo 客户端到-silo 指定 0 来禁用网关功能 。</param>
-        /// <param name="addressFamily">地址是要收听的家属。默认 IPv4 地址是家庭。</param>
-        /// <param name="listenOnAnyHostAddress">设置为真实性, 以收听主机的所有 IP 地址, 而不是仅收听 advertiseIP。</param>
+        /// <param name="builder">要配置的宿主构建器。</param>
+        /// <param name="hostname">运行 Silo 的主机名称。</param>
+        /// <param name="siloPort">此 Silo 用于 Silo 间通信的端口。</param>
+        /// <param name="gatewayPort">此 Silo 用于客户端到 Silo（网关）通信的端口。指定 0 可禁用网关功能。</param>
+        /// <param name="addressFamily">要监听的地址族。默认为 IPv4 地址族。</param>
+        /// <param name="listenOnAnyHostAddress">设为 true 时，监听主机的所有 IP 地址，而不仅仅是 advertiseIP。</param>
         /// <returns></returns>
         public static ISiloBuilder ConfigureEndpoints(
             this ISiloBuilder builder,
@@ -71,13 +71,13 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 silo的端点 。
+        /// 配置 Silo 的终结点。
         /// </summary>
-        /// <param name="builder">要配置的主机构建器 。</param>
-        /// <param name="siloPort">此处端口 silo 用途的用途 silo- 来...silo 通信。</param>
-        /// <param name="gatewayPort">此处端口 silo 客户端到-silo 指定 0 来禁用网关功能 。</param>
-        /// <param name="addressFamily">地址是要收听的家属。默认 IPv4 地址是家庭。</param>
-        /// <param name="listenOnAnyHostAddress">设置为真实性, 以收听主机的所有 IP 地址, 而不是仅收听 advertiseIP。</param>
+        /// <param name="builder">要配置的宿主构建器。</param>
+        /// <param name="siloPort">此 Silo 用于 Silo 间通信的端口。</param>
+        /// <param name="gatewayPort">此 Silo 用于客户端到 Silo（网关）通信的端口。指定 0 可禁用网关功能。</param>
+        /// <param name="addressFamily">要监听的地址族。默认为 IPv4 地址族。</param>
+        /// <param name="listenOnAnyHostAddress">设为 true 时，监听主机的所有 IP 地址，而不仅仅是 advertiseIP。</param>
         /// <returns></returns>
         public static ISiloBuilder ConfigureEndpoints(
             this ISiloBuilder builder,

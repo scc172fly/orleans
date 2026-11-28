@@ -10,17 +10,17 @@ using static VerifyXunit.Verifier;
 namespace Orleans.Durable.Journaling.Json.Tests;
 
 /// <summary>
-/// 将新的 <c>Json*CommandCodec</c>生产的JSONL贴在磁盘上的钢丝格式钉上快照试验
-/// <see cref="Orleans.Durable.Journaling.Json"/>之下的执行。
+/// 快照测试，用于固定新的 <c>Json*CommandCodec</c>
+/// 实现（位于 <see cref="Orleans.Durable.Journaling.Json"/> 下）生成的 JSONL 磁盘存储格式。
 /// </summary>
 /// <remarks>
-/// JSONL 是新的默认日记格式( 本分支翻转注册) 。 每次测试 :
-/// 1. 通过实际编码将单项操作写入批次 <see cref="JsonLinesJournalFormat"/> ,
-/// 2. 对照记录状态,通过格式阅读器按格式进行生成的字节的圆形回转以证明
-///    字节仍然分析和应用,以及
-/// 3. 通过 Verify.Xunit简略介绍制作的UTF-8文本
-///    (文件 <c>snapshots/&lt;TestName&gt;.verified.jsonl</c>。该片子是弹道
-///    人类可读视图:任何线格式的漂移都无法作为 JSON-线性文本 diff 。
+/// JSONL 是新的默认日志格式（此分支更改了注册）。每项测试：
+/// 1. 通过真实的编解码器将单个操作写入 <see cref="JsonLinesJournalFormat"/> 批次，
+/// 2. 使用格式读取器读回生成的字节，并将其应用到会记录操作的状态对象，以证明
+/// 这些字节仍可以解析并应用，并且
+/// 3. 通过 Verify.Xunit 为生成的 UTF-8 文本创建快照
+/// （文件 <c>snapshots/&lt;TestName&gt;.verified.jsonl</c>）。此快照是规范的
+/// 人类可读视图：任何格式变化都将以 JSON 行文本差异的形式使测试失败。
 /// </remarks>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -41,7 +41,7 @@ public sealed class JsonCodecSnapshotTests
         13,
         new JournalingSnapshotRecordTag("alt-tag", 17));
 
-    // 字典 -- - - - - - - -
+    // --- 字典 ----------------------------------------------------------------------------
 
     [Fact]
     public Task Dictionary_Set_Primitives() =>
@@ -122,7 +122,7 @@ public sealed class JsonCodecSnapshotTests
             () => state.Commands);
     }
 
-    // - 单... - - - - - - - - - - - - - - - - -
+    // --- 列表 ----------------------------------------------------------------------------------
 
     [Fact]
     public Task List_Add_Primitives() =>
@@ -229,7 +229,7 @@ public sealed class JsonCodecSnapshotTests
             () => state.Commands);
     }
 
-    // --- Queue ---------------------------------------------------------------------------------
+    // --- 队列 ---------------------------------------------------------------------------------
 
     [Fact]
     public Task Queue_Enqueue_Primitives() =>
@@ -310,7 +310,7 @@ public sealed class JsonCodecSnapshotTests
             () => state.Commands);
     }
 
-    // - 设定...
+    // --- 集合 -----------------------------------------------------------------------------------
 
     [Fact]
     public Task Set_Add_Primitives() =>
@@ -391,7 +391,7 @@ public sealed class JsonCodecSnapshotTests
             () => state.Commands);
     }
 
-    // 价值... ... - - - - - - - - -
+    // --- 值 ---------------------------------------------------------------------------------
 
     [Fact]
     public Task Value_Set_Primitives()
@@ -417,7 +417,7 @@ public sealed class JsonCodecSnapshotTests
             () => Assert.Equal(SampleRecord, state.Value));
     }
 
-    // 国家... .. - - - - -
+    // --- 状态 ---------------------------------------------------------------------------------
 
     [Fact]
     public Task State_Set_Primitives() =>
@@ -493,7 +493,7 @@ public sealed class JsonCodecSnapshotTests
             (codec, writer) => codec.WriteCanceled(writer),
             ["canceled"]);
 
-    // --- Log -----------------------------------------------------------------------------------
+    // --- 日志 -----------------------------------------------------------------------------------
 
     private static readonly LogDraftId SnapshotDraftId = new(Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"), 3);
 
@@ -545,14 +545,14 @@ public sealed class JsonCodecSnapshotTests
             (codec, writer) => codec.WriteSnapshot(0, 0, 0, isSealed: false, [], [], writer),
             ["snapshot:0:0:0:0"]);
 
-    // - 交叉... - - - - - - - - - - - - - - - - - - - - -
+    // --- 跨组件通用事项 -------------------------------------------------------------------------
 
     [Fact]
     public Task EmptyBatch()
     {
-        // 没有写入的操作“% 执行的缓冲” 是空 UTF-8 字符串。 JSONL 没有一次批次
-        // 直截了当地抓住意外的"总是会冒出"
-        // a JsonLinesJournalBufferWriter中管理局/标题”回归。
+        // 未写入任何操作 → 已提交缓冲区为空 UTF-8 字符串。JSONL 没有每批次的
+        // 头部，因此此处应不包含任何字节；明确固定此行为可以捕获意外的
+        // “总是输出 BOM 或头部”行为在 JsonLinesJournalBufferWriter 中引入的回归问题。
         var format = new JsonLinesJournalFormat();
         using var writer = format.CreateWriter();
         var bytes = SnapshotBytes(writer);
@@ -564,8 +564,8 @@ public sealed class JsonCodecSnapshotTests
     [Fact]
     public void Determinism_RepeatedWritesProduceIdenticalText()
     {
-        // Utf8JsonWriter是决定性的;这个烟雾测试警卫,针对任何未来的基础设施
-        // 将非确定性(e.g.时间戳补、ID插座)引入 JSONL 输出的更改。
+        // Utf8JsonWriter 具有确定性；此冒烟测试用于防止未来基础设施
+        // 变更（例如时间戳、ID 驻留）向 JSONL 输出引入非确定性。
         var first = WriteOnce();
         var second = WriteOnce();
         Assert.Equal(first, second);
@@ -580,11 +580,11 @@ public sealed class JsonCodecSnapshotTests
         }
     }
 
-    // 内幕... 内部...
+    // --- 内部机制 -----------------------------------------------------------------------------
 
     /// <summary>
-    /// 使用新的,从未被扔过例外 所以快照永远也不会依赖真正的堆叠追踪
-    /// 捕获的目标地点——这些地点因运行时间、建筑配置和源线号而异。
+    /// 使用一个新建且从未抛出的异常，以使快照不依赖实际堆栈跟踪或
+    /// 捕获的目标方法；这些内容随运行时、构建配置和源码行号而变化。
     /// </summary>
     private static InvalidOperationException MakeStableFault() => new("snapshot-faulted-message");
 
@@ -720,8 +720,8 @@ public sealed class JsonCodecSnapshotTests
     }
 
     /// <summary>
-    /// 以 <c>eol=lf</c> (见 <c>.gitattributes</c>) 键对 Git 进行抓图; 防止任何
-    /// 未来修改, 将 <c>\r\n</c> 引入编写输出中, 这将使快照
+    /// 快照以 <c>eol=lf</c> 提交到 Git（参见 <c>.gitattributes</c>）；防止未来
+    /// 变更在写入器输出中引入 <c>\r\n</c>，导致快照
     /// 依赖平台。
     /// </summary>
     private static void AssertNoCarriageReturns(string text) => Assert.DoesNotContain('\r', text);

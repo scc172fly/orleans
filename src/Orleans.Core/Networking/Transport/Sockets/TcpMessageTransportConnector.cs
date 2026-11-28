@@ -10,7 +10,7 @@ namespace Orleans.Connections.Transport.Sockets;
 
 internal sealed class TcpMessageTransportOptions
 {
-    // 如有需要,我们可以最终揭露这些。
+    // 如有需要，最终可以公开这些内容。
     internal LingerOption LingerOption { get; set; } = new LingerOption(true, 0);
     internal bool NoDelay { get; set; } = true;
     internal bool FastPath { get; set; } = true;
@@ -22,7 +22,7 @@ internal sealed class TcpMessageTransportOptions
 }
 
 /// <summary>
-/// 创建 TCP 连接的<see cref="MessageTransportConnector"/> 。
+/// 创建 TCP 连接的 <see cref="MessageTransportConnector"/>。
 /// </summary>
 internal sealed class TcpMessageTransportConnector : MessageTransportConnector
 {

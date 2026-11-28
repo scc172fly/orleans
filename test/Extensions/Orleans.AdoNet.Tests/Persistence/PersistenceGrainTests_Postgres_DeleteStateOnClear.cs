@@ -10,8 +10,8 @@ using Xunit;
 namespace Tester.AdoNet.Persistence
 {
     /// <summary>
-    /// 试验 Orleans grain 使用状态持久性功能 PostgreSQL
-    /// 启用了删除状态为清空选项。
+    /// 使用 PostgreSQL 并启用下述选项，测试 Orleans Grain 状态持久化功能：
+    /// 清除状态时删除状态记录（delete-state-on-clear）。
     /// </summary>
     [TestCategory("Persistence"), TestCategory("PostgreSql")]
     [TestSuite("Functional")]

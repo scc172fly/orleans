@@ -11,16 +11,16 @@ namespace Orleans.Durable.Tasks.Runtime;
 internal sealed class DurableTaskInvocationMessage
 {
     /// <summary>
-    /// 获得被援引的通讯所要处理的任务:发送者随子子的线条识别器,即
-    /// 发件人范围下的接收器储存,或接收人的根任务,用于独立祈祷或订阅。
+    /// 获取调用所寻址的任务：对于附接调用，为发送方附接子任务的传输标识符，由
+    /// 接收方将其存储在发送方的作用域中；对于分离调用或订阅，则为接收方的根任务。
     /// </summary>
-    /// <remarks>见 <see cref="CallerScope"/>。</remarks>
+    /// <remarks>参见 <see cref="CallerScope"/>。</remarks>
     [Id(0)]
     public TaskId TaskId { get; init; }
 
     /// <summary>
-    /// 获得接收器排期或 <see langword="null"/> 订阅时的订书请求,该订书带有
-    /// 代替<see cref="SubscriberId"/> 。
+    /// 获取接收方要调度的请求；对于订阅，则为 <see langword="null"/>，此时改为携带
+    /// <see cref="SubscriberId"/>。
     /// </summary>
     [Id(1)]
     public IDurableTaskRequest? Request { get; init; }
@@ -29,19 +29,19 @@ internal sealed class DurableTaskInvocationMessage
     public GrainId Sender { get; init; }
 
     /// <summary>
-    /// 获取是否引用启动一个分离的任务:独立根任务, 接收器保留这样的根任务
-    /// 客户端已排定的根, 没有呼叫器 。
+    /// 获取该调用是否启动分离任务：独立的根任务，接收方以与客户端调度的
+    /// 根任务相同的方式保留它，且该任务没有调用方。
     /// </summary>
     [Id(3)]
     public bool Detached { get; init; }
 
     /// <summary>
-    /// 获取发送者任务中的线条识别码,该信号是接收器任务的结果
-    /// <see cref="TaskId"/>:独立援引开始的任务或现有任务,用于订阅
-    /// 普通 grain 方法设置没有用户的单独指定职业。
+    /// 获取发送方用于订阅接收方任务结果的任务的传输标识符，接收方任务由
+    /// <see cref="TaskId"/> 指定：对于分离调用，是该调用启动的任务；对于不携带请求的订阅，是现有
+    /// 任务。普通 Grain 方法投递的不含订阅者的分离调用没有此标识符。
     /// </summary>
     /// <remarks>
-    /// 订户既未声称任务,也未确认其呼叫者的身份:接收人将它添加到任务完成时
+    /// 订阅者既不声明任务的调用方身份，也不验证其调用方；接收方将其添加到任务的完成通知
     /// 目的地。
     /// </remarks>
     [Id(4)]
@@ -52,7 +52,7 @@ internal sealed class DurableTaskInvocationMessage
 [Alias("Orleans.Durable.Tasks.Runtime.DurableTaskCompletionMessage")]
 internal sealed class DurableTaskCompletionMessage
 {
-    /// <summary>获取发送者的任务,其终端结果是电文随带。</summary>
+    /// <summary>获取消息所携带终态结果对应的发送方任务。</summary>
     [Id(0)]
     public TaskId TaskId { get; init; }
 
@@ -63,8 +63,8 @@ internal sealed class DurableTaskCompletionMessage
     public GrainId Sender { get; init; }
 
     /// <summary>
-    /// 获取接收器任务中接收结果完成的任务的线标识符,当它与
-    /// <see cref="TaskId"/>:被接收人的儿童援引发送人的任务或签署该任务。
+    /// 获取由该结果完成的接收方任务的传输标识符，前提是它不同于
+    /// <see cref="TaskId"/>；该任务为调用发送方任务的接收方子任务，或者订阅了发送方任务的任务。
     /// </summary>
     [Id(3)]
     public TaskId? SubscriberId { get; init; }
@@ -75,8 +75,8 @@ internal sealed class DurableTaskCompletionMessage
 internal sealed class DurableTaskCancellationMessage
 {
     /// <summary>
-    /// 获取信件所地址的任务:发送者随子子的线条识别码,以便取消
-    /// 或中止,或 <see cref="SubscriberId"/> 订阅的接收器的任务,以接受未订阅。
+    /// 获取消息所寻址的任务：对于取消或中止，为发送方附接子任务的传输标识符；对于取消
+    /// 订阅，为接收方的、<see cref="SubscriberId"/> 所订阅的任务。
     /// </summary>
     [Id(0)]
     public TaskId TaskId { get; init; }
@@ -85,28 +85,28 @@ internal sealed class DurableTaskCancellationMessage
     public GrainId Sender { get; init; }
 
     /// <summary>
-    /// 获取任务行政中止的原因,或合作取消的原因 <see langword="null"/>
-    /// 请求。
+    /// 获取任务被管理性中止的原因，或者 <see langword="null"/>（对于协作式取消
+    /// 请求）。
     /// </summary>
     [Id(2)]
     public string? AbortReason { get; init; }
 
     /// <summary>
-    /// 获得合作取消请求随附的理由,或无从随附 <see langword="null"/> 。
+    /// 获取协作式取消请求携带的原因；若未携带原因，则为 <see langword="null"/>。
     /// </summary>
     [Id(3)]
     public string? CancellationReason { get; init; }
 
     /// <summary>
-    /// 获取发送者任务中订阅 <see cref="TaskId"/> 信件的截止时间的电线识别码,或
-    /// 取消或中止任务<see langword="null"/> 。结束订阅不会取消任务 。
+    /// 获取发送方任务的传输标识符，本消息结束该任务对 <see cref="TaskId"/> 的订阅；对于
+    /// 任务的取消或中止，则为 <see langword="null"/>。结束订阅不会取消任务。
     /// </summary>
     [Id(4)]
     public TaskId? SubscriberId { get; init; }
 }
 
 /// <summary>
-/// 重新恢复耐久的延迟。 拥有 grain 的人将它发送到自己手中, 预定在延迟到期时进行 。
+/// 恢复持久化延迟。所属 Grain 将此消息发给自身，并将其计划在延迟到期时投递。
 /// </summary>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Tasks.Runtime.DurableTaskResumeMessage")]
@@ -121,13 +121,13 @@ internal sealed class DurableTaskResumeMessage
     [Id(2)]
     public GrainId Sender { get; init; }
 
-    /// <summary>获得延迟处决树的化身, 即计划恢复的运行。</summary>
+    /// <summary>获取该延迟所属执行树的运行世代标识，即调度恢复操作的那次运行。</summary>
     [Id(3)]
     public Guid Incarnation { get; init; }
 }
 
 /// <summary>
-/// 给援引的任务提供信号的价值,该任务记录每个信号名称的第一个值。
+/// 将信号值投递给被调用的任务，该任务记录每个信号名称的第一个值。
 /// </summary>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Tasks.Runtime.DurableTaskSignalMessage")]
@@ -139,7 +139,7 @@ internal sealed class DurableTaskSignalMessage
     [Id(1)]
     public required string Name { get; init; }
 
-    /// <summary>获得维持信号值的成功响应。</summary>
+    /// <summary>获取保存信号值的成功响应。</summary>
     [Id(2)]
     public required DurableTaskResponse Value { get; init; }
 
@@ -148,10 +148,10 @@ internal sealed class DurableTaskSignalMessage
 }
 
 /// <summary>
-/// 耐久 grain RPC电文主体及其有效载荷合同。
+/// 持久化 Grain RPC 的消息主题及其有效载荷契约。
 /// </summary>
 /// <remarks>
-/// 信封上没有发件人的身份,因此每个机构都携带发件人 grain。
+/// Messaging 的消息信封不携带发送方标识，因此每个消息正文都携带发送方 Grain。
 /// </remarks>
 internal sealed class DurableTaskMessageTypes(Serializer serializer)
 {

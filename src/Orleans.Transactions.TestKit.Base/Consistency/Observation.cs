@@ -4,32 +4,32 @@ using System.Collections.Generic;
 namespace Orleans.Transactions.TestKit.Consistency
 {
     /// <summary>
-    /// 描述对 grain 状态版本的读数表示交易观察。
+    /// 描述一次事务读取所观测到的 Grain 状态版本。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public struct Observation : IEquatable<Observation>
     {
         /// <summary>
-        /// 获取或设置被观察的 grain的逻辑编号。
+        /// 获取或设置被观测 Grain 的逻辑编号。
         /// </summary>
         [Id(0)]
         public int Grain { get; set; }
 
         /// <summary>
-        /// 获取或设置观察状态版本序列编号。
+        /// 获取或设置观测到的状态版本序列号。
         /// </summary>
         [Id(1)]
         public int SeqNo { get; set; }
 
         /// <summary>
-        /// 获取或设置写入观察版本的交易标识符。
+        /// 获取或设置写入观测版本的事务标识符。
         /// </summary>
         [Id(2)]
         public string WriterTx { get; set; }
 
         /// <summary>
-        /// 获取或设置进行观察的交易的识别符号。
+        /// 获取或设置执行此次观测的事务标识符。
         /// </summary>
         [Id(3)]
         public string ExecutingTx { get; set; }
@@ -48,12 +48,12 @@ namespace Orleans.Transactions.TestKit.Consistency
         public override readonly int GetHashCode() => HashCode.Combine(Grain, SeqNo, WriterTx, ExecutingTx);
 
         /// <summary>
-        /// 确定两个观察是否相等。
+        /// 确定两条观测记录是否相等。
         /// </summary>
         public static bool operator ==(Observation left, Observation right) => left.Equals(right);
 
         /// <summary>
-        /// 确定两种意见是否不平等。
+        /// 确定两条观测记录是否不相等。
         /// </summary>
         public static bool operator !=(Observation left, Observation right) => !left.Equals(right);
     }

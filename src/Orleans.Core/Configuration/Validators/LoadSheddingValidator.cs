@@ -4,13 +4,13 @@ using Orleans.Runtime;
 namespace Orleans.Configuration.Validators;
 
 /// <summary>
-/// 校验 <see cref="LoadSheddingOptions"/> 配置。
+/// 验证 <see cref="LoadSheddingOptions"/> 的配置。
 /// </summary>
 /// <remarks>
 /// 初始化 <see cref="LoadSheddingValidator"/> 类的新实例。
 /// </remarks>
 /// <param name="loadSheddingOptions">
-/// 负荷叠叠选项 。
+/// 负载削减选项。
 /// </param>
 internal class LoadSheddingValidator(IOptions<LoadSheddingOptions> loadSheddingOptions) : IConfigurationValidator
 {
@@ -19,7 +19,7 @@ internal class LoadSheddingValidator(IOptions<LoadSheddingOptions> loadSheddingO
     /// <inheritdoc />
     public void ValidateConfiguration()
     {
-        // 当装入 Shedding 禁用时, 不要验证配置 。
+        // 禁用负载削减时，不验证其配置。
         if (!_loadSheddingOptions.LoadSheddingEnabled)
         {
             return;

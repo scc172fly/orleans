@@ -29,7 +29,7 @@ public sealed class JsonJournalMessagingTests(JsonJournalMessagingTests.Fixture 
         var receiver = Cluster.Client.GetGrain<IJsonMessagingGrain>(Guid.NewGuid());
         var messageId = MessageId.Create("json", Guid.NewGuid().ToString("N"));
 
-        // 发送发送后失效,所以从 JSON 日记中回收的发件箱发送送货。
+        // 发送方提交发送后停用，因此投递从 JSON 日志恢复的发件箱执行。
         await sender.SendAndDeactivateAsync(receiver.GetGrainId(), messageId, 42);
         Assert.Equal(new[] { 42 }, await Probe.WaitAsync(receiver.GetGrainId(), 1, Token));
         Assert.True(Cluster.TryGetGrainContext(receiver.GetGrainId(), out var receiverContext));
@@ -81,7 +81,7 @@ public sealed class JsonJournalMessagingTests(JsonJournalMessagingTests.Fixture 
         await receiver.DeactivateAsync();
         await receiverContext.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), Token);
 
-        // 再发送重播 JSON 日记;待决命令等同要求回收的 DeliverAt。
+        // 重新投递会重放 JSON 日志；挂起命令的等价性判断需要恢复后的 DeliverAt。
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await extension.DeliverAsync(scheduled, Token));
         var conflicting = type.Create(messageId, receiver.GetGrainId(), 7, deliverAt.AddSeconds(1)).ToInboxMessage(scheduled.SentAt);
         await Assert.ThrowsAsync<InvalidOperationException>(() => extension.DeliverAsync(conflicting, Token).AsTask());
@@ -102,7 +102,7 @@ public sealed class JsonJournalMessagingTests(JsonJournalMessagingTests.Fixture 
         var immediateId = MessageId.Create("json", "self", Guid.NewGuid().ToString("N"));
         var deliverAt = new DateTimeOffset(DateTime.UtcNow.AddDays(1).Ticks, TimeSpan.Zero);
 
-        // 每个发送单位在 grain自己的收件箱中承诺接受;发件箱永远不持有信件。
+        // 每次发送都在 Grain 自己的收件箱中提交接受记录；发件箱从不持有该消息。
         await grain.SendAsync(grain.GetGrainId(), scheduledId, 7, deliverAt);
         await grain.SendAsync(grain.GetGrainId(), immediateId, 8);
         Assert.Equal(0, await grain.GetOutboxCountAsync());
@@ -112,7 +112,7 @@ public sealed class JsonJournalMessagingTests(JsonJournalMessagingTests.Fixture 
         await grain.DeactivateAsync();
         await context.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), Token);
 
-        // 下一次激活从 JSON 日记本上收回待发的预定信件和完成记录。
+        // 下一个激活实例从 JSON 日志恢复挂起的已调度消息和完成记录。
         Assert.Equal(0, await grain.GetOutboxCountAsync());
         Assert.True(Cluster.TryGetGrainContext(grain.GetGrainId(), out var recoveredContext));
         Assert.NotSame(context, recoveredContext);

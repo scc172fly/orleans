@@ -16,10 +16,10 @@ using static Orleans.Internal.StandardExtensions;
 namespace Orleans.Messaging
 {
     /// <summary>
-    /// GatewayManager 类持有已知网关清单,并保留“死”网关清单。
+    /// GatewayManager 类持有已知网关列表，同时维护“失效”网关列表。
     ///
-    /// 已知列表可以来自两个位子之一:完整列表可以在客户配置对象中出现,或
-    /// 配置对象中可包含一个 IGatewayListProvider 代表。如果两者都出现,该代表优先。
+    /// 已知网关列表有两种来源：完整列表可能出现在客户端配置对象中，或者
+    /// 配置对象可能包含 IGatewayListProvider 委托。如果两者都存在，则委托优先。
     /// </summary>
     internal partial class GatewayManager : IDisposable
     {
@@ -49,7 +49,7 @@ namespace Orleans.Messaging
             ConnectionManager connectionManager,
             [FromKeyedServices(TimeProviderNames.Messaging)] TimeProvider timeProvider)
         {
-            // 刷新后可以观察源处理完后关闭的情况。
+            // 刷新延续操作可能在取消令牌源已释放后观察到关闭状态。
             this.shutdownToken = this.shutdown.Token;
             this.gatewayOptions = gatewayOptions.Value;
             this.logger = loggerFactory.CreateLogger<GatewayManager>();
@@ -72,7 +72,7 @@ namespace Orleans.Messaging
             var knownGateways = await this.gatewayListProvider.GetGatewaysAsync(cancellationToken);
             if (knownGateways == null || knownGateways.Count == 0)
             {
-                // 如果客户端启动速度快于 silos,这种情况就可能发生。
+                // 如果客户端比 Silo 更快启动，就可能出现这种情况。
                 var providerName = this.gatewayListProvider.GetType().FullName;
                 LogNoGatewayDuringInitialization(this.logger, providerName);
                 var message = $"Could not find any gateway in '{providerName}'. Orleans client cannot initialize until at least one gateway becomes available.";
@@ -119,7 +119,7 @@ namespace Orleans.Messaging
                 knownDead[gateway] = DateTime.UtcNow;
                 var copy = new List<SiloAddress>(cachedLiveGateways);
                 copy.Remove(gateway);
-                // 将引用替换为已引用, 不要变换 cachedLiveGateways, 这样我们就可以在没有锁的情况下访问 cachedLiveGateways 。
+                // 交换引用而不修改 cachedLiveGateways，使我们能够不持锁访问 cachedLiveGateways。
                 cachedLiveGateways = copy;
                 cachedLiveGatewaysSet = new HashSet<SiloAddress>(cachedLiveGateways);
             }
@@ -132,7 +132,7 @@ namespace Orleans.Messaging
                 knownMasked[gateway] = DateTime.UtcNow;
                 var copy = new List<SiloAddress>(cachedLiveGateways);
                 copy.Remove(gateway);
-                // 将引用替换为已引用, 不要变换 cachedLiveGateways, 这样我们就可以在没有锁的情况下访问 cachedLiveGateways 。
+                // 交换引用而不修改 cachedLiveGateways，使我们能够不持锁访问 cachedLiveGateways。
                 cachedLiveGateways = copy;
                 cachedLiveGatewaysSet = new HashSet<SiloAddress>(cachedLiveGateways);
             }
@@ -159,13 +159,13 @@ namespace Orleans.Messaging
         }
 
         /// <summary>
-        /// 选择用于新桶的通道。
+        /// 选择供新桶使用的网关。
         ///
-        /// 请注意,如果给代表名单提供人,每次调用该方法时都援引该代表。
-        /// 此方法进行缓存, 以避免敲敲最终数据源 。
+        /// 注意：如果提供了列表提供程序委托，则每次调用此方法都会调用该委托。
+        /// 此方法执行缓存，以避免频繁访问最终的数据源。
         ///
-        /// 执行此操作进行简单的圆轮Robin选择。 它假设供应商提供的网关列表
-        /// 每次都按同一顺序排列。
+        /// 此实现采用简单的轮询选择。它假定提供程序返回的网关列表
+        /// 每次都按相同顺序排列。
         /// </summary>
         /// <returns></returns>
         public SiloAddress? GetLiveGateway()
@@ -176,20 +176,20 @@ namespace Orleans.Messaging
             {
                 lock (lockable)
                 {
-                    // 绕环环通过已知的网关 并取下一个直播的, 从我们最后离开的地方开始
+                    // 从上次停止的位置开始，轮询已知网关并选择下一个有效网关。
                     roundRobinCounter = (roundRobinCounter + 1) % count;
                     return live[roundRobinCounter];
                 }
             }
-            // 如果我们通过,所有已知的入口 都假定死亡
+            // 如果执行到此处，则假定所有已知网关均已失效。
             return null;
         }
 
 
         public List<SiloAddress> GetLiveGateways()
         {
-            // 永远不拿上锁, 不操作便快速返回 cachedLiveGateways 列表 。
-            // 仅在网关空时才开始自动刷新。
+            // 从不获取锁，直接快速返回 cachedLiveGateways 列表，不执行其他操作。
+            // 仅当列表为空时，才异步启动网关刷新。
             if (cachedLiveGateways.Count == 0)
             {
                 ExpediteUpdateLiveGatewaysSnapshot();
@@ -219,13 +219,13 @@ namespace Orleans.Messaging
 
         internal void ExpediteUpdateLiveGatewaysSnapshot()
         {
-            // 如果已经快速更新电话, 不要再打电话, 直到上一个电话完成 。
-            // 我们不想发出太多的 网关刷新电话。
+            // 如果已有一次加急刷新调用正在进行，则在前一次完成前不要再次调用。
+            // 我们不希望发出过多网关刷新调用。
             if (gatewayListProvider == null || gatewayRefreshCallInitiated) return;
 
-            // 启动网关列表时会同步刷新。 不管是否选中, 刷新计时器都会一直继续 。
-            // 我们不想用同步的更新电话堵住客户
-            // 客户端的电话会因“找不到网关”而失败,
+            // 异步启动网关列表刷新。无论如何，刷新定时器仍会继续触发。
+            // 我们不希望同步刷新调用阻塞客户端。
+            // 客户端调用将因“No Gateways found”失败，但我们会尝试尽快刷新列表。
             gatewayRefreshCallInitiated = true;
             _ = Task.Run(async () =>
             {
@@ -264,7 +264,7 @@ namespace Orleans.Messaging
                     return;
                 }
 
-                // listProvider.GetGateways() 不锁定。
+                // listProvider.GetGateways() 不在锁内执行。
                 shutdownToken.ThrowIfCancellationRequested();
                 var allGateways = await gatewayListProvider.GetGatewaysAsync(shutdownToken);
                 var refreshedGateways = allGateways.Select(gw => gw.ToGatewayAddress()!).ToList();
@@ -273,7 +273,7 @@ namespace Orleans.Messaging
             }
             catch (OperationCanceledException) when (shutdownToken.IsCancellationRequested)
             {
-                // 网关供应商拥有自己的搜索功能;关闭释放了经理的清新等待。
+                // 网关提供程序拥有其查找操作；关闭时解除此管理器对刷新操作的等待。
             }
             catch (Exception exc)
             {
@@ -281,17 +281,17 @@ namespace Orleans.Messaging
             }
         }
 
-        // 函数从网关刷新计时器中自动命名。
+        // 此函数由网关刷新定时器异步调用。
         private async Task UpdateLiveGatewaysSnapshot(IEnumerable<SiloAddress> refreshedGateways, TimeSpan maxStaleness)
         {
             List<SiloAddress> connectionsToKeepAlive;
             List<SiloAddress> knownGatewaysSnapshotSource;
             List<SiloAddress> liveGatewaysSnapshotSource;
 
-            // 这是一个短锁, 保护访问 knownDead、 knownMasked 和 cachedLiveGateways的通道。
+            // 此锁的持有时间很短，用于保护对 knownDead、knownMasked 和 cachedLiveGateways 的访问。
             lock (lockable)
             {
-                // 现在拿什么 listProvider 并排除了那些我们认为已经死亡的人
+                // 现在获取 listProvider 提供的列表，并排除我们认为已失效的网关。
                 var live = new List<SiloAddress>();
                 var now = DateTime.UtcNow;
 
@@ -300,10 +300,10 @@ namespace Orleans.Messaging
                 {
                     var address = trial.Generation == 0 ? trial : SiloAddress.New(trial.Endpoint, 0);
 
-                    // 如果记录了一个节点,我们视它因插接错误而死亡, 结点即为死
-                    // 记录它,diedAt)不久之前(少于 maxStaleness )))前,
-                    // 后者将涵盖当网关提供者退回一个尚未反映最近实际死亡的网关过时名单时的情况。
-                    // 如果超过 maxStaleness ——我们假设 maxStaleness 是网关供应商新鲜度的上限。
+                    // 如果因套接字错误将某节点记录为失效，且
+                    // 记录时间（diedAt）距今尚未达到 maxStaleness，则将该节点视为失效。
+                    // 后一个条件用于处理网关提供程序返回过时列表的情况，该列表尚未反映实际刚失效的网关。
+                    // 如果已超过 maxStaleness，则假设 maxStaleness 是网关提供程序数据陈旧程度的上限。
                     var isDead = false;
                     if (knownDead.TryGetValue(address, out var diedAt))
                     {
@@ -313,7 +313,7 @@ namespace Orleans.Messaging
                         }
                         else
                         {
-                            // 删除删除的条目 。
+                            // 移除陈旧条目。
                             knownDead.Remove(address);
                         }
                     }
@@ -325,7 +325,7 @@ namespace Orleans.Messaging
                         }
                         else
                         {
-                            // 删除删除的条目 。
+                            // 移除陈旧条目。
                             knownMasked.Remove(address);
                         }
                     }
@@ -343,7 +343,7 @@ namespace Orleans.Messaging
                     knownDead.Clear();
                 }
 
-                // 以一个原子操作中交换 cachedLiveGateways 指针
+                // 在一个原子操作中交换 cachedLiveGateways 引用。
                 cachedLiveGateways = live;
                 cachedLiveGatewaysSet = new HashSet<SiloAddress>(live);
                 knownGatewaysSnapshotSource = knownGateways;
@@ -353,9 +353,9 @@ namespace Orleans.Messaging
                 lastRefreshTime = now;
                 LogRefreshedLiveGatewayList(logger, knownGateways.Count, new(knownGateways), cachedLiveGateways.Count, new(cachedLiveGateways), prevRefresh);
 
-                // 与已知的死线连接很近 但保持"假面"连接
-                // 客户端不会向“ 假装” 连接发送任何新请求, 但可能仍然
-                // 收到的答复
+                // 关闭已知失效的连接，但保留“已屏蔽”的连接。
+                // 客户端不会向“已屏蔽”的连接发送任何新请求，但仍可能
+                // 接收响应。
                 connectionsToKeepAlive = new List<SiloAddress>(live);
                 connectionsToKeepAlive.AddRange(knownMasked.Select(e => e.Key));
             }

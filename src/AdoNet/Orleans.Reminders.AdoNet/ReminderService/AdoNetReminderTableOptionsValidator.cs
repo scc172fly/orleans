@@ -5,7 +5,7 @@ using Orleans.Runtime.ReminderService;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// 校验 <see cref="AdoNetReminderTableOptions"/> 配置。
+    /// 验证 <see cref="AdoNetReminderTableOptions"/> 配置。
     /// </summary>
     public class AdoNetReminderTableOptionsValidator : IConfigurationValidator
     {
@@ -14,7 +14,7 @@ namespace Orleans.Configuration
         /// <summary>
         /// 初始化 <see cref="AdoNetReminderTableOptionsValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="options">提醒表选项进行验证。</param>
+        /// <param name="options">要验证的提醒器表选项。</param>
         public AdoNetReminderTableOptionsValidator(IOptions<AdoNetReminderTableOptions> options)
         {
             this.options = options.Value;

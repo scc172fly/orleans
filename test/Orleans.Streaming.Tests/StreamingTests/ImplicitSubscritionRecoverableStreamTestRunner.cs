@@ -63,7 +63,7 @@ namespace Tester.StreamingTests
             try
             {
                 await generateFn(streamNamespace, streamCount, eventsInStream, cancellationToken);
-                // 最终应该跳过错误事件, 所以事件数应该是一个( 错误事件) 而不是流中的事件数 。
+                // 最终应跳过出错的事件，因此事件计数应比流中事件总数少一个（出错的事件）。
                 await TestingUtils.WaitUntilAsync(
                     (lastTry, token) => this.CheckCounters(streamNamespace, streamCount, eventsInStream - 1, lastTry, token),
                     TimeSpan.FromSeconds(90),
@@ -98,7 +98,7 @@ namespace Tester.StreamingTests
             var report = await reporter.GetReport(streamProviderName, streamNamespace, cancellationToken);
             if (assertIsTrue)
             {
-                // 每个队列一串
+                // 每个队列对应一个流。
                 Assert.Equal(streamCount, report.Count);
                 foreach (int eventsPerStream in report.Values)
                 {

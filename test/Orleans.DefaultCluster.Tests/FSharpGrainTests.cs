@@ -7,9 +7,9 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// 试验 Orleans" F#类型和 grains.
-    /// 证明 Orleans 能够正确地将F#结构序列/消除,如记录、选择和受歧视的工会,
-    /// 确保 .NET 生态系统内适当的跨语言支持。
+    /// 测试 Orleans 与 F# 类型及 Grain 的互操作性。
+    /// 验证 Orleans 能否正确序列化及反序列化 F# 构造，例如记录、option 和可辨识联合，
+    /// 确保 .NET 生态系统内具有正确的跨语言支持。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -29,8 +29,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试原始F#型基本通用 grain 功能。
-        /// 验证通用 grains 在C# 调用时能够处理简单类型参数。
+        /// 测试使用基本 F# 类型时的泛型 Grain 基础功能。
+        /// 验证从 C# 调用时，泛型 Grain 能正确处理简单类型参数。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Generics"), TestCategory("FSharp")]
         public async Task FSharpGrains_Ping()
@@ -39,8 +39,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// F#记录类型基本测试序列化
-        /// 验证 Orleans 能够适当地对含有原始值的F#记录进行序列/消除其子空间。
+        /// 测试基本 F# 记录类型的序列化。
+        /// 验证 Orleans 能正确序列化及反序列化包含基本类型值的 F# 记录。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Generics"), TestCategory("FSharp"), TestCategory("Serialization")]
         public async Task FSharpGrains_Ping_Record_ofInt()
@@ -49,9 +49,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// F# 测试记录序列化,没有 Orleans 属性。
-        /// 此测试证明 Orleans有能力处理F#记录,即使这些记录缺乏
-        /// 直线的可连序和不可变属性,验证无属性序列化。
+        /// 测试不带 Orleans 特性的 F# 记录序列化。
+        /// 此测试展示 Orleans 即使在 F# 记录没有
+        /// 显式 Serializable 及 Immutable 特性时也能处理它们，验证无特性序列化。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Generics"), TestCategory("FSharp"), TestCategory("Serialization")]
         public async Task FSharpGrains_Ping_Record_ofIntOption_Some_WithNoAttributes()
@@ -60,9 +60,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// F# 测试记录带有明确 Orleans 属性的序列。
-        /// 验证含有选项类型(某些案件)的F#记录可以适当序列化
-        /// 当装饰时,具有可连串和不可改变的属性。
+        /// 测试带有显式 Orleans 特性的 F# 记录序列化。
+        /// 验证包含 option 类型（Some 分支）的 F# 记录，
+        /// 在使用 Serializable 及 Immutable 特性修饰时能够正确序列化。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Generics"), TestCategory("FSharp"), TestCategory("Serialization")]
         public async Task FSharpGrains_Ping_Record_ofIntOption_Some()
@@ -71,8 +71,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// F# 测试记录序列,无选项值。
-        /// 验证无一情况下F#选项类型的 Orleans处理情况,确保适当的无效处理。
+        /// 测试包含 None option 值的 F# 记录序列化。
+        /// 验证 Orleans 在 None 分支中对 F# option 类型的处理，确保正确处理 null。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Generics"), TestCategory("FSharp"), TestCategory("Serialization")]
         public async Task FSharpGrains_Ping_Record_ofIntOption_None()
@@ -81,9 +81,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试F#类通用记录类型序列化。
-        /// 验证 Orleans 能用类型参数处理 F# 记录,测试组合
-        /// F# 通用和 Orleans' 序列系统。
+        /// 测试泛型 F# 记录类型的序列化。
+        /// 验证 Orleans 能处理带类型参数的 F# 记录，测试
+        /// F# 泛型与 Orleans 序列化系统的组合。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Generics"), TestCategory("FSharp"), TestCategory("Serialization")]
         public async Task FSharpGrains_Ping_GenericRecord_ofInt()
@@ -93,9 +93,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试含有选项类型的通用F#记录序列(某些案例)。
-        /// 这一复杂情景验证了 Orleans处理嵌套F#型结构的能力:
-        /// 含有带有值的选项类型的通用记录。
+        /// 测试包含 option 类型（Some 分支）的泛型 F# 记录的序列化。
+        /// 此复杂场景验证 Orleans 处理嵌套 F# 类型构造的能力：
+        /// 包含有值的 option 类型的泛型记录。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Generics"), TestCategory("FSharp"), TestCategory("Serialization")]
         public async Task FSharpGrains_Ping_GenericRecord_ofIntOption_Some()
@@ -105,8 +105,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试含有选项类型的通用F#记录(无一例)的序列化。
-        /// 验证在通用F#记录结构内对无效值的适当处理。
+        /// 测试包含 option 类型（None 分支）的泛型 F# 记录的序列化。
+        /// 验证泛型 F# 记录结构中的 null 值处理正确。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Generics"), TestCategory("FSharp"), TestCategory("Serialization")]
         public async Task FSharpGrains_Ping_GenericRecord_ofIntOption_None()
@@ -116,8 +116,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// F#选项类型的直接序列化测试(某些案例)。
-        /// 校验 Orleans 是否在F# 含有值时能够处理其内置选项类型。
+        /// 测试 F# option 类型（Some 分支）的直接序列化。
+        /// 验证 Orleans 能够处理包含值的 F# 内置 option 类型。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Generics"), TestCategory("FSharp"), TestCategory("Serialization")]
         public async Task FSharpGrains_Ping_IntOption_Some()
@@ -127,8 +127,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// F#选项类型的直接序列化测试(无例)。
-        /// 验证 Orleans 正确处理 F# 无值, 表示没有数值。
+        /// 测试 F# option 类型（None 分支）的直接序列化。
+        /// 验证 Orleans 能正确处理表示无值的 F# None 值。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Generics"), TestCategory("FSharp"), TestCategory("Serialization")]
         public async Task FSharpGrains_Ping_IntOption_None()

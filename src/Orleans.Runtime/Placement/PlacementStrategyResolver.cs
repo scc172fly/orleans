@@ -13,7 +13,7 @@ using Orleans.GrainDirectory;
 namespace Orleans.Runtime.Placement
 {
     /// <summary>
-    /// 负责解决 <see cref="PlacementStrategy"/> a 的a <see cref="GrainType"/>.
+    /// 负责解析 <see cref="PlacementStrategy"/>，以匹配 <see cref="GrainType"/>。
     /// </summary>
     public sealed class PlacementStrategyResolver
     {
@@ -40,7 +40,7 @@ namespace Orleans.Runtime.Placement
         }
 
         /// <summary>
-        /// 获得与提供 grain 类型相关的安置策略。
+        /// 获取与指定 Grain 类型关联的放置策略。
         /// </summary>
         public PlacementStrategy GetPlacementStrategy(GrainType grainType) => _resolvedStrategies.GetOrAdd(grainType, _getStrategyInternal);
 

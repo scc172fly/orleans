@@ -20,7 +20,7 @@ internal static class DrainTestHelpers
     {
         try
         {
-            // 仅次于一个失败的后退:时间过长从来就没有证明命令正确。
+            // 仅作为失败兜底机制：经过的时间绝不能作为顺序正确的证据。
             await task.WaitAsync(TimeSpan.FromSeconds(60), cancellationToken);
         }
         catch (TimeoutException exception)
@@ -30,8 +30,8 @@ internal static class DrainTestHelpers
     }
 
     internal static Task AwaitCleanupAsync(Task task, string phase, Func<string> describeState) =>
-        // 故意清理比跑者时间长的操作员取消:供应商不得释放
-        // 被接纳用户的工作仍然拥有这些支持。 60秒的支持站依然适用。
+        // 清理操作故意在运行器取消后仍继续：当已获准执行的用户工作仍拥有提供程序时，
+        // 不得释放它们。60 秒的兜底时限仍然适用。
         AwaitPhaseAsync(task, phase, describeState, CancellationToken.None);
 }
 
@@ -39,7 +39,7 @@ internal sealed class DrainObserver : IGrainObserver
 {
 }
 
-// 内部助理类型和明确的接口实施不是测试类别。
+// 内部辅助类型和显式接口实现并不是测试类。
 internal class TestInvokable : IInvokable
 {
     private readonly string _result;
@@ -69,7 +69,7 @@ internal class TestInvokable : IInvokable
         }
         finally
         {
-            // 身体退出被故意不用作证明经理释放入场的证据。
+            // 故意不将调用主体执行结束作为管理器已释放准入资格的证据。
             Exited.TrySetResult();
         }
     }
@@ -138,7 +138,7 @@ internal sealed class CancellableTestInvokable : TestInvokable
 
     internal override void ReleaseForCleanup()
     {
-        // 最终,在成功治疗论或有记录的测试失败之后,才被调用。
+        // 仅在 finally 中调用，在成功路径的断言之后或记录测试失败之后。
         _cancellation.Cancel();
         base.ReleaseForCleanup();
     }
@@ -183,7 +183,7 @@ internal sealed class CallbackCompletionSource : IResponseCompletionSource
 
     void IResponseCompletionSource.Complete(Response value)
     {
-        // 立即复印观察结果;永远不要保留可能的综合反应。
+        // 立即复制观察结果；绝不要保留可能来自池的 Response。
         Exception = value.Exception;
         Result = Exception is null ? value.GetResult<object>() : null;
         Interlocked.Increment(ref _completionCount);

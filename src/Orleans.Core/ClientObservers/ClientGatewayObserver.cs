@@ -5,21 +5,21 @@ using Orleans.Runtime;
 namespace Orleans.ClientObservers
 {
     /// <summary>
-    /// 处理发送到相关客户端的网关通知。
+    /// 处理发送给已连接客户端的网关通知。
     /// </summary>
     internal interface IClientGatewayObserver : IGrainObserver
     {
         /// <summary>
-        /// 向客户端信号它应该停止发送信件到指定网关。
+        /// 通知客户端停止向指定网关发送消息。
         /// </summary>
-        /// <param name="gateway">网关</param>
-        /// <param name="cancellationToken">取消牌。</param>
+        /// <param name="gateway">网关。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
         [Alias("AFB768FD")]
         void StopSendingToGateway(SiloAddress gateway, CancellationToken cancellationToken = default);
     }
 
     /// <summary>
-    /// 处理网关通知活动。
+    /// 处理网关通知事件。
     /// </summary>
     internal sealed class ClientGatewayObserver : ClientObserver, IClientGatewayObserver
     {
@@ -31,7 +31,7 @@ namespace Orleans.ClientObservers
         /// 初始化 <see cref="ClientGatewayObserver"/> 类的新实例。
         /// </summary>
         /// <param name="gatewayManager">
-        /// 网关经理
+        /// 网关管理器。
         /// </param>
         public ClientGatewayObserver(GatewayManager gatewayManager)
         {

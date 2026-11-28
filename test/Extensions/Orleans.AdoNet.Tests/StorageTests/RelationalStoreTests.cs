@@ -7,7 +7,7 @@ using Xunit;
 namespace UnitTests.StorageTests.AdoNet
 {
     /// <summary>
-    /// 溪流测试的试验数据模型。
+    /// 流测试所用的数据模型。
     /// </summary>
     public class StreamingTest
     {
@@ -17,11 +17,11 @@ namespace UnitTests.StorageTests.AdoNet
     }
 
     /// <summary>
-    /// 关系储存测试的基础等级。
+    /// 关系型存储测试的基类。
     /// </summary>
     public abstract class RelationalStoreTestsBase
     {
-        //这一超时期限应明显低于 RelationalStorageForTesting.CancellationTestQuery中定义的限值。 
+        //此超时限制应明显小于 RelationalStorageForTesting.CancellationTestQuery 中定义的限制。
         protected readonly TimeSpan CancellationTestTimeoutLimit = TimeSpan.FromSeconds(5);
         protected readonly TimeSpan StreamCancellationTimeoutLimit = TimeSpan.FromSeconds(15);
         protected const int MiB = 1048576;
@@ -37,7 +37,7 @@ namespace UnitTests.StorageTests.AdoNet
         {
             Assert.SkipWhen(string.IsNullOrEmpty(sut.CurrentConnectionString), "Database was not initialized correctly");
 
-            //平行流进并蒸发三条二元溪流
+            //并行流式写入和读取三个二进制流。
             var streamChecks = new Task<bool>[countOfStreams];
             for (int i = 0; i < countOfStreams; ++i)
             {
@@ -58,7 +58,7 @@ namespace UnitTests.StorageTests.AdoNet
         protected static async Task InsertIntoDatabaseUsingStream(RelationalStorageForTesting sut, int streamId, byte[] dataToInsert, CancellationToken cancellationToken)
         {
             Assert.SkipWhen(string.IsNullOrEmpty(sut.CurrentConnectionString), "Database was not initialized correctly");
-            //dataToInsert 可以直接插入到此处,但不会流出。
+            //可以直接在此处插入 dataToInsert，但那样就不是流式传输了。
             using (var ms = new MemoryStream(dataToInsert))
             {
                 await sut.Storage.ExecuteAsync(sut.StreamTestInsert, command =>
@@ -68,10 +68,10 @@ namespace UnitTests.StorageTests.AdoNet
                     p1.Value = streamId;
                     command.Parameters.Add(p1);
 
-                    //MySQL 不支持流流流的进出和暂时支持流流
-                    //并不是定义的自定义流。对于想法,请参见 http://dev.mysql.com/doc/refman/5.7/en/blob.html
-                    //用于 blobs 和 http://rusanu.com/2010/12/28/download-and-upload-images-from-sql-server-with-asp-net-mvc/字符串操作的字符串操作
-                    //如何去定义一个。
+                    //MySQL 不支持流式输入，目前也
+                    //没有定义自定义流。有关实现思路，可参阅 http://dev.mysql.com/doc/refman/5.7/en/blob.html
+                    //中的 BLOB 字符串操作，以及 http://rusanu.com/2010/12/28/download-and-upload-images-from-sql-server-with-asp-net-mvc/
+                    //中关于如何定义此类流的内容。
                     var p2 = command.CreateParameter();
                     p2.ParameterName = "StreamData";
                     p2.Value = dataToInsert;
@@ -119,8 +119,8 @@ namespace UnitTests.StorageTests.AdoNet
                 tokenSource.CancelAfter(timeoutLimit);
                 try
                 {
-                    //在此,任务超时期限后增加一秒钟,以说明延误的原因。
-                    //延误主要发生在基本 ADO.NET 图书馆和数据库。
+                    //此处将任务超时限制增加一秒，以补偿延迟。
+                    //延迟主要来自底层 ADO.NET 库和数据库。
                     var task = sut.Storage.ReadAsync<int>(sut.CancellationTestQuery, tokenSource.Token);
                     if (!task.Wait(timeoutLimit.Add(TimeSpan.FromSeconds(2)), testCancellationToken))
                     {
@@ -131,15 +131,15 @@ namespace UnitTests.StorageTests.AdoNet
                 {
                     testCancellationToken.ThrowIfCancellationRequested();
 
-                    //由于行动被强行取消, 可能会有 DbException ...
-                    //除非这是对不支持取消的供应商的测试
-                    //由于硬同步的测试安排,例外被包嵌到 AggregrateException
-                    //等待实际取消检查后强制取消,并删除“自然超时”原因。
+                    //操作被强制取消时可能出现 DbException……
+                    //……除非被测提供程序不支持取消操作。
+                    //由于测试采用强制同步等待方式，异常被包装在 AggregateException 中，
+                    //以强制检查实际取消行为，并排除“自然超时”的影响。
                     var innerException = ex?.InnerException;
                     if (sut.Storage.SupportsCommandCancellation())
                     {
-                        //如果在数据库呼叫前已经取消操作,则使用 OperationCancelledException
-                        //在任何情况下,都必被抛下。
+                        //如果在调用数据库之前操作就已经取消，则无论如何都会抛出
+                        //OperationCanceledException。
                         Assert.True(innerException is DbException || innerException is OperationCanceledException, $"Unexpected exception: {ex}");
                     }
                     else

@@ -11,7 +11,7 @@ using Xunit;
 namespace UnitTests.CancellationTests;
 
 /// <summary>
-/// 观察员测试 CancellationToken 功能, 启用确认等待 。
+/// 测试启用确认等待时观察者的 CancellationToken 功能。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -26,7 +26,7 @@ public sealed class ObserverCancellationTokenTests_WaitForAcknowledgement(Observ
 }
 
 /// <summary>
-/// 观察员 CancellationToken 功能测试,确认等待识别障碍。
+/// 测试禁用确认等待时观察者的 CancellationToken 功能。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -41,7 +41,7 @@ public sealed class ObserverCancellationTokenTests_NoWaitForAcknowledgement(Obse
 }
 
 /// <summary>
-/// 观察员(当地物体)的传播和处理测试 CancellationToken 基准等级。
+/// 测试观察者（本地对象）的 CancellationToken 传播及处理的基类。
 /// </summary>
 public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTests.FixtureBase fixture)
 {
@@ -72,7 +72,7 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
     }
 
     /// <summary>
-    /// 测试正在运行的观察员操作可以通过 CancellationToken取消。
+    /// 测试是否可通过 CancellationToken 取消正在运行的观察者操作。
     /// </summary>
     [Theory, TestCategory("BVT"), TestCategory("Cancellation")]
     [InlineData(true)]
@@ -115,7 +115,7 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
     }
 
     /// <summary>
-    /// 测试在调用观察者时,预取消的牌子是否得到妥善处理。
+    /// 测试调用观察者时是否正确处理已预先取消的令牌。
     /// </summary>
     [Fact, TestCategory("BVT"), TestCategory("Cancellation")]
     public async Task PreCancelledTokenPassing()
@@ -128,7 +128,7 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
-        // 期待在牌标已被取消时被抛出 OperationCanceledException
+        // 令牌已取消，预期会抛出 OperationCanceledException
         Assert.Throws<OperationCanceledException>(() =>
             grain.NotifyLongWait(TimeSpan.FromSeconds(10), Guid.Empty, cts.Token).Ignore());
 
@@ -138,7 +138,7 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
     }
 
     /// <summary>
-    /// 测试通过一个不取消的 CancellationToken 不丢弃。
+    /// 测试传递未取消的 CancellationToken 不会抛出异常。
     /// </summary>
     [Fact, TestCategory("BVT"), TestCategory("Cancellation")]
     public async Task TokenPassingWithoutCancellation_NoExceptionShouldBeThrown()
@@ -164,7 +164,7 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
     }
 
     /// <summary>
-    /// 测试取消象征性回召在观察员正确执行的情况下执行。
+    /// 测试观察者的取消令牌回调是否在正确的执行上下文中运行。
     /// </summary>
     [Fact, TestCategory("BVT"), TestCategory("Cancellation")]
     public async Task CancellationTokenCallbacksExecutionContext()
@@ -198,14 +198,14 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
     }
 
     /// <summary>
-    /// 当多个观察员被签署并全部获得取消时,测试即被取消。
+    /// 测试多个观察者均已订阅且均接收到取消时的取消行为。
     /// </summary>
     [Theory, TestCategory("BVT"), TestCategory("Cancellation")]
     [InlineData(true)]
     [InlineData(false)]
     public async Task MultipleObserversCancellation(bool cancelImmediately)
     {
-        // 创建多个 grains , 每个都使用观察者
+        // 创建多个 Grain，每个 Grain 都有一个观察者
         using var cts = new CancellationTokenSource();
         var grains = new List<(IObserverWithCancellationGrain Grain, LongRunningObserver Observer, ILongRunningObserver Reference, Guid CallId)>();
         try
@@ -261,7 +261,7 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
     }
 
     /// <summary>
-    /// 测试观察员取消等候(排队)请求是否得到正确处理。
+    /// 测试是否正确处理取消观察者中正在等待（已排队）的请求。
     /// </summary>
     [Fact, TestCategory("BVT"), TestCategory("Cancellation")]
     public async Task CancelWaitingRequest()
@@ -271,26 +271,26 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
         var reference = fixture.GrainFactory.CreateObjectReference<ILongRunningObserver>(observer);
         await grain.Subscribe(reference);
 
-        // 启动一个长期请求, 将阻塞观察者
+        // 启动一个会阻塞观察者的长时间运行请求
         using var blockingCts = new CancellationTokenSource();
         var blockingCallId = Guid.NewGuid();
         var blockingTask = grain.NotifyLongWait(TimeSpan.FromSeconds(30), blockingCallId, blockingCts.Token);
 
-        // 等待屏蔽请求启动
+        // 等待阻塞请求开始运行
         await observer.WaitForCallToStart(blockingCallId);
 
-        // 启动将排队的另一项请求
+        // 启动另一个将被排队的请求
         using var queuedCts = new CancellationTokenSource();
         var queuedCallId = Guid.NewGuid();
         var queuedTask = grain.NotifyLongWait(TimeSpan.FromSeconds(10), queuedCallId, queuedCts.Token);
 
-        // 取消队列后排的请求
+        // 取消已排队的请求
         await queuedCts.CancelAsync();
 
-        // 队列任务应该丢弃 OperationCanceledException
+        // 已排队任务应抛出 OperationCanceledException
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => queuedTask);
 
-        // 取消清除阻屏请求
+        // 取消阻塞请求以进行清理
         await blockingCts.CancelAsync();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => blockingTask);
         await observer.WaitForCancellation(blockingCallId);
@@ -301,8 +301,8 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
     }
 
     /// <summary>
-    /// 测试运行中的中断端观察操作可以通过 CancellationToken取消。
-    /// 互接请求同时进行,不排队,也应可以撤销。
+    /// 测试是否可通过 CancellationToken 取消正在运行的可交错执行观察者操作。
+    /// 可交错执行请求无需排队即可并发运行，也应支持取消。
     /// </summary>
     [Theory, TestCategory("BVT"), TestCategory("Cancellation")]
     [InlineData(true)]
@@ -345,7 +345,7 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
     }
 
     /// <summary>
-    /// 测试多个同时连接的请求可以独立取消。
+    /// 测试多个并发运行的可交错执行请求能否各自独立取消。
     /// </summary>
     [Fact, TestCategory("BVT"), TestCategory("Cancellation")]
     public async Task MultipleInterleavingRequestsCancellation()
@@ -355,7 +355,7 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
         var reference = fixture.GrainFactory.CreateObjectReference<ILongRunningObserver>(observer);
         await grain.Subscribe(reference);
 
-        // 同时启动多个互连请求
+        // 并发启动多个可交错执行请求
         using var cts1 = new CancellationTokenSource();
         using var cts2 = new CancellationTokenSource();
         using var cts3 = new CancellationTokenSource();
@@ -368,18 +368,18 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
         var task2 = grain.NotifyInterleavingLongWait(TimeSpan.FromSeconds(10), callId2, cts2.Token);
         var task3 = grain.NotifyInterleavingLongWait(TimeSpan.FromSeconds(10), callId3, cts3.Token);
 
-        // 等待所有运行
+        // 等待所有操作都进入运行状态
         await Task.WhenAll(
             observer.WaitForCallToStart(callId1),
             observer.WaitForCallToStart(callId2),
             observer.WaitForCallToStart(callId3));
 
-        // 只取消第二个请求
+        // 仅取消第二个请求
         await cts2.CancelAsync();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task2);
         await observer.WaitForCancellation(callId2);
 
-        // 第一和第二个应该还在运行,取消
+        // 第一个和第三个请求应仍在运行，取消它们
         await cts1.CancelAsync();
         await cts3.CancelAsync();
 
@@ -395,7 +395,7 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
     }
 
     /// <summary>
-    /// 测试在正常请求同时运行时, 中断请求可以取消 。
+    /// 测试常规请求正在运行时能否取消可交错执行请求。
     /// </summary>
     [Fact, TestCategory("BVT"), TestCategory("Cancellation")]
     public async Task CancelInterleavingWhileRegularRequestRunning()
@@ -405,28 +405,28 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
         var reference = fixture.GrainFactory.CreateObjectReference<ILongRunningObserver>(observer);
         await grain.Subscribe(reference);
 
-        // 启动常规( 非inter-) 长期请求
+        // 启动常规（不可交错执行）的长时间运行请求
         using var regularCts = new CancellationTokenSource();
         var regularCallId = Guid.NewGuid();
         var regularTask = grain.NotifyLongWait(TimeSpan.FromSeconds(30), regularCallId, regularCts.Token);
 
-        // 等待正常请求开始
+        // 等待常规请求开始
         await observer.WaitForCallToStart(regularCallId);
 
-        // 启动一个连接请求( 此请求应同时运行)
+        // 启动可交错执行请求（应并发运行）
         using var interleavingCts = new CancellationTokenSource();
         var interleavingCallId = Guid.NewGuid();
         var interleavingTask = grain.NotifyInterleavingLongWait(TimeSpan.FromSeconds(10), interleavingCallId, interleavingCts.Token);
 
-        // 等待中断请求启动
+        // 等待可交错执行请求开始运行
         await observer.WaitForCallToStart(interleavingCallId);
 
-        // 取消间断请求
+        // 取消可交错执行请求
         await interleavingCts.CancelAsync();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => interleavingTask);
         await observer.WaitForCancellation(interleavingCallId);
 
-        // 清理清理 - 取消常规请求
+        // 清理：取消常规请求
         await regularCts.CancelAsync();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => regularTask);
         await observer.WaitForCancellation(regularCallId);
@@ -437,7 +437,7 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
     }
 
     /// <summary>
-    /// 客户方观察员执行,以测试注销的长期业务。
+    /// 用于测试可取消的长时间运行操作的客户端观察者实现。
     /// </summary>
     private sealed class LongRunningObserver : ILongRunningObserver
     {
@@ -501,7 +501,7 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
         }
 
         /// <summary>
-        /// 等待一个电话开始。
+        /// 等待调用开始。
         /// </summary>
         public Task WaitForCallToStart(Guid callId)
         {
@@ -510,7 +510,7 @@ public abstract class ObserverCancellationTokenTests(ObserverCancellationTokenTe
         }
 
         /// <summary>
-        /// 等待取消呼叫 。
+        /// 等待调用被取消。
         /// </summary>
         public Task WaitForCancellation(Guid callId)
         {

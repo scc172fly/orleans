@@ -5,31 +5,31 @@ using System.Threading.Tasks;
 namespace Orleans.Runtime.Placement
 {
     /// <summary>
-    /// 安置主任的接口。
+    /// 放置决策器的接口。
     /// </summary>
     public interface IPlacementDirector
     {
         /// <summary>
-        /// 获取用于存储位置提示的 <see cref="PlacementTarget.RequestContextData"/> 密钥,如果存在的话。
+        /// 获取用于存储放置提示（若存在）的 <see cref="PlacementTarget.RequestContextData"/> 键。
         /// </summary>
         public const string PlacementHintKey = nameof(PlacementHintKey);
 
         /// <summary>
-        /// 选择适当的 silo 来将指定目标锁定。
+        /// 选择合适的 Silo 来放置指定目标。
         /// </summary>
-        /// <param name="strategy">目标的安置策略</param>
-        /// <param name="target">所放置的 grain 以及触发该安置的请求的信息。</param>
-        /// <param name="context">职位安排背景。</param>
-        /// <returns>适当的 silo 将指定目标置于。</returns>
+        /// <param name="strategy">目标的放置策略。</param>
+        /// <param name="target">正在放置的 Grain，以及触发放置的请求的信息。</param>
+        /// <param name="context">放置上下文。</param>
+        /// <returns>适合放置指定目标的 Silo。</returns>
         Task<SiloAddress> OnAddActivation(
             PlacementStrategy strategy, PlacementTarget target, IPlacementContext context);
 
         /// <summary>
-        /// 如果有且有效,则从请求中获取定位提示。
+        /// 从提供的请求上下文数据中获取放置提示（如果存在且有效）。
         /// </summary>
-        /// <param name="requestContextData">请求的上下文数据。</param>
-        /// <param name="compatibleSilos">兼容的 silos.</param>
-        /// <returns>设置提示,如果是现有和有效,或 <see langword="null"/> ,否则。</returns>
+        /// <param name="requestContextData">请求上下文数据。</param>
+        /// <param name="compatibleSilos">兼容的 Silo。</param>
+        /// <returns>放置提示（如果存在且有效），否则为 <see langword="null"/>。</returns>
         public static SiloAddress? GetPlacementHint(Dictionary<string, object> requestContextData, SiloAddress[] compatibleSilos)
         {
             if (requestContextData is { Count: > 0 } data

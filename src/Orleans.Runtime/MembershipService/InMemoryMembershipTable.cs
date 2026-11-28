@@ -26,7 +26,7 @@ namespace Orleans.Runtime.MembershipService
         public MembershipTableData Read(SiloAddress key)
         {
             return siloTable.TryGetValue(key, out var data) ?
-                // 复印机保留其输入的无效状态。
+                // 复制器保留其输入的 null 状态。
                 new MembershipTableData(this.deepCopier.Copy(data)!, tableVersion)
                 : new MembershipTableData(tableVersion);
         }
@@ -34,7 +34,7 @@ namespace Orleans.Runtime.MembershipService
         public MembershipTableData ReadAll()
         {
             return new MembershipTableData(siloTable.Values.Select(tuple =>
-                // 复印机保留其输入的无效状态。
+                // 复制器保留其输入的 null 状态。
                 new Tuple<MembershipEntry, string>(this.deepCopier.Copy(tuple.Item1)!, tuple.Item2)).ToList(), tableVersion);
         }
 

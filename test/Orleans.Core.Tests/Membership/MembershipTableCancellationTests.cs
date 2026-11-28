@@ -248,7 +248,7 @@ public class MembershipTableCancellationTests
                 await table.CleanupDefunctSiloEntriesAsync(DateTimeOffset.UnixEpoch, cancellationToken);
                 break;
             case nameof(IMembershipTable.ReadRowAsync):
-#pragma warning disable CS0618 // Intentional compatibility dispatch to a custom legacy provider.
+#pragma warning disable CS0618 // 有意通过兼容机制分派至自定义旧版提供程序。
                 return await table.ReadRowAsync(provider.Entry.SiloAddress, cancellationToken);
 #pragma warning restore CS0618
             case nameof(IMembershipTable.ReadAllAsync):
@@ -316,7 +316,7 @@ public class MembershipTableCancellationTests
                 var aliases = options.CompoundTypeAliases.Add("inv").Add(typeof(GrainReference)).Add(typeof(IMembershipTable));
                 foreach (var operation in operations)
                 {
-                    // 在安装基线所有人之前,先清除当前化名所有人。
+                    // 安装基准别名所有者之前，清除当前别名所有者。
                     aliases.Add(operation.Id);
                     aliases.Add(operation.Id, operation.Legacy);
                     aliases.Add(operation.Current.Name[(operation.Current.Name.LastIndexOf('_') + 1)..]);
@@ -382,7 +382,7 @@ public class MembershipTableCancellationTests
         }
     }
 
-    // 用于这些保留类型的基准元数据排放别名。 分析仍然使用真实的 Orleans 解析器。
+    // 基准元数据为这些保留类型生成了别名。解析仍使用实际的 Orleans 解析器。
     private sealed class LegacyInvokerTypeFormatter(IReadOnlyDictionary<Type, string> aliases) : ITypeConverter
     {
         public bool TryFormat(Type type, out string formatted)

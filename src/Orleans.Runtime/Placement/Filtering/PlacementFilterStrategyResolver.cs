@@ -9,7 +9,7 @@ using Orleans.Placement;
 namespace Orleans.Runtime.Placement.Filtering;
 
 /// <summary>
-/// 负责解决 <see cref="PlacementFilterStrategy"/> a 的a <see cref="GrainType"/>.
+/// 负责解析 <see cref="PlacementFilterStrategy"/>，以匹配 <see cref="GrainType"/>。
 /// </summary>
 public sealed class PlacementFilterStrategyResolver
 {
@@ -31,7 +31,7 @@ public sealed class PlacementFilterStrategyResolver
     }
 
     /// <summary>
-    /// 获取与所提供 grain 类型相关的位置过滤策略。
+    /// 获取与指定 Grain 类型关联的放置筛选策略。
     /// </summary>
     public PlacementFilterStrategy[] GetPlacementFilterStrategies(GrainType grainType) => _resolvedFilters.GetOrAdd(grainType, _getFiltersInternal);
 
@@ -59,7 +59,7 @@ public sealed class PlacementFilterStrategyResolver
             }
 
             var orderedFilters = filterList.OrderBy(f => f.Order).ToArray();
-            // 选中此顺序为唯一
+            // 检查顺序是否唯一。
             if (orderedFilters.Select(f => f.Order).Distinct().Count() != orderedFilters.Length)
             {
                 throw new InvalidOperationException($"Placement filters for grain type {grainType} have duplicate order values. Order values must be specified if more than one filter is applied and must be unique.");

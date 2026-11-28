@@ -23,11 +23,11 @@ namespace Tester
 
             if (!usingLocalWAS)
             {
-                // 测试使用 Azure 云存储,不是本地模拟器。
+                // 测试使用 Azure 云存储，而非本地 WAS 模拟器。
                 return;
             }
 
-            //如果存储模拟器尚未启动且已存在, 则启动它(i.e. 已安装) 。
+            // 如果存储模拟器已安装但尚未启动，则启动它。
             if (!StorageEmulator.TryStart())
             {
                 string errorMsg = "Azure Storage Emulator could not be started.";
@@ -56,7 +56,7 @@ namespace Tester
         public static double CalibrateTimings()
         {
             const int NumLoops = 10000;
-            TimeSpan baseline = TimeSpan.FromTicks(80); // jthelin03D基准量
+            TimeSpan baseline = TimeSpan.FromTicks(80); // 基准来自 jthelin03D
             var sw = Stopwatch.StartNew();
             for (int i = 0; i < NumLoops; i++)
             {

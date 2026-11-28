@@ -63,7 +63,7 @@ namespace UnitTests.Grains
         {
             return Task<List<int>>.Factory.StartNew(() =>
             {
-                // 只需要对列表做很多修改
+                // 只需对列表进行大量修改
                 for (int i = 0; i < 10; i++)
                 {
                     if (m_list.Count < 1000)
@@ -84,7 +84,7 @@ namespace UnitTests.Grains
             return Task.CompletedTask;
         }
 
-        // 启动 1 号的长尾尾拖听呼叫 grain 拨打到第二 grain 
+        // 通过调用第二个 Grain，在第一个 Grain 上发起长时间运行的尾调用
         public async Task<int> TailCall_Caller(IConcurrentReentrantGrain another, bool doCW)
         {
             logger.LogInformation("TailCall_Caller");
@@ -97,8 +97,8 @@ namespace UnitTests.Grains
         }
 
 
-        // 键调到第一 grain 尾巴时(TailCall_Caller尚未解决。
-        // 如果尾部呼叫优化有效,该呼叫应进入( grain 不应被视为执行请求)。
+        // 在尾调用（TailCall_Caller）尚未完成时调用第一个 Grain。
+        // 若尾调用优化正常工作，则应允许该调用进入（应认为此 Grain 未在执行请求）。
         public Task<int> TailCall_Resolver(IConcurrentReentrantGrain another)
         {
             logger.LogInformation("TailCall_Resolver");

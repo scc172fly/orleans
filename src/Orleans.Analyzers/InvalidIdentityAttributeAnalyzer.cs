@@ -65,8 +65,8 @@ public sealed class InvalidIdentityAttributeAnalyzer : DiagnosticAnalyzer
                 }
             }, SyntaxKind.Attribute);
 
-            // 仅一个简单的属性名称可以是一个使用别名的属性名称。 符合条件的名称与最右侧命名的类型相连接
-            // 身份识别符, 无论有没有“ 属性” 后缀, 所以其他合格名称不能表示身份属性 。
+            // 仅简单特性名称可作为 using 别名。限定名称绑定到由最右侧
+            // 标识符（可带或不带 Attribute 后缀）命名的类型，因此其他限定名称不可能表示标识特性。
             bool CanNameIdentityAttribute(NameSyntax name)
             {
                 var identifier = name switch

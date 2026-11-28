@@ -9,12 +9,12 @@ using StreamingEvents = Orleans.Streaming.Diagnostics.StreamingEvents;
 namespace TestExtensions;
 
 /// <summary>
-/// 订阅 Orleans 流流诊断事件并提供
-/// 确定等待流事件的方法。
+/// 订阅 Orleans 流处理诊断事件的测试辅助工具，提供
+/// 确定性等待流处理事件的方法。
 /// </summary>
 /// <remarks>
-/// 用途 <c>System.Reactive</c> 操作操作符 <c>Replay()</c> ,这样, <c>WaitFor*</c> 方法
-/// 与过去和今后的事件相匹配,且无拖延、事件驱动的等待。
+/// 使用 <c>System.Reactive</c> 运算符及 <c>Replay()</c>，使 <c>WaitFor*</c> 方法
+/// 可匹配过去及未来的事件，采用零延迟的事件驱动等待。
 /// </remarks>
 public sealed class StreamingDiagnosticObserver : IDisposable
 {
@@ -22,7 +22,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     private readonly IDisposable _connection;
 
     /// <summary>
-    /// 创建观察者的新实例,并开始监听流诊断事件。
+    /// 创建观察器的新实例，并开始监听流处理诊断事件。
     /// </summary>
     public static StreamingDiagnosticObserver Create(TestCluster cluster) => new(DiagnosticObserverSiloScope.For(cluster));
 
@@ -41,7 +41,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待对提供商更改队列所有权 。
+    /// 等待指定提供程序的队列所有权发生变化。
     /// </summary>
     public async Task<StreamingEvents.BalancerChanged> WaitForBalancerChangedAsync(string? streamProvider, SiloAddress? siloAddress, CancellationToken cancellationToken)
     {
@@ -53,7 +53,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待一个拉动代理开始队列。
+    /// 等待指定队列的拉取代理启动。
     /// </summary>
     public async Task<StreamingEvents.PullingAgentStarted> WaitForPullingAgentStartedAsync(string? streamProvider, SiloAddress? siloAddress, QueueId? queueId, CancellationToken cancellationToken)
     {
@@ -65,7 +65,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待一个供应商开始的具体数量的拉动剂。
+    /// 等待指定提供程序出现指定次数的拉取代理启动。
     /// </summary>
     public async Task WaitForPullingAgentStartedCountAsync(string? streamProvider, int expectedCount, CancellationToken cancellationToken)
     {
@@ -79,7 +79,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待一个拉动代理停下来排队
+    /// 等待指定队列的拉取代理停止。
     /// </summary>
     public async Task<StreamingEvents.PullingAgentStopped> WaitForPullingAgentStoppedAsync(string? streamProvider, SiloAddress? siloAddress, QueueId? queueId, CancellationToken cancellationToken)
     {
@@ -91,7 +91,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待队列接收器初始化 。
+    /// 等待队列接收器初始化完成。
     /// </summary>
     public async Task<StreamingEvents.QueueReceiverInitialized> WaitForQueueReceiverInitializedAsync(string? streamProvider, SiloAddress? siloAddress, QueueId? queueId, CancellationToken cancellationToken)
     {
@@ -103,7 +103,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待启动一个提供者的具体数量队列接收器。
+    /// 等待指定提供程序的指定数量的队列接收器初始化完成。
     /// </summary>
     public async Task WaitForQueueReceiverInitializedCountAsync(string? streamProvider, int expectedCount, CancellationToken cancellationToken)
     {
@@ -117,7 +117,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待队列接收器初始化失败 。
+    /// 等待队列接收器初始化失败。
     /// </summary>
     public async Task<StreamingEvents.QueueReceiverInitializationFailed> WaitForQueueReceiverInitializationFailedAsync(string? streamProvider, SiloAddress? siloAddress, QueueId? queueId, CancellationToken cancellationToken)
     {
@@ -129,7 +129,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待一个拉动代理注册本地流条目
+    /// 等待拉取代理注册本地流条目。
     /// </summary>
     public async Task<StreamingEvents.PullingAgentStreamRegistered> WaitForPullingAgentStreamRegisteredAsync(StreamId streamId, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -141,7 +141,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待着一个拉动剂流注册失败。
+    /// 等待拉取代理的流注册失败。
     /// </summary>
     public async Task<StreamingEvents.PullingAgentStreamRegistrationFailed> WaitForPullingAgentStreamRegistrationFailedAsync(StreamId streamId, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -153,7 +153,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待信息传递到特定流上。
+    /// 等待消息通过指定流投递。
     /// </summary>
     public async Task<StreamingEvents.MessageDelivered> WaitForMessageDeliveredAsync(StreamId streamId, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -165,7 +165,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待在流上发送特定数量的信息。
+    /// 等待指定数量的消息通过某个流投递。
     /// </summary>
     public async Task WaitForDeliveryCountAsync(StreamId streamId, int expectedCount, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -179,11 +179,11 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待在一条流上交付的具体数量的具体个别物品。
+    /// 等待指定数量的单个项通过某个流投递。
     /// </summary>
     /// <remarks>
-    /// 与批量交付的 <see cref="WaitForDeliveryCountAsync"/> 不同,
-    /// 这种方法在批次中计数单个项目。
+    /// 与 <see cref="WaitForDeliveryCountAsync"/>（统计批次投递次数）不同，
+    /// 此方法统计各批次中的单个项。
     /// </remarks>
     public async Task WaitForItemDeliveryCountAsync(StreamId streamId, int expectedCount, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -209,7 +209,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待向某一订阅单位交付特定数量的个别物品。
+    /// 等待指定数量的单个项投递给特定订阅。
     /// </summary>
     public async Task WaitForItemDeliveryCountAsync(StreamId streamId, Guid subscriptionId, int expectedCount, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -235,8 +235,8 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待含有特定数量项目的信息在流上发送,然后
-    /// 以让该流报告光标排空后的过渡。
+    /// 等待包含指定数量项的消息通过某个流投递，并随后
+    /// 等待该流报告游标耗尽状态转换。
     /// </summary>
     public async Task WaitForItemDeliveryAndCursorDrainAsync(StreamId streamId, int expectedCount, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -259,8 +259,8 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待含有特定订阅对象所要发送的具体项目数量的信件,然后
-    /// 订阅用户的光标排空过渡需要报告。
+    /// 等待包含指定数量项的消息投递给特定订阅，并随后
+    /// 等待报告该订阅的游标耗尽状态转换。
     /// </summary>
     public async Task WaitForItemDeliveryAndCursorDrainAsync(StreamId streamId, Guid subscriptionId, int expectedCount, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -283,7 +283,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待流成为不活动 。
+    /// 等待流进入非活动状态。
     /// </summary>
     public async Task<StreamingEvents.StreamInactive> WaitForStreamInactiveAsync(StreamId streamId, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -295,7 +295,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待在特定流中添加订阅。
+    /// 等待在指定流上添加订阅。
     /// </summary>
     public async Task<StreamingEvents.SubscriptionAdded> WaitForSubscriptionAddedAsync(StreamId streamId, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -307,7 +307,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待在流上添加特定数量的订阅数。
+    /// 等待在某个流上添加指定数量的订阅。
     /// </summary>
     public async Task WaitForSubscriptionAddedCountAsync(StreamId streamId, int expectedCount, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -321,7 +321,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待订阅在特定流上永久注册。
+    /// 等待在指定流上持久化注册订阅。
     /// </summary>
     public async Task<StreamingEvents.SubscriptionRegistered> WaitForSubscriptionRegisteredAsync(StreamId streamId, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -333,7 +333,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待特定数目的订阅在一条流上永久登记。
+    /// 等待在某个流上持久化注册指定数量的订阅。
     /// </summary>
     public async Task WaitForSubscriptionRegisteredCountAsync(StreamId streamId, int expectedCount, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -347,7 +347,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待特定流的订阅。
+    /// 等待订阅附加到指定流。
     /// </summary>
     public async Task<StreamingEvents.SubscriptionAttached> WaitForSubscriptionAttachedAsync(StreamId streamId, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -359,7 +359,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待在一条流上附加一定数量的订阅。
+    /// 等待指定数量的订阅附加到某个流。
     /// </summary>
     public async Task WaitForSubscriptionAttachedCountAsync(StreamId streamId, int expectedCount, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -373,7 +373,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待在特定流中取消订阅。
+    /// 等待从指定流移除订阅。
     /// </summary>
     public async Task<StreamingEvents.SubscriptionRemoved> WaitForSubscriptionRemovedAsync(StreamId streamId, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -385,7 +385,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待从特定流中永久删除订阅。
+    /// 等待从指定流持久化移除订阅。
     /// </summary>
     public async Task<StreamingEvents.SubscriptionUnregistered> WaitForSubscriptionUnregisteredAsync(StreamId streamId, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -397,7 +397,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待特定订阅从特定流中永久删除。
+    /// 等待从指定流持久化移除特定订阅。
     /// </summary>
     public async Task<StreamingEvents.SubscriptionUnregistered> WaitForSubscriptionUnregisteredAsync(StreamId streamId, Guid subscriptionId, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -409,7 +409,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待从流中永久删除特定数量的订阅。
+    /// 等待从某个流持久化移除指定数量的订阅。
     /// </summary>
     public async Task WaitForSubscriptionUnregisteredCountAsync(StreamId streamId, int expectedCount, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -423,7 +423,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待订阅从特定流中分离出来。
+    /// 等待订阅从指定流分离。
     /// </summary>
     public async Task<StreamingEvents.SubscriptionDetached> WaitForSubscriptionDetachedAsync(StreamId streamId, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -435,7 +435,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待从流中分离出特定数量的订阅数。
+    /// 等待指定数量的订阅从某个流分离。
     /// </summary>
     public async Task WaitForSubscriptionDetachedCountAsync(StreamId streamId, int expectedCount, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -449,7 +449,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待消费光标排入特定的流。
+    /// 等待指定流上的消费者游标耗尽。
     /// </summary>
     public async Task<StreamingEvents.ConsumerCursorDrained> WaitForConsumerCursorDrainedAsync(StreamId streamId, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -461,7 +461,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待消费光标排干,以获取特定订阅。
+    /// 等待指定订阅的消费者游标耗尽。
     /// </summary>
     public async Task<StreamingEvents.ConsumerCursorDrained> WaitForConsumerCursorDrainedAsync(StreamId streamId, Guid subscriptionId, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -473,7 +473,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待特定数量的消费光标排干流中的事件。
+    /// 等待某个流上指定数量的消费者游标耗尽事件。
     /// </summary>
     public async Task WaitForConsumerCursorDrainedCountAsync(StreamId streamId, int expectedCount, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -487,7 +487,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待特定数量的消费光标耗尽的事件,以订阅具体用户。
+    /// 等待指定订阅的指定数量的消费者游标耗尽事件。
     /// </summary>
     public async Task WaitForConsumerCursorDrainedCountAsync(StreamId streamId, Guid subscriptionId, int expectedCount, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -501,7 +501,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待在流上删除特定数量的订阅。
+    /// 等待从某个流移除指定数量的订阅。
     /// </summary>
     public async Task WaitForSubscriptionRemovedCountAsync(StreamId streamId, int expectedCount, string? streamProvider, CancellationToken cancellationToken)
     {
@@ -549,7 +549,7 @@ public sealed class StreamingDiagnosticObserver : IDisposable
 }
 
 /// <summary>
-/// 与流诊断观察员合作的推广方法。
+/// 用于流处理诊断观察器的扩展方法。
 /// </summary>
 public static class StreamingDiagnosticExtensions
 {

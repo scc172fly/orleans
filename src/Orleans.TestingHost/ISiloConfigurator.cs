@@ -3,14 +3,14 @@ using Orleans.Hosting;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// 允许执行配置 silo 新建器启动时 silo 测试组。
+    /// 允许实现在启动测试集群的每个 Silo 时配置 Silo 构建器。
     /// </summary>
     public interface ISiloConfigurator
     {
         /// <summary>
-        /// 配置 silo 构建器。
+        /// 配置 Silo 构建器。
         /// </summary>
-        /// <param name="siloBuilder">下 silo 建筑商</param>
+        /// <param name="siloBuilder">Silo 构建器。</param>
         void Configure(ISiloBuilder siloBuilder);
     }
 }

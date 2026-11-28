@@ -825,7 +825,7 @@ async function validateReferenceInventories(repositoryRoot, sourceRoot, packageE
   const optionsPage = await readFile(optionsPath, 'utf8');
   if (
     (!optionsPage.includes('This page is a curated starting point, not an exhaustive property catalog.') &&
-      !optionsPage.includes('本页整理了常用配置选项，供入门参考。')) ||
+      !optionsPage.includes('本页是精选的入门参考，并非穷尽所有属性的目录。')) ||
     !optionsPage.includes('<xref:Orleans.Configuration>')
   ) {
     issues.push(

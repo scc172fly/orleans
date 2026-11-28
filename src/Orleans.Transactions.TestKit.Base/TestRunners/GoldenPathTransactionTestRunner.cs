@@ -7,30 +7,30 @@ using AwesomeAssertions;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 运行一个或多个 grains的成功交易情景。
+    /// 执行涉及一个或多个 Grain 的正常事务场景。
     /// </summary>
     public abstract class GoldenPathTransactionTestRunner : TransactionTestRunnerBase
     {
         /// <summary>
         /// 初始化 <see cref="GoldenPathTransactionTestRunner"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">下 grain 用于测试的工厂 grains.</param>
+        /// <param name="grainFactory">用于访问测试 Grain 的 Grain 工厂。</param>
         /// <param name="output">用于写入测试输出的回调。</param>
         protected GoldenPathTransactionTestRunner(IGrainFactory grainFactory, Action<string> output)
         : base(grainFactory, output) { }
 
         /// <summary>
-        /// 验证以单项grain 读作交易形式退回的初始状态。
+        /// 验证单 Grain 读取事务返回的初始状态。
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
-        /// <returns>代表测试的任务。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task SingleGrainReadTransaction(string grainStates)
         {
             const int expected = 0;
 
             ITransactionTestGrain grain = RandomTestGrain(grainStates);
             var actualResults = await grain.Get();
-            //每个交易国都应为0,因为尚未实施任何业务
+            // 每个事务状态都应为 0，因为尚未执行任何操作
             foreach (var actual in actualResults)
             {
                 actual.Should().Be(expected);
@@ -38,10 +38,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 在一个单 grain上验证成功的书面交易。
+        /// 验证单个 Grain 上成功执行的写入事务。
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
-        /// <returns>代表测试的任务。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task SingleGrainWriteTransaction(string grainStates)
         {
             const int delta = 5;
@@ -54,11 +54,11 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 验证多个 grains之间成功的写作交易。
+        /// 验证跨多个 Grain 成功执行的写入事务。
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grains的交易状态配置。</param>
-        /// <param name="grainCount">编号数 grains 参与交易。</param>
-        /// <returns>代表测试的任务。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <param name="grainCount">参与事务的 Grain 数量。</param>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task MultiGrainWriteTransaction(string grainStates, int grainCount)
         {
             const int expected = 5;
@@ -83,11 +83,11 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 连续验证设置的和在多个 grains之间进行读修改- writer操作。
+        /// 验证跨多个 Grain 依次执行的设置和读改写操作。
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grains的交易状态配置。</param>
-        /// <param name="grainCount">编号数 grains 参与交易。</param>
-        /// <returns>代表测试的任务。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <param name="grainCount">参与事务的 Grain 数量。</param>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task MultiGrainReadWriteTransaction(string grainStates, int grainCount)
         {
             const int delta = 5;
@@ -115,11 +115,11 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 验证一套固定的 grains的重复读修改- write交易。
+        /// 验证对固定 Grain 集合重复执行的读改写事务。
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grains的交易状态配置。</param>
-        /// <param name="grainCount">编号数 grains 参与每项交易。</param>
-        /// <returns>代表测试的任务。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <param name="grainCount">参与每个事务的 Grain 数量。</param>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task RepeatGrainReadWriteTransaction(string grainStates, int grainCount)
         {
             const int repeat = 10;
@@ -154,10 +154,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 证明在一个交易中将多个字母写到同一个 grain ,全部适用。
+        /// 验证同一个事务中对同一个 Grain 的多次写入均已应用。
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
-        /// <returns>代表测试的任务。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task MultiWriteToSingleGrainTransaction(string grainStates)
         {
             const int delta = 5;
@@ -179,11 +179,11 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 验证一个跨越多个 grains的读写读写访问序列。
+        /// 验证跨多个 Grain 执行的读-写-读-写访问序列。
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grains的交易状态配置。</param>
-        /// <param name="grainCount">编号数 grains 参与交易。</param>
-        /// <returns>代表测试的任务。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <param name="grainCount">参与事务的 Grain 数量。</param>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task RWRWTest(string grainStates, int grainCount)
         {
             const int delta = 5;
@@ -210,11 +210,11 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 验证多个 grains的写读访问序列。
+        /// 验证跨多个 Grain 执行的写-读-写-读访问序列。
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grains的交易状态配置。</param>
-        /// <param name="grainCount">编号数 grains 参与交易。</param>
-        /// <returns>代表测试的任务。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <param name="grainCount">参与事务的 Grain 数量。</param>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task WRWRTest(string grainStates, int grainCount)
         {
             const int delta = 5;
@@ -241,10 +241,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 证明经重新确认的读者会遵守承诺书。
+        /// 验证读已提交操作能够观测到已提交的写入。
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
-        /// <returns>代表测试的任务。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task SingleGrainReadCommitted(string grainStates)
         {
             const int expected = 7;
@@ -256,7 +256,7 @@ namespace Orleans.Transactions.TestKit
 
             await grain.Set(expected);
 
-            // 非管理参与方承诺在确认抵达后即予确认,因此快照可能会短暂滞后。
+            // 非管理器参与者在收到确认后才提交，因此快照可能短暂滞后。
             var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(30);
             int[] actual;
             while ((actual = await grain.GetCommitted()).Any(value => value != expected) && DateTime.UtcNow < deadline)
@@ -268,10 +268,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 证明重新确认的读数在交易中被拒。
+        /// 验证在事务内部执行读已提交操作时会被拒绝。
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
-        /// <returns>代表测试的任务。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task ReadCommittedRejectedInsideTransaction(string grainStates)
         {
             ITransactionTestGrain grain = RandomTestGrain(grainStates);

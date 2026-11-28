@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Orleans.Durable.Analyzers.Tests;
 
-/// <summary>测试用于命名其生成识别符可移动的未命名持久操作的规则及其代码修正。</summary>
+/// <summary>测试为生成标识可能发生变化的未命名持久化操作命名的规则及代码修复。</summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 public class DurableTaskIdentityRuleTests
 {

@@ -19,7 +19,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// 使用 <see cref="JsonSerializer"/>的序列编码。
+/// 使用 <see cref="JsonSerializer"/> 的序列化编解码器。
 /// </summary>
 [Alias(WellKnownAlias)]
 public class NewtonsoftJsonCodec : IGeneralizedCodec, IGeneralizedCopier, ITypeFilter
@@ -31,16 +31,16 @@ public class NewtonsoftJsonCodec : IGeneralizedCodec, IGeneralizedCopier, ITypeF
     private readonly JsonSerializer _serializer;
 
     /// <summary>
-    /// 这个代码码的已知型别名 。
+    /// 此编解码器的已知类型别名。
     /// </summary>
     public const string WellKnownAlias = "json.net";
 
     /// <summary>
     /// 初始化 <see cref="NewtonsoftJsonCodec"/> 类的新实例。
     /// </summary>
-    /// <param name="serializableTypeSelectors">过滤器用于表示哪些类型应该由此编码器序列。</param>
-    /// <param name="copyableTypeSelectors">过滤器用于表示该编码器应复制的类型。</param>
-    /// <param name="options"> JSON 代码化选项。</param>
+    /// <param name="serializableTypeSelectors">用于指示此编解码器应序列化哪些类型的筛选器。</param>
+    /// <param name="copyableTypeSelectors">用于指示此编解码器应复制哪些类型的筛选器。</param>
+    /// <param name="options">JSON 编解码器选项。</param>
     public NewtonsoftJsonCodec(
         IEnumerable<ICodecSelector> serializableTypeSelectors,
         IEnumerable<ICopierSelector> copyableTypeSelectors,
@@ -63,18 +63,18 @@ public class NewtonsoftJsonCodec : IGeneralizedCodec, IGeneralizedCopier, ITypeF
             return;
         }
 
-        // 编序字段的序列式是代码的型号。
-        // 实际上,只要该编码器登记为处理器,它就可能是任何独特的类型。
-        // 通过对照 IsSupportedType的编码类型检查,编码也可以作为 IGenericCodec登记。
-        // 注意代码器负责对价值本身的类型进行序列整理。
+        // 序列化字段时，架构类型为该编解码器的类型。
+        // 实际上，只要此编解码器注册为处理程序，该类型可以是任何唯一的类型。
+        // 通过在 IsSupportedType 中检查编解码器类型，也可以只将该编解码器注册为 IGenericCodec。
+        // 注意，编解码器负责序列化值本身的类型。
         writer.WriteFieldHeader(fieldIdDelta, expectedType, SelfType, WireType.TagDelimited);
 
-        // 写入类型名称
+        // 写入类型名称。
         ReferenceCodec.MarkValueField(writer.Session);
         writer.WriteFieldHeaderExpected(0, WireType.LengthPrefixed);
         writer.Session.TypeCodec.WriteLengthPrefixed(ref writer, value.GetType());
 
-        // 编写序列式有效载荷
+        // 写入序列化后的有效载荷。
         var serializedValue = JsonConvert.SerializeObject(value, _options.SerializerSettings);
         StringCodec.WriteField(ref writer, 1, serializedValue);
 
@@ -115,7 +115,7 @@ public class NewtonsoftJsonCodec : IGeneralizedCodec, IGeneralizedCopier, ITypeF
                         ThrowTypeFieldMissing();
                     }
 
-                    // 为了提高效率,可以将这一数值转换为 ReadOnlySequence<byte> 而不是字节数组。
+                    // 为了可能提高效率，可将此处改为读取 ReadOnlySequence<byte> 而不是字节数组。
                     var serializedValue = StringCodec.ReadValue(ref reader, header);
                     result = JsonConvert.DeserializeObject(serializedValue!, type, _options.SerializerSettings);
                     ReferenceCodec.RecordObject(reader.Session, result!, placeholderReferenceId);

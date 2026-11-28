@@ -81,7 +81,7 @@ internal partial class CosmosMembershipTable : IMembershipTable
                 }
                 catch (CosmosException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
                 {
-                    // 另一个初始化器创建了版本行 。
+                    // 另一个初始化实例已创建版本行。
                 }
             }
         }
@@ -159,7 +159,7 @@ internal partial class CosmosMembershipTable : IMembershipTable
                 }
                 catch (CosmosException exception) when (exception.StatusCode == HttpStatusCode.PreconditionFailed)
                 {
-                    // 同步更新保留行,以备以后的清理通行证。
+                    // 发生并发更新时保留该行，以供后续清理。
                 }
                 catch (CosmosException exception) when (IsMissingItem(exception))
                 {
@@ -311,7 +311,7 @@ internal partial class CosmosMembershipTable : IMembershipTable
                 }
                 catch (CosmosException exception) when (IsMissingItem(exception))
                 {
-                    // 最后的版本是对成员意见的核实,其中含有这种缺席。
+                    // 最后一次版本读取用于验证包含此缺失记录的成员资格视图。
                 }
             }
             else
@@ -320,8 +320,8 @@ internal partial class CosmosMembershipTable : IMembershipTable
                 {
                     PartitionKey = _partitionKey
                 };
-                // 心跳跳不改变版本围栏的补足文档,但不会更改版本围栏;不可变
-                // 命令将更新内容从延续页面上的行移动到其它页面上。
+                // 心跳通过局部更新修改文档，但不改变版本屏障；不可变的
+                // 排序顺序可防止这些更新导致行在续页之间移动。
                 using var iterator = _container.GetItemQueryIterator<SiloEntity>(
                     CreateSiloQuery(), requestOptions: queryOptions);
                 do
@@ -331,7 +331,7 @@ internal partial class CosmosMembershipTable : IMembershipTable
                 } while (iterator.HasMoreResults);
             }
 
-            // 单独读取可横跨成员更新; 匹配版本etag 将视图围起来 。
+            // 分开执行的读取可能跨越一次成员资格更新；通过匹配版本 ETag 来保护视图的一致性。
             var after = await ReadClusterVersion(cancellationToken).ConfigureAwait(false);
             if (string.Equals(before.ETag, after.ETag, StringComparison.Ordinal))
             {
@@ -345,7 +345,7 @@ internal partial class CosmosMembershipTable : IMembershipTable
 
     private static MembershipTableData ConvertToTableData(List<SiloEntity> silos, TableVersion version)
     {
-        // 表格转换 etag 跟踪轮廓会籍变化,心跳补丁文件 silo 。
+        // 表版本 ETag 跟踪规范成员资格变更，而心跳仅局部更新 Silo 文档。
         return new MembershipTableData(
             silos.Select(entity => Tuple.Create(ParseEntity(entity), version.VersionEtag)).ToList(),
             version);
@@ -383,7 +383,7 @@ internal partial class CosmosMembershipTable : IMembershipTable
     {
         try
         {
-            // 配置的工厂可以返回共享客户端。 保留任务, 重试再使用它 。
+            // 配置的工厂可以返回共享客户端。保留其任务，使重试复用该任务。
             if (_clientTask is { IsCompleted: true, IsCompletedSuccessfully: false })
             {
                 _clientTask = null;

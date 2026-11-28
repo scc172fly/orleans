@@ -4,12 +4,12 @@ using Orleans.Runtime;
 namespace Orleans.Streaming.Kinesis
 {
     /// <summary>
-    /// 配置 Kinesis 持久性流提供者 。
+    /// 配置 Kinesis 持久化流提供程序。
     /// </summary>
     public class KinesisStreamOptions
     {
         /// <summary>
-        /// AWS Kinesis 的连接字符串。 格式 : “ service;AccessKey;SecretKey; region” 或“ services” , 用于默认的证书 。
+        /// AWS Kinesis 连接字符串。格式为 "Service;AccessKey;SecretKey;Region"，或使用 "Service" 以采用默认凭据。
         /// </summary>
         [Redact]
         public string? ConnectionString
@@ -53,45 +53,45 @@ namespace Orleans.Streaming.Kinesis
         }
 
         /// <summary>
-        /// Kinesis 的可选访问密钥字符串 。
+        /// Kinesis 的可选访问密钥 ID 字符串。
         /// </summary>
         [Redact]
         public string? AccessKey { get; set; }
 
         /// <summary>
-        /// Kinesis 的可选秘密密钥 。
+        /// Kinesis 的可选私有访问密钥。
         /// </summary>
         [Redact]
         public string? SecretKey { get; set; }
 
         /// <summary>
-        /// Kinesis 服务端点 URL, 如 "https://kinesis.us-west-2.amazonaws.com" 或开发端点的 URL。
+        /// Kinesis 服务终结点 URL，例如 "https://kinesis.us-west-2.amazonaws.com" 或开发环境终结点的 URL。
         /// </summary>
         public string? Service { get; set; }
 
         /// <summary>
-        /// AWS地区名称,例如“us-west-2”。
+        /// AWS 区域名称，例如 "us-west-2"。
         /// </summary>
         public string? Region { get; set; }
 
         /// <summary>
-        /// 肯尼斯流的名字
+        /// Kinesis 流的名称。
         /// </summary>
         public string StreamName { get; set; } = "OrleansTestStream";
 
         /// <summary>
-        /// 获取或设定打给 Kinesis <c>GetRecords</c> 的硬块断面时的最低间隔。
+        /// 获取或设置对分片调用 Kinesis <c>GetRecords</c> 之间的最短间隔。
         /// </summary>
         /// <remarks>
-        /// Kinesis 允许每个打开的碎片每秒最多5个 <c>GetRecords</c> 交易。
+        /// Kinesis 允许每个开放分片每秒最多执行五次 <c>GetRecords</c> 操作。
         /// </remarks>
         public TimeSpan GetRecordsInterval { get; set; } = TimeSpan.FromMilliseconds(200);
 
         /// <summary>
-        /// 获取或设置检查硬质地形变化之间的间隔。
+        /// 获取或设置检查分片拓扑变化的间隔。
         /// </summary>
         /// <remarks>
-        /// 不支持重新使用活体硬化。 当地形变化时, 接收器停止并要求重新启动提供者 。
+        /// 不支持实时重新分片。拓扑变化时，接收器停止运行，需要重新启动提供程序。
         /// </remarks>
         public TimeSpan TopologyCheckInterval { get; set; } = TimeSpan.FromMinutes(1);
     }

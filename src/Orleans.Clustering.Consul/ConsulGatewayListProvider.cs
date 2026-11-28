@@ -12,7 +12,7 @@ using Orleans.Configuration;
 namespace Orleans.Runtime.Membership
 {
     /// <summary>
-    /// 提供领事小组成员的 Orleans 网关地址。
+    /// 从 Consul 集群成员资格信息中提供 Orleans 网关地址。
     /// </summary>
     public class ConsulGatewayListProvider : IGatewayListProvider
     {
@@ -26,10 +26,10 @@ namespace Orleans.Runtime.Membership
         /// <summary>
         /// 初始化 <see cref="ConsulGatewayListProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="logger">日志器。</param>
-        /// <param name="options">领事分组办法。</param>
+        /// <param name="logger">日志记录器。</param>
+        /// <param name="options">Consul 集群成员管理选项。</param>
         /// <param name="gatewayOptions">网关发现选项。</param>
-        /// <param name="clusterOptions">集群识别选项。</param>
+        /// <param name="clusterOptions">集群标识选项。</param>
         public ConsulGatewayListProvider(
             ILogger<ConsulGatewayListProvider> logger,
             IOptions<ConsulClusteringOptions> options,

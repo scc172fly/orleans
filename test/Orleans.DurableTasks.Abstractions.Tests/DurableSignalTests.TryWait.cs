@@ -23,8 +23,8 @@ public partial class DurableSignalTests
         Assert.Equal((true, new Approval("ada")), (await running).GetResult<(bool, Approval)>());
         Assert.Equal(Deadline, host.LastDueTime);
 
-        // 种族在指数化的时段中安排等待和最后期限,一旦最后期限推迟即完成。
-        // 失败了, 结束取消 。
+        // 竞速操作在带索引的槽位中调度等待和截止时间；其中截止时间对应的延迟落败，
+        // 该延迟以取消状态结束后，竞速操作才完成。
         Assert.Equal(
             [(SignalSlot, "approved")],
             host.Waits.Select(static wait => (wait.ExecutionId, wait.Name)));
@@ -47,7 +47,7 @@ public partial class DurableSignalTests
         Assert.Equal((false, (Approval?)null), response.GetResult<(bool, Approval)>());
         Assert.Equal(Deadline, host.LastDueTime);
 
-        // 比赛一旦结束, 等待, 输了, 结束了。
+        // 竞速操作在落败的等待以取消状态结束后完成。
         var wait = host.GetChild(SignalSlot);
         Assert.Equal(DurableTaskStatus.Canceled, wait.Status);
         Assert.Equal(RaceLostReason, wait.CancellationReason);

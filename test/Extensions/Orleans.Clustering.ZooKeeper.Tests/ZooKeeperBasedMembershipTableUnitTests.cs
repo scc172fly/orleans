@@ -224,7 +224,7 @@ namespace UnitTests.MembershipTests
                 nameof(IMembershipTable.InitializeMembershipTableAsync) => () => sut.InitializeMembershipTableAsync(true, cancellationToken),
                 nameof(IMembershipTable.DeleteMembershipTableEntriesAsync) => () => sut.DeleteMembershipTableEntriesAsync("cluster-a", cancellationToken),
                 nameof(IMembershipTable.CleanupDefunctSiloEntriesAsync) => () => sut.CleanupDefunctSiloEntriesAsync(DateTimeOffset.UnixEpoch, cancellationToken),
-#pragma warning disable CS0618 // Verify the retired API's cancellation precedence.
+#pragma warning disable CS0618 // 验证已退役 API 的取消请求优先级。
                 nameof(IMembershipTable.ReadRowAsync) => () => sut.ReadRowAsync(CreateSiloAddress(), cancellationToken),
 #pragma warning restore CS0618
                 nameof(IMembershipTable.ReadAllAsync) => () => sut.ReadAllAsync(cancellationToken),

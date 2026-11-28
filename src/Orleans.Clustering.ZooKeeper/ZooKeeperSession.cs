@@ -8,7 +8,7 @@ internal sealed class ZooKeeperSession
 {
     private readonly ZooKeeperBasedMembershipTable.NativeOperations _operations;
     private readonly Func<Task> _close;
-    // 同步捆绑;自有任务提供完成语义。
+    // 同步绑定；由所拥有的任务提供完成语义。
     private readonly TaskCompletionSource<Task> _completion = new();
 
     internal ZooKeeperSession(
@@ -66,7 +66,7 @@ internal sealed class ZooKeeperSession
             throw;
         }
 
-        // 呼唤会加入本地人的要求,
+        // 回调在此不接受取消令牌的关闭操作前等待原生请求完成。
         await _close();
         return result;
     }

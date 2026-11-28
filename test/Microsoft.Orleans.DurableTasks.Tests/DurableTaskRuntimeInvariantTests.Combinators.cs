@@ -41,7 +41,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             [DurableTaskStatus.CompletedSuccessfully, DurableTaskStatus.Canceled, DurableTaskStatus.Failed, DurableTaskStatus.Failed],
             Enumerable.Range(0, 4).Select(index => storage.Get(rootId.Child("batch").Child($"{index}")).Result!.Status));
 
-        // 组合器作为根部的一部分运行, 因此它没有自己的任务 。
+        // 组合器作为根任务的一部分运行，因此不会存储自己的任务。
         Assert.False(storage.Contains(rootId.Child("batch")));
     });
 
@@ -70,7 +70,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             ]).WithId("batch");
             if (Interlocked.Increment(ref attempts) == 1)
             {
-                // 第一次尝试停在这里,中止了 所以下一次激活会重播
+                // 第一次尝试在此处停止并被中止，因此下一个激活实例会重放它。
                 firstAttemptCompletedBatch.TrySetResult();
                 await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
             }
@@ -82,7 +82,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await firstAttemptCompletedBatch.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // 部署在指定输入之前增加一个组合器;指定输入器保留识别资料。
+        // 部署在已命名组合器之前添加了一个组合器；已命名组合器的输入保留其标识符。
         addEarlierCombinator = true;
         var (replacement, _, _, _) = CreateRuntime(storage, manager);
         await replacement.ResumePendingTasksAsync(TestContext.Current.CancellationToken);

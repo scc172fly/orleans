@@ -6,8 +6,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// 执行耐久处决,通过 GetDurableTask 与任务的最终结果相符合,而他们没有这样做
-/// 援引,其他 grains 和他们自己所享受的 grain.
+/// 测试持久化执行实例通过 GetDurableTask 订阅并非由它们
+/// 调用的任务的终态结果，包括其他 Grain 和自身 Grain 上的任务。
 /// </summary>
 public abstract class DurableTaskSubscriptionTests(string journalFormatKey) : IAsyncLifetime
 {
@@ -32,12 +32,12 @@ public abstract class DurableTaskSubscriptionTests(string journalFormatKey) : IA
 
         Assert.Equal("done", await GetResultAsync(relay, cancellationToken));
 
-        // 预定行动仍调查其保留结果的客户仍在调查,等待在一
-        // 持久执行等待它。
+        // 调度该操作的客户端仍会轮询其保留的结果；在持久化执行之外等待引用
+        // 也会等待该结果。
         Assert.Equal("done", await GetResultAsync(operation.GetDurableTask<string>("op"), cancellationToken));
         Assert.Equal("done", await operation.GetDurableTask<string>("op"));
 
-        // 接力树记录了儿童订阅的纪录
+        // 中继任务的执行树将订阅记录为子任务。
         var subscription = Assert.Single(
             await GetTasksAsync(subscriber, cancellationToken),
             task => task.Key != TaskId.CreateRoot("relay"));
@@ -71,7 +71,7 @@ public abstract class DurableTaskSubscriptionTests(string journalFormatKey) : IA
         var subscriber = _fixture.Client.GetGrain<IDurableTaskSubscriberGrain>(Guid.NewGuid());
         var started = _fixture.MessagingProbe.WaitForStartedAsync(operationKey, 1);
 
-        // 任务一经操作 grain 完成,时间表即返回,随后的订阅单位会找到。
+        // 操作所属 Grain 持有任务后调度才返回，因此随后的订阅能够找到该任务。
         var relay = await subscriber.ScheduleAndSubscribeAsync(operationKey, "detached-op").WithId("relay").ScheduleAsync(cancellationToken);
         await started.WaitAsync(Timeout, cancellationToken);
         await operation.SignalDurableTaskAsync("detached-op", DurableTaskSubscribedGrain.Release, "done", cancellationToken);
@@ -90,8 +90,8 @@ public abstract class DurableTaskSubscriptionTests(string journalFormatKey) : IA
         var relay = await subscriber.SubscribeWithDeadlineAsync(operationKey, "op").WithId("relay").ScheduleAsync(cancellationToken);
         await subscribing.WaitAsync(Timeout, cancellationToken);
 
-        // 等到持久工作时钟(顺时顺后顺时钟)通过,所以时间就到了
-        // 订阅者持有延迟时间后,立即预发预付款。
+        // 逻辑时间遵循持久化作业时钟；该时钟越过截止时间后，截止时间对应的延迟到期，
+        // 因此订阅者持有延迟后才推进时钟。
         await WaitForDelayAsync(subscriber, cancellationToken);
         _fixture.JobClock.Advance(TimeSpan.FromHours(2));
 
@@ -172,14 +172,14 @@ public abstract class DurableTaskSubscriptionTests(string journalFormatKey) : IA
     }
 }
 
-/// <summary>运行订阅覆盖,任务状态以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行订阅相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskSubscriptionTests() : DurableTaskSubscriptionTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行订阅覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行订阅相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

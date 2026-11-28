@@ -11,23 +11,23 @@ using Polly.Timeout;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// Orleans 运行时使用的复原力政策。
+/// Orleans 运行时使用的弹性策略。
 /// </summary>
 internal static class OrleansRuntimeResiliencePolicies
 {
     /// <summary>
-    /// 用于确定 <see cref="Polly.Registry.ResiliencePipelineProvider{TKey}"/>中安置复原力管道的关键。
+    /// 用于在 <see cref="Polly.Registry.ResiliencePipelineProvider{TKey}"/> 中标识放置弹性管道的键。
     /// </summary>
     public const string PlacementResiliencePipelineKey = "Orleans.Placement";
 
     /// <summary>
-    /// 将所有 Orleans 运行时恢复政策添加到服务收藏中。
+    /// 向服务集合添加全部 Orleans 运行时弹性策略。
     /// </summary>
-    /// <param name="services">服务收藏。</param>
-    /// <returns>链锁服务收藏。</returns>
+    /// <param name="services">服务集合。</param>
+    /// <returns>服务集合，用于链式调用。</returns>
     internal static IServiceCollection AddOrleansRuntimeResiliencePolicies(IServiceCollection services)
     {
-        // 安置复原力管道
+        // 放置弹性管道。
         services.AddResiliencePipeline<string, SiloAddress>(PlacementResiliencePipelineKey, static (builder, context) =>
         {
             var options = context.ServiceProvider.GetRequiredService<IOptions<SiloMessagingOptions>>().Value;
@@ -66,7 +66,7 @@ internal static class OrleansRuntimeResiliencePolicies
     }
 
     /// <summary>
-    /// 确定例外是否短暂,在安置作业期间应重新审理。
+    /// 确定异常是否为瞬时故障，以及是否应在放置操作期间重试。
     /// </summary>
     private static bool IsTransientPlacementException(Exception exception) =>
         exception switch

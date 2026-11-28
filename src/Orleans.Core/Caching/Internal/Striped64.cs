@@ -3,135 +3,135 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 /*
- * 由Doug Lea在JCP成员协助下撰写
- * 向公共领域开放的专家组,如以下解释
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 namespace Orleans.Caching.Internal;
 
 /*
- * 本类维持一个低迷初始原子表
- * 更新的变量,加上一个额外的“基准”字段。
- * 是一个两个的功率。索引使用隐形的全线散列码。
- * 这一类的几乎所有申报都是一揽子私人申报,
- * 子类直接访问。
+ * 此类维护一个延迟初始化的表，其中包含以原子方式
+ * 更新的变量，另有一个额外的“base”字段。表的大小
+ * 为 2 的幂。索引使用每个线程的哈希码与掩码计算得到。
+ * 此类中几乎所有声明都是包级私有的，
+ * 由子类直接访问。
  *
- * 表条目为类单元格; AtomicLong 加插的变量
- * 以降低大多数处理器的缓存争议。
- * 多数原子的超杀率高,因为它们通常不规则
- * 散落在记忆中,所以不互相干扰。
- * 原子物体的阵列中
- * 彼此相邻而居,彼此之间常常分享
- * 缓存行(具有巨大的负性性效影响)
- * 预防这个
+ * 表项是 Cell 类的实例；它是经过填充的 AtomicLong 变体，
+ * 用于减少大多数处理器上的缓存争用。对于大多数原子对象，
+ * 填充并无必要，因为它们通常不规则地
+ * 分散在内存中，彼此不太会相互干扰。
+ * 但数组中的原子对象往往
+ * 相邻存放，因此如果没有这一措施，通常会共享
+ * 缓存行（对性能产生很大的负面影响），
+ * 而填充正是用于预防这一情况。
  *
- * 部分是因为细胞相对较大,我们避免了产生
- * 直到他们被需要,直到他们获得他们所需要的。
- * 向基字段更新。
- * 基调更新时失败 CAS),表格初始化为大小 2。
- * 进一步争论后,表格的面积翻一番,直到
- * 功率,以大于或等于两千米的最接近功率计算。
- * CPUS数目。 表空位一直为空( 无效) , 直到它们
- * 需要。
+ * 部分原因在于 Cell 较大，我们避免提前创建
+ * 它们，直到需要时才创建。没有争用时，所有
+ * 更新都写入 base 字段。首次发生争用时（即
+ * 更新 base 的 CAS 失败），将表初始化为大小 2。
+ * 如果继续发生争用，则将表大小加倍，直到
+ * 达到大于或等于 CPU 数量的最小
+ * 2 的幂。表中的槽位保持为空（null），直到
+ * 需要使用它们为止。
  *
- * 用于初始化和
- * 调整表格的大小,以及用新的单元格填充空格。
- * 无需设置锁锁;当锁不锁时
- * 可用, 线索尝试其他空格( 或基底) 。 在这些
- * 重试,争议增加,地点减少
- * 仍然比替代品好。
+ * 使用单个自旋锁（“busy”）初始化和
+ * 调整表的大小，并用新 Cell 填充槽位。
+ * 不需要阻塞锁；如果无法获取锁，
+ * 线程会尝试其他槽位（或 base）。这些
+ * 重试会增加争用、降低局部性，
+ * 但仍优于其他方案。
  *
- * 纯散列代码初始化为随机值。
- * 内相和/或表碰撞用失败表示
- * CASs 进行更新操作时使用CAS(见方法)
- * retryUpdate.)碰撞时,如果表尺寸小于
- * 容量, 除非有其他线索, 否则其尺寸会加倍
- * 锁定。如果一个散列空位是空的,而锁是
- * 可用时, 新单元格会创建。 否则, 如果空格
- * 存在,CAS正在测试。 重试以“ 双散列” 进行,
- * 使用二类大麻( Marsaglia XorShift)来查找
- * 空位。
+ * 每个线程的哈希码初始化为随机值。
+ * 在执行更新操作时，CAS 失败表示出现争用
+ * 或表中的哈希冲突（参见
+ * retryUpdate 方法）。发生冲突时，如果表大小尚未达到
+ * 容量上限，则将其加倍，除非其他线程
+ * 持有锁。如果哈希对应的槽位为空且锁
+ * 可用，则创建新 Cell。否则，如果槽位已有 Cell，
+ * 则尝试 CAS。重试采用“双重哈希”，
+ * 使用第二个哈希（Marsaglia XorShift）尝试找到一个
+ * 空闲槽位。
  *
- * 表格大小被上盖, 因为当有更多线索时
- * 假设每条线都系在CPU上,
- * 会有完美的散列函数绘图线
- * 消除碰撞的空格。当我们到达能力,
- * 随机修改散列代码,以查找此映射
- * 相撞线。 因为搜索是随机的, 碰撞
- * 只能通过CAS失败才知道,趋同速度可能缓慢,
- * 并且因为线条通常不会永远被连接到CPUS,
- * 然而,尽管存在这些限制,
- * 在这些情况下,观察到的争议率一般较低。
+ * 对表的大小设定上限，是因为当线程数
+ * 超过 CPU 数时，假设每个线程都绑定到某个 CPU，
+ * 就存在一个将线程映射到槽位且能够消除冲突的
+ * 完美哈希函数。达到容量上限时，我们通过
+ * 随机改变发生冲突的线程的哈希码
+ * 来寻找这一映射。由于搜索是随机的，且只有
+ * CAS 失败时才知道发生了冲突，收敛可能很慢，
+ * 并且由于线程通常并不永久绑定到 CPU，
+ * 甚至可能完全不收敛。然而，尽管存在这些限制，
+ * 在这些情况下实际观测到的争用率通常较低。
  *
- * 当一个单元格在
- * 发生下列情况时终止:
- * 将表格翻倍, 使桌子下没有线条
- * 我们不试图检测或移除这些细胞
- * 假设对长期存在的情况,观察到
- * 参数水平将重复, 所以单元格最终会
- * 需要再次;对于短期生命,这不重要。
+ * 当曾经哈希到某个 Cell 的线程终止时，
+ * 或者当表大小加倍导致没有任何线程在
+ * 扩展后的掩码下哈希到该 Cell 时，该 Cell 可能不再被使用。
+ * 我们不尝试检测或移除这样的 Cell，
+ * 因为我们假设对于长时间运行的实例，曾观测到的
+ * 争用水平会再次出现，因此最终还会
+ * 需要这些 Cell；对于短期实例，则无关紧要。
  */
 
 /// <summary>
-/// 维持一个由原子更新变量加上额外变量组成的 
-/// 表格大小是两个的功率。索引使用遮蔽线条识别码。
+/// 维护一个延迟初始化的表，其中包含以原子方式更新的变量，另有一个额外的
+/// “base”字段。表大小为 2 的幂。索引使用线程 ID 与掩码计算得到。
 /// </summary>
-// 由Alex Peck从 BitFaster.Caching 取出
+// Derived from BitFaster.Caching by Alex Peck
 // https://github.com/bitfaster/BitFaster.Caching/blob/5b2d64a1afcc251787fbe231c6967a62820fc93c/BitFaster.Caching/Counters/Striped64.cs
 [ExcludeFromCodeCoverage]
 internal abstract class Striped64
 {
-    // CPUS数目,按表格大小排列
+    // CPU 数量，用于限制表的大小。
     private static readonly int MaxBuckets = Environment.ProcessorCount * 4;
 
     /// <summary>
-    /// 基值主要用于没有争议但作为后备使用的基值 
-    /// 在表格初始化赛事中更新。 通过 CAS 更新 。
+    /// 基准值，主要在无争用时使用，也作为表初始化发生竞态时的
+    /// 后备值。通过 CAS 更新。
     /// </summary>
     protected PaddedLong @base;
 
     /// <summary>
-    /// 当非核时,大小为 2 的功率。
+    /// 非 null 时，大小为 2 的幂。
     /// </summary>
     protected Cell[]? cells;
     private int _cellsBusy;
 
     /// <summary>
-    /// PaddedLong的包装纸。
+    /// PaddedLong 的包装器。
     /// </summary>
-    /// <param name="value">数值。</param>
+    /// <param name="value">值。</param>
     protected sealed class Cell(long value)
     {
         /// <summary>
-        /// 单元格的值 。
+        /// Cell 的值。
         /// </summary>
         public PaddedLong Value = new() { Value = value };
     }
 
     /**
-     * CAS 字段 cellsBusy 从 0 到 1 获取锁定 。
+     * 将 cellsBusy 字段通过 CAS 从 0 改为 1，以获取锁。
      */
     private bool CasCellsBusy() => Interlocked.CompareExchange(ref _cellsBusy, 1, 0) == 0;
 
     private void VolatileWriteNotBusy() => Volatile.Write(ref _cellsBusy, 0);
 
     /**
-     * 返回当前线索的探测值。
-     * 由于包装限制,从 ThreadLocalRandom 中复制。
+     * 返回当前线程的探测值。
+     * 由于包组织方面的限制，从 ThreadLocalRandom 复制而来。
      */
     protected static int GetProbe() =>
-        // 注:这导致的产量高于随机引入。
+        // 注意：相比引入随机数，这样做的吞吐量更高。
         Environment.CurrentManagedThreadId;
 
     /**
-    * 优度随机推进并记录给定的探测值
-    * 给定线索。
-    * 由于包装限制,从 ThreadLocalRandom 中复制。
+    * 以伪随机方式推进并记录给定线程的
+    * 指定探测值。
+    * 由于包组织方面的限制，从 ThreadLocalRandom 复制而来。
     */
     private static int AdvanceProbe(int probe)
     {
-        // xorfinight 转换器
+        // 异或移位（xorshift）。
         probe ^= probe << 13;
         probe ^= (int)((uint)probe >> 17);
         probe ^= probe << 5;
@@ -139,20 +139,20 @@ internal abstract class Striped64
     }
 
     /**
-     * 处理涉及初始化、重新确定大小、
-     * 创建新单元格和/或争论。见上文
-     * 这种方法受到通常的非模式性的影响
-     * 依赖重新校对的一套
-     * 读起来。
+     * 处理涉及初始化、调整大小、
+     * 创建新 Cell 和/或发生争用的更新情况。解释见
+     * 上文。此方法存在乐观重试代码常见的模块化问题，
+     * 依赖对一组读取操作进行
+     * 重新检查。
      *
-     * @ 参数 x 值
-     * @ 参数 wasUncontended 如果 CAS 在呼叫前失败, 则无效
+     * @param x 值
+     * @param wasUncontended 如果调用前 CAS 失败，则为 false
      */
     protected void LongAccumulate(long x, bool wasUncontended)
     {
         var h = GetProbe();
 
-        // 如果最后一个空格为真实
+        // 如果上次槽位非空，则为 true。
         var collide = false;
         while (true)
         {
@@ -163,16 +163,16 @@ internal abstract class Striped64
                 {
                     if (_cellsBusy == 0)
                     {
-                        // 尝试附加新单元格
-                        // 乐观地创建
+                        // 尝试附加新 Cell。
+                        // 乐观地创建。
                         var r = new Cell(x);
-#pragma warning disable CA1508 // Another thread can acquire the cell lock between the optimistic reads; CAS establishes ownership.
+#pragma warning disable CA1508 // 另一线程可能在乐观读取之间获取 Cell 锁；CAS 确立所有权。
                         if (_cellsBusy == 0 && CasCellsBusy())
 #pragma warning restore CA1508
                         {
                             try
                             {
-                                // 锁定中重新检查
+                                // 持锁重新检查。
                                 Cell[]? rs; int m, j;
                                 if ((rs = cells) != null &&
                                     (m = rs.Length) > 0 &&
@@ -187,7 +187,7 @@ internal abstract class Striped64
                                 VolatileWriteNotBusy();
                             }
 
-                            // 槽现在不是空的
+                            // 槽位现在非空。
                             continue;
                         }
                     }
@@ -195,8 +195,8 @@ internal abstract class Striped64
                 }
                 else if (!wasUncontended)
                 {
-                    // CAS 已知已失败
-                    // 重新发牌后继续
+                    // 已知此前 CAS 已失败。
+                    // 重新计算哈希后继续。
                     wasUncontended = true;
                 }
                 else if (a.Value.CompareAndSwap(v = a.Value.VolatileRead(), v + x))
@@ -205,7 +205,7 @@ internal abstract class Striped64
                 }
                 else if (n >= MaxBuckets || cells != @as)
                 {
-                    // 最大尺寸或淡度
+                    // 已达到最大大小或信息已过时。
                     collide = false;
                 }
                 else if (!collide)
@@ -218,7 +218,7 @@ internal abstract class Striped64
                     {
                         if (cells == @as)
                         {
-                            // 除非变色, 除非平滑
+                            // 如果信息未过时，则扩展表。
                             var rs = new Cell[n << 1];
                             for (var i = 0; i < n; ++i)
                             {
@@ -235,18 +235,18 @@ internal abstract class Striped64
 
                     collide = false;
 
-                    // 重试使用扩大表格
+                    // 使用扩展后的表重试。
                     continue;
                 }
 
-                // 重写
+                // 重新计算哈希。
                 h = AdvanceProbe(h);
             }
             else if (_cellsBusy == 0 && cells == @as && CasCellsBusy())
             {
                 try
                 {
-                    // 初始化表格
+                    // 初始化表。
                     if (cells == @as)
                     {
                         var rs = new Cell[2];
@@ -261,7 +261,7 @@ internal abstract class Striped64
                 }
             }
 
-            // 返回基地
+            // 回退为使用 base。
             else if (@base.CompareAndSwap(v = @base.VolatileRead(), v + x))
             {
                 break;

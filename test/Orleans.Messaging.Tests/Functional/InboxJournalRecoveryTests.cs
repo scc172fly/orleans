@@ -90,7 +90,7 @@ public sealed class InboxJournalRecoveryTests : MessagingBehaviorTestBase
         await Fixture.OnGrainAsync(receiver, () => InboxTestAccess.StageAcceptance(Fixture.GetInbox(receiver), envelope));
         await receiver.RetryWriteStateAsync();
 
-        // 这项工作拥有进入处理者的通行证。
+        // 此作业拥有进入处理程序的处理轮次。
         var running = Fixture.RunPumpAsync(receiver);
         await handler.WaitUntilEnteredAsync();
         var journal = JournalId.FromGrainId(receiver.GetGrainId());
@@ -118,7 +118,7 @@ public sealed class InboxJournalRecoveryTests : MessagingBehaviorTestBase
         var envelope = CreateEnvelope(receiver, NewMessage(61, "schedule-failure"));
         Fixture.JobManagerProbe.FailNext(MessagingPump.JobName);
 
-        // 通知时间是准备接受书时安排的,因此如果未能做到,则会防止发生这种承诺。
+        // 在准备接受记录的写入期间调度唤醒，因此调度失败会阻止该次提交。
         var failure = await Assert.ThrowsAsync<JournaledStatePreCommitException>(() => DeliverAsync(receiver, envelope));
         Assert.IsType<IOException>(failure.InnerException);
         await oldContext.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);

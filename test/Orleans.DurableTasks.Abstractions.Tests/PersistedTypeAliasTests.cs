@@ -5,8 +5,8 @@ using Xunit;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// 输入主机所在的抽象类型(如在日记中记录的答复)的电线名, 重命名
-/// 类型叶上记录的数据可读。
+/// 固定宿主持久化的抽象类型的传输格式名称（例如日志中记录的响应），确保
+/// 类型重命名后仍能读取已有记录。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

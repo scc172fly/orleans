@@ -1,10 +1,10 @@
-# Auto detect text files and perform LF normalization
+# 自动检测文本文件并进行 LF 归一化
 * text=auto
 
-# Custom for Visual Studio
+# Visual Studio 的自定义设置
 *.cs     diff=csharp
 
-# Standard to msysgit
+# msysgit 的标准设置
 *.doc	 diff=astextplain
 *.DOC	 diff=astextplain
 *.docx diff=astextplain
@@ -21,10 +21,10 @@
 *.verified.txt text eol=lf working-tree-encoding=UTF-8
 *.verified.jsonl text eol=lf working-tree-encoding=UTF-8
 
-# GitHub Actions helper scripts run under Bash on Linux.
+# GitHub Actions 辅助脚本在 Linux 上通过 Bash 运行。
 .github/scripts/*.sh text eol=lf
 
-# Frontend sources use LF on every platform so `npm run build` produces identical committed output.
+# 前端源码在所有平台上使用 LF，使 `npm run build` 生成完全相同的待提交输出。
 src/Dashboard/Orleans.Dashboard.App/** text=auto eol=lf
-# Generated assets keep their exact bytes, including whitespace in minified code and upstream notices.
+# 生成资源保持其精确字节，包括压缩代码中的空白和上游声明。
 src/Dashboard/Orleans.Dashboard.App/dist/** -text -whitespace linguist-generated=true

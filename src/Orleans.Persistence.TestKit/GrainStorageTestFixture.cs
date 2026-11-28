@@ -7,11 +7,11 @@ using Orleans.TestingHost;
 namespace Orleans.Persistence.TestKit;
 
 /// <summary>
-/// 用于测试的基底固定定型类 IGrainStorage 使用 InProcessTestCluster.
+/// 使用 InProcessTestCluster 测试 IGrainStorage 实现的基础测试夹具类。
 /// </summary>
 /// <remarks>
-/// 这一固定装置为测试储存供应商提供了一个在工艺 Orleans 中集。
-/// 应用抽象方法配置存储提供者并检索以进行测试。
+/// 此测试夹具提供进程内 Orleans 集群，用于测试存储提供程序。
+/// 实现抽象方法，以配置存储提供程序并获取它以供测试。
 /// </remarks>
 public abstract class GrainStorageTestFixture
 {
@@ -20,17 +20,17 @@ public abstract class GrainStorageTestFixture
     private IGrainStorage? _storage;
 
     /// <summary>
-    /// 获得在过程测试组群。
+    /// 获取进程内测试集群。
     /// </summary>
     protected InProcessTestCluster Cluster => _cluster ?? throw new InvalidOperationException("The test cluster has not been initialized.");
 
     /// <summary>
-    /// 得到 grain 创建工厂 grain 参考文献。
+    /// 获取用于创建 Grain 引用的 Grain 工厂。
     /// </summary>
     public IGrainFactory GrainFactory => Cluster.Client;
 
     /// <summary>
-    /// 测试存储供应商
+    /// 获取正在测试的存储提供程序。
     /// </summary>
     public IGrainStorage Storage
     {
@@ -42,21 +42,21 @@ public abstract class GrainStorageTestFixture
     }
 
     /// <summary>
-    /// 获取正在测试的存储供应商的名称 。
+    /// 获取正在测试的存储提供程序的名称。
     /// </summary>
     protected abstract string StorageProviderName { get; }
 
     /// <summary>
-    /// 在启动该组之前检查先决条件。
-    /// 覆盖此选项以检查外部依赖性(e.g., Azure 存储模拟器)。
+    /// 在初始化集群之前检查前置条件。
+    /// 重写此方法以检查外部依赖项（例如 Azure Storage 模拟器）。
     /// </summary>
-    /// <exception cref="Exception">如果不符合先决条件,就予以放弃。</exception>
+    /// <exception cref="Exception">前置条件未满足时抛出。</exception>
     protected virtual void CheckPreconditionsOrThrow()
     {
     }
 
     /// <summary>
-    /// 试验制造者称这为在先决条件失效时跳过试验。
+    /// 确保满足前置条件。在测试构造函数中调用此方法，可在前置条件不满足时跳过测试。
     /// </summary>
     public void EnsurePreconditionsMet()
     {
@@ -64,9 +64,9 @@ public abstract class GrainStorageTestFixture
     }
 
     /// <summary>
-    /// 配置 silo ,与存储提供者一起测试。
+    /// 为 Silo 配置待测试的存储提供程序。
     /// </summary>
-    /// <param name="siloBuilder">要配置的 silo 构建器。</param>
+    /// <param name="siloBuilder">要配置的 Silo 构建器。</param>
     /// <example>
     /// <code>
     /// protected override void ConfigureSilo(ISiloBuilder siloBuilder)
@@ -78,17 +78,17 @@ public abstract class GrainStorageTestFixture
     protected abstract void ConfigureSilo(ISiloBuilder siloBuilder);
 
     /// <summary>
-    /// 配置其他的测试组选项 。
+    /// 根据需要配置其他测试集群选项。
     /// </summary>
-    /// <param name="builder">测试组群构建器。</param>
+    /// <param name="builder">测试集群构建器。</param>
     protected virtual void ConfigureTestCluster(InProcessTestClusterBuilder builder)
     {
     }
 
     /// <summary>
-    /// 初始化测试组群,解决配置的存储提供者。
+    /// 初始化测试集群，并解析已配置的存储提供程序。
     /// </summary>
-    /// <returns>代表非同步初始化操作的任务 。</returns>
+    /// <returns>表示异步初始化操作的任务。</returns>
     public virtual async ValueTask InitializeAsync()
     {
         try
@@ -114,9 +114,9 @@ public abstract class GrainStorageTestFixture
     }
 
     /// <summary>
-    /// 停止并处置测试组。
+    /// 停止并释放测试集群。
     /// </summary>
-    /// <returns>一项代表非同步处置作业的任务。</returns>
+    /// <returns>表示异步释放操作的任务。</returns>
     public virtual async ValueTask DisposeAsync()
     {
         if (_cluster is not { } cluster)

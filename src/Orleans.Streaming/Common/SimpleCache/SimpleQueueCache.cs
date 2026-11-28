@@ -9,12 +9,12 @@ namespace Orleans.Providers.Streams.Common
 {
     internal class CacheBucket
     {
-        // 用于后压检测 我们保持10桶的直方图
-        // 每一份桶子记录 有多少物品在那个桶子里的储藏处
-        // 有多少光标在水桶里 投向一个东西
-        // 当我们添加和删除缓存物品(可能打开或去除桶)时,我们将更新 NumCurrentItems
-        // 每次移动光标时,我们都会更新 NumCurrentCursors
-        // 如果第一个(最过时的桶)至少有一个光标指向它,我们说我们受到背压(完全缓存)。
+        // 为检测背压，我们维护一个包含 10 个桶的直方图。
+        // 每个桶记录缓存中属于该桶的数据项数量，
+        // 以及指向该桶内数据项的游标数量。
+        // 添加和移除缓存数据项时更新 NumCurrentItems（可能创建或移除桶）。
+        // 每次移动游标时更新 NumCurrentCursors。
+        // 在缓存已满的情况下，如果第一个（最旧的）桶至少有一个游标指向其中的数据项，则认为存在背压。
         internal int NumCurrentItems { get; private set; }
         internal int NumCurrentCursors { get; private set; }
 
@@ -30,27 +30,27 @@ namespace Orleans.Providers.Streams.Common
 
     internal class SimpleQueueCacheItem
     {
-        internal IBatchContainer Batch = null!; // 构造后总是立即通过对象初始化器设置 。
+        internal IBatchContainer Batch = null!; // 始终在构造完成后立即通过对象初始化器设置。
         internal bool DeliveryFailure;
-        internal StreamSequenceToken SequenceToken = null!; // 构造后总是立即通过对象初始化器设置 。
-        internal CacheBucket CacheBucket = null!; // 构造后总是立即通过对象初始化器设置 。
+        internal StreamSequenceToken SequenceToken = null!; // 始终在构造完成后立即通过对象初始化器设置。
+        internal CacheBucket CacheBucket = null!; // 始终在构造完成后立即通过对象初始化器设置。
     }
 
     /// <summary>
-    /// 保存项目的存储的队列缓存 。
+    /// 将数据项保留在内存中的队列缓存。
     /// </summary>
     public partial class SimpleQueueCache : IQueueCache
     {
         private readonly LinkedList<SimpleQueueCacheItem> cachedMessages;
         private readonly int maxCacheSize;
         private readonly ILogger logger;
-        private readonly List<CacheBucket> cacheCursorHistogram; // 用于后压力检测
+        private readonly List<CacheBucket> cacheCursorHistogram; // 用于背压检测。
         private readonly Func<SimpleQueueCache, StreamId, SimpleQueueCacheCursor>? cursorFactory;
         private const int NUM_CACHE_HISTOGRAM_BUCKETS = 10;
         private readonly int CACHE_HISTOGRAM_MAX_BUCKET_SIZE;
 
         /// <summary>
-        /// 获取缓存中的项目数 。
+        /// 获取缓存中的数据项数量。
         /// </summary>
         public int Size => cachedMessages.Count;
 
@@ -63,14 +63,14 @@ namespace Orleans.Providers.Streams.Common
         /// <summary>
         /// 初始化 <see cref="SimpleQueueCache"/> 类的新实例。
         /// </summary>
-        /// <param name="cacheSize">缓存的大小。</param>
-        /// <param name="logger">日志器。</param>
+        /// <param name="cacheSize">缓存大小。</param>
+        /// <param name="logger">日志记录器。</param>
         public SimpleQueueCache(int cacheSize, ILogger logger)
             : this(cacheSize, logger, cursorFactory: null)
         {
         }
 
-        // 测试可以观察光标的所有权,而不暴露公共工厂钩。
+        // 允许测试观察游标所有权，而无需公开工厂扩展点。
         internal SimpleQueueCache(
             int cacheSize,
             ILogger logger,
@@ -82,7 +82,7 @@ namespace Orleans.Providers.Streams.Common
             this.logger = logger;
             this.cursorFactory = cursorFactory;
             cacheCursorHistogram = new List<CacheBucket>();
-            CACHE_HISTOGRAM_MAX_BUCKET_SIZE = Math.Max(cacheSize / NUM_CACHE_HISTOGRAM_BUCKETS, 1); // 10桶,我们有10桶
+            CACHE_HISTOGRAM_MAX_BUCKET_SIZE = Math.Max(cacheSize / NUM_CACHE_HISTOGRAM_BUCKETS, 1); // 共有 10 个桶。
         }
 
         /// <inheritdoc />
@@ -96,16 +96,16 @@ namespace Orleans.Providers.Streams.Common
         public virtual bool TryPurgeFromCache([MaybeNullWhen(false)] out IList<IBatchContainer> purgedItems)
         {
             purgedItems = null;
-            if (cachedMessages.Count == 0) return false; // 空空缓存
-            if (cacheCursorHistogram.Count == 0) return false;  // 光标尚未显示 - 基本为零消费者。
-            if (cacheCursorHistogram[0].NumCurrentCursors > 0) return false; // 消费者仍然活跃在最古老的桶子-快路中
+            if (cachedMessages.Count == 0) return false; // 缓存为空。
+            if (cacheCursorHistogram.Count == 0) return false;  // 尚无游标，基本上还没有消费者。
+            if (cacheCursorHistogram[0].NumCurrentCursors > 0) return false; // 最旧的桶仍有活动消费者：快速路径。
 
             var allItems = new List<IBatchContainer>();
             while (cacheCursorHistogram.Count > 0 && cacheCursorHistogram[0].NumCurrentCursors == 0)
             {
                 List<IBatchContainer> items = DrainBucket(cacheCursorHistogram[0]);
                 allItems.AddRange(items);
-                cacheCursorHistogram.RemoveAt(0); // 删除最后一个桶
+                cacheCursorHistogram.RemoveAt(0); // 移除最后一个桶。
             }
             purgedItems = allItems;
 
@@ -117,11 +117,11 @@ namespace Orleans.Providers.Streams.Common
         private List<IBatchContainer> DrainBucket(CacheBucket bucket)
         {
             var itemsToRelease = new List<IBatchContainer>(bucket.NumCurrentItems);
-            // 缓存中从上开始的所有行进项目
-            // 并搬出储藏处 把那些藏在给定桶里的东西搬走 直到我们跳到下一个桶
+            // 从最后一个数据项开始遍历缓存中的所有数据项，
+            // 从缓存中移除属于指定桶的数据项，直到进入下一个桶。
             while (bucket.NumCurrentItems > 0)
             {
-                SimpleQueueCacheItem item = cachedMessages.Last!.Value; // bucket.NumCurrentItems > 0 表示清单是非空白的。
+                SimpleQueueCacheItem item = cachedMessages.Last!.Value; // bucket.NumCurrentItems > 0 表明列表非空。
                 if (item.CacheBucket.Equals(bucket))
                 {
                     if (!item.DeliveryFailure)
@@ -133,7 +133,7 @@ namespace Orleans.Providers.Streams.Common
                 }
                 else
                 {
-                    // 此项目已经指向下一桶, 所以停止 。
+                    // 此数据项已指向下一个桶，因此停止。
                     break;
                 }
             }
@@ -154,7 +154,7 @@ namespace Orleans.Providers.Streams.Common
 
         /// <inheritdoc />
         /// <exception cref="QueueCacheMissException">
-        /// 请求的符名比缓存保存的信件要旧 。
+        /// 请求的序列令牌对应的位置早于缓存中最早保留的消息。
         /// </exception>
         [Obsolete("Use IQueueCache.TryGetCacheCursor instead.")]
         public virtual IQueueCacheCursor GetCacheCursor(StreamId streamId, StreamSequenceToken? token)
@@ -190,7 +190,7 @@ namespace Orleans.Providers.Streams.Common
             {
                 try
                 {
-#pragma warning disable CS0618 // Required for compatibility with derived caches which override the legacy method.
+#pragma warning disable CS0618 // 为兼容重写旧版方法的派生缓存而保留。
                     return QueueCacheCursorResult<IQueueCacheCursor>.FromCursor(GetCacheCursor(streamId, token));
 #pragma warning restore CS0618
                 }
@@ -305,50 +305,50 @@ namespace Orleans.Providers.Streams.Common
         {
             LogDebugInitializeCursor(cursor, sequenceToken);
 
-            // 缓存、未设置的标牌和等待更多数据等信息中没有任何内容。
+            // 缓存中没有数据，清除令牌设置并等待更多数据。（译注：实现清除游标的元素位置，并保留传入的序列令牌。）
             if (cachedMessages.Count == 0)
             {
                 UnsetCursor(cursor, sequenceToken);
                 return null;
             }
 
-            // 如果未提供标记, 则在缓存结束处设置项目上的标记
-            sequenceToken = sequenceToken ?? cachedMessages.First?.Value?.SequenceToken!; // cachedMessages.Count > 0 (上文已作核对),因此Ist/Value/SequenceToken 得到保证不中。
+            // 如果未提供令牌，则将令牌设置为缓存末端数据项对应的令牌。
+            sequenceToken = sequenceToken ?? cachedMessages.First?.Value?.SequenceToken!; // 此处 cachedMessages.Count > 0（上文已检查），因此 First、Value 和 SequenceToken 保证不为 null。
 
-            // 如果 sequenceToken 过于新, 无法在缓存、 取消设置标记并等待更多数据 。
-            if (EventSequenceTokenCompatibility.Compare(sequenceToken, cachedMessages.First!.Value.SequenceToken) > 0) // cachedMessages.Count > 0 (上文已作核对), 所以首先保证不停。
+            // 如果 sequenceToken 太新而尚未进入缓存，则清除令牌设置并等待更多数据。（译注：实现清除游标的元素位置，并保留该序列令牌。）
+            if (EventSequenceTokenCompatibility.Compare(sequenceToken, cachedMessages.First!.Value.SequenceToken) > 0) // 此处 cachedMessages.Count > 0（上文已检查），因此 First 保证不为 null。
             {
                 UnsetCursor(cursor, sequenceToken);
                 return null;
             }
 
-            LinkedListNode<SimpleQueueCacheItem> lastMessage = cachedMessages.Last!; // cachedMessages.Count > 0 (上文已检查) 这里, 所以 Last 是有保证的不中
-            // 检查以查看偏移是否太旧,无法在缓存中
+            LinkedListNode<SimpleQueueCacheItem> lastMessage = cachedMessages.Last!; // 此处 cachedMessages.Count > 0（上文已检查），因此 Last 保证不为 null。
+            // 检查偏移量是否过旧，已不在缓存中。
             if (EventSequenceTokenCompatibility.Compare(sequenceToken, lastMessage.Value.SequenceToken) < 0)
             {
                 return CreateCacheMissInfo(sequenceToken);
             }
 
-            // 现在,请求的 sequenceToken 已经设置,并且也处于缓存限度之内。
+            // 此时，请求的 sequenceToken 已设置且位于缓存的范围内。
 
-            // 查找首封信件, 时间或下方
-            // 事件从最新的到最老的顺序排列, 因此从列表开始循环,直到我们之前的偏移点或结尾点发生。
+            // 查找第一条偏移量小于或等于指定偏移量的消息。
+            // 事件按从新到旧的顺序排列，因此从列表开头迭代，直到遇到偏移量更早的节点或到达列表末尾。
             LinkedListNode<SimpleQueueCacheItem>? node = cachedMessages.First;
             while (node != null && EventSequenceTokenCompatibility.Compare(node.Value.SequenceToken, sequenceToken) > 0)
             {
-                // 我们到最后了吗?
-                if (node.Next == null) // 节点是最后一条消息
+                // 是否已到达末尾？
+                if (node.Next == null) // node 是最后一条消息。
                     break;
 
-                // 如果 sequenceId 介于两之间,取高者
+                // 如果 sequenceId 介于两者之间，则取较大的一个。
                 if (EventSequenceTokenCompatibility.Compare(node.Next.Value.SequenceToken, sequenceToken) < 0)
                     break;
 
                 node = node.Next;
             }
 
-            // 从一开始就返回光标。
-            SetCursor(cursor, node!); // 保证无核:节点开始为第一(自数 > 0 起为非中值),并且只有在进行非中值检查后才被重新分配给 node.Next 。
+            // 从起始位置返回游标。
+            SetCursor(cursor, node!); // 保证不为 null：node 初始为 First（由于 Count > 0，因此非 null），并且只有在确认 node.Next 非 null 后才重新赋值。
             return null;
         }
 
@@ -356,7 +356,7 @@ namespace Orleans.Providers.Streams.Common
         {
             LogDebugRefreshCursor(cursor, sequenceToken);
 
-            // 设置
+            // 如果尚未设置，则设置。
             if (!cursor.IsSet)
             {
                 if (cursor.WaitingForEarliestAvailable)
@@ -391,7 +391,7 @@ namespace Orleans.Providers.Streams.Common
             => new(requestedToken, cachedMessages.Last!.Value.SequenceToken, cachedMessages.First!.Value.SequenceToken);
 
         /// <summary>
-        /// 获取在所提供光标的缓存中下一个消息
+        /// 获取指定游标处缓存中的下一条消息。
         /// </summary>
         /// <param name="cursor"></param>
         /// <param name="batch"></param>
@@ -403,14 +403,14 @@ namespace Orleans.Providers.Streams.Common
             batch = null;
             if (!cursor.IsSet) return false;
 
-            // 如果我们在缓存未设置光标的结尾处, 并向前移动抵消一个
+            // 如果已到达缓存末端，则取消设置游标，并将偏移量向前移动一个位置。
             if (cursor.Element == cachedMessages.First)
             {
                 UnsetCursor(cursor, null);
             }
-            else // 向下贴贴:
+            else // 前进到下一项：
             {
-                AdvanceCursor(cursor, cursor.Element!.Previous!); // cursor.IsSet 元素是真实的,所以元素是非null;元素!== 1⁄4它有前一个节点。
+                AdvanceCursor(cursor, cursor.Element!.Previous!); // cursor.IsSet 为 true，因此 Element 不为 null；Element != First，因此它具有 Previous 节点。
             }
 
             batch = cursor.Element?.Value.Batch;
@@ -421,9 +421,9 @@ namespace Orleans.Providers.Streams.Common
         {
             LogDebugUpdateCursor(cursor, item.Value.Batch);
 
-            cursor.Element!.Value.CacheBucket.UpdateNumCursors(-1); // 从前桶中移除; cursor.Element 这里不中号( 见调用者)。
+            cursor.Element!.Value.CacheBucket.UpdateNumCursors(-1); // 从前一个桶中移除；此处 cursor.Element 不为 null（参见调用方）。
             cursor.Set(item);
-            cursor.Element!.Value.CacheBucket.UpdateNumCursors(1);  // 添加到下一桶
+            cursor.Element!.Value.CacheBucket.UpdateNumCursors(1);  // 添加到下一个桶。
         }
 
         internal void SetCursor(SimpleQueueCacheCursor cursor, LinkedListNode<SimpleQueueCacheItem> item)
@@ -431,7 +431,7 @@ namespace Orleans.Providers.Streams.Common
             LogDebugSetCursor(cursor, item.Value.Batch);
 
             cursor.Set(item);
-            cursor.Element!.Value.CacheBucket.UpdateNumCursors(1);  // 添加到下一个桶; cursor.Set(项目)以上保证,元素为无核。
+            cursor.Element!.Value.CacheBucket.UpdateNumCursors(1);  // 添加到下一个桶；上面的 cursor.Set(item) 保证 Element 不为 null。
         }
 
         internal void UnsetCursor(SimpleQueueCacheCursor cursor, StreamSequenceToken? token)
@@ -440,7 +440,7 @@ namespace Orleans.Providers.Streams.Common
 
             if (cursor.IsSet)
             {
-                cursor.Element!.Value.CacheBucket.UpdateNumCursors(-1); // cursor.IsSet 是真的,所以元素是非核。
+                cursor.Element!.Value.CacheBucket.UpdateNumCursors(-1); // cursor.IsSet 为 true，因此 Element 不为 null。
             }
             cursor.UnSet(token);
         }
@@ -448,7 +448,7 @@ namespace Orleans.Providers.Streams.Common
         private void Add(IBatchContainer batch, StreamSequenceToken sequenceToken)
         {
             if (batch == null) throw new ArgumentNullException(nameof(batch));
-            // 绝不应当发生这种情况,但以防
+            // 理论上不应发生这种情况，但仍作防御性处理。
             if (Size >= maxCacheSize) throw new CacheFullException();
 
             CacheBucket cacheBucket;
@@ -459,16 +459,16 @@ namespace Orleans.Providers.Streams.Common
             }
             else
             {
-                cacheBucket = cacheCursorHistogram[cacheCursorHistogram.Count - 1]; // 最后最后一个
+                cacheBucket = cacheCursorHistogram[cacheCursorHistogram.Count - 1]; // 最后一个。
             }
 
-            if (cacheBucket.NumCurrentItems == CACHE_HISTOGRAM_MAX_BUCKET_SIZE) // 最后一个桶满了,打开新的
+            if (cacheBucket.NumCurrentItems == CACHE_HISTOGRAM_MAX_BUCKET_SIZE) // 最后一个桶已满，创建新桶。
             {
                 cacheBucket = new CacheBucket();
                 cacheCursorHistogram.Add(cacheBucket);
             }
 
-            // 添加信件到链接列表
+            // 将消息添加到链表。
             var item = new SimpleQueueCacheItem
             {
                 Batch = batch,

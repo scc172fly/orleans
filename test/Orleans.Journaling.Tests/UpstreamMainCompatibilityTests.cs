@@ -12,19 +12,19 @@ using static VerifyXunit.Verifier;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// 跨转复原测试:输入从 <c>upstream/main</c>
-/// (通过PR的作者使用所留 <c>StateMachineManager</c> +内嵌的 <c>Durable*</c> 作家)
-/// <see cref="JournaledStateManager"/> 与 OrleansBinary 并声称回收的物
-/// 模拟状态符合主写内容 。
+/// 跨版本恢复测试：将从 <c>upstream/main</c> 捕获的预先准备好的日志二进制数据
+/// （使用旧版 <c>StateMachineManager</c> 及内联的 <c>Durable*</c> 写入器）交给此 PR 的
+/// 使用 OrleansBinary 编解码器的 <see cref="JournaledStateManager"/> 处理，并断言恢复后的
+/// 内存状态与 main 写入的内容一致。
 /// </summary>
 /// <remarks>
-/// <c>fixtures</c> 下的二进制固定质是由
-/// <c>CaptureCrossVersionRecoveryFixture.EmitMainJournalHex</c> 测试正在对
-/// 上/上层(<c>5989958561</c>。捕获练习的每一 <c>Durable*</c> 类型,并按
-/// 流序登记令,因此日记流号(8.14)与以下的登记一致。
-/// 故意将电线格式改变为 OrleansBinary cocs, 重运行
-/// 固定在固定在上游/主要地带的工作树上,替换固定字节并接受更新的
-/// 以 <c>snapshots</c>下进行核实。
+/// <c>fixtures</c> 下的二进制测试数据由
+/// 针对 upstream/main 运行的 <c>CaptureCrossVersionRecoveryFixture.EmitMainJournalHex</c> 测试生成
+/// （提交 <c>5989958561</c>）。捕获过程覆盖每种 <c>Durable*</c> 类型，并固定
+/// 流注册顺序，使日志流 ID（8..14）与下方的注册对应。
+/// 若在有意修改 OrleansBinary 编解码器的传输格式后需要重新生成数据，请重新运行该
+/// 测试夹具（在固定到 upstream/main 的工作树中），替换测试数据字节，并接受
+/// <c>snapshots</c> 下更新后的 Verify 快照。
 /// </remarks>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -78,8 +78,8 @@ public sealed class UpstreamMainCompatibilityTests : JournalingTestBase
     private DurableStates CreateStates(IJournalStorage storage)
     {
         var manager = CreateManager(storage);
-        // 登记令登记令必须与捕获固定线匹配,以便日记流识别号(8.14)
-        // 与上游/主要内容一致。
+        // 注册顺序必须与捕获测试数据时的顺序一致，以使日志流 ID（8..14）
+        // 与 upstream/main 写入的内容对应。
         return new DurableStates(
             manager,
             new DurableDictionary<string, int>("dict", manager,

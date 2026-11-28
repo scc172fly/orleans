@@ -277,7 +277,7 @@ public sealed class MembershipTableTestsBaseLifecycleTests
         return Substitute.ForPartsOf<LegacyFixtureHarness>(table, gateway, events);
     }
 
-    // 只有运行时间代理物是具体的,因此继承的符合性事实不是可发现的测试案例。
+    // 只有运行时代理是具体类型，因此继承的契约符合性 Fact 测试不会被发现为测试用例。
     public abstract class LegacyFixtureHarness(
         IMembershipTable table, IGatewayListProvider gateway, List<string> events)
         : MembershipTableTestsBase(new ConnectionStringFixture(), null!, new LoggerFilterOptions())

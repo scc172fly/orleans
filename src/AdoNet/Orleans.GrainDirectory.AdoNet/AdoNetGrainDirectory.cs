@@ -7,10 +7,10 @@ internal sealed partial class AdoNetGrainDirectory(string name, AdoNetGrainDirec
     private RelationalOrleansQueries? _queries;
 
     /// <summary>
-    /// 检查一个 grain 激活。
+    /// 查找 Grain 激活实例。
     /// </summary>
-    /// <param name="grainId"> grain 标识符。</param>
-    /// <returns>下 grain 找到地址后, 找不到地址或地址无效 。</returns>
+    /// <param name="grainId">Grain 标识符。</param>
+    /// <returns>如果找到则返回 Grain 地址，否则返回 null。</returns>
     public async Task<GrainAddress?> Lookup(GrainId grainId)
     {
         try
@@ -31,10 +31,10 @@ internal sealed partial class AdoNetGrainDirectory(string name, AdoNetGrainDirec
     }
 
     /// <summary>
-    /// 注册新的 grain 激活。
+    /// 注册新的 Grain 激活实例。
     /// </summary>
-    /// <param name="address"> grain 地址。</param>
-    /// <returns>新的或当前的 grain 地址。</returns>
+    /// <param name="address">Grain 地址。</param>
+    /// <returns>新的或当前的 Grain 地址。</returns>
     public async Task<GrainAddress?> Register(GrainAddress address)
     {
         ArgumentNullException.ThrowIfNull(address);
@@ -44,7 +44,7 @@ internal sealed partial class AdoNetGrainDirectory(string name, AdoNetGrainDirec
         {
             var queries = await GetQueriesAsync();
 
-            // 如果以线索安全方式找到,预计此呼叫将登记新条目或返回现有条目
+            // 此调用应以线程安全的方式注册新条目，或者在找到现有条目时返回该条目。
             var entry = await queries
                 .RegisterGrainActivationAsync(_clusterId, name, address.GrainId.ToString(), address.SiloAddress.ToParsableString(), address.ActivationId.ToParsableString())
                 .WaitAsync(lifetime.ApplicationStopping);
@@ -61,9 +61,9 @@ internal sealed partial class AdoNetGrainDirectory(string name, AdoNetGrainDirec
     }
 
     /// <summary>
-    /// 解除已有的 grain 激活的登记。
+    /// 注销现有的 Grain 激活实例。
     /// </summary>
-    /// <param name="address"> grain 地址。</param>
+    /// <param name="address">Grain 地址。</param>
     public async Task Unregister(GrainAddress address)
     {
         ArgumentNullException.ThrowIfNull(address);
@@ -90,9 +90,9 @@ internal sealed partial class AdoNetGrainDirectory(string name, AdoNetGrainDirec
     }
 
     /// <summary>
-    /// 全部不登记者 grain 指定集中的激活 silos.
+    /// 注销指定 Silo 集合中的所有 Grain 激活实例。
     /// </summary>
-    /// <param name="siloAddresses">集 silos.</param>
+    /// <param name="siloAddresses">Silo 集合。</param>
     public async Task UnregisterSilos(List<SiloAddress> siloAddresses)
     {
         ArgumentNullException.ThrowIfNull(siloAddresses);
@@ -125,32 +125,32 @@ internal sealed partial class AdoNetGrainDirectory(string name, AdoNetGrainDirec
     }
 
     /// <summary>
-    /// 不幸地执行细节,以说明缺乏同步寿命。
-    /// 理想的情况是,这种关注将上移到上游,这样就不需要了。
+    /// 由于缺少异步生命周期支持，不得不采用的实现细节。
+    /// 理想情况下，应将此问题移至上游处理，以免需要此实现。
     /// </summary>
     private readonly SemaphoreSlim _semaphore = new(1);
 
     /// <summary>
-    /// 确保只装入一次查询, 并允许在负载失败时恢复 。
+    /// 确保查询仅加载一次，同时允许加载失败后进行恢复。
     /// </summary>
     private ValueTask<RelationalOrleansQueries> GetQueriesAsync()
     {
-        // 尝试快速路径
+        // 尝试快速路径。
         return _queries is not null ? new(_queries) : new(CoreAsync());
 
-        // 慢速路径
+        // 慢速路径。
         async Task<RelationalOrleansQueries> CoreAsync()
         {
             await _semaphore.WaitAsync(lifetime.ApplicationStopping);
             try
             {
-                // 重新尝试快速路径
+                // 再次尝试快速路径。
                 if (_queries is not null)
                 {
                     return _queries;
                 }
 
-                // 慢慢路径路路路 - 只有在调用成功时才会设定成员变量
+                // 慢速路径：只有调用成功时才设置成员变量。
                 return _queries = await RelationalOrleansQueries
                     .CreateInstance(options.Invariant, options.ConnectionString, options.DataSource)
                     .WaitAsync(lifetime.ApplicationStopping);

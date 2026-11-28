@@ -6,13 +6,13 @@ using Orleans.Configuration;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// 其背压力算法基于平均压力值的缓存压力监视器
-    /// 压力超过所有压力
+    /// 缓存压力监视器，其背压算法基于对所有压力贡献值
+    /// 求平均值。
     /// </summary>
     public partial class AveragingCachePressureMonitor : ICachePressureMonitor
     {
         /// <summary>
-        /// 用于报告缓存相关度量的缓存监测器
+        /// 用于报告缓存相关指标的缓存监视器。
         /// </summary>
         public ICacheMonitor? CacheMonitor { set; private get; }
         private static readonly TimeSpan checkPeriod = TimeSpan.FromSeconds(2);
@@ -25,7 +25,7 @@ namespace Orleans.Streaming.EventHubs
         private readonly double flowControlThreshold;
 
         /// <summary>
-        /// 构造建构器
+        /// 构造函数。
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="monitor"></param>
@@ -34,7 +34,7 @@ namespace Orleans.Streaming.EventHubs
         { }
 
         /// <summary>
-        /// 构造建构器
+        /// 构造函数。
         /// </summary>
         /// <param name="flowControlThreshold"></param>
         /// <param name="logger"></param>
@@ -51,8 +51,8 @@ namespace Orleans.Streaming.EventHubs
         /// <inheritdoc />
         public void RecordCachePressureContribution(double cachePressureContribution)
         {
-            // 体重比健康贡献高三倍。
-            // 健康消费者消费比不健康的消费者多,这是对这一事实的粗略补偿。
+            // 不健康的贡献值权重是健康贡献值的三倍。
+            // 这是对健康消费者比不健康消费者更频繁消费这一事实的粗略补偿。
             double weight = cachePressureContribution < flowControlThreshold ? 1.0 : 3.0;
             accumulatedCachePressure += cachePressureContribution * weight;
             cachePressureContributionCount += weight;
@@ -71,10 +71,10 @@ namespace Orleans.Streaming.EventHubs
 
         private void CalculatePressure()
         {
-            // 如果我们没有捐款, 不要改变状态
+            // 如果没有任何贡献值，则不改变状态。
             if (cachePressureContributionCount < 0.5)
             {
-                // 5次支票之后,没有交款,反正要查
+                // 连续 5 次检查都没有贡献值后，仍执行检查。
                 cachePressureContributionCount += 0.1;
                 return;
             }
@@ -82,7 +82,7 @@ namespace Orleans.Streaming.EventHubs
             double pressure = accumulatedCachePressure / cachePressureContributionCount;
             bool wasUnderPressure = isUnderPressure;
             isUnderPressure = pressure > flowControlThreshold;
-            // 如果我们改变状态, 日志
+            // 如果状态发生变化，则记录日志。
             if (isUnderPressure != wasUnderPressure)
             {
                 this.CacheMonitor?.TrackCachePressureMonitorStatusChange(this.GetType().Name, isUnderPressure, cachePressureContributionCount, pressure, this.flowControlThreshold);

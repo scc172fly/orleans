@@ -13,7 +13,7 @@ internal sealed class JournaledJobShardOwnershipFence(IDurableValueCommandCodec<
     public void Write(string owner)
     {
         _owner = owner;
-        // 重复,业主仍然在预支存储的货币质押
+        // 即使所有者重复不变，也会推进存储并发令牌。
         codec.WriteSet(owner, _writer);
     }
 

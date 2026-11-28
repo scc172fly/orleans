@@ -9,21 +9,21 @@ using Orleans.Runtime.Messaging;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 用 TLS 配置 silo 的扩展名。
+    /// 用于为 Silo 配置 TLS 的扩展方法。
     /// </summary>
     public static partial class SiloTlsHostingExtensions
     {
         /// <summary>
-        /// 配置 TLS 。
+        /// 配置 TLS。
         /// </summary>
         /// <param name="builder">要配置的构建器。</param>
-        /// <param name="storeName">证书存储器,以从该证书中装载证书。</param>
-        /// <param name="subject">证书要装入的标名。</param>
-        /// <param name="allowInvalid">表明是否应当考虑无效证书,例如自签证书。</param>
-        /// <param name="location">装载证书的存储位置。</param>
-        /// <param name="configureOptions">配置 <see cref="TlsOptions"/>的动作。</param>
-        /// <returns>建筑工。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 是 <see langword="null"/>.</exception>
+        /// <param name="storeName">用于加载证书的证书存储区。</param>
+        /// <param name="subject">要加载的证书的主题名称。</param>
+        /// <param name="allowInvalid">指示是否考虑无效证书，例如自签名证书。</param>
+        /// <param name="location">用于加载证书的存储区位置。</param>
+        /// <param name="configureOptions">用于配置 <see cref="TlsOptions"/> 的 Action。</param>
+        /// <returns>构建器。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 为 <see langword="null"/>。</exception>
         public static ISiloBuilder UseTls(
             this ISiloBuilder builder,
             StoreName storeName,
@@ -41,13 +41,13 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 TLS 。
+        /// 配置 TLS。
         /// </summary>
         /// <param name="builder">要配置的构建器。</param>
         /// <param name="certificate">服务器证书。</param>
-        /// <param name="configureOptions">配置 <see cref="TlsOptions"/>的动作。</param>
-        /// <returns>建筑工。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 是 <see langword="null"/>.</exception>
+        /// <param name="configureOptions">用于配置 <see cref="TlsOptions"/> 的 Action。</param>
+        /// <returns>构建器。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 为 <see langword="null"/>。</exception>
         public static ISiloBuilder UseTls(
             this ISiloBuilder builder,
             X509Certificate2 certificate,
@@ -71,12 +71,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 TLS 。
+        /// 配置 TLS。
         /// </summary>
         /// <param name="builder">要配置的构建器。</param>
         /// <param name="certificate">服务器证书。</param>
-        /// <returns>建筑工。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 是 <see langword="null"/>.</exception>
+        /// <returns>构建器。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 为 <see langword="null"/>。</exception>
         public static ISiloBuilder UseTls(
             this ISiloBuilder builder,
             X509Certificate2 certificate)
@@ -96,12 +96,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 TLS 。
+        /// 配置 TLS。
         /// </summary>
         /// <param name="builder">要配置的构建器。</param>
-        /// <param name="configureOptions">配置 <see cref="TlsOptions"/>的动作。</param>
-        /// <returns>建筑工。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 是 <see langword="null"/>.</exception>
+        /// <param name="configureOptions">用于配置 <see cref="TlsOptions"/> 的 Action。</param>
+        /// <returns>构建器。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 为 <see langword="null"/>。</exception>
         public static ISiloBuilder UseTls(
             this ISiloBuilder builder,
             Action<TlsOptions> configureOptions)
@@ -111,7 +111,7 @@ namespace Orleans.Hosting
 
             var services = builder.Services;
 
-            // 为每个连接类型配置 TLS 选项 。
+            // 为各类连接配置 TLS 选项。
             services.Configure<TlsOptions>(configureOptions);
             builder.Services.AddSingleton<IConfigurationValidator>(sp => new ClientTlsHostingExtensions.TlsOptionsValidator(sp.GetRequiredService<IOptions<TlsOptions>>().Value));
             services.AddOptions<TlsOptions>(SiloConnectionListener.DefaultListenerName).Configure(configureOptions);

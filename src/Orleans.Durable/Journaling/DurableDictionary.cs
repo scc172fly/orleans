@@ -6,12 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 表示在日记中记录突变的字典。
+/// 表示一个字典，其变更记录在持久化日志中。
 /// </summary>
-/// <typeparam name="TKey">字典中的密钥类型。</typeparam>
-/// <typeparam name="TValue">字典中的数值类型。</typeparam>
+/// <typeparam name="TKey">字典中键的类型。</typeparam>
+/// <typeparam name="TValue">字典中值的类型。</typeparam>
 /// <remarks>
-/// 字典将钥匙和数值的所有权传给它, 日记记录每个发生变异时的事物。 要更改一个值, 请指定一个新实例 。
+/// 字典取得传入键和值的所有权，并在每次变更发生时将其记入日志。若要改变一个值，请赋予新实例。
 /// </remarks>
 public interface IDurableDictionary<TKey, TValue> : IDictionary<TKey, TValue> where TKey : notnull
 {
@@ -78,7 +78,7 @@ internal class DurableDictionary<TKey, TValue> : IDurableDictionary<TKey, TValue
 
     void IStateMachine.WritePendingEntries(JournalStreamWriter writer)
     {
-        // 此状态的实施随着数据结构的修改而附加日记条目, 因此在此无需单独写入 。
+        // 此状态实现会在数据结构被修改时追加日志条目，因此不需要在此处单独执行写入。
     }
 
     void IStateMachine.WriteSnapshot(JournalStreamWriter snapshotWriter)

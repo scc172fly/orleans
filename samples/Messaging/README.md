@@ -1,23 +1,23 @@
 <a id="messaging-stock-reservations"></a>
 
-# 通信:保留库存
+# 消息传递：库存预留
 
-一个自足 .NET 11 控制台主机运行一个本地主机 Orleans silo 和两个
-grains. **命令** 在申请中提交已打印的保留
-命令 ID; **库存** grain 发送了确定性标牌接受或拒绝。
-东道方演习接受、库存不足和数量无效,每个指挥
-处理过一次。
-活性杂志和记忆中的工作使示范性刊物保持了自足。
+一个独立的 .NET 11 控制台宿主运行一个本地主机 Orleans Silo 和两个
+应用 Grain。**订单** Grain 使用应用命令 ID 提交强类型预留请求，
+**库存** Grain 返回确定性的强类型接受或拒绝结果。
+宿主测试接受、库存不足及无效数量三种命令，
+每条命令均处理一次。
+易失性日志和内存作业使示例能够独立运行。
 
 <a id="run"></a>
 
-## 运行运行
+## 运行
 
-**与本地包装的 Orleans 源构建,直到这些API公布为止。**
-申报版本遵循存储器样本的核定一揽子基准。
-存储库从本地的种子中取代当前源包。
+**在这些 API 发布之前，使用本地打包的 Orleans 源码进行构建。**
+声明的版本遵循仓库示例批准的包版本基准。
+仓库构建会使用本地包源中的当前源码包进行替换。
 
-从仓库根 :
+在仓库根目录执行：
 
 ```powershell
 pwsh .\samples\Build-Samples.ps1 -SkipExternalAssets
@@ -25,71 +25,71 @@ pwsh .\samples\Build-Samples.ps1 -SkipExternalAssets
 dotnet run --project .\samples\Messaging\Messaging.csproj --configuration Release --no-build
 ```
 
-`Build-Samples.ps1` 将当前 Orleans 源填入独有版本和出入证
-`OrleansSamplePackageVersion` 和 `OrleansSamplePackageSource` 样本
-。样本中的 NuGet 参考文献用与
-应用项目。
+`Build-Samples.ps1` 使用唯一版本号打包当前 Orleans 源码，并将
+`OrleansSamplePackageVersion` 和 `OrleansSamplePackageSource` 传递给示例
+解决方案。示例的 NuGet 引用使用与
+应用项目相同的包边界。
 
 <a id="copying-the-sample-out"></a>
 
-### 将样本复制出来
+### 将示例复制到仓库外
 
-`Messaging/` 是整个[重印单位,包括其本身的
-`Directory.Packages.props`一旦这些年度价格指数公布,将调整其 Orleans
-版本到该释放和运行的软件包:
+`Messaging/` 是完整的可独立复制单元，包括其自身的
+`Directory.Packages.props`。这些 API 发布后，将其 Orleans
+包版本对齐到该发布版本，然后运行：
 
 ```powershell
 dotnet run --project .\Messaging.csproj --configuration Release
 ```
 
-在此之前,独立建筑有明确的未公布包件例外。
-今天要测试一个副本, 使用第一个包 Orleans
-`Build-Samples.ps1`,然后复制样本文件夹并替换 **仅替换副本**
-中央中央 Orleans 本地种子生成版本的软件包版本 。
-利用当地供养和正常的公共依赖性供养恢复/建设:
+在此之前，独立构建具有明确的未发布包例外规定。
+如需现在在仓库外测试副本，先使用
+`Build-Samples.ps1` 打包 Orleans，再复制示例文件夹，并且**只替换副本中的**
+集中管理的 Orleans 包版本，使其与本地包源生成的版本一致。
+使用本地包源和正常的公共依赖项包源还原及构建：
 
 ```powershell
 dotnet restore .\Messaging.csproj --source <absolute-local-package-feed> --source https://api.nuget.org/v3/index.json
 dotnet run --project .\Messaging.csproj --configuration Release --no-restore
 ```
 
-使用稳定版本
-服务器/ Sdk 和 Alpha 永久版本。 所有中继 Orleans
-依赖性必须来自同一源构建的同一源代码。 存储库的 `samples/Directory.Build.targets` 超文本不包含
-将 `OrleansSamplePackageVersion` 单传到副本上。
-将不替换其已宣布的版本。
+如果包源提供不同的稳定版和 Alpha 版，请为 Server/Sdk 使用稳定版，
+为 Durable 使用 Alpha 版。所有传递性的 Orleans
+依赖项都必须来自同一源码构建。仓库的 `samples/Directory.Build.targets` 重写配置不属于
+可独立复制单元，因此仅向副本传递 `OrleansSamplePackageVersion`
+不会替换其声明的版本。
 
 <a id="how-it-works"></a>
 
-## 如何运作
+## 工作原理
 
-1. 主机初始化了 `trail-shoes`的十个单位, 然后通过
-   单顺序的发件箱,在独立的ID下: `orders/order-1042/reserve-stock`
-   9个单位 `reserve-too-much` ,零个单位 `reserve-invalid-quantity` 。
-2. `StockMessages` 绑定 `ReserveStock`、 `Restock`和抽象
-   `ReservationOutcome` 将修改主题;两个 grains 都输入。键入发件箱
-   `Send` 和 `SendReply` 对记录进行序列排序,并打入 `inbox.Register` 处理器
-   接受解码。
-3. 命令的`OrderGrain.ReserveAsync` 级,等待 `WriteStateAsync`;
-   发件箱提供它 一旦写作是耐久的, 并重试在原始
-   绝对交付预算。
-4. 股盘处理程序计算本地计算结果, 然后发送回复
-   `SendReply`,更新清单,并同步调用 `context.Complete()`
-   复答、清册和收件箱填入完成承诺在一个日记中
-   无效数量和短缺是商业拒绝:它们答复并
-   状态未改变。 非正 `Restock` 没有回复协议, 所以它的处理者
-   调来电话 `context.Fail(reason)`.
-5. 回复的ID是命令 ID `result` 孩子。 该命令的处理器记录
-   其日记收款和完成账项的结果, `WaitForOutcomeAsync`
-   返回收到时间一旦持久,则返回。
-   请求, 以便回复达到命令值, 而主机等待它 。
-6. 库存 grain的收件箱保留每个完成命令的代号并接受
-   `SentAt`. 重新交付,例如重新处理其答复已失败者,则收到
-   `Duplicate` 记录保存时,应保留其预定的时间。
-   记录删除后,一个未跟踪的旧发件人收到 `Expired` 在
-   处理器运行。
+1. 宿主初始化十件 `trail-shoes`，然后通过订单发件箱使用独立 ID 提交三条命令：
+   `orders/order-1042/reserve-stock` 预留两件，
+   `reserve-too-much` 预留九件，`reserve-invalid-quantity` 预留 0 件。
+2. `StockMessages` 将 `ReserveStock`、`Restock` 及抽象类型
+   `ReservationOutcome` 绑定到带版本的主题，两个 Grain 均通过依赖注入获取它。强类型发件箱
+   的 `Send` 和 `SendReply` 序列化记录，强类型 `inbox.Register` 处理程序
+   接收已解码的记录。
+3. `OrderGrain.ReserveAsync` 暂存命令并等待 `WriteStateAsync`；
+   此次写入持久化后，发件箱投递命令，并在原始
+   绝对投递预算内重试。
+4. 库存处理程序在本地计算结果，然后使用
+   `SendReply` 发送回复、更新库存并调用 `context.Complete()`，这些操作在同一个同步
+   代码块中执行，因此回复、库存及收件箱完成记录在一次日志
+   写入中提交。无效数量和库存不足属于业务拒绝：处理程序回复拒绝结果，
+   并保持库存不变。非正数的 `Restock` 不具有回复协议，因此其处理程序
+   调用 `context.Fail(reason)`。
+5. 回复 ID 是命令 ID 的 `result` 子标识。订单处理程序将
+   结果记录到其日志化回执中并完成，`WaitForOutcomeAsync`
+   在该回执持久化后返回。投递过程与等待中的
+   请求交错执行，因此宿主等待结果时，订单可以收到回复。
+6. 库存 Grain 的收件箱保留每条已完成命令的 ID 及接受时的
+   `SentAt`。重新投递（例如回复丢失后进行的重试）在记录仍被保留时收到
+   `Duplicate`，记录仍保留原接受时间。
+   记录移除后，未被跟踪的旧发送会在
+   处理程序运行前收到 `Expired`。
 
-成功运行的指纹 :
+成功运行时会输出：
 
 ```text
 ACKNOWLEDGED: orders/order-1042/reserve-stock/result, outcome=ReservationAccepted
@@ -98,35 +98,35 @@ ACKNOWLEDGED: orders/order-1042/reserve-invalid-quantity/result, outcome=Reserva
 VERIFIED: remaining stock=8, reservations=1, processed requests=3.
 ```
 
-东道主核对每个相关结果,并核实库存 grain 处理完毕
-失败检查或两分钟的截止时间
-使用非零退出代码的进程失败。只有一次本地主机样本
-默认 silo 和网关端口应同时运行。
+宿主检查每个关联结果，验证库存 Grain 对每条命令仅处理一次，
+且库存仅扣减一次。检查失败或超过两分钟期限，
+进程将以非零退出码结束。使用默认 Silo 和网关端口的本地主机
+示例一次只能运行一个。
 <a id="storage-and-production-boundaries"></a>
 
-## 储存和生产边界
+## 存储与生产环境边界
 
-`UseInMemoryDurableJobs` 和 `AddVolatileJournalStorage` 保持此演示
-他们的确认是用真实的日记、信息泵
-和持久工作。 **停止这一进程会抛弃它的状况。** 配置固性
-将整个进程重新开始恢复的日记账和工作供应商进行循环。
-Orleans- 以 `orleans-binary` 日记格式的可序列记录。
+`UseInMemoryDurableJobs` 和 `AddVolatileJournalStorage` 使示例能够
+独立运行。它们的确认操作会实际驱动 Journaling、消息传递泵和
+持久化作业。**停止进程将丢弃其状态。** 配置持久化
+日志和作业提供程序，才能在进程重启后恢复。示例使用
+`orleans-binary` 日志格式记录可由 Orleans 序列化的记录。
 
-接收器日记的入场层只预付,包括全天候
-完成的记录可在
-已经配置 `DeduplicationWindow` 从他们接受的发送时间 。
-完成的重复确认保留
-完成事实; 呼叫者获得业务结果
-最初的可持久答复或质询真正的商业状态。
-承诺框意图在其配置的重新试政策中提供该回复。
-`Expired` 结果或发送者重新研究用尽的假期,其先前接受的时间不详。
-批准新发送之前,先用原指令编号调和商业状态。
-需要崩溃可恢复的终端动作的应用
-`IOutboxMessageSource` 和成果的阶段以及自定后续行动
-中 `OnRetired`中的电文,以原子法删除导出条目。
+接收方的日志化准入下限只会向前推进，即使发生时钟变化
+或恢复也是如此。自已接受的发送时间起，经过配置的
+`DeduplicationWindow` 后，已完成记录即可被移除。该下限
+会在压实后使旧投递过期。对于已完成的重复请求，其确认的是所保留的
+完成事实；调用方通过原始持久化回复获取业务结果，
+或查询真实业务状态。最初提交的
+发件箱意图会按照已配置的重试策略投递该回复。
+`Expired` 结果或发送方重试耗尽均意味着此前是否已接受仍然未知。
+在授权新发送之前，应按原始命令 ID 对账业务状态。
+需要在崩溃后恢复最终操作的应用，应使用
+`IOutboxMessageSource`，并在 `OnRetired` 中暂存结果和发给自身的后续
+消息，使这些操作与移除传出条目原子地完成。
 
-在生产订单服务中,房客的所有权来自信任的入侵,
-授权命令 ID、主题和回复目的地,并定义保留
-保存可查询的保留
-使用外部效果
-其供应商的应急与和解协议中 具有同样的卡尼卡身份
+在生产订单服务中，从可信入口确定租户所有权，
+对命令 ID、主题及回复目的地进行授权，并定义预留
+查询、过期、释放及补偿策略。当这些操作需要查询预留时，按原始命令 ID
+存储可查询的预留记录。外部效果使用
+相同的规范 ID，并遵循其提供程序的幂等及对账协议。

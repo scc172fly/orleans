@@ -4,20 +4,20 @@ using System.Threading;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// 表示属于 grain的计时器。
+/// 表示属于某个 Grain 的定时器。
 /// </summary>
 public interface IGrainTimer : IDisposable
 {
-    /// <summary>使用 <see cref="TimeSpan"/> 值来测量时间间隔,修改计时器的计算方法之间的起始时间和间隔。</summary>
+    /// <summary>更改定时器的开始时间及方法调用间隔，使用 <see cref="TimeSpan"/> 值衡量时间间隔。</summary>
     /// <param name="dueTime">
-    /// <see cref="TimeSpan"/> 表示在使用 <see cref="IGrainTimer"/> 构建时指定的回调方法之前需要延迟的时间。
-    /// 指定 <see cref="Timeout.InfiniteTimeSpan"/> 以防止计时器重新启动。
-    /// 指定 <see cref="TimeSpan.Zero"/> 立即重新启动计时器。
+    /// 一个 <see cref="TimeSpan"/>，表示调用创建 <see cref="IGrainTimer"/> 时指定的回调方法之前需要等待的时长。
+    /// 指定 <see cref="Timeout.InfiniteTimeSpan"/> 可阻止定时器重新启动。
+    /// 指定 <see cref="TimeSpan.Zero"/> 可立即重新启动定时器。
     /// </param>
     /// <param name="period">
-    /// 安装计时器时指定的回调方法的调用间隔。
-    /// 指定用于禁用定期信号的 <see cref="Timeout.InfiniteTimeSpan"/> 。
+    /// 创建定时器时指定的回调方法的调用时间间隔。
+    /// 指定 <see cref="Timeout.InfiniteTimeSpan"/> 可禁用周期性触发。
     /// </param>
-    /// <exception cref="ArgumentOutOfRangeException">下 <paramref name="dueTime"/> 或 <paramref name="period"/> 参数,以毫秒计,小于 -1或大于 4294967294。</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="dueTime"/> 或 <paramref name="period"/> 参数的毫秒数小于 -1 或大于 4294967294。</exception>
     void Change(TimeSpan dueTime, TimeSpan period);
 }

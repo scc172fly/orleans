@@ -7,9 +7,9 @@ using Orleans.Hosting;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// 每个 <see cref="DurableJobReceiverExtension"/> 实例在 silo上共有单吨依赖性。
-/// 集中管理这些依赖关系,使每个grain 扩展建造器小一些,并提供一个单一的
-/// 增加更多跨部门帮助者(如跟踪操作支架的工厂)。
+/// 由 Silo 上所有 <see cref="DurableJobReceiverExtension"/> 实例共享的单例依赖项。
+/// 集中管理这些依赖项可以简化每个 Grain 扩展的构造函数，并提供一个统一的位置，
+/// 用于添加其他横切功能的辅助组件（例如创建操作跟踪结构体的工厂）。
 /// </summary>
 internal sealed class DurableJobReceiverExtensionShared
 {
@@ -31,26 +31,26 @@ internal sealed class DurableJobReceiverExtensionShared
     }
 
     /// <summary>
-    /// 获取每个用户使用的日志 <see cref="DurableJobReceiverExtension"/> 实例 silo.
+    /// 获取 Silo 上所有 <see cref="DurableJobReceiverExtension"/> 实例使用的日志记录器。
     /// </summary>
     public ILogger<DurableJobReceiverExtension> Logger { get; }
 
     public SiloMessagingOptions MessagingOptions { get; }
 
     /// <summary>
-    /// 获得每个用户使用的时间提供者 <see cref="DurableJobReceiverExtension"/> 实例 silo.
+    /// 获取 Silo 上所有 <see cref="DurableJobReceiverExtension"/> 实例使用的时间提供程序。
     /// </summary>
     public TimeProvider TimeProvider { get; }
 
     /// <summary>
-    /// 获得每个 <see cref="DurableJobReceiverExtension"/> 实例 silo.
+    /// 获取 Silo 上所有 <see cref="DurableJobReceiverExtension"/> 实例使用的持久化作业选项。
     /// </summary>
     public DurableJobsOptions Options { get; }
     public DurableJobsInstruments DurableJobsInstruments { get; }
 
     /// <summary>
-    /// 开始跟踪 <see cref="IDurableJobHandler.ExecuteJobAsync"/>的援引,释放
-    /// 相应的测量标准,并开始对返回跟踪器的寿命进行分布追踪活动。
+    /// 开始跟踪一次 <see cref="IDurableJobHandler.ExecuteJobAsync"/> 调用，发出
+    /// 相应的指标，并启动一个与返回的跟踪器生命周期一致的分布式跟踪 Activity。
     /// </summary>
     public HandlerExecutionTracker BeginHandlerExecution(IJobRunContext context) => new(TimeProvider, DurableJobsInstruments, context);
 }

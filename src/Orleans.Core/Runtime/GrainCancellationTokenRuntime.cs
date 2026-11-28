@@ -25,16 +25,16 @@ namespace Orleans.Runtime
         {
             if (tokenSource.IsCancellationRequested)
             {
-                // 此代号已被取消 。
+                // 此令牌已被取消。
                 return Task.CompletedTask;
             }
 
-            // 向调用者传播从 _cancellationTokenSource.Cancel 回传到调用者的例外
-            // 也取消目标群引用。
+            // 将 _cancellationTokenSource.Cancel 引发的异常传播回调用方，
+            // 但同时也取消 _targetGrainReferences。
             Task? localTask = null;
             try
             {
-                // 现在就取消此牌, 防止重现 。
+                // 立即取消令牌，以防止递归。
                 tokenSource.Cancel();
             }
             catch (Exception exception)
@@ -72,7 +72,7 @@ namespace Orleans.Runtime
         }
     }
 
-#pragma warning disable CS0618 // Preserve serialization support for the legacy cancellation token.
+#pragma warning disable CS0618 // 保留对旧版取消令牌的序列化支持。
     [RegisterSerializer]
     internal class GrainCancellationTokenCodec : GeneralizedReferenceTypeSurrogateCodec<GrainCancellationToken, GrainCancellationTokenSurrogate>
     {

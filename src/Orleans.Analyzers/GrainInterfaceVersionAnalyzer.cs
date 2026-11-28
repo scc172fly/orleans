@@ -18,8 +18,8 @@ using System.Threading;
 namespace Orleans.Analyzers;
 
 /// <summary>
-/// 用于跟踪 grain 界面定义及其版本的分析器。
-/// 它确保接口的改动附有版本加插。
+/// 跟踪 Grain 接口定义及其版本的分析器。
+/// 确保接口变更伴随版本递增。
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
@@ -27,66 +27,66 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
     private const string DiagnosticCategory = "Versioning";
 
     /// <summary>
-    /// 能够进行 Orleans 合同兼容性分析的MSBilid财产。
+    /// 启用 Orleans 契约兼容性分析的 MSBuild 属性。
     /// </summary>
     public const string EnableAnalyzerPropertyName = "EnableOrleansContractsAnalyzer";
 
     /// <summary>
-    /// grain 接口的诊断识别符,在 OrleansContracts.txt没有主动声明。
+    /// Grain 接口在 OrleansContracts.txt 中没有有效声明时的诊断标识符。
     /// </summary>
     public const string RuleId0016 = "ORLEANS0016";
 
     /// <summary>
-    /// grain 接口版本的诊断识别符号不同于 OrleansContracts.txt。
+    /// Grain 接口版本与 OrleansContracts.txt 不一致时的诊断标识符。
     /// </summary>
     public const string RuleId0017 = "ORLEANS0017";
 
     /// <summary>
-    /// 用于 grain 未在 OrleansContracts.txt.
+    /// Grain 接口成员未在 OrleansContracts.txt 中声明时的诊断标识符。
     /// </summary>
     public const string RuleId0018 = "ORLEANS0018";
 
     /// <summary>
-    /// 被删除的 grain 接口的诊断识别符,这些接口未标记为在 OrleansContracts.txt中已留存。
+    /// 已删除的 Grain 接口未在 OrleansContracts.txt 中标记为退役时的诊断标识符。
     /// </summary>
     public const string RuleId0019 = "ORLEANS0019";
 
     /// <summary>
-    /// 丢失文件 OrleansContracts.txt 的诊断标识符。
+    /// 缺少 OrleansContracts.txt 文件时的诊断标识符。
     /// </summary>
     public const string RuleId0020 = "ORLEANS0020";
 
     /// <summary>
-    /// 重复的诊断识别符 grain 界面声明 OrleansContracts.txt.
+    /// OrleansContracts.txt 中 Grain 接口声明重复时的诊断标识符。
     /// </summary>
     public const string RuleId0021 = "ORLEANS0021";
 
     /// <summary>
-    /// 用于 grain 类别中未在 OrleansContracts.txt.
+    /// Grain 类在 OrleansContracts.txt 中没有有效声明时的诊断标识符。
     /// </summary>
     public const string RuleId0022 = "ORLEANS0022";
 
     /// <summary>
-    /// grain 类身份不同于 OrleansContracts.txt的诊断识别符。
+    /// Grain 类标识与 OrleansContracts.txt 不一致时的诊断标识符。
     /// </summary>
     public const string RuleId0023 = "ORLEANS0023";
 
     /// <summary>
-    /// 被删除的 grain 类的诊断识别符号,这些分类没有标记为在 OrleansContracts.txt中已退休。
+    /// 已删除的 Grain 类未在 OrleansContracts.txt 中标记为退役时的诊断标识符。
     /// </summary>
     public const string RuleId0024 = "ORLEANS0024";
 
     /// <summary>
-    /// 重复的诊断识别符 grain 以 OrleansContracts.txt.
+    /// OrleansContracts.txt 中 Grain 类声明重复时的诊断标识符。
     /// </summary>
     public const string RuleId0025 = "ORLEANS0025";
 
     /// <summary>
-    /// 将 grain 接口成员从源中清除后留在 OrleansContracts.txt 的诊断识别符号。
+    /// 从源码移除后仍保留在 OrleansContracts.txt 中的 Grain 接口成员的诊断标识符。
     /// </summary>
     public const string RuleId0027 = "ORLEANS0027";
 
-    // 代码修正的属性包密钥
+    // 供代码修复使用的属性集合键。
     internal const string InterfaceNamePropertyKey = "InterfaceName";
     internal const string MemberNamePropertyKey = "MemberName";
     internal const string MemberWireIdentityPropertyKey = "MemberWireIdentity";
@@ -247,7 +247,7 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // 尝试查找 OrleansContracts.txt 文件
+        // 尝试查找 OrleansContracts.txt 文件。
         var grainInterfacesFile = context.Options.AdditionalFiles
             .FirstOrDefault(file =>
                 Path.GetFileName(file.Path).Equals(Constants.OrleansContractsFileName, StringComparison.OrdinalIgnoreCase)
@@ -324,7 +324,7 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
-            // 检查这是不是 RPC 合同( 扩展端 I 地址)
+            // 检查是否为 RPC 契约（继承 IAddressable）。
             if (!IsRpcContract(namedType))
             {
                 return;
@@ -333,16 +333,16 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
             var interfaceName = namedType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
                 .Replace("global::", "");
 
-            // 如果没有文件, 报告接口没有被跟踪
+            // 如果文件不存在，则报告接口未被跟踪。
             if (_data is null)
             {
                 _visitedInterfaces.TryAdd(interfaceName, true);
                 RecordContractLocation(namedType);
-                // 汇编后报告文件失踪
+                // 将在编译结束时报告文件缺失。
                 return;
             }
 
-            // 检查是否在文件中声明接口
+            // 检查接口是否已在文件中声明。
             var grainInterfaceType = GetGrainInterfaceType(namedType);
             var interfaceProperties = ImmutableDictionary<string, string?>.Empty
                 .Add(InterfaceNamePropertyKey, interfaceName)
@@ -351,7 +351,7 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
             var declaredInterface = FindDeclaredInterface(grainInterfaceType);
             if (declaredInterface is null)
             {
-                // 在文件中找不到接口
+                // 文件中未找到此接口。
                 var properties = interfaceProperties;
 
                 foreach (var location in namedType.Locations.Where(l => l.IsInSource))
@@ -367,11 +367,11 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
 
             _matchedInterfaces.TryAdd(declaredInterface, true);
 
-            // 检查是否已退休
+            // 检查是否已退役。
             if (declaredInterface.IsRetired)
             {
-                // 密码中存在接口, 但标记为已退出文件
-                // 这可能是个诊断,但现在我们把它当作不匹配
+                // 接口仍存在于代码中，但在文件中标记为退役。
+                // 这可以作为独立诊断，但目前将其视为不匹配。
                 var properties = interfaceProperties;
 
                 foreach (var location in namedType.Locations.Where(l => l.IsInSource))
@@ -385,7 +385,7 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
-            // 检查版本属性匹配
+            // 检查版本特性是否匹配。
             var codeVersion = GetVersionFromAttribute(namedType);
             if (codeVersion != declaredInterface.Version)
             {
@@ -405,11 +405,11 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
                 }
             }
 
-            // 检查别名匹配
+            // 检查别名是否匹配。
             var codeAlias = GetAliasFromAttribute(namedType);
             if (!string.Equals(codeAlias, declaredInterface.Alias, StringComparison.Ordinal))
             {
-                // Alias 配错不匹配 - - 可以为此另增加一个诊断
+                // 别名不匹配，可为此添加独立诊断。
             }
 
             var sourceMembers = namedType.GetMembers()
@@ -417,7 +417,7 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
                 .Where(member => member.MethodKind == MethodKind.Ordinary && !member.IsStatic)
                 .ToArray();
 
-            // 结查成员
+            // 检查成员。
             foreach (var member in sourceMembers)
             {
                 var declaredMember = declaredInterface.Members.Values
@@ -430,7 +430,7 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
 
                 if (declaredMember is null)
                 {
-                    // 未找到成员 - 接口已更改
+                    // 未找到成员，接口已发生变更。
                     var properties = interfaceProperties
                         .Add(MemberNamePropertyKey, GetManifestMethodSignature(member))
                         .Add(MemberWireIdentityPropertyKey, GetMethodWireIdentity(member).ToManifestMetadata());
@@ -479,7 +479,7 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
 
         public void OnCompilationEnd(CompilationAnalysisContext context)
         {
-            // 报告文件分析错误
+            // 报告文件解析错误。
             if (_fileParseErrors is not null)
             {
                 foreach (var error in _fileParseErrors)
@@ -493,7 +493,7 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
                 context.ReportDiagnostic(diagnostic);
             }
 
-            // 如果找到任何 grain 接口但找不到文件,报告文件丢失
+            // 如果发现任何 Grain 接口但文件不存在，则报告文件缺失。
             if (_data is null && (_visitedInterfaces.Count > 0 || _visitedClasses.Count > 0))
             {
                 context.ReportDiagnostic(Diagnostic.Create(
@@ -502,7 +502,7 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
                     Constants.OrleansContractsFileName));
             }
 
-            // 检查已删除的接口( 在文件中, 但没有在代码中)
+            // 检查已删除的接口（文件中存在但代码中不存在）。
             if (_data is not null && _grainInterfacesFile is not null)
             {
                 if (_grainInterfacesFileText is { } sourceText)
@@ -516,7 +516,7 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
 
                         if (!_matchedInterfaces.ContainsKey(declaredInterface))
                         {
-                            // 文件中接口, 但代码中不是 - 必须退出
+                            // 接口在文件中存在但在代码中不存在，需要标记为退役。
                             var location = declaredInterface.GetLocation(sourceText, _grainInterfacesFile.Path);
 
                             var properties = ImmutableDictionary<string, string?>.Empty
@@ -632,7 +632,7 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
                         StringComparison.Ordinal));
         }
 
-        // 分析比较只是将遗留声明相互比较,因为它们的身份取决于来源类型。
+        // 解析时仅在旧式声明之间相互比较，因为它们的标识依赖源码类型。
         private List<Diagnostic>? AddLegacyDuplicateDeclarations(List<Diagnostic>? errors)
         {
             if (_data is null || _grainInterfacesFile is null || _grainInterfacesFileText is null)
@@ -646,7 +646,7 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
                 foreach (var recorded in _data.Interfaces.Where(declaration =>
                     string.Equals(declaration.GrainInterfaceType, grainInterfaceType, StringComparison.Ordinal)))
                 {
-                    // 后一声明,如分析一样,报告。
+                    // 与解析阶段一样，报告后出现的声明。
                     var duplicate = legacy.Span.Start > recorded.Span.Start ? legacy : recorded;
                     errors ??= new List<Diagnostic>();
                     errors.Add(Diagnostic.Create(
@@ -809,8 +809,8 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// 镜镜镜 <c>GrainInterfaceTypeResolver.GetGrainInterfaceTypeByConvention</c>其型号格式化替代品
-    /// 界面或含有型号的CLR名称的 <c>[Alias]</c> 。
+    /// 与 <c>GrainInterfaceTypeResolver.GetGrainInterfaceTypeByConvention</c> 的行为一致，其类型名称格式化使用
+    /// 接口或其外层类型的 <c>[Alias]</c> 替代其 CLR 名称。
     /// </summary>
     private static string GetGrainInterfaceTypeByConvention(INamedTypeSymbol type)
     {
@@ -828,7 +828,7 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// 当 grain 接口类型不同于《欧洲常规时,或与《欧洲常规武装力量命名公约》不同时,或者与 <see langword="null"/> 不同时,获取该接口类型。
+    /// 当 Grain 接口类型不同于 CLR 命名约定时返回该接口类型，否则返回 <see langword="null"/>。
     /// </summary>
     internal static string? GetNonDefaultGrainInterfaceType(INamedTypeSymbol type)
     {
@@ -1097,11 +1097,11 @@ public sealed partial class GrainInterfaceVersionAnalyzer : DiagnosticAnalyzer
 }
 
 /// <summary>
-/// 确定遗留声明描述的 grain 接口类型,该类型仅记录一个CLR名称。
+/// 解析旧式声明所描述的 Grain 接口类型，该声明仅记录 CLR 名称。
 /// </summary>
 /// <remarks>
-/// 缩放 CLR 名称无法区分嵌套类型和命名空间, 所以该名称会根据源界面解决
-/// 表示身份,而身份仅来自名称本身,但这种界面不存在时。
+/// CLR 名称无法区分嵌套类型和命名空间，因此根据名称所指的源码接口
+/// 进行解析，只有找不到此接口时才仅根据名称推导标识。
 /// </remarks>
 internal sealed class LegacyGrainInterfaceTypeResolver
 {
@@ -1124,7 +1124,7 @@ internal sealed class LegacyGrainInterfaceTypeResolver
     {
         var segments = declaredName.Split('.');
 
-        // 尝试在命名空间和(可能嵌套的)类型名称之间分别, 最长时间的名称区域先切换。
+        // 尝试命名空间和可能嵌套的类型名称之间的每一种划分方式，最长的命名空间优先。
         for (var namespaceLength = segments.Length - 1; namespaceLength >= 0; namespaceLength--)
         {
             if (segments.Take(namespaceLength).Any(segment => segment.IndexOf('<') >= 0))
@@ -1155,7 +1155,7 @@ internal sealed class LegacyGrainInterfaceTypeResolver
 }
 
 /// <summary>
-/// 代表从 OrleansContracts.txt 文件分析的数据。
+/// 表示从 OrleansContracts.txt 文件解析的数据。
 /// </summary>
 internal sealed class GrainInterfaceData
 {
@@ -1166,7 +1166,7 @@ internal sealed class GrainInterfaceData
 }
 
 /// <summary>
-/// 表示已声明 grain 界面中的 OrleansContracts.txt 文件。
+/// 表示 OrleansContracts.txt 文件中声明的 Grain 接口。
 /// </summary>
 internal sealed class DeclaredGrainInterface
 {
@@ -1192,7 +1192,7 @@ internal sealed class DeclaredGrainInterface
 }
 
 /// <summary>
-/// 表示已声明 grain 中 OrleansContracts.txt 文件。
+/// 表示 OrleansContracts.txt 文件中声明的 Grain 接口成员。
 /// </summary>
 internal sealed class DeclaredGrainMember
 {
@@ -1248,7 +1248,7 @@ internal readonly struct MethodWireIdentity
 }
 
 /// <summary>
-/// 表示已声明 grain 类中的 OrleansContracts.txt 文件。
+/// 表示 OrleansContracts.txt 文件中声明的 Grain 类。
 /// </summary>
 internal sealed class DeclaredGrainClass
 {
@@ -1273,26 +1273,26 @@ internal sealed class DeclaredGrainClass
 }
 
 /// <summary>
-/// 收发 OrleansContracts.txt 文件。
+/// 解析 OrleansContracts.txt 文件。
 /// </summary>
 internal static class GrainInterfaceFileParser
 {
-    // 用于分析的 Regex 模式
-    // 接口行:界面 [GrainInterfaceType("x")] Namespace.IInterface<T> [Version(N)]
-    // 或已退休: *可检索* 接口[GrainInterfaceType[“x”] Namespace.IInterface<T> [Version(N)]
-    // 名称可包括通用类型参数,如 IMyGrain<T> 或 IMyGrain<TKey, TValue>
+    // 用于解析的正则表达式模式。
+    // 接口行：interface [GrainInterfaceType("x")] Namespace.IInterface<T> [Version(N)]
+    // 或退役形式：*RETIRED* interface [GrainInterfaceType("x")] Namespace.IInterface<T> [Version(N)]
+    // 名称可以包含泛型类型参数，例如 IMyGrain<T> 或 IMyGrain<TKey, TValue>。
     private static readonly Regex InterfacePattern = new(
         @"^(?<retired>\*RETIRED\*\s*)?(?:interface\s+)?(\[GrainInterfaceType\(""(?<grainInterfaceType>[^""]+)""\)\]\s*)?(\[Alias\(""(?<alias>[^""]+)""\)\]\s*)?(?<name>[\w]+(?:<[\w,\s]+>)?(?:\.[\w]+(?:<[\w,\s]+>)?)*)\s*\[Version\((?<version>\d+)\)\]$",
         RegexOptions.Compiled);
 
-    // Grain 类行:类[GrainType("x")] Namespace.GrainClass
-    // 或已退休: *应补* 类[GrainType(“x”) Namespace.GrainClass
+    // Grain 类行：class [GrainType("x")] Namespace.GrainClass
+    // 或退役形式：*RETIRED* class [GrainType("x")] Namespace.GrainClass
     private static readonly Regex GrainClassPattern = new(
         @"^(?<retired>\*RETIRED\*\s*)?class\s+(\[(?:GrainType|Alias)\(""(?<alias>[^""]+)""\)\]\s*)?(?<name>[\w]+(?:<[\w,\s]+>)?(?:\.[\w]+(?:<[\w,\s]+>)?)*)$",
         RegexOptions.Compiled);
 
-    // 成员: 0123ABCD: 方法(参数) - > ReturnType
-    // 价值是有效的电线识别,不管来源如何申报。
+    // 成员行：0123ABCD: Method(params) -> ReturnType
+    // 此值为实际传输标识，与源码声明方式无关。
     private static readonly Regex MemberPattern = new(
         @"^(?<signature>.+\(.*\)\s*->\s*.+)$",
         RegexOptions.Compiled);
@@ -1323,7 +1323,7 @@ internal static class GrainInterfaceFileParser
         return false;
     }
 
-    // 遗留声明记录接口[Alias],即没有GrainInterfaceType的运行时间身份。
+    // 旧式声明记录接口的 [Alias]，当没有 [GrainInterfaceType] 时，该别名即运行时标识。
     private static string? GetRecordedGrainInterfaceType(Match match)
     {
         if (match.Groups["grainInterfaceType"].Success)
@@ -1335,7 +1335,7 @@ internal static class GrainInterfaceFileParser
     }
 
     /// <summary>
-    /// 将主动接口声明格式化为已退休,记录遗留声明的确定身份。
+    /// 将有效接口声明格式化为退役声明，并记录旧式声明解析得到的标识。
     /// </summary>
     internal static string FormatRetiredInterfaceDeclaration(
         string declaration,
@@ -1346,9 +1346,9 @@ internal static class GrainInterfaceFileParser
                 : declaration);
 
     /// <summary>
-    /// 重写遗留界面声明,其名称将解析到该名称所隐含的身份以外的身份
-    /// 重新命名源界面, 名称不能更改
-    /// 退休声明的意义,退休声明继续保留
+    /// 对于名称实际解析出的标识与名称本身隐含标识不同的旧式接口声明，重写该声明，
+    /// 使其记录解析得到的标识。这样即使重命名该名称指向的源码接口，也不会改变
+    /// 声明的含义。已退役的声明保持退役状态。
     /// </summary>
     internal static bool TryRecordLegacyGrainInterfaceType(
         string declaration,
@@ -1588,13 +1588,13 @@ internal static class GrainInterfaceFileParser
         {
             var lineText = StripClrComment(textLine.ToString());
 
-            // 跳过空行和注释
+            // 跳过空行和注释。
             if (string.IsNullOrWhiteSpace(lineText) || lineText.StartsWith("#", StringComparison.Ordinal))
             {
                 continue;
             }
 
-            // 尝试匹配接口声明
+            // 尝试匹配接口声明。
             var grainClassMatch = GrainClassPattern.Match(lineText);
             if (grainClassMatch.Success)
             {
@@ -1626,7 +1626,7 @@ internal static class GrainInterfaceFileParser
                 continue;
             }
 
-            // 尝试匹配接口声明
+            // 尝试匹配接口声明。
             var interfaceMatch = InterfacePattern.Match(lineText);
             if (interfaceMatch.Success)
             {
@@ -1640,7 +1640,7 @@ internal static class GrainInterfaceFileParser
                 }
                 var isRetired = interfaceMatch.Groups["retired"].Success;
 
-                // 遗留键取自姓名,因此仅与其他遗留键进行比较。
+                // 旧式键由名称推导，因此仅与其他旧式键比较。
                 if (data.Interfaces.Any(candidate => grainInterfaceType is not null
                     ? string.Equals(candidate.GrainInterfaceType, grainInterfaceType, StringComparison.Ordinal)
                     : candidate.GrainInterfaceType is null
@@ -1649,7 +1649,7 @@ internal static class GrainInterfaceFileParser
                             GrainInterfaceVersionAnalyzer.GetDefaultGrainInterfaceType(name),
                             StringComparison.Ordinal)))
                 {
-                    // 重复声明
+                    // 重复声明。
                     errors ??= new List<Diagnostic>();
                     var location = Location.Create(
                         filePath,
@@ -1674,7 +1674,7 @@ internal static class GrainInterfaceFileParser
                 continue;
             }
 
-            // 尝试匹配成员声明
+            // 尝试匹配成员声明。
             if (currentInterface is not null
                 && TryGetMemberDeclaration(lineText, out var signature, out var wireIdentity))
             {

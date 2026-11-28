@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- 将接口成员添加为读作(ReadIsolation.ReadCommitted);基准日期在它们之前。 -->
+<!-- 为支持读已提交隔离级别的读取（ReadIsolation.ReadCommitted）新增接口成员；基准版本早于这些成员。 -->
 <Suppressions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Suppression>
     <DiagnosticId>CP0006</DiagnosticId>

@@ -10,7 +10,7 @@ using UnitTests.Grains;
 namespace UnitTests.StuckGrainTests
 {
     /// <summary>
-    /// PersistenceTest简 简 述
+    /// PersistenceTest 的概要说明。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -61,16 +61,16 @@ namespace UnitTests.StuckGrainTests
             var stuckGrain = this.fixture.GrainFactory.GetGrain<IStuckGrain>(id);
             var task = stuckGrain.RunForever();
 
-            // 是否超时
+            // 应超时。
             await Assert.ThrowsAsync<TimeoutException>(() => task.WaitAsync(TimeSpan.FromSeconds(1), cancellationToken));
 
             var cleaner = this.fixture.GrainFactory.GetGrain<IStuckCleanGrain>(id);
             await cleaner.Release(id);
 
-            // 现在就应该完成
+            // 现在应完成。
             await task.WaitAsync(TimeSpan.FromSeconds(1), cancellationToken);
 
-            // 等待激活收藏
+            // 等待激活回收。
             await Task.Delay(TimeSpan.FromSeconds(6), cancellationToken);
 
             Assert.False(await cleaner.IsActivated(id), "Grain activation is supposed be garbage collected, but it is still running.");
@@ -84,7 +84,7 @@ namespace UnitTests.StuckGrainTests
             var stuckGrain = this.fixture.GrainFactory.GetGrain<IStuckGrain>(id);
             var task = stuckGrain.RunForever();
 
-            // 是否超时
+            // 应超时。
             await Assert.ThrowsAsync<TimeoutException>(() => task.WaitAsync(TimeSpan.FromSeconds(1), cancellationToken));
 
             var calls = new Task[3];
@@ -95,13 +95,13 @@ namespace UnitTests.StuckGrainTests
                 await Task.WhenAny(call, Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken));
             }
 
-            // 等待,这样第一件任务就会完成 DefaultCollectionAge 超时
+            // 等待，使第一个任务达到 DefaultCollectionAge 超时。
             await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken);
 
-            // 这件事没有问题
+            // 此操作不会出现问题。
             await stuckGrain.NonBlockingCall();
 
-            // 否则所有被困的电话 都应该被传送到新的启动程序
+            // 所有原本会卡住的调用都应已被转发至新激活。
             await Task.WhenAll(calls).WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
         }
 
@@ -121,11 +121,11 @@ namespace UnitTests.StuckGrainTests
                 calls[i] = stuckGrain.NonBlockingCall();
             }
 
-            // 准备状态保证解除回击的释放任务得到登记。
+            // 就绪状态保证停用回调的释放任务已注册。
             Assert.True(StuckGrain.Release(id));
             await Task.WhenAll(calls).WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
 
-            // 这件事没有问题
+            // 此操作不会出现问题。
             await stuckGrain.NonBlockingCall();
 
             Assert.Equal(4, await stuckGrain.GetNonBlockingCallCounter(cancellationToken));
@@ -137,11 +137,11 @@ namespace UnitTests.StuckGrainTests
             var id = Guid.NewGuid();
             var stuckGrain = this.fixture.GrainFactory.GetGrain<IStuckGrain>(id);
 
-            // 取消已传递给 OnActivateAsync 被取消,启动失败一次 OnActivateAsync 返回。
+            // 传给 OnActivateAsync 的取消令牌被取消，OnActivateAsync 返回后激活失败。
             RequestContext.Set("block_activation_seconds", 30);
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => stuckGrain.NonBlockingCall());
 
-            // 检查看看它是否尝试激活。
+            // 检查确实尝试了激活。
             RequestContext.Clear();
             var unstuckGrain = this.fixture.GrainFactory.GetGrain<IStuckGrain>(Guid.NewGuid());
             await unstuckGrain.NonBlockingCall();
@@ -149,7 +149,7 @@ namespace UnitTests.StuckGrainTests
             var activationAttempted = await unstuckGrain.DidActivationTryToStart(stuckGrain.GetGrainId());
             Assert.True(activationAttempted);
 
-            // 现在激活没有被屏蔽( 我们清除了请求的上下文值, 要求它屏蔽) , 让我们检查一下我们先前卡住的 grain 是否有效 。
+            // 现在激活不再阻塞（已清除指示其阻塞的请求上下文值），检查此前卡住的 Grain 是否正常工作。
             await stuckGrain.NonBlockingCall();
         }
     }

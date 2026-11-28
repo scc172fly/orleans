@@ -207,7 +207,7 @@ namespace UnitTests.Grains
             IAsyncStream<StreamItem> stream = streamProvider.GetStream<StreamItem>(streamNamespace, streamId);
             _observer = stream;
             _logger.LogInformation("ProducerObserver.BecomeProducer: producer requires no disposal; test short-circuited.");
-            _observerDisposedYet = true; // TOD 生物节点删除
+            _observerDisposedYet = true; // TODO BPETIT：移除此内容
             _streamId = streamId;
             _streamNamespace = string.IsNullOrWhiteSpace(streamNamespace) ? null! : streamNamespace.Trim();
             _providerName = streamProvider.Name;
@@ -221,7 +221,7 @@ namespace UnitTests.Grains
             _logger.LogInformation("RenewProducer");
             IAsyncStream<StreamItem> stream = streamProvider.GetStream<StreamItem>(_streamNamespace, _streamId);
             _observer = stream;
-            _observerDisposedYet = true; // TOD 生物节点删除
+            _observerDisposedYet = true; // TODO BPETIT：移除此内容
         }
 
         private async Task<bool> ProduceItem(string data)
@@ -267,7 +267,7 @@ namespace UnitTests.Grains
                 {
                     return await ProduceItem($"parallel#{capture}");
                 }
-                // 需要用不同的线索来强制平行执行
+                // 需要在不同线程上调用，以强制并行执行。
                 tasks[capture - 1] = Task.Factory.StartNew(func).Unwrap();
             }
             return Task.WhenAll(tasks);
@@ -288,8 +288,8 @@ namespace UnitTests.Grains
 
             _logger.LogInformation("ProducerObserver.ProducePeriodicSeries: streamId={StreamId}, num items to produce={Count}.", _streamId, count);
             var timer = TimerState.NewTimer(createTimerFunc, ProduceItem, RemoveTimer, count);
-            // 我们无法通过该 TimerState 对象作为论据, 可能提前收集到, 所以我们可以根化
-            // 通过 _timers 字典将其关联到此对象。
+            // 不能将 TimerState 对象直接作为参数传入，因为它可能被提前回收；因此通过 _timers 字典
+            // 让此对象保持对它的根引用。
             _timers.Add(timer.Handle, timer);
             _expectedItemsProduced += count;
             timer.StartTimer();
@@ -364,7 +364,7 @@ namespace UnitTests.Grains
                 }
                 _timers = null!;
             }
-            _observer = null; // 处置
+            _observer = null; // 正在释放
             return Task.CompletedTask;
         }
 
@@ -938,15 +938,15 @@ namespace UnitTests.Grains
 
         public virtual Task<int> GetConsumerCount()
         {
-            // 目前无法检测有多少隐性消费者被使用
-            // 因此我们必须使用硬接线来将这个 grain 一次只用一个供应商的消费者。
-            // 这个问题将继续存在,直到我们要求供应商的名称与暗含的用户属性身份分开。
+            // 目前无法检测正在使用多少隐式消费者，
+            // 因此只能将此 Grain 硬编码为每次仅使用一个提供程序的消费者。
+            // 除非要求将提供程序名称作为隐式订阅者特性标识的一部分，否则此问题会持续存在。
             return Task.FromResult(1);
             /*
-            内值=0;
-            每一页(在 _observers.Values中以瓦o)
+            int result = 0;
+            foreach (var o in _observers.Values)
             {
-                结果 `等待 o.ConsumerCount;
+                result += await o.ConsumerCount;
             }
             return result;
             */

@@ -49,12 +49,12 @@ namespace Orleans.Runtime.MembershipService
                 this.options,
                 cancellationToken);
 
-            // 假若不是我创造了这个桌子,
-            // 尝试插入初始表格版本,如果它尚未存在的话;
-            // 因此我们总是有一个第一个表格版本行, 此时 silo 开始工作之前。
+            // 即使当前 Silo 不是创建表的实例，
+            // 也尝试在初始表版本不存在时插入它，
+            // 确保此 Silo 开始工作前始终存在首条表版本记录。
             if (tryInitTableVersion)
             {
-                // 忽略返回值, 因为只要它在里面, 我们不在乎是否插入它。
+                // 忽略返回值：只要该记录存在，就不关心是否由当前实例插入。
                 bool created = await tableManager.TryCreateTableVersionEntryAsync(cancellationToken);
                 if (created) LogInformationCreatedNewTableVersionRow();
             }
@@ -262,8 +262,8 @@ namespace Orleans.Runtime.MembershipService
             }
             else if (!string.IsNullOrEmpty(tableEntry.InstanceName))
             {
-                // 这是后向兼容性: 在混合的一组新旧版本中,
-                // 有些条目将拥有旧的 InstanceName 列。
+                // 为了向后兼容，在同时运行新旧版本的集群中，
+                // 部分记录仍包含旧的 InstanceName 列。
                 parse.SiloName = tableEntry.InstanceName;
             }
             if (!string.IsNullOrEmpty(tableEntry.UpdateZone))
@@ -323,8 +323,8 @@ namespace Orleans.Runtime.MembershipService
                 ProxyPort = memEntry.ProxyPort.ToString(CultureInfo.InvariantCulture),
                 RoleName = memEntry.RoleName,
                 SiloName = memEntry.SiloName,
-                // 这是后向兼容性: 在混合的一组新旧版本中,
-                // 我们需要填充两个柱子
+                // 为了向后兼容，在同时运行新旧版本的集群中，
+                // 需要同时填充这两列。
                 InstanceName = memEntry.SiloName,
                 UpdateZone = memEntry.UpdateZone.ToString(CultureInfo.InvariantCulture),
                 FaultZone = memEntry.FaultZone.ToString(CultureInfo.InvariantCulture),

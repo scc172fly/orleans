@@ -9,7 +9,7 @@ using Orleans.Streams;
 namespace Orleans.Streaming.JsonConverters
 {
     /// <summary>
-    /// A <see cref="JsonConverter{T}"/> 用于 <see cref="EventSequenceToken"/> 和 <see cref="EventSequenceTokenV2"/> 类型。
+    /// 一种 <see cref="JsonConverter{T}"/>，适用于 <see cref="EventSequenceToken"/> 和 <see cref="EventSequenceTokenV2"/> 类型。
     /// </summary>
     public sealed class EventSequenceTokenJsonConverter : JsonConverter<StreamSequenceToken>
     {

@@ -1,25 +1,25 @@
 ---
-title: "Orleans 运行时结构"
-description: "程序、变量和扩展点在 Orleans 运行时间范围内的高级指南。"
+title: Orleans 运行时架构
+description: 深入了解 Orleans 运行时内部协议、不变量与扩展点的高级指南。
 ms.date: 08/02/2026
 ms.topic: overview
 ---
 
 <a id="orleans-runtime-architecture"></a>
 
-# Orleans 运行时结构
+# Orleans 运行时架构
 
-实施轨迹解释了 Orleans 如何实现运行时贡献者、提供方作者和操作者的虚拟行为者模式,这些行为者因失败、一致性、时间安排和可推广性而产生理由。
+实现系列文档面向运行时贡献者、提供程序作者及需要分析故障、一致性、调度与扩展性的运维人员，解释 Orleans 如何实现虚拟 Actor 模型。概念及任务导向的章节提供应用编程指导。
 
-本音轨中的页面使用 Orleans 源和测试作为规格。内部型号名称允许读者通过存储库跟踪操作。公共API和明确指定的扩展点带有兼容性合同。
+本系列以 Orleans 源码和测试为规范。内部类型名称帮助读者沿仓库源码追踪操作。公共 API 和明确标识的扩展点具有兼容性契约。
 
 <a id="a-runtime-map"></a>
 
-## 运行时地图
+## 运行时全景
 
-应用程序呼叫通过生成代理代码进入,成为 `Message`,并被 grain 名录和安置服务。 `MessageCenter` 在当地或通过 `Connection` 由 `ConnectionManager`目标 `Catalog` 解析激活,当 `ActivationData` 认可请求, `WorkItemGroup` 执行同步转弯。 响应会通过同一发短信和回回回管道返回 。
+应用调用通过生成的代理代码进入，形成 `Message`，由 Grain 目录及放置服务进行路由。`MessageCenter` 在本地投递，或通过 `Connection` 进行投递，后者由 `ConnectionManager` 管理。目标 `Catalog` 解析激活实例，由 `ActivationData` 接纳请求，并由 `WorkItemGroup` 每次执行一个同步轮次。响应通过相同的消息传递和回调管道返回。
 
-运行时间故意分层:
+运行时有意采用分层设计：
 
 ```mermaid
 flowchart LR
@@ -35,49 +35,49 @@ flowchart LR
     Serialization --> Network
 ```
 
-使用此运行时映射和以下主题列表选择所需的深度。 [运行时间结构](runtime-architecture.md) 页遵循正常呼叫路径;信息、序列化、提醒、交易和版本skew页面解释失败、持久性和滚动升级改变担保的界限。
+使用此运行时全景图及以下主题列表选择所需的阅读深度。[运行时架构](runtime-architecture.md) 页面追踪正常调用路径；消息传递、序列化、提醒器、事务和滚动版本差异相关页面解释故障、持久化与滚动升级会改变哪些保证。
 
 <a id="runtime-core"></a>
 
 ## 运行时核心
 
-- [运行时间结构](runtime-architecture.md) 遵循通过客户、信息、职位安排、目录、启动和时间安排等组成部分发出的电话。
-- [激活生命周期和移徙](activation-lifecycle.md) 解释创建、激活、收集、停止使用和州转让。
-- [分组成员](cluster-management.md) 描述故障检测器、会籍表、定购意见和死亡投票协议。
-- [Grain 目录](grain-directory.md) 解释默认视图同步分布目录和 `LegacyGrainDirectory` DHT。
-- [排排和转手执行](scheduler.md) 解释 `WorkItemGroup`, 续编、 交接和单行距执行。
-- [通信和传送语义](messaging-delivery-guarantees.md) 追踪请求,并解释为什么超时的结果不明。
-- [运输和内部联网](messaging-networking.md) 解释连接设置、框架、后压和关闭行为。
-- [安置和启动平衡](load-balancing.md) 涵盖默认的资源优化政策和选择加入的移动协议。
+- [运行时架构](runtime-architecture.md) 追踪调用经过客户端、消息传递、放置、目录、激活和调度组件的过程。
+- [激活生命周期与迁移](activation-lifecycle.md) 解释创建、激活、回收、停用及状态转移。
+- [集群成员资格](cluster-management.md) 描述故障检测器、成员表、有序视图及死亡投票协议。
+- [Grain 目录](grain-directory.md) 解释默认视图同步分布式目录与 `LegacyGrainDirectory` DHT。
+- [调度与执行轮次](scheduler.md) 解释 `WorkItemGroup`、延续操作、交错执行及单线程执行。
+- [消息传递与投递语义](messaging-delivery-guarantees.md) 追踪请求，并解释为何超时意味着执行结果未知。
+- [传输与网络内部机制](messaging-networking.md) 解释连接建立、消息分帧、背压及关闭行为。
+- [放置与激活实例均衡](load-balancing.md) 介绍默认资源优化策略及可选择启用的迁移协议。
 
 <a id="runtime-services-and-extensibility"></a>
 
-## 运行时间服务和可推广性
+## 运行时服务及扩展性
 
-- [生命周期实施](orleans-lifecycle.md) 描述有订单的启动和关闭。
-- [逐步化和代码生成](serialization.md) 包括生成的编码、代号、清单、线条识别和定制部件。
-- [提醒提醒](reminders.md) 解释环的所有权、耐久提醒行、刷新和滴答交付。
-- [交易交易](transactions.md) 解释交易代理商、管理人员、参与者排队和追回决定。
-- [滚动版本折叠](rolling-version-skew.md) 连接接口版本的显示器、兼容性主任、选择器和混合版操作中的线兼容性。
-- [持久性流](streams-implementation/index.md) 解释拉动剂、队列所有权、缓存、光标、酒吧子和回收。
-- [提供方作者](provider-authoring.md) 是指命名的提供者、配置约束性、生命周期参与和验证。
-- [TestingHost 结构架构](testing.md) 解释了生产服务在工艺过程中的集束利用及其替代。
+- [生命周期实现](orleans-lifecycle.md) 描述有序的启动与关闭。
+- [序列化与代码生成](serialization.md) 介绍生成的编解码器、代理、清单、传输格式标识及自定义组件。
+- [提醒器](reminders.md) 解释环上的所有权、持久化提醒器记录、刷新及触发事件投递。
+- [事务](transactions.md) 解释事务代理、管理器、参与者队列及恢复决策。
+- [滚动部署中的版本差异](rolling-version-skew.md) 将混合版本运行期间的接口版本清单、兼容性决策器、选择器及传输格式兼容性联系起来。
+- [持久化流](streams-implementation/index.md) 解释拉取代理、队列所有权、缓存、游标、发布/订阅及恢复。
+- [编写提供程序](provider-authoring.md) 描述命名提供程序、配置绑定、生命周期参与及验证。
+- [TestingHost 架构](testing.md) 解释进程内集群测试框架及其对生产服务的替代实现。
 
 <a id="defaults-that-shape-the-architecture"></a>
 
-## 构造架构的默认值
+## 影响架构的默认配置
 
-| 关注问题 | 默认默认 |
+| 事项 | 默认值 |
 | --- | --- |
-| 安置职位安排 | <xref:Orleans.Runtime.ResourceOptimizedPlacement> |
-| Grain 目录 | `DistributedGrainDirectory`,使用版版范围和协调成员意见 |
-| 遗产目录 | 选择 <xref:Orleans.Hosting.CoreHostingExtensions.UseLegacyGrainDirectory*?displayProperty=nameWithType> |
-| 分布目录分区 | <xref:Orleans.Configuration.GrainDirectoryOptions.PartitionsPerSilo?displayProperty=nameWithType> 默认值为 1 |
-| 成员探测超时 | 5秒5秒 |
-| 死刑票过期 | 2分钟2分钟 |
-| <xref:Orleans.Configuration.MessagingOptions.ResponseTimeout?displayProperty=nameWithType> | 30秒或30分钟,同时配有调试器 |
-| 响应超时后自动调用重试 | 无无无无 |
+| 放置 | <xref:Orleans.Runtime.ResourceOptimizedPlacement> |
+| Grain 目录 | `DistributedGrainDirectory`，使用带版本的范围及协调一致的成员资格视图 |
+| 旧版目录 | 选择 <xref:Orleans.Hosting.CoreHostingExtensions.UseLegacyGrainDirectory*?displayProperty=nameWithType> |
+| 分布式目录分区 | <xref:Orleans.Configuration.GrainDirectoryOptions.PartitionsPerSilo?displayProperty=nameWithType> 默认为 1 |
+| 成员资格探测超时 | 5 秒 |
+| 死亡投票过期时间 | 2 分钟 |
+| <xref:Orleans.Configuration.MessagingOptions.ResponseTimeout?displayProperty=nameWithType> | 30 秒，附加调试器时为 30 分钟 |
+| 响应超时后自动重试调用 | 无 |
 
-配置值影响故障检测和资源使用。 此轨道解释它们在协议中的作用, 而 [配置指南](../host/configuration-guide/index.md) 和 [部署指导](../deployment/index.md) 则自有操作建议 。
+配置值影响故障检测和资源使用。本系列解释它们在协议中的作用，[宿主配置指南](../host/configuration-guide/index.md) 和 [部署指南](../deployment/index.md) 则提供运维建议。
 
-对于应用的精神模型,从 [Orleans 概览](../overview.md)开始。对于应用这些成分的任务导向配方,使用 [如何指导索引](../how-to/index.md);对于公共类型合同,使用 [C# API 参考](https://dotnet.github.io/orleans/docs/api/csharp/)。
+如需理解应用编程模型，请从 [Orleans 概述](../overview.md) 开始。应用这些组件的任务导向示例参见[操作指南索引](../how-to/index.md)；公共类型契约参见 [C# API 参考](https://dotnet.github.io/orleans/docs/api/csharp/)。

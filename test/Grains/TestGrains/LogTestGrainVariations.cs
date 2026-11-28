@@ -4,40 +4,40 @@ using UnitTests.GrainInterfaces;
 
 namespace TestGrains
 {
-    // 一致日志的变量 grain 用于测试各种供应商和配置
+    // 日志一致性 Grain 的各种变体用于测试不同的提供程序和配置
 
-    // 使用“正流存储”和明确配置的自定义软件
+    // 使用 Azure 存储和显式配置的一致性提供程序
     [StorageProvider(ProviderName = "AzureStore")]
     [LogConsistencyProvider(ProviderName = "StateStorage")]
     public class LogTestGrainSharedStateStorage : LogTestGrain
     {
     }
 
-    // 使用“正流存储”和明确配置的自定义软件
+    // 使用 Azure 存储和显式配置的一致性提供程序
     [StorageProvider(ProviderName = "AzureStore")]
     [LogConsistencyProvider(ProviderName = "LogStorage")]
     public class LogTestGrainSharedLogStorage : LogTestGrain
     {
     }
 
-    // 使用默认存储提供方作为共享存储
+    // 使用默认存储提供程序作为共享存储
     public class LogTestGrainDefaultStorage : LogTestGrain
     {
     }
 
-    // 使用 MemoryStore (使用 GSI grain)
+    // 使用 MemoryStore（它使用 GSI Grain）
     [StorageProvider(ProviderName = "MemoryStore")]
     public class LogTestGrainMemoryStorage : LogTestGrain
     {
     }
 
-    // 使用所有组群均具有对称访问权限的、直白指定的 "CustomStorage" 日志一致性提供方
+    // 使用显式指定的 "CustomStorage" 日志一致性提供程序，允许所有集群对称访问
     [LogConsistencyProvider(ProviderName = "CustomStorage")]
     public class LogTestGrainCustomStorage : LogTestGrain,
         Orleans.EventSourcing.CustomStorage.ICustomStorageInterface<MyGrainState, object>
     {
 
-        // 我们用这个 grain 的另外一根断线作为主电路。
+        // 使用此 Grain 的另一种实现作为主 Grain。
         private ILogTestGrain? storagegrain;
 
         private ILogTestGrain GetStorageGrain()
@@ -67,14 +67,14 @@ namespace TestGrains
         }
     }
 
-    // 使用只从主集中访问的、 Exlicit 指定 "CustomStorage" 逻辑一致性的用户名
+    // 使用显式指定的 "CustomStorage" 日志一致性提供程序，仅允许主集群访问
     [LogConsistencyProvider(ProviderName = "CustomStoragePrimaryCluster")]
     public class LogTestGrainCustomStoragePrimaryCluster : LogTestGrain,
         Orleans.EventSourcing.CustomStorage.ICustomStorageInterface<MyGrainState, object>
     {
         private readonly DeepCopier<MyGrainState> copier;
 
-        // 我们用假的存储状态
+        // 使用模拟的内存状态作为存储
         private MyGrainState? state;
         private int version;
 
@@ -83,8 +83,8 @@ namespace TestGrains
             this.copier = copier;
         }
 
-        // 激活时模拟一个自动同步呼叫。 这在先前版本中造成僵局,
-        // 所以我在这里加上它 来赶上倒退
+        // 模拟激活期间的异步调用。此操作曾在早期版本导致死锁，
+        // 所以在此加入测试以发现回归问题。
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
             await Task.Run(async () =>
@@ -121,7 +121,7 @@ namespace TestGrains
                 state = new MyGrainState();
                 version = 0;
             }
-            return Task.FromResult(new KeyValuePair<int, MyGrainState>(version, this.copier.Copy(state!)!)); // 国家在上述分支中初始化。
+            return Task.FromResult(new KeyValuePair<int, MyGrainState>(version, this.copier.Copy(state!)!)); // 状态已在上面的分支中初始化。
         }
 
         public Task ClearStoredState()

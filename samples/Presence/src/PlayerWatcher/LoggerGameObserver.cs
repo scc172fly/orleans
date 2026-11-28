@@ -4,7 +4,7 @@ using Presence.Grains;
 namespace Presence.PlayerWatcher;
 
 /// <summary>
-/// 执行给给定日志的输出通知 <see cref="IGameObserver"/> 。
+/// 实现 <see cref="IGameObserver"/>，将通知输出到指定日志记录器。
 /// </summary>
 public class LoggerGameObserver : IGameObserver
 {

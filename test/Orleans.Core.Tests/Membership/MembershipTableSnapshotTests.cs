@@ -16,7 +16,7 @@ using Xunit;
 namespace NonSilo.Tests.Membership
 {
     /// <summary>
-    /// 会员表快照功能测试,包括 silo 状态检索和 IAmAliveTime 保存。
+    /// 测试成员资格表快照功能，包括 Silo 状态检索及 IAmAliveTime 保留。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Membership")]
     [TestSuite("BVT")]
@@ -42,7 +42,7 @@ namespace NonSilo.Tests.Membership
                 var snapshotType = clusterSnapshot ? typeof(ClusterMembershipSnapshot) : typeof(MembershipTableSnapshot);
                 ReferenceCodec.MarkValueField(session);
                 writer.WriteFieldHeader(0, typeof(object), snapshotType, WireType.TagDelimited);
-                // Orleans 10.4.0 片段仅包含最初的两个字段。
+                // Orleans 10.4.0 快照仅包含原有的两个字段。
                 if (clusterSnapshot)
                 {
                     var members = ImmutableDictionary<SiloAddress, ClusterMember>.Empty.Add(
@@ -744,7 +744,7 @@ namespace NonSilo.Tests.Membership
         {
             var silo = Silo("127.0.0.1:100@1");
 
-            // 表格为空
+            // 表为空。
             var localSiloEntry = Entry(silo, SiloStatus.Joining);
             var snapshot = AddOrUpdateEntry(MembershipTableSnapshot.Create(Table()), localSiloEntry);
 
@@ -759,8 +759,8 @@ namespace NonSilo.Tests.Membership
         {
             var silo = Silo("127.0.0.1:100@1");
 
-            // 检查条目中的 Silo 状态是否直接提供给
-            // 构建器推翻表格中的值。
+            // 检查直接传给构造函数的条目中的 Silo 状态
+            // 是否覆盖表中的值。
             var localSiloEntry = Entry(silo, SiloStatus.Stopping);
             var snapshot = AddOrUpdateEntry(MembershipTableSnapshot.Create(
                 Table(
@@ -793,7 +793,7 @@ namespace NonSilo.Tests.Membership
             var earlierDate = new DateTimeOffset(new DateTime(2025, 1, 30, 12, 30, 45, DateTimeKind.Utc));
             var laterDate = earlierDate.AddDays(1);
 
-            // 较晚的快照与较早的日期合并,较晚的快照与较晚的日期合并,应保留较晚的日期。
+            // 将具有较早日期的较新快照与具有较晚日期的较旧快照合并时，应保留较晚的日期。
             {
                 var originalSnapshot = MembershipTableSnapshot.Create(Table(Entry(originalSilo, SiloStatus.Active, laterDate)));
                 var newSnapshot = MembershipTableSnapshot.Update(originalSnapshot, Table(Entry(originalSilo, SiloStatus.Active, earlierDate)));
@@ -802,7 +802,7 @@ namespace NonSilo.Tests.Membership
                 Assert.Equal(laterDate, iAmAliveTime);
             }
 
-            // 现在做同样的事情, 但用快照代替桌子
+            // 现在执行相同操作，但使用快照而非表。
             {
                 var originalSnapshot = MembershipTableSnapshot.Create(Table(Entry(originalSilo, SiloStatus.Active, laterDate)));
                 var newSnapshot = MembershipTableSnapshot.Update(originalSnapshot, MembershipTableSnapshot.Create(Table(Entry(originalSilo, SiloStatus.Active, earlierDate))));

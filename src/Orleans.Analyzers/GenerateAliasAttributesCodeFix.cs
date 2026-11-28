@@ -26,7 +26,7 @@ public class GenerateAliasAttributesCodeFix : CodeFixProvider
             var node = root.FindNode(diagnostic.Location.SourceSpan);
             if (node != null)
             {
-                // 检查其接口方法是否
+                // 检查是否为接口方法。
                 var methodDeclaration = node.FirstAncestorOrSelf<MethodDeclarationSyntax>();
                 if (methodDeclaration != null)
                 {
@@ -34,7 +34,7 @@ public class GenerateAliasAttributesCodeFix : CodeFixProvider
                     continue;
                 }
 
-                // 检查其类型声明( 界面本身、 类、 结构、 记录)
+                // 检查是否为类型声明（接口本身、类、结构体或 record）。
                 var typeDeclaration = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
                 if (typeDeclaration != null)
                 {

@@ -21,7 +21,7 @@ public sealed class MessagingKeepAliveTests : MessagingBehaviorTestBase
         await handler.WaitUntilEnteredAsync();
         var context = Fixture.GetGrainContext(receiver);
 
-        // 处理器运行在任何 grain 请求之外, 所以只有泵的持有防止闲置收藏 。
+        // 处理程序在任何 Grain 请求之外运行，因此只有消息泵持有的保活引用能阻止空闲回收。
         var management = Fixture.Client.GetGrain<IManagementGrain>(0);
         await management.ForceActivationCollection(TimeSpan.Zero, TestContext.Current.CancellationToken);
         Assert.False(context.Deactivated.IsCompleted);

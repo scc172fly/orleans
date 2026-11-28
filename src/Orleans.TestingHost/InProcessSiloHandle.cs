@@ -9,18 +9,18 @@ using Orleans.Runtime;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// 表示手柄为 silo 在同一进程中部署的 AppDomain.
+    /// 表示在同一进程和 AppDomain 中部署的 Silo 的句柄。
     /// </summary>
     public class InProcessSiloHandle : SiloHandle
     {
         private bool isActive = true;
         private int disposed;
 
-        /// <summary>获取 silo 主机的引用。</summary>
+        /// <summary>获取 Silo 宿主的引用。</summary>
         public IHost SiloHost { get; init; } = null!;
 
         /// <summary>
-        /// 获取 silo的服务提供商。
+        /// 获取 Silo 的服务提供程序。
         /// </summary>
         public IServiceProvider ServiceProvider => SiloHost.Services;
 
@@ -28,12 +28,12 @@ namespace Orleans.TestingHost
         public override bool IsActive => isActive;
 
         /// <summary>
-        /// 创建 silo 控件。
+        /// 创建 Silo 句柄。
         /// </summary>
-        /// <param name="siloName">国名 国 名 国 名 silo.</param>
+        /// <param name="siloName">Silo 名称。</param>
         /// <param name="configuration">配置。</param>
-        /// <param name="postConfigureHostBuilder">一位在建造主机建筑商之前被援引的可选代表。</param>
-        /// <returns> silo 控件。</returns>
+        /// <param name="postConfigureHostBuilder">在宿主构建器执行构建之前调用的可选委托。</param>
+        /// <returns>Silo 句柄。</returns>
         public static async Task<InProcessSiloHandle> CreateAsync(
             string siloName,
             IConfiguration configuration,
@@ -41,13 +41,13 @@ namespace Orleans.TestingHost
             => await CreateAsync(siloName, configuration, postConfigureHostBuilder, CancellationToken.None);
 
         /// <summary>
-        /// 创建 silo 控件。
+        /// 创建 Silo 句柄。
         /// </summary>
-        /// <param name="siloName">国名 国 名 国 名 silo.</param>
+        /// <param name="siloName">Silo 名称。</param>
         /// <param name="configuration">配置。</param>
-        /// <param name="postConfigureHostBuilder">一位在建造主机建筑商之前被援引的可选代表。</param>
-        /// <param name="cancellationToken">取消时使用的牌点 silo 启动。</param>
-        /// <returns> silo 控件。</returns>
+        /// <param name="postConfigureHostBuilder">在宿主构建器执行构建之前调用的可选委托。</param>
+        /// <param name="cancellationToken">用于取消 Silo 启动的令牌。</param>
+        /// <returns>Silo 句柄。</returns>
         public static async Task<InProcessSiloHandle> CreateAsync(
             string siloName,
             IConfiguration configuration,

@@ -6,9 +6,9 @@ namespace Orleans.Durable.Journaling;
 internal static class OrleansBinaryCollectionWireHelpers
 {
     /// <summary>
-    /// 防守上方的防守 单一快照的物品计数, 在恢复期间应用。
-    /// 被损坏的日记本否则可以报告计数,直至 <see cref="int.MaxValue"/>
-    /// 这样做会导致在读作因其他原因失败之前大量拨款。
+    /// 对单个快照项数的防御性上限，在恢复期间应用。
+    /// 否则损坏的日志可能报告高达 <see cref="int.MaxValue"/> 的计数，
+    /// 在读取因其他原因失败之前就触发巨大的内存分配。
     /// </summary>
     internal const int MaxSnapshotItemCount = 50_000_000;
 

@@ -19,11 +19,11 @@ using System.Net;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// Orleans silo.
+    /// Orleans Silo。
     /// </summary>
     public sealed partial class Silo : IAsyncDisposable, IDisposable
     {
-        /// <summary>小学标准名称 silo. </summary>
+        /// <summary>主 Silo 的标准名称。</summary>
         public const string PrimarySiloName = "Primary";
         private readonly ILocalSiloDetails siloDetails;
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2213:Disposable fields should be disposed",
@@ -51,19 +51,19 @@ namespace Orleans.Runtime
 
         internal IServiceProvider Services { get; }
 
-        /// <summary>获取此 silo的地址。</summary>
+        /// <summary>获取此 Silo 的地址。</summary>
         public SiloAddress SiloAddress => this.siloDetails.SiloAddress;
 
         /// <summary>
-        /// 获得一个 <see cref="Task"/> ,该 silo 一旦终止即完成。
+        /// 获取在 Silo 终止时完成的 <see cref="Task"/>。
         /// </summary>
-        public Task SiloTerminated { get { return this.siloTerminatedTask.Task; } } // 各类终止事件(停机、停止和快速杀戮)都发生一例。
+        public Task SiloTerminated { get { return this.siloTerminatedTask.Task; } } // 所有终止方式（关闭、停止和快速终止）共用一个事件。
 
         /// <summary>
         /// 初始化 <see cref="Silo"/> 类的新实例。
         /// </summary>
-        /// <param name="siloDetails"> silo 初始化参数</param>
-        /// <param name="services">依赖性喷射容器</param>
+        /// <param name="siloDetails">Silo 初始化参数。</param>
+        /// <param name="services">依赖注入容器。</param>
         [Obsolete("This constructor is obsolete and may be removed in a future release. Use SiloHostBuilder to create an instance of ISiloHost instead.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope",
             Justification = "Should not Dispose of messageCenter in this method because it continues to run / exist after this point.")]
@@ -84,7 +84,7 @@ namespace Orleans.Runtime
 
             var localEndpoint = this.siloDetails.SiloAddress.Endpoint;
 
-            //设置从节点配置的 PropagateActivityId 标志
+            // 根据节点配置设置 PropagateActivityId 标志。
             IOptions<SiloMessagingOptions> messagingOptions = services.GetRequiredService<IOptions<SiloMessagingOptions>>();
             this.waitForMessageToBeQueuedForOutbound = messagingOptions.Value.WaitForMessageToBeQueuedForOutboundTime;
 
@@ -119,31 +119,31 @@ namespace Orleans.Runtime
 
             runtimeClient = Services.GetRequiredService<InsideRuntimeClient>();
 
-            // 初始化信件中心
+            // 初始化消息中心。
             messageCenter = Services.GetRequiredService<MessageCenter>();
             messageCenter.SniffIncomingMessage = runtimeClient.SniffIncomingMessage;
 
             this.SystemStatus = SystemStatus.Created;
 
             this.siloLifecycle = this.Services.GetRequiredService<ISiloLifecycleSubject>();
-            // 登记所有生命周期参与者
+            // 注册所有生命周期参与者。
             IEnumerable<ILifecycleParticipant<ISiloLifecycle>> lifecycleParticipants = this.Services.GetServices<ILifecycleParticipant<ISiloLifecycle>>();
             foreach (ILifecycleParticipant<ISiloLifecycle> participant in lifecycleParticipants)
             {
                 participant?.Participate(this.siloLifecycle);
             }
 
-            // 添加自到生命周期
+            // 将自身加入生命周期。
             this.Participate(this.siloLifecycle);
 
             LogInfoSiloInitializingFinished(logger, SiloAddress, new(SiloAddress));
         }
 
         /// <summary>
-        /// 启动 silo。
+        /// 启动 Silo。
         /// </summary>
-        /// <param name="cancellationToken">取消一个可用于取消操作的取消符。</param>
-        /// <returns>A <see cref="Task"/> 代表操作。</returns>
+        /// <param name="cancellationToken">可用于取消操作的取消令牌。</param>
+        /// <returns>表示该操作的 <see cref="Task"/>。</returns>
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             try
@@ -198,13 +198,13 @@ namespace Orleans.Runtime
         {
             var stopWatch = Stopwatch.StartNew();
 
-            // 装入并输入 grain 服务前 silo 开始活动。
+            // 在 Silo 进入活动状态之前加载并初始化 Grain 服务。
             await StartAsyncTaskWithPerfAnalysis("Init grain services",
                 () => CreateGrainServices(), stopWatch);
 
             try
             {
-                // 启动背景计时器计时器计时器以观看平台执行摊位, 例如当GC踢入时
+                // 启动后台定时器触发，以监控平台执行停顿，例如 GC 开始时的停顿。
                 this.platformWatchdog.Start();
             }
             catch (Exception exc)
@@ -277,22 +277,22 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 优雅地停止运行时间系统, 但不能停止应用程序 。
-        /// 申请将突然终止,而内部系统则说尽可能优雅地停止和节省。
-        /// Grains 没有解除其作用。
+        /// 仅优雅停止运行时系统，不停止应用程序。
+        /// 应用程序请求将被突然终止，同时尽可能优雅地停止并保存内部系统状态。
+        /// 不停用 Grain。
         /// </summary>
         public void Stop()
         {
         }
 
         /// <summary>
-        /// 优雅地停止运行时间系统, 但不能停止应用程序 。
-        /// 申请将突然终止,而内部系统则说尽可能优雅地停止和节省。
+        /// 仅优雅停止运行时系统，不停止应用程序。
+        /// 应用程序请求将被突然终止，同时尽可能优雅地停止并保存内部系统状态。
         /// </summary>
         /// <param name="cancellationToken">
-        /// 可用于迅速终止 silo的取消符。
+        /// 可用于迅速终止 Silo 的取消令牌。
         /// </param>
-        /// <returns>A <see cref="Task"/> 代表操作。</returns>
+        /// <returns>表示该操作的 <see cref="Task"/>。</returns>
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             bool gracefully = !cancellationToken.IsCancellationRequested;
@@ -304,7 +304,7 @@ namespace Orleans.Runtime
                     this.SystemStatus.Equals(SystemStatus.Terminated))
                 {
                     stopAlreadyInProgress = true;
-                    // 下垂到下面等待
+                    // 继续向下执行，在下面等待。
                 }
                 else if (!this.SystemStatus.Equals(SystemStatus.Running))
                 {
@@ -349,7 +349,7 @@ namespace Orleans.Runtime
             }
             finally
             {
-                // 最终状态对账
+                // 记录最终状态。
                 if (gracefully)
                 {
                     LogSiloShutDown(logger, LogLevel.Debug, "graceful");
@@ -359,14 +359,14 @@ namespace Orleans.Runtime
                     LogSiloShutDown(logger, LogLevel.Warning, "non-graceful");
                 }
 
-                // 向所有等待者发出信号,通知他们已终止 silo 。
+                // 通知所有等待方 Silo 已终止。
                 await Task.Run(() => this.siloTerminatedTask.TrySetResult(0)).ConfigureAwait(false);
             }
         }
 
         private Task OnRuntimeServicesStop(CancellationToken ct)
         {
-            // 开始拒绝 silo 到 silo 应用程序信件
+            // 开始拒绝全部 Silo 间应用程序消息。
             messageCenter.BlockApplicationMessages();
 
             return Task.CompletedTask;
@@ -407,7 +407,7 @@ namespace Orleans.Runtime
                     }
                 }
 
-                // 等待所有排队信件发送到 OutboundMessageQueue 之前 MessageCenter 停止和 OutboundMessageQueue 停下来。
+                // 在 MessageCenter 及 OutboundMessageQueue 停止之前，等待所有排队的消息发送到 OutboundMessageQueue。
                 await Task.Delay(waitForMessageToBeQueuedForOutbound, ct).SuppressThrowing();
             }
             catch (Exception exc)
@@ -415,7 +415,7 @@ namespace Orleans.Runtime
                 LogErrorSiloFailedToStopMembership(logger, exc);
             }
 
-            // 停止网关
+            // 停止网关。
             await messageCenter.StopAcceptingClientMessages();
         }
 
@@ -473,8 +473,8 @@ namespace Orleans.Runtime
             lifecycle.Subscribe<Silo>(ServiceLifecycleStage.GrainDeactivation, NoOpStart, RunOnBecomeActiveStop);
             lifecycle.Subscribe<Silo>(ServiceLifecycleStage.Active, RunOnActiveStart, RunOnActiveStop);
 
-            // 阶段回调被发送到线索池,以便任何阻隔
-            // 在 silo 启动/停止路径中的工作不会拖延生命周期调度器。
+            // 阶段回调被分派到线程池，以便 Silo 启动或停止路径中的任何阻塞
+            // 工作都不会使生命周期调度器停顿。
             static Task NoOpStart(CancellationToken ct) => Task.CompletedTask;
             Task RunOnRuntimeInitializeStart(CancellationToken ct) => Task.Run(() => OnRuntimeInitializeStart(ct), CancellationToken.None);
             Task RunOnRuntimeInitializeStop(CancellationToken ct) => Task.Run(() => OnRuntimeInitializeStop(ct), CancellationToken.None);
@@ -502,7 +502,7 @@ namespace Orleans.Runtime
             {
                 using var cts = new CancellationTokenSource();
                 cts.Cancel();
-#pragma warning disable RS0030 // IDisposable requires synchronously completing silo shutdown.
+#pragma warning disable RS0030 // IDisposable 要求同步完成 Silo 关闭。
                 StopAsync(cts.Token).Wait();
 #pragma warning restore RS0030
             }

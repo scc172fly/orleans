@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.AzureStorage.Tests
 {
     /// <summary>
-    /// 使用 Azure 存储的斜时钟测试交易金路图情景。
+    /// 测试使用 Azure Storage 时存在时钟偏差场景下的事务正常成功路径。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Transactions"), TestCategory("Functional")]
     [TestSuite("Functional")]

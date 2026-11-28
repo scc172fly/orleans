@@ -5,90 +5,90 @@ products:
 - dotnet
 - dotnet-orleans
 page_type: sample
-name: "Orleans ASP.NET Core Blazor WebAssembly sample"
+name: "Orleans ASP.NET Core Blazor WebAssembly 示例"
 urlFragment: "orleans-aspnet-core-blazor-wasm-sample"
-description: "举例来说 Orleans 使用Blazor和 ASP.NET 核心"
+description: "使用 Blazor 和 ASP.NET Core 的 Orleans 示例。"
 ---
 
 <a id="orleans-aspnet-core-blazor-webassembly-sample"></a>
 
-# Orleans ASP.NET 核心闪光器 WebAssembly 样本
+# Orleans ASP.NET Core Blazor WebAssembly 示例
 
-本样本演示如何整合 [ASP.NET 核心布拉佐](https://docs.microsoft.com/aspnet/core/blazor/)
-与 [Microsoft Orleans](https://docs.microsoft.com/dotnet/orleans/)。此表显示浏览器 [Blazor WebAssembly 主机模式](https://docs.microsoft.com/aspnet/core/blazor/hosting-models#blazor-webassembly)。
+本示例演示如何将 [ASP.NET Core Blazor](https://docs.microsoft.com/aspnet/core/blazor/)
+与 [Microsoft Orleans](https://docs.microsoft.com/dotnet/orleans/) 集成。这演示了浏览器中的 [Blazor WebAssembly 托管模型](https://docs.microsoft.com/aspnet/core/blazor/hosting-models#blazor-webassembly)。
 
-客户方抽样应用软件的杠杆 ASP.NET 网 网 API 与 Orleans 用于标准网络通信。
+客户端示例应用使用与 Orleans 一起运行的 ASP.NET Web API 进行标准 Web 通信。
 
-应用程序基于 [官方官方教官](https://dotnet.microsoft.com/learn/aspnet/blazor-tutorial/intro),适合与 Orleans的整合。
+应用程序基于[官方教程](https://dotnet.microsoft.com/learn/aspnet/blazor-tutorial/intro)，并进行了调整以展示与 Orleans 的集成。
 
 <a id="sample-prerequisites"></a>
 
-## 抽样的前提条件
+## 示例先决条件
 
-本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
+本示例使用 C# 编写，目标框架为 .NET 10。需要 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本。
 
 <a id="building-the-sample"></a>
 
-## 建立样本
+## 构建示例
 
-下载和运行样本时,请遵循以下步骤:
+按照以下步骤下载并运行示例：
 
-1. 下载并解开样本的平面
-2. 视觉演播室(2022年或以后):
-    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
-    2. 打开解压后的示例目录，再打开其中的 C# 项目文件（`.csproj`）。
-    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 直接运行。
-3. 从命令行 :
-   1. 导航到持有未设偏移样本代码的文件夹 。
-   2. 在命令行,类型 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
+1. 下载并解压示例。
+2. 在 Visual Studio（2022 或更高版本）中：
+    1. 在菜单栏中选择 **文件** > **打开** > **项目/解决方案**。
+    2. 导航到存放已解压示例代码的文件夹，并打开 C# 项目（.csproj）文件。
+    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 在不调试的情况下运行项目。
+3. 从命令行运行：
+   1. 导航到存放已解压示例代码的文件夹。
+   2. 在命令行输入 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
 
 <a id="running-the-sample"></a>
 
-## 运行样本
+## 运行示例
 
-运行样本,打开两个终端窗口并在一个终端中执行以下操作:
+打开两个终端窗口，在其中一个终端中执行以下命令以运行示例：
 
 ```dotnetcli
 dotnet run --project BlazorWasm.Server
 ```
 
-在其它终端中执行下列操作 :
+在另一个终端中执行以下命令：
 
 ```dotnetcli
 dotnet run --project BlazorWasm.Client
 ```
 
-申请一经启动,您可在下列地址获取:
+两个应用程序启动后，可以通过以下地址访问它们：
 
-* 由 BlazorWasm.Server 进程主持, [http://localhost:5000/swagger/index.html](http://localhost:5000/swagger/index.html)的 Swagger 界面
-* BlazorWasm.Client 程序托管的客户-用户-服务面布拉佐 App: [http://localhost:62654/](http://localhost:62654/)
+* 由 BlazorWasm.Server 进程托管的 Swagger UI：[http://localhost:5000/swagger/index.html](http://localhost:5000/swagger/index.html)
+* 由 BlazorWasm.Client 进程托管的客户端 Blazor 应用：[http://localhost:62654/](http://localhost:62654/)
 
 <a id="demos"></a>
 
 ## 演示
 
-应用程序展示了三个演示:
+应用程序展示三个演示：
 
 <a id="counter"></a>
 
-### 柜台
+### 计数器
 
-显示更新柜台的按钮。
-这在布拉佐里表明了基本逻辑。
-此演示不与 Orleans融合。
+显示一个用于更新计数器的按钮。
+这演示了 Blazor 中的基本逻辑。
+此演示不与 Orleans 集成。
 
 <a id="fetch-data"></a>
 
 ### 获取数据
 
-从 Orleans获取只读数据的页面。
-用户端应用程序从 ASP.NET 核心网 API 与 Orleans.
+从 Orleans 获取只读数据的页面。
+客户端应用从与 Orleans 一起运行的 ASP.NET Core Web API 获取这些数据。
 
 <a id="todo"></a>
 
-### 待待办待办
+### 待办事项
 
-管理待办事宜列表的页面 。
-允许创建、编辑和删除待办事宜项目。
+用于管理待办事项列表的页面。
+允许创建、编辑及删除待办事项。
 
-用户端应用程序通过REST呼叫管理这些数据 ASP.NET 核心网 API 与 Orleans.
+客户端应用通过 REST 调用与 Orleans 一起运行的 ASP.NET Core Web API 来管理这些数据。

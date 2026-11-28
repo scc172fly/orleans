@@ -13,7 +13,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Clustering.Redis
 {
     /// <summary>
-    /// 阅读会员简况,执行会员资格,在初级 Redis 书写脚本。
+    /// 从 Redis 主节点读取成员资格快照，并在主节点上执行成员资格写入脚本。
     /// </summary>
     internal class RedisMembershipTable : IMembershipTable, IDisposable, IAsyncDisposable
     {
@@ -68,7 +68,7 @@ namespace Orleans.Clustering.Redis
             lock (_lifecycleLock)
             {
                 ObjectDisposedException.ThrowIf(_disposed, this);
-                // 包括了血肿服务员,因此在每次等待和释放完成后就进行处置。
+                // 将等待信号量的操作也纳入统计，确保在所有等待及释放操作完成之后才进行资源释放。
                 _initializingCount++;
             }
 
@@ -140,7 +140,7 @@ namespace Orleans.Clustering.Redis
                     }
                     catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                     {
-                        // 毫无保留地在电话停止等待后 仍可以归还自有连接
+                        // 不接受取消令牌的工厂仍可能在调用方停止等待后返回由提供程序拥有的连接。
                         DisposeAbandonedMultiplexerAsync(creation).Ignore();
                         throw;
                     }
@@ -208,7 +208,7 @@ namespace Orleans.Clustering.Redis
         private async Task<bool> UpsertRowInternal(MembershipEntry entry, TableVersion tableVersion, bool allowInsertOnly, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // 服务器的象征性验证避免了对心跳引发的冲突进行观察,
+            // 服务端令牌验证可避免对同一哈希表的心跳写入引起 WATCH 冲突。
             const string script =
                 """
                 if redis.call('HGET', KEYS[1], 'Version') ~= ARGV[2]
@@ -283,7 +283,7 @@ namespace Orleans.Clustering.Redis
         public async Task UpdateIAmAliveAsync(MembershipEntry entry, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // JsonSettings 总是发布此ISO 时间戳。 补上字节以逐字保存所有其他字段 。
+            // JsonSettings 始终生成此 ISO 格式时间戳。直接修改其字节，以原样保留其他所有字段。
             const string script =
                 """
                 local row = redis.call('HGET', KEYS[1], ARGV[1])
@@ -305,7 +305,7 @@ namespace Orleans.Clustering.Redis
         public async Task<bool> UpdateRowAsync(MembershipEntry entry, string etag, TableVersion tableVersion, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // 阅读时使用表格版本作为行 etag, 所以两者都必须描述相同视图 。
+            // 读取操作使用表版本作为行 ETag，因此两者必须描述同一个视图。
             return string.Equals(etag, tableVersion.VersionEtag, StringComparison.Ordinal)
                 && await UpsertRowInternal(entry, tableVersion, allowInsertOnly: false, cancellationToken);
         }
@@ -344,7 +344,7 @@ namespace Orleans.Clustering.Redis
             }
         }
 
-        // StackExchange.Redis 不接受取消标记。 如果呼叫者放弃等待, 请观察终端错误 。
+        // StackExchange.Redis 不接受取消令牌。如果调用方放弃等待，则观察最终的故障结果。
         private static async Task<T> AwaitAsync<T>(Task<T> operation, CancellationToken cancellationToken)
         {
             operation.Ignore();
@@ -397,7 +397,7 @@ namespace Orleans.Clustering.Redis
                 IsInitialized = false;
                 if (_initializingCount > 0 && ownedMuxer is not null)
                 {
-                    // 最后获得承认的初始化器在其后端工作之后释放了已公布的连接。
+                    // 最后一个获准进入的初始化程序在完成后端操作后释放已发布的连接。
                     _deferredOwnedMultiplexer = ownedMuxer;
                     _deferredDisposal = new(TaskCreationOptions.RunContinuationsAsynchronously);
                     _deferredDisposal.Task.Ignore();

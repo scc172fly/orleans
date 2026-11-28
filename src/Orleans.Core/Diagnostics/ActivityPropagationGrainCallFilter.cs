@@ -4,7 +4,7 @@ using Orleans.Diagnostics;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 帮助在呼叫链中传播活动相关性信息的 grain 调用过滤器。
+    /// 帮助沿调用链传播 Activity 关联信息的 Grain 调用筛选器。
     /// </summary>
     internal abstract class ActivityPropagationGrainCallFilter
     {
@@ -18,17 +18,17 @@ namespace Orleans.Runtime
 
             switch (interfaceTypeName)
             {
-                // 内存存储用 grains 实施
+                // 内存存储使用 Grain 实现。
                 case "IMemoryStorageGrain":
                     return ActivitySources.StorageGrainSource;
 
-                // 此项扩展适用于明确的移徙/停止行动电话
+                // 此扩展用于显式迁移或停用调用。
                 case "IGrainManagementExtension":
-                // 目标是接受移徙批次
+                // 此目标用于接收批量迁移。
                 case "IActivationMigrationManagerSystemTarget":
                     return ActivitySources.LifecycleGrainSource;
 
-                // 这些扩展号是用于同步流订阅的
+                // 这些扩展用于异步流订阅。
                 case "IAsyncEnumerableGrainExtension":
                     return ActivitySources.ApplicationGrainSource;
 
@@ -49,7 +49,7 @@ namespace Orleans.Runtime
         {
             if (activity is not null)
             {
-                // https://opentelemetry.io/docs/specs/semconv/rpc/的 RPC 属性
+                // RPC 属性参见 https://opentelemetry.io/docs/specs/semconv/rpc/
                 activity.SetTag(ActivityTagKeys.RpcSystem, RpcSystem);
                 activity.SetTag(ActivityTagKeys.RpcService, context.InterfaceName);
                 activity.SetTag(ActivityTagKeys.RpcMethod, $"{context.InterfaceName}/{context.MethodName}");
@@ -75,13 +75,13 @@ namespace Orleans.Runtime
                 {
                     activity.SetStatus(ActivityStatusCode.Error);
 
-                    // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md的例外属性
+                    // 异常属性参见 https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md
                     activity.SetTag(ActivityTagKeys.ExceptionType, e.GetType().FullName);
                     activity.SetTag(ActivityTagKeys.ExceptionMessage, e.Message);
 
-                    // 请注意, "exception.stacktrace" 是全部例外细节,而不仅仅是 StackTrace 财产。
-                    // 见 https://opentelemetry.io/docs/specs/semconv/attributes-registry/exception/
-                    // 和 https://github.com/open-telemetry/opentelemetry-specification/pull/697#discussion_r453662519
+                    // 注意：“exception.stacktrace” 包含完整的异常详情，而不只是 StackTrace 属性。
+                    // 参见 https://opentelemetry.io/docs/specs/semconv/attributes-registry/exception/
+                    // 以及 https://github.com/open-telemetry/opentelemetry-specification/pull/697#discussion_r453662519
                     activity.SetTag(ActivityTagKeys.ExceptionStacktrace, e.ToString());
                     activity.SetTag(ActivityTagKeys.ExceptionEscaped, true);
                 }
@@ -96,7 +96,7 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// 方案向外出请求分发背景资料。
+    /// 将分布式上下文信息传播到传出请求。
     /// </summary>
     internal class ActivityPropagationOutgoingGrainCallFilter : ActivityPropagationGrainCallFilter, IOutgoingGrainCallFilter
     {
@@ -105,7 +105,7 @@ namespace Orleans.Runtime
         /// <summary>
         /// 初始化 <see cref="ActivityPropagationOutgoingGrainCallFilter"/> 类的新实例。
         /// </summary>
-        /// <param name="propagator">上下文宣传器。</param>
+        /// <param name="propagator">上下文传播器。</param>
         public ActivityPropagationOutgoingGrainCallFilter(DistributedContextPropagator propagator)
         {
             _propagator = propagator;
@@ -128,7 +128,7 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// 分发收到的请求的背景资料。
+    /// 从传入请求填充分布式上下文信息。
     /// </summary>
     internal class ActivityPropagationIncomingGrainCallFilter : ActivityPropagationGrainCallFilter, IIncomingGrainCallFilter
     {
@@ -137,7 +137,7 @@ namespace Orleans.Runtime
         /// <summary>
         /// 初始化 <see cref="ActivityPropagationIncomingGrainCallFilter"/> 类的新实例。
         /// </summary>
-        /// <param name="propagator">上下文宣传器。</param>
+        /// <param name="propagator">上下文传播器。</param>
         public ActivityPropagationIncomingGrainCallFilter(DistributedContextPropagator propagator)
         {
             _propagator = propagator;
@@ -154,12 +154,12 @@ namespace Orleans.Runtime
             {
                 if (ActivityContext.TryParse(traceParent, traceState, isRemote: true, out ActivityContext parentContext))
                 {
-                    // traceParent 是 W3CId 的 W3CId
+                    // traceParent 是 W3CId。
                     activity = source.CreateActivity(context.Request.GetActivityName(), ActivityKind.Server, parentContext);
                 }
                 else
                 {
-                    // 最有可能的是 traceParent 使用 ActivityIdFormat.Hierarchical
+                    // traceParent 很可能使用 ActivityIdFormat.Hierarchical。
                     activity = source.CreateActivity(context.Request.GetActivityName(), ActivityKind.Server, traceParent);
                 }
 

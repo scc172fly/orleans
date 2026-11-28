@@ -1,14 +1,14 @@
 ﻿@page "/"
-<PageTitle>Todo Lists</PageTitle>
+<PageTitle>待办清单</PageTitle>
 
 <div class="container">
-    <h1>My Todo Lists</h1>
+    <h1>我的待办清单</h1>
 
     <div class="mb-4">
         <form @onsubmit="() => CreateNewList(newListName)">
             <div class="input-group">
-                <input type="text" class="form-control" placeholder="New list name..." @bind="newListName" />
-                <button type="submit" class="btn btn-primary">Create List</button>
+                <input type="text" class="form-control" placeholder="新清单名称..." @bind="newListName" />
+                <button type="submit" class="btn btn-primary">创建清单</button>
             </div>
         </form>
     </div>

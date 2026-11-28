@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// <see cref="IServiceCollection"/> 扩展。
+    /// <see cref="IServiceCollection"/> 的扩展方法。
     /// </summary>
     public static class TransactionsServiceCollectionExtensions
     {

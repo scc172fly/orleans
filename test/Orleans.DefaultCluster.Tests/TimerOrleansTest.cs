@@ -21,12 +21,12 @@ namespace DefaultCluster.Tests.TimerTests
     }
 
     /// <summary>
-    /// 测试 Orleans 计时器功能。
-    /// 计时器提供 grain- 本地的、不可耐用定期回调。与提醒不同,
-    /// 时间计仅在一个 grain 被激活且不持续时时才有效
-    /// 它们是短寿命定期任务、投票、
-    /// 以及不需要持久性的其他假设
-    /// 高频操作的计时器比提醒更有效率。
+    /// Orleans 定时器功能测试。
+    /// 定时器提供 Grain 本地的、非持久化的周期性回调。与提醒器不同，
+    /// 定时器仅在 Grain 处于激活状态时有效，不会跨
+    /// 停用保留。它们适合短期周期性任务、轮询、
+    /// 超时及其他无需持久化的场景。
+    /// 对于高频操作，定时器比提醒器更高效。
     /// </summary>
     [Collection(TimerOrleansTestCollection.Name)]
     public class TimerOrleansTest : OrleansTestingBase
@@ -245,10 +245,10 @@ namespace DefaultCluster.Tests.TimerTests
         }
 
         /// <summary>
-        /// 测试基本的定时器功能,包括启动和停止操作。
-        /// 证明定时器按预期间隔计时,可以停止;
-        /// 并且阻止定时器,以阻断进一步的勾点。这显示
-        /// 启动时 grain 范围内的初始定时器生命周期。
+        /// 测试定时器基本功能，包括启动与停止操作。
+        /// 验证定时器按预期时间间隔触发、可以停止，
+        /// 且停止定时器可以阻止后续触发。这展示了
+        /// Grain 激活实例内定时器的基本生命周期。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -272,10 +272,10 @@ namespace DefaultCluster.Tests.TimerTests
         }
 
         /// <summary>
-        /// 测试多个 grains ,且计时器平行运行。
-        /// 证明 grain 保持自己的独立计时器
-        /// 不同 grain 激活的定时器不干扰
-        /// 显示每个 grain的计时器隔离。
+        /// 测试多个 Grain 的定时器并行运行。
+        /// 验证每个 Grain 维护各自独立的定时器，
+        /// 且不同 Grain 激活实例的定时器互不干扰，
+        /// 展示各 Grain 的定时器隔离。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -288,7 +288,7 @@ namespace DefaultCluster.Tests.TimerTests
             {
                 ITimerGrain grain = GrainFactory.GetGrain<ITimerGrain>(GetRandomGrainId());
                 grains.Add(grain);
-                period = await grain.GetTimerPeriod(); // 激活 grains
+                period = await grain.GetTimerPeriod(); // 激活 Grain
             }
 
             await AdvanceDefaultTimerTicksAsync(grains, period);
@@ -303,10 +303,10 @@ namespace DefaultCluster.Tests.TimerTests
         }
 
         /// <summary>
-        /// 测试 grain 停止和重新启动的全程时间行为。
-        /// 证明计时器不会持续整个 grain 生命周期,当一个 grain周期
-        /// 停止使用和重新启动,计时器开始新时间。
-        /// 与提醒相比,计时器不可耐久的性质。
+        /// 测试 Grain 停用与重新激活时的定时器行为。
+        /// 验证定时器不会跨 Grain 生命周期保留：当 Grain
+        /// 停用并重新激活时，定时器会重新开始。这展示了
+        /// 定时器与提醒器相比不具备持久化特性。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -316,18 +316,18 @@ namespace DefaultCluster.Tests.TimerTests
             ITimerGrain grain = GrainFactory.GetGrain<ITimerGrain>(GetRandomGrainId());
             TimeSpan period = await grain.GetTimerPeriod();
 
-            // 确保 grain 按其应有的效果运作。
+            // 确保 Grain 正常工作。
             var last = await AdvanceDefaultTimerTicksAsync(grain, period);
             Assert.Equal(ExpectedDefaultTimerTicks, last);
             output.WriteLine("value = " + last);
 
-            // 重新启动 grain。
+            // 重新激活 Grain。
             await grain.Deactivate();
             last = await grain.GetCounter();
             Assert.True(last == 0, "Restarted grains should have zero ticks. Actual: " + last);
             period = await grain.GetTimerPeriod();
 
-            // 点燃 grain ,确保它仍然能正常工作。
+            // 调用 Grain 以确认其仍然正常工作。
             last = await AdvanceDefaultTimerTicksAsync(grain, period);
             Assert.Equal(ExpectedDefaultTimerTicks, last);
 
@@ -337,10 +337,10 @@ namespace DefaultCluster.Tests.TimerTests
         }
 
         /// <summary>
-        /// 测试使非同步化的计时器 grain 呼唤着他们的回击
-        /// 证明时器回调可进行 grain- -grain 通信
-        /// 并且时间回调的例外被捕获,不崩溃
-        /// 排 grain。对于基于定时器的管弦模式很重要。
+        /// 测试在回调中发起异步 Grain 调用的定时器。
+        /// 验证定时器回调可以执行 Grain 间通信，
+        /// 且定时器回调中的异常会被捕获，不会导致
+        /// Grain 崩溃。这对于基于定时器的编排模式很重要。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -366,7 +366,7 @@ namespace DefaultCluster.Tests.TimerTests
                 Assert.Equal(1, tickCount);
 
                 Exception? err = await grain.GetException();
-                Assert.Null(err); // 在调时回调期间不应有任何例外
+                Assert.Null(err); // 定时器回调期间不应出现异常
             }
             catch (Exception exc)
             {
@@ -380,7 +380,7 @@ namespace DefaultCluster.Tests.TimerTests
             }
             catch (Exception exc)
             {
-                // 忽略忽略
+                // 忽略。
                 output.WriteLine("Ignoring exception from StopTimer : {0}", exc);
             }
 
@@ -391,10 +391,10 @@ namespace DefaultCluster.Tests.TimerTests
         }
 
         /// <summary>
-        /// 测试所有时间器创造超载及其行为
-        /// 证明不同的计时器登记方法(有/无状态,
-        /// 不同时期规格)工作正确,且所有定时器
-        /// 变量执行预期的回调。
+        /// 测试所有创建定时器的重载及其行为。
+        /// 验证不同定时器注册方法（有无状态、
+        /// 不同的周期指定方式）均能正常工作，且所有定时器
+        /// 变体均按预期执行回调。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -412,17 +412,17 @@ namespace DefaultCluster.Tests.TimerTests
         }
 
         /// <summary>
-        /// 测试定时器能安全地 摆脱自己的回击
-        /// 证明自我处置不会造成僵局或例外
-        /// 这对于一瞬时针或
-        /// 需要根据条件注销。
+        /// 测试定时器能否在自身回调中安全地释放自身。
+        /// 验证自行释放不会导致死锁或异常，
+        /// 这对于一次性定时器模式或需要根据条件
+        /// 取消自身的定时器很重要。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
         [Fact, TestCategory("SlowBVT"), TestCategory("Timers")]
         public async Task GrainTimer_DisposeFromCallback()
         {
-            // 计划一个自调时便处置自己的计时器。
+            // 安排一个会在自身回调中释放自身的定时器。
             var grain = GrainFactory.GetGrain<ITimerCallGrain>(GetRandomGrainId());
             await RunSelfDisposingTimerAsync(grain);
 
@@ -431,11 +431,11 @@ namespace DefaultCluster.Tests.TimerTests
         }
 
         /// <summary>
-        /// 测试非返回时的计时行为 grains。
-        /// 证明在非返回状态 grain 中多次计时器
-        /// grain的同值货币约束 - 计时回调不重叠
-        /// 并与其他 grain 方法相序列,以保持
-        /// 单行执行模型。
+        /// 测试不可重入 Grain 中的定时器行为。
+        /// 验证不可重入 Grain 中的多个定时器遵守
+        /// Grain 的并发约束：定时器回调不会重叠，
+        /// 并与其他 Grain 方法串行执行，保持
+        /// 单线程执行模型。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -448,12 +448,12 @@ namespace DefaultCluster.Tests.TimerTests
             using var timerObserver = TimerDiagnosticObserver.Create(fixture.HostedCluster);
             var grain = GrainFactory.GetGrain<INonReentrantTimerCallGrain>(GetRandomGrainId());
 
-            // 排队多个时间计时器, 同一延迟
+            // 安排多个具有相同延迟的定时器
             await grain.StartTimer(testName, delay);
             await grain.StartTimer($"{testName}_1", delay);
             await grain.StartTimer($"{testName}_2", delay);
 
-            // 开始一些非互连方法, 等待计时器回调 。
+            // 等待定时器回调时调用一些不可交错执行的方法。
             var externalTicks = await DriveExternalTickUntilTimerTicks(grain, timerObserver, delay, expectedTimerTicks: 3);
 
             var tickCount = await grain.GetTickCount();
@@ -461,7 +461,7 @@ namespace DefaultCluster.Tests.TimerTests
             Assert.Equal(3 + externalTicks, tickCount);
 
             var err = await grain.GetException();
-            Assert.Null(err); // 在调时回调期间不应有任何例外
+            Assert.Null(err); // 定时器回调期间不应出现异常
 
             await grain.StopTimer(testName);
             await grain.StopTimer($"{testName}_1");
@@ -469,11 +469,11 @@ namespace DefaultCluster.Tests.TimerTests
         }
 
         /// <summary>
-        /// 测试变化的时段和创建后的到期时间。
-        /// 证明 timer.Change() 正确更新了时间参数,
-        /// 处理边缘情况(无限、零、负值),并且
-        /// 时间器可以在自己的回调中安全地修改。
-        /// 适应性时间安排情景所必不可少的。
+        /// 测试创建定时器之后更改周期和到期时间。
+        /// 验证 timer.Change() 能正确更新时间参数，
+        /// 处理边界情况（无限、零、负值），并且
+        /// 可以在定时器自身的回调中安全地修改定时器。
+        /// 这对于自适应计时场景至关重要。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -503,13 +503,13 @@ namespace DefaultCluster.Tests.TimerTests
             await grain.TestTimerChangeArguments();
 
             Exception err = await grain.GetException();
-            Assert.Null(err); // 在调时回调期间不应有任何例外
+            Assert.Null(err); // 定时器回调期间不应出现异常
 
-            // 定时器内调用的有效操作:更新周期并处理计时器。
+            // 在定时器内部调用的有效操作：更新周期和释放定时器。
             var grain2 = GrainFactory.GetGrain<ITimerCallGrain>(GetRandomGrainId());
             await grain2.StartTimer(testName, delay, "update_period");
             await AdvanceTimerToTickCountAsync(grain2, timerObserver, delay, TimerCallbackDelay, expectedTickCount: 1);
-            Assert.Null(await grain2.GetException()); // 在调时回调期间不应有任何例外
+            Assert.Null(await grain2.GetException()); // 定时器回调期间不应出现异常
             Assert.Equal(1, await grain2.GetTickCount());
 
             var grain3 = GrainFactory.GetGrain<ITimerCallGrain>(GetRandomGrainId());
@@ -517,17 +517,17 @@ namespace DefaultCluster.Tests.TimerTests
             await AdvanceTimerToTickCountAsync(grain3, timerObserver, delay, TimerCallbackDelay, expectedTickCount: 1);
             var grain3TickCount = await grain3.GetTickCount();
 
-            Assert.Null(await grain3.GetException()); // 在调时回调期间不应有任何例外
+            Assert.Null(await grain3.GetException()); // 定时器回调期间不应出现异常
             Assert.Equal(1, grain3TickCount);
 
             await grain.StopTimer(testName);
         }
 
         /// <summary>
-        /// 与 POCO(Plain Old CLR 对象) grains测试基本定时器功能。
-        /// 证明计时器与PCO grains 的同值工作
-        /// Grain-衍生类别,表明计时器
-        /// 基础设施独立于 grain 执行样式。
+        /// 测试 POCO（普通 CLR 对象）Grain 的基本定时器功能。
+        /// 验证定时器在 POCO Grain 中的行为与
+        /// 传统的派生自 Grain 的类相同，展示定时器
+        /// 基础设施独立于 Grain 的实现方式。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -551,10 +551,10 @@ namespace DefaultCluster.Tests.TimerTests
         }
 
         /// <summary>
-        /// 在多个 POCO grain 实例中测试平行计时器执行。
-        /// 证明POCO grains 保持时计隔离状态,就像
-        /// grains,每个情况都有独立的计时员
-        /// 互不干涉
+        /// 测试多个 POCO Grain 实例之间并行执行定时器。
+        /// 验证 POCO Grain 与传统 Grain 一样保持定时器隔离，
+        /// 每个实例都有独立的定时器，
+        /// 彼此不干扰。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -567,7 +567,7 @@ namespace DefaultCluster.Tests.TimerTests
             {
                 IPocoTimerGrain grain = GrainFactory.GetGrain<IPocoTimerGrain>(GetRandomGrainId());
                 grains.Add(grain);
-                period = await grain.GetTimerPeriod(); // 激活 grains
+                period = await grain.GetTimerPeriod(); // 激活 Grain
             }
 
             await AdvanceDefaultTimerTicksAsync(grains, period);
@@ -582,10 +582,10 @@ namespace DefaultCluster.Tests.TimerTests
         }
 
         /// <summary>
-        /// 测试整个POCO grain 解除/激活的计时行为。
-        /// 证明POCO grains 显示同一非持久性定时器
-        /// 传统 grains - 停止作用时丢失计时器
-        /// 重新开始重新启动。
+        /// 测试 POCO Grain 停用及重新激活时的定时器行为。
+        /// 验证 POCO Grain 与传统 Grain 具有相同的非持久化定时器
+        /// 行为：停用时丢失定时器，
+        /// 重新激活时重新开始。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -595,18 +595,18 @@ namespace DefaultCluster.Tests.TimerTests
             IPocoTimerGrain grain = GrainFactory.GetGrain<IPocoTimerGrain>(GetRandomGrainId());
             TimeSpan period = await grain.GetTimerPeriod();
 
-            // 确保 grain 按其应有的效果运作。
+            // 确保 Grain 正常工作。
             var last = await AdvanceDefaultTimerTicksAsync(grain, period);
             Assert.Equal(ExpectedDefaultTimerTicks, last);
             output.WriteLine("value = " + last);
 
-            // 重新启动 grain。
+            // 重新激活 Grain。
             await grain.Deactivate();
             last = await grain.GetCounter();
             Assert.True(last == 0, "Restarted grains should have zero ticks. Actual: " + last);
             period = await grain.GetTimerPeriod();
 
-            // 点燃 grain ,确保它仍然能正常工作。
+            // 调用 Grain 以确认其仍然正常工作。
             last = await AdvanceDefaultTimerTicksAsync(grain, period);
             Assert.Equal(ExpectedDefaultTimerTicks, last);
 
@@ -616,10 +616,10 @@ namespace DefaultCluster.Tests.TimerTests
         }
 
         /// <summary>
-        /// 试验不同步 grain 波哥公司打来电话 grain 时针回调
-        /// 证明POCO grain 计时器能够进行同步操作
-        /// 包括 grain-至-grain 电话,但适当处理除外
-        /// 时针回调上下文。
+        /// 测试在 POCO Grain 的定时器回调中发起异步 Grain 调用。
+        /// 验证 POCO Grain 的定时器可以执行异步操作，
+        /// 包括 Grain 间调用，并在定时器回调上下文中
+        /// 正确处理异常。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -645,7 +645,7 @@ namespace DefaultCluster.Tests.TimerTests
                 Assert.Equal(1, tickCount);
 
                 Exception? err = await grain.GetException();
-                Assert.Null(err); // 在调时回调期间不应有任何例外
+                Assert.Null(err); // 定时器回调期间不应出现异常
             }
             catch (Exception exc)
             {
@@ -659,7 +659,7 @@ namespace DefaultCluster.Tests.TimerTests
             }
             catch (Exception exc)
             {
-                // 忽略忽略
+                // 忽略。
                 output.WriteLine("Ignoring exception from StopTimer : {0}", exc);
             }
 
@@ -670,10 +670,10 @@ namespace DefaultCluster.Tests.TimerTests
         }
 
         /// <summary>
-        /// 测试所有使用 POCO grains的计时器登记超载。
-        /// 确保POCO grains 支持全范围计时器
-        /// 与 API
-        /// 传统 grain 执行。
+        /// 测试 POCO Grain 的所有定时器注册重载。
+        /// 确保 POCO Grain 支持完整的定时器注册方法，
+        /// 保持与传统 Grain 实现的
+        /// API 兼容性。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -691,10 +691,10 @@ namespace DefaultCluster.Tests.TimerTests
         }
 
         /// <summary>
-        /// 测试非留存的极低汇率 grains中的时间计时器同货币限制。
-        /// 证明POCO grains 尊重再入环境,确保
-        /// 时间再回调在非返回时适当序列 grains
-        /// 不论 grain 执行样式如何。
+        /// 测试不可重入 POCO Grain 的定时器并发约束。
+        /// 验证 POCO Grain 遵守可重入性设置，确保
+        /// 不可重入 Grain 中的定时器回调被正确串行执行，
+        /// 而不受 Grain 实现方式影响。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -707,12 +707,12 @@ namespace DefaultCluster.Tests.TimerTests
             using var timerObserver = TimerDiagnosticObserver.Create(fixture.HostedCluster);
             var grain = GrainFactory.GetGrain<IPocoNonReentrantTimerCallGrain>(GetRandomGrainId());
 
-            // 排队多个时间计时器, 同一延迟
+            // 安排多个具有相同延迟的定时器
             await grain.StartTimer(testName, delay);
             await grain.StartTimer($"{testName}_1", delay);
             await grain.StartTimer($"{testName}_2", delay);
 
-            // 开始一些非互连方法, 等待计时器回调 。
+            // 等待定时器回调时调用一些不可交错执行的方法。
             var externalTicks = await DriveExternalTickUntilTimerTicks(grain, timerObserver, delay, expectedTimerTicks: 3);
 
             var tickCount = await grain.GetTickCount();
@@ -720,7 +720,7 @@ namespace DefaultCluster.Tests.TimerTests
             Assert.Equal(3 + externalTicks, tickCount);
 
             var err = await grain.GetException();
-            Assert.Null(err); // 在调时回调期间不应有任何例外
+            Assert.Null(err); // 定时器回调期间不应出现异常
 
             await grain.StopTimer(testName);
             await grain.StopTimer($"{testName}_1");
@@ -728,10 +728,10 @@ namespace DefaultCluster.Tests.TimerTests
         }
 
         /// <summary>
-        /// 测试POCO grains中的动态定时周期变化。
-        /// 证明 POCO grain 计时器支持运行时间的修改
-        /// 通过“变化方法”的计时参数,包括
-        /// 边缘情况以及回调引发的更改。
+        /// 测试 POCO Grain 的定时器周期动态变更。
+        /// 验证 POCO Grain 的定时器支持在运行时通过 Change 方法修改
+        /// 时间参数，包括边界情况及
+        /// 回调内发起的变更。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -761,19 +761,19 @@ namespace DefaultCluster.Tests.TimerTests
             await grain.TestTimerChangeArguments();
 
             Exception err = await grain.GetException();
-            Assert.Null(err); // 在调时回调期间不应有任何例外
+            Assert.Null(err); // 定时器回调期间不应出现异常
 
-            // 定时器内调用的有效操作:更新周期并处理计时器。
+            // 在定时器内部调用的有效操作：更新周期和释放定时器。
             var grain2 = GrainFactory.GetGrain<IPocoTimerCallGrain>(GetRandomGrainId());
             await grain2.StartTimer(testName, delay, "update_period");
             await AdvanceTimerToTickCountAsync(grain2, timerObserver, delay, TimerCallbackDelay, expectedTickCount: 1);
-            Assert.Null(await grain2.GetException()); // 在调时回调期间不应有任何例外
+            Assert.Null(await grain2.GetException()); // 定时器回调期间不应出现异常
             Assert.Equal(1, await grain2.GetTickCount());
 
             var grain3 = GrainFactory.GetGrain<IPocoTimerCallGrain>(GetRandomGrainId());
             await grain3.StartTimer(testName, delay, "dispose_timer");
             await AdvanceTimerToTickCountAsync(grain3, timerObserver, delay, TimerCallbackDelay, expectedTickCount: 1);
-            Assert.Null(await grain3.GetException()); // 在调时回调期间不应有任何例外
+            Assert.Null(await grain3.GetException()); // 定时器回调期间不应出现异常
             Assert.Equal(1, await grain3.GetTickCount());
 
             await grain.StopTimer(testName);

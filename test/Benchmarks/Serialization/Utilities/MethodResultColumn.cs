@@ -62,7 +62,7 @@ public class MethodResultColumn : IColumn
     public int PriorityInCategory => 0;
     public bool IsNumeric => true;
     public UnitType UnitType => UnitType.Size;
-    // BenchmarkDotNet的合同不可无效,但若未提供,其任择传说即无效。
+    // BenchmarkDotNet 的契约声明为非 null，但可选的图例在未提供时为 null。
 #pragma warning disable CS8766
     public string? Legend { get; }
 #pragma warning restore CS8766

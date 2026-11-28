@@ -6,7 +6,7 @@ using Xunit;
 namespace Tester.TransportTests;
 
 /// <summary>
-/// 使用 Unix 域套接字传输测试 Orleans 集束通信。
+/// 测试使用 Unix 域套接字传输的 Orleans 集群通信。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

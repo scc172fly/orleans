@@ -5,10 +5,10 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Orleans.Durable.Analyzers;
 
-/// <summary>报告版本检查,如果更改名称或支持的范围不是常数。</summary>
+/// <summary>报告变更名称或支持范围不是常量的版本检查。</summary>
 /// <remarks>
-/// <c>DurableTask.GetVersion</c> 更改名称下记录了执行版本, 并且支持部署
-/// 区域属于该代码的分支,因此这两个是调用代码的常数。
+/// <c>DurableTask.GetVersion</c> 以变更名称记录执行实例的版本；部署的支持
+/// 范围属于基于版本进行分支判断的代码，因此二者都是调用代码中的常量。
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DurableTaskVersionAnalyzer : DiagnosticAnalyzer

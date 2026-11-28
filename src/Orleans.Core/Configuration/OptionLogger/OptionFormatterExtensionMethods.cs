@@ -6,24 +6,24 @@ using Orleans.Configuration.Internal;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// <see cref="IServiceCollection"/>的扩展方法,使供应商更适合使用 IOptionFormatter。
+    /// <see cref="IServiceCollection"/> 的扩展方法，旨在提升 IOptionFormatter 的易用性。
     /// </summary>
     public static class OptionConfigureExtensionMethods
     {
         /// <summary>
-        /// 配置 <typeparamref name="TOptions"/>的选项。
+        /// 为 <typeparamref name="TOptions"/> 配置选项格式化器。
         /// </summary>
         /// <param name="services">
-        /// 服务。
+        /// 服务集合。
         /// </param>
         /// <typeparam name="TOptions">
         /// 选项类型。
         /// </typeparam>
         /// <typeparam name="TOptionFormatter">
-        /// 选择物质类型,包括用于依赖注射的公共建筑师。
+        /// 选项格式化器的类型，包括用于依赖注入的公共构造函数。
         /// </typeparam>
         /// <returns>
-        /// 下 <see cref="IServiceCollection"/>用来绑住其他电话
+        /// <see cref="IServiceCollection"/>，用于与其他调用进行链式调用。
         /// </returns>
         public static IServiceCollection ConfigureFormatter<
             TOptions,
@@ -40,26 +40,26 @@ namespace Orleans.Configuration
             }
             else
             {
-                // 覆盖 IOptionFormatter<TOptions>
+                // 覆盖 IOptionFormatter<TOptions> 的服务注册。
                 services.AddSingleton<IOptionFormatter<TOptions>, TOptionFormatter>();
             }
             return services;
         }
 
         /// <summary>
-        /// 配置 <typeparamref name="TOptions"/>的选项。
+        /// 为 <typeparamref name="TOptions"/> 配置选项格式化器。
         /// </summary>
         /// <remarks>
-        /// 这将使用默认选项来处理事项, 除非配置了非默认的事项 。
+        /// 除非已配置非默认格式化器，否则使用默认选项格式化器。
         /// </remarks>
         /// <param name="services">
-        /// 服务。
+        /// 服务集合。
         /// </param>
         /// <typeparam name="TOptions">
         /// 选项类型。
         /// </typeparam>
         /// <returns>
-        /// 下 <see cref="IServiceCollection"/>用来绑住其他电话
+        /// <see cref="IServiceCollection"/>，用于与其他调用进行链式调用。
         /// </returns>
         public static IServiceCollection ConfigureFormatter<TOptions>(this IServiceCollection services)
             where TOptions : class, new()
@@ -68,19 +68,19 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// 配置尚未配置的 <typeparamref name="TOptions"/> 的选项。
+        /// 如果尚未配置选项格式化器，则为 <typeparamref name="TOptions"/> 配置一个。
         /// </summary>
         /// <param name="services">
-        /// 服务。
+        /// 服务集合。
         /// </param>
         /// <typeparam name="TOptions">
         /// 选项类型。
         /// </typeparam>
         /// <typeparam name="TOptionFormatter">
-        /// 选择物质类型,包括用于依赖注射的公共建筑师。
+        /// 选项格式化器的类型，包括用于依赖注入的公共构造函数。
         /// </typeparam>
         /// <returns>
-        /// 下 <see cref="IServiceCollection"/>用来绑住其他电话
+        /// <see cref="IServiceCollection"/>，用于与其他调用进行链式调用。
         /// </returns>
         public static IServiceCollection TryConfigureFormatter<
             TOptions,
@@ -98,19 +98,19 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// 配置 <typeparamref name="TOptions"/>的物料解答器选项。
+        /// 为 <typeparamref name="TOptions"/> 配置选项格式化器解析器。
         /// </summary>
         /// <param name="services">
-        /// 服务。
+        /// 服务集合。
         /// </param>
         /// <typeparam name="TOptions">
         /// 选项类型。
         /// </typeparam>
         /// <typeparam name="TOptionFormatterResolver">
-        /// 用于物料解答器类型的选项,包括用于依赖注射的公共建筑师。
+        /// 选项格式化器解析器的类型，包括用于依赖注入的公共构造函数。
         /// </typeparam>
         /// <returns>
-        /// 下 <see cref="IServiceCollection"/>用来绑住其他电话
+        /// <see cref="IServiceCollection"/>，用于与其他调用进行链式调用。
         /// </returns>
         public static IServiceCollection ConfigureFormatterResolver<
             TOptions,
@@ -123,7 +123,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// 配置指定选项 Toptions 的物料解解器配置选项, 如果未配置
+        /// 如果尚未配置，则为命名选项 TOptions 配置选项格式化器解析器。
         /// </summary>
         public static IServiceCollection TryConfigureFormatterResolver<
             TOptions,
@@ -141,19 +141,19 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// 配置要登录的命名选项 。
+        /// 配置要记录到日志的命名选项。
         /// </summary>
         /// <typeparam name="TOptions">
         /// 选项对象的类型。
         /// </typeparam>
         /// <param name="services">
-        /// 服务。
+        /// 服务集合。
         /// </param>
         /// <param name="name">
         /// 选项对象的名称。
         /// </param>
         /// <returns>
-        /// 下 <see cref="IServiceCollection"/>用来绑住其他电话
+        /// <see cref="IServiceCollection"/>，用于与其他调用进行链式调用。
         /// </returns>
         public static IServiceCollection ConfigureNamedOptionForLogging<TOptions>(this IServiceCollection services, string name)
             where TOptions : class

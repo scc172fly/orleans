@@ -25,8 +25,8 @@ describe('Mermaid Markdown', () => {
     const processor = unified().use(remarkParse).use(remarkMermaid);
     const tree = await processor.run(processor.parse('```mermaid\nflowchart LR\n  A --> B\n```'));
 
-    // Expressive Code processes <pre><code> and loads its stylesheet with the page's first code block, so a
-    // <noscript> 以这种形式退缩 将页面上的其他代码块的标签不刻着
+    // Expressive Code 会处理 <pre><code>，并随页面的第一个代码块加载样式表，因此
+    // 这种形式的 <noscript> 回退方案会使页面中的其他代码块缺少样式。
     expect(tree.children[0].value).toContain('<noscript><pre class="mermaid-source">flowchart LR');
     expect(tree.children[0].value).not.toContain('<code>');
   });

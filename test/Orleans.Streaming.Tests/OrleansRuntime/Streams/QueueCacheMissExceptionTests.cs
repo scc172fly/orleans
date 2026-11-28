@@ -37,7 +37,7 @@ public class QueueCacheMissExceptionTests
     {
         var exception = new QueueCacheMissException("requested", "low", "high");
 
-#pragma warning disable CS0618, SYSLIB0050, SYSLIB0051 // Exercise the existing ISerializable metadata contract, not formatter serialization.
+#pragma warning disable CS0618, SYSLIB0050, SYSLIB0051 // 验证现有的 ISerializable 元数据契约，而非格式化程序序列化。
         Assert.Throws<ArgumentNullException>("info", () => exception.GetObjectData(null!, default));
         var info = new SerializationInfo(typeof(QueueCacheMissException), new FormatterConverter());
         exception.GetObjectData(info, default);

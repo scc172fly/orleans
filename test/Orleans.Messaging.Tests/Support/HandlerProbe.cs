@@ -46,7 +46,7 @@ public sealed class HandlerProbe
         public Task WaitUntilEnteredAsync() => Entered.Task.WaitAsync(TimeSpan.FromSeconds(30));
         public void Release() => Continue.TrySetResult();
 
-        // 无视取消的屏障将处理者一直控制到释放,即使在关闭后。
+        // 一个忽略取消的屏障将处理程序阻塞至调用 Release 为止，即使关闭之后也是如此。
         internal Task WaitAsync(CancellationToken cancellationToken) =>
             _observeCancellation ? Continue.Task.WaitAsync(cancellationToken) : Continue.Task;
 

@@ -10,15 +10,15 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// 证明等待任务客户端的客户端一直等待无法到达任务 grain, 如崩溃
-/// 在 grain中 silo 或 grain的解除,并在 grain 恢复后收到任务结果。
+/// 验证客户端等待任务时，即使因 Grain 所在 Silo 崩溃或 Grain 停用等原因
+/// 暂时无法访问任务所属的 Grain，也会继续等待，并在 Grain 恢复后收到任务结果。
 /// </summary>
 public abstract class DurableTaskClientWaitTests(string journalFormatKey) : IAsyncLifetime
 {
     private const int Value = 5;
     private static readonly TimeSpan WaitTimeout = TimeSpan.FromSeconds(60);
 
-    // 永久工作会采用崩溃的 silo碎片, 以定期的硬检查来保持崩溃激活的警钟的醒悟。
+    // 持久化作业在周期性分片检查时接管崩溃 Silo 的分片，其中包含崩溃激活的唤醒作业。
     private readonly DurableTaskFaultHarness _harness = new(
         journalFormatKey,
         silo => silo.Services.Configure<DurableJobsOptions>(options => options.ShardCheckInterval = TimeSpan.FromSeconds(1)));
@@ -50,8 +50,8 @@ public abstract class DurableTaskClientWaitTests(string journalFormatKey) : IAsy
         var waiting = await StartWaitAsync(key, partner);
         Assert.True(_harness.Fixture.Cluster.TryGetGrainContext(partner.GetGrainId(), out var activation));
 
-        // 门阶的段段 持有非复发伙伴 所以解除作用开始于激活本身
-        // 一旦完成部分,其结果就是停止弃鱼的结束。
+        // 受门控的步骤的执行段占用不可重入的伙伴 Grain，因此停用从该激活自身发起，
+        // 并在该执行段结束后完成，停止操作会丢弃该执行段的结果。
         activation.Deactivate(new(DeactivationReasonCode.ApplicationRequested, "The test deactivates the partner."), CancellationToken);
         _harness.Gates.Open(key);
         await activation.Deactivated.WaitAsync(WaitTimeout, CancellationToken);
@@ -59,7 +59,7 @@ public abstract class DurableTaskClientWaitTests(string journalFormatKey) : IAsy
         Assert.Equal(Value + 1, (await waiting.WaitAsync(WaitTimeout, CancellationToken)).GetResult<int>());
     }
 
-    /// <summary>启动伴侣的大门 和客户等待它, 并返回等待 一旦步骤运行。</summary>
+    /// <summary>启动伙伴 Grain 受门控的步骤以及客户端对它的等待，步骤开始运行后返回该等待任务。</summary>
     private async Task<Task<DurableTaskResponse>> StartWaitAsync(Guid key, IFaultPartnerGrain partner)
     {
         await partner.GatedStepAsync(Value).WithId("gated").ScheduleAsync(CancellationToken);
@@ -69,7 +69,7 @@ public abstract class DurableTaskClientWaitTests(string journalFormatKey) : IAsy
         return waiting;
     }
 
-    /// <summary>使用其定位提示在 <paramref name="silo"/> 上激活伙伴。</summary>
+    /// <summary>使用放置提示在 <paramref name="silo"/> 上激活伙伴 Grain。</summary>
     private async Task<(Guid Key, IFaultPartnerGrain Grain)> ActivatePartnerOnAsync(InProcessSiloHandle silo)
     {
         await _harness.Fixture.Cluster.WaitForLivenessToStabilizeAsync();
@@ -91,14 +91,14 @@ public abstract class DurableTaskClientWaitTests(string journalFormatKey) : IAsy
     }
 }
 
-/// <summary>运行客户端等待覆盖,任务状态以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行客户端等待相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskClientWaitTests() : DurableTaskClientWaitTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行客户端等待覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行客户端等待相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

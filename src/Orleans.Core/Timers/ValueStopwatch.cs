@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 不得分配计时时间的停靠观察。
+    /// 用于计量时长的、不分配内存的秒表。
     /// </summary>
     internal struct ValueStopwatch
     {
@@ -12,18 +12,18 @@ namespace Orleans.Runtime
         private long _value;
 
         /// <summary>
-        /// 开始一个新实例。
+        /// 启动一个新实例。
         /// </summary>
-        /// <returns>一个新的正在运行的站哨。</returns>
+        /// <returns>新的、正在运行的秒表。</returns>
         public static ValueStopwatch StartNew() => new(GetTimestamp());
 
         /// <summary>
-        /// 启动一个初始过期时间的新实例。
+        /// 使用初始已用时长启动一个新实例。
         /// </summary>
         /// <param name="elapsed">
-        /// 最初的过期时间。
+        /// 初始已用时长。
         /// </param>
-        /// <returns>一个新的正在运行的站哨。</returns>
+        /// <returns>新的、正在运行的秒表。</returns>
         public static ValueStopwatch StartNew(TimeSpan elapsed) => new(GetTimestamp() - (long)(elapsed.TotalSeconds * Stopwatch.Frequency));
 
         private ValueStopwatch(long timestamp)
@@ -32,37 +32,37 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 如果此实例运行时或出现错误, 返回为真 。
+        /// 如果此实例正在运行，则返回 true，否则返回 false。
         /// </summary>
         public readonly bool IsRunning => this._value > 0;
 
         /// <summary>
-        /// 返回已过的时间。
+        /// 返回已用时间。
         /// </summary>
         public TimeSpan Elapsed => TimeSpan.FromTicks(this.ElapsedTicks);
 
         /// <summary>
-        /// 返回已过秒数。
+        /// 返回已用计时刻度数。
         /// </summary>
         public readonly long ElapsedTicks
         {
             get
             {
-                // 时间戳值为正值,表示运行中站表的起始时间,
-                // a 负值表示停止的截表的总负长度为负数。
+                // 正的时间戳值表示正在运行的秒表的开始时间，
+                // 负值表示已停止的秒表的总时长的相反数。
                 var timestamp = this._value;
 
                 long delta;
                 if (this.IsRunning)
                 {
-                    // 站表还在运行
+                    // 秒表仍在运行。
                     var start = timestamp;
                     var end = Stopwatch.GetTimestamp();
                     delta = end - start;
                 }
                 else
                 {
-                    // 停止了监测
+                    // 秒表已停止。
                     delta = -timestamp;
                 }
 
@@ -71,64 +71,64 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取定时器机制中的滴数。
+        /// 获取计时机制的刻度数。
         /// </summary>
-        /// <returns>计时器机制中的计数</returns>
+        /// <returns>计时机制的刻度数。</returns>
         public static long GetTimestamp() => Stopwatch.GetTimestamp();
 
         /// <summary>
-        /// 返回新的、已停止的 <see cref="ValueStopwatch"/> ,并使用提供的起始和结束时间戳。
+        /// 根据提供的开始和结束时间戳返回一个新的、已停止的 <see cref="ValueStopwatch"/>。
         /// </summary>
-        /// <param name="start">启动时间戳。</param>
-        /// <param name="end">末时间戳。</param>
-        /// <returns>一个新的、停止的 <see cref="ValueStopwatch"/> ,加上提供的起始和结束时间戳。</returns>
+        /// <param name="start">开始时间戳。</param>
+        /// <param name="end">结束时间戳。</param>
+        /// <returns>根据提供的开始和结束时间戳创建的新的、已停止的 <see cref="ValueStopwatch"/>。</returns>
         public static ValueStopwatch FromTimestamp(long start, long end) => new ValueStopwatch(-(end - start));
 
         /// <summary>
-        /// 获得本例的原始对价值。
+        /// 获取此实例的原始计数器值。
         /// </summary>
         /// <remarks> 
-        /// 时间戳值为正值,表示运行中站表的起始时间,
-        /// a 负值表示停止的截表的总负长度为负数。
+        /// 正的时间戳值表示正在运行的秒表的开始时间，
+        /// 负值表示已停止的秒表的总时长的相反数。
         /// </remarks>
-        /// <returns>原对数值。</returns>
+        /// <returns>原始计数器值。</returns>
         public readonly long GetRawTimestamp() => this._value;
 
         /// <summary>
-        /// 启动手表
+        /// 启动秒表。
         /// </summary>
         public void Start()
         {
             var timestamp = this._value;
 
-            // 如果已经开始, 什么都不做 。
+            // 如果已经启动，则不执行任何操作。
             if (this.IsRunning) return;
 
-            // 停止了监视, 因此值为零或负。
-            // 在当前时间戳中添加负值以重新开始停止监视 。
+            // 秒表已停止，因此其值为零或负数。
+            // 将该负值加到当前时间戳上，从而再次启动秒表。
             var newValue = GetTimestamp() + timestamp;
             if (newValue == 0) newValue = 1;
             this._value = newValue;
         }
 
         /// <summary>
-        /// 休息表从零时间开始
+        /// 重新启动此秒表，从已用时间为零开始计时。
         /// </summary>
         public void Restart() => this._value = GetTimestamp();
 
         /// <summary>
-        /// 将此停止监视恢复为已停止状态, 且时间不长 。
+        /// 重置此秒表，使其处于已停止状态且已用时长为零。
         /// </summary>
         public void Reset() => this._value = 0;
 
         /// <summary>
-        /// 停止这个手表
+        /// 停止此秒表。
         /// </summary>
         public void Stop()
         {
             var timestamp = this._value;
 
-            // 如果已经停止, 什么都不做 。
+            // 如果已经停止，则不执行任何操作。
             if (!this.IsRunning) return;
 
             var end = GetTimestamp();

@@ -58,7 +58,7 @@ namespace UnitTests.Grains
 
         public Task StartLocalGrains(List<Guid> keys)
         {
-            // 我们用 grain 引用方式呼叫Nop (),以确保在承诺兑现之前即刻执行。
+            // 调用 Grain 引用的 Nop()，确保在 Promise 完成前已将相应 Grain 实例化。
             var grains = keys.Select(i => GrainFactory.GetGrain<IStatelessWorkerPlacementTestGrain>(i));
             var promises = grains.Select(g => g.Nop());
             return Task.WhenAll(promises);
@@ -66,7 +66,7 @@ namespace UnitTests.Grains
 
         public async Task<Guid> StartPreferLocalGrain(Guid key)
         {
-            // 我们用 grain 引用方式呼叫Nop (),以确保在承诺兑现之前即刻执行。
+            // 调用 Grain 引用的 Nop()，确保在 Promise 完成前已将相应 Grain 实例化。
             await GrainFactory.GetGrain<IPreferLocalPlacementTestGrain>(key).Nop();
             return key;
         }
@@ -86,7 +86,7 @@ namespace UnitTests.Grains
 
         private static async Task PropagateStatisticsToCluster(IGrainFactory grainFactory)
         {
-            // 迫使被拉动的统计数据在整个组群中传播。
+            // 强制将已锁存的统计数据传播到整个集群。
             var managementGrain = grainFactory.GetGrain<IManagementGrain>(0);
             var hosts = await managementGrain.GetHosts(true);
             var keys = hosts.Select(kvp => kvp.Key).ToArray();
@@ -258,7 +258,7 @@ namespace UnitTests.Grains
     }
 
     //----------------------------------------------------------//
-    // Grains 用于 LocalContent grain 情况,当 grain 启动于每个 silo 由靴子陷阱提供者。
+    // LocalContent Grain 场景的 Grain，其中引导提供程序会在每个 Silo 上激活该 Grain。
 
     [PreferLocalPlacement]
     public class LocalContentGrain : Grain, ILocalContentGrain
@@ -275,8 +275,8 @@ namespace UnitTests.Grains
         public override Task OnActivateAsync(CancellationToken cancellationToken)
         {
             logger.LogInformation("OnActivateAsync");
-            DelayDeactivation(TimeSpan.MaxValue);   // 确保此激活不被收集 。
-            cachedContent = RuntimeIdentity;        // 存储 silo 此处的本地缓存内容身份 grain.
+            DelayDeactivation(TimeSpan.MaxValue);   // 确保此激活实例不会被回收。
+            cachedContent = RuntimeIdentity;        // 将自身的 Silo 标识作为本地缓存内容存入此 Grain。
             InstanceIdForThisSilo = this.AsReference<ILocalContentGrain>();
             return Task.FromResult(0);
         }

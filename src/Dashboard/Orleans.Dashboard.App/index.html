@@ -18,7 +18,7 @@
             <span>Orleans Dashboard</span>
         </header>
         <button id="sidebar-overlay" type="button" class="sidebar-overlay border-0 p-0" aria-label="Close navigation" hidden></button>
-        <!-- 主侧边栏集装箱 -->
+        <!-- 主侧边栏容器 -->
         <aside class="app-sidebar elevation-4" id="dashboard-sidebar">
             <div id="brand-header"></div>
 
@@ -28,10 +28,10 @@
                     <div id="menu"></div>
                 </nav>
             </div>
-            <!-- / 边栏 -->
+            <!-- /.sidebar -->
         </aside>
 
-        <!-- 内容包装。 包含页面内容 -->
+        <!-- 内容包装容器，包含页面内容 -->
         <main class="app-main" id="content">
             <div class="app-content">
                 <span style="padding-top: 25px;">
@@ -39,10 +39,10 @@
                 </span>
             </div>
         </main>
-        <!-- /. 实际 -->
+        <!-- /.app-main -->
     </div>
 
-    <!-- 维特会把联署办的捆绑起来的JS注入这里 -->
+    <!-- Vite 会在此处注入打包后的 JS -->
     <script type="module" src="/src/index.tsx"></script>
 </body>
 </html>

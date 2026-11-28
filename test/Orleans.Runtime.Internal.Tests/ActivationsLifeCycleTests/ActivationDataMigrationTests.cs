@@ -91,7 +91,7 @@ public class ActivationDataMigrationTests(ActivationDataMigrationTests.Fixture f
         ActivationData activation;
         try
         {
-            // 收件人客户发送在信息观察员运行前完成通话。
+            // 托管客户端的消息投递在消息观察者运行前完成调用。
             await grain.Nop().WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
             await barrier.ResponseDelivered.Task.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
             activation = Assert.IsType<ActivationData>(services.GetRequiredService<ActivationDirectory>().FindTarget(grainId));
@@ -115,7 +115,7 @@ public class ActivationDataMigrationTests(ActivationDataMigrationTests.Fixture f
         }
 
         var deactivated = activation.Deactivated;
-        // 诺普及其请求的簿记在已持有的调度器转弯处完成。
+        // Nop 及其请求记账在被暂时阻塞的调度器执行轮次中完成。
         await activation.QueueAction(
             context =>
             {
@@ -181,7 +181,7 @@ public class ActivationDataMigrationTests(ActivationDataMigrationTests.Fixture f
         var grain = _fixture.GrainFactory.GetGrain<IIdleActivationGcTestGrain1>(Guid.NewGuid());
         var grainId = ((GrainReference)grain).GrainId;
         var catalog = PrimarySilo.SiloHost.Services.GetRequiredService<Catalog>();
-        // 生命周期准备状态为这种不要求的激活确立了闲置的先决条件。
+        // 生命周期就绪状态为这个没有请求的激活建立空闲前置条件。
         var activation = Assert.IsType<ActivationData>(catalog.GetOrCreateActivation(grainId, null, null));
         await activation.WaitForActivationReadyAsync(cancellationToken).AsTask().WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
         Assert.Equal(ActivationState.Valid, activation.State);
@@ -286,8 +286,8 @@ public class ActivationDataMigrationTestsRuntimeMetrics
         AssertActivationEvents(metrics, shared, created: 2, destroyed: 0, failed: 0, instances: [1, 1]);
         AssertActivationLatencies(metrics, shared, "success", "success");
 
-        // 仅在两个激活都存在后附加第二个听众。 标签必须是快照,
-        // 而不是重建 从创造事件 由这个听众观察。
+        // 仅在两个激活均存在之后附加第二个监听器。Gauge 指标必须反映快照，
+        // 而不能根据此监听器观察到的创建事件重建。
         using var lateListener = new RuntimeMetrics(services);
         Assert.Empty(lateListener.For(InstrumentNames.CATALOG_ACTIVATION_CREATED, type.ToString()));
         AssertCounts(services, lateListener, baseline, shared, 2, 2, 2);
@@ -307,7 +307,7 @@ public class ActivationDataMigrationTestsRuntimeMetrics
         Assert.Same(shared, replacement.Shared);
         Assert.Same(shared.GrainTypeMetricName, replacement.Shared.GrainTypeMetricName);
 
-        // 过时的上下文不得删除拥有相同 GrainId的替换。
+        // 过时的上下文不得移除拥有相同 GrainId 的替代激活。
         catalog.UnregisterMessageTarget(first);
         catalog.UnregisterMessageTarget(first);
         Assert.Same(replacement, services.GetRequiredService<ActivationDirectory>().FindTarget(first.GrainId));
@@ -418,7 +418,7 @@ public class ActivationDataMigrationTestsRuntimeMetrics
             await control.ActivationEntered.Task.WaitAsync(Timeout, TestCancellation);
             Assert.True(control.ActivationToken.CanBeCanceled);
             Assert.False(control.ActivationToken.IsCancellationRequested);
-            // 这一情况是真实的,但有意没有在目录中登记。
+            // 这是实际的上下文，但有意不向 Catalog 注册。
             AssertCounts(services, metrics, baseline, activation.Shared, 0, 0, 1);
             cancellation.Cancel();
             await control.ActivationExited.Task.WaitAsync(Timeout, TestCancellation);
@@ -509,8 +509,8 @@ public class ActivationDataMigrationTestsRuntimeMetrics
         var secondDisposal = activation.DisposeAsync().AsTask();
         try
         {
-            // 第一个呼叫器在用户处置中暂停。 第二个连接的呼叫器必须
-            // 既未再次援引该处置者,也未提前提出其处置者的用途核算。
+            // 第一个调用方在用户代码释放资源期间挂起。随后加入的第二个调用方
+            // 既不得再次调用释放器，也不得提前减少对象计数。
             await secondDisposal.WaitAsync(Timeout, TestCancellation);
             Assert.Equal(1, control.DisposeInvocations);
             Assert.Equal(0, control.ScopeDisposed);
@@ -525,8 +525,8 @@ public class ActivationDataMigrationTestsRuntimeMetrics
             }
             catch (InvalidOperationException) when (!lifecycle && mode == "dispose-error")
             {
-                // 在两名打电话者之后,下文将提出预期用户处置例外情形。
-                // 已完成。总是释放并加入他们,即使只有一名警卫失败了。
+                // 在两个调用方都完成后，于下方断言预期的用户资源释放异常。
+                // 即使仅执行一次的防护失效，也要始终释放并等待两个调用方结束。
             }
         }
 
@@ -551,7 +551,7 @@ public class ActivationDataMigrationTestsRuntimeMetrics
         }
         else
         {
-            // 直接处置不是目录清除或 FinishDeactivating。
+            // 直接释放资源不同于从 Catalog 移除或执行 FinishDeactivating。
             AssertCounts(services, metrics, baseline, activation.Shared, 1, 0, 0);
             Assert.Empty(metrics.For(InstrumentNames.CATALOG_ACTIVATION_SHUTDOWN, activation.Shared.GrainTypeMetricName));
             Assert.Empty(metrics.For(InstrumentNames.CATALOG_DEACTIVATION_LATENCY, activation.Shared.GrainTypeMetricName));
@@ -664,7 +664,7 @@ public class ActivationDataMigrationTestsRuntimeMetrics
         await collector.CollectActivations(TimeSpan.MaxValue, TestCancellation).WaitAsync(Timeout, TestCancellation);
         Assert.Equal(ActivationState.Valid, activation.State);
 
-        // 空闲持续时间使用 Environment.TickCount64, 所以在收集前要横跨时钟勾。
+        // 空闲时长使用 Environment.TickCount64，因此回收前应跨过一个时钟计数刻度。
         var timestamp = CoarseStopwatch.GetTimestamp();
         Assert.True(SpinWait.SpinUntil(() => CoarseStopwatch.GetTimestamp() > timestamp, Timeout),
             "The coarse clock did not advance before idle collection.");
@@ -753,8 +753,8 @@ public class ActivationDataMigrationTestsRuntimeMetrics
                     SiloAddress = Assert.Single(fixture.HostedCluster.SecondarySilos).SiloAddress,
                     MembershipVersion = registration.MembershipVersion,
                 };
-                // 故意返回成功竞争的注册,
-                // 无例外重复的结果优先于取消。
+                // 即使已取消，也有意返回成功的竞争注册结果：
+                // 未引发异常的重复注册结果优先于取消。
                 control.DirectoryResponse.TrySetResult(existing);
             }
 
@@ -813,8 +813,8 @@ public class ActivationDataMigrationTestsRuntimeMetrics
         Assert.Equal("ms", latency.Instrument.Unit);
         Assert.True(double.IsFinite(latency.Value) && latency.Value >= 0);
 
-        // 工人完成和母目录清除是不同的非同步
-        // 边界: OnDestroyActivation 在父环上进行排行。
+        // 工作者完成和从父级 Catalog 移除属于不同的异步
+        // 边界：OnDestroyActivation 在父级循环中将移除操作入队。
         var removed = metrics.WaitForCount(InstrumentNames.CATALOG_ACTIVATION_DESTROYED, shared.GrainTypeMetricName, 1);
         var parentCompleted = parent.Deactivated;
         parent.Deactivate(new(DeactivationReasonCode.RuntimeRequested, "stateless metrics cleanup"), TestCancellation);
@@ -865,7 +865,7 @@ public class ActivationDataMigrationTestsRuntimeMetrics
         using (services.GetRequiredService<CatalogAvailability>().RejectNewActivations())
         {
             parent.ReceiveMessage(request);
-            // 此工作项跟随父队列上的讯息 。
+            // 此工作项在父级队列中排在该消息之后。
             await parent.Deactivated.WaitAsync(Timeout, TestCancellation);
             Assert.Null(request._bodyObject);
             Assert.NotEqual(version, page.Version);
@@ -894,8 +894,8 @@ public class ActivationDataMigrationTestsRuntimeMetrics
         StatelessWorkerGrainContext parent;
         try
         {
-            // 在第一个工人实际执行之前,不要发出第二次请求。
-            // 电话过滤器不睡觉也不及时拖延,
+            // 直到第一个工作者实际执行时才发出第二个请求。
+            // 调用筛选器阻塞两个请求，无需休眠或实际时间延迟。
             var firstReady = gate.Entered.Reader.ReadAsync(TestCancellation).AsTask();
             calls.Add(grain.Nop());
             first = await firstReady.WaitAsync(Timeout, TestCancellation);
@@ -1054,7 +1054,7 @@ public class ActivationDataMigrationTestsRuntimeMetrics
             Assert.False(instruments.TryGetGrainTypeMetrics(id.Type, out _));
         }
 
-        // 定位器失效解决目录问题,不依赖衡量记录。
+        // 定位器失效处理独立于指标记录来解析目录。
         var locator = services.GetRequiredService<GrainLocator>();
         foreach (var id in ids) locator.InvalidateCache(id);
         var availability = services.GetRequiredService<CatalogAvailability>();
@@ -1108,8 +1108,8 @@ public class ActivationDataMigrationTestsRuntimeMetrics
         }
 
         var availability = services.GetRequiredService<CatalogAvailability>();
-        // 缓存无效即使仪器化,也有自己的目录分辨率工作
-        // 禁用。在测量只计量分辨率之前,将不相干路径暖和起来。
+        // 即使禁用指标采集，缓存失效仍有自己的目录解析工作。
+        // 在测量仅由指标引起的解析之前，先预热这条无关路径。
         var locator = services.GetRequiredService<GrainLocator>();
         locator.InvalidateCache(activation.GrainId);
         foreach (var id in ids)
@@ -1256,7 +1256,7 @@ public class ActivationDataMigrationTestsRuntimeMetrics
         Assert.Equal(directoryCount, directory.Count(entry => entry.Key.Type.ToString() == name));
         Assert.Equal(directory.Count, snapshot.Values.Sum());
         Assert.Equal(workingSet.Count, metrics.Gauges(InstrumentNames.CATALOG_ACTIVATION_WORKING_SET).Sum(s => s.Value));
-        // 系统目标列入目录总计,但不列入 grain-对象总计。
+        // 系统目标计入目录总数，但不计入 Grain 对象总数。
         foreach (var entry in baseline)
         {
             Assert.Equal(entry.Value, snapshot[entry.Key]);
@@ -1432,7 +1432,7 @@ public class ActivationDataMigrationTestsRuntimeMetrics
             {
                 _samples.RemoveAll(s => s.Instrument.Name is InstrumentNames.CATALOG_ACTIVATION_COUNT or InstrumentNames.CATALOG_ACTIVATION_WORKING_SET);
                 _listener.RecordObservableInstruments();
-                // ToDictionary 还拒绝在单条废桶中重复使用桶。
+                // ToDictionary 还会拒绝单次指标抓取中的重复分桶。
                 return Gauges(InstrumentNames.CATALOG_ACTIVATION_COUNT).ToDictionary(s => Assert.IsType<string>(s.Tags["grain_type"]), s => checked((int)s.Value));
             }
         }
@@ -1470,8 +1470,8 @@ public class ActivationDataMigrationTestsRuntimeMetrics
     {
         public void Configure(IHostBuilder hostBuilder) => hostBuilder.ConfigureServices((context, services) =>
         {
-            // 保持冻结,不参加/联网。 不进行工作分类扫描或收集
-            // 即使在慢速测试机器上 也可以赛跑半白光谱的近距离照片
+            // 暂停维护，而不是成员资格或网络活动。即使测试机器较慢，
+            // 工作集扫描和回收也不会与静止状态下的指标快照发生竞争。
             services.AddKeyedSingleton<TimeProvider>(TimeProviderNames.SystemTimers, new FakeTimeProvider());
             services.AddKeyedSingleton<TimeProvider>(TimeProviderNames.ActivationManagement, new FakeTimeProvider());
             services.AddSingleton(new LifecycleControl(context.Configuration["RuntimeMetricsMode"]!));
@@ -1502,7 +1502,7 @@ public class ActivationDataMigrationTestsRuntimeMetrics
         {
             if (grainClass == typeof(UnitTests.Grains.StatelessWorkerActivationCollectorTestGrain1))
             {
-                // 确定性的双职工限制,包括对单CPU测试选手的限制。
+                // 确定性的双工作者限制，在单 CPU 的测试运行器上也适用。
                 properties["max-local-instances"] = "2";
                 properties["remove-idle-workers"] = "false";
             }
@@ -1527,8 +1527,8 @@ public class ActivationDataMigrationTestsRuntimeMetrics
         }
     }
 
-    // 只有目录的可用输入才受到控制。 会员身份在继续运行,
-    // 实际 GrainPropertiesResolver 真实的能读,除非被禁绝。
+    // 只控制 Catalog 的可用性输入。成员资格继续运行，
+    // 实际的 GrainPropertiesResolver 会读取真实清单，除非刻意不提供清单。
     private sealed class CatalogAvailability(SiloStatusOracle oracle, IClusterManifestProvider manifest) :
         ISiloStatusOracle, IClusterManifestProvider, IDisposable
     {
@@ -1654,8 +1654,8 @@ public class ActivationDataMigrationTestsRuntimeMetrics
         }
     }
 
-    // 这是活性接合器, 不是新的 grain 执行或假激活环境 。
-    // ActivationData 使用实际运行时间标记调用此对象的 OnActivateAsync 。
+    // 这是激活器的测试接入点，而非新的 Grain 实现或虚假的激活上下文。
+    // ActivationData 使用实际的运行时令牌调用此对象的 OnActivateAsync。
     private sealed class ControlledDirectoryResolver(ControlledDirectory directory, LifecycleControl control, GrainTypeResolver resolver) : IGrainDirectoryResolver
     {
         private readonly GrainType _target = resolver.GetGrainType(typeof(UnitTests.Grains.IdleActivationGcTestGrain1));

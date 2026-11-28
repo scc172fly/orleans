@@ -175,7 +175,7 @@ public sealed class RedisJournalingProviderBuilderTests
         Assert.Contains($"type '{expectedType}'", exception.Message);
     }
 
-    // 配置绑定源生成器将空值视为不存在 。
+    // 配置绑定源生成器将空值视为未设置。
     [Theory]
     [InlineData(nameof(RedisJournalStorageOptions.CompactionThresholdBytes))]
     [InlineData(nameof(RedisJournalStorageOptions.ReadChunkSize))]

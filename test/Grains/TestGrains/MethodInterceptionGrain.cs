@@ -51,15 +51,15 @@ namespace UnitTests.Grains
             var methodInfo = context.ImplementationMethod;
             if (methodInfo.Name == nameof(One) && methodInfo.GetParameters().Length == 0)
             {
-                // 将请求短路并返回到呼叫者,而没有实际使用 grain 方法。
+                // 短路处理请求，直接向调用方返回，而不实际调用 Grain 方法。
                 context.Result = "intercepted one with no args";
                 return;
             }
 
             if (methodInfo.Name == nameof(IncorrectResultType))
             {
-                // 此方法有一个字符串返回类型, 但我们将结果设置为“ Guid” 。
-                // 这应导致无效的例外条款。
+                // 此方法的返回类型为 string，但这里将结果设置为 Guid。
+                // 这应该导致无效类型转换异常。
                 context.Result = Guid.NewGuid();
                 return;
             }
@@ -69,7 +69,7 @@ namespace UnitTests.Grains
                 throw new MyDomainSpecificException("Filter THROW!");
             }
 
-            // 请求启动
+            // 调用请求。
             try
             {
                 await context.Invoke();
@@ -80,9 +80,9 @@ namespace UnitTests.Grains
                 return;
             }
 
-            // 证明 MethodInfo 来自执行,而不是接口,
-            // 检查此属性的属性,该属性仅存在于执行中。这可以是
-            // 这样做更简单,但这表明了潜在使用情景。
+            // 为了证明 MethodInfo 来自实现而非接口，
+            // 这里检查仅存在于实现上的此特性。可以采用更简单的方式
+            // 完成检查，但这样可以演示一种潜在使用场景。
             var shouldMessWithResult = methodInfo.GetCustomAttribute<MessWithResultAttribute>();
             var resultString = context.Result as string;
             if (shouldMessWithResult != null && resultString != null)
@@ -139,15 +139,15 @@ namespace UnitTests.Grains
             var methodInfo = context.ImplementationMethod;
             if (methodInfo.Name == nameof(One) && methodInfo.GetParameters().Length == 0)
             {
-                // 将请求短路并返回到呼叫者,而没有实际使用 grain 方法。
+                // 短路处理请求，直接向调用方返回，而不实际调用 Grain 方法。
                 context.Result = "intercepted one with no args";
                 return;
             }
 
             if (methodInfo.Name == nameof(IncorrectResultType))
             {
-                // 此方法有一个字符串返回类型, 但我们将结果设置为“ Guid” 。
-                // 这应导致无效的例外条款。
+                // 此方法的返回类型为 string，但这里将结果设置为 Guid。
+                // 这应该导致无效类型转换异常。
                 context.Result = Guid.NewGuid();
                 return;
             }
@@ -157,7 +157,7 @@ namespace UnitTests.Grains
                 throw new MyDomainSpecificException("Filter THROW!");
             }
 
-            // 请求启动
+            // 调用请求。
             try
             {
                 await context.Invoke();
@@ -168,9 +168,9 @@ namespace UnitTests.Grains
                 return;
             }
 
-            // 证明 MethodInfo 来自执行,而不是接口,
-            // 检查此属性的属性,该属性仅存在于执行中。这可以是
-            // 这样做更简单,但这表明了潜在使用情景。
+            // 为了证明 MethodInfo 来自实现而非接口，
+            // 这里检查仅存在于实现上的此特性。可以采用更简单的方式
+            // 完成检查，但这样可以演示一种潜在使用场景。
             var shouldMessWithResult = methodInfo.GetCustomAttribute<MessWithResultAttribute>();
             var resultString = context.Result as string;
             if (shouldMessWithResult != null && resultString != null)
@@ -312,7 +312,7 @@ namespace UnitTests.Grains
 
                     if (string.Equals(implementationMethod.Name, nameof(GrainSpecificCallFilterMarker), StringComparison.Ordinal))
                     {
-                        // 明确不继续呼叫
+                        // 显式停止继续调用 Invoke。
                         return;
                     }
 
@@ -372,7 +372,7 @@ namespace UnitTests.Grains
 
                     if (string.Equals(implementationMethod.Name, nameof(GrainSpecificCallFilterMarker), StringComparison.Ordinal))
                     {
-                        // 明确不继续呼叫
+                        // 显式停止继续调用 Invoke。
                         return;
                     }
 

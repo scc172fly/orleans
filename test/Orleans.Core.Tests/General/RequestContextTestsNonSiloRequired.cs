@@ -8,7 +8,7 @@ using Tester;
 namespace UnitTests.General
 {
     /// <summary>
-    /// 请求中环境功能测试,包括多行、活动识别传播和进出口业务。
+    /// 测试请求上下文功能，包括多线程、Activity ID 传播及导入和导出操作。
     /// </summary>
     [Collection(TestEnvironmentFixture.DefaultCollection)]
     [TestSuite("Functional")]
@@ -92,9 +92,9 @@ namespace UnitTests.General
             ;
             Assert.True(headers.ContainsKey(RequestContext.CALL_CHAIN_REENTRANCY_HEADER), "ActivityId #1 should be present " + headers.ToStrings(separator: ","));
             object result = headers[RequestContext.CALL_CHAIN_REENTRANCY_HEADER];
-            Assert.NotNull(result);// ActivityId # 1 不应该无效
-            Assert.Equal(activityId, result);  // E2E ActivityId # 1 未正确传播 。
-            Assert.Equal(activityId, RequestContextTestUtils.GetActivityId());  // "原件E2E ActivityId #1本不应该改变"
+            Assert.NotNull(result);// ActivityId #1 不应为 null。
+            Assert.Equal(activityId, result);  // "E2E ActivityId #1 not propagated correctly"
+            Assert.Equal(activityId, RequestContextTestUtils.GetActivityId());  // "Original E2E ActivityId #1 should not have changed"
             TestCleanup();
 
             RequestContextTestUtils.SetActivityId(nullActivityId);
@@ -118,10 +118,10 @@ namespace UnitTests.General
             ;
             Assert.True(headers.ContainsKey(RequestContext.CALL_CHAIN_REENTRANCY_HEADER), "ActivityId #2 should be present " + headers.ToStrings(separator: ","));
             result = headers[RequestContext.CALL_CHAIN_REENTRANCY_HEADER];
-            Assert.NotNull(result); // ActivityId #2 不应该无效
-            Assert.Equal(activityId2, result);  // E2E ActivityId # 2 未正确传播
+            Assert.NotNull(result); // ActivityId #2 不应为 null。
+            Assert.Equal(activityId2, result);  // "E2E ActivityId #2 not propagated correctly"
 
-            Assert.Equal(activityId2, RequestContextTestUtils.GetActivityId());  // "原件E2E ActivityId #2本不应该改变"
+            Assert.Equal(activityId2, RequestContextTestUtils.GetActivityId());  // "Original E2E ActivityId #2 should not have changed"
             TestCleanup();
         }
 
@@ -151,11 +151,11 @@ namespace UnitTests.General
                 headers.Add(kvp.Key, kvp.Value);
             }
             ;
-            Assert.NotNull(actId); // "ActivityId #1应该存在 " + headers.ToStrings(分隔符:")
+            Assert.NotNull(actId); // "ActivityId #1 should be present " + headers.ToStrings(separator: ",")
             object result = headers[RequestContext.CALL_CHAIN_REENTRANCY_HEADER];
-            Assert.NotNull(result);// "ActivityId #1 不应该无效"
-            Assert.Equal(activityId, result);  // E2E ActivityId # 1 未正确传播 。
-            Assert.Equal(activityId, RequestContextTestUtils.GetActivityId());  // "原件E2E ActivityId #1本不应该改变"
+            Assert.NotNull(result);// "ActivityId #1 should not be null"
+            Assert.Equal(activityId, result);  // "E2E ActivityId #1 not propagated correctly"
+            Assert.Equal(activityId, RequestContextTestUtils.GetActivityId());  // "Original E2E ActivityId #1 should not have changed"
             TestCleanup();
 
             RequestContextTestUtils.SetActivityId(nullActivityId);
@@ -178,12 +178,12 @@ namespace UnitTests.General
                 headers.Add(kvp.Key, kvp.Value);
             }
             ;
-            Assert.NotNull(actId); // "ActivityId #2应该存在 " + headers.ToStrings(分隔符:")
+            Assert.NotNull(actId); // "ActivityId #2 should be present " + headers.ToStrings(separator: ",")
             result = headers[RequestContext.CALL_CHAIN_REENTRANCY_HEADER];
-            Assert.NotNull(result); // "ActivityId #2不应该是无效的"
-            Assert.Equal(activityId2, result);// E2E ActivityId #2没有正确传播
+            Assert.NotNull(result); // "ActivityId #2 should not be null"
+            Assert.Equal(activityId2, result);// "E2E ActivityId #2 not propagated correctly
 
-            Assert.Equal(activityId2, RequestContextTestUtils.GetActivityId()); // "原件E2E ActivityId #2本不应该改变"
+            Assert.Equal(activityId2, RequestContextTestUtils.GetActivityId()); // "Original E2E ActivityId #2 should not have changed"
             TestCleanup();
         }
 
@@ -196,7 +196,7 @@ namespace UnitTests.General
             string data1 = "Main";
 
             RequestContext.Set(name1, data1);
-            Assert.Equal(data1, RequestContext.Get(name1));  // "RC.GetData-主"
+            Assert.Equal(data1, RequestContext.Get(name1));  // "RC.GetData-Main"
 
             Task[] promises = new Task[NumLoops];
             for (int i = 0; i < NumLoops; i++)
@@ -207,17 +207,17 @@ namespace UnitTests.General
                     await Task.Delay(5, TestContext.Current.CancellationToken);
                     Assert.Equal(data1, RequestContext.Get(name1));  // "RC.GetData-Task.Run-0"
                     await Task.Delay(5, TestContext.Current.CancellationToken);
-                    // 设定新值
+                    // 设置新值。
                     RequestContext.Set(name1, str);
-                    Assert.Equal(str, RequestContext.Get(name1));  // “RC.GetData-Task.Run-1-”+吨
+                    Assert.Equal(str, RequestContext.Get(name1));  // "RC.GetData-Task.Run-1-" + str
                     await Task.Delay(5, TestContext.Current.CancellationToken);
-                    Assert.Equal(str, RequestContext.Get(name1));  // “RC.GetData-Task.Run-2”+字符
+                    Assert.Equal(str, RequestContext.Get(name1));  // "RC.GetData-Task.Run-2-" + str
                     await Task.Delay(5, TestContext.Current.CancellationToken);
-                    Assert.Equal(str, RequestContext.Get(name1));  // "RC.GetData-Task.Run-3 -"+吨
+                    Assert.Equal(str, RequestContext.Get(name1));  // "RC.GetData-Task.Run-3-" + str
                 }, TestContext.Current.CancellationToken);
             }
             await Task.WhenAll(promises);
-            Assert.Equal(data1, RequestContext.Get(name1));  // "RC.GetData- 终极主"
+            Assert.Equal(data1, RequestContext.Get(name1));  // "RC.GetData-Main-Final"
         }
 
     }

@@ -8,16 +8,16 @@ using System;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// <see cref="ISerializerBuilder"/>的扩展方法。
+/// <see cref="ISerializerBuilder"/> 的扩展方法。
 /// </summary>
 public static class SerializationHostingExtensions
 {
     private static readonly ServiceDescriptor ServiceDescriptor = new(typeof(ProtobufCodec), typeof(ProtobufCodec));
 
     /// <summary>
-    /// 添加支持,以便使用 <see cref="MessageParser"/>对方案IMessage类型进行序列整理和取消其序列处理。
+    /// 添加使用 <see cref="MessageParser"/> 对 Protobuf IMessage 类型进行序列化和反序列化的支持。
     /// </summary>
-    /// <param name="serializerBuilder">序列器的构建器。</param>
+    /// <param name="serializerBuilder">序列化构建器。</param>
     public static ISerializerBuilder AddProtobufSerializer(
         this ISerializerBuilder serializerBuilder)
         => serializerBuilder.AddProtobufSerializer(
@@ -25,11 +25,11 @@ public static class SerializationHostingExtensions
             isCopyable: type => typeof(IMessage).IsAssignableFrom(type));
 
     /// <summary>
-    /// 添加支持,以便使用 <see cref="MessageParser"/>对方案IMessage类型进行序列整理和取消其序列处理。
+    /// 添加使用 <see cref="MessageParser"/> 对 Protobuf IMessage 类型进行序列化和反序列化的支持。
     /// </summary>
-    /// <param name="serializerBuilder">序列器的构建器。</param>
-    /// <param name="isSerializable">代表用来表示该编码器应按哪些类型进行序列。</param>
-    /// <param name="isCopyable">一位代表曾指出该编码器应复制哪类代码。</param>
+    /// <param name="serializerBuilder">序列化构建器。</param>
+    /// <param name="isSerializable">用于指示此编解码器应序列化哪些类型的委托。</param>
+    /// <param name="isCopyable">用于指示此编解码器应复制哪些类型的委托。</param>
     public static ISerializerBuilder AddProtobufSerializer(
         this ISerializerBuilder serializerBuilder,
         Func<Type, bool> isSerializable,

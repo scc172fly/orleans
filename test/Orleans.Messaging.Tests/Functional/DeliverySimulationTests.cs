@@ -6,10 +6,10 @@ using Xunit;
 namespace Orleans.Durable.Messaging.Tests.Functional;
 
 /// <summary>
-/// 运行生成发送、交付故障、碰撞和时间时间表,以一个发件人和一个接收器为对象,并进行检查
-/// 端对端交付合同:任何过失都从未两次应用电文的效果,一旦断层停止,每条电文就停止
-/// 其绝对重试预算到期时,正完全处理一次有效或发件人未填字母。
-/// 围栏终端结果未知:接收者可能已在确认丢失之前应用了电文。
+/// 针对一个发送方和一个接收方执行生成的发送、投递故障、崩溃及时间推进序列，并检查
+/// 端到端投递契约：任何故障都不会使同一消息的效果应用两次，且故障停止后，每条消息
+/// 的效果恰好应用一次，或者在其绝对重试预算耗尽时由发送方转为死信。
+/// 隔离情形下的终止结果是未知的：接收方可能已应用消息，而后确认丢失。
 /// </summary>
 [Collection(MessagingClusterCollection.Name)]
 [TestSuite("BVT")]
@@ -67,11 +67,11 @@ public sealed class DeliverySimulationTests : MessagingBehaviorTestBase
                     break;
             }
 
-            // 故障时的安全屏蔽:电文的效应从未两次应用。
+            // 故障期间仍满足安全性：任何消息的效果都不会应用两次。
             Assert.All((await receiver.GetSnapshotAsync()).Effects, static effect => Assert.Equal(1, effect.Count));
         }
 
-        // 错误停止; 每一次重试都到期并成功, 除非信件的重试超时先过。
+        // 故障停止；各次重试到期后成功执行，除非消息的重试超时先到期。
         _cluster.Deliveries.Clear();
         for (var round = 0; round < 8; round++)
         {

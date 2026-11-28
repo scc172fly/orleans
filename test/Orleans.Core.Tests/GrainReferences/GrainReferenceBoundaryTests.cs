@@ -189,7 +189,7 @@ public class GrainReferenceBoundaryTests
         return request;
     }
 
-    // 反省元数据有意与运行时参数类型不同,包括空字符串参数。
+    // 反射元数据有意与运行时实参类型不同，包括一个 null 字符串实参。
     private static void FormattingSignature(object value, string? text, int number) { }
 
     private sealed class BoundaryReference(GrainReferenceShared shared, IdSpan key) : GrainReference(shared, key)

@@ -9,8 +9,8 @@ using Xunit;
 namespace DefaultCluster.Tests.General;
 
 /// <summary>
-/// 试验 <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/>,
-/// 代表请求启动时,该代表将按 grain激活请求运行。
+/// <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/> 的测试，
+/// 该方法将委托作为请求在 Grain 的激活实例上执行。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Scheduler")]
 [TestSuite("BVT")]
@@ -258,7 +258,7 @@ public class RunRequestTests : HostedTestClusterEnsureDefaultStarted
         var grain = GrainFactory.GetGrain<INonReentrantRunRequestGrain>(key);
         await grain.DeactivateAndRetainInstance();
 
-        // 启动时排队的请求仍在取消活动运行; 无效后, 被拒绝 。
+        // 激活实例仍处于停用过程中时排队的请求会执行；一旦激活实例变为无效，就会拒绝这些请求。
         await WaitForRejectionAsync(key);
     }
 
@@ -270,7 +270,7 @@ public class RunRequestTests : HostedTestClusterEnsureDefaultStarted
         await grain.DeactivateAndRetainInstance();
         await WaitForRejectionAsync(key);
 
-        // 第一次请求拒绝的队列排入第二次请求,而启动后排出其队列。
+        // 第一个请求被拒绝时，会在激活实例排空其队列的过程中将第二个请求排入队列。
         var (firstCompletions, secondResponse) = await RunRequestGrainBase.QueueChainedRequestsOnRetainedInstance(key).WaitAsync(Timeout, TestContext.Current.CancellationToken);
 
         Assert.Equal(1, firstCompletions);
@@ -306,8 +306,8 @@ public class RunRequestTests : HostedTestClusterEnsureDefaultStarted
 }
 
 /// <summary>
-/// 测试排队 <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/>的请求如何
-/// 与 <see cref="SiloMessagingOptions.MaxEnqueuedRequestsHardLimit"/>互动。
+/// 测试由 <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/> 排入队列的请求
+/// 与 <see cref="SiloMessagingOptions.MaxEnqueuedRequestsHardLimit"/> 的交互方式。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Scheduler")]
 [TestSuite("BVT")]

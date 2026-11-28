@@ -10,10 +10,10 @@ namespace Orleans.CodeGenerator;
 internal static class ReferenceAssemblyModelExtractor
 {
     /// <summary>
-    /// 使用提供的代码生成选项,从汇编中提取参考集元数据。
-    /// 将参考集成扫描分离到一个可缓存的管道步骤,以便
-    /// 当引用不改变时, 下游的工作可以跳过 。
-    /// 类型语法根据需要编制格式,由每种类型的元数据登记共享。
+    /// 使用提供的代码生成选项，从编译中提取引用程序集元数据。
+    /// 将引用程序集扫描隔离为可缓存的管道步骤，以便在引用未发生变化时
+    /// 跳过下游工作。
+    /// 按需格式化类型语法，并由该类型的各项元数据注册共享。
     /// </summary>
     internal static ReferenceAssemblyModel ExtractReferenceAssemblyData(
         Compilation compilation,
@@ -22,8 +22,8 @@ internal static class ReferenceAssemblyModelExtractor
         => ExtractReferenceAssemblyData(compilation, options, cancellationToken, out _, out _);
 
     /// <summary>
-    /// 重新利用本汇编中成功、可复制的源发现,以便当前组装
-    /// 序列和代理元数据。 未覆盖类型和选定的外部组件使用符号式发现。
+    /// 对当前程序集的序列化器及代理元数据，复用本次编译成功且去重后的源代码发现结果。
+    /// 未覆盖的类型及选定的外部程序集使用基于符号的发现机制。
     /// </summary>
     internal static ReferenceAssemblyModel ExtractReferenceAssemblyData(
         Compilation compilation,
@@ -151,8 +151,8 @@ internal static class ReferenceAssemblyModelExtractor
                         continue;
                     }
 
-                    // 元数据提供者是在别名类型之外排放的,因此它命名的每一种类型都必须能从生成的代码中获取。
-                    // 诊断问题产生了元数据,因此只有在发布执行产出时才报告。
+                    // 元数据提供程序在具有别名的类型之外生成，因此它引用的每个类型都必须可由生成代码访问。
+                    // 此诊断涉及生成的元数据，因此仅在生成实现输出时报告。
                     if (FindInaccessibleCompoundAliasType(symbol, compoundAlias) is { } inaccessibleType)
                     {
                         implementationDiagnosticBuilder.Add(InaccessibleCompoundTypeAliasDiagnostic.CreateDiagnostic(symbol, compoundAlias, inaccessibleType, compilation));
@@ -344,13 +344,13 @@ internal static class ReferenceAssemblyModelExtractor
 
         ITypeSymbol? FindInaccessibleCompoundAliasType(INamedTypeSymbol target, AttributeData attribute)
         {
-            // 组装可访问性包括文件本地类型,其名称不能用于生成的文件中。
+            // 程序集可访问性也涉及文件局部类型，其名称无法在生成文件中使用。
             if (!compilation.IsSymbolAccessibleWithin(target, compilation.Assembly) || !CanReferenceType(target))
             {
                 return target;
             }
 
-            // TryExtractCompoundTypeAlias 已经验证了参数的形状。
+            // TryExtractCompoundTypeAlias 已验证实参的结构。
             foreach (var argument in attribute.ConstructorArguments[0].Values)
             {
                 if (argument.Value is ITypeSymbol type
@@ -469,7 +469,7 @@ internal static class ReferenceAssemblyModelExtractor
     }
 
     /// <summary>
-    /// 摘录a <see cref="RegisteredCodecModel"/> 带有一个登记册的符号* 属性。
+    /// 从具有某个 Register* 特性的符号提取 <see cref="RegisteredCodecModel"/>。
     /// </summary>
     internal static RegisteredCodecModel ExtractRegisteredCodec(INamedTypeSymbol symbol, RegisteredCodecKind kind, Compilation compilation)
     {

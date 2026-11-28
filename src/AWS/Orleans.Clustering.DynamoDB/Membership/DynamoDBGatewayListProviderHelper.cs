@@ -15,7 +15,7 @@ namespace Orleans.Clustering.DynamoDB
         private const string WriteCapacityUnitsPropertyName = "WriteCapacityUnits";
 
         /// <summary>
-        /// 分析用于填充 <paramref name="options"/>字段中的数据连接字符串
+        /// 解析数据连接字符串，以填充 <paramref name="options"/> 中的字段。
         /// </summary>
         /// <param name="dataConnectionString"></param>
         /// <param name="options"></param>

@@ -16,7 +16,7 @@ namespace BenchmarkGrains.MapReduce
             return Task.CompletedTask;
         }
 
-#pragma warning disable CS0618 // Preserve the legacy token benchmark implementation.
+#pragma warning disable CS0618 // 保留旧版令牌的基准测试实现。
         public Task SendAsync(T t, GrainCancellationToken gct)
 #pragma warning restore CS0618
         {

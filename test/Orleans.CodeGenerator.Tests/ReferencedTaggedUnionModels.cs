@@ -2,7 +2,7 @@ using Orleans;
 
 namespace Orleans.CodeGenerator.Tests.ReferencedTaggedUnions
 {
-    // SDK汇编了这些生产者模型;发电机测试消耗其元数据,使用每个试验目标引用的Roslyn版本。
+    // SDK 编译这些生产者模型；生成器测试使用各测试目标引用的 Roslyn 版本读取其元数据。
     [GenerateSerializer]
     public union ReferencedShallowUnion(int, string);
 

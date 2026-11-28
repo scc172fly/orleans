@@ -1,80 +1,80 @@
 ---
-title: "配置 .NET 垃圾收集"
-description: "配置 .NET 垃圾收集 Orleans silos。"
+title: 配置 .NET 垃圾回收
+description: 为 Orleans Silo 配置 .NET 垃圾回收。
 ms.date: 08/17/2026
 ms.topic: how-to
 ---
 
 <a id="configure-net-garbage-collection"></a>
 
-# 配置 .NET 垃圾收集
+# 配置 .NET 垃圾回收
 
-[.NET 垃圾收集器(GC)](https://learn.microsoft.com/dotnet/standard/garbage-collection/fundamentals) 分配和收回 Orleans silo管理内存。工作量特性以及可用的CPU和存储决定了最有效的GC配置。
+[.NET 垃圾回收器（GC）](https://learn.microsoft.com/dotnet/standard/garbage-collection/fundamentals) 为 Orleans Silo 分配和回收托管内存。工作负载特征及可用的 CPU 和内存决定最有效的 GC 配置。
 
 <a id="choose-workstation-or-server-gc"></a>
 
-## 选择工作站或服务器GC
+## 选择工作站 GC 或服务器 GC
 
-[GC和服务器](https://learn.microsoft.com/dotnet/standard/garbage-collection/workstation-server-gc) 提供不同的资源和输送特点:
+[工作站 GC 和服务器 GC](https://learn.microsoft.com/dotnet/standard/garbage-collection/workstation-server-gc)具有不同的资源占用和吞吐量特征：
 
-- GC工作站以较少的专用GC资源进行收集,适合许多小 silo 流程共用东道主的发展和高密度部署。
-- 服务器GC 执行多个堆积层的专用线条和比例收集工作。 它适合优先处理输送量和可缩放性的生产 silos 。
+- 工作站 GC 使用较少的专用 GC 资源执行回收。它适合开发环境，以及多个小型 Silo 进程共享同一宿主的高密度部署。
+- 服务器 GC 在专用线程上执行回收，并通过多个堆扩展回收工作。它适合以吞吐量和可伸缩性为优先目标的生产 Silo。
 
-[CoreCLR 默认选择工作站GC](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector#workstation-vs-server). 项目SDK设置和部署环境变量确定该程序是使用默认的还是要求服务器GC:
+[CoreCLR 默认选择工作站 GC](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector#workstation-vs-server)。项目 SDK 设置和部署环境变量决定进程采用该默认值还是请求服务器 GC：
 
-- [`Microsoft.NET.Sdk.Web` 请求服务器GC默认](https://github.com/dotnet/sdk/blob/main/src/WebSdk/ProjectSystem/Targets/Microsoft.NET.Sdk.Web.ProjectSystem.props#L16-L22).
+- [`Microsoft.NET.Sdk.Web` 默认请求服务器 GC](https://github.com/dotnet/sdk/blob/main/src/WebSdk/ProjectSystem/Targets/Microsoft.NET.Sdk.Web.ProjectSystem.props#L16-L22)。
 - `Microsoft.NET.Sdk` 和 [`Microsoft.NET.Sdk.Worker`](https://learn.microsoft.com/dotnet/core/extensions/workers#template-defaults) 使用 CoreCLR 默认值。
-- [官方 .NET 容器图像](https://github.com/dotnet/dotnet-docker/blob/main/eng/dockerfile-templates/Dockerfile.common-dotnet-envs) 保存可执行项目生成的运行时间配置,并应用部署环境覆盖。
+- [官方 .NET 容器镜像](https://github.com/dotnet/dotnet-docker/blob/main/eng/dockerfile-templates/Dockerfile.common-dotnet-envs)保留可执行项目生成的运行时配置，并应用部署环境中的覆盖设置。
 
-因此,与Web SDK一起建造的集装箱化 silo 要求服务器GC。与基站或工人SDK一起建造的A silo 默认使用工作站GC。在可执行文件 silo 项目中明确设置使预期模式在项目SDKs和容器图像之间保持一致。
+因此，使用 Web SDK 构建的容器化 Silo 请求服务器 GC。使用基础 SDK 或 Worker SDK 构建的 Silo 默认采用工作站 GC。在可执行 Silo 项目中显式设置，可在不同项目 SDK 和容器镜像之间保持预期模式一致。
 
-当服务器GC 激活时, [适应应用大小的动态适应(DATAS)](https://learn.microsoft.com/dotnet/standard/garbage-collection/datas) 开始一个堆,并随着工作量的变化调整数字,最多不超过该流程可用的处理器数量。 DATAS 默认为活跃状态。固定 [`GCHeapCount`](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector#heap-count) 选择固定数量的服务器GC 堆。在 .NET 10 上,设置该选项可以使 `GCDynamicAdaptationMode` 报告 `0`。使用 <xref:System.Runtime.GCSettings.IsServerGC> 来识别GC的口味,并使用具有代表性的负载测试来比较存储器的使用、吞吐和暂停时间。DATAS 的取舍和调试指导见 [准备 .NET 10GC](https://devblogs.microsoft.com/dotnet/preparing-for-dotnet-10-gc/) 。
+当服务器 GC 生效时，[根据应用程序规模动态调整（DATAS）](https://learn.microsoft.com/dotnet/standard/garbage-collection/datas)从一个堆开始，随工作负载变化调整堆数量，上限为进程可用的处理器数。DATAS 默认启用。固定的 [`GCHeapCount`](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector#heap-count) 设置会选择固定数量的服务器 GC 堆。在 .NET 10 上，该设置使 `GCDynamicAdaptationMode` 报告 `0`。使用 <xref:System.Runtime.GCSettings.IsServerGC> 识别 GC 模式，并通过具有代表性的负载测试比较内存使用量、吞吐量及暂停时间。有关 DATAS 的取舍与调优建议，请参阅[为 .NET 10 GC 做准备](https://devblogs.microsoft.com/dotnet/preparing-for-dotnet-10-gc/)。
 
 <a id="configure-the-silo-project"></a>
 
-## 配置 silo 项目
+## 配置 Silo 项目
 
-要请求服务器GC, 请将下列属性置于主机 silo的可执行工程中。 文件片断使用类库进行编译:
+若要请求服务器 GC，请在承载 Silo 的可执行项目中设置以下属性。文档代码片段使用类库进行编译：
 
 :::code language="xml" source="../snippets/hosting/Hosting.csproj" id="server_gc":::
 
-[`ServerGarbageCollection` MSBUUD财产](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector#workstation-vs-server) 将 `System.GC.Server` 写入主机生成的 `.runtimeconfig.json` 文件。运行时间在主机进程启动时读取此文件 。
+[`ServerGarbageCollection` MSBuild 属性](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector#workstation-vs-server)将 `System.GC.Server` 写入宿主生成的 `.runtimeconfig.json` 文件。运行时在宿主进程启动时读取此文件。
 
-[背景GC](https://learn.microsoft.com/dotnet/standard/garbage-collection/background-gc) 生成 2 组在专用线条上进行收藏, 而应用程序线条则继续运行。 它默认地为工作站和服务器GC 启用 。 [`ConcurrentGarbageCollection`](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector#background-gc) 设置至 `false` 当代表基准有利于非经常GC时,选择该模式。
+[后台 GC](https://learn.microsoft.com/dotnet/standard/garbage-collection/background-gc)在专用线程上执行第 2 代回收，同时应用程序线程继续运行。工作站 GC 和服务器 GC 默认均启用后台 GC。当具有代表性的基准测试表明非并发 GC 更合适时，将 [`ConcurrentGarbageCollection`](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector#background-gc) 设为 `false` 即可选择非并发 GC。
 
-[GC理事会组合](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector) 是在运行时间初始化时读取的。在修改项目设置、运行时间配置或环境变量后重新启动进程 。
+[GC 配置](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector)在运行时初始化时读取。更改项目设置、运行时配置或环境变量后，应重新启动进程。
 
 <a id="container-resources"></a>
 
-## 集装箱资源
+## 容器资源
 
-.NET 计算运行启动期间集装箱可用的处理器和内存。 可用一个逻辑处理器选择工作站GC。 两个或两个以上可用处理器允许服务器GC请求生效。 由于服务器GC活动, DATAS将参与的堆积计数从一个到现有处理器计数随着工作量需求的变化而变化。
+.NET 在运行时启动期间计算容器可用的处理器及内存。只有一个可用逻辑处理器时，选择工作站 GC。两个或更多可用处理器时，服务器 GC 请求才能生效。服务器 GC 生效时，DATAS 随工作负载需求变化，在 1 到可用处理器数量之间调整参与回收的堆数。
 
-Kubernetes CPU通常要求控制调度和CPU加权。 [Kubernetes 静态 CPU 管理器政策](https://kubernetes.io/docs/tasks/administer-cluster/cpu-management-policies/#static-policy-configuration) 从整数CPU请求中为符合资格的舱点指定了独家CPU贴切性。 .NET 从机器处理器计数、处理近距离和CPU利用率上限计算 <xref:System.Environment.ProcessorCount> ,将一个分数限制舍入下一个整个处理器。 `DOTNET_PROCESSOR_COUNT` 提供明确的值。 [服务器GC 资源设置](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector#manage-resource-usage-for-server-gc) 配置使用这些处理器的堆积和线条。见 [.NET 如何确定可用的处理器计数](https://learn.microsoft.com/dotnet/core/compatibility/core-libraries/6.0/environment-processorcount-on-windows)。
+Kubernetes CPU 请求通常控制调度及 CPU 权重。[Kubernetes 静态 CPU Manager 策略](https://kubernetes.io/docs/tasks/administer-cluster/cpu-management-policies/#static-policy-configuration)根据整数 CPU 请求为符合条件的 Pod 分配独占 CPU 亲和性。.NET 根据计算机处理器数量、进程亲和性及 CPU 利用率限制计算 <xref:System.Environment.ProcessorCount>，并将小数限制向上舍入到下一个整数处理器数。`DOTNET_PROCESSOR_COUNT` 提供显式数值。[服务器 GC 资源设置](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector#manage-resource-usage-for-server-gc)配置使用这些处理器的堆及线程。请参阅[.NET 如何确定可用处理器数量](https://learn.microsoft.com/dotnet/core/compatibility/core-libraries/6.0/environment-processorcount-on-windows)。
 
-容器内存限制为默认 [GC当量硬限](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector#heap-hard-limit)提供物理和模拟基础。堆积硬限包括GC型堆积和GC制簿记。 控制式模拟预算的集装箱限量加上本地记忆、套接缓冲、序列缓冲、供应商SDKs、遥测、临时分配暴发和不连续增长。 该主机使GC有能力在平台终止程序之前对喷射作出反应。
+容器内存限制为默认的 [GC 堆硬限制](https://learn.microsoft.com/dotnet/core/runtime-config/garbage-collector#heap-hard-limit)提供物理内存计算依据。堆硬限制涵盖 GC 堆及 GC 内部记账开销。设定容器内存限制时，除了该托管内存预算，还需考虑本机内存、套接字缓冲区、序列化缓冲区、提供程序 SDK、遥测、临时分配峰值及故障转移期间的增长。预留的空间使 GC 能在平台终止进程前有余量应对突发分配。
 
-以同样的CPU和内存限制进行装载试验。 见 [能力规划和规模](../../deployment/capacity-planning.md) 和 [Kubernetes 资源请求和限制](../../deployment/kubernetes.md#resource-requests-and-limits)。
+使用与生产环境相同的 CPU 和内存约束进行负载测试。请参阅[容量规划和伸缩](../../deployment/capacity-planning.md)以及 [Kubernetes 资源请求和限制](../../deployment/kubernetes.md#resource-requests-and-limits)。
 
 <a id="verify-the-effective-mode"></a>
 
-## 验证有效模式
+## 验证实际生效的模式
 
-使用这些信号验证已部署的运行时间配置 :
+使用以下信号验证部署后的运行时配置：
 
-- `System.GC.Server: true` 所公布申请的 `.runtimeconfig.json` 记录服务器GC 请求。 没有密钥应用 CoreCLR GC 默认工作站。
-- 在启动时, Orleans 日志 `Silo starting with GC settings: ServerGC={ServerGC} GCLatencyMode={GCLatencyMode}` 并发出工作站GC的咨询警告。
-- 在运行时, <xref:System.Runtime.GCSettings.IsServerGC> 报告活性GC口味, <xref:System.Environment.ProcessorCount> 报告运行启动期间使用的处理器计数。
-- 随着服务器GC的激活, <xref:System.GC.GetConfigurationVariables*> 报告 `GCDynamicAdaptationMode=1` ,而 DATAS 则调整堆肥计数。在 .NET 10上,有固定的堆积计数报告 `0`。
+- 已发布应用程序中，`System.GC.Server: true` 位于 `.runtimeconfig.json` 中，用于记录服务器 GC 请求。如果该键不存在，则采用 CoreCLR 默认的工作站 GC。
+- 启动时，Orleans 记录 `Silo starting with GC settings: ServerGC={ServerGC} GCLatencyMode={GCLatencyMode}`，并针对工作站 GC 发出建议性警告。
+- 运行时，<xref:System.Runtime.GCSettings.IsServerGC> 报告当前 GC 模式，<xref:System.Environment.ProcessorCount> 报告运行时初始化时使用的处理器数量。
+- 服务器 GC 生效时，如果 DATAS 动态调整堆数量，则 <xref:System.GC.GetConfigurationVariables*> 报告 `GCDynamicAdaptationMode=1`。在 .NET 10 上，固定堆数量时报告 `0`。
 
 <a id="coordinate-with-orleans-activation-management"></a>
 
-## 与 Orleans 启动管理协调
+## 与 Orleans 激活实例管理协同配置
 
-.NET GC回收无法获取的管理对象。 Orleans [激活收藏](activation-collection.md) 决定闲置的 grain 激活何时不可获取。
+.NET GC 回收不可达的托管对象。Orleans 的[激活实例回收](activation-collection.md)决定空闲 Grain 激活实例何时变为不可达。应配置这两个层次：
 
-- 从工作量和部署量测中选择GC模式。
-- Orleans 使得启动活动在默认情况下15分钟不活动后有资格收集;工作量计量指导具体类型年龄调整。
-- 启用内存压力激活程序, 以便当进程内存超过配置的限度时优先使用旧的启动功能, 并将使用量移到配置的目标 。
+- 根据工作负载和部署环境的测量结果选择进程 GC 模式。
+- 默认情况下，Orleans 使空闲 15 分钟后的激活实例符合回收条件；根据工作负载测量结果调整特定类型的回收时限。
+- 启用内存压力下的激活实例削减，使进程内存超过配置限制时优先停用较旧的激活实例，并使内存用量向配置目标靠拢。
 
-监测分配率、 堆积大小、 暂停时间、 在GC中的时间、 工作设置和激活计数 。 与激活寿命、 应用对象保留和记忆压力缩放同时标出GC 设置 。 见 [.NET GC绩效指导](https://learn.microsoft.com/dotnet/standard/garbage-collection/performance) 和 [Orleans 运行时信号](../monitoring/signals.md)。
+同时监控分配速率、堆大小、暂停时长、GC 耗时、进程工作集以及激活实例数量。结合激活实例生命周期、应用程序对象保留和内存压力削减调整 GC 设置。请参阅 [.NET GC 性能指南](https://learn.microsoft.com/dotnet/standard/garbage-collection/performance)及 [Orleans 运行时信号](../monitoring/signals.md)。

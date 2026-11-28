@@ -10,7 +10,7 @@ using Xunit;
 namespace Orleans.Serialization.TestKit
 {
     /// <summary>
-    /// 复印机测试方法。
+    /// 复制器的测试方法。
     /// </summary>
     [Trait("Category", "BVT")]
     [Trait("Suite", "BVT")]
@@ -23,18 +23,18 @@ namespace Orleans.Serialization.TestKit
         private CodecProvider _codecProvider => _codecProviderValue ??= ServiceProvider.GetRequiredService<CodecProvider>();
 
         /// <summary>
-        /// 初始化一个新的 <see cref="CopierTester{TValue, TCopier}"/> 实例。
+        /// 初始化新的 <see cref="CopierTester{TValue, TCopier}"/> 实例。
         /// </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="output"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="output"/> 为 <see langword="null"/>。</exception>
         protected CopierTester(ITestOutputHelper output) : base(output ?? throw new ArgumentNullException(nameof(output)))
         {
             output.WriteLine($"Random seed: {RandomSeed}");
         }
 
         /// <summary>
-        /// 初始化一个新的 <see cref="CopierTester{TValue, TCopier}"/> 实例。
+        /// 初始化新的 <see cref="CopierTester{TValue, TCopier}"/> 实例。
         /// </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="output"/> 或 <paramref name="fixture"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="output"/> 或 <paramref name="fixture"/> 为 <see langword="null"/>。</exception>
         protected CopierTester(ITestOutputHelper output, SerializationTesterFixture fixture) : base(output ?? throw new ArgumentNullException(nameof(output)), fixture)
         {
             output.WriteLine($"Random seed: {RandomSeed}");
@@ -60,24 +60,24 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// 获得一个值, 显示此编码器复制的类型是否不可更改。
+        /// 获取一个值，指示此编解码器复制的类型是否不可变。
         /// </summary>
         protected virtual bool IsImmutable => false;
 
         /// <summary>
-        /// 获得一个值, 显示此编码器复制的类型是否被集合 。
+        /// 获取一个值，指示此编解码器复制的类型是否使用池化机制。
         /// </summary>
         protected virtual bool IsPooled => false;
 
         /// <summary>
-        /// 配置序列器。
+        /// 配置序列化器。
         /// </summary>
         protected virtual void Configure(ISerializerBuilder builder)
         {
         }
 
         /// <summary>
-        /// 创建用于测试的复印机实例。
+        /// 创建用于测试的复制器实例。
         /// </summary>
         protected virtual TCopier CreateCopier() => ServiceProvider.GetRequiredService<TCopier>();
 
@@ -87,22 +87,22 @@ namespace Orleans.Serialization.TestKit
         protected abstract TValue CreateValue();
 
         /// <summary>
-        /// 获得一系列测试值。
+        /// 获取测试值数组。
         /// </summary>
         protected abstract TValue[] TestValues { get; }
 
         /// <summary>
-        /// 比较两个数值,如果它们相等则返回 <see langword="true"/> ;如果它们不相等则返回 <see langword="false"/> 。
+        /// 比较两个值，相等时返回 <see langword="true"/>，不相等时返回 <see langword="false"/>。
         /// </summary>
         protected virtual bool Equals(TValue? left, TValue? right) => EqualityComparer<TValue>.Default.Equals(left!, right!);
 
         /// <summary>
-        /// 获得一个价值提供方代表。
+        /// 获取值提供程序委托。
         /// </summary>
         protected virtual Action<Action<TValue>>? ValueProvider { get; }
 
         /// <summary>
-        /// 检查复制值是否相等。
+        /// 检查复制后的值是否相等。
         /// </summary>
         [Fact]
         public void CopiedValuesAreEqual()
@@ -130,7 +130,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// 检查是否将引用添加到复制上下文。
+        /// 检查引用是否已添加到复制上下文。
         /// </summary>
         [Fact]
         public void ReferencesAreAddedToCopyContext()
@@ -157,7 +157,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// 检查是否可复制含有字段类型的强型图例。
+        /// 检查包含该字段类型的强类型元组能否被复制。
         /// </summary>
         [Fact]
         public void CanCopyTupleViaSerializer()
@@ -187,7 +187,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// 检查是否可复制含有字段类型的对象类型图例。
+        /// 检查包含该字段类型的、元素类型为 object 的元组能否被复制。
         /// </summary>
         [Fact]
         public void CanCopyUntypedTupleViaSerializer()
@@ -218,7 +218,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// 检查在强型列表中用作元素时是否可以圆边勾选值。
+        /// 检查将值作为强类型列表中的元素时能否完成往返转换。
         /// </summary>
         [Fact]
         public void CanCopyCollectionViaSerializer()
@@ -245,7 +245,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// 检查在作为对象列表中元素使用时是否可以圆勾勾勾值。
+        /// 检查将值作为 object 类型列表中的元素时能否完成往返转换。
         /// </summary>
         [Fact]
         public void CanCopyCollectionViaUntypedSerializer()

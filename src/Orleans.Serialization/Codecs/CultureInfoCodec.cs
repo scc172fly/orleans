@@ -5,7 +5,7 @@ using System.Globalization;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="CultureInfo"/>的序列器。
+    /// <see cref="CultureInfo"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class CultureInfoCodec : GeneralizedReferenceTypeSurrogateCodec<CultureInfo, CultureInfoSurrogate>
@@ -13,7 +13,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="CultureInfoCodec"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">代孕序列器</param>
+        /// <param name="surrogateSerializer">代理类型序列化器。</param>
         public CultureInfoCodec(IValueSerializer<CultureInfoSurrogate> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -26,7 +26,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="CultureInfoCodec"/>所使用的代金矿类型。
+    /// <see cref="CultureInfoCodec"/> 所使用的代理类型。
     /// </summary>
     [GenerateSerializer]
     public struct CultureInfoSurrogate

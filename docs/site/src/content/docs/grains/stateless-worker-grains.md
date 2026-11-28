@@ -1,43 +1,40 @@
 ---
-title: "无国籍工人 grains"
-description: "规模化地点-具有 Orleans的透明工人人才库。"
+title: 无状态工作者 Grain
+description: 使用 Orleans 扩展位置透明的工作者池。
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
 <a id="stateless-worker-grains"></a>
+# 无状态工作者 Grain
 
-# 无国籍工人 grains
+普通 Grain 标识在集群中最多拥有一个激活实例。无状态工作者标识则可以拥有多个激活实例，使 Orleans 能够在兼容的 Silo 之间扩展彼此独立的工作负载。
 
-正常的 grain 身份最多有一个在组群中的激活。无国籍工人的身份可以有多个启动,允许 Orleans 将独立工作的规模扩大到兼容的 silos。
-
-将 <xref:Orleans.Concurrency.StatelessWorkerAttribute> 应用到执行:
+在实现类上应用 <xref:Orleans.Concurrency.StatelessWorkerAttribute>：
 
 :::code language="csharp" source="../snippets/compiled/Grains/WorkersAndTimersSnippets.cs" id="image_worker":::
-和别人一样叫它 grain:
+像调用其他 Grain 一样调用它：
 
 :::code language="csharp" source="../snippets/compiled/Grains/WorkersAndTimersSnippets.cs" id="call_image_worker":::
-关键点指工人集合,而不是个体激活。 同一引用的连续呼叫可以使用不同的激活方式。
+键标识的是工作者池，而不是单个激活实例。针对同一个引用的连续调用可以在不同的激活实例上执行。
 
 <a id="scaling-behavior"></a>
+## 扩缩容行为
 
-## 缩动行为
+Orleans 优先选择本地兼容的激活实例。如果本地所有激活实例均繁忙，且尚未达到每个 Silo 的数量上限，则 Orleans 可以创建另一个激活实例。默认上限为每个 Silo `Environment.ProcessorCount` 个激活实例。
 
-Orleans 选择本地兼容激活。 如果所有本地激活都忙碌且每-silo 极限还没达到 Orleans 默认最大值为 `Environment.ProcessorCount` 启动次数 silo.
-
-明确设定限制:
+显式设置数量上限：
 
 :::code language="csharp" source="../snippets/compiled/Grains/WorkersAndTimersSnippets.cs" id="limited_image_worker":::
-空闲工人默认会被清除。 双引力属性构造器可以禁用因特殊工作量而拆迁闲置工人。
+默认情况下，空闲的工作者会被移除。对于特殊工作负载，可以使用带两个参数的特性构造函数禁用空闲工作者回收。
 
 <a id="state-and-concurrency"></a>
+## 状态与并发
 
-## 国家货币和货币
+“无状态”是指各激活实例不能被单独寻址，也不存在某个激活实例拥有该键的权威状态。工作者可以保留缓存或其他本地状态，但这些状态不与其他激活实例协调，并且随时可能消失。
 
-“无国家”是指激活不是单独可处理的,也没有一个启动拥有钥匙的权威状态。 工人可以保留缓存或其他地方状态,但与其他激活没有协调,随时可以消失。
+无状态工作者默认不可重入。仅在实现可以安全地交错处理请求时，才添加 <xref:Orleans.Concurrency.ReentrantAttribute>。
 
-无国籍工人默认是无法重新加入的。 只有在申请中断时,执行这些工人是安全的,才添加 <xref:Orleans.Concurrency.ReentrantAttribute> 。
+合适的用途包括 CPU 密集型转换、本地预聚合、协议适配以及复制的读缓存。不要将无状态工作者用于需要单写入者一致性的实体状态。
 
-良好的用途包括CPU约束式转换、本地预汇总、协议适应和复制读取缓存。 不要在需要单体作者一致性的实体国使用无国籍工人。
-
-无国籍工人的活化活动不参与 grain 移徙。
+无状态工作者的激活实例不参与 Grain 迁移。

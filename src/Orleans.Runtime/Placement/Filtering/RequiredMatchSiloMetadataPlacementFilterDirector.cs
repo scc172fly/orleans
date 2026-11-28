@@ -12,7 +12,7 @@ internal class RequiredMatchSiloMetadataPlacementFilterDirector(ILocalSiloDetail
     {
         var metadataKeys = (filterStrategy as RequiredMatchSiloMetadataPlacementFilterStrategy)?.MetadataKeys ?? [];
 
-        // 返回所有返回返回 silos 如果有,则无 silos 匹配任何元数据键
+        // 如果没有 Silo 匹配任何元数据键，则通过 yield return 返回所有 Silo。
         if (metadataKeys.Length == 0)
         {
             return silos;

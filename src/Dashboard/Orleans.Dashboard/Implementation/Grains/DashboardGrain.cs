@@ -50,14 +50,14 @@ internal sealed class DashboardGrain : Grain, IDashboardGrain
         _siloDetailsProvider = siloDetailsProvider;
         _siloGrainClient = siloGrainClient;
 
-        // 存储绕过 isEnabled 旗帜宽幅的选项。
+        // 保存选项，以绕过 isEnabled 标志的广播。
         _grainProfilerOptions = grainProfilerOptions.Value;
         _typeManifestOptions = typeManifestOptions.Value;
 
-        // 不允许小于1000米的定时器=1秒。
+        // 不允许小于 1000 毫秒（1 秒）的定时器间隔。
         _updateInterval = TimeSpan.FromMilliseconds(Math.Max(options.Value.CounterUpdateIntervalMs, 1000));
 
-        // 让历史可以配置
+        // 使历史记录长度可配置。
         _counters = new DashboardCounters(options.Value.HistoryLength);
 
         _history = new TraceHistory(options.Value.HistoryLength);
@@ -370,7 +370,7 @@ internal sealed class DashboardGrain : Grain, IDashboardGrain
                         }
                         catch
                         {
-                            // 因为我们得到了所有的界面 有一些错误 与拳击和解箱 可能发生与职业 
+                            // 由于获取了全部接口，在调用时可能发生装箱和拆箱错误。
                         }
                     }
                 }
@@ -380,7 +380,7 @@ internal sealed class DashboardGrain : Grain, IDashboardGrain
                 }
                 catch
                 {
-                    // 因为我们得到了所有接口的框框和解箱错误, 当尝试获取 grain时可能会发生
+                    // 由于获取了全部接口，尝试获取 Grain 时可能发生装箱和拆箱错误。
                 }
             }
         }

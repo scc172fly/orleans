@@ -4,18 +4,18 @@ using System.Threading.Tasks;
 namespace Orleans
 {
     /// <summary>
-    /// 使用生命周期观察员处理起止通知。
+    /// 用于处理启动和停止通知的生命周期观察者。
     /// </summary>
     public interface ILifecycleObserver
     {
         /// <summary>
-        /// 处理启动通知 。
+        /// 处理启动通知。
         /// </summary>
         /// <param name="cancellationToken">
-        /// 取消符, 表示取消时操作应该迅速中止 。
+        /// 取消时指示操作应尽快中止的取消令牌。
         /// </param>
         /// <returns>
-        /// 代表操作的 <see cref="Task"/> 。
+        /// 表示该操作的 <see cref="Task"/>。
         /// </returns>
         Task OnStart(CancellationToken cancellationToken = default);
 
@@ -23,10 +23,10 @@ namespace Orleans
         /// 处理停止通知。
         /// </summary>
         /// <param name="cancellationToken">
-        /// 取消符, 表示取消时操作应该被迅速停止 。
+        /// 取消时指示操作应尽快停止的取消令牌。
         /// </param>
         /// <returns>
-        /// 代表操作的 <see cref="Task"/> 。
+        /// 表示该操作的 <see cref="Task"/>。
         /// </returns>
         Task OnStop(CancellationToken cancellationToken = default);
     }

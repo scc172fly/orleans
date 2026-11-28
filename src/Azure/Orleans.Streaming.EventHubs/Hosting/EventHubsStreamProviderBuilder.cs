@@ -24,7 +24,7 @@ using Orleans.Runtime;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// 配置 Azure 事件枢纽流提供者,来自供应商配置。
+/// 根据提供程序配置设置 Azure Event Hubs 流提供程序。
 /// </summary>
 public sealed class EventHubsStreamProviderBuilder : IProviderBuilder<ISiloBuilder>, IProviderBuilder<IClientBuilder>
 {

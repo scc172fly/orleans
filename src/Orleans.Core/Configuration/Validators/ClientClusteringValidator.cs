@@ -7,12 +7,12 @@ using Orleans.Runtime;
 namespace Orleans.Configuration.Validators
 {
     /// <summary>
-    /// 客户端集群校验器
+    /// 客户端集群配置的验证器。
     /// </summary>
     internal class ClientClusteringValidator : IConfigurationValidator
     {
         /// <summary>
-        /// 组合错误配置时显示错误消息 。
+        /// 集群配置不正确时显示的错误消息。
         /// </summary>
         internal const string ClusteringNotConfigured =
             "Clustering has not been configured. Configure clustering using one of the clustering packages, such as:"
@@ -24,7 +24,7 @@ namespace Orleans.Configuration.Validators
             + "\n  * Others, see: https://www.nuget.org/packages?q=Microsoft.Orleans.Clustering.";
 
         /// <summary>
-        /// 服务供应商。
+        /// 服务提供程序。
         /// </summary>
         private readonly IServiceProvider _serviceProvider;
 
@@ -32,7 +32,7 @@ namespace Orleans.Configuration.Validators
         /// 初始化 <see cref="ClientClusteringValidator"/> 类的新实例。
         /// </summary>
         /// <param name="serviceProvider">
-        /// 服务供应商。
+        /// 服务提供程序。
         /// </param>
         public ClientClusteringValidator(IServiceProvider serviceProvider)
         {

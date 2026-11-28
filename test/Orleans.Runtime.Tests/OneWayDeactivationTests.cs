@@ -48,8 +48,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试调用OneWay方法来激活不再存在的引爆程序,触发缓存失效。
-        /// 随后的电话应重新启动 grain。
+        /// 测试在已不存在的激活实例上调用 [OneWay] 方法时是否触发缓存失效。
+        /// 后续调用应重新激活 Grain。
         /// </summary>
         [Fact]
         public async Task OneWay_Deactivation_CacheInvalidated()
@@ -81,7 +81,7 @@ namespace UnitTests.General
                 RequestContext.Remove(IPlacementDirector.PlacementHintKey);
             }
 
-            // 激活 grain 并记录其地址。
+            // 激活 Grain 并记录其地址。
             grainToDeactivate = await grainToCallFrom.GetOtherGrain(grainToDeactivate, targetSilo);
             Assert.Equal(targetSilo, await grainToDeactivate.GetSiloAddress());
             Assert.Equal(directorySilo, await grainToDeactivate.GetPrimaryForGrain());
@@ -96,9 +96,9 @@ namespace UnitTests.General
             Assert.Equal(1, count);
             Assert.NotEqual(initialActivationId, finalActivationId);
 
-            // 测试缓存是否更新了 。
-            // 我们不知道整个启动地址应该是什么 但我们知道
-            // 说明某些条目应当成功地更新,以适应所提供的 grain id。
+            // 测试缓存是否已更新。
+            // 虽然不知道完整的激活实例地址应是什么，但可以确定
+            // 应成功更新所提供 Grain ID 对应的某个条目。
             var newActivationAddress = directoryCache.Operations
                 .OfType<TestDirectoryCache.CacheOperation.AddOrUpdate>()
                 .Last(op => op.Value.GrainId.Equals(grainId))

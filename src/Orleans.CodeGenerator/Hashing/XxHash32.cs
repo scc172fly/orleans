@@ -1,15 +1,15 @@
-// 根据一项或多项协定获得 .NET 基金会许可证。
-// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Buffers.Binary;
 
-// 执行从
+// 根据以下规范实现：
 // https://github.com/Cyan4973/xxHash/blob/f9155bd4c57e2270a4ffbb176485e5d713de1c9b/doc/xxhash_spec.md
 
 namespace Orleans.CodeGenerator.Hashing;
 
 /// <summary>
-///   提供 XxHash32 算法的实施。
+/// 提供 XxHash32 算法的实现。
 /// </summary>
 internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
 {
@@ -22,11 +22,11 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     private int _length;
 
     /// <summary>
-    ///   初始化 <see cref="XxHash32"/> 类的新实例。
+    /// 初始化 <see cref="XxHash32"/> 类的新实例。
     /// </summary>
     /// <remarks>
-    ///   XxHash32 算法支持可选种子值。
-    ///   由此构建器创建的实例使用默认种子, 零。
+    /// XxHash32 算法支持可选种子值。
+    /// 使用此构造函数创建的实例使用默认种子值 0。
     /// </remarks>
     public XxHash32()
         : this(0)
@@ -34,11 +34,11 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   初始化 <see cref="XxHash32"/> 类的新实例
-    ///   指定的种子。
+    /// 使用指定种子值初始化 <see cref="XxHash32"/> 类的
+    /// 新实例。
     /// </summary>
     /// <param name="seed">
-    ///   用于计算此实例的散列种子值 。
+    /// 此实例计算时使用的哈希种子值。
     /// </param>
     public XxHash32(int seed)
         : base(HashSize)
@@ -48,7 +48,7 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   将散列计算重置到初始状态。
+    /// 将哈希计算重置为初始状态。
     /// </summary>
     public override void Reset()
     {
@@ -57,15 +57,15 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   将 <paramref name="source"/> 的内容附加到已经的数据中
-    ///   用于当前散列计算处理。
+    /// 将 <paramref name="source"/> 的内容追加到当前哈希计算已经
+    /// 处理的数据中。
     /// </summary>
-    /// <param name="source">要处理的数据 。</param>
+    /// <param name="source">要处理的数据。</param>
     public override void Append(ReadOnlySpan<byte> source)
     {
-        // 每次我们读16字节 处理条纹
-        // 数据不是完全的MT -16 被储存在一个缓存状态
-        // 缓冲。
+        // 每读取 16 个字节就处理一个条带。
+        // 长度不是 16 的整数倍的剩余数据存入暂存
+        // 缓冲区。
 
         int held = _length & 0x0F;
 
@@ -105,8 +105,8 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   将计算成散列值写入 <paramref name="destination"/>
-    ///   但不修改累积状态。
+    /// 将计算出的哈希值写入 <paramref name="destination"/>。
+    /// 而不修改累积状态。
     /// </summary>
     protected override void GetCurrentHashCore(Span<byte> destination)
     {
@@ -123,12 +123,12 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   计算所提供数据的 XxHash32 散列。
+    /// 计算提供数据的 XxHash32 哈希值。
     /// </summary>
-    /// <param name="source">类组数据。</param>
-    /// <returns>下 XxHash32 提供的数据的散数。</returns>
+    /// <param name="source">要计算哈希的数据。</param>
+    /// <returns>提供数据的 XxHash32 哈希值。</returns>
     /// <exception cref="ArgumentNullException">
-    ///   <paramref name="source"/> 是 <see langword="null"/>。
+    /// <paramref name="source"/> 为 <see langword="null"/>。
     /// </exception>
     public static byte[] Hash(byte[] source)
     {
@@ -141,13 +141,13 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   使用所提供的种子计算所提供数据的 XxHash32 散列。
+    /// 使用提供的种子值计算提供数据的 XxHash32 哈希值。
     /// </summary>
-    /// <param name="source">类组数据。</param>
-    /// <param name="seed">用于计算散列的种子值。</param>
-    /// <returns>下 XxHash32 提供的数据的散数。</returns>
+    /// <param name="source">要计算哈希的数据。</param>
+    /// <param name="seed">此次哈希计算的种子值。</param>
+    /// <returns>提供数据的 XxHash32 哈希值。</returns>
     /// <exception cref="ArgumentNullException">
-    ///   <paramref name="source"/> 是 <see langword="null"/>。
+    /// <paramref name="source"/> 为 <see langword="null"/>。
     /// </exception>
     public static byte[] Hash(byte[] source, int seed)
     {
@@ -160,11 +160,11 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   计算所提供数据的 XxHash32 散列。
+    /// 计算提供数据的 XxHash32 哈希值。
     /// </summary>
-    /// <param name="source">类组数据。</param>
-    /// <param name="seed">此散列计算所用的种子值。 默认值为零 。</param>
-    /// <returns>下 XxHash32 提供的数据的散数。</returns>
+    /// <param name="source">要计算哈希的数据。</param>
+    /// <param name="seed">此次哈希计算的种子值。默认为 0。</param>
+    /// <returns>提供数据的 XxHash32 哈希值。</returns>
     public static byte[] Hash(ReadOnlySpan<byte> source, int seed = 0)
     {
         byte[] ret = new byte[HashSize];
@@ -173,17 +173,17 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   试图将所提供的数据 XxHash32 散列计算成提供的目标。
+    /// 尝试计算提供数据的 XxHash32 哈希值，并写入提供的目标缓冲区。
     /// </summary>
-    /// <param name="source">类组数据。</param>
-    /// <param name="destination">接收计算散列值的缓冲。</param>
+    /// <param name="source">要计算哈希的数据。</param>
+    /// <param name="destination">接收计算所得哈希值的缓冲区。</param>
     /// <param name="bytesWritten">
-    ///   成功时, 收到写到 <paramref name="destination"/>的字节数 。
+    /// 成功时，接收写入 <paramref name="destination"/> 的字节数。
     /// </param>
-    /// <param name="seed">此散列计算所用的种子值。 默认值为零 。</param>
+    /// <param name="seed">此次哈希计算的种子值。默认为 0。</param>
     /// <returns>
-    ///   <see langword="true"/> 如果 <paramref name="destination"/> 足够长的时间来接收
-    ///   计算散列值(4字节);否则, <see langword="false"/>。
+    /// 返回 <see langword="true"/>，前提是 <paramref name="destination"/> 足够长，能够容纳
+    /// 计算得到的哈希值（4 个字节）；否则返回 <see langword="false"/>。
     /// </returns>
     public static bool TryHash(ReadOnlySpan<byte> source, Span<byte> destination, out int bytesWritten, int seed = 0)
     {
@@ -198,13 +198,13 @@ internal sealed partial class XxHash32 : NonCryptographicHashAlgorithm
     }
 
     /// <summary>
-    ///   将所提供的数据 XxHash32 散列计算成所提供目的地。
+    /// 计算提供数据的 XxHash32 哈希值，并写入提供的目标缓冲区。
     /// </summary>
-    /// <param name="source">类组数据。</param>
-    /// <param name="destination">接收计算散列值的缓冲。</param>
-    /// <param name="seed">此散列计算所用的种子值。 默认值为零 。</param>
+    /// <param name="source">要计算哈希的数据。</param>
+    /// <param name="destination">接收计算所得哈希值的缓冲区。</param>
+    /// <param name="seed">此次哈希计算的种子值。默认为 0。</param>
     /// <returns>
-    ///   写入 <paramref name="destination"/>的字节数。
+    /// 写入 <paramref name="destination"/> 的字节数。
     /// </returns>
     public static int Hash(ReadOnlySpan<byte> source, Span<byte> destination, int seed = 0)
     {

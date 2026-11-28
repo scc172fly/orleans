@@ -4,11 +4,11 @@ using System.Text.Json.Serialization;
 namespace Orleans.Durable.Tasks;
 
 /// <summary>
-/// 将一个 <see cref="TaskId"/> 作为它逃脱的等级路径,将它作为 JSON 字符串或属性名称。
+/// 将 <see cref="TaskId"/> 序列化为经过转义的层次路径，形式为 JSON 字符串或属性名称。
 /// </summary>
 /// <remarks>
-/// <see cref="TaskId"/> 中此转换器中的 <see cref="JsonConverterAttribute"/>,因此基于反思和
-/// 源生成的序列序列化不经注册使用。空标识符 <see cref="TaskId.None"/>是
+/// <see cref="TaskId"/> 在其 <see cref="JsonConverterAttribute"/> 中指定此转换器，因此基于反射的序列化和
+/// 源生成的序列化无需注册即可使用它。空标识符 <see cref="TaskId.None"/> 表示为
 /// 空字符串。
 /// </remarks>
 public sealed class TaskIdJsonConverter : JsonConverter<TaskId>

@@ -15,13 +15,13 @@ internal sealed partial class RecordingDurableTaskMessageTransport
 {
     private readonly List<(int Count, TaskCompletionSource<RecordedSubscription> Waiter)> _subscriptionWaiters = [];
 
-    /// <summary>获取运行时间所要发送的每个订阅和取消订阅的顺序。</summary>
+    /// <summary>按发送顺序获取运行时暂存的所有订阅和取消订阅消息。</summary>
     public List<RecordedSubscription> Subscriptions { get; } = [];
 
-    /// <summary>获得运行时间在身体中反应所完成的每一个完成,按顺序发送。</summary>
+    /// <summary>按发送顺序获取运行时暂存的所有在消息体内携带响应的完成消息。</summary>
     public List<(RecordedSubscription Subscriber, DurableTaskResponse Response)> Responses { get; } = [];
 
-    /// <summary>获取未找到的运行时间完成的用户发送顺序。</summary>
+    /// <summary>按发送顺序获取运行时以未找到任务的结果通知完成的订阅者。</summary>
     public List<RecordedSubscription> NotFound =>
         [.. Responses.Where(static entry => entry.Response.Exception is DurableTaskNotFoundException).Select(static entry => entry.Subscriber)];
 
@@ -51,7 +51,7 @@ internal sealed partial class RecordingDurableTaskMessageTransport
         StateChanges.Notify();
     }
 
-    /// <summary>等待运行时间完成 <paramref name="count"/> 订阅信件的阶段,然后返回最后一个。</summary>
+    /// <summary>等待运行时暂存 <paramref name="count"/> 条订阅消息，并返回最后一条。</summary>
     public Task<RecordedSubscription> WaitForSubscriptionAsync(int count)
     {
         if (Subscriptions.Count >= count)
@@ -65,13 +65,13 @@ internal sealed partial class RecordingDurableTaskMessageTransport
     }
 }
 
-/// <summary>订阅、未订阅或未找到的完成,这是运行时阶段的阶段。</summary>
+/// <summary>运行时暂存的订阅消息、取消订阅消息或未找到任务的完成消息。</summary>
 internal sealed record RecordedSubscription(GrainId Sender, GrainId Target, TaskId TaskId, TaskId SubscriberId, bool Unsubscribe)
 {
     private static readonly RecordingOutbox Outbox = new();
     private static readonly DurableTaskMessageTransport Encoder = MessagingTestHelpers.CreateTransport(Outbox);
 
-    /// <summary>创建发送此订阅或不订阅目标的收件箱消息。</summary>
+    /// <summary>创建将此订阅或取消订阅投递至其目标的收件箱消息。</summary>
     public InboxMessage ToInboxMessage() => Encode(transport =>
     {
         if (Unsubscribe)
@@ -84,7 +84,7 @@ internal sealed record RecordedSubscription(GrainId Sender, GrainId Target, Task
         }
     });
 
-    /// <summary>创建可传递此记录描述的未找到完成的完整内容的收件箱信件。</summary>
+    /// <summary>创建用于投递此记录所描述的未找到任务的完成消息的收件箱消息。</summary>
     public InboxMessage ToNotFoundInboxMessage() =>
         Encode(transport => transport.SendResponse(
             Sender,

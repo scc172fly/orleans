@@ -1,13 +1,13 @@
 namespace Orleans.Placement.Rebalancing;
 
 /// <summary>
-/// 监听重新平衡状态变化的类型的界面。
+/// 用于监听再均衡器状态变化的类型的接口。
 /// </summary>
 public interface IActivationRebalancerReportListener
 {
     /// <summary>
-    /// 当再平衡器提供新的 <see cref="RebalancingReport"/>时触发 。
+    /// 当再均衡器提供新的 <see cref="RebalancingReport"/> 时触发。
     /// </summary>
-    /// <param name="report">最新报告来自再平衡者。</param>
+    /// <param name="report">再均衡器提供的最新报告。</param>
     void OnReport(RebalancingReport report);
 }

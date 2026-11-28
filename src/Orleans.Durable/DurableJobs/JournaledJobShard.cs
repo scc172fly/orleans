@@ -11,7 +11,7 @@ using Orleans.Runtime.Internal;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// 日刊的编辑执行情况 <see cref="IJobShard"/> 仓库的硬质状态 Orleans 日记存储。
+/// <see cref="IJobShard"/> 的日志化实现，将分片状态存储在 Orleans 日志存储中。
 /// </summary>
 internal sealed class JournaledJobShard : IJobShard
 {
@@ -32,21 +32,21 @@ internal sealed class JournaledJobShard : IJobShard
     /// <summary>
     /// 初始化 <see cref="JournaledJobShard"/> 类的新实例。
     /// </summary>
-    /// <param name="shardId">此工作碎片的独特标识符。</param>
-    /// <param name="provider">包含此碎片的日记服务商。</param>
-    /// <param name="startTime">由此碎片管理的时段的起始时间。</param>
-    /// <param name="endTime">由此碎片管理的时间范围的结束时间。</param>
-    /// <param name="metadata">与此工作碎片相关的任择元数据。</param>
-    /// <param name="isClosed">值,显示是否关闭此片断以打开新任务。</param>
-    /// <param name="state">日记散状态。</param>
-    /// <param name="stateManager">管理器过去用来持续日记状态。</param>
-    /// <param name="shardManager">拥有此片段的碎片管理器。</param>
-    /// <param name="timeProvider">批量延迟时间提供者所用时间。 默认为 <see cref="TimeProvider.System"/>。</param>
+    /// <param name="shardId">此作业分片的唯一标识符。</param>
+    /// <param name="provider">包含此分片的日志提供程序。</param>
+    /// <param name="startTime">此分片管理的时间范围的开始时间。</param>
+    /// <param name="endTime">此分片管理的时间范围的结束时间。</param>
+    /// <param name="metadata">与此作业分片关联的可选元数据。</param>
+    /// <param name="isClosed">指示此分片是否已停止接受新作业的值。</param>
+    /// <param name="state">日志化分片状态。</param>
+    /// <param name="stateManager">用于持久化日志化状态的管理器。</param>
+    /// <param name="shardManager">拥有此分片的分片管理器。</param>
+    /// <param name="timeProvider">用于批处理额外等待时间的时间提供程序。默认为 <see cref="TimeProvider.System"/>。</param>
     /// <param name="batchLingerDelay">
-    /// 操作处理程序等待更多变异加入批次的可选持续时间
-    /// 第一个到达后,使用 <see cref="TimeSpan.Zero"/> (默认) 禁用剩余时间 。
+    /// 收到第一项变更之后，操作处理器等待其他变更加入批次的
+    /// 可选时长。使用 <see cref="TimeSpan.Zero"/>（默认值）禁用额外等待。
     /// </param>
-    /// <param name="durableJobsInstruments">持久就业衡量工具。</param>
+    /// <param name="durableJobsInstruments">持久化作业指标工具。</param>
     public JournaledJobShard(
         JobShardId shardId,
         DurableJobsJournalProvider provider,
@@ -87,7 +87,7 @@ internal sealed class JournaledJobShard : IJobShard
             _state.MarkAsComplete();
         }
 
-        // 过程比创造者活得久, 因此它运行没有创作者的执行环境 和与当地人同步。
+        // 处理器的生命周期长于创建它的调用方，因此运行时不携带创建方的执行上下文和异步本地变量。
         using var suppressExecutionContext = new ExecutionContextSuppressor();
         _operationProcessor = Task.Run(ProcessOperationsAsync);
     }
@@ -110,7 +110,7 @@ internal sealed class JournaledJobShard : IJobShard
     public bool IsAddingCompleted => _state.IsAddingCompleted;
 
     /// <summary>
-    /// 获取此碎片的支持日记识别符 。
+    /// 获取此分片对应的底层日志标识符。
     /// </summary>
     internal JournalId StorageId => JobShardId.Parse(Id).ToJournalId();
 
@@ -133,9 +133,9 @@ internal sealed class JournaledJobShard : IJobShard
     }
 
     /// <summary>
-    /// 关闭了突变的进入和排水管,在清理所有权之前接受作业。
+    /// 关闭变更操作的准入，并在清理所有权之前处理完已接受的操作。
     /// </summary>
-    /// <param name="cancellationToken">取消完成屏障等待的标记 。</param>
+    /// <param name="cancellationToken">用于取消对完成屏障的等待的令牌。</param>
     internal async Task RetireAsync(CancellationToken cancellationToken)
     {
         using var operation = new MarkAsCompleteOperation(cancellationToken);
@@ -147,7 +147,7 @@ internal sealed class JournaledJobShard : IJobShard
             _pendingOperationSignal.Signal();
         }
 
-        // 取消等待, 未经登记处理碎片并注销自有关闭 I/ O 。
+        // 取消等待可使注销操作释放分片并取消由分片负责的关闭 I/O。
         await operation.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
         if (!_state.IsAddingCompleted)
         {
@@ -223,10 +223,10 @@ internal sealed class JournaledJobShard : IJobShard
     }
 
     /// <summary>
-    /// 删除此碎片日记状态 。
+    /// 删除此分片的日志化状态。
     /// </summary>
-    /// <param name="cancellationToken">取消操作的标记 。</param>
-    /// <returns>代表无同步操作的任务。</returns>
+    /// <param name="cancellationToken">用于取消该操作的令牌。</param>
+    /// <returns>表示异步操作的任务。</returns>
     internal async ValueTask DeleteStateAsync(CancellationToken cancellationToken)
     {
         ThrowIfDisposed();
@@ -248,7 +248,7 @@ internal sealed class JournaledJobShard : IJobShard
         {
             try
             {
-#pragma warning disable CA1849 // Cancellation callbacks run on the shutdown caller before owned work is drained.
+#pragma warning disable CA1849 // 在排空自身负责的工作前，取消回调在发起关闭的调用方上运行。
                 _shutdownCancellation.Cancel();
 #pragma warning restore CA1849
             }
@@ -296,11 +296,11 @@ internal sealed class JournaledJobShard : IJobShard
             {
                 _shutdownCancellation.Token.ThrowIfCancellationRequested();
 
-#pragma warning disable CA2000 // Submission methods own queued operations in using scopes around their completion tasks.
+#pragma warning disable CA2000 // 提交方法通过包围完成任务的 using 作用域拥有已排队的操作。
                 if (!TryDequeueOperation(out var operation) || operation is null)
 #pragma warning restore CA2000
                 {
-                    // 队列是权威性的:排干它,等待另一个联合信号。
+                    // 队列是权威依据：在等待下一个合并信号之前先处理完其中的操作。
                     await _pendingOperationSignal.WaitAsync().ConfigureAwait(false);
                     continue;
                 }
@@ -358,7 +358,7 @@ internal sealed class JournaledJobShard : IJobShard
     {
         lock (_pendingOperationsLock)
         {
-#pragma warning disable CA2000 // Batching borrows operations owned by their submitting using scopes.
+#pragma warning disable CA2000 // 批处理借用由提交方的 using 作用域拥有的操作。
             while (_pendingOperations.TryPeek(out var operation) && operation is PendingMutationOperation mutation)
 #pragma warning restore CA2000
             {

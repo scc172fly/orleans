@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// 以 <see cref="TimeProvider"/>为后盾的不分配站表。
+/// 由 <see cref="TimeProvider"/> 支持的、不分配内存的秒表。
 /// </summary>
 internal readonly struct TimeProviderValueStopwatch
 {
@@ -16,12 +16,12 @@ internal readonly struct TimeProviderValueStopwatch
     }
 
     /// <summary>
-    /// 使时间戳在这个手表开始的时候被捕获。
+    /// 获取此秒表启动时捕获的时间戳。
     /// </summary>
     public long StartTimestamp { get; }
 
     /// <summary>
-    /// 开始一个新的站岗观察。
+    /// 启动新的秒表。
     /// </summary>
     public static TimeProviderValueStopwatch StartNew(TimeProvider timeProvider)
     {
@@ -30,7 +30,7 @@ internal readonly struct TimeProviderValueStopwatch
     }
 
     /// <summary>
-    /// 获取已过时间并返回作为终点所用的时间戳。
+    /// 获取已用时长，并返回用作结束点的时间戳。
     /// </summary>
     public TimeSpan GetElapsedTime(out long endTimestamp)
     {

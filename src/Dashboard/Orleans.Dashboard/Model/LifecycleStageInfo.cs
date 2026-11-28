@@ -1,7 +1,7 @@
 namespace Orleans.Dashboard.Model;
 
 /// <summary>
-/// 描述一个生命周期阶段,以及参与该阶段的观察员。
+/// 描述单个生命周期阶段以及参与该阶段的观察者。
 /// </summary>
 [GenerateSerializer]
 [Immutable]
@@ -9,29 +9,29 @@ namespace Orleans.Dashboard.Model;
 internal sealed class LifecycleStageInfo
 {
     /// <summary>
-    /// 数字阶段值 。
+    /// 阶段的数值。
     /// </summary>
     [Id(0)]
     public int Stage { get; set; }
 
     /// <summary>
-    /// 人类可读化的舞台名称。 当舞台上对应一个命名
-    /// <see cref="ServiceLifecycleStage"/> 字段,此字段包含字段名称
-    /// 和数值 (e.g) 。 "RuntimeInitialize (2000)"。否则,这就是
-    /// 以字符串形式表示的阶段数值。
+    /// 便于阅读的阶段名称。当阶段对应某个命名的
+    /// <see cref="ServiceLifecycleStage"/> 字段时，包含字段名称
+    /// 和数值（例如 "RuntimeInitialize (2000)"）。否则为
+    /// 转换为字符串的阶段数值。
     /// </summary>
     [Id(1)]
     public string StageName { get; set; } = null!;
 
     /// <summary>
-    /// 显示该阶段是否与
+    /// 指示阶段是否对应以下类型上的命名字段：
     /// <see cref="ServiceLifecycleStage"/>.
     /// </summary>
     [Id(2)]
     public bool IsNamedStage { get; set; }
 
     /// <summary>
-    /// 参加本阶段工作的观察员。
+    /// 参与此阶段的观察者。
     /// </summary>
     [Id(3)]
     public LifecycleObserverInfo[] Observers { get; set; } = null!;

@@ -26,7 +26,7 @@ namespace TestGrains
 
         public Task<CounterState> GetCounterState()
         {
-            return Task.FromResult(_counter.State!); // 在发出 grain 呼叫前先启动持久性状态。
+            return Task.FromResult(_counter.State!); // 在分派 Grain 调用之前初始化持久化状态。
         }
 
         public async Task WriteCounterState(CounterState state)
@@ -38,8 +38,8 @@ namespace TestGrains
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
             await base.OnActivateAsync(cancellationToken);
-            _counter.State!.Counter = random.Next(100); // 激活回击前先启动持久性状态。
-            _counter.State!.CurrentDateTime = DateTime.UtcNow; // 激活回击前先启动持久性状态。
+            _counter.State!.Counter = random.Next(100); // 在激活回调之前初始化持久化状态。
+            _counter.State!.CurrentDateTime = DateTime.UtcNow; // 在激活回调之前初始化持久化状态。
             await _counter.WriteStateAsync(cancellationToken);
         }
     }

@@ -8,7 +8,7 @@ using SQSMessage = Amazon.SQS.Model.Message;
 namespace Orleans.Streaming.SQS.Streams;
 
 /// <summary>
-/// 默认 SQS 流数据适配器。 用户可以将事件数据覆盖为流图的子类 。
+/// 默认 SQS 流数据适配器。用户可通过派生类重写事件数据到流的映射。
 /// </summary>
 
 public class SQSDataAdapter : ISQSDataAdapter
@@ -18,18 +18,18 @@ public class SQSDataAdapter : ISQSDataAdapter
     /// <summary>
     /// 初始化 <see cref="SQSDataAdapter"/> 类的新实例。
     /// </summary>
-    /// <param name="serializer">用于串行和分批清除流体的序列器。</param>
+    /// <param name="serializer">用于序列化和反序列化流批次的序列化器。</param>
     public SQSDataAdapter(Serialization.Serializer serializer)
     {
         this.serializer = serializer;
     }
 
     /// <summary>
-    /// 将 SQS 消息转换为 Orleans 串流批量。
+    /// 将 SQS 消息转换为 Orleans 流批次。
     /// </summary>
-    /// <param name="sqsMessage">SQS 信件要转换。</param>
-    /// <param name="sequenceId">流批量的本地分配序列号 。</param>
-    /// <returns>流组代表的批次 <paramref name="sqsMessage"/>.</returns>
+    /// <param name="sqsMessage">要转换的 SQS 消息。</param>
+    /// <param name="sequenceId">在本地为流批次分配的序列号。</param>
+    /// <returns>由 <paramref name="sqsMessage"/> 表示的流批次。</returns>
     public virtual IBatchContainer FromQueueMessage(SQSMessage sqsMessage, long sequenceId)
     {
         return SQSBatchContainer.FromSQSMessage(
@@ -39,15 +39,15 @@ public class SQSDataAdapter : ISQSDataAdapter
     }
 
     /// <summary>
-    /// 将批量的 Orleans 流事件转换成 SQS 消息。
+    /// 将一批 Orleans 流事件转换为 SQS 消息。
     /// </summary>
-    /// <typeparam name="T">流活动的类型。</typeparam>
-    /// <param name="streamId">流体识别符号。</param>
-    /// <param name="events">信件中要包含的流事件。</param>
-    /// <param name="token">流序序列符号, 必须是 <see langword="null"/>。</param>
-    /// <param name="requestContext">请求在电文中包含上下文。</param>
-    /// <returns>包含串联流批量的 SQS 信息。</returns>
-    /// <exception cref="ArgumentException"><paramref name="token"/> 不是 <see langword="null"/>。</exception>
+    /// <typeparam name="T">流事件的类型。</typeparam>
+    /// <param name="streamId">流标识符。</param>
+    /// <param name="events">要包含在消息中的流事件。</param>
+    /// <param name="token">流序列令牌，必须为 <see langword="null"/>。</param>
+    /// <param name="requestContext">要包含在消息中的请求上下文。</param>
+    /// <returns>包含序列化流批次的 SQS 消息。</returns>
+    /// <exception cref="ArgumentException"><paramref name="token"/> 不为 <see langword="null"/>。</exception>
     public virtual SQSMessage ToQueueMessage<T>(StreamId streamId, IEnumerable<T> events, StreamSequenceToken? token, Dictionary<string, object>? requestContext)
     {
         if (token != null) throw new ArgumentException("SQS streams currently does not support non-null StreamSequenceToken.", nameof(token));

@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Runtime.Messaging
 {
     /// <summary>
-    /// 监测收到集束弹药健康调查请求
+    /// 监控入站集群健康探测请求。
     /// </summary>
     internal sealed class ProbeRequestMonitor
     {
@@ -19,7 +19,7 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// 当此 silo 收到健康调查请求时呼叫。
+        /// 此 Silo 收到健康探测请求时调用。
         /// </summary>
         public void OnReceivedProbeRequest()
         {
@@ -30,7 +30,7 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// 自最近收到健康调查请求以来,期限已经过去。
+        /// 自最近一次收到健康探测请求以来经过的时长。
         /// </summary>
         public TimeSpan? ElapsedSinceLastProbeRequest
         {

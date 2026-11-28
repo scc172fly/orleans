@@ -6,7 +6,7 @@ using Orleans.TestingHost;
 namespace Benchmarks.MapReduce;
 
 /// <summary>
-/// 基准 Orleans能力,以使用复杂的加工管道进行地图降排作业。
+/// 对 Orleans 执行复杂处理流水线中 MapReduce 操作的能力进行基准测试。
 /// </summary>
 public class MapReduceBenchmark : IDisposable
 {
@@ -48,13 +48,13 @@ public class MapReduceBenchmark : IDisposable
     private async Task BenchCore()
     {
         List<Task> initializationTasks = new List<Task>();
-        var mapper = _host.GrainFactory!.GetGrain<ITransformGrain<string, List<string>>>(Guid.NewGuid()); // 基准设置安排了客户的部署。
+        var mapper = _host.GrainFactory!.GetGrain<ITransformGrain<string, List<string>>>(Guid.NewGuid()); // 基准测试的初始化过程会部署客户端。
         initializationTasks.Add(mapper.Initialize(new MapProcessor()));
         var reducer =
-            _host.GrainFactory!.GetGrain<ITransformGrain<List<string>, Dictionary<string, int>>>(Guid.NewGuid()); // 基准设置安排了客户的部署。
+            _host.GrainFactory!.GetGrain<ITransformGrain<List<string>, Dictionary<string, int>>>(Guid.NewGuid()); // 基准测试的初始化过程会部署客户端。
         initializationTasks.Add(reducer.Initialize(new ReduceProcessor()));
 
-        // 用于仿制复杂加工管道
+        // 用于模拟复杂的处理流水线
         var intermediateGrains = Enumerable
             .Range(0, this._intermediateStagesCount)
             .Select(i =>
@@ -93,7 +93,7 @@ public class MapReduceBenchmark : IDisposable
         while (Interlocked.Increment(ref this._currentRepeat) < this._repeats)
         {
             await mapper.SendAsync(this._text);
-            while (!resultList.Any() || resultList.First().Count < 84) // 检查管道的完成情况
+            while (!resultList.Any() || resultList.First().Count < 84) // 粗略判断流水线是否已执行完毕。
             {
                 resultList = await collector.ReceiveAll();
             }

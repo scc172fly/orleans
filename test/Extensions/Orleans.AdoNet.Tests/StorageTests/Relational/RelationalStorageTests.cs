@@ -11,9 +11,9 @@ using Xunit;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// 关联后端的后端共享很多功能。 此共享功能
-    /// 此处收集收集,但具体实施可以提供并落实具体的储存
-    /// 行动。
+    /// 关系型后端共享许多功能。这些共用功能
+    /// 集中于此，但具体实现可以提供并实现存储专用的
+    /// 操作。
     /// </summary>
     public abstract class RelationalStorageTests : IAsyncLifetime
     {
@@ -23,17 +23,17 @@ namespace UnitTests.StorageTests.Relational
         private IStorageHasherPicker ConstantHasher { get; } = new StorageHasherPicker(new[] { new ConstantHasher() });
 
         /// <summary>
-        /// 所有后端的测试和主张都是在这里。
+        /// 此处包含所有后端共用的测试和断言。
         /// </summary>
         internal CommonStorageTests PersistenceStorageTests { get; private set; } = null!;
 
         /// <summary>
-        /// 所有后端的测试和主张都是在这里。
+        /// 此处包含所有后端共用的测试和断言。
         /// </summary>
         protected CommonFixture Fixture { get; }
 
         /// <summary>
-        /// 固定装置保存缓存数据,例如与存储的根连接。
+        /// 测试夹具保存缓存的数据，例如底层存储连接。
         /// </summary>
         public string GrainCountQuery { get; } = "SELECT COUNT(*) AS Count FROM Storage WHERE GrainTypeString = N'{0}';";
 

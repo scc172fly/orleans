@@ -1,60 +1,60 @@
 ---
-title: "冒险游戏试样项目"
-description: "探索与 .NET Orleans一起写的冒险样本项目。"
+title: Adventure 冒险游戏示例项目
+description: 了解使用 .NET Orleans 编写的 Adventure 示例项目。
 ms.date: 08/02/2026
 ms.topic: sample
 ---
 
 <a id="adventure-game-sample-project"></a>
 
-# 冒险游戏试样项目
+# Adventure 冒险游戏示例项目
 
-这个样本是一个简单的多玩者文字冒险游戏 灵感来自旧式的,基于文字的冒险游戏
+本示例是一款简单的多人文字冒险游戏，灵感来自经典的纯文字冒险游戏。
 
 <a id="instructions"></a>
 
-## 指示指示
+## 操作说明
 
-1. 打开 [冒险抽样](https://github.com/dotnet/orleans/tree/main/samples/Adventure) 中在 Orleans 存储库。
-1. 克隆 Orleans 仓库,并构建样本。
-1. 启动 _ 冒险服务员_ , 然后是 _ 冒险服务员_ 。
-1. 然后,您会被提示在命令行输入您的姓名。输入并开始游戏。
+1. 在 Orleans 仓库中打开 [Adventure 示例](https://github.com/dotnet/orleans/tree/main/samples/Adventure)。
+1. 克隆 Orleans 仓库并生成示例项目。
+1. 首先启动 _AdventureServer_，然后启动 _AdventureClient_。
+1. 命令行将提示输入姓名。输入姓名后即可开始游戏。
 
-准确的命令和先决条件,请参见样本 [读读](https://github.com/dotnet/orleans/blob/main/samples/Adventure/README.md)。
+有关确切的命令和先决条件，请参阅示例的 [README](https://github.com/dotnet/orleans/blob/main/samples/Adventure/README.md)。
 
 <a id="overview"></a>
 
 ## 概述
 
-_冒险服务员程序以读取 _AdventureMap.json_ 文件为起点。
+_AdventureServer_ 程序启动时读取 _AdventureMap.json_ 文件。
 
-游戏设置了一系列“ 房间” , 如森林、海滩、洞穴、空地等。 这些位置与其他房间相连, 以模拟游戏的位置和布局。 样本配置只描述少数位置 。
+它建立一系列“房间”，例如森林、海滩、洞穴、林间空地等。这些地点与其他房间相连，用于描述游戏中的场所及其布局。示例配置仅描述了少数几个地点。
 
-房间可以装有钥匙、剑等“东西”。
+房间中可以包含钥匙、剑等“物品”。
 
-冒险者服务程序设置了玩家,并提供了一个简单的文本用户界面,使您可以玩游戏。
+_AdventureClient_ 程序创建你的玩家，并提供简单的文本用户界面，让你能够游玩游戏。
 
-你可以在房间周围移动, 并且用简单的指令语言与事物互动, 说诸如“往北走”或“拿铜键”之类的话。
+你可以使用简单的命令语言在房间之间移动并与物品交互，例如输入“go north”（向北走）或“take brass key”（拿起黄铜钥匙）。
 
 <a id="why-orleans"></a>
 
-## 为什么 Orleans?
+## 为什么选择 Orleans？
 
-Orleans 允许您使用非常简单的 C# 代码描述游戏, 同时让它缩放到一个巨大的多人游戏中。 要让这个动机有意义, 房间的迷宫需要非常大, 支持许多同时播放的玩家。 Orleans 的一个值是你可以设计增长服务; 小规模运行服务的管理费并不重要, 您可以继续相信如果有需要的话会缩小规模 。
+借助 Orleans，可以使用非常简单的 C# 代码描述游戏，同时使其能够扩展为大型多人在线游戏。要体现这种扩展能力的价值，房间构成的迷宫必须足够大，并能够支持大量玩家同时在线。Orleans 的一项价值在于可以面向未来增长来设计服务：小规模运行时的额外开销并不显著，而在有需要时仍有信心扩展服务。
 
 <a id="how-is-it-modeled"></a>
 
-## 如何建模?
+## 如何建模？
 
-玩家和房间以 grains模式建模。这些 grains 允许您分发游戏,每个 grain 模型状态和功能都允许您使用此选项。
+玩家和房间均建模为 Grain。这些 Grain 使游戏可以分布式运行，每个 Grain 分别封装自身的状态和功能。
 
-键等东西被仿制成普通的旧物体——它们只是简单的、不可变的数据结构,在房间和球员之间移动;它们不需要是 grains。
+钥匙等物品则建模为普通对象：它们只是简单的不可变数据结构，可以在房间和玩家之间转移，无需建模为 Grain。
 
 <a id="possible-improvements"></a>
 
 ## 可能的改进
 
-1. 地图要大得多,还要大很多
-1. 使铜键打开的东西。
-1. 允许玩家相互传递信息。
-1. 使食物和饮用水能够吃得饱,而且有意义。
+1. 大幅扩大地图规模。
+1. 让黄铜钥匙能够打开某个物体的锁。
+1. 允许玩家互相发送消息。
+1. 支持进食和饮水，并让这些行为具有实际游戏意义。

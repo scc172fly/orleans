@@ -5,39 +5,39 @@ using Orleans.Serialization;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 代表一个任务完成源,其结束状态记录在日记中。
+/// 表示任务完成源，其终态记录在持久化日志中。
 /// </summary>
 /// <typeparam name="T">任务结果的类型。</typeparam>
 public interface IDurableTaskCompletionSource<T>
 {
     /// <summary>
-    /// 获得在终端状态持续后完成的任务。
+    /// 获取在终态持久化之后完成的任务。
     /// </summary>
     Task<T> Task { get; }
 
     /// <summary>
-    /// 获得当前持久的完成状态。
+    /// 获取当前持久化完成状态。
     /// </summary>
     DurableTaskCompletionSourceState<T> State { get; }
 
     /// <summary>
-    /// 试图将永久状态过渡为取消。
+    /// 尝试将持久化状态转换为已取消。
     /// </summary>
-    /// <returns><see langword="true"/> 如果国家已经过渡;否则, <see langword="false"/>。</returns>
+    /// <returns><see langword="true"/> 表示状态已转换；否则为 <see langword="false"/>。</returns>
     bool TrySetCanceled();
 
     /// <summary>
-    /// 试图将持久状态过渡,以指责其有特定例外。
+    /// 尝试使用指定异常将持久化状态转换为故障状态。
     /// </summary>
-    /// <param name="exception">任务错误的例外。</param>
-    /// <returns><see langword="true"/> 如果国家已经过渡;否则, <see langword="false"/>。</returns>
+    /// <param name="exception">导致任务进入故障状态的异常。</param>
+    /// <returns><see langword="true"/> 表示状态已转换；否则为 <see langword="false"/>。</returns>
     bool TrySetException(Exception exception);
 
     /// <summary>
-    /// 试图将持久状态过渡,以取得具体结果完成。
+    /// 尝试使用指定结果将持久化状态转换为已完成。
     /// </summary>
     /// <param name="value">任务结果。</param>
-    /// <returns><see langword="true"/> 如果国家已经过渡;否则, <see langword="false"/>。</returns>
+    /// <returns><see langword="true"/> 表示状态已转换；否则为 <see langword="false"/>。</returns>
     bool TrySetResult(T value);
 }
 
@@ -53,7 +53,7 @@ internal sealed class DurableTaskCompletionSource<T> : IDurableTaskCompletionSou
     private T? _value;
     private Exception? _exception;
 
-    // 飞行中的文字是否捕捉到终点状态。 已完成的文字只发布它所捕捉的状态 。
+    // 在途写入是否捕获了终态。已完成的写入只发布它所捕获的状态。
     private bool _isCompletionCaptured;
 
     public DurableTaskCompletionSource(
@@ -231,35 +231,35 @@ internal sealed class DurableTaskCompletionSource<T> : IDurableTaskCompletionSou
 }
 
 /// <summary>
-/// 确定一个持久任务完成来源的状况。
+/// 标识持久化任务完成源的状态。
 /// </summary>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Journaling.DurableTaskCompletionSourceStatus")]
 public enum DurableTaskCompletionSourceStatus : byte
 {
     /// <summary>
-    /// 这项任务正在等待完成。
+    /// 任务正在等待完成。
     /// </summary>
     Pending = 0,
 
     /// <summary>
-    /// 任务成功完成 。
+    /// 任务已成功完成。
     /// </summary>
     Completed,
 
     /// <summary>
-    /// 任务完成后,除此以外。
+    /// 任务因异常而完成。
     /// </summary>
     Faulted,
 
     /// <summary>
-    /// 此任务被取消 。
+    /// 任务已取消。
     /// </summary>
     Canceled
 }
 
 /// <summary>
-/// 描述持久任务完成来源的状况。
+/// 描述持久化任务完成源的状态。
 /// </summary>
 /// <typeparam name="T">任务结果的类型。</typeparam>
 [GenerateSerializer, Immutable]
@@ -267,7 +267,7 @@ public enum DurableTaskCompletionSourceStatus : byte
 public readonly struct DurableTaskCompletionSourceState<T>
 {
     /// <summary>
-    /// 获得完成状态。
+    /// 获取完成状态。
     /// </summary>
     [Id(0)]
     public DurableTaskCompletionSourceStatus Status { get; init; }
@@ -279,7 +279,7 @@ public readonly struct DurableTaskCompletionSourceState<T>
     public T? Value { get; init; }
 
     /// <summary>
-    /// 获得一个错误任务的例外。
+    /// 获取故障任务的异常。
     /// </summary>
     [Id(2)]
     public Exception? Exception { get; init; }

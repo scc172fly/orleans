@@ -19,7 +19,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// 类型 <see cref="Exception"/> 的序列器。
+    /// <see cref="Exception"/> 类型的序列化器。
     /// </summary>
     [RegisterSerializer]
     [RegisterCopier]
@@ -41,10 +41,10 @@ namespace Orleans.Serialization
         /// 初始化 <see cref="ExceptionCodec"/> 类的新实例。
         /// </summary>
         /// <param name="typeConverter">类型转换器。</param>
-        /// <param name="dictionaryCodec">字典编码。</param>
-        /// <param name="dictionaryCopier">字典复印机</param>
-        /// <param name="exceptionCopier">例外复印机。</param>
-        /// <param name="exceptionSerializationOptions">例外序列化选项。</param>
+        /// <param name="dictionaryCodec">字典编解码器。</param>
+        /// <param name="dictionaryCopier">字典复制器。</param>
+        /// <param name="exceptionCopier">异常复制器。</param>
+        /// <param name="exceptionSerializationOptions">异常序列化选项。</param>
         public ExceptionCodec(
             TypeConverter typeConverter,
             IFieldCodec<Dictionary<object, object?>> dictionaryCodec,
@@ -112,10 +112,10 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// 从提供例外时获取对象数据。
+        /// 获取给定异常的对象数据。
         /// </summary>
-        /// <param name="value">数值。</param>
-        /// <returns>人口密集 <see cref="SerializationInfo"/> 值。</returns>
+        /// <param name="value">值。</param>
+        /// <returns>已填充的 <see cref="SerializationInfo"/> 值。</returns>
         public SerializationInfo GetObjectData(Exception value)
         {
             ArgumentNullExceptionPolyfill.ThrowIfNull(value);
@@ -134,13 +134,13 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// 设置所提供例外的基属性。
+        /// 设置给定异常的基类属性。
         /// </summary>
-        /// <param name="value">数值。</param>
-        /// <param name="message">电文。</param>
-        /// <param name="stackTrace">堆叠跟踪。</param>
-        /// <param name="innerException">内在的例外</param>
-        /// <param name="hResult">乌勒苏尔特</param>
+        /// <param name="value">值。</param>
+        /// <param name="message">消息。</param>
+        /// <param name="stackTrace">堆栈跟踪。</param>
+        /// <param name="innerException">内部异常。</param>
+        /// <param name="hResult">HResult。</param>
         /// <param name="data">数据。</param>
         public void SetBaseProperties(Exception value, string? message, string? stackTrace, Exception? innerException, int hResult, Dictionary<object, object?>? data)
         {
@@ -188,10 +188,10 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// 从提供例外获取数据属性 。
+        /// 获取给定异常的 Data 属性。
         /// </summary>
-        /// <param name="exception">例外。</param>
-        /// <returns>例外规定 <see cref="Exception.Data"/> 财产。</returns>
+        /// <param name="exception">异常。</param>
+        /// <returns>给定异常的 <see cref="Exception.Data"/> 属性。</returns>
         public Dictionary<object, object?>? GetDataProperty(Exception exception)
         {
             ArgumentNullExceptionPolyfill.ThrowIfNull(exception);
@@ -256,7 +256,7 @@ namespace Orleans.Serialization
 
             if (value.GetType() == typeof(Exception))
             {
-                // 例外从来不作为参考文献写成,这确保了例外的参照周期不可能实现,而且是安全防范措施。
+                // 异常绝不会作为引用写入。这可防止异常中出现引用环，是一项安全防护措施。
                 ReferenceCodec.MarkValueField(writer.Session);
                 writer.WriteStartObject(fieldIdDelta, expectedType, typeof(ExceptionCodec));
                 SerializeException(ref writer, value);
@@ -320,13 +320,13 @@ namespace Orleans.Serialization
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public Exception ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
-            // 为了处理无效价值。
+            // 用于处理 null 值。
             if (field.WireType == WireType.Reference)
             {
                 var referencedException = ReferenceCodec.ReadReference<Exception, TInput>(ref reader, field);
 
-                // 我们不允许有例外情况参加参照周期,因为涉及 InnerException 不允许使用 .NET
-                // 例外不得通过其众所周知的特性/领域(例如, InnerException)形成循环图。
+                // 不允许异常参与引用环，因为 .NET 不允许涉及 InnerException 的循环引用。
+                // 异常绝不能通过其已知的属性或字段（例如 InnerException）形成循环对象图。
                 if (referencedException is not null)
                 {
                     throw new ReferenceFieldNotSupportedException(field.FieldType);
@@ -357,12 +357,12 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// 降低例外值的序列。
+        /// 反序列化异常值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
-        /// <param name="field">例外值的字段头。</param>
-        /// <returns>被消除的例外</returns>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
+        /// <param name="field">异常值的字段头。</param>
+        /// <returns>反序列化后的异常。</returns>
         public Exception DeserializeException<TInput>(ref Reader<TInput> reader, Field field)
         {
             field.EnsureWireTypeTagDelimited();
@@ -455,7 +455,7 @@ namespace Orleans.Serialization
             var info = GetObjectDataCore(input);
             SetBasePropertiesCore(
                 output,
-                // 从对象数据获取消息,以防属性被覆盖,如 AggregateException
+                // 从对象数据获取消息，以应对属性被重写的情况，例如 AggregateException。
                 info.GetString("Message"),
                 input.StackTrace,
                 _exceptionCopier.DeepCopy(input.InnerException!, context),
@@ -471,7 +471,7 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// <see cref="AggregateException"/>的序列器。
+    /// <see cref="AggregateException"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     internal sealed class AggregateExceptionCodec : GeneralizedReferenceTypeSurrogateCodec<AggregateException, AggregateExceptionSurrogate>
@@ -481,8 +481,8 @@ namespace Orleans.Serialization
         /// <summary>
         /// 初始化 <see cref="AggregateExceptionCodec"/> 类的新实例。
         /// </summary>
-        /// <param name="baseCodec">基代码。</param>
-        /// <param name="surrogateSerializer">代孕序列器</param>
+        /// <param name="baseCodec">基类型编解码器。</param>
+        /// <param name="surrogateSerializer">代理类型序列化器。</param>
         public AggregateExceptionCodec(ExceptionCodec baseCodec, IValueSerializer<AggregateExceptionSurrogate> surrogateSerializer) : base(surrogateSerializer)
         {
             _baseCodec = baseCodec;
@@ -515,7 +515,7 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// <see cref="AggregateExceptionCodec"/>的代用类型。
+    /// <see cref="AggregateExceptionCodec"/> 的代理类型。
     /// </summary>
     [GenerateSerializer]
     internal struct AggregateExceptionSurrogate

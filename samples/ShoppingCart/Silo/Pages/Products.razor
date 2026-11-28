@@ -1,9 +1,9 @@
 @page "/products/{id?}"
 
-<ProductTable Title="Product Management" Products=@_products EditProduct=@OnEditProduct>
+<ProductTable Title="商品管理" Products=@_products EditProduct=@OnEditProduct>
     <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add"
         Color="Color.Primary" Size="Size.Large" OnClick=@CreateNewProductAsync>
-        Create New Product
+        创建新商品
     </MudButton>
     <MudDivider Vertical="true" FlexItem="true" Class="my-3 mx-4"/>
 </ProductTable>

@@ -171,7 +171,7 @@ DECLARE
     _NextEvictOn TIMESTAMP(6) WITHOUT TIME ZONE := _Now + INTERVAL '1 SECOND' * _EvictionInterval;
 BEGIN
 
-/* 获得下一个驱逐时间表 */
+/* 获取下一次清理时间。 */
 SELECT EvictOn
 INTO _EvictOn
 FROM OrleansStreamControl
@@ -180,10 +180,10 @@ WHERE
 	AND ProviderId = _ProviderId
 	AND QueueId = _QueueId;
 
-/* 必要时初始化控制行 */
+/* 必要时初始化控制记录。 */
 IF _EvictOn IS NULL THEN
 
-    /* 与过去日期初始化后启动, 立即驱逐 */
+    /* 使用过去的日期初始化，以立即执行清理。 */
     INSERT INTO OrleansStreamControl
     (
         ServiceId,
@@ -201,7 +201,7 @@ IF _EvictOn IS NULL THEN
     ON CONFLICT (ServiceId, ProviderId, QueueId)
     DO NOTHING;
 
-    /* 下次再得到驱逐计划 */
+    /* 再次获取下一次清理时间。 */
     SELECT EvictOn
     INTO _EvictOn
     FROM OrleansStreamControl
@@ -212,10 +212,10 @@ IF _EvictOn IS NULL THEN
 
 END IF;
 
-/* 必要时发出驱逐信息 */
+/* 必要时清理消息。 */
 IF _EvictOn <= _Now THEN
 
-    /* 用于设置下一个时间表的种族 */
+    /* 竞争设置下一次计划时间。 */
 	UPDATE OrleansStreamControl
 	SET EvictOn = _NextEvictOn
     WHERE
@@ -224,7 +224,7 @@ IF _EvictOn <= _Now THEN
 		AND QueueId = _QueueId
 		AND EvictOn <= _Now;
 
-    /* 如果我们赢了比赛 也得进行驱逐 */
+    /* 如果竞争成功，则同时执行到期的清理工作。 */
 	IF (FOUND) THEN
 		CALL EvictStreamMessages(_ServiceId, _ProviderId, _QueueId, _EvictionBatchSize, _MaxAttempts, _RemovalTimeout);
 		CALL EvictStreamDeadLetters(_ServiceId, _ProviderId, _QueueId, _EvictionBatchSize);
@@ -235,7 +235,7 @@ END IF;
 RETURN QUERY
 WITH Batch AS
 (
-    /* 选择下一批可见消息 */
+    /* 选择下一批可见消息。 */
 	SELECT
 		ServiceId,
 		ProviderId,
@@ -251,7 +251,7 @@ WITH Batch AS
 		AND VisibleOn <= _Now
 		AND ExpiresOn > _Now
 
-    /* 下述标准有助于防止僵局,同时改善排队式的吞支量 */
+    /* 以下条件有助于避免死锁，同时提高队列式操作的吞吐量。 */
 	ORDER BY
 		ServiceId,
 		ProviderId,
@@ -336,7 +336,7 @@ SELECT
 FROM
 	UNNEST(string_to_array(_Items, '|')) AS Value;
 
-/* 立即再交付的收据发布信息 */
+/* 负值出队回执会释放消息，使其立即重新投递。 */
 IF EXISTS (SELECT 1 FROM _ItemsTable WHERE Dequeued < 0) THEN
     RETURN QUERY
     WITH Batch AS
@@ -393,7 +393,7 @@ WITH Batch AS
 	    AND ProviderId = _ProviderId
 		AND QueueId = _QueueId
 
-    /* 以下标准有助于防止僵局 */
+    /* 以下条件有助于避免死锁。 */
 	ORDER BY
 	    ServiceId,
 	    ProviderId,
@@ -444,7 +444,7 @@ DECLARE
     _RemoveOn TIMESTAMP(6) WITHOUT TIME ZONE := _Now + INTERVAL '1 SECOND' * _RemovalTimeout;
 BEGIN
 
-/* 如果该信息仍然可以解排, 那么试图再次显示它标记 */
+/* 如果消息仍可出队，则尝试将其重新标记为可见。 */
 UPDATE OrleansStreamMessage
 SET
     VisibleOn = _Now,
@@ -460,7 +460,7 @@ IF FOUND THEN
     RETURN;
 END IF;
 
-/* 试图将电文移到死字 */
+/* 否则尝试将消息移至死信表。 */
 WITH Deleted AS
 (
     DELETE FROM OrleansStreamMessage
@@ -542,7 +542,7 @@ DECLARE
     _RemoveOn TIMESTAMP(6) WITHOUT TIME ZONE := _Now + INTERVAL '1 second' * _RemovalTimeout;
 BEGIN
 
-/* 选择下一批要将信件逐出的电文 */
+/* 选择下一批要清理的消息。 */
 WITH Batch AS
 (
     SELECT
@@ -557,18 +557,18 @@ WITH Batch AS
         AND ProviderId = _ProviderId
         AND QueueId = _QueueId
 
-        -- 给电文提供完成
+        -- 该消息已获得完成处理的机会。
         AND VisibleOn <= _Now
 		AND
 		(
-			-- 信息被解密过多次
+			-- 该消息的出队次数过多。
 			Dequeued >= _MaxAttempts
 			OR
-			-- 信件过期
+			-- 该消息已过期。
 			ExpiresOn <= _Now
 		)
 
-    /* 下述标准有助于防止僵局,同时改善排队式的吞支量 */
+    /* 以下条件有助于避免死锁，同时提高队列式操作的吞吐量。 */
     ORDER BY
         ServiceId,
         ProviderId,
@@ -578,7 +578,7 @@ WITH Batch AS
     LIMIT _BatchSize
 ),
 
-/* 删除批中锁定的信件 */
+/* 删除批次中已锁定的消息。 */
 Deleted AS
 (
     DELETE FROM OrleansStreamMessage AS M
@@ -601,7 +601,7 @@ Deleted AS
         M.Payload
 )
 
-/* 将删除的信件复制到死字母表格 */
+/* 将已删除的消息复制到死信表。 */
 INSERT INTO OrleansStreamDeadLetter
 (
     ServiceId,
@@ -660,7 +660,7 @@ DECLARE
     _Now TIMESTAMP(6) WITHOUT TIME ZONE := CURRENT_TIMESTAMP AT TIME ZONE 'UTC';
 BEGIN
 
-/* 选择下一批要驱逐的死信 */
+/* 选择下一批要清理的死信。 */
 WITH Batch AS
 (
     SELECT
@@ -676,7 +676,7 @@ WITH Batch AS
         AND QueueId = _QueueId
         AND RemoveOn <= _Now
 
-    /* 下述标准有助于防止僵局,同时改善排队式的吞支量 */
+    /* 以下条件有助于避免死锁，同时提高队列式操作的吞吐量。 */
     ORDER BY
         ServiceId,
         ProviderId,

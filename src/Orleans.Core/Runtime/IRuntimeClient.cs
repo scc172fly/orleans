@@ -7,41 +7,41 @@ using Orleans.Serialization.Invocation;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// IRuntimeClient 接口定义运行时间 API 中同时接触 silo 和客户端的子集。
+    /// IRuntimeClient 接口定义同时向 Silo 和客户端公开的运行时 API 子集。
     /// </summary>
     internal interface IRuntimeClient
     {
         /// <summary>
-        /// 获得系统使用的时间提供者。
+        /// 获取系统使用的时间提供程序。
         /// </summary>
         TimeProvider TimeProvider { get; }
 
         /// <summary>
-        /// Grain 工厂得到和铸造 grain 参考文献。
+        /// 用于获取及转换 Grain 引用的 Grain 工厂。
         /// </summary>
         IInternalGrainFactory InternalGrainFactory { get; }
 
         /// <summary>
-        /// 当前客户端的独特标识符 。
-        /// 此字符串没有语义内容, 但可能对记录有用 。
+        /// 当前客户端的唯一标识符。
+        /// 此字符串没有语义含义，但可用于日志记录。
         /// </summary>
         string CurrentActivationIdentity { get; }
 
         /// <summary>
-        /// 得到了服务供应商。
+        /// 获取服务提供程序。
         /// </summary>
         IServiceProvider ServiceProvider { get; }
 
         /// <summary>
-        /// 获取当前此客户端的响应超时设置 。
+        /// 获取此客户端当前的响应超时设置。
         /// </summary>
-        /// <returns>反应超时值</returns>
+        /// <returns>响应超时值。</returns>
         TimeSpan GetResponseTimeout();
 
         /// <summary>
-        /// 设置当前此客户端的响应超时设置 。
+        /// 设置此客户端当前的响应超时设置。
         /// </summary>
-        /// <param name="timeout">新的响应超时值</param>
+        /// <param name="timeout">新的响应超时值。</param>
         void SetResponseTimeout(TimeSpan timeout);
 
         void SendRequest(GrainReference target, IInvokable request, IResponseCompletionSource? context, InvokeMethodOptions options);
@@ -58,12 +58,12 @@ namespace Orleans.Runtime
 
         void BreakOutstandingMessagesToSilo(SiloAddress deadSilo);
 
-        // 仅用于测试。
+        // 仅供测试使用。
         int GetRunningRequestsCount(GrainInterfaceType grainInterfaceType);
     }
 
     /// <summary>
-    /// 用于援引的辅助人员类 <see cref="IOnDeserialized.OnDeserialized"/> 物体上执行 <see cref="IOnDeserialized"/>,在消毒后立即。
+    /// 辅助类，用于在反序列化结束后立即调用 <see cref="IOnDeserialized.OnDeserialized"/>，调用对象为实现 <see cref="IOnDeserialized"/> 的对象。
     /// </summary>
     public class OnDeserializedCallbacks : DeserializationContext
     {
@@ -71,7 +71,7 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="OnDeserializedCallbacks"/> 类的新实例。
         /// </summary>
         /// <param name="serviceProvider">
-        /// 服务供应商。
+        /// 服务提供程序。
         /// </param>
         public OnDeserializedCallbacks(IServiceProvider serviceProvider)
         {
@@ -80,19 +80,19 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 得到了服务供应商。
+        /// 获取服务提供程序。
         /// </summary>
         public override IServiceProvider ServiceProvider { get; }
 
         /// <summary>
-        /// 找到运行时间客户
+        /// 获取运行时客户端。
         /// </summary>
         public override object RuntimeClient { get; }
 
         /// <summary>
-        /// 序列化基础设施采用的钩子法。
+        /// 序列化基础设施调用的钩子方法。
         /// </summary>
-        /// <param name="value">被消毒的值</param>
+        /// <param name="value">已反序列化的值。</param>
         public void OnDeserialized(IOnDeserialized value) => value.OnDeserialized(this);
     }
 }

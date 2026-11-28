@@ -11,7 +11,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// 生成RPC刺状物体,称为引用器。
+/// 生成称为调用器的 RPC 存根对象。
 /// </summary>
 internal class InvokableGenerator(ProxyGenerationContext generationContext)
 {
@@ -219,10 +219,10 @@ internal class InvokableGenerator(ProxyGenerationContext generationContext)
 
     private static string GetActivityName(InvokableMethodDescription methodDescription)
     {
-        // 此属性意在包含一个适合用作RPC调用 OpenTelemetry Span 名称的值。
-        // 因此,接口名称和方法名称组成部分不得包括间隔或斜线。
-        // 为了避免这种情况,我们从界面名称中略去命名空间。
-        // 见: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/rpc.md
+        // 此属性旨在保存可用作 RPC 调用的 OpenTelemetry 跟踪跨度名称的值。
+        // 因此，接口名称及方法名称组成部分不得包含句点或斜杠。
+        // 为避免这种情况，从接口名称中省略命名空间。
+        // 参见：https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/rpc.md
         var interfaceName = methodDescription.Method.ContainingType.ToDisplayName(methodDescription.TypeParameterSubstitutions, includeGlobalSpecifier: false, includeNamespace: false);
         var methodName = methodDescription.Method.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         return $"{interfaceName}/{methodName}";
@@ -232,9 +232,9 @@ internal class InvokableGenerator(ProxyGenerationContext generationContext)
         => baseClassType.AllInterfaces.Any(i => i.SpecialType == SpecialType.System_IDisposable)
             && baseClassType.GetAllMembers<IMethodSymbol>("Dispose").FirstOrDefault(m => !m.IsAbstract && m.DeclaredAccessibility != Accessibility.Private) is { };
 
-    // 运行时扫描请求 GrainCancellationToken 实例的参数,除非请求选择退出。
-    // 选择退出, 当没有参数可以支持它时, 这样运行时间不会在每次调用时都输入价值类型的参数 。
-    // 由于没有参数的方法会被跳过, 因为扫描已经为他们自由了 。
+    // 除非请求选择退出此行为，否则运行时扫描请求参数中的 GrainCancellationToken 实例。
+    // 如果任何参数都不可能持有该实例，则选择退出，避免运行时在每次调用时装箱值类型参数。
+    // 无参数方法直接跳过，因为扫描它们本来就没有开销。
     private bool OptsOutOfGrainCancellationTokenScan(InvokableMethodDescription method, INamedTypeSymbol baseClassType)
     {
         if (LibraryTypes.GrainCancellationTokenOrDefault is not { } grainCancellationToken
@@ -248,8 +248,8 @@ internal class InvokableGenerator(ProxyGenerationContext generationContext)
 
         return true;
 
-        // 类型参数可被当做 GrainCancellationToken,且可以作为 GrainCancellationToken的任何类型
-        // 转换为( 如对象或它所执行的接口) 时, 可能存在实例 。
+        // 类型参数可以实例化为 GrainCancellationToken，而任何 GrainCancellationToken
+        // 可以转换为的类型（例如 object 或它实现的接口）都可能在运行时持有此实例。
         bool CanHoldGrainCancellationToken(ITypeSymbol type)
             => type is ITypeParameterSymbol
                 || LibraryTypes.Compilation.HasImplicitConversion(grainCancellationToken, type);
@@ -507,8 +507,8 @@ internal class InvokableGenerator(ProxyGenerationContext generationContext)
 
         alias[1 + proxyBaseComponents.Length] = new(containingInterface);
 
-        // 对于 grain 扩展,还明确包括方法所含型号。
-        // 这是区分不同扩展方法,其代号相同(例如别名),但含有类型的不同。
+        // 对于 Grain 扩展，还显式包含方法所在的类型。
+        // 这样可区分具有相同 ID（例如别名）但所在类型不同的扩展方法。
         if (proxyBase.IsExtension)
         {
             alias[1 + proxyBaseComponents.Length + 1] = new(invokableId.Method.ContainingType);
@@ -581,7 +581,7 @@ internal class InvokableGenerator(ProxyGenerationContext generationContext)
 
         foreach (var (methodName, methodArgument) in method.CustomInitializerMethods)
         {
-            // 属性参数由Roslyn的字面和字符串格式化来拼写。
+            // 特性实参使用 Roslyn 的字面量和枚举格式生成。
             var argument = methodArgument.ToExpression().NormalizeWhitespace().ToFullString();
             statements.Add($"{methodName}({argument});");
         }

@@ -15,18 +15,18 @@ using HttpJsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 namespace DurableOrderProcessing;
 
-// 构成游乐场: silo的持久任务和付款客户,以及为其服务的HTTP API 。
+// 组装此演示：Silo 的持久化任务和支付客户端，以及提供这些功能的 HTTP API。
 public static class OrderProcessingApplication
 {
-    // 订单操作的范围,即POPST/api/订单启动的订单操作和Nexus服务 orders.v1 股份,因此订单
-    // 游戏场匿名呼叫者的操作键,命令/@/{orderId}通过任一协议都是一样的。
+    // 订单操作的作用域。POST /api/orders 在该作用域启动操作，Nexus 服务 orders.v1 也共享此作用域，因此订单的
+    // 操作键（此演示中匿名调用者的键为 orders/@/{orderId}）在两种协议中相同。
     public const string OrdersScope = "orders";
 
-    // 此信头处理的请求通常会正常处理, 然后重置连接而不是发送回复, 即
-    // 服务器处理请求后网络故障。
+    // 带有此请求头的请求将正常处理，随后重置连接而不发送响应，以模拟
+    // 服务器处理完请求后发生的网络故障。
     public const string SimulateLostResponseHeader = "Simulate-Lost-Response";
 
-    // 配置一个 silo ,用于运行订单工作流程,并配置客户端,他们将客户端称为支付网关。
+    // 配置运行订单工作流的 Silo，以及工作流调用支付网关所使用的客户端。
     public static ISiloBuilder AddOrderProcessing(this ISiloBuilder silo, Action<IHttpClientBuilder> configurePayments)
     {
         silo.UseInMemoryDurableJobs()
@@ -34,20 +34,20 @@ public static class OrderProcessingApplication
             .UseJsonJournalFormat(DurableOrderProcessingJsonContext.Default)
             .AddDurableTasks();
 
-        // 付款客户的要求,其支付要求中包含来自其步骤的“能力-钥匙”。
-        // 键处理器跟随键, 所以它的重写带有相同的键, 即网关的重复。
+        // 支付客户端的请求携带从其步骤派生的 Idempotency-Key。弹性处理器
+        // 位于幂等键处理器之后，因此其重试携带相同的键，由网关进行去重。
         var payments = silo.Services.AddDurableHttpClient(OrderGrain.PaymentsClient);
         payments.AddStandardResilienceHandler(options => options.Retry.Delay = TimeSpan.FromMilliseconds(200));
         configurePayments(payments);
 
-        // 提供命令开始以“行动回击”头标注册的 Webhooks。
+        // 投递订单启动请求通过 Operation-Callback 请求头注册的 Webhook。
         silo.Services.Configure<DurableHttpOptions>(ConfigureOperations);
-        // 网络锁定接收器是这个程序, 在回溯地址上 。
+        // Webhook 接收方是此应用本身，使用环回地址。
         silo.Services.AddDurableHttpCallbacks(static options => options.AllowAddress = IPAddress.IsLoopback);
         return silo;
     }
 
-    // 登记HTTP API的服务,包括模拟付款网关。
+    // 注册 HTTP API 的服务，包括模拟支付网关。
     public static IServiceCollection AddOrderProcessingApi(this IServiceCollection services)
     {
         services.AddDurableHttp(ConfigureOperations);
@@ -59,12 +59,12 @@ public static class OrderProcessingApplication
 
     public static void ConfigureOperations(DurableHttpOptions options)
     {
-        // 拒绝其请求的工作流程,如空篮子顺序,说明原因。
+        // 拒绝请求的工作流（例如购物车为空时下单）会说明拒绝原因。
         options.CreateError = static exception => exception is InvalidOperationException
             ? new("Rejected", exception.Message)
             : DurableHttpOptions.DefaultCreateError(exception);
 
-        // 只接受此应用程序接收器的 Webhooks 。
+        // 仅接受发送到此应用接收端点的 Webhook。
         options.AllowCallback = static (_, url) => url.IsLoopback && url.AbsolutePath.StartsWith("/api/webhooks/", StringComparison.Ordinal);
     }
 
@@ -80,7 +80,7 @@ public static class OrderProcessingApplication
         api.MapGet("/buyers/{buyerId}/basket", (string buyerId, IGrainFactory grains) =>
             grains.GetGrain<IBasketGrain>(buyerId).GetAsync());
 
-        // 设置行的数量。 绝对数量的 PUT 是无能的, 所以重复或重新尝试更新不需要按键 。
+        // 设置一项明细的数量。PUT 设置绝对数量具有幂等性，因此重复更新或重试更新不需要幂等键。
         api.MapPut("/buyers/{buyerId}/basket/{productId:int}", async (string buyerId, int productId, BasketQuantity body, IGrainFactory grains) =>
             CatalogData.Find(productId) is null
                 ? Results.NotFound()
@@ -89,9 +89,9 @@ public static class OrderProcessingApplication
         api.MapGet("/buyers/{buyerId}/orders", (string buyerId, IGrainFactory grains) =>
             grains.GetGrain<IBuyerGrain>(buyerId).GetOrdersAsync());
 
-        // POPST/api/订单检查买方的篮子是其主管单位-钥匙和集团名称的订单
-        // /pi/命令/操作/{orderId}:其状况监测器,长长的投票,其运行服务于每个订单。
-        // 事件,取消, 和它的发运信号。
+        // POST /api/orders 将买家的购物车结算为由 Idempotency-Key 标识的订单，该路由组
+        // 在 /api/orders/operations/{orderId} 提供各订单的操作接口：支持长轮询的状态监视器、
+        // 事件、取消操作以及 shipped 信号。
         var orders = api.MapGroup("/orders").WithDurableOperations(OrdersScope);
         orders.MapPost("/", (CheckoutRequest request, [FromHeader(Name = DurableHttpHeaders.IdempotencyKey)] Guid orderId, IGrainFactory grains) =>
                 grains.GetGrain<IOrderGrain>(orderId).PlaceOrderAsync(ToPlaceOrder(request)))
@@ -101,17 +101,17 @@ public static class OrderProcessingApplication
         orders.MapGet("/{orderId:guid}", async (Guid orderId, IGrainFactory grains) =>
             await grains.GetGrain<IOrderGrain>(orderId).GetAsync() is { } order ? Results.Ok(order) : Results.NotFound());
 
-        // 将订单的历史作为服务器发送事件流传:每个承诺的快照,从提交到发布命令
-        // 或取消船舶, 或被挂载。 流流等待第一个快照, 这样客户就可以在命令发出后立即查看命令
-        // 接受退票。
+        // 将订单历史记录作为服务器发送事件流式传输：从订单提交到订单
+        // 发货或取消期间的每个已提交快照。该流等待第一个快照，因此客户端可以在
+        // 结算请求获接受后立即观察订单。
         orders.MapGet("/{orderId:guid}/events", (Guid orderId, IGrainFactory grains, HttpContext context) =>
             StreamHistoryAsync(context, grains.GetGrain<IOrderGrain>(orderId)));
 
-        // 取消一项观察恢复的指令:下一次启动将重播其尚未完成的任务。
+        // 停用订单 Grain，以观察恢复行为：下一次激活时重放待处理任务。
         orders.MapPost("/{orderId:guid}/deactivate", async (Guid orderId, IGrainFactory grains) =>
             await grains.GetGrain<IOrderGrain>(orderId).AsReference<IGrainManagementExtension>().DeactivateOnIdle());
 
-        // 接收命令以“ 操作回击” 头开始注册的 Webhoooks 。
+        // 接收订单启动请求通过 Operation-Callback 请求头注册的 Webhook。
         api.MapPost("/webhooks/orders", (DurableOperation operation, ILoggerFactory loggers) =>
         {
             var orderId = operation.Id.Replace("\r", "\\r").Replace("\n", "\\n");
@@ -121,8 +121,8 @@ public static class OrderProcessingApplication
             return Results.Ok();
         });
 
-        // 时间工作流程通过 Nexus 服务 orders.v1下订单。 Nexus 请求的ID是该命令的ID,
-        // 服务共享订单范围,因此其业务是/命令/命令/操作所服务的订单。
+        // Temporal 工作流通过 Nexus 服务 orders.v1 下单。Nexus 请求 ID 即订单 ID，且
+        // 该服务共享 orders 作用域，因此其操作即 /api/orders/operations 提供的订单操作。
         app.MapGroup("/nexus")
             .MapNexusService("orders.v1", scope: OrdersScope)
             .MapNexusOperation("place-order", (CheckoutRequest input, [FromHeader(Name = NexusRequestIdHeader)] Guid orderId, IGrainFactory grains) =>
@@ -137,8 +137,8 @@ public static class OrderProcessingApplication
 
     private static PlaceOrder ToPlaceOrder(CheckoutRequest request) => new(request.BuyerId, request.Address, request.CardNumber[^4..]);
 
-    // 在操作开始之前验证检查退出。 命令名称为 Canic 格式的 ID 的页头
-    // 下划一 UUID, 所以每次要求命令都指定相同的操作 。
+    // 在结算操作启动之前验证请求。标识订单的请求头使用规范形式的订单 ID，即
+    // 小写 UUID，因此同一订单的每个请求都标识相同的操作。
     private static Func<EndpointFilterInvocationContext, EndpointFilterDelegate, ValueTask<object?>> ValidateCheckout(string header) =>
         (context, next) =>
         {
@@ -180,7 +180,7 @@ public static class OrderProcessingApplication
             return;
         }
 
-        // 回复是写到废弃的流, 所以服务器不会发送它, 重置会跟着进行 。
+        // 响应写入会丢弃内容的流，因此服务器不会发送该响应，随后重置连接。
         context.Response.Body = Stream.Null;
         await next(context);
         context.Abort();
@@ -200,8 +200,8 @@ public static class OrderProcessingApplication
         }
     }
 
-    // 检查命令的启动。 取消中止命令的查点; 下一个激活流
-    // 历史从头开始, 所以表跳过它已经提供的快照。
+    // 跨订单的多个激活实例观察订单。停用会中止订单的枚举；下一次激活重新从头流式传输
+    // 历史记录，因此观察操作跳过此前已经投递的快照。
     private static async IAsyncEnumerable<OrderDetails> WatchOrderAsync(IOrderGrain order, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var delivered = 0;

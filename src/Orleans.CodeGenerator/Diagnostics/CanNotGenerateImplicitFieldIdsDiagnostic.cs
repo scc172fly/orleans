@@ -3,22 +3,22 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.Diagnostics;
 
 /// <summary>
-/// 当无法生成可连号类型的隐含字段识别符号时,定义报告的诊断。
+/// 定义无法为可序列化类型生成隐式字段标识符时报告的诊断。
 /// </summary>
 public static class CanNotGenerateImplicitFieldIdsDiagnostic
 {
     /// <summary>
-    /// 诊断识别器
+    /// 诊断标识符。
     /// </summary>
     public const string DiagnosticId = DiagnosticRuleId.CanNotGenerateImplicitFieldIds;
 
     /// <summary>
-    /// 诊断标题
+    /// 诊断标题。
     /// </summary>
     public const string Title = "Implicit field identifiers could not be generated";
 
     /// <summary>
-    /// 诊断信息格式
+    /// 诊断消息格式。
     /// </summary>
     public const string MessageFormat = "Could not generate implicit field identifiers for the type {0}: {1}";
 

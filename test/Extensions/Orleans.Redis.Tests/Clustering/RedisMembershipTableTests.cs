@@ -18,7 +18,7 @@ using StackExchange.Redis.Profiling;
 namespace Tester.Redis.Clustering
 {
     /// <summary>
-    /// 试验 Orleans 使用 Redis 做为后援商店
+    /// 测试以 Redis 为后端存储的 Orleans 成员资格表操作。
     /// </summary>
     [TestCategory("Redis"), TestCategory("Clustering"), TestCategory("Functional")]
     [Collection(TestEnvironmentFixture.DefaultCollection)]

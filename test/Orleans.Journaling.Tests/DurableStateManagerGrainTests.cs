@@ -39,8 +39,8 @@ public sealed class DurableStateManagerGrainTests(DurableStateManagerIntegration
         Assert.DoesNotContain(builder.Services, descriptor =>
             descriptor.ServiceType == typeof(IConfigureGrainTypeComponents));
 
-        // 保持真正的空日记阅读协议, 同时独立计数读取
-        // 恢复完成后,额外阅读无法隐藏在一无所能的观察员背后。
+        // 保留真实的空日志读取协议，同时独立于恢复完成情况统计读取次数，
+        // 以免额外的读取被幂等的观察者掩盖。
         var innerStorage = new VolatileJournalStorage();
         var storage = Substitute.For<IJournalStorage>();
         storage.ReadAsync(Arg.Any<IJournalStorageConsumer>(), Arg.Any<CancellationToken>())
@@ -142,7 +142,7 @@ public sealed class DurableStateManagerGrainTests(DurableStateManagerIntegration
             await grain.Cast<IGrainManagementExtension>().DeactivateOnIdle(TestContext.Current.CancellationToken);
 
             phase = "first application read on a fresh activation";
-            // 不再调用其它 grain 此处改为:必须先追偿。
+            // 在此次读取之前不要调用其他 Grain 方法：恢复必须在该读取之前进行。
             Assert.Equal(42, await grain.GetValue());
             Assert.Equal(1, await grain.GetFirstReadRecoveryCount());
             Assert.Equal(new[] { "saved" }, await grain.GetItems());
@@ -186,7 +186,7 @@ public sealed class DurableStateManagerIntegrationFixture : IntegrationTestFixtu
 {
     protected override void ConfigureTestCluster(InProcessTestClusterBuilder builder)
     {
-        // 基建工称此勾。 不依赖于衍生的示例字段 。
+        // 基类构造函数会调用此钩子。不要依赖派生类的实例字段。
         builder.ConfigureSilo((_, siloBuilder) =>
         {
             siloBuilder.AddJournaling();

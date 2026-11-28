@@ -29,7 +29,7 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// 长命名 grain 类型, 可能引起问题 AzureTableStorage
+    /// 名称较长的 Grain 类型，可能导致 AzureTableStorage 出现问题
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface ISimpleGenericGrainUsingAzureStorageAndLongGrainName<T> : IGrainWithGuidKey
@@ -40,7 +40,7 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// 简称 grain 类型,不应引起 AzureTableStorage中的问题
+    /// 名称较短的 Grain 类型，应该不会导致 AzureTableStorage 出现问题
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface ITinyNameGrain<T> : IGrainWithGuidKey
@@ -202,7 +202,7 @@ namespace UnitTests.GrainInterfaces
         Task<T> CallOtherLongRunningTask(ILongRunningTaskGrain<T> target, T t, TimeSpan delay);
         Task<T> FanOutOtherLongRunningTask(ILongRunningTaskGrain<T> target, T t, TimeSpan delay, int degreeOfParallelism);
 
-#pragma warning disable CS0618 // Preserve grain contracts used to test legacy token behavior.
+#pragma warning disable CS0618 // 保留用于测试旧版令牌行为的 Grain 契约。
         Task LongWaitGrainCancellation(GrainCancellationToken tc, TimeSpan delay, Guid callId);
         Task LongWaitGrainCancellationAsObject(object tc, TimeSpan delay, Guid callId, ILongRunningTaskObserver observer);
         [AlwaysInterleave]
@@ -216,18 +216,18 @@ namespace UnitTests.GrainInterfaces
         Task LongWaitInterleavingWithStartNotification(TimeSpan delay, Guid callId, ILongRunningTaskObserver observer, CancellationToken cancellationToken);
         Task CallOtherLongRunningTask(ILongRunningTaskGrain<T> target, TimeSpan delay, Guid callId, CancellationToken tc);
         Task CallOtherLongRunningTaskWithStartNotification(ILongRunningTaskGrain<T> target, ILongRunningTaskObserver observer, TimeSpan delay, Guid callId, CancellationToken tc);
-#pragma warning disable CS0618 // Preserve grain contracts used to test legacy token behavior.
+#pragma warning disable CS0618 // 保留用于测试旧版令牌行为的 Grain 契约。
         Task CallOtherLongRunningTaskGrainCancellation(ILongRunningTaskGrain<T> target, GrainCancellationToken tc, TimeSpan delay, Guid callId);
 #pragma warning restore CS0618
         Task CallOtherLongRunningTaskWithLocalGrainCancellationToken(ILongRunningTaskGrain<T> target, TimeSpan delay, TimeSpan delayBeforeCancel, Guid callId);
         Task CallOtherLongRunningTaskWithLocalCancellation(ILongRunningTaskGrain<T> target, TimeSpan delay, TimeSpan delayBeforeCancel, Guid callId);
-#pragma warning disable CS0618 // Preserve grain contracts used to test legacy token behavior.
+#pragma warning disable CS0618 // 保留用于测试旧版令牌行为的 Grain 契约。
         Task<bool> GrainCancellationTokenCallbackResolve(GrainCancellationToken tc, Guid callId);
 #pragma warning restore CS0618
         Task<bool> CancellationTokenCallbackResolve(Guid callId, CancellationToken tc);
         Task<bool> CallOtherGrainCancellationTokenCallbackResolve(ILongRunningTaskGrain<T> target, Guid callId);
         Task<bool> CallOtherCancellationTokenCallbackResolve(ILongRunningTaskGrain<T> target, Guid callId);
-#pragma warning disable CS0618 // Preserve grain contracts used to test legacy token behavior.
+#pragma warning disable CS0618 // 保留用于测试旧版令牌行为的 Grain 契约。
         Task GrainCancellationTokenCallbackThrow(GrainCancellationToken tc, Guid callId, ILongRunningTaskObserver observer);
 #pragma warning restore CS0618
         Task CancellationTokenCallbackThrow(Guid callId, CancellationToken tc);

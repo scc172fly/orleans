@@ -6,8 +6,8 @@ using Xunit;
 namespace Orleans.Durable.Messaging.Tests.Contracts;
 
 /// <summary>
-/// 将每个电文电线类型中的序列字节按序键键入。 silos 且永居其中,
-/// 所以,对这些字节的任何修改 都是一种兼容性决定 必须要刻意更新黄金价值
+/// 固定每种消息传递线协议类型的序列化字节。消息跨不同版本的 Silo 传输，并持久化到
+/// 日志中，因此这些字节的任何变化都是兼容性决策，必须有意更新基准值。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

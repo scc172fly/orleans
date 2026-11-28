@@ -88,7 +88,7 @@ namespace Orleans.Analyzers
             ProxyContext? resolvedContext = null;
             foreach (var methodContext in contexts)
             {
-                // 每个代理条目都是毗连的; 保存第一个匹配的构造视图 。
+                // 每个代理的条目连续排列；保留其首个匹配的构造类型视图。
                 if (ReferenceEquals(methodContext.ProxyContext, resolvedContext))
                 {
                     continue;
@@ -185,7 +185,7 @@ namespace Orleans.Analyzers
                     result.Add(declaringInterface.OriginalDefinition, contexts = []);
                 }
 
-                // 保存代理订单和所有构思观点:接收器和类型参数影响分辨率。
+                // 保留代理顺序及每个构造类型视图：接收对象和类型实参会影响解析结果。
                 contexts.Add(new MethodContext(declaringInterface, proxyContext));
             }
         }

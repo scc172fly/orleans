@@ -3,27 +3,27 @@ using System;
 namespace Orleans.CodeGeneration
 {
     /// <summary>
-    /// 启动 <c>InvokeMethodRequest</c>的调用选项
+    /// <c>InvokeMethodRequest</c> 的调用选项。
     /// </summary>
     /// <remarks>
-    /// 这些标志值用于生成的 Orleans 引用代码,不应更改。 </remarks>
+    /// Orleans 生成的调用器代码会使用这些标志值，因此不应更改它们。</remarks>
     [Flags]
     [GenerateSerializer]
     public enum InvokeMethodOptions
     {
-        /// <summary>未定义选项。</summary>
+        /// <summary>未指定选项。</summary>
         None = 0,
 
-        /// <summary>援引是单向的,没有关于呼叫是否成功或失败的反馈。</summary>
+        /// <summary>单向调用，不反馈调用是否成功。</summary>
         OneWay = 1 << 0,
 
-        /// <summary>援引是只读,可与其他只读的援引发生间断。</summary>
+        /// <summary>只读调用，可与其他只读调用交错执行。</summary>
         ReadOnly = 1 << 1,
 
-        /// <summary>援引可与任何其他类型的请求,包括书面请求发生间断。</summary>
+        /// <summary>调用可与任何其他类型的请求交错执行，包括写入请求。</summary>
         AlwaysInterleave = 1 << 2,
 
-        /// <summary>援引并不关心订购,因此可以优化。</summary>
+        /// <summary>调用不要求顺序，因此可以进行相应优化。</summary>
         Unordered = 1 << 3,
     }
 }

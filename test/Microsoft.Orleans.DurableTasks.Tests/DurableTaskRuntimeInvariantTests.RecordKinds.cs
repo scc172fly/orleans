@@ -7,8 +7,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 记录类型:重复播放,要求根据记录的识别符号进行另一种操作,但有差异,从而拖延
-/// 而不是观察或改变记录的行动。
+/// 记录类型：若重放在已有记录的标识符下请求不同类型的操作，则发生重放偏离，使本次
+/// 执行尝试停滞，而非读取或更改已记录的操作。
 /// </summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
@@ -23,7 +23,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         storage.SetResponse(waitId, step, DurableTaskResponse.FromResult(1));
         using var stalls = new StallRecorder(taskId);
 
-        // 工作流程发生了变化:重播要求推迟执行第一个执行过程记录了一步结果。
+        // 工作流已改变：重放在首次执行记录步骤结果的位置请求延迟操作。
         _ = await runtime.ScheduleChildAsync(
             taskId,
             DurableTask.Run(async () => await DurableTask.Delay(TimeSpan.FromDays(1)).WithId("wait")),
@@ -48,7 +48,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var dueTime = storage.Get(waitId).DueTime;
         using var stalls = new StallRecorder(taskId);
 
-        // 工作流程发生了变化:重播要求迈出第一步,即第一次执行记录了延迟时间。
+        // 工作流已改变：重放在首次执行记录待完成延迟操作的位置请求执行步骤。
         _ = await runtime.ScheduleChildAsync(
             taskId,
             DurableTask.Run(async () => await DurableTask.Run(static _ => 1).WithId("wait")),
@@ -73,12 +73,12 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         storage.AddInvoked(TaskId.Parse("root"));
         storage.SetRemoteRequest(callId, storage.GetOrCreate(callId, DurableTaskRecordKind.RemoteCall), target, "method", "0123456789ABCDEF0123");
 
-        // 儿童身份识别资料下的处决时间表发现电话记录,但没有任何改变的延迟。
+        // 执行实例在其子任务标识符下调度的延迟会找到该调用的记录，不改变任何状态。
         var direct = await Assert.ThrowsAsync<DurableTaskDivergenceException>(
             () => runtime.ScheduleDelayAsync(callId, TimeSpan.FromDays(1), TestContext.Current.CancellationToken).AsTask());
         Assert.Contains($"It records a call to method 'method' on grain '{target}' (fingerprint 0123456789AB), and this attempt requested a delay due at", direct.Message, StringComparison.Ordinal);
 
-        // 重播等待延迟 在电话的识别信号卡下
+        // 在调用的标识符下等待延迟操作的重放会停滞。
         using var stalls = new StallRecorder(taskId);
         _ = await runtime.ScheduleChildAsync(
             taskId,
@@ -105,12 +105,12 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var step = storage.GetOrCreate(stepId, DurableTaskRecordKind.LocalStep);
         storage.RequestCancellation(stepId, step);
 
-        // 该步骤是执行该步骤的一个操作,一个重播达到,没有收到作为援引任务的任何信号。
+        // 步骤是其所属执行实例中的操作，重放会到达该步骤；它不是被调用任务，不接收发往被调用任务的信号。
         Assert.Equal([stepId], runtime.GetRecordedOperations(rootId));
         Assert.IsType<DurableTaskNotFoundException>(runtime.StageSignalFromInbox(stepId, "approved", DurableTaskResponse.FromResult("ada")));
         Assert.False(storage.Contains(stepId.Child("$signal:approved")));
 
-        // 在援引之前就已作此记录,而且其援引信号先于该请求发出。
+        // 在调用之前到达的取消会以提前取消的形式记录，而调用所对应的信号也可以先于该调用到达。
         var earlyId = TaskId.CreateRoot("early");
         runtime.SignalCancellationFromInbox(earlyId, GrainId.Create("caller", "one"), reason: null);
         Assert.Equal(DurableTaskRecordKind.EarlyCancellation, storage.Get(earlyId).Kind);

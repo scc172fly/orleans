@@ -14,21 +14,21 @@ using Orleans.Serialization;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 记录按发送顺序发送信息,包括反复发送待发身份。
+/// 按发送顺序记录已暂存的消息，包括对同一个待处理标识的重复发送。
 /// </summary>
 /// <remarks>
-/// 发件人发件机发送发件机的发件机阶段,给发 grain的邮件,如延迟恢复,直接在 grain中
-/// 自己的收件箱; 这个假记录, 每个调试器发送到 <see cref="IOutbox"/>中, 不论接收器是什么 。
+/// Messaging 发件箱将发往发送方 Grain 自身的消息（例如延迟操作的恢复消息）直接暂存到该 Grain 的
+/// 自己的收件箱；此测试替身记录适配器通过 <see cref="IOutbox"/> 发起的每一次发送，无论接收方是谁。
 /// </remarks>
 internal sealed class RecordingOutbox : IOutbox
 {
     private readonly List<OutboxMessage> _sends = [];
     private readonly List<MessageId> _sourceSends = [];
 
-    /// <summary>获取每个分阶段发送的,包括发送带有待发身份的连接。</summary>
+    /// <summary>获取每次已暂存的发送操作，包括与待处理标识合并的发送操作。</summary>
     public IReadOnlyList<OutboxMessage> Messages => _sends;
 
-    /// <summary>获取每个有步骤的查询发送,其信息由注册源提供。</summary>
+    /// <summary>获取每次已暂存的按引用发送操作，其消息内容由已注册的来源提供。</summary>
     public IReadOnlyList<MessageId> SourceMessages => _sourceSends;
 
     public void Send(OutboxMessage message) => _sends.Add(message);
@@ -42,10 +42,10 @@ internal sealed class RecordingOutbox : IOutbox
 
 internal static class MessagingTestHelpers
 {
-    /// <summary>交付交付 <paramref name="message"/> 发件人发信的发信箱会发送到系统时钟</summary>
+    /// <summary>按发送方发件箱的方式投递 <paramref name="message"/>，以系统时钟的当前时间作为发送时间。</summary>
     /// <remarks>
-    /// 只有在援引的发送时间影响接收人,而接受人承认在 <c>DeduplicationWindow</c>; 测试
-    /// 控制接收器的时钟通过发送时间明确。
+    /// 只有调用消息的发送时间影响接收方，接收方在 <c>DeduplicationWindow</c> 内接纳该消息；
+    /// 控制接收方时钟的测试会显式传入发送时间。
     /// </remarks>
     public static InboxMessage ToInboxMessage(this OutboxMessage message) => message.ToInboxMessage(DateTimeOffset.UtcNow);
 
@@ -68,7 +68,7 @@ internal static class MessagingTestHelpers
             receiver,
             body).ToInboxMessage();
 
-    /// <summary>创建其发件人首先在 <paramref name="sentAt"/>启动的援引。</summary>
+    /// <summary>创建发送方首次于 <paramref name="sentAt"/> 暂存的调用消息。</summary>
     public static InboxMessage CreateInvocationMessage(
         GrainId sender,
         GrainId receiver,

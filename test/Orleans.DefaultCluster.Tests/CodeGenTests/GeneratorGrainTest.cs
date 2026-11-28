@@ -8,7 +8,7 @@ using Xunit;
 namespace Tester.CodeGenTests
 {
     /// <summary>
-    /// GrainClientTest简 简 述
+    /// GrainClientTest 的摘要说明
     /// </summary>
     [TestCategory("BVT"), TestCategory("CodeGen")]
     [TestSuite("BVT")]
@@ -191,10 +191,10 @@ namespace Tester.CodeGenTests
         {
             var grain = this.GrainFactory.GetGrain<IGenericGrainWithGenericMethods<int>>(Guid.NewGuid());
 
-            // 方法的非generic 版本返回默认值( T)。
+            // 方法的非泛型版本返回 default(T)。
             Assert.Equal(0, await grain.Method(888));
 
-            // 方法的通用版本返回所提供的值。
+            // 方法的泛型版本返回所提供的值。
             var now = DateTime.Now;
             Assert.Equal(now, await grain.Method(now));
         }
@@ -206,10 +206,10 @@ namespace Tester.CodeGenTests
 
             var grain = this.GrainFactory.GetGrain<IGrainWithGenericMethods>(Guid.NewGuid());
 
-            // Orleans 引用观察员的语量微弱。在 SetValueOnObserver 返回后,仅 localObject.ValueTask
-            // 继续引用此测试的非同步状态机器: xUnit 从一个独立的工作项目开始测试,
-            // 所以没有根的呼叫者保留它, GC.KeepAlive 无法根植控制本地国家机器。
-            // 把手让观察者活着 直到回击运行
+            // Orleans 对观察者持有弱引用。SetValueOnObserver 返回后，只有 localObject.ValueTask 的
+            // 延续操作引用本测试的异步状态机：xUnit 从分离的工作项启动测试，
+            // 因此没有作为根的调用方保留它，而 GC.KeepAlive 无法使持有局部变量的状态机成为根。
+            // 此句柄保持观察者存活，并通过其待完成的延续操作保持本测试存活，直到回调运行。
             var observerRoot = GCHandle.Alloc(localObject);
             try
             {

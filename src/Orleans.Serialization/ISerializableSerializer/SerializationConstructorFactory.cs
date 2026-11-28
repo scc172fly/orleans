@@ -9,7 +9,7 @@ using System.Security;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// 创建呼叫可实现的与易燃设备一致的建筑商的代表。
+    /// 创建用于调用符合 ISerializable 约定的构造函数的委托。
     /// </summary>
     internal sealed class SerializationConstructorFactory
     {
@@ -22,10 +22,10 @@ namespace Orleans.Serialization
         private readonly ConcurrentDictionary<(Type Owner, Type DelegateType), Delegate> _constructors = new();
 
         /// <summary>
-        /// 确定所提供的类型是否有序列构建器。
+        /// 确定给定类型是否具有序列化构造函数。
         /// </summary>
         /// <param name="type">类型。</param>
-        /// <returns><see langword="true" /> 如果所提供的类型有一个序列构造器;否则, <see langword="false" />.</returns>
+        /// <returns><see langword="true" />，如果给定类型具有序列化构造函数；否则为 <see langword="false" />。</returns>
         [SecurityCritical]
         public static bool HasSerializationConstructor(
 #if NET5_0_OR_GREATER
@@ -78,7 +78,7 @@ namespace Orleans.Serialization
                 }
                 finally
                 {
-                    // 即使是抛出时 也保留建筑工变
+                    // 即使构造函数抛出异常，也保留它对对象所作的修改。
                     value = (TOwner)boxed;
                 }
             };

@@ -60,19 +60,19 @@ namespace Orleans.Serialization.UnitTests
     }
 
     /// <summary>
-    /// 试验 Orleans原始和普通的内置代码 .NET 类型。
-    /// Orleans 为常用类型提供优化的序列编码,包括:
-    /// - 原始类型(内型、布料类等)
-    /// - 通用 .NET 类型(DateTime、指南、版本等)
-    /// - 收集类型(列表、词典、阵列等)
-    /// - 易哑型
-    /// - 元体
+    /// Orleans 针对基元类型和常见 .NET 类型的内置编解码器测试。
+    /// Orleans 为常用类型提供经过优化的序列化编解码器，包括：
+    /// - 基元类型（int、bool 等）
+    /// - 常见 .NET 类型（DateTime、Guid、Version 等）
+    /// - 集合类型（List、Dictionary、数组等）
+    /// - 可空类型
+    /// - 枚举
     ///
-    /// 这些编码器的设计用于:
-    /// - 业绩良好,拨款很少
-    /// - 契约二进制代表
-    /// - 版本容忍度(前向/后向兼容性)
-    /// - 酌情提供跨语言支助
+    /// 这些编解码器的设计目标是：
+    /// - 高性能和尽可能少的内存分配
+    /// - 紧凑的二进制表示
+    /// - 版本容错（向前和向后兼容）
+    /// - 在适用情况下支持跨语言使用
     /// </summary>
     [Trait("Category", "BVT")]
     [Trait("Suite", "BVT")]
@@ -189,9 +189,9 @@ namespace Orleans.Serialization.UnitTests
     }
 
     /// <summary>
-    /// 测试序列和消毒。
-    /// Orleans 中[元]的元件以其基本类型值有效序列化,
-    /// 确保代表的精细性并支持未界定的巨型价值。
+    /// 测试枚举的序列化和反序列化。
+    /// Orleans 将枚举高效地序列化为其基础类型的值，
+    /// 从而确保表示紧凑，并支持未定义的枚举值。
     /// </summary>
     public class EnumTests(ITestOutputHelper output, SerializationTesterFixture fixture) : FieldCodecTester<MyEnum, IFieldCodec<MyEnum>>(output, fixture), IClassFixture<SerializationTesterFixture>
     {
@@ -1274,7 +1274,7 @@ namespace Orleans.Serialization.UnitTests
         protected override ImmutableArray<int>[] TestValues => [default, [], CreateValue(), CreateValue(), CreateValue()];
     }
 
-    // 所有权测试在另一项测试可以租用之前观察返回的部分。
+    // 所有权测试会在其他测试能够租用这些段之前观察已归还的段。
     [CollectionDefinition("Pooled buffer ownership", DisableParallelization = true)]
     public sealed class PooledBufferOwnershipCollection;
 
@@ -1431,7 +1431,7 @@ namespace Orleans.Serialization.UnitTests
 
     public class BigIntegerCodecTests(ITestOutputHelper output, SerializationTesterFixture fixture) : FieldCodecTester<BigInteger, BigIntegerCodec>(output, fixture), IClassFixture<SerializationTesterFixture>
     {
-        // .NET 9 中的新行为: https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/9.0/biginteger-limit#new-behavior
+        // .NET 9 中的新行为：https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/9.0/biginteger-limit#new-behavior
         protected override int[] MaxSegmentSizes => [(2 ^ 31) - 1];
 
         protected override BigInteger CreateValue()
@@ -2906,7 +2906,7 @@ namespace Orleans.Serialization.UnitTests
 
         protected override bool Equals(ConcurrentDictionary<string, int>? left, ConcurrentDictionary<string, int>? right)
         {
-            // 回报值中关键价值对对的顺序可能与替代物中关键价值对的顺序不符
+            // 返回值中键值对的顺序可能与替代类型中键值对的顺序不同。
             if (ReferenceEquals(left, right))
             {
                 return true;
@@ -2946,7 +2946,7 @@ namespace Orleans.Serialization.UnitTests
 
         protected override bool Equals(ConcurrentDictionary<string, int>? left, ConcurrentDictionary<string, int>? right)
         {
-            // 回报值中关键价值对对的顺序可能与替代物中关键价值对的顺序不符
+            // 返回值中键值对的顺序可能与替代类型中键值对的顺序不同。
             if (ReferenceEquals(left, right))
             {
                 return true;
@@ -4189,7 +4189,7 @@ namespace Orleans.Serialization.UnitTests
 
         protected override bool Equals(Exception? left, Exception? right)
         {
-            // 例外情况的验证是轻度的,通常随着其序列化和消散而以某种方式发生转变。
+            // 对异常的验证较为宽松。异常在序列化和反序列化时通常会发生某种转换。
             if (left is null && right is null)
             {
                 return true;
@@ -4222,7 +4222,7 @@ namespace Orleans.Serialization.UnitTests
 
         protected override bool Equals(Exception? left, Exception? right)
         {
-            // 例外情况的验证是轻度的,通常随着其序列化和消散而以某种方式发生转变。
+            // 对异常的验证较为宽松。异常在序列化和反序列化时通常会发生某种转换。
             if (left is null && right is null)
             {
                 return true;
@@ -4262,7 +4262,7 @@ namespace Orleans.Serialization.UnitTests
 
         protected override bool Equals(AggregateException? left, AggregateException? right)
         {
-            // 例外情况的验证是轻度的,通常随着其序列化和消散而以某种方式发生转变。
+            // 对异常的验证较为宽松。异常在序列化和反序列化时通常会发生某种转换。
             if (left is null && right is null)
             {
                 return true;
@@ -4302,7 +4302,7 @@ namespace Orleans.Serialization.UnitTests
 
         protected override bool Equals(AggregateException? left, AggregateException? right)
         {
-            // 例外情况的验证是轻度的,通常随着其序列化和消散而以某种方式发生转变。
+            // 对异常的验证较为宽松。异常在序列化和反序列化时通常会发生某种转换。
             if (left is null && right is null)
             {
                 return true;
@@ -4340,7 +4340,7 @@ namespace Orleans.Serialization.UnitTests
     }
 
 #if NET8_0_OR_GREATER
-#pragma warning disable CS0618 // Verify serialization compatibility for the legacy cancellation token.
+#pragma warning disable CS0618 // 验证旧版取消令牌的序列化兼容性。
     public class GrainCancellationTokenCodecTests(ITestOutputHelper output, SerializationTesterFixture fixture) : FieldCodecTester<GrainCancellationToken, IFieldCodec<GrainCancellationToken>>(output, fixture), IClassFixture<SerializationTesterFixture>
     {
         private static readonly PropertyInfo TokenIdProperty = typeof(GrainCancellationToken).GetProperty("Id", BindingFlags.Instance | BindingFlags.NonPublic)

@@ -8,14 +8,14 @@ using Orleans.Serialization.Internal;
 namespace Orleans
 {
     /// <summary>
-    /// 确定配置驱动的供应商登记。
+    /// 解析由配置驱动的提供程序注册。
     /// </summary>
     /// <remarks>
-    /// 登记首先从 <see cref="ProviderMetadataRegistry"/>读取。如果被请求的提供者缺席,则
-    /// 由旧代码发电机制作的组件经过扫描一次, <see cref="RegisterProviderAttribute"/>
-    /// 登记被用作兼容性后退。只有实施 <see cref="IProviderMetadataProvider"/>的供应商才使用该软件。
-    /// 以 <c>OrleansCodeGen</c> 所生成的标记在后继发现时被激活;其他;
-    /// <see cref="TypeManifestProviderAttribute"/> 提供商从不即时化。
+    /// 首先从 <see cref="ProviderMetadataRegistry"/> 读取注册信息。如果缺少所请求的提供程序，
+    /// 由旧版代码生成器生成的程序集会被扫描一次，并将其 <see cref="RegisterProviderAttribute"/>
+    /// 注册用作兼容性回退。只有实现 <see cref="IProviderMetadataProvider"/>
+    /// 且标记为由 <c>OrleansCodeGen</c> 生成的提供程序，才会在回退发现过程中被激活；其他
+    /// 由 <see cref="TypeManifestProviderAttribute"/> 标记的提供程序绝不会被实例化。
     /// </remarks>
     internal sealed class ProviderRegistrationResolver
     {
@@ -65,10 +65,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 获取指定 <paramref name="target"/>的注册服务提供方,按类型和名称键入。
+        /// 获取为指定 <paramref name="target"/> 注册的提供程序，以种类和名称为键。
         /// </summary>
-        /// <param name="assemblies">供应商注册扫描的组件。</param>
-        /// <param name="target">例如,要过滤的登记目标 <c>"Client"</c> 或 <c>"Silo"</c>.</param>
+        /// <param name="assemblies">要扫描其提供程序注册的程序集。</param>
+        /// <param name="target">用于筛选的注册目标，例如 <c>"Client"</c> 或 <c>"Silo"</c>。</param>
         public static Dictionary<(string Kind, string Name), Type> GetRegisteredProviders(IEnumerable<Assembly> assemblies, string target)
         {
             if (assemblies is null)

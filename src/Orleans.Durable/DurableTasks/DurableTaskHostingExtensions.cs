@@ -18,7 +18,7 @@ namespace Orleans.Hosting;
 
 public static class DurableTaskHostingExtensions
 {
-    /// <summary>添加客户端耐用 grain RPC 适配器。</summary>
+    /// <summary>添加客户端的持久化 Grain RPC 适配器。</summary>
     public static IClientBuilder AddDurableTasks(this IClientBuilder clientBuilder)
     {
         clientBuilder.Services.TryAddSingleton<DurableTaskRequestShared>();
@@ -31,14 +31,14 @@ public static class DurableTaskHostingExtensions
         return clientBuilder;
     }
 
-    /// <summary>添加 silo- 侧耐用 grain RPC 在 Orleans 通信期间的运行时间。</summary>
+    /// <summary>添加基于 Orleans Messaging 的 Silo 端持久化 Grain RPC 运行时。</summary>
     /// <remarks>
-    /// 通信需要持久工作,这唤醒 grains 的未了信息,包括计划推迟恢复的工作。
-    /// 每一 grain 源自 <see cref="Orleans.Durable.Journaling.DurableGrain"/> 收受一个收发箱和一发发发箱,
-    /// 并绑定启动安装期间的运行时间, 在日记恢复前, 并且可以注射
-    /// <see cref="IDurableTaskManager"/>. 任务状态以任何日记格式在 grain日记中存在;
-    /// 此方法将登记源生成的 JSON 元数据,而 JSON 日记格式要求该元数据是任务状态和任务状态所需的。
-    /// 用于 <see cref="DurableTaskAddress"/> 数值的值 grains 日记。
+    /// 消息传递依赖持久化作业（Durable Jobs），后者负责唤醒具有待处理消息的 Grain，包括计划的延迟恢复消息。
+    /// 每个派生自 <see cref="Orleans.Durable.Journaling.DurableGrain"/> 的 Grain 都会获得收件箱和发件箱，
+    /// 并在激活设置期间、日志恢复之前绑定运行时，且能够注入其
+    /// <see cref="IDurableTaskManager"/>。任务状态存放在 Grain 的日志中，与日志格式无关；
+    /// 此方法注册 JSON 日志格式所需的源生成 JSON 元数据，用于任务状态以及
+    /// Grain 写入日志的 <see cref="DurableTaskAddress"/> 值。
     /// </remarks>
     public static ISiloBuilder AddDurableTasks(
         this ISiloBuilder siloBuilder,

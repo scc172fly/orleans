@@ -1,5 +1,5 @@
 #if !NET11_0_OR_GREATER
-// C# 汇编者要求这些类型必须声明封闭的类型和工会。 它们从 .NET 11开始是基础类图书馆的一部分。
+// C# 编译器需要这些类型来声明封闭类型和联合类型。从 .NET 11 起，它们属于基类库的一部分。
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]

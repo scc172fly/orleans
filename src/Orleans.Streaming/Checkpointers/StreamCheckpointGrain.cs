@@ -7,7 +7,7 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 使用 Orleans grain 存储的流队列检查站。
+    /// 使用 Orleans Grain 存储持久化流队列检查点。
     /// </summary>
     [PreferLocalPlacement]
     [GrainType("stream.checkpoint")]
@@ -19,7 +19,7 @@ namespace Orleans.Streams
         /// <summary>
         /// 初始化 <see cref="StreamCheckpointGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="state">长期的检查站状态。</param>
+        /// <param name="state">持久化检查点状态。</param>
         public StreamCheckpointGrain(
             [PersistentState(StateName, ProviderConstants.DEFAULT_PUBSUB_PROVIDER_NAME)]
             IPersistentState<StreamCheckpointerGrainState> state)

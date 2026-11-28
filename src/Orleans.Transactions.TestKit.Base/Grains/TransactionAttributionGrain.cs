@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 记录 grain 呼叫的交易归属,但没有明确交易选项。
+    /// 记录没有显式事务选项的 Grain 调用的事务归属。
     /// </summary>
     public class NoAttributionGrain : Grain, INoAttributionGrain
     {
@@ -19,7 +19,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 记录封存环境交易的 grain 呼叫的交易归属。
+    /// 记录抑制环境事务的 Grain 调用的事务归属。
     /// </summary>
     public class SuppressAttributionGrain : Grain, ISuppressAttributionGrain
     {
@@ -32,7 +32,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 记录连接或创建交易的 grain 调用的交易归属。
+    /// 记录加入或创建事务的 Grain 调用的事务归属。
     /// </summary>
     public class CreateOrJoinAttributionGrain : Grain, ICreateOrJoinAttributionGrain
     {
@@ -45,7 +45,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 记录创建新交易的 grain 呼叫的交易归属。
+    /// 记录创建新事务的 Grain 调用的事务归属。
     /// </summary>
     public class CreateAttributionGrain : Grain, ICreateAttributionGrain
     {
@@ -58,7 +58,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 记录需要并加入环境交易的 grain 呼叫的交易归属。
+    /// 记录要求存在环境事务并加入该事务的 Grain 调用的事务归属。
     /// </summary>
     public class JoinAttributionGrain : Grain, IJoinAttributionGrain
     {
@@ -71,7 +71,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 记录支持环境交易的 grain 呼叫的交易归属。
+    /// 记录支持环境事务的 Grain 调用的事务归属。
     /// </summary>
     public class SupportedAttributionGrain : Grain, ISupportedAttributionGrain
     {
@@ -84,7 +84,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 记录拒绝环境交易的 grain 电话的交易归属。
+    /// 记录拒绝环境事务的 Grain 调用的事务归属。
     /// </summary>
     public class NotAllowedAttributionGrain : Grain, INotAllowedAttributionGrain
     {

@@ -326,7 +326,7 @@ internal static class SymbolExtensions
     }
 
     /// <summary>
-    /// 获取指定属性类型所可分配的所有属性。
+    /// 获取所有可赋值给指定特性类型的特性。
     /// </summary>
     public static bool GetAttributes(this ISymbol symbol, INamedTypeSymbol attributeType, [NotNullWhen(true)] out AttributeData[]? attributes)
     {
@@ -351,7 +351,7 @@ internal static class SymbolExtensions
     }
 
     /// <summary>
-    /// 获取指定属性类型所可分配的所有属性。
+    /// 获取所有可赋值给指定特性类型的特性。
     /// </summary>
     public static bool GetAttributes(this INamedTypeSymbol symbol, INamedTypeSymbol attributeType, [NotNullWhen(true)] out AttributeData[]? attributes, bool inherited = false)
     {
@@ -494,8 +494,8 @@ internal static class SymbolExtensions
 
     public static IEnumerable<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol symbol)
     {
-        // 请注意,如果继承等级制度中的多个点包含在单一通用类型内,这不会起作用。
-        // 为了解决这个问题,我们可以在整个循环电话中保留某种背景。
+        // 注意，如果继承层次结构中的多个位置包含在单个泛型类型内，此方式将无法正常工作。
+        // 为解决该问题，可以在递归调用过程中保留一些上下文。
         if (symbol.ContainingType is { } containingType && containingType.IsGenericType)
         {
             foreach (var containingTypeParameter in containingType.GetAllTypeParameters())

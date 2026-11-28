@@ -51,7 +51,7 @@ namespace DistributedTests.Client.Commands
             using var host = hostBuilder.Build();
             await host.StartAsync(cancellationToken);
 
-            // Orleans 客户端始终按以上 UseOrleansClient 登记。
+            // 上方的 UseOrleansClient 始终会注册 Orleans 客户端。
             var client = host.Services.GetService<IClusterClient>()!;
 
             var counterGrain = client.GetGrain<ICounterGrain>(parameters.CounterKey);

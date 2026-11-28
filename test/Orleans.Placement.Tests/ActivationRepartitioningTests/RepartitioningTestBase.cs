@@ -82,7 +82,7 @@ public abstract class RepartitioningTestBase<TFixture> : IAsyncLifetime where TF
 
     public async Task AdjustActivationCountOffsets(CancellationToken cancellationToken)
     {
-        // 初始启动计数中的不平衡账户 。
+        // 考虑初始激活实例数量的不均衡。
         Dictionary<SiloAddress, int> counts = [];
         int max = 0;
         foreach (var silo in (IEnumerable<SiloHandle>)_fixture.HostedCluster.Silos)

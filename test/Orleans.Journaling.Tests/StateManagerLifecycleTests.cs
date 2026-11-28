@@ -144,7 +144,7 @@ public partial class StateManagerTests
         var state = new LifecycleState { EmitEntry = false };
         manager.RegisterStateMachine("state", state);
         await manager.InitializeAsync(TestContext.Current.CancellationToken);
-        // 初始化记录了国家名称,即使国家不发布条目。
+        // 即使状态不生成任何条目，初始化也会记录状态名称。
         Assert.True(manager.PendingWriteByteCount > 0);
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         var directoryEntry = Assert.Single(ReadBinaryEntries(Assert.Single(storage.Appends)));

@@ -481,7 +481,7 @@ public class AzureJournalRunnerTests
         var resource = new OwnedBenchmarkResource(report, _ =>
         {
             existsOnServer = true;
-            // SDK注意到在失去成功创建反应后重新尝试时出现冲突。
+            // 首次创建成功的响应丢失后，SDK 在重试时观察到冲突。
             return Task.FromException(new RequestFailedException(409, "ResourceAlreadyExists"));
         }, _ =>
         {

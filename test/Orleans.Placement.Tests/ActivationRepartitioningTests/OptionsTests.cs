@@ -6,7 +6,7 @@ using Xunit;
 namespace UnitTests.ActivationRepartitioningTests;
 
 /// <summary>
-/// 启动重新分配配置选项验证的测试 。
+/// 测试激活实例重新分区器配置选项的验证。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="ConcurrentQueue{T}"/>的序列器。
+    /// <see cref="ConcurrentQueue{T}"/> 的序列化器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
@@ -16,7 +16,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ConcurrentQueueCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">代孕序列器</param>
+        /// <param name="surrogateSerializer">代理类型序列化器。</param>
         public ConcurrentQueueCodec(IValueSerializer<ConcurrentQueueSurrogate<T>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -29,22 +29,22 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ConcurrentQueueCodec{T}"/>所使用的代金矿类型。
+    /// <see cref="ConcurrentQueueCodec{T}"/> 所使用的代理类型。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [GenerateSerializer]
     public struct ConcurrentQueueSurrogate<T>
     {
         /// <summary>
-        /// 获取或设置值。
+        /// 获取或设置值集合。
         /// </summary>
-        /// <value>价值。</value>
+        /// <value>值集合。</value>
         [Id(0)]
         public Queue<T> Values;
     }
 
     /// <summary>
-    /// <see cref="ConcurrentQueue{T}"/>的复印机。
+    /// <see cref="ConcurrentQueue{T}"/> 的复制器。
     /// </summary>
     /// <typeparam name="T"></typeparam>
     [RegisterCopier]
@@ -56,7 +56,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ConcurrentQueueCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="valueCopier">价值复印机。</param>
+        /// <param name="valueCopier">元素复制器。</param>
         public ConcurrentQueueCopier(IDeepCopier<T> valueCopier)
         {
             _copier = valueCopier;

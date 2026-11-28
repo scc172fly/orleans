@@ -4,8 +4,8 @@ using Orleans.Runtime;
 
 namespace NonSilo.Tests.Membership;
 
-// 具体实施确保当内部提供者替代时,接口默认值会运行。
-#pragma warning disable CS0618 // This fixture configures and exercises legacy-provider compatibility.
+// 具体实现确保内部提供程序为测试替身时，接口的默认实现仍会运行。
+#pragma warning disable CS0618 // 此测试夹具配置并测试旧版提供程序兼容性。
 internal sealed class LegacyMembershipTable(IMembershipTable inner) : IMembershipTable
 {
     public IMembershipTable Inner => inner;

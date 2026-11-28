@@ -3,17 +3,17 @@ using System.Reflection;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 负责绘制一个可回收工厂的元数据
+    /// 负责将 facet 元数据映射到可缓存的工厂。
     /// </summary>
     public interface IAttributeToFactoryMapper<in TMetadata>
         where TMetadata : IFacetMetadata
     {
         /// <summary>
-        /// 负责从参数和元数据向可分解工厂绘制一个元数据。
+        /// 根据参数及 facet 元数据，将 facet 元数据映射到可缓存的工厂。
         /// </summary>
         /// <param name="parameter">参数信息。</param>
         /// <param name="metadata">元数据。</param>
-        /// <returns>工厂用来为 grain创建表面实例。</returns>
+        /// <returns>用于为 Grain 创建 facet 实例的工厂。</returns>
         Factory<IGrainContext, object> GetFactory(ParameterInfo parameter, TMetadata metadata);
     }
 }

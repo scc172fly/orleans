@@ -5,13 +5,13 @@ namespace Orleans.Reminders.Cosmos;
 internal static class FeedIteratorExtensions
 {
     /// <summary>
-    /// 全部排出一个宇宙DB <see cref="FeedIterator{T}"/>,收集每个物品
-    /// 全部页面。 空页面被跳过, 但不会终止迭代 : &lt; see
-    /// cref="FeedIterator.HasMoreResults"/ > 可能留下来 <c>true</c> 空的
+    /// 完整读取 Cosmos DB <see cref="FeedIterator{T}"/>，收集
+    /// 所有页中的全部项。跳过空页，但不会终止迭代：<see
+    /// cref="FeedIterator.HasMoreResults"/> 可能仍为 <c>true</c>，即使刚才的
     /// <see cref="FeedIterator{T}.ReadNextAsync(System.Threading.CancellationToken)"/>
-    /// 键,当前一页在扫描 a 时消耗 RU 预算时
-    /// 没有匹配项目的分区分区),因此迭代必须持续到
-    /// <c>HasMoreResults</c> 是 <c>false</c>.
+    /// 返回了空结果（例如上一页在扫描
+    /// 无匹配项的分区时耗尽 RU 预算），因此必须继续迭代，直到
+    /// <c>HasMoreResults</c> 为 <c>false</c>。
     /// </summary>
     public static async Task<List<T>> ToListAsync<T>(
         this FeedIterator<T> iterator,

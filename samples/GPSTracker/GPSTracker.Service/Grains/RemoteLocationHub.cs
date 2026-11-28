@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 namespace GPSTracker;
 
 /// <summary>
-/// 向与本地 SignalR 枢纽连接的客户发送定位信息。
+/// 将位置消息广播给连接到本地 SignalR Hub 的客户端。
 /// </summary>
 internal sealed class RemoteLocationHub : IRemoteLocationHub
 {
@@ -12,7 +12,7 @@ internal sealed class RemoteLocationHub : IRemoteLocationHub
 
     public RemoteLocationHub(IHubContext<LocationHub> hub) => _hub = hub;
 
-    // 向与中心连接的每个客户发送信息
+    // 向连接到此 Hub 的每个客户端发送消息。
     public ValueTask BroadcastUpdates(VelocityBatch messages) =>
         new(_hub.Clients.All.SendAsync(
             "locationUpdates", messages, CancellationToken.None));

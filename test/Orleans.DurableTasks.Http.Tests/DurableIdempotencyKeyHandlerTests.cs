@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Orleans.Durable.Http.Tests;
 
-/// <summary>行使耐久任务随其HTTP请求而发送的应急关键。</summary>
+/// <summary>验证持久化任务随 HTTP 请求发送的幂等键。</summary>
 [Collection(DurableHttpCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -31,7 +31,7 @@ public sealed class DurableIdempotencyKeyHandlerTests(DurableHttpFixture fixture
             DurableIdempotencyKeyHandler.CreateKey(fixture.ServiceId, grain.GetGrainId(), TaskId.Parse(result[0]), incarnation),
             result[1]);
 
-        // 获得权是一无所有,从定义上来说, 所以它没有钥匙。
+        // GET 按定义具有幂等性，因此不携带幂等键。
         Assert.Equal(string.Empty, result[2]);
     }
 
@@ -49,8 +49,8 @@ public sealed class DurableIdempotencyKeyHandlerTests(DurableHttpFixture fixture
         Assert.NotEqual(key, DurableIdempotencyKeyHandler.CreateKey("service", GrainId.Create("durable-http-test", "b"), task, run));
         Assert.NotEqual(key, DurableIdempotencyKeyHandler.CreateKey("service", grain, TaskId.CreateRoot("root").Child("send$2"), run));
 
-        // 后一个任务标识符的运行, 在删除后, 发送新的密钥, 所以仍然保留服务器
-        // 前面的钥匙没有用前面的钥匙回答
+        // 删除任务后使用相同任务标识符进行后续运行时，会发送新的键，因此仍保留
+        // 先前运行的键的服务器不会以先前运行的响应回复此次请求。
         Assert.NotEqual(key, DurableIdempotencyKeyHandler.CreateKey("service", grain, task, Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7")));
         Assert.Equal("_eSTqCNKOAQzDa_FdwbVJxUFr7n9QDTjB2QwCu-2cIU", key);
     }
@@ -135,7 +135,7 @@ public sealed class DurableIdempotencyKeyHandlerTests(DurableHttpFixture fixture
         Assert.NotNull(error);
     }
 
-    /// <summary>代表每个 grain要求进行长期任务之外的工作,但从不进行协商。</summary>
+    /// <summary>表示在所有 Grain 之外运行的代码；持久化任务之外的请求从不访问此代码。</summary>
     private sealed class NoGrainContextAccessor : IGrainContextAccessor
     {
         public IGrainContext GrainContext => throw new InvalidOperationException("Requests outside durable tasks don't identify a grain.");

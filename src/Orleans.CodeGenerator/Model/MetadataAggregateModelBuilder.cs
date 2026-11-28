@@ -7,9 +7,9 @@ namespace Orleans.CodeGenerator;
 internal static class MetadataAggregateModelBuilder
 {
     /// <summary>
-    /// 从收集的管道输出中创建 <see cref="MetadataAggregateModel"/> 。
-    /// 由此建立了一个单一的平等检查站,以便下游一代人能够
-    /// 上流管道没有改变时跳过 。
+    /// 从收集的管道输出创建 <see cref="MetadataAggregateModel"/>。
+    /// 提供单一相等性检查点，以便在上游管道没有变化时
+    /// 跳过下游生成。
     /// </summary>
     internal static MetadataAggregateModel CreateMetadataAggregate(
         string assemblyName,

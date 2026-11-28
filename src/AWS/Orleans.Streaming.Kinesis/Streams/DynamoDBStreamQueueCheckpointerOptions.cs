@@ -4,29 +4,29 @@ using Orleans.Runtime;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// 配置 DynamoDB- 支持的流队列检查。
+    /// 配置由 DynamoDB 支持的流队列检查点记录。
     /// </summary>
     public sealed class DynamoDBStreamQueueCheckpointerOptions
     {
         /// <summary>
-        /// 获取或设置 AWS 区域名称或 DynamoDB 服务终点。
+        /// 获取或设置 AWS 区域名称或 DynamoDB 服务终结点。
         /// </summary>
         public string Service { get; set; } = "us-east-1";
 
         /// <summary>
-        /// 获取或设置 AWS 访问密钥。如果忽略,则使用默认的 AWS 证书链。
+        /// 获取或设置 AWS 访问密钥 ID。省略时使用默认 AWS 凭据链。
         /// </summary>
         [Redact]
         public string? AccessKey { get; set; }
 
         /// <summary>
-        /// 获取或设置 AWS 秘密密钥 。
+        /// 获取或设置 AWS 私有访问密钥。
         /// </summary>
         [Redact]
         public string? SecretKey { get; set; }
 
         /// <summary>
-        /// 获取或设置 AWS 会话符号 。
+        /// 获取或设置 AWS 会话令牌。
         /// </summary>
         [Redact]
         public string? Token { get; set; }
@@ -42,32 +42,32 @@ namespace Orleans.Configuration
         public string TableName { get; set; } = "OrleansStreamCheckpoints";
 
         /// <summary>
-        /// 获取或设置一个值,以显示在没有检查站时是否创建检查表。
+        /// 获取或设置一个值，指示检查点表不存在时是否创建它。
         /// </summary>
         public bool CreateIfNotExists { get; set; } = true;
 
         /// <summary>
-        /// 获取或设定一个值,以显示表格是否使用提供输送量而不是按需计费。
+        /// 获取或设置一个值，指示表是否使用预置吞吐量而非按需计费。
         /// </summary>
         public bool UseProvisionedThroughput { get; set; }
 
         /// <summary>
-        /// 设置或设置提供读能力单位。
+        /// 获取或设置预置读取容量单位数。
         /// </summary>
         public int ReadCapacityUnits { get; set; } = 10;
 
         /// <summary>
-        /// 获取或设置提供的书面能力单位。
+        /// 获取或设置预置写入容量单位数。
         /// </summary>
         public int WriteCapacityUnits { get; set; } = 5;
 
         /// <summary>
-        /// 获取或设定检查站之间的最小间隔。
+        /// 获取或设置检查点写入之间的最短间隔。
         /// </summary>
         public TimeSpan PersistInterval { get; set; } = TimeSpan.FromMinutes(1);
 
         /// <summary>
-        /// 获取或设定等待检查站表格启用的最大时间。
+        /// 获取或设置等待检查点表进入活动状态的最长时间。
         /// </summary>
         public TimeSpan InitializationTimeout { get; set; } = TimeSpan.FromMinutes(2);
     }

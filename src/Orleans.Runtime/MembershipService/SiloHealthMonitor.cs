@@ -16,7 +16,7 @@ using static Orleans.Runtime.MembershipService.SiloHealthMonitor;
 namespace Orleans.Runtime.MembershipService
 {
     /// <summary>
-    /// 负责监测个人远程 silo。
+    /// 负责监控单个远程 Silo。
     /// </summary>
     internal partial class SiloHealthMonitor : ITestAccessor, IHealthCheckable, IDisposable, IAsyncDisposable
     {
@@ -38,23 +38,23 @@ namespace Orleans.Runtime.MembershipService
         private Task? _runTask;
 
         /// <summary>
-        /// 下一个探测器的识别码
+        /// 下一次探测的 ID。
         /// </summary>
         private int _nextProbeId;
 
         /// <summary>
-        /// 自上次成功探测以来失败的探测器数量 。
+        /// 自上次成功探测以来的失败探测次数。
         /// </summary>
         private int _failedProbes;
 
         /// <summary>
-        /// 自上次收到来自监测中的节点或中间人的电话回音以来。
+        /// 自上次收到被监控节点或中间节点的 ping 响应以来经过的时间。
         /// </summary>
         public TimeSpan? ElapsedSinceLastResponse
             => _lastSuccessfulResponseTimestamp is { } timestamp ? _timeProvider.GetElapsedTime(timestamp) : null;
 
         /// <summary>
-        /// 从发送最后一份得到答复的探测器之前到收到和处理答复之后的这段时间长度。
+        /// 上一次收到响应的探测，从发送之前到接收并处理完响应之后所测得的时长。
         /// </summary>
         public TimeSpan LastRoundTripTime { get; private set; }
 
@@ -96,12 +96,12 @@ namespace Orleans.Runtime.MembershipService
         }
 
         /// <summary>
-        /// 本例所负责的 silo 。
+        /// 此实例负责监控的 Silo。
         /// </summary>
         public SiloAddress TargetSiloAddress { get; }
 
         /// <summary>
-        /// 是否取消此监视器 。
+        /// 此监控器是否已被取消。
         /// </summary>
         public bool IsCanceled => _stoppingCancellation.IsCancellationRequested;
 
@@ -110,7 +110,7 @@ namespace Orleans.Runtime.MembershipService
         TimeSpan ITestAccessor.CurrentProbeTimeout => _failureDetector?.GetTimeout() ?? _clusterMembershipOptions.CurrentValue.ProbeTimeout;
 
         /// <summary>
-        /// 启动监视器
+        /// 启动监控器。
         /// </summary>
         public void Start()
         {
@@ -132,11 +132,11 @@ namespace Orleans.Runtime.MembershipService
         }
 
         /// <summary>
-        /// 停止监视器
+        /// 停止监控器。
         /// </summary>
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-#pragma warning disable CA1849 // Signal shutdown on the caller, then apply the caller's cancellation to the worker wait.
+#pragma warning disable CA1849 // 在调用方执行流中发出关闭信号，再将调用方的取消应用于对工作任务的等待。
             Dispose();
 #pragma warning restore CA1849
 
@@ -172,7 +172,7 @@ namespace Orleans.Runtime.MembershipService
                     }
                     finally
                     {
-                        // 工人开始将处理源的处置转移到完成过程。
+                        // 启动工作任务即将取消源的释放职责移交给其完成路径。
                         if (_runTask is null)
                         {
                             _stoppingCancellation.Dispose();
@@ -209,7 +209,7 @@ namespace Orleans.Runtime.MembershipService
                 {
                     try
                     {
-#pragma warning disable CA1849 // The worker signals shutdown inline; DisposeAsync would await this worker itself.
+#pragma warning disable CA1849 // 工作任务内联发出关闭信号；DisposeAsync 会等待该工作任务自身。
                         Dispose();
 #pragma warning restore CA1849
                     }
@@ -239,7 +239,7 @@ namespace Orleans.Runtime.MembershipService
 
                 try
                 {
-                    // 如果在分组中存在其他活动节点,则查找其中的其他节点。
+                    // 发现集群中的其他活跃节点（如果存在）。
                     var membershipSnapshot = _membershipService.CurrentSnapshot;
                     if (otherNodes is null || !ReferenceEquals(activeMembersSnapshot, membershipSnapshot))
                     {
@@ -264,22 +264,22 @@ namespace Orleans.Runtime.MembershipService
 
                     if (isDirectProbe)
                     {
-                        // 直接检测 silo 。
+                        // 直接探测 Silo。
                         probeResult = await this.ProbeDirectly(cancellation.Token, timeout, stallStartTimestamp).ConfigureAwait(false);
                     }
                     else
                     {
-                        // 随机选择其他节点,间接地探测目标,使用选定的节点作为中间线。
+                        // 随机选取另一个节点作为中介，间接探测目标。
                         var intermediary = otherNodes[Random.Shared.Next(otherNodes.Length)];
 
-                        // 选择一个超时间隔, 让中枢节点能够尝试探测目标节点并仍然响应此节点
-                        // 如果远程节点没有及时响应 。
-                        // 试图延长超时期,以说明当地健康状况恶化的原因。
+                        // 选择超时时间，使中介节点能够尝试探测目标，并且即使远程节点未及时响应，
+                        // 仍有时间向本节点作出响应。
+                        // 尝试通过延长超时时间来考虑本地健康状况恶化。
                         var directProbeTimeout = CalculateIndirectProbeTargetTimeout(timeout, localDegradationScore);
                         probeResult = await this.ProbeIndirectly(intermediary, directProbeTimeout, cancellation.Token).ConfigureAwait(false);
 
-                        // 如果中介人不完全健康,就将其从考虑中排除并继续调查。
-                        // 请注意,所有被删除的 silos 将列入下一次分组成员变动时设定的审议。
+                        // 如果中介节点并非完全健康，则将其排除在考虑范围之外并继续探测。
+                        // 注意，下次集群成员资格变化时，所有被排除的 Silo 都会重新纳入候选集合。
                         if (probeResult.Status != ProbeResultStatus.Succeeded && probeResult.IntermediaryHealthDegradationScore > 0)
                         {
                             LogInformationRecusingUnhealthyIntermediary(_log, intermediary);
@@ -320,8 +320,8 @@ namespace Orleans.Runtime.MembershipService
                     return 0;
                 }
 
-                // 必须在探测器之前进行此查询, 因为其结果决定探测超时。
-                // 事后进行体检,如体检后进行体检。
+                // 此查询必须在探测之前进行，因为其结果决定探测超时时间。
+                // 报告结果的健康检查（例如中介节点的健康评分）在探测之后运行。
                 return _localSiloHealthMonitor.GetLocalHealthStatus(
                     period,
                     LocalSiloHealthCheckCategory.Local).Score;
@@ -374,12 +374,12 @@ namespace Orleans.Runtime.MembershipService
         }
 
         /// <summary>
-        /// 检测远程 silo。
+        /// 探测远程 Silo。
         /// </summary>
-        /// <param name="cancellation">取消和失败探测尝试的标记 。</param>
-        /// <param name="probeTimeout">本探测器用于本地摊位评估的超时 。</param>
-        /// <param name="stallStartTimestamp">本地摊位采集间隔的开始。</param>
-        /// <returns>自上次成功探测器以来失败的探测器数量。</returns>
+        /// <param name="cancellation">用于取消并使探测尝试失败的令牌。</param>
+        /// <param name="probeTimeout">此探测使用的超时时间，用于评估本地停顿。</param>
+        /// <param name="stallStartTimestamp">本地停顿采集区间的起点。</param>
+        /// <returns>自上次成功探测以来的失败探测次数。</returns>
         private async Task<ProbeResult> ProbeDirectly(CancellationToken cancellation, TimeSpan probeTimeout, long stallStartTimestamp)
         {
             var id = ++_nextProbeId;
@@ -429,9 +429,9 @@ namespace Orleans.Runtime.MembershipService
             }
             else
             {
-                // 检查本地的摊位是否消耗了相当大一部分 探针超时
-                // 如果有,当地 silo 可能无法及时处理答复,
-                // 因此,我们把它视为一个没有结果的结果而不是失败。
+                // 检查本地停顿是否占用了探测超时时间的很大一部分。
+                // 如果是，则本地 Silo 可能无法及时处理响应，
+                // 因此将此结果视为不确定，而不是失败。
                 if (probeTimedOut && stallDurationDuring >= probeTimeout.Multiply(0.25))
                 {
                     LogWarningProbeFailureDuringLocalStall(_log, id, TargetSiloAddress, roundTripTime, stallDurationDuring, _failedProbes);
@@ -451,12 +451,12 @@ namespace Orleans.Runtime.MembershipService
         }
 
         /// <summary>
-        /// 通过中介 silo探测远程节点。
+        /// 通过中介 Silo 探测远程节点。
         /// </summary>
-        /// <param name="intermediary">用来探测目标的节点。</param>
-        /// <param name="directProbeTimeout">中间人应允许目标作出反应的时间。</param>
-        /// <param name="cancellation">取消和失败探测尝试的标记 。</param>
-        /// <returns>自上次成功探测器以来失败的探测器数量。</returns>
+        /// <param name="intermediary">用于探测目标的节点。</param>
+        /// <param name="directProbeTimeout">中介节点应允许目标响应的时间。</param>
+        /// <param name="cancellation">用于取消并使探测尝试失败的令牌。</param>
+        /// <returns>自上次成功探测以来的失败探测次数。</returns>
         private async Task<ProbeResult> ProbeIndirectly(SiloAddress intermediary, TimeSpan directProbeTimeout, CancellationToken cancellation)
         {
             var id = ++_nextProbeId;
@@ -471,7 +471,7 @@ namespace Orleans.Runtime.MembershipService
                 var elapsed = roundTripTimer.GetElapsedTime(out _);
                 var roundTripTime = elapsed - indirectResult.ProbeResponseTime;
 
-                // 记录时间,无论结果如何。
+                // 无论结果如何均记录耗时。
                 _lastSuccessfulResponseTimestamp = _timeProvider.GetTimestamp();
                 LastRoundTripTime = roundTripTime;
 
@@ -516,7 +516,7 @@ namespace Orleans.Runtime.MembershipService
         public bool CheckHealth(DateTime lastCheckTime, [MaybeNullWhen(true)] out string reason) => _pingTimer.CheckHealth(lastCheckTime, out reason);
 
         /// <summary>
-        /// 表示一个 silo的检验结果。
+        /// 表示 Silo 探测结果。
         /// </summary>
         [StructLayout(LayoutKind.Auto)]
         public readonly struct ProbeResult

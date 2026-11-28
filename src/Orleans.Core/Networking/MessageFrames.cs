@@ -5,19 +5,19 @@ using Orleans.Serialization.Buffers;
 namespace Orleans.Runtime.Messaging;
 
 /// <summary>
-/// 阅读和撰写与设置相关的信息,留下解码的信息机构序列。
+/// 按连接帧格式读取和写入消息，同时让解码后的消息继续保留序列化消息体。
 /// </summary>
 /// <remarks>
-/// 从框架读取的信息相当于从连接收到的信息:其信头被解码,其身体在首次访问时被解码。
-/// 发送这样的信息,会发出其序列式的文字,但不会解码。
+/// 从帧读出的消息等同于从连接接收的消息：其消息头已解码，消息体在首次访问时才解码。
+/// 转发此类消息时直接发送序列化消息体，无须解码。
 /// </remarks>
 internal static class MessageFrames
 {
     /// <summary>
-    /// 附加框架 <paramref name="message"/> 至 <paramref name="buffer"/> 使用 <paramref name="serializer"/>.
+    /// 将 <paramref name="message"/> 的帧追加到 <paramref name="buffer"/>，使用 <paramref name="serializer"/>。
     /// </summary>
-    /// <returns>信件的序列页眉和体形长度。</returns>
-    /// <remarks>如果书面写作失败, <paramref name="buffer"/> 不变。</remarks>
+    /// <returns>序列化后的消息头和消息体的长度。</returns>
+    /// <remarks>如果写入失败，<paramref name="buffer"/> 保持不变。</remarks>
     public static (int HeaderLength, int BodyLength) Write(MessageSerializer serializer, ArcBufferWriter buffer, Message message)
     {
         var startLength = buffer.Length;
@@ -38,7 +38,7 @@ internal static class MessageFrames
     }
 
     /// <summary>
-    /// 读取 <paramref name="buffer"/> 持有的单个框架,使信件的体体序列化。
+    /// 读取 <paramref name="buffer"/> 持有的单个帧，同时保持消息体处于序列化状态。
     /// </summary>
     public static Message Read(MessageHandlerShared shared, ArcBufferWriter buffer)
     {
@@ -47,7 +47,7 @@ internal static class MessageFrames
     }
 
     /// <summary>
-    /// 读取框架,保留信息的独立切片,而调用者保留 <paramref name="buffer"/>的所有权。
+    /// 读取一个帧，为消息保留独立的切片，而调用方仍拥有 <paramref name="buffer"/>。
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage(
         "Reliability",

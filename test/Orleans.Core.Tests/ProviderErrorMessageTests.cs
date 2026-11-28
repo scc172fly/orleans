@@ -12,8 +12,8 @@ using Xunit;
 namespace NonSilo.Tests
 {
     /// <summary>
-    /// 以测试配置为基础的供应商启动和诊断,确定现有供应商
-    /// 指定种类(e.g.、组群、 GrainStorage等)。
+    /// 测试基于配置的提供程序激活以及诊断信息，后者会标明
+    /// 指定类别（例如 Clustering、GrainStorage 等）的可用提供程序。
     /// </summary>
     [TestCategory("BVT")]
     [TestCategory("Providers")]
@@ -23,9 +23,9 @@ namespace NonSilo.Tests
     public class ProviderErrorMessageTests
     {
         /// <summary>
-        /// 测试客户端构建器在找不到服务提供商时将已知的提供者包含在内, 以错误信息方式进行 。
-        /// 证明错误信息包含标准电文和已知供应商列表
-        /// 指定类型。
+        /// 测试找不到提供程序时，客户端构建器是否在错误消息中列出已知提供程序。
+        /// 验证请求无效的提供程序类型时，错误消息既包含标准消息，
+        /// 也包含指定类别的已知提供程序列表。
         /// </summary>
         [Fact]
         public void ClientBuilder_IncludesKnownProvidersInErrorMessage()
@@ -48,19 +48,19 @@ namespace NonSilo.Tests
                     .Build();
             });
 
-            // 校验错误消息中包含未找到的提供者名
+            // 验证错误消息包含未找到的提供程序名称
             Assert.Contains("Could not find Clustering provider named 'NonExistentProvider'", exception.Message);
 
-            // 校验错误消息包含已知提供者的信息
-            // 确切的列表将取决于注册的供应商, 但讯息中应包含“已知集群提供者 : ” 。
-            // 如果有任何注册的集束供应商
+            // 验证错误消息包含已知提供程序的信息
+            // 具体列表取决于已注册的提供程序，但消息应包含 "Known Clustering providers:"
+            // （如果存在已注册的 Clustering 提供程序）
             Assert.Contains("This can indicate that either the 'Microsoft.Orleans.Sdk' or the provider's package are not referenced", exception.Message);
         }
 
         /// <summary>
-        /// 测试找不到提供者时 silo 构建器包含错误信息中已知的提供者。
-        /// 证明错误信息包含标准电文和已知供应商列表
-        /// 指定类型。
+        /// 测试找不到提供程序时，Silo 构建器是否在错误消息中列出已知提供程序。
+        /// 验证请求无效的提供程序类型时，错误消息既包含标准消息，
+        /// 也包含指定类别的已知提供程序列表。
         /// </summary>
         [Fact]
         public void SiloBuilder_IncludesKnownProvidersInErrorMessage()
@@ -83,17 +83,17 @@ namespace NonSilo.Tests
                     .Build();
             });
 
-            // 校验错误消息中包含未找到的提供者名
+            // 验证错误消息包含未找到的提供程序名称
             Assert.Contains("Could not find Clustering provider named 'NonExistentProvider'", exception.Message);
 
-            // 校验错误消息包含已知提供者的信息
+            // 验证错误消息包含已知提供程序的信息
             Assert.Contains("This can indicate that either the 'Microsoft.Orleans.Sdk' or the provider's package are not referenced", exception.Message);
         }
 
         /// <summary>
-        /// 测试 GrainStorage 提供者的错误消息包含已知提供者。
-        /// 证明指定了无效的 GrainStorage 服务提供人时,错误信息
-        /// 包括可用 GrainStorage 提供者的有用信息。
+        /// 测试 GrainStorage 提供程序的错误消息是否包含已知提供程序。
+        /// 验证指定无效的 GrainStorage 提供程序时，错误消息
+        /// 包含有关可用 GrainStorage 提供程序的有用信息。
         /// </summary>
         [Fact]
         public void SiloBuilder_IncludesKnownGrainStorageProvidersInErrorMessage()
@@ -119,10 +119,10 @@ namespace NonSilo.Tests
                     .Build();
             });
 
-            // 校验错误消息中包含未找到的提供者名
+            // 验证错误消息包含未找到的提供程序名称
             Assert.Contains("Could not find GrainStorage provider named 'InvalidStorageProvider'", exception.Message);
 
-            // 校验错误消息包含已知提供者的信息
+            // 验证错误消息包含已知提供程序的信息
             Assert.Contains("This can indicate that either the 'Microsoft.Orleans.Sdk' or the provider's package are not referenced", exception.Message);
         }
 

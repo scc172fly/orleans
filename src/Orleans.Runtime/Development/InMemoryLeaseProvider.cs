@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 namespace Orleans.Runtime.Development
 {
     /// <summary>
-    /// 用于开发和测试使用的记忆租赁供应商。
-    /// 该供应商在存储租赁信息时将信息存储租赁,如果 grain
-    /// 成为不活动或 silo 崩溃。执行仅是有意
-    /// 用于试验或地方发展目的 -- -- 不生产用途。
+    /// 供开发及测试使用的内存租约提供程序。
+    /// 此提供程序在内存中存储租约信息；如果 Grain
+    /// 变为非活动状态，或 Silo 崩溃，则信息可能丢失。此实现仅适用于
+    /// 测试或本地开发用途，不得用于生产环境。
     /// </summary>
     public class InMemoryLeaseProvider : ILeaseProvider
     {
@@ -20,7 +20,7 @@ namespace Orleans.Runtime.Development
         /// <summary>
         /// 初始化 <see cref="InMemoryLeaseProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">下 grain 工厂。</param>
+        /// <param name="grainFactory">Grain 工厂。</param>
         public InMemoryLeaseProvider(IGrainFactory grainFactory)
         {
             this.leaseProvider = GetLeaseProviderGrain(grainFactory);
@@ -67,7 +67,7 @@ namespace Orleans.Runtime.Development
     internal interface IDevelopmentLeaseProviderGrain : ILeaseProvider, IGrainWithIntegerKey
     {
         /// <summary>
-        /// 忘记所有租赁。 用于模拟丢失此 grain 或强制重新平衡队列
+        /// 清除所有租约，用于模拟此 Grain 丢失或强制重新均衡队列。
         /// </summary>
         /// <returns></returns>
         [Alias("847FCE12")]
@@ -75,9 +75,9 @@ namespace Orleans.Runtime.Development
     }
 
     /// <summary>
-    /// 存储信息以保存记忆的Grain 。
-    /// 考虑让这个故事成为 grain将储存作为可行的生产方式,对与储存有关的租赁提供商实施
-    /// 提供商。
+    /// 在内存中存储租约信息的 Grain。
+    /// TODO：考虑将其改为有状态 Grain，作为可与存储
+    /// 提供程序配合使用且适用于生产环境的租约提供程序实现。
     /// </summary>
     internal class DevelopmentLeaseProviderGrain : Grain, IDevelopmentLeaseProviderGrain
     {
@@ -133,12 +133,12 @@ namespace Orleans.Runtime.Development
         private AcquireLeaseResult Renew(string category, AcquiredLease acquiredLease)
         {
             DateTime now = DateTime.UtcNow;
-            // 如果租约存在,我们有合适的标志 租赁期没有到期,续签
+            // 若租约存在、持有正确令牌且租约尚未过期，则续租。
             if (!this.leases.TryGetValue(Tuple.Create(category, acquiredLease.ResourceKey), out Lease? lease) || lease.Token != acquiredLease.Token)
             {
                 return new AcquireLeaseResult(new AcquiredLease(acquiredLease.ResourceKey), ResponseCode.InvalidToken, new OrleansException("Invalid token provided, caller is not the owner."));
             }
-            // 我们不在乎租赁是否到期 只要业主没有改变
+            // 只要所有者未改变，就不关心租约是否已经过期。
             lease.ExpiredUtc = now + acquiredLease.Duration;
             return new AcquireLeaseResult(new AcquiredLease(acquiredLease.ResourceKey, acquiredLease.Duration, lease.Token, now), ResponseCode.OK, null);
         }

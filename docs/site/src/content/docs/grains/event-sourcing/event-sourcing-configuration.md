@@ -1,48 +1,44 @@
 ---
-title: "事件外包配置"
-description: "配置 JournaledGrain 日志一致性和在 Orleans中存储。"
+title: 事件溯源配置
+description: 在 Orleans 中配置 JournaledGrain 日志一致性和存储。
 ms.date: 08/02/2026
 ms.topic: how-to
 ---
 
 <a id="event-sourcing-configuration"></a>
+# 事件溯源配置
 
-# 事件外包配置
-
-参考参考资料 `Microsoft.Orleans.EventSourcing` 从 grain 执行项目。 Grain 界面项目不需要那个包 除非他们在合同中暴露了"Eptic Surcing"类型
+在 Grain 实现项目中引用 `Microsoft.Orleans.EventSourcing`。除非 Grain 接口项目的契约公开了事件溯源类型，否则接口项目不需要引用此包。
 
 <a id="register-a-log-consistency-provider"></a>
+## 注册日志一致性提供程序
 
-## 登记一个符合逻辑的提供者
-
-在 silo上登记一个或多个提供者:
+在 Silo 上注册一个或多个提供程序：
 
 :::code language="csharp" source="../../snippets/compiled/EventSourcing/EventSourcingSnippets.cs" id="register_log_consistency":::
 
-现有的登记方法包括:
+可用的注册方法如下：
 
 - <xref:Orleans.Hosting.StateStorageSiloBuilderExtensions.AddStateStorageBasedLogConsistencyProvider*>
 - <xref:Orleans.Hosting.LogStorageSiloBuilderExtensions.AddLogStorageBasedLogConsistencyProvider*>
 - <xref:Orleans.Hosting.CustomStorageSiloBuilderExtensions.AddCustomStorageBasedLogConsistencyProvider*>
 
-每个文件都有 `AsDefault` 格式。如果注册的是一个默认日志一致性提供者和默认 grain 存储提供者,则可以省略提供者属性。
+每种方法都有相应的 `AsDefault` 形式。如果已注册默认日志一致性提供程序和默认 Grain 存储提供程序，则可省略提供程序特性。
 
 <a id="select-providers-on-a-grain"></a>
+## 为 Grain 选择提供程序
 
-## 在 grain上选择提供者
-
-国家储存和日志储存使用标准 grain 储存提供者:
+状态存储和日志存储均使用标准的 Grain 存储提供程序：
 
 :::code language="csharp" source="../../snippets/compiled/EventSourcing/EventSourcingSnippets.cs" id="select_log_consistency_provider":::
 
-供应商名称必须与每个供应商的注册登记完全吻合 silo 能够激活 grain.
+提供程序名称必须与每个能够激活该 Grain 的 Silo 上的注册名称完全匹配。
 
-自定义存储不使用 <xref:Orleans.Storage.IGrainStorage>。 grain 安装 <xref:Orleans.EventSourcing.CustomStorage.ICustomStorageInterface`2> ,并拥有存储操作:
+自定义存储不使用 <xref:Orleans.Storage.IGrainStorage>。Grain 实现 <xref:Orleans.EventSourcing.CustomStorage.ICustomStorageInterface`2>，并自行负责存储操作：
 
 :::code language="csharp" source="../../snippets/compiled/EventSourcing/EventSourcingSnippets.cs" id="custom_storage_grain":::
 
 <a id="multi-cluster-responsibility"></a>
+## 多集群部署的职责
 
-## 多专题组责任
-
-自定义存储拥有多组部署所需的书写地形规则。 `primaryCluster` 注册参数由提供方保留,但并不限制提交文件、配置 Orleans 多组网络、复制存储或提供失败。在应用和储存实施中执行任何单作者或区域文字规则。
+自定义存储负责多集群部署所需的写入拓扑规则。提供程序保留注册时传入的 `primaryCluster` 参数，但该参数不会限制提交、配置 Orleans 多集群网络、复制存储或提供故障转移能力。应用程序及存储实现必须自行强制执行任何单写入者或区域写入规则。

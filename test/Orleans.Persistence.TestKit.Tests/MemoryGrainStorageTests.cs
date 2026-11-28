@@ -10,7 +10,7 @@ using Xunit;
 namespace Orleans.Persistence.Memory.Tests;
 
 /// <summary>
-/// 示例测试固定值, 显示如何配置 MemoryGrainStorage 用于测试 。
+/// 演示如何为测试配置 MemoryGrainStorage 的示例测试夹具。
 /// </summary>
 public class MemoryGrainStorageTestFixture : GrainStorageTestFixture, IAsyncLifetime
 {
@@ -35,8 +35,8 @@ public class MemoryGrainStorageTestFixture : GrainStorageTestFixture, IAsyncLife
 }
 
 /// <summary>
-/// 示范如何使用 Orleans.Persistence.TestKit的示例测试
-/// 测试 MemoryGrainStorage 提供者。
+/// 演示如何使用 Orleans.Persistence.TestKit
+/// 测试 MemoryGrainStorage 提供程序的示例测试。
 /// </summary>
 [TestCategory("Persistence"), TestCategory("MemoryStore")]
 public class MemoryGrainStorageTests : GrainStorageTestRunner, IClassFixture<MemoryGrainStorageTestFixture>

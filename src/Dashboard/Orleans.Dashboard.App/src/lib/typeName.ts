@@ -81,7 +81,7 @@ function parseType(str: string): string {
   const s = stripAssemblyDetails(str.trim());
   if (!s) return s;
 
-  // 处理包装在[...]中的经过资格认证的通用辩词组装。
+  // 处理 [ ... ] 包裹的程序集限定的泛型类型实参。
   if (s[0] === '[') {
     const wrappedEnd = findMatchingCloser(s, 0, '[', ']');
     if (wrappedEnd === s.length - 1) {
@@ -89,7 +89,7 @@ function parseType(str: string): string {
     }
   }
 
-  // 查找第一个通用开打开器: '<' 或'[']
+  // 查找第一个泛型起始分隔符：'<' 或 '['。
   const lt = s.indexOf('<');
   const lb = s.indexOf('[');
   let opener = '';

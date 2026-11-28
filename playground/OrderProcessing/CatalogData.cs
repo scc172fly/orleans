@@ -1,7 +1,7 @@
 namespace OrderProcessing;
 
-// 初始目录,根据dotnet/eShopsrc/Catalog.API/Setup/catalog.json改编。
-// 股票数量很少,因此很容易观察到股票拒收。
+// 初始商品目录，改编自 dotnet/eShop 的 src/Catalog.API/Setup/catalog.json。
+// 库存数量较小，便于观察库存不足导致的拒绝。
 public static class CatalogData
 {
     public static readonly CatalogItem[] Items =

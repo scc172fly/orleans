@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Connections.Transport;
 
 /// <summary>
-/// 表示运输连接因远程对等点或网络的重置而中断。
+/// 指示传输连接因远程对等端或底层网络发出的重置而终止。
 /// </summary>
 [Serializable]
 public class ConnectionResetException : Exception
@@ -17,27 +17,27 @@ public class ConnectionResetException : Exception
     }
 
     /// <summary>
-    /// 初始化 <see cref="ConnectionResetException"/> 类的新实例,并使用描述失败的电文。
+    /// 使用描述故障的消息初始化 <see cref="ConnectionResetException"/> 类的新实例。
     /// </summary>
-    /// <param name="message">描述失败的电文。</param>
+    /// <param name="message">描述失败的消息。</param>
     public ConnectionResetException(string? message) : base(message)
     {
     }
 
     /// <summary>
-    /// 初始化 <see cref="ConnectionResetException"/> 类的新实例,其中含有一条消息和根本原因。
+    /// 使用消息和底层原因初始化 <see cref="ConnectionResetException"/> 类的新实例。
     /// </summary>
-    /// <param name="message">描述失败的电文。</param>
-    /// <param name="innerException">导致连接重置的例外。</param>
+    /// <param name="message">描述失败的消息。</param>
+    /// <param name="innerException">导致连接重置的异常。</param>
     public ConnectionResetException(string? message, Exception? innerException) : base(message, innerException)
     {
     }
 
     /// <summary>
-    /// 从序列数据初始化了 <see cref="ConnectionResetException"/> 类的新实例。
+    /// 从序列化数据初始化 <see cref="ConnectionResetException"/> 类的新实例。
     /// </summary>
-    /// <param name="info">序列的例外数据。</param>
-    /// <param name="context">序列化背景。</param>
+    /// <param name="info">已序列化的异常数据。</param>
+    /// <param name="context">序列化上下文。</param>
     [Obsolete]
     protected ConnectionResetException(SerializationInfo info, StreamingContext context) : base(info, context)
     {

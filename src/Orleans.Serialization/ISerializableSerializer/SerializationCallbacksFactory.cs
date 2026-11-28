@@ -9,7 +9,7 @@ using System.Security;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// 创建带有序列属性的呼叫方法代表。
+    /// 创建用于调用带有序列化特性的方法的委托。
     /// </summary>
     internal sealed class SerializationCallbacksFactory
     {
@@ -21,7 +21,7 @@ namespace Orleans.Serialization
         private readonly ConcurrentDictionary<Type, object> _cache = new();
 
         /// <summary>
-        /// 获取引用类型的序列回调。
+        /// 获取引用类型的序列化回调。
         /// </summary>
         /// <param name="type">类型。</param>
         /// <returns>序列化回调。</returns>
@@ -42,10 +42,10 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// 获取序列化回调值类型。
+        /// 获取值类型的序列化回调。
         /// </summary>
         /// <typeparam name="TOwner">声明类型。</typeparam>
-        /// <typeparam name="TDelegate">代表类型。</typeparam>
+        /// <typeparam name="TDelegate">委托类型。</typeparam>
         /// <param name="type">类型。</param>
         /// <returns>序列化回调。</returns>
         [SecurityCritical]
@@ -141,7 +141,7 @@ namespace Orleans.Serialization
             var method = new DynamicMethod($"{callbackMethod.Name}_Trampoline", null, callbackParameterTypes, type, skipVisibility: true);
             var il = method.GetILGenerator();
 
-            // arg0 用于更好地履行代表职能(避免辩论打折)
+            // 为提高委托性能，不使用 arg0（避免参数重新排列的转换桩）。
             il.Emit(OpCodes.Ldarg_1);
             if (type != owner)
             {
@@ -156,18 +156,18 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// 序列回击
+        /// 序列化回调。
         /// </summary>
-        /// <typeparam name="TDelegate">代表类型,用于每次回调。</typeparam>
+        /// <typeparam name="TDelegate">各回调的委托类型。</typeparam>
         public sealed class SerializationCallbacks<TDelegate>
         {
             /// <summary>
             /// 初始化 <see cref="SerializationCallbacks{TDelegate}"/> 类的新实例。
             /// </summary>
-            /// <param name="onDeserializing">解毒过程中援引的回调。</param>
-            /// <param name="onDeserialized">数值被淡化时所引用的回调。</param>
-            /// <param name="onSerializing">连环处理时的回调</param>
-            /// <param name="onSerialized">数值序列化后引用的回调。</param>
+            /// <param name="onDeserializing">反序列化过程中调用的回调。</param>
+            /// <param name="onDeserialized">值反序列化完成后调用的回调。</param>
+            /// <param name="onSerializing">序列化过程中调用的回调。</param>
+            /// <param name="onSerialized">值序列化完成后调用的回调。</param>
             public SerializationCallbacks(
                 TDelegate? onDeserializing,
                 TDelegate? onDeserialized,
@@ -181,23 +181,23 @@ namespace Orleans.Serialization
             }
 
             /// <summary>
-            /// 获得回调的引用 同时进行机能消减
+            /// 获取反序列化过程中调用的回调。
             /// </summary>
             public readonly TDelegate? OnDeserializing;
 
             /// <summary>
-            /// 一旦一个值被淡化, 就会得到回调的响应。
+            /// 获取值反序列化完成后调用的回调。
             /// </summary>
             public readonly TDelegate? OnDeserialized;
 
             /// <summary>
-            /// 获得在序列过程中援引的回调。
+            /// 获取序列化过程中调用的回调。
             /// </summary>
-            /// <value>连环化</value>
+            /// <value>序列化过程中调用的回调。</value>
             public readonly TDelegate? OnSerializing;
 
             /// <summary>
-            /// 一旦一个价值被序列化, 就会得到回调的响应。
+            /// 获取值序列化完成后调用的回调。
             /// </summary>
             public readonly TDelegate? OnSerialized;
         }

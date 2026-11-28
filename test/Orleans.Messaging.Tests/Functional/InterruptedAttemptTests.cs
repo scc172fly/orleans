@@ -5,9 +5,9 @@ using Xunit;
 namespace Orleans.Durable.Messaging.Tests.Functional;
 
 /// <summary>
-/// 启动即停止,没有记录尝试的结果,因为一个处理者没有结果或
-/// silo 崩溃, 其应发信件被电荷充电一次试图收回, 所以反转和 InboxRetryTimeout 绑定
-/// 失败路径。此设置 InboxRetryTimeout 是零。
+/// 激活实例因处理程序无结果结束或 Silo 崩溃而停止，且未记录尝试结果时，
+/// 恢复会为其已到期的消息各计入一次尝试，因此退避及 InboxRetryTimeout 限制所有
+/// 失败路径。此测试夹具的 InboxRetryTimeout 为零。
 /// </summary>
 [Collection(MessagingClusterCollection.Name)]
 [TestSuite("BVT")]
@@ -25,8 +25,8 @@ public sealed class InterruptedAttemptTests : MessagingBehaviorTestBase
 
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, envelope));
 
-        // 第一次回收费用 中断尝试并开始重新试窗口; 重运行失败 同样的方式,
-        // 下次恢复时, 将信件写成废字母, 因为窗口已经过期。 没有实施分阶段效果 。
+        // 第一次恢复计入中断的尝试并开启重试窗口；再次运行以同样方式失败，
+        // 下一次恢复因窗口已结束而将消息转为死信。没有任何暂存效果被提交。
         var final = await Fixture.WaitForDeadLetterCountAsync(receiver, 1);
         var letter = Assert.Single(final.InboxDeadLetters);
         Assert.Equal(envelope.Envelope.MessageId, letter.MessageId);
@@ -43,7 +43,7 @@ public sealed class InterruptedAttemptTests : MessagingBehaviorTestBase
         _ = await receiver.GetSnapshotAsync();
         var context = Fixture.GetGrainContext(receiver);
 
-        // 预定的邮件将原封不动地等待,因此解除功能不会中断。
+        // 已调度的消息仍然挂起，且尚未进行尝试，因此停用没有中断任何尝试。
         var envelope = CreateEnvelope(receiver, NewMessage(172, "graceful"));
         envelope = envelope with { Envelope = envelope.Envelope with { DeliverAt = Fixture.JobNow + TimeSpan.FromMinutes(1) } };
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, envelope));
@@ -51,7 +51,7 @@ public sealed class InterruptedAttemptTests : MessagingBehaviorTestBase
         await receiver.RequestDeactivationAsync();
         await context.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
 
-        // 信件在 grain 回收时到期,所以只有日记的干净停止才能收回。
+        // Grain 恢复时消息已到期，因此只有日志中记录的正常停止才能避免恢复时计入此次尝试。
         Fixture.Clock.Advance(TimeSpan.FromMinutes(2));
         _ = await receiver.GetSnapshotAsync();
         var inbox = Fixture.GetInbox(receiver);

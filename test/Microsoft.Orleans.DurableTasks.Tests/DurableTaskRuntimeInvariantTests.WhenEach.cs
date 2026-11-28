@@ -7,8 +7,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 证明: <c>WhenEach</c> 和 <c>WhenAny</c> 选择通过耐久完成序列完成的完成, 因此重放
-/// 替换启动程序观察现场尝试的命令,没有记录决定。
+/// 验证 <c>WhenEach</c> 和 <c>WhenAny</c> 根据持久化完成序号选择已完成项，因此在
+/// 替代激活实例中重放时，无须记录选择决定即可观察到实际执行尝试中的完成顺序。
 /// </summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
@@ -39,7 +39,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             attempts.Enqueue([.. order]);
             if (attempts.Count == 1)
             {
-                // 第一次尝试停在这里,中止了 所以下一次激活会重播
+                // 第一次尝试在此处停止并被中止，因此下一个激活实例会重放它。
                 firstAttemptYieldedAll.TrySetResult();
                 await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
             }
@@ -49,12 +49,12 @@ public sealed partial class DurableTaskRuntimeInvariantTests
 
         await ((IDurableTaskServer)runtime).ScheduleAsync(rootId, request, TestContext.Current.CancellationToken);
 
-        // 输入 2 以自己的文字完成。
+        // 输入 2 在单独的一次写入中完成。
         releases[2].SetResult(12);
         await yields[0].Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // 其它投入的结果在日记上时,由作者撰写,因此下一篇作品既承诺也承诺
-        // 控件齐全,按其排列顺序决定。
+        // 另两个输入的结果在一次写入占用日志期间暂存，因此下一次写入会同时提交两个结果，其
+        // 句柄也会一起完成。暂存结果的先后顺序决定它们的完成顺序。
         await CommitTogetherAsync(manager, storage, releases, [operationId.Child($"{stagedFirst}"), operationId.Child($"{stagedSecond}")], [stagedFirst, stagedSecond]);
         await yields[2].Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         await firstAttemptYieldedAll.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
@@ -63,7 +63,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
                 < storage.Get(operationId.Child($"{stagedSecond}")).CompletionSequence);
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // 当替换激活重放点数时, 每一个输入都是完整的 。
+        // 替代激活实例重放枚举操作时，所有输入均已完成。
         var (replacement, _, _, _) = CreateRuntime(storage, manager, reentrant: true);
         await replacement.ResumePendingTasksAsync(TestContext.Current.CancellationToken);
         var response = await replacement.GetScheduledTaskHandle(rootId)
@@ -130,7 +130,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var decisionId = TaskId.Parse("root/op/$winner");
         _ = storage.GetOrCreate(first);
 
-        // 记录没有完成序列的结果,例如在排序盖章之前储存的顺序。
+        // 若结果没有完成序号（例如在引入完成序号之前存储的结果），则记录选择决定。
         storage.GetOrCreate(second).Result = DurableTaskResponse.FromResult(2);
         Assert.Equal(second, await runtime.SelectCompletionAsync(decisionId, [first, second], TestContext.Current.CancellationToken));
         Assert.True(storage.Contains(decisionId));
@@ -139,18 +139,18 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         storage.SetResponse(second, storage.Get(second), DurableTaskResponse.FromResult(2));
         Assert.True(storage.Get(first).CompletionSequence < storage.Get(second).CompletionSequence);
 
-        // 被记录的决定保留了胜者
+        // 已记录的选择决定仍保留原先的胜出任务。
         Assert.Equal(second, await runtime.SelectCompletionAsync(decisionId, [first, second], TestContext.Current.CancellationToken));
 
-        // 没有记录,最低完成顺序 赢得任何候选人的顺序, 并且没有决定存储。
+        // 没有记录时，无论候选任务的排列顺序如何，完成序号最小的任务胜出，且不存储选择决定。
         var nextId = TaskId.Parse("root/op/$next-0");
         Assert.Equal(first, await runtime.SelectCompletionAsync(nextId, [second, first], TestContext.Current.CancellationToken));
         Assert.False(storage.Contains(nextId));
     });
 
     /// <summary>
-    /// 以写作维持日记,在 <paramref name="indexes"/> 等待著,而他们依其排列而排列,
-    /// 以此顺序来计算结果,然后发布日记,这样一书写的结果都包含两个结果。
+    /// 通过一次写入占用日志，并在该写入等待期间依次完成 <paramref name="indexes"/> 指定的输入，使其
+    /// 结果按该顺序暂存，再释放日志，使一次写入提交两个结果。
     /// </summary>
     private static async Task CommitTogetherAsync(
         TestStateManager manager,

@@ -255,7 +255,7 @@ public class HierarchicalKeyTests
         Assert.True(key.IsDefault);
     }
 
-    // 理论数据取代了发现序列过程中的无偏差代孕,因此案例使用占位符。
+    // Theory 数据在发现阶段序列化时会替换未配对的代理项，因此测试用例使用占位符。
     [Theory]
     [InlineData("order-{high}")]
     [InlineData("{low}-order")]

@@ -9,7 +9,7 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.PersistentStreams
 {
     /// <summary>
-    /// 发送失败处理器, 写出无法保存 zure表的处理器。
+    /// 将投递失败记录写入 Azure Table Storage 的处理程序。
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     public class AzureTableStorageStreamFailureHandler<TEntity> : IStreamFailureHandler where TEntity : StreamDeliveryFailureEntity, new()
@@ -21,10 +21,10 @@ namespace Orleans.Providers.Streams.PersistentStreams
         private readonly Func<TEntity> createEntity;
 
         /// <summary>
-        /// 发送失败处理器, 写出无法保存 zure表的处理器。
+        /// 将投递失败记录写入 Azure Table Storage 的处理程序。
         /// </summary>
         /// <param name="serializer"></param>
-        /// <param name="loggerFactory">用于使用</param>的对帐厂
+        /// <param name="loggerFactory">要使用的日志记录器工厂。</param>
         /// <param name="faultOnFailure"></param>
         /// <param name="clusterId"></param>
         /// <param name="azureStorageOptions"></param>
@@ -51,12 +51,12 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// 指示在流出故障时订阅是否发生错误状态
+        /// 指示流发生故障时是否应将订阅置于故障状态。
         /// </summary>
         public bool ShouldFaultSubsriptionOnError { get; private set; }
 
         /// <summary>
-        /// 初始化
+        /// 初始化。
         /// </summary>
         /// <returns></returns>
         public Task InitAsync()
@@ -65,7 +65,7 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// 在用尽努力再试之后,当一项事件不能交付给消费者时,应叫停。
+        /// 耗尽重试次数后仍无法向消费者投递事件时，应调用此方法。
         /// </summary>
         /// <param name="subscriptionId"></param>
         /// <param name="streamProviderName"></param>
@@ -79,7 +79,7 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// 在消费者要求的订阅在用尽所有手段尝试之后无法安装时,应调用。
+        /// 耗尽重试次数后仍无法建立消费者请求的订阅时，应调用此方法。
         /// </summary>
         /// <param name="subscriptionId"></param>
         /// <param name="streamProviderName"></param>

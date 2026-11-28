@@ -14,8 +14,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Orleans.Durable.Analyzers;
 
 /// <summary>
-/// 命名一个名称不明的耐久操作,使用 <c>WithId</c>,其名称取自确定操作的方法,
-/// 诸如 <c>charge</c> 用于 <c>ChargeAsync</c>,并保持它与身体的其他名称的区别。
+/// 使用 <c>WithId</c> 为未命名的持久化操作命名，名称源自定义该操作的方法，
+/// 例如从 <c>ChargeAsync</c> 得到 <c>charge</c>，并确保名称与同一任务体中其他名称不同。
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(DurableTaskIdentityCodeFix)), Shared]
 public sealed class DurableTaskIdentityCodeFix : CodeFixProvider
@@ -50,10 +50,10 @@ public sealed class DurableTaskIdentityCodeFix : CodeFixProvider
         return Task.CompletedTask;
     }
 
-    /// <summary>名称: 每个标识定义,按源顺序排列,其体体尚未使用的名称。</summary>
+    /// <summary>按源码顺序为每个被标记的定义分配其任务体尚未使用的名称。</summary>
     private static async Task<Document> NameAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
-        // C#文件总是有语法根。
+        // C# 文档始终具有语法根节点。
         var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
         var usedNames = new Dictionary<SyntaxNode, HashSet<string>>();
         var names = new Dictionary<SyntaxNode, string>();
@@ -94,7 +94,7 @@ public sealed class DurableTaskIdentityCodeFix : CodeFixProvider
                 .WithTriviaFrom(rewritten)));
     }
 
-    /// <summary>返回身体通过到的常数名称 <c>WithId</c> 和 <c>DurableTask.RunInline</c>.</summary>
+    /// <summary>返回任务体传给 <c>WithId</c> 和 <c>DurableTask.RunInline</c> 的常量名称。</summary>
     private static HashSet<string> GetNames(SyntaxNode body)
     {
         var names = new HashSet<string>();
@@ -111,7 +111,7 @@ public sealed class DurableTaskIdentityCodeFix : CodeFixProvider
         return names;
     }
 
-    /// <summary>返回定义调用的方法的 kebab- case name, 不带其 <c>Async</c> 后缀。</summary>
+    /// <summary>返回定义所调用方法的短横线分隔命名形式（kebab-case），去掉其 <c>Async</c> 后缀。</summary>
     private static string GetBaseName(InvocationExpressionSyntax definition)
     {
         var method = definition.Expression switch

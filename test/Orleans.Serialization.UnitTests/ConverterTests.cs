@@ -7,17 +7,17 @@ using Xunit;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// Orleans中基于转换器的序列机制测试。
+/// Orleans 基于转换器的序列化机制测试。
 /// 
-/// 转换器允许 Orleans 从外部图书馆中序列化无法修改的类型
-/// 添加 Orleans 序列化属性。通过代用类型实现这一点,即:
-/// - 作为序列的中间人
-/// - 转换外国类型和可连序代表制
-/// - 支持参考类型和价值类型
-/// - 允许外国图书馆衍生品种类的序列化
+/// 转换器使 Orleans 能够序列化无法修改的外部库类型，
+/// 即无法添加 Orleans 序列化特性的类型。为此使用具有以下功能的替代类型：
+/// - 充当序列化过程的中间表示
+/// - 在外部类型与可序列化表示之间进行转换
+/// - 同时支持引用类型和值类型
+/// - 允许序列化外部库中的派生类型
 /// 
-/// 这种办法使 Orleans 能够保持高绩效连续连续处理,而
-/// 与第三方图书馆和遗产法相结合。
+/// 这种方式使 Orleans 在集成第三方库和旧版代码时，
+/// 仍能保持高性能序列化。
 /// </summary>
 public class ConverterCodecTests : FieldCodecTester<MyForeignLibraryType, IFieldCodec<MyForeignLibraryType>>, IClassFixture<SerializationTesterFixture>
 {

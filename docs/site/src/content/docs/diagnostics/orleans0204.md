@@ -1,25 +1,25 @@
 ---
-title: "ORLEANS0204:返回效果 DurableTask.RunInline 的输出"
-description: "理解 ORLEANS0204, 其中报告一个 DurableTask.RunInline 效果, 指定附加体变量, 并通过返回输出来修正它 。"
+title: "ORLEANS0204: 返回 DurableTask.RunInline 效果的输出"
+description: 了解 ORLEANS0204：DurableTask.RunInline 效果对外围主体的变量赋值。通过返回输出来修复。
 ms.date: 10/15/2026
 ms.topic: reference
 ---
 
 <a id="orleans0204-return-the-outputs-of-a-durabletaskruninline-effect"></a>
 
-# ORLEANS0204:返回效果 DurableTask.RunInline 的输出
+# ORLEANS0204: 返回 DurableTask.RunInline 效果的输出
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
 | 严重性 | 警告 |
-| 类别类 | 用法 |
-| 代码修正 | 无无无无 |
+| 类别 | 用法 |
+| 代码修复 | 无 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-代表的下列代表: `DurableTask.RunInline` 接收指定、加薪或减少一个变量,附后的机构声明:
+`DurableTask.RunInline` 接收的委托对外围主体声明的变量赋值、递增或递减：
 
 :::code source="snippets/durable-tasks/Orleans0204.cs" id="orleans0204_violation" language="csharp":::
 
@@ -27,28 +27,28 @@ ms.topic: reference
 
 ## 规则说明
 
-`DurableTask.RunInline` 运行任务时, 并记录效果结果 。 重放返回所录的结果而不运行效果, 所以代表的指派只在运行它的时候发生。 每次重播中, 都返回已录制的结果, 并且 `number` 居留 `0` 和 `reference` 居留 `Guid.Empty`:重放将其他参数传到所记录的 `print` 并返回比计算的第一个运行过程还多的一张票。
+`DurableTask.RunInline` 为正在运行的任务执行一次效果，并记录效果结果。重放直接返回已记录结果，而不执行效果，因此委托中的赋值只发生在实际执行效果的运行中。每次重放时，`number` 仍为 `0`，`reference` 仍为 `Guid.Empty`：重放会向已记录的 `print` 步骤传递不同参数，并返回与首次运行计算的不同的票据。
 
-效果所作的状态变化,例如 `_lastNumber`的增量,是正确的:它们与记录一起进行,重放发现它们在 grain状态中。
+效果所作的状态变更是正确的，例如递增 `_lastNumber`：它们与记录一同提交，重放时可在 Grain 状态中找到这些变更。
 
-记录效果见 [记录的效果、当地步骤和调用其他 grains](../grains/durable-tasks.md#recorded-effects-local-steps-and-calls-to-other-grains)。
+有关已记录效果，请参阅[已记录效果、本地步骤及对其他 Grain 的调用](../grains/durable-tasks.md#recorded-effects-local-steps-and-calls-to-other-grains)。
 
 <a id="how-to-fix-violations"></a>
 
-## 如何纠正违反情况
+## 如何修复违规
 
-**返回每个输出。** 将效果的图波还原,并拆除身体内的结构:
+**返回每项输出。** 从效果返回元组，并在主体中解构它：
 
 :::code source="snippets/durable-tasks/Orleans0204.cs" id="orleans0204_fix" language="csharp":::
 
-**返回记录。** 类型中含有 Orleans 序列器,可以命名输出,而身体可以还原:
+**返回记录类型。** 使用具备 Orleans 序列化器的类型为各项输出命名，主体可以返回该类型的值：
 
 :::code source="snippets/durable-tasks/Orleans0204.cs" id="orleans0204_fix_record" language="csharp":::
 
-代表声明的变量,以及其修改的 grain 说明,无需更改。
+委托自身声明的变量及其修改的 Grain 状态无需更改。
 
 <a id="when-to-suppress"></a>
 
-## 何时压缩
+## 何时抑制
 
-抑制对身体只在效果内读到的某一任务进行诊断,或仅对在运行过程中产生效果的诊断进行检查。
+如果主体仅在效果内部读取被赋值的变量，或者仅在执行该效果的运行中将其用于诊断，可以抑制诊断。

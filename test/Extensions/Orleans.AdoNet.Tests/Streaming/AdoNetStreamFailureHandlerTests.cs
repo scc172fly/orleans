@@ -12,7 +12,7 @@ using RelationalOrleansQueries = Orleans.Streaming.AdoNet.Storage.RelationalOrle
 namespace Tester.AdoNet.Streaming;
 
 /// <summary>
-/// 试验 <see cref="AdoNetStreamFailureHandler"/> 日 和 SQL 服务器
+/// 针对 SQL Server 的 <see cref="AdoNetStreamFailureHandler"/> 测试。
 /// </summary>
 [TestCategory("SqlServer"), TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("SqlServer")]
@@ -22,7 +22,7 @@ public class SqlServerAdoNetStreamFailureHandlerTests() : AdoNetStreamFailureHan
 }
 
 /// <summary>
-/// 试验 <see cref="AdoNetStreamFailureHandler"/> 日 和 MySQL.
+/// 针对 MySQL 的 <see cref="AdoNetStreamFailureHandler"/> 测试。
 /// </summary>
 [TestCategory("MySql"), TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("MySql")]
@@ -36,7 +36,7 @@ public class MySqlAdoNetStreamFailureHandlerTests : AdoNetStreamFailureHandlerTe
 }
 
 /// <summary>
-/// 试验 <see cref="AdoNetStreamFailureHandler"/> 日 和 PostgreSQL.
+/// 针对 PostgreSQL 的 <see cref="AdoNetStreamFailureHandler"/> 测试。
 /// </summary>
 [TestCategory("PostgreSql"), TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("PostgreSql")]
@@ -46,7 +46,7 @@ public class PostgreSqlAdoNetStreamFailureHandlerTests() : AdoNetStreamFailureHa
 }
 
 /// <summary>
-/// <see cref="AdoNetStreamFailureHandler"/>测试。
+/// <see cref="AdoNetStreamFailureHandler"/> 的测试。
 /// </summary>
 [TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestSuite("Functional")]
@@ -73,12 +73,12 @@ public abstract class AdoNetStreamFailureHandlerTests(string invariant) : IAsync
     }
 
     /// <summary>
-    /// 测试一个 <see cref="AdoNetStreamFailureHandler"/> 能够构造。
+    /// 测试能否构造 <see cref="AdoNetStreamFailureHandler"/>。
     /// </summary>
     [Fact]
     public void AdoNetStreamFailureHandler_Constructs()
     {
-        // 安排
+        // 准备
         var faultOnFailure = false;
         var streamOptions = new AdoNetStreamOptions
         {
@@ -92,21 +92,21 @@ public abstract class AdoNetStreamFailureHandlerTests(string invariant) : IAsync
         var mapper = new AdoNetStreamQueueMapper(new HashRingBasedStreamQueueMapper(new HashRingStreamQueueMapperOptions(), "MyQueuePrefix"));
         var logger = NullLogger<AdoNetStreamFailureHandler>.Instance;
 
-        // 行为
+        // 执行
         var positions = new AdoNetStreamPositions();
         var handler = new AdoNetStreamFailureHandler(faultOnFailure, streamOptions, clusterOptions, mapper, _queries, positions, logger);
 
-        // 平面
+        // 验证
         Assert.Equal(faultOnFailure, handler.ShouldFaultSubsriptionOnError);
     }
 
     /// <summary>
-    /// 测试 <see cref="AdoNetStreamFailureHandler"/> 能够将毒物信息移到死字。
+    /// 测试 <see cref="AdoNetStreamFailureHandler"/> 能否将毒性消息移入死信队列。
     /// </summary>
     [Fact]
     public async Task AdoNetStreamFailureHandler_OnDeliveryFailure_MovesPoisonedMessageToDeadLetters()
     {
-        // - 安排处理器
+        // 准备 - 处理器
         var providerId = "MyProviderId";
         var faultOnFailure = false;
         var streamOptions = new AdoNetStreamOptions
@@ -129,14 +129,14 @@ public abstract class AdoNetStreamFailureHandlerTests(string invariant) : IAsync
         var positions = new AdoNetStreamPositions();
         var handler = new AdoNetStreamFailureHandler(faultOnFailure, streamOptions, clusterOptions, mapper, _queries, positions, logger);
 
-        // 排列过期信件的队列
+        // 准备 - 将一条已过期的消息入队
         var streamId = StreamId.Create("MyNamespace", "MyKey");
         var queueId = mapper.GetAdoNetQueueId(streamId);
         var payload = new byte[] { 0xFF };
 
         var ack = await _queries.QueueStreamMessageAsync(clusterOptions.ServiceId, providerId, queueId, payload, streamOptions.ExpiryTimeout.TotalSecondsCeiling());
 
-        // - 安排将信件解排并立即提供
+        // 准备 - 将消息出队并使其立即可再次投递
         await _queries.GetStreamMessagesAsync(
             ack.ServiceId,
             ack.ProviderId,
@@ -151,10 +151,10 @@ public abstract class AdoNetStreamFailureHandlerTests(string invariant) : IAsync
             "SELECT * FROM OrleansStreamDeadLetter",
             TestContext.Current.CancellationToken));
 
-        // - 清理最大尝试的操作, 这样上面的信息会被标记
+        // 执行 - 以最大尝试次数为 1 执行清理，使上述消息被标记
         await handler.OnDeliveryFailure(GuidId.GetNewGuidId(), providerId, streamId, new EventSequenceTokenV2(positions.Add(ack.MessageId)));
 
-        // 平面
+        // 验证
         var dead = Assert.Single(await _storage.ReadAsync<AdoNetStreamDeadLetter>(
             "SELECT * FROM OrleansStreamDeadLetter",
             TestContext.Current.CancellationToken));
@@ -170,12 +170,12 @@ public abstract class AdoNetStreamFailureHandlerTests(string invariant) : IAsync
     }
 
     /// <summary>
-    /// 测试 <see cref="AdoNetStreamFailureHandler"/> 能够将毒物信息移到死字。
+    /// 测试 <see cref="AdoNetStreamFailureHandler"/> 能否将毒性消息移入死信队列。
     /// </summary>
     [Fact]
     public async Task AdoNetStreamFailureHandler_OnDeliveryFailure_DoesNotMoveHealthyMessageToDeadLetters()
     {
-        // - 安排处理器
+        // 准备 - 处理器
         var providerId = "MyProviderId";
         var faultOnFailure = false;
         var streamOptions = new AdoNetStreamOptions
@@ -194,13 +194,13 @@ public abstract class AdoNetStreamFailureHandlerTests(string invariant) : IAsync
         var positions = new AdoNetStreamPositions();
         var handler = new AdoNetStreamFailureHandler(faultOnFailure, streamOptions, clusterOptions, mapper, _queries, positions, logger);
 
-        // 排列过期信件的队列
+        // 准备 - 将一条已过期的消息入队
         var streamId = StreamId.Create("MyNamespace", "MyKey");
         var queueId = mapper.GetAdoNetQueueId(streamId);
         var payload = new byte[] { 0xFF };
         var ack = await _queries.QueueStreamMessageAsync(clusterOptions.ServiceId, providerId, queueId, payload, streamOptions.ExpiryTimeout.TotalSecondsCeiling());
 
-        // - 安排将信件解排并立即提供
+        // 准备 - 将消息出队并使其立即可再次投递
         await _queries.GetStreamMessagesAsync(
             ack.ServiceId,
             ack.ProviderId,
@@ -212,17 +212,17 @@ public abstract class AdoNetStreamFailureHandlerTests(string invariant) : IAsync
             streamOptions.EvictionInterval.TotalSecondsCeiling(),
             streamOptions.EvictionBatchSize);
 
-        // - 清理最大尝试的操作, 这样上面的信息会被标记
+        // 执行 - 以最大尝试次数为 1 执行清理，使上述消息被标记
         await handler.OnDeliveryFailure(GuidId.GetNewGuidId(), providerId, streamId, new EventSequenceTokenV2(positions.Add(ack.MessageId)));
 
-        // 平面
+        // 验证
         Assert.Empty(await _storage.ReadAsync<AdoNetStreamDeadLetter>(
             "SELECT * FROM OrleansStreamDeadLetter",
             TestContext.Current.CancellationToken));
     }
 
     /// <summary>
-    /// 测试一个 <see cref="AdoNetStreamFailureHandler"/> 在其位置不再稳定时单独留下一条消息。
+    /// 测试 <see cref="AdoNetStreamFailureHandler"/> 在无法再解析消息位置时是否保持该消息不变。
     /// </summary>
     [Fact]
     public async Task AdoNetStreamFailureHandler_OnDeliveryFailure_SkipsRemovedPosition()

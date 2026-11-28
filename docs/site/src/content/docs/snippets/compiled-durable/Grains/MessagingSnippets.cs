@@ -113,7 +113,7 @@ public sealed class StockLevelGrain(
 
     private async ValueTask HandleRestockAsync(Restock message, IInboxHandlerContext context, CancellationToken cancellationToken)
     {
-        // 承诺以 grain 请求方式运行, 所以它等待当前 grain 的调用并排除其他请求 。
+        // 提交作为 Grain 请求运行，因此它等待当前 Grain 调用结束，并与其他调用互斥。
         await this.RunRequestAsync(_ =>
         {
             stock.Value = checked(stock.Value + message.Quantity);

@@ -12,7 +12,7 @@ public sealed class MyFilteredGrain
     {
         await context.Invoke();
 
-        // 电话从7次改为38次。
+        // 将调用结果从 7 改为 38。
         if (string.Equals(
             context.InterfaceMethod.Name,
             nameof(IMyFilteredGrain.GetFavoriteNumber),
@@ -35,7 +35,7 @@ public sealed class AuthorizeGrainCallAttribute(string policy) : Attribute
 
 public interface ITrustedCallerIdentityAccessor
 {
-    // 使用由可信赖的东道主/过滤基础设施确定的身份来实施此功能。
+    // 使用可信的宿主或筛选器基础设施建立的身份来实现此逻辑。
     ClaimsPrincipal? Caller { get; }
 }
 

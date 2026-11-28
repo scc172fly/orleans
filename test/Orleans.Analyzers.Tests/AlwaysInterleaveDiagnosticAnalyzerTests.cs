@@ -5,9 +5,9 @@ using Xunit;
 namespace Analyzers.Tests
 {
     /// <summary>
-    /// AlwaysInterleaveDiagnosticAnalyzer 的测试,确保[AlwaysInterleave]属性
-    /// 仅用于 grain 接口方法,而不是 grain 执行方法。属性必须是
-    /// 在所有执行中正确配置连接行为。
+    /// 测试 AlwaysInterleaveDiagnosticAnalyzer，该分析器确保 [AlwaysInterleave] 特性
+    /// 仅用于 Grain 接口的方法，而非 Grain 实现的方法。必须在接口上
+    /// 声明此特性，以便为所有实现正确配置交错执行行为。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Analyzer")]
     [TestSuite("BVT")]
@@ -19,7 +19,7 @@ namespace Analyzers.Tests
             => base.GetDiagnosticsAsync(source, extraUsings.Concat(new[] { "Orleans.Concurrency" }).ToArray());
 
         /// <summary>
-        /// 证明在[AlwaysInterleave]属性完全未使用时,没有报告诊断。
+        /// 验证完全不使用 [AlwaysInterleave] 特性时不会报告诊断。
         /// </summary>
         [Fact]
         public async Task AlwaysInterleave_Analyzer_NoWarningsIfAttributeIsNotUsed() => await this.AssertNoDiagnostics(@"
@@ -30,8 +30,8 @@ class C
 ");
 
         /// <summary>
-        /// 证明当[AlwaysInterleave]属性正确用于 grain 接口方法时,没有报告诊断结果。
-        /// 这是属性的正确使用模式 。
+        /// 验证在 Grain 接口方法上正确使用 [AlwaysInterleave] 特性时不会报告诊断。
+        /// 这是该特性的正确使用方式。
         /// </summary>
         [Fact]
         public async Task AlwaysInterleave_Analyzer_NoWarningsIfAttributeIsUsedOnInterface() => await this.AssertNoDiagnostics(@"
@@ -43,9 +43,9 @@ public interface I : IGrain
 ");
 
         /// <summary>
-        /// 证明在错误使用 [AlwaysInterleave] 属性时报告诊断错误
-        /// 而不是接口方法,在 grain 执行方法上实施。这是一个错误,因为中断
-        /// 必须在界面级别指定行为。
+        /// 验证错误使用 [AlwaysInterleave] 特性时会报告诊断错误，
+        /// 即将其应用于 Grain 实现方法而不是接口方法时。这属于错误，因为交错执行
+        /// 行为必须在接口层级指定。
         /// </summary>
         [Fact]
         public async Task AlwaysInterleave_Analyzer_WarningIfAttributeisUsedOnGrainClass()

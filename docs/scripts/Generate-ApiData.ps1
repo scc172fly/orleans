@@ -1,7 +1,7 @@
-# 根据一项或多项协定获得 .NET 基金会许可证。
-# 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
+# Licensed to the .NET Foundation under one or more agreements.
+# The .NET Foundation licenses this file to you under the MIT license.
 #
-# 由微软/aspire.dev生产包装json.ps1 年
+# Adapted from microsoft/aspire.dev's generate-package-json.ps1 at
 # 9aa68083af47da79b63bc15b80f44c1927bf9c08.
 
 #requires -Version 7.0
@@ -273,7 +273,7 @@ try {
             @($evaluation.Properties.TargetFramework)
         }
 
-        # 仅针对净111.0的项目记录其净额111.0的建设。
+        # 仅面向 net11.0 的项目以其 net11.0 构建结果生成文档。
         if ($TargetFramework -in $frameworks) {
             $projectFramework = $TargetFramework
         }

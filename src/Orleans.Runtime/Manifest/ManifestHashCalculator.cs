@@ -21,7 +21,7 @@ internal static class ManifestHashCalculator
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         AppendInt32(hash, EncodingVersion);
 
-        // 固定区/实地订单、收集计数和价值长度将划为输入的金刚石。
+        // 固定的节和字段顺序、集合计数以及值长度界定规范化输入的边界。
         AppendInt32(hash, manifest.Grains.Count);
         foreach (var grain in manifest.Grains.OrderBy(static entry => entry.Key))
         {

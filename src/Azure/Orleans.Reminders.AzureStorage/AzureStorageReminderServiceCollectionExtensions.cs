@@ -7,21 +7,21 @@ using Orleans.Runtime.ReminderService;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// <see cref="IServiceCollection"/> 扩展。
+    /// <see cref="IServiceCollection"/> 的扩展方法。
     /// </summary>
     public static class AzureStorageReminderServiceCollectionExtensions
     {
         /// <summary>
-        /// 添加由 Azure 表存储支持的提醒存储。
+        /// 添加由 Azure Table Storage 支持的提醒器存储。
         /// </summary>
         /// <param name="services">
-        /// 服务收藏
+        /// 服务集合。
         /// </param>
         /// <param name="configure">
-        /// 代表用于配置提醒存储器 。
+        /// 用于配置提醒器存储的委托。
         /// </param>
         /// <returns>
-        /// 提供的情况 <see cref="IServiceCollection"/>用来绑链
+        /// 提供的 <see cref="IServiceCollection"/>，用于链式调用。
         /// </returns>
         public static IServiceCollection UseAzureTableReminderService(this IServiceCollection services, Action<AzureTableReminderStorageOptions> configure)
         {
@@ -33,16 +33,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 添加由 Azure 表存储支持的提醒存储。
+        /// 添加由 Azure Table Storage 支持的提醒器存储。
         /// </summary>
         /// <param name="services">
-        /// 服务收藏
+        /// 服务集合。
         /// </param>
         /// <param name="configureOptions">
-        /// 组合代表
+        /// 配置委托。
         /// </param>
         /// <returns>
-        /// 提供的情况 <see cref="IServiceCollection"/>用来绑链
+        /// 提供的 <see cref="IServiceCollection"/>，用于链式调用。
         /// </returns>
         public static IServiceCollection UseAzureTableReminderService(this IServiceCollection services, Action<OptionsBuilder<AzureTableReminderStorageOptions>> configureOptions)
         {
@@ -55,16 +55,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 添加由 Azure 表存储支持的提醒存储。
+        /// 添加由 Azure Table Storage 支持的提醒器存储。
         /// </summary>
         /// <param name="services">
-        /// 服务收藏
+        /// 服务集合。
         /// </param>
         /// <param name="connectionString">
-        /// 存储连接字符串
+        /// 存储连接字符串。
         /// </param>
         /// <returns>
-        /// 提供的情况 <see cref="IServiceCollection"/>用来绑链
+        /// 提供的 <see cref="IServiceCollection"/>，用于链式调用。
         /// </returns>
         public static IServiceCollection UseAzureTableReminderService(this IServiceCollection services, string connectionString)
         {

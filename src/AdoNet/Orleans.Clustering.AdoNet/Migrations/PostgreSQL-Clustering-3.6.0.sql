@@ -1,8 +1,8 @@
--- 运行此迁移以更新 PostgreSQL 群集表格和3.6.0之前创建的部署程序
+-- 运行此迁移脚本，为 3.6.0 之前创建的部署升级 PostgreSQL 集群成员表和例程。
 
 BEGIN;
 
--- 更改日期类型
+-- 更改日期时间类型。
 
 ALTER TABLE OrleansMembershipVersionTable
 ALTER COLUMN Timestamp TYPE TIMESTAMPTZ(3) USING Timestamp AT TIME ZONE 'UTC';
@@ -11,7 +11,7 @@ ALTER TABLE OrleansMembershipTable
 ALTER COLUMN StartTime TYPE TIMESTAMPTZ(3) USING StartTime AT TIME ZONE 'UTC',
 ALTER COLUMN IAmAliveTime TYPE TIMESTAMPTZ(3) USING IAmAliveTime AT TIME ZONE 'UTC';
 
--- 重建常规
+-- 重新创建例程。
 
 CREATE OR REPLACE FUNCTION update_i_am_alive_time(
     deployment_id OrleansMembershipTable.DeploymentId%TYPE,
@@ -22,8 +22,8 @@ CREATE OR REPLACE FUNCTION update_i_am_alive_time(
   RETURNS void AS
 $func$
 BEGIN
-    -- 预计这永远不会失败 Orleans, 所以返回值
-    -- 不需要也无需检查。
+    -- Orleans 预期此操作永远不会失败，因此不需要返回值，
+    -- 也不会检查返回值。
     UPDATE OrleansMembershipTable as d
     SET
         IAmAliveTime = i_am_alive_time

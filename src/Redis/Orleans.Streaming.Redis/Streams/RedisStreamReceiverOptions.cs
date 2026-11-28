@@ -8,22 +8,22 @@ namespace Orleans.Configuration;
 public sealed class RedisStreamReceiverOptions
 {
     /// <summary>
-    /// Redis 流信息字段名称 。
+    /// Redis 流消息字段名称。
     /// </summary>
     public string FieldName { get; set; } = DefaultFieldName;
 
     /// <summary>
-    /// 默认 Redis 流信息字段名称。
+    /// 默认的 Redis 流消息字段名称。
     /// </summary>
     public const string DefaultFieldName = "payload";
 
     /// <summary>
-    /// 单读操作中从 Redis 获取条目数 。
+    /// 单次读取操作从 Redis 获取的条目数量。
     /// </summary>
     public int ReadCount { get; set; } = DefaultReadCount;
 
     /// <summary>
-    /// 在单个读操作中从 Redis 获取的默认条目数。
+    /// 单次读取操作从 Redis 获取的默认条目数量。
     /// </summary>
     public const int DefaultReadCount = 1000;
 }

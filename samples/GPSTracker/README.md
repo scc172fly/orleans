@@ -5,90 +5,90 @@ products:
 - dotnet
 - dotnet-orleans
 page_type: sample
-name: "Orleans GPS device tracker sample"
+name: "Orleans GPS 设备追踪示例"
 urlFragment: "orleans-gps-device-tracker-sample"
-description: "Orleans 样本表明如何使用全球定位系统设备跟踪器。"
+description: "演示如何使用 GPS 设备追踪器的 Orleans 示例。"
 ---
 
 <a id="orleans-gps-device-tracker-sample-app"></a>
 
-# Orleans GPS 设备追踪器样本应用
+# Orleans GPS 设备追踪示例应用
 
-该样本显示在地图上跟踪GPS装备的 IoT 装置的服务。设备位置使用 SignalR 近实时更新,因此该样本显示了将 Orleans 与 SignalR合并的一种方法。设备更新来自一个 *装置网关*,实施时采用了一个单独的程序,它连接主服务,模拟了以假冒方式在旧金山附近移动的若干装置。
+本示例演示在地图上追踪配备 GPS 的物联网设备的服务。设备位置使用 SignalR 近乎实时地更新，因此本示例也演示 Orleans 与 SignalR 集成的一种方式。设备更新来自*设备网关*，该网关由独立进程实现，连接主服务并模拟多个设备在旧金山的某个区域内以伪随机方式移动。
 
-![GPS 跟踪器的地图视图](screenshot.jpeg)
+![GPS 追踪器的地图视图](screenshot.jpeg)
 
-整个系统的数据流动情况如下:
+数据在系统内按以下方式流动：
 
-* 一个设备网关向每个设备发送定期位置更新 `DeviceGrain`
-* `DeviceGrain` 更新单吨 `PushNotifierGrain` , 并更新其位置
-* 下 `PushNotifierGrain` 将这些更新集成批次,并推至 `IRemoteLocationHub` 定期投票发现单吨 `HubListGrain`
-* `HubListGrain` 维持一份载有 `IRemoteLocationHub` 连接到 Orleans 组群
-* 每个主机都有一个 `HubListUpdater` 实例,用于执行 [`BackgroundService`](https://docs.microsoft.com/aspnet/core/fundamentals/host/hosted-services#backgroundservice-base-class) 并定期更新 `HubListGrain` ,并参照其本地 `IRemoteLocationHub` 参考。
-* 下 `RemoteLocationHub` 执行工具的类 `IRemoteLocationHub` 具有 [`IHubContext<LocationHub>`](https://docs.microsoft.com/aspnet/core/signalr/hubcontext) 将信息输入到其构建器中。 这样它就可以向连接到 `LocationHub`.
+* 设备网关定期向每个设备对应的 `DeviceGrain` 发送位置更新
+* `DeviceGrain` 将其位置更新到单例 `PushNotifierGrain`
+* `PushNotifierGrain` 将这些更新收集成批次，并推送至通过定期轮询单例 `HubListGrain` 发现的 `IRemoteLocationHub` 实例
+* `HubListGrain` 维护一个列表，包含每个连接至 Orleans 集群的宿主的 `IRemoteLocationHub` 引用
+* 每个宿主拥有一个 `HubListUpdater` 实例，它实现 [`BackgroundService`](https://docs.microsoft.com/aspnet/core/fundamentals/host/hosted-services#backgroundservice-base-class)，并定期将本地 `IRemoteLocationHub` 引用更新到 `HubListGrain`。
+* 实现 `IRemoteLocationHub` 的 `RemoteLocationHub` 类通过构造函数注入 [`IHubContext<LocationHub>`](https://docs.microsoft.com/aspnet/core/signalr/hubcontext) 实例，使其能够向连接到 `LocationHub` 的 Web 客户端发送消息。
 
-以下图表是上述说明的缩写:
+下图展示了上述描述：
 
-![显示整个系统数据流的图表](./dataflow.png)
+![系统内的数据流向示意图](./dataflow.png)
 
-下面的例子说明了这个方法如何与多个主机和浏览器一起看。 `PushNotifierGrain` 和 `HubListGrain` 单吨为单吨,因此其中每个实例都有一个。 grains 与集共享。 grains 中 Orleans 只有一个 grain 访问特定类型,例如总是用键调用实例 `0` 或 `Guid.Empty` 或某些其他固定价值,视 grain 是 `IGrainWithIntegerKey` 或 `IGrainWithGuidKey`例如,每个 `DeviceGrain` 获得一个实例 `IPushNotifierGrain` 与id 和 `0`:
+以下示例展示多个宿主和许多浏览器时可能的情况。注意，`PushNotifierGrain` 和 `HubListGrain` 是单例，因此集群共享各自唯一的 Grain 实例。单例 Grain 是 Orleans 中的一种模式，即对给定类型只访问一个 Grain，例如始终调用键为 `0`、`Guid.Empty` 或其他固定值的实例，具体取决于 Grain 是 `IGrainWithIntegerKey` 还是 `IGrainWithGuidKey`。例如，每个 `DeviceGrain` 获取 ID 为 `0` 的 `IPushNotifierGrain` 实例：
 
 ```csharp
 var notifier = GrainFactory.GetGrain<IPushNotifierGrain>(0);
 ```
 
-![显示多个主机的图表, 上面分布着粮食](./example.png)
+![多个宿主及分布于其间的 Grain 示意图](./example.png)
 
 <a id="sample-prerequisites"></a>
 
-## 抽样的前提条件
+## 示例先决条件
 
-本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
+本示例使用 C# 编写，以 .NET 10 为目标框架。需要 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本。
 
 <a id="building-the-sample"></a>
 
-## 建立样本
+## 构建示例
 
-下载和运行样本时,请遵循以下步骤:
+若要下载并运行示例，请执行以下步骤：
 
-1. 下载并解开样本的平面
-2. 视觉演播室(2022年或以后):
-    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
-    2. 打开解压后的示例目录，再打开其中的 C# 项目文件（`.csproj`）。
-    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 直接运行。
-3. 从命令行 :
-   1. 导航到持有未设偏移样本代码的文件夹 。
-   2. 在命令行,类型 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
+1. 下载并解压示例。
+2. 在 Visual Studio（2022 或更高版本）中：
+    1. 在菜单栏中选择**文件** > **打开** > **项目/解决方案**。
+    2. 导航到解压后的示例代码所在文件夹，并打开 C# 项目（.csproj）文件。
+    3. 按 <kbd>F5</kbd> 进行调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 无调试运行项目。
+3. 通过命令行：
+   1. 导航到解压后的示例代码所在文件夹。
+   2. 在命令行中输入 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
 
-打开三个终端窗口。在第一个终端窗口中,命令提示时运行以下操作:
+打开三个终端窗口。在第一个终端窗口的命令提示符中运行以下命令：
 
 ```dotnetcli
 dotnet run --project GPSTracker.Service
 ```
 
-在第二个终端中,再发射一个主机实例,通过传递以下 `InstanceId` 值来说明它是第二个主机:
+在第二个终端中启动另一个宿主实例，按如下方式传入 `InstanceId` 值，将其指定为第二个宿主：
 
 ```dotnetcli
 dotnet run --project GPSTracker.Service -- --InstanceId 1
 ```
 
-现在打开一个 `http://localhost:5001/index.html`的网络浏览器。 到此点, 在地图周围将没有移动的点 。
+现在通过 Web 浏览器打开 `http://localhost:5001/index.html`。此时地图上还没有移动的点。
 
-在第三个终端窗口中,在命令提示处运行以下操作以启动模拟设备:
+在第三个终端窗口的命令提示符中运行以下命令，开始模拟设备：
 
 ```dotnetcli
 dotnet run --project GPSTracker.FakeDeviceGateway
 ```
 
-点将出现在地图上的 Web 浏览器中,并随机在区域周围移动。
+Web 浏览器中的地图上会出现圆点，并开始在该区域内随机移动。
 
 <a id="orleans-observability"></a>
 
-## Orleans 易观测
+## Orleans 可观测性
 
-如果你对可观察性感兴趣, 这个样本包括一些选择性的伐木、测量和分布式追踪。
+如果关注可观测性，本示例包含可选的日志记录、指标和分布式跟踪功能。
 
-进口 `grafana_dash.json` 启动小组和 grain- 每一排放实例的类型系列:当前人口使用测量速记片,而生命周期的吞吐量则使用反比率或反增长。 Grains 以卡尼基调计的当前气相测量 `grain_type`显示的年长 Orleans 使用CLR的量度 `type` 和名称 `legacy CLR` 用于支持样本已公布的软件包和混合版本升级的图例。 grain- 将这两个方案合并成单一类型总数之前的登记类型。
+将 `grafana_dash.json` 导入 Grafana 以查看 Prometheus 指标。激活面板按每个发出指标的实例汇总 Grain 类型时间序列：当前存量使用仪表快照，生命周期吞吐量使用计数器速率或增量。Grains 面板按规范 `grain_type` 对当前架构的指标分组。它还展示旧版 Orleans 指标，使用其 CLR `type` 名称和 `legacy CLR` 图例，支持本示例已发布的包及混合版本升级。在将这两种指标架构合并为单个类型级总量之前，请将旧版 CLR 名称映射到规范的 Grain 类型注册。
 
 ```docker
 docker run -p 9090:9090 --mount type=bind,source="${PWD}/prometheus.yml",target=/etc/prometheus/prometheus.yml prom/prometheus
@@ -98,7 +98,7 @@ docker run -p 9090:9090 --mount type=bind,source="${PWD}/prometheus.yml",target=
 docker run -d --name jaeger -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -p 5775:5775/udp -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 14268:14268 -p 14250:14250 -p 9411:9411 jaegertracing/all-in-one:1.22
 ```
 
-OR 拉链金:
+或使用 Zipkin：
 
 ```docker
 docker run -p 9411:9411 openzipkin/zipkin

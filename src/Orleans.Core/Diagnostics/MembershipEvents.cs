@@ -6,83 +6,83 @@ using Orleans.Runtime;
 namespace Orleans.Core.Diagnostics;
 
 /// <summary>
-/// 为 Orleans 会员活动提供诊断听众和事件有效载荷类型。
+/// 提供 Orleans 成员资格事件的诊断侦听器和事件有效载荷类型。
 /// </summary>
 /// <remarks>
-/// 这些类型是公开的,但可能在不同版本之间发生变化。
-/// 模拟测试和诊断等先进假设情景。
+/// 这些类型是公开的，但可能随次要版本更新而变化。它们用于
+/// 模拟测试和诊断等高级场景。
 /// </remarks>
 internal static class MembershipEvents
 {
     /// <summary>
-    /// 会员活动诊断听众的姓名。
+    /// 成员资格事件的诊断侦听器名称。
     /// </summary>
     public const string ListenerName = "Orleans.Membership";
 
     private static readonly DiagnosticListener Listener = new(ListenerName);
 
     /// <summary>
-    /// 获得所有会员活动的可观测序列。
+    /// 获取包含所有成员资格事件的可观察序列。
     /// </summary>
     public static IObservable<MembershipEvent> AllEvents { get; } = new Observable();
 
     /// <summary>
-    /// 用于成员诊断活动的基本等级。
+    /// 成员资格诊断事件所使用的基类。
     /// </summary>
     public abstract class MembershipEvent
     {
     }
 
     /// <summary>
-    /// 当会籍视图改变时的事件有效载荷 。
+    /// 成员资格视图发生变化时的事件有效载荷。
     /// </summary>
-    /// <param name="snapshot">新的成员快照。</param>
-    /// <param name="observerSiloAddress">大会主席的地址 silo 也注意到这一变化。</param>
+    /// <param name="snapshot">新的成员资格快照。</param>
+    /// <param name="observerSiloAddress">观察到此变更的 Silo 地址。</param>
     public sealed class ViewChanged(
         MembershipTableSnapshot snapshot,
         SiloAddress? observerSiloAddress) : MembershipEvent
     {
         /// <summary>
-        /// 新的成员快照。
+        /// 新的成员资格快照。
         /// </summary>
         public readonly MembershipTableSnapshot Snapshot = snapshot;
 
         /// <summary>
-        /// 观察到这一变化的 silo 地址。
+        /// 观察到此变更的 Silo 地址。
         /// </summary>
         public readonly SiloAddress? ObserverSiloAddress = observerSiloAddress;
     }
 
     /// <summary>
-    /// 嫌疑犯或杀人请求的类型
+    /// 怀疑或宣告死亡请求的类型。
     /// </summary>
     public enum SuspectOrKillRequestType
     {
         /// <summary>
-        /// 未知的请求类型 。
+        /// 未知请求类型。
         /// </summary>
         Unknown = 0,
 
         /// <summary>
-        /// 要求怀疑 silo 或宣布其死亡。
+        /// 怀疑某个 Silo 或宣告其死亡的请求。
         /// </summary>
         SuspectOrKill,
 
         /// <summary>
-        /// 请求宣布 silo 死亡。
+        /// 宣告某个 Silo 死亡的请求。
         /// </summary>
         Kill
     }
 
     /// <summary>
-    /// 当嫌疑人或杀人请求完成时, 事件有效载荷。
+    /// 怀疑或宣告死亡请求完成时的事件有效载荷。
     /// </summary>
-    /// <param name="observerSiloAddress">下 silo 处理过请求。</param>
-    /// <param name="siloAddress">下 silo 请求所针对的对象。</param>
-    /// <param name="otherSiloAddress">与请求有关的其他 silo ,如果有的话。</param>
+    /// <param name="observerSiloAddress">处理该请求的 Silo。</param>
+    /// <param name="siloAddress">请求所针对的 Silo。</param>
+    /// <param name="otherSiloAddress">与请求关联的另一个 Silo（如果存在）。</param>
     /// <param name="requestType">请求类型。</param>
-    /// <param name="success">请求是否成功完成 。</param>
-    /// <param name="exception">请求提出的例外,如果有的话。</param>
+    /// <param name="success">请求是否成功完成。</param>
+    /// <param name="exception">请求抛出的异常（如果存在）。</param>
     public sealed class SuspectOrKillRequestCompleted(
         SiloAddress observerSiloAddress,
         SiloAddress siloAddress,
@@ -92,17 +92,17 @@ internal static class MembershipEvents
         Exception? exception) : MembershipEvent
     {
         /// <summary>
-        /// 处理请求的 silo 。
+        /// 处理该请求的 Silo。
         /// </summary>
         public readonly SiloAddress ObserverSiloAddress = observerSiloAddress;
 
         /// <summary>
-        /// 请求所针对的 silo 。
+        /// 请求所针对的 Silo。
         /// </summary>
         public readonly SiloAddress SiloAddress = siloAddress;
 
         /// <summary>
-        /// 另一 silo 与请求有关联(如果有的话)。
+        /// 与请求关联的另一个 Silo（如果存在）。
         /// </summary>
         public readonly SiloAddress? OtherSiloAddress = otherSiloAddress;
 
@@ -112,12 +112,12 @@ internal static class MembershipEvents
         public readonly SuspectOrKillRequestType RequestType = requestType;
 
         /// <summary>
-        /// 请求是否成功完成 。
+        /// 请求是否成功完成。
         /// </summary>
         public readonly bool Success = success;
 
         /// <summary>
-        /// 请求提出的例外,如果有的话。
+        /// 请求抛出的异常（如果存在）。
         /// </summary>
         public readonly Exception? Exception = exception;
     }

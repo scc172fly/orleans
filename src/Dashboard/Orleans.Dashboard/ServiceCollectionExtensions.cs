@@ -26,17 +26,17 @@ using Orleans.Configuration.Internal;
 namespace Orleans.Dashboard;
 
 /// <summary>
-/// 提供配置和整合 Orleans 板的扩展方法。
+/// 提供配置和集成 Orleans Dashboard 的扩展方法。
 /// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 Orleans 向 silo 建筑商
+    /// 将 Orleans Dashboard 服务添加到 Silo 构建器。
     /// </summary>
-    /// <param name="siloBuilder">下 silo 建筑商</param>
-    /// <param name="configureOptions">用于 <see cref="DashboardOptions"/>.</param>
-    /// <returns>下 silo 方法链的建筑工。</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="siloBuilder"/> 无效。</exception>
+    /// <param name="siloBuilder">Silo 构建器。</param>
+    /// <param name="configureOptions">用于配置 <see cref="DashboardOptions"/> 的可选操作。</param>
+    /// <returns>用于链式调用的 Silo 构建器。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="siloBuilder"/> 为 null。</exception>
     public static ISiloBuilder AddDashboard(this ISiloBuilder siloBuilder, Action<DashboardOptions>? configureOptions = null)
     {
         ArgumentNullException.ThrowIfNull(siloBuilder);
@@ -82,13 +82,13 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 地图图地图 Orleans 使用板头端点 ASP.NET 核心最低年度宣传单。
-    /// 返回的路线组支持认证、授权和其他端点配置。
+    /// 使用 ASP.NET Core 最小 API 映射 Orleans Dashboard 端点。
+    /// 返回的路由组支持身份验证、授权以及其他端点配置。
     /// </summary>
-    /// <param name="endpoints">应用程序的端点路由建设器。</param>
-    /// <param name="routePrefix">仪表板端点的可选基线。</param>
-    /// <returns>仪表板路由组。</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="endpoints"/> 无效。</exception>
+    /// <param name="endpoints">应用程序的端点路由构建器。</param>
+    /// <param name="routePrefix">Dashboard 端点的可选基础路由。</param>
+    /// <returns>Dashboard 路由组。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="endpoints"/> 为 null。</exception>
     /// <example>
     /// <code>
     /// // 基本用法
@@ -97,7 +97,7 @@ public static class ServiceCollectionExtensions
     /// // 使用身份验证
     /// app.MapOrleansDashboard().RequireAuthorization();
     ///
-    /// // 使用自定义基路径
+    /// // 使用自定义基础路径
     /// app.MapOrleansDashboard(routePrefix: "/dashboard");
     /// </code>
     /// </example>
@@ -106,22 +106,22 @@ public static class ServiceCollectionExtensions
         [StringSyntax("Route")] string? routePrefix = null)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
-        // 创建静态资产提供商
+        // 创建静态资源提供程序。
         var assets = endpoints.ServiceProvider.GetService<EmbeddedAssetProvider>()
             ?? throw new InvalidOperationException("Orleans Dashboard services have not been registered. " +
                 "Please call AddDashboard on ISiloBuilder or IClientBuilder.");
 
-        // 为所有仪表板端点创建一个路径组
+        // 为所有 Dashboard 端点创建路由组。
         var group = endpoints.MapGroup(routePrefix ?? "");
 
-        // 静态资产 - 这些符合在已建 CSS/HTML 中引用的路径
-        // 当指定了 routePrefix 时,将请求重定向而不留下尾巴以包括它。
-        // 这确保了相对资产路径(如 index.min.js)的解决正确。
+        // 静态资源：与构建后的 CSS/HTML 中引用的路径一致。
+        // 指定 routePrefix 时，将不带尾部斜杠的请求重定向为包含尾部斜杠的请求。
+        // 这可以确保相对资源路径（例如 index.min.js）正确解析。
         group.MapGet("/", (HttpContext ctx) =>
         {
             if (!string.IsNullOrEmpty(routePrefix) && ctx.Request.Path.Value?.EndsWith('/') == false)
             {
-                // 使用尾行斜线重定向到相同的路径, 保存查询字符串
+                // 重定向到带尾部斜杠的相同路径，并保留查询字符串。
                 var redirectUrl = $"{ctx.Request.PathBase}{ctx.Request.Path}/{ctx.Request.QueryString}";
                 return Results.Redirect(redirectUrl, permanent: true);
             }
@@ -132,13 +132,13 @@ public static class ServiceCollectionExtensions
         group.MapGet("/index.min.js", (HttpContext ctx) => assets.ServeAsset("index.min.js", ctx));
         group.MapGet("/index.css", (HttpContext ctx) => assets.ServeAsset("index.css", ctx));
 
-        // 字体文件 - /fonts/ 目录的全抓图路径
+        // 字体文件：/fonts/ 目录的通配路由。
         group.MapGet("/fonts/{**path}", (string path, HttpContext ctx) => assets.ServeAsset($"fonts.{path}", ctx));
 
-        // 图像文件 - /img/ 目录的全抓图路径
+        // 图像文件：/img/ 目录的通配路由。
         group.MapGet("/img/{**path}", (string path, HttpContext ctx) => assets.ServeAsset($"img.{path}", ctx));
 
-        // API 终点
+        // API 端点
         var jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -388,7 +388,7 @@ public static class ServiceCollectionExtensions
         }
         catch
         {
-            // 如果提醒未配置, 返回空响应
+            // 如果未配置提醒器，则返回空响应。
             return Results.Json(new ReminderResponse { Reminders = [], Count = 0 }, jsonOptions);
         }
     }
@@ -437,13 +437,13 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 Orleans 向 Orleans 客户端构建器
-    /// 允许您主机 Orleans 键 Orleans 客户端,只要 silos 还将仪表板加进。
+    /// 将 Orleans Dashboard 服务添加到 Orleans 客户端构建器。
+    /// 只要 Silo 也已添加 Dashboard，就可以在 Orleans 客户端上托管 Orleans Dashboard 应用程序。
     /// </summary>
     /// <param name="clientBuilder">客户端构建器。</param>
-    /// <param name="configureOptions">用于 <see cref="DashboardOptions"/>.</param>
-    /// <returns>用于方法链的客户端构建器。</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="clientBuilder"/> 无效。</exception>
+    /// <param name="configureOptions">用于配置 <see cref="DashboardOptions"/> 的可选操作。</param>
+    /// <returns>用于链式调用的客户端构建器。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="clientBuilder"/> 为 null。</exception>
     public static IClientBuilder AddDashboard(this IClientBuilder clientBuilder, Action<DashboardOptions>? configureOptions = null)
     {
         ArgumentNullException.ThrowIfNull(clientBuilder);

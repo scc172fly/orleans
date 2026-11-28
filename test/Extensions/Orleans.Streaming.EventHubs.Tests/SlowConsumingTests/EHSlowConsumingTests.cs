@@ -13,7 +13,7 @@ using Xunit;
 namespace ServiceBus.Tests.SlowConsumingTests
 {
     /// <summary>
-    /// 试验 EventHub 消费者检测和后压算法行为缓慢
+    /// 测试 Event Hub 慢速消费者检测和背压算法的行为。
     /// </summary>
     [TestCategory("EventHub"), TestCategory("Streaming")]
     [TestSuite("Functional")]
@@ -82,10 +82,10 @@ namespace ServiceBus.Tests.SlowConsumingTests
             var slowConsumerStopped = false;
             try
             {
-                //设置一个慢速消费者 grain
+                //设置一个慢速消费者 Grain
                 await slowConsumer.BecomeConsumer(streamGuid, StreamNamespace, StreamProviderName);
 
-                //设置30个健康消费者 grain ,以显示我们多么喜欢慢消费消费者
+                //设置 30 个正常的消费者 Grain，以展示对慢速消费者的倾斜程度
                 int healthyConsumerCount = 30;
                 healthyConsumers = await SetUpHealthyConsumerGrain(
                     this.fixture.GrainFactory,
@@ -95,7 +95,7 @@ namespace ServiceBus.Tests.SlowConsumingTests
                     healthyConsumerCount,
                     testCancellationToken);
 
-                //配置数据生成器,用于流并开始制作
+                //配置流的数据生成器并开始生产数据
                 var randomStreamPlacementArg = new EventDataGeneratorAdapterFactory.StreamRandomPlacementArg(streamId, this.seed.Next(100));
                 await mgmtGrain.SendControlCommandToProvider<PersistentStreamProvider>(StreamProviderName,
                     (int)EventDataGeneratorAdapterFactory.Commands.Randomly_Place_Stream_To_Queue,
@@ -103,17 +103,17 @@ namespace ServiceBus.Tests.SlowConsumingTests
                     testCancellationToken);
                 productionStarted = true;
 
-                //后压算法应该被触发
+                //由于有一个极慢的消费者，应触发背压算法
                 await TestingUtils.WaitUntilAsync(
                     (lastTry, cancellationToken) => AssertCacheBackPressureTriggered(true, lastTry, cancellationToken),
                     timeout,
                     cancellationToken: testCancellationToken);
 
-                //消费者停止消费
+                //使慢速消费者停止消费
                 await slowConsumer.StopConsuming();
                 slowConsumerStopped = true;
 
-                //slowConsumer 停止消费,在下一个检查期应清除后压算法。
+                //slowConsumer 已停止消费，背压状态应在下一个检查周期解除。
                 await Task.Delay(monitorPressureWindowSize, testCancellationToken);
                 await TestingUtils.WaitUntilAsync(
                     (lastTry, cancellationToken) => AssertCacheBackPressureTriggered(false, lastTry, cancellationToken),
@@ -151,7 +151,7 @@ namespace ServiceBus.Tests.SlowConsumingTests
             }
             catch (OperationCanceledException) when (testCancellationToken.IsCancellationRequested)
             {
-                // 保留在受约束的清理后取消原试验。
+                // 在有界清理后保留原始测试的取消状态。
             }
         }
 
@@ -164,7 +164,7 @@ namespace ServiceBus.Tests.SlowConsumingTests
             }
             catch (OperationCanceledException) when (testCancellationToken.IsCancellationRequested)
             {
-                // 保留在受约束的清理后取消原试验。
+                // 在有界清理后保留原始测试的取消状态。
             }
         }
 
@@ -217,12 +217,12 @@ namespace ServiceBus.Tests.SlowConsumingTests
 
         private async Task<bool> IsBackPressureTriggered(CancellationToken cancellationToken)
         {
-            IManagementGrain mgmtGrain = this.fixture.HostedCluster.GrainFactory!.GetGrain<IManagementGrain>(0); // 固定装置会部署客户
+            IManagementGrain mgmtGrain = this.fixture.HostedCluster.GrainFactory!.GetGrain<IManagementGrain>(0); // 测试夹具部署客户端。
             object?[] replies = await mgmtGrain.SendControlCommandToProvider<PersistentStreamProvider>(
                              StreamProviderName, EHStreamProviderWithCreatedCacheListAdapterFactory.IsCacheBackPressureTriggeredCommand, null, cancellationToken);
             foreach (var re in replies)
             {
-                if ((bool)re!) // 命令返回每个 silo的布尔结果。
+                if ((bool)re!) // 此命令从每个 Silo 返回一个布尔结果。
                     return true;
             }
             return false;

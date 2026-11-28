@@ -8,7 +8,7 @@ using Xunit;
 namespace Tester.StreamingTests.BroadcastChannel
 {
     /// <summary>
-    /// 测试广播频道功能,包括多个用户的火和福及非火和福交付模式。
+    /// 测试具有多个订阅者的广播通道功能，包括即发即忘和非即发即忘两种投递模式。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -208,7 +208,7 @@ namespace Tester.StreamingTests.BroadcastChannel
             await stream.Publish(2, cancellationToken);
             await stream.Publish(3, cancellationToken);
 
-            // 3项x2个用户=6个交付
+            // 3 个条目 × 2 个订阅者 = 6 次投递
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(CallTimeout);
             await observer.WaitForDeliveryCountAsync(channelId, 6, providerName: null, cancellationToken: cts.Token);
@@ -256,7 +256,7 @@ namespace Tester.StreamingTests.BroadcastChannel
             await stream.Publish(1, cancellationToken);
             if (fireAndForget)
             {
-                // 1项x2个用户=2个交付
+                // 1 个条目 × 2 个订阅者 = 2 次投递
                 using var cts1 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 cts1.CancelAfter(CallTimeout);
                 await observer.WaitForDeliveryCountAsync(channelId, 2, providerName: null, cancellationToken: cts1.Token);
@@ -268,13 +268,13 @@ namespace Tester.StreamingTests.BroadcastChannel
             if (fireAndForget)
             {
                 await stream.Publish(2, cancellationToken);
-                // 等待良好交货 grain (共计:3个成功交付)
+                // 等待正常 Grain 完成投递（累计成功投递 3 次）。
                 using var cts2 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 cts2.CancelAfter(CallTimeout);
                 await observer.WaitForDeliveryCountAsync(channelId, 3, providerName: null, cancellationToken: cts2.Token);
 
-                // 坏 grain 仍会呼唤(但投球),
-                // 检查台的票数,因为诊断事件无法观察到失败交货。
+                // 异常 Grain 的回调仍会被调用（但会抛出异常），因此不会发出诊断事件。
+                // 轮询计数器，因为诊断事件无法观察到失败的投递。
                 var counter = 0;
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 cts.CancelAfter(CallTimeout);
@@ -294,7 +294,7 @@ namespace Tester.StreamingTests.BroadcastChannel
             await badGrain.ThrowsOnReceive(false);
             await stream.Publish(3, cancellationToken);
 
-            // 等待所有剩余交货:5个总交货数(良好:3个,坏:2)
+            // 等待其余所有投递完成：总计 5 次（正常 Grain 3 次，异常 Grain 2 次）。
             using var ctsFinal = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             ctsFinal.CancelAfter(CallTimeout);
             await observer.WaitForDeliveryCountAsync(channelId, 5, providerName: null, cancellationToken: ctsFinal.Token);

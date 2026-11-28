@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace ServiceBus.Tests.StreamingTests
 {
     /// <summary>
-    /// 测试 EventHub 流- 逐项数据适配器功能。
+    /// 测试 Event Hub 每分区一个流的数据适配器功能。
     /// </summary>
     [TestCategory("EventHub"), TestCategory("Streaming"), TestCategory("Functional")]
     [TestSuite("Functional")]
@@ -102,7 +102,7 @@ namespace ServiceBus.Tests.StreamingTests
                     StreamPerPartitionDataAdapter.GetPartitionGuid(i.ToString()),
                     null!,
                     StreamProviderName,
-                    TestContext.Current.CancellationToken)) // 此测试有意使用空行命名空间。
+                    TestContext.Current.CancellationToken)) // 此测试有意使用 null 流命名空间。
                 .ToList();
             await Task.WhenAll(becomeConsumersTasks);
 
@@ -123,7 +123,7 @@ namespace ServiceBus.Tests.StreamingTests
 
             for (int i = 0; i < eventsInStream; i++)
             {
-                // 每个溪流上的事件
+                // 在每个流上发送事件
                 for (int j = 0; j < streamCount; j++)
                 {
                     await producers[j].OnNextAsync(i);
@@ -140,7 +140,7 @@ namespace ServiceBus.Tests.StreamingTests
 
             if (assertIsTrue)
             {
-                // 每个队列一串
+                // 每个队列对应一个流。
                 Assert.Equal(totalEventCount, counts.Sum());
             }
             else if (totalEventCount != counts.Sum())

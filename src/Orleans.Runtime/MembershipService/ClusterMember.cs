@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 代表一个分组成员。
+    /// 表示集群成员。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class ClusterMember : IEquatable<ClusterMember>, ISpanFormattable
@@ -13,13 +13,13 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="ClusterMember"/> 类的新实例。
         /// </summary>                
         /// <param name="siloAddress">
-        /// silo 地址。
+        /// Silo 地址。
         /// </param>
         /// <param name="status">
-        /// 状态 silo 。
+        /// Silo 状态。
         /// </param>
         /// <param name="name">
-        /// silo 名称。
+        /// Silo 名称。
         /// </param>
         public ClusterMember(SiloAddress siloAddress, SiloStatus status, string name)
             : this(siloAddress, status, name, wasDeclaredDead: false)
@@ -35,23 +35,23 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取 silo 地址。
+        /// 获取 Silo 地址。
         /// </summary>
-        /// <value> silo 地址。</value>
+        /// <value>Silo 地址。</value>
         [Id(0)]
         public SiloAddress SiloAddress { get; }
 
         /// <summary>
-        /// 获取 silo 状态。
+        /// 获取 Silo 状态。
         /// </summary>
-        /// <value> silo 状态。</value>
+        /// <value>Silo 状态。</value>
         [Id(1)]
         public SiloStatus Status { get; }
 
         /// <summary>
-        /// 获取 silo 名称。
+        /// 获取 Silo 名称。
         /// </summary>
-        /// <value> silo 名称。</value>
+        /// <value>Silo 名称。</value>
         [Id(2)]
         public string Name { get; }
 

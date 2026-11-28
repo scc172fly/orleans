@@ -17,7 +17,7 @@ using Orleans.Versions.Selector;
 namespace Orleans.Runtime.Management
 {
     /// <summary>
-    /// Orleans 管理部门 grain的“执行舱”。
+    /// Orleans 管理 Grain 的实现类。
     /// </summary>
     [StatelessWorker, Reentrant]
     internal partial class ManagementGrain : Grain, IManagementGrain
@@ -424,8 +424,8 @@ namespace Orleans.Runtime.Management
             }
             catch (Exception)
             {
-                // 忽略( I) : silos 无法设置新战略的选项
-                // 未来。
+                // 忽略：未能设置新策略的 Silo 将在之后
+                // 从存储中重新加载该策略。
             }
         }
 
@@ -458,15 +458,15 @@ namespace Orleans.Runtime.Management
         }
 
         /// <summary>
-        /// 执行每个 silo的动作。
+        /// 对每个 Silo 执行操作。
         /// </summary>
         /// <remarks>
-        /// 由于 SiloControl 中包含系统目标的引用,因此每种方法使用该引用调用
-        /// 将本地或远程传输到适当的 silo 实例自动磁力。
+        /// 由于 SiloControl 包含系统目标的引用，因此使用该引用发起的每次方法调用
+        /// 都会自动在本地或远程路由到相应的 Silo 实例。
         /// </remarks>
-        /// <param name="siloAddresses">名单清单 silos 采取行动,以采取以下行动:</param>
-        /// <param name="perSiloAction">每种 silo</param>拟履行的动作函数
-        /// <returns>每个包含一个任务任务的矩阵 silo 执行该动作的</returns>
+        /// <param name="siloAddresses">要执行操作的 Silo 列表。</param>
+        /// <param name="perSiloAction">要对每个 Silo 执行的操作函数。</param>
+        /// <returns>数组，为每个执行了操作的 Silo 包含一个 Task。</returns>
         private static List<Task> PerformPerSiloAction(SiloAddress[] siloAddresses, Func<SiloAddress, Task> perSiloAction)
         {
             var requestsToSilos = new List<Task>();

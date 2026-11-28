@@ -4,19 +4,19 @@ using Microsoft.AspNetCore.Http;
 
 namespace Orleans.Durable.Http;
 
-/// <summary>读取 <c>Idempotency-Key</c> 和 <c>Prefer</c> 请求信头 。</summary>
+/// <summary>读取 <c>Idempotency-Key</c> 和 <c>Prefer</c> 请求头。</summary>
 internal static class DurableHttpRequestHeaders
 {
-    /// <summary>字符中最长的键,用字符表示,条形接受。</summary>
+    /// <summary>Stripe 接受的键的最大字符数。</summary>
     public const int MaxIdempotencyKeyLength = 255;
 
     /// <summary>
-    /// 读取请求请求的“应急”密钥,即一个光值或 RFC 9651 字符串,并返回
-    /// <see langword="false"/> ,其中说明信头存在但无效。
+    /// 读取请求的幂等键，其形式为裸值或 RFC 9651 字符串；请求头存在但无效时返回
+    /// <see langword="false"/>，并提供原因说明。
     /// </summary>
-    /// <param name="headers">请求信头。</param>
-    /// <param name="key">键,或 <see langword="null"/> 当请求无任何要求时。</param>
-    /// <param name="error">无效信头的描述。</param>
+    /// <param name="headers">请求头。</param>
+    /// <param name="key">键；若请求未携带键，则为 <see langword="null"/>。</param>
+    /// <param name="error">无效请求头的说明。</param>
     public static bool TryGetIdempotencyKey(IHeaderDictionary headers, out string? key, [NotNullWhen(false)] out string? error)
     {
         key = null;
@@ -58,13 +58,13 @@ internal static class DurableHttpRequestHeaders
     }
 
     /// <summary>
-    /// 返回 <paramref name="operationId"/> 是否是一个有效的操作识别身份: 1 to
-    /// <see cref="MaxIdempotencyKeyLength"/> 打印 ASCII 字符以外的可 <c>/</c>,但除 <c>.</c> 和 <c>..</c>.
+    /// 返回 <paramref name="operationId"/> 是否为有效的操作标识符：长度为 1 至
+    /// <see cref="MaxIdempotencyKeyLength"/> 个可打印 ASCII 字符，不含 <c>/</c>，且不为 <c>.</c> 或 <c>..</c>。
     /// </summary>
     /// <remarks>
-    /// 操作识别标识符是状态监视器的 URL 路径路路段。 ASP.NET Core 将一个逃出 <c>/</c> 放在
-    /// 路径中逃脱了, 而客户端则从路径中删除点段 <c>.</c> 和 <c>..</c> 因此这些识别符号
-    /// 无法处理他们的行动
+    /// 操作标识符是状态监视器 URL 的一个路径段。ASP.NET Core 保持路径段中已转义的 <c>/</c>
+    /// 的转义形式，而客户端会从路径中移除点路径段 <c>.</c> 和 <c>..</c>，因此这些标识符
+    /// 无法正确寻址对应操作。
     /// </remarks>
     public static bool IsValidOperationId(string operationId)
     {
@@ -85,12 +85,12 @@ internal static class DurableHttpRequestHeaders
     }
 
     /// <summary>
-    /// 返回请求 <c>Prefer: wait=N</c> 优先偏爱要求服务器等待结果的时间,最多
-    /// <paramref name="maxWait"/>或 <see cref="TimeSpan.Zero"/> ,如果请求中选择不等待。
+    /// 返回请求的 <c>Prefer: wait=N</c> 偏好要求服务器等待结果的时长，最多为
+    /// <paramref name="maxWait"/>；若请求不希望等待，则返回 <see cref="TimeSpan.Zero"/>。
     /// </summary>
     /// <remarks>
-    /// 服务器不承认或无法分析的优惠被忽略, RFC 7240 要求这样做。
-    /// <c>respond-async</c> 请求在等待结果的情况下作出答复,这是默认的。
+    /// 按照 RFC 7240 的要求，忽略服务器无法识别或解析的偏好。
+    /// <c>respond-async</c> 请求直接响应而不等待结果，这是默认行为。
     /// </remarks>
     public static TimeSpan GetWait(IHeaderDictionary headers, TimeSpan maxWait)
     {

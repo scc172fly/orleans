@@ -7,7 +7,7 @@ using Xunit;
 namespace ServiceBus.Tests.StreamingTests
 {
     /// <summary>
-    /// 测试 EventHub 订阅多种情况,分批处理邮件。
+    /// 测试批量消息处理时 Event Hub 的多重订阅场景。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("EventHub")]
@@ -49,7 +49,7 @@ namespace ServiceBus.Tests.StreamingTests
                                  }));
                                 b.ConfigurePullingAgent(ob => ob.Configure(options =>
                                  {
-                                     // 安装在拖拉机中进行分批
+                                     // 设置拉取代理中的批处理
                                      options.BatchContainerBatchSize = 10;
                                  }));
                                 b.UseDynamicClusterConfigDeploymentBalancer();

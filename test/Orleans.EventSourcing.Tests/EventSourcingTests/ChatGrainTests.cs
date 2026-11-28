@@ -7,7 +7,7 @@ using TestGrains;
 namespace Tester.EventSourcingTests
 {
     /// <summary>
-    /// 事件源聊天的测试 grain 功能包括员额创建、编辑、删除和缩短。
+    /// 测试事件溯源聊天 Grain 的功能，包括帖子的创建、编辑、删除及截断。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

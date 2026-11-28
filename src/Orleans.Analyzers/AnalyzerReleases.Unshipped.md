@@ -4,6 +4,6 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-ORLEANS0026 | Usage | Error | 无效的可引用的基型基本类型映射
-ORLEANS0028 | Usage | Error | 无效的 Orleans 身份
-ORLEANS0014 | Usage | Warning | ConfigureAwaitAnalyzer, Grain 代码不应使用 ConfigureAwait(虚假)或 ConfigureAwait 而不使用 ContinueOnCapturedContext
+ORLEANS0026 | Usage | Error | Invalid invokable base type mapping
+ORLEANS0028 | Usage | Error | Invalid Orleans identity
+ORLEANS0014 | Usage | Warning | ConfigureAwaitAnalyzer, Grain code should not use ConfigureAwait(false) or ConfigureAwait without ContinueOnCapturedContext

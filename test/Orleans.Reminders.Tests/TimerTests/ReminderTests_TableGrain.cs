@@ -1,6 +1,6 @@
 #nullable enable
 
-//以美 日 称 :
+//#define USE_SQL_SERVER
 
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
@@ -35,7 +35,7 @@ namespace UnitTests.TimerTests
     }
 
     /// <summary>
-    /// 试验 grain- 使用现场提醒服务作为表盘储存,以基于原始提醒功能为基础。
+    /// 使用内存提醒器服务作为表存储，测试基于 Grain 的提醒器功能。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -58,7 +58,7 @@ namespace UnitTests.TimerTests
 
             protected override void ConfigureTestCluster(InProcessTestClusterBuilder builder)
             {
-                // 控制阅读测试验证在一个提醒所有人内部订购。
+                // 受控读取测试验证单个提醒器所有者内部的执行顺序。
                 builder.Options.InitialSilosCount = 1;
                 _reminderClock = builder.AddReminderTestClock();
                 builder.ConfigureSilo((_, siloBuilder) =>
@@ -135,7 +135,7 @@ namespace UnitTests.TimerTests
                 .WaitAsync(TestConstants.InitTimeout, TestContext.Current.CancellationToken);
         }
 
-        // 基本测试
+        // 基础测试
 
         [Fact]
         public async Task Fixture_WaitsForReminderStartupTopologyBeforeGrainCalls()
@@ -163,7 +163,7 @@ namespace UnitTests.TimerTests
         }
 
         /// <summary>
-        /// 测试基本提醒操作,包括以提及方式停止提醒。
+        /// 测试基本提醒器操作，包括通过引用停止提醒器。
         /// </summary>
         [Fact]
         public async Task Rem_Grain_Basic_StopByRef()
@@ -172,7 +172,7 @@ namespace UnitTests.TimerTests
         }
 
         /// <summary>
-        /// 测试基本提醒列表操作,包括创建和检索。
+        /// 测试基本提醒器列表操作，包括创建与获取。
         /// </summary>
         [Fact]
         public async Task Rem_Grain_Basic_ListOps()
@@ -181,7 +181,7 @@ namespace UnitTests.TimerTests
         }
 
         /// <summary>
-        /// 每 grain一次测试多次提醒的处理。
+        /// 测试单个 Grain 拥有多个提醒器的处理行为。
         /// </summary>
         [Fact]
         public async Task Rem_Grain_MultipleReminders()
@@ -616,7 +616,7 @@ namespace UnitTests.TimerTests
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
             cts.CancelAfter(TestConstants.InitTimeout);
 
-            // 在注册前订阅, 所以 Sskipp(1) 捕捉第二个勾, 而不是重播第一个勾当 。
+            // 在注册之前订阅，使 Skip(1) 捕获第二次触发，而不是重放第一次触发。
             var secondTickTask = ReminderEvents.AllEvents
                 .OfType<ReminderEvents.TickCompleted>()
                 .Where(e => e.GrainId == grainId && e.ReminderName == reminderName)
@@ -689,7 +689,7 @@ namespace UnitTests.TimerTests
             outage.Release();
             await activatedTask;
             await observer.WaitForLocalReminderScheduleAsync(grainId, reminderName, cts.Token);
-            // 完成提醒服务往返旅行,以便恢复调节工作不能重叠时间推进。
+            // 完成一次提醒器服务往返调用，使恢复协调轮次不会与时间推进发生重叠。
             Assert.NotNull(await grain.GetReminderObject(reminderName).WaitAsync(cts.Token));
 
             var tickTask = observer.WaitForReminderTickAsync(grainId, cts.Token, reminderName);
@@ -744,10 +744,10 @@ namespace UnitTests.TimerTests
             await grain.StopReminder(reminderName).WaitAsync(cts.Token);
         }
 
-        // 单单合并测试... 多个 grain、多提醒
+        // 单次加入测试：多个 Grain、多个提醒器。
 
         /// <summary>
-        /// 测试单项加入多个 grains 和多次提醒的情景。
+        /// 测试多个 Grain、多个提醒器情况下单个 Silo 加入集群的场景。
         /// </summary>
         [Fact]
         public async Task Rem_Grain_1J_MultiGrainMultiReminders()
@@ -756,7 +756,7 @@ namespace UnitTests.TimerTests
         }
 
         /// <summary>
-        /// 检测处理提醒未找到情景 。
+        /// 测试未找到提醒器的场景。
         /// </summary>
         [Fact]
         public async Task Rem_Grain_ReminderNotFounds()

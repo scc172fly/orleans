@@ -10,23 +10,23 @@ using Microsoft.Extensions.Options;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// 错误注入 grain 存储选项
+    /// 故障注入 Grain 存储选项。
     /// </summary>
     public class FaultInjectionGrainStorageOptions
     {
         /// <summary>
-        /// 默认的延迟时间 。
+        /// 默认延迟。
         /// </summary>
         public static TimeSpan DEFAULT_LATENCY = TimeSpan.FromMilliseconds(10);
 
         /// <summary>
-        /// 获取或设置储存操作所用的潜伏。
+        /// 获取或设置施加于存储操作的延迟。
         /// </summary>
         public TimeSpan Latency { get; set; } = DEFAULT_LATENCY;
     }
 
     /// <summary>
-    /// 存储提供者的错误注入设计器。 这样用户可以将存储例外输入到测试错误处理方案 。
+    /// 存储提供程序的故障注入装饰器。允许用户注入存储异常以测试错误处理场景。
     /// </summary>
     public partial class FaultInjectionGrainStorage : IGrainStorage, ILifecycleParticipant<ISiloLifecycle>
     {
@@ -36,13 +36,13 @@ namespace Orleans.TestingHost
         private readonly FaultInjectionGrainStorageOptions options;
 
         /// <summary>
-        /// 创建装饰存储提供者的默认构建器。
+        /// 创建被装饰存储提供程序的默认构造函数。
         /// </summary>
-        /// <param name="realStorageProvider">真实储存提供者。</param>
-        /// <param name="name">存储提供者的名称。</param>
-        /// <param name="loggerFactory">伐木厂</param>
-        /// <param name="grainFactory">下 grain 工厂。</param>
-        /// <param name="faultInjectionOptions">错误注射选项。</param>
+        /// <param name="realStorageProvider">实际存储提供程序。</param>
+        /// <param name="name">存储提供程序名称。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
+        /// <param name="grainFactory">Grain 工厂。</param>
+        /// <param name="faultInjectionOptions">故障注入选项。</param>
         public FaultInjectionGrainStorage(IGrainStorage realStorageProvider, string name, ILoggerFactory loggerFactory,
             IGrainFactory grainFactory, FaultInjectionGrainStorageOptions faultInjectionOptions)
         {
@@ -57,8 +57,8 @@ namespace Orleans.TestingHost
             return Task.Delay(this.options.Latency);
         }
 
-        /// <summary>如果规定了例外,则有过失,否则通过电话呼叫装饰式的储存供应商。</summary>
-        /// <returns>特定 grain的读化操作的完成承诺。</returns>
+        /// <summary>如果提供了异常，则以异常结束；否则调用被装饰的存储提供程序。</summary>
+        /// <returns>表示指定 Grain 的状态读取操作完成情况的异步任务。</returns>
         public async Task ReadStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
         {
             IStorageFaultGrain faultGrain = grainFactory.GetGrain<IStorageFaultGrain>(grainType);
@@ -76,8 +76,8 @@ namespace Orleans.TestingHost
             await realStorageProvider.ReadStateAsync(grainType, grainId, grainState);
         }
 
-        /// <summary>如果规定了例外,则有过失,否则通过电话呼叫装饰式的储存供应商。</summary>
-        /// <returns>指定写入操作的完成承诺 grain.</returns>
+        /// <summary>如果提供了异常，则以异常结束；否则调用被装饰的存储提供程序。</summary>
+        /// <returns>表示指定 Grain 的状态写入操作完成情况的异步任务。</returns>
         public async Task WriteStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
         {
             IStorageFaultGrain faultGrain = grainFactory.GetGrain<IStorageFaultGrain>(grainType);
@@ -95,8 +95,8 @@ namespace Orleans.TestingHost
             await realStorageProvider.WriteStateAsync(grainType, grainId, grainState);
         }
 
-        /// <summary>如果规定了例外,则有过失,否则通过电话呼叫装饰式的储存供应商。</summary>
-        /// <returns>特定 grain的删除操作的完成承诺。</returns>
+        /// <summary>如果提供了异常，则以异常结束；否则调用被装饰的存储提供程序。</summary>
+        /// <returns>表示指定 Grain 的状态清除操作完成情况的异步任务。</returns>
         public async Task ClearStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
         {
             IStorageFaultGrain faultGrain = grainFactory.GetGrain<IStorageFaultGrain>(grainType);
@@ -159,16 +159,16 @@ namespace Orleans.TestingHost
     }
 
     /// <summary>
-    /// 要创建 FaultInjectionGrainStorage的工厂
+    /// 创建 FaultInjectionGrainStorage 的工厂。
     /// </summary>
     public static class FaultInjectionGrainStorageFactory
     {
         /// <summary>
         /// 创建新的 <see cref="FaultInjectionGrainStorage"/> 实例。
         /// </summary>
-        /// <param name="services">服务。</param>
-        /// <param name="name">存储提供者的名称。</param>
-        /// <param name="injectedGrainStorageFactory">注射 grain 储存厂。</param>
+        /// <param name="services">服务提供程序。</param>
+        /// <param name="name">存储提供程序名称。</param>
+        /// <param name="injectedGrainStorageFactory">注入的 Grain 存储工厂。</param>
         /// <returns>新实例。</returns>
         public static IGrainStorage Create(IServiceProvider services, string name, Func<IServiceProvider, string, IGrainStorage> injectedGrainStorageFactory)
         {

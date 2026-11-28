@@ -7,14 +7,14 @@ using Xunit;
 namespace UnitTests.CatalogTests
 {
     /// <summary>
-    /// 测试 Orleans 目录在高同值货币下防止重复的 grain 激活的能力。
+    /// 测试 Orleans 目录（Catalog）在高并发情况下防止 Grain 重复激活的能力。
     /// 
-    /// Orleans 保证单激活的语义 - 每个 grain ID最多应有一个
-    /// 中随时在组群中的多个值。本测试压力测试此保证,通过多选程 grains进行测试
-    /// 同时对同一套目标 grains进行调用。
+    /// Orleans 保证单一激活语义：每个 Grain ID 在任意时刻
+    /// 在集群中最多应只有一个激活实例。此测试通过让多个运行器 Grain
+    /// 同时向同一组目标 Grain 发起调用来对这一保证进行压力测试。
     /// 
-    /// 该目录负责确保同时提出同一 grain的启动请求
-    /// 产生在整个组群中一个激活。
+    /// 目录负责确保针对同一 Grain 的并发激活请求
+    /// 最终在整个集群中仅产生一个激活实例。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -33,25 +33,25 @@ namespace UnitTests.CatalogTests
         }
 
         /// <summary>
-        /// 重复激活预防压力测试。
-        /// 创建 100 个跑者 grains 并同时呼吁相同的10个目标 grains.
-        /// 这产生了1,000项同时提出的先前不活动 grains请求,
-        /// 创建了在目录激活同步中的争论。
+        /// 防止重复激活的压力测试。
+        /// 创建 100 个运行器 Grain，并发调用同一组 10 个目标 Grain。
+        /// 这会针对之前未激活的 Grain 生成 1,000 个并发请求，
+        /// 使目录中的激活同步机制产生竞争。
         /// 
-        /// 每次激活都返回其独特的识别特征, 以便测试能够校验
-        /// 每一个目标 grain 请求都由同一启动程序处理。
+        /// 每个激活实例返回自身的唯一标识符，以便测试验证
+        /// 针对同一目标 Grain 的所有请求均由同一个激活实例处理。
         /// </summary>
         [Fact]
         public async Task DuplicateActivations()
         {
-            const int nRunnerGrains = 100;    // 数目数量 grains 同时打电话
-            const int nTargetGrain = 10;      // 目标数 grains (高争议)
-            const int startingKey = 1000;     // 开始 grain 目标身份标识 grains
+            const int nRunnerGrains = 100;    // 发起并发调用的 Grain 数量
+            const int nTargetGrain = 10;      // 目标 Grain 数量（高竞争）
+            const int startingKey = 1000;     // 目标 Grain 的起始 Grain ID
 
             var runnerGrains = new ICatalogTestGrain[nRunnerGrains];
 
-            // 第一阶段:初始化所有跑者 grains
-            // 使用负数身份识别码来让跑者避免与目标 grain 身份识别码相撞
+            // 阶段 1：初始化所有运行器 Grain
+            // 运行器使用负数 ID，避免与目标 Grain ID 冲突
             var promises = new List<Task>(nRunnerGrains);
             for (int i = 0; i < nRunnerGrains; i++)
             {
@@ -61,8 +61,8 @@ namespace UnitTests.CatalogTests
 
             await Task.WhenAll(promises);
 
-            // 第2阶段:所有跑者同时向同一目标进行爆炸呼叫 grains
-            // 这给目录带来同时激活压力
+            // 阶段 2：所有运行器同时向同一组目标 Grain 集中发起调用
+            // 这会对目录产生并发激活压力
             using var callBarrier = CatalogTestGrain.ArmConcurrentCallBarrier(nRunnerGrains);
             var participantsReady = callBarrier.WaitForParticipantsAsync(
                 TimeSpan.FromSeconds(30),

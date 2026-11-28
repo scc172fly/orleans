@@ -1,36 +1,36 @@
 ---
-title: "Orleans grain 目录"
-description: "选择并配置 Orleans grain 目录。"
+title: Orleans Grain 目录
+description: 选择和配置 Orleans Grain 目录。
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
 <a id="orleans-grain-directories"></a>
 
-# Orleans grain 目录
+# Orleans Grain 目录
 
-A grain 地图a grain 身份的识别符号 silo 正在运行此功能的当前主机 。 Orleans 当调用路线和协调单点活动时,咨询目录 grain 安置。
+Grain 目录将 Grain 标识映射到当前承载其激活实例的 Silo。Orleans 在路由调用及协调单激活实例 Grain 放置时查询此目录。
 
 <a id="start-with-the-default-directory"></a>
 
-## 以默认目录启动
+## 从默认目录开始
 
-Orleans 默认使用内置 `DistributedGrainDirectory` 。它保留在组群中的注册,并使用版本的会籍视图协调分割所有权。 它不需要外部服务 。
+Orleans 默认使用内置的 `DistributedGrainDirectory`。它将注册记录保存在集群中，并使用带版本的成员资格视图协调分区所有权。无须外部服务。
 
-目录协调登记和所有权转让, 这样用户就可以在成员变更时就激活的位置达成一致。 保持 grain 操作的无能: 失败的呼叫和重写仍然可以重复应用工作 。
+随着成员资格变化，目录协调注册和所有权转移，使各调用方就激活实例的位置达成一致。保持 Grain 操作的幂等性：失败的调用和重试仍可能重复执行应用程序工作。
 
-要选择 `LegacyGrainDirectory`调,调 <xref:Orleans.Hosting.CoreHostingExtensions.UseLegacyGrainDirectory*> 上每 silo.
+若要选择 `LegacyGrainDirectory`，请在每个 Silo 上调用 <xref:Orleans.Hosting.CoreHostingExtensions.UseLegacyGrainDirectory*>。
 
 <a id="local-to-distributed-directory-upgrade"></a>
 <a id="legacy-to-distributed-directory-upgrade"></a>
 
-对于版本升级,在 [Grain 目录迁移](../migration/grain-directory.md#legacy-to-distributed-directory-upgrade)之后。
+对于版本升级，请遵循[Grain 目录迁移](../migration/grain-directory.md#legacy-to-distributed-directory-upgrade)。
 
 <a id="which-grain-directory-should-you-use"></a>
 
-## 您应该使用哪个 grain 目录?
+## 应选择哪种 Grain 目录？
 
-使用插头目录, grain 类型需要不同的操作特性:
+对于需要不同运维特性的 Grain 类型，可以使用可插拔目录：
 
 <a id="adonet-grain-directory"></a>
 <a id="supported-databases"></a>
@@ -38,15 +38,15 @@ Orleans 默认使用内置 `DistributedGrainDirectory` 。它保留在组群中�
 <a id="adonetgraindirectoryoptions"></a>
 <a id="database-setup"></a>
 
-| 目录目录目录目录目录目录 | 套包 | 考虑在 |
+| 目录 | 程序包 | 适用场景 |
 |---|---|---|
-| Redis | [`Microsoft.Orleans.GrainDirectory.Redis`](https://www.nuget.org/packages/Microsoft.Orleans.GrainDirectory.Redis) | 共享 Redis 服务已经满足了长期和可用性要求。 |
-| Azure 表格储存 | [`Microsoft.Orleans.GrainDirectory.AzureStorage`](https://www.nuget.org/packages/Microsoft.Orleans.GrainDirectory.AzureStorage) | Azure 表是首选的共同支持服务。 |
-| [Google 云烟火炉](configuration-guide/google-firestore-providers.md) | [`Microsoft.Orleans.GrainDirectory.Firestore`](https://www.nuget.org/packages/Microsoft.Orleans.GrainDirectory.Firestore) | 共用的消防所数据库已经满足了长期和可用性要求。 |
-| ADO.NET | [`Microsoft.Orleans.GrainDirectory.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.GrainDirectory.AdoNet) | Grain 地点应使用现有支持的关系数据库。 |
-| 自自自 | 申请或第三方货包 | 应用程序有内置供应商没有满足的后端特定要求。 |
+| Redis | [`Microsoft.Orleans.GrainDirectory.Redis`](https://www.nuget.org/packages/Microsoft.Orleans.GrainDirectory.Redis) | 共享 Redis 服务已满足延迟和可用性要求。 |
+| Azure Table Storage | [`Microsoft.Orleans.GrainDirectory.AzureStorage`](https://www.nuget.org/packages/Microsoft.Orleans.GrainDirectory.AzureStorage) | Azure Table 是首选共享后端服务。 |
+| [Google Cloud Firestore](configuration-guide/google-firestore-providers.md) | [`Microsoft.Orleans.GrainDirectory.Firestore`](https://www.nuget.org/packages/Microsoft.Orleans.GrainDirectory.Firestore) | 共享 Firestore 数据库已满足延迟和可用性要求。 |
+| ADO.NET | [`Microsoft.Orleans.GrainDirectory.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.GrainDirectory.AdoNet) | Grain 位置应使用现有受支持的关系数据库。 |
+| 自定义 | 应用程序或第三方程序包 | 应用程序有内置提供程序无法满足的特定后端需求。 |
 
-外部目录添加网络呼叫和另一个可用性依赖。 有选择地应用它们, 并测试启动- 重工作量 。
+外部目录会增加网络调用和额外的可用性依赖。应有选择地使用它们，并对大量激活操作的工作负载进行负载测试。
 
 <a id="configuration"></a>
 
@@ -55,17 +55,17 @@ Orleans 默认使用内置 `DistributedGrainDirectory` 。它保留在组群中�
 <a id="grain-configuration"></a>
 <a id="silo-configuration"></a>
 
-以名称登记提供商,并在 grain 执行时选择:
+按名称注册提供程序，并在 Grain 实现上选择该名称：
 
 :::code language="csharp" source="snippets/hosting/HostingExamples.cs" id="named_grain_directory":::
 
 :::code language="csharp" source="snippets/hosting/HostingExamples.cs" id="grain_directory_attribute":::
 
-Grain 类型 <xref:Orleans.GrainDirectory.GrainDirectoryAttribute> 继续使用默认目录。您可以注册多个命名的供应商,以不同的 grain 类型。
+未应用 <xref:Orleans.GrainDirectory.GrainDirectoryAttribute> 的 Grain 类型继续使用默认目录。可以为不同 Grain 类型注册多个命名提供程序。
 
-要替换所有未附加说明的 grain 类型的默认值,请使用供应商的 `Use...GrainDirectoryAsDefault` 扩展名,例如 <xref:Orleans.Hosting.RedisGrainDirectoryExtensions.UseRedisGrainDirectoryAsDefault*>、 <xref:Orleans.Hosting.AzureTableGrainDirectorySiloBuilderExtensions.UseAzureTableGrainDirectoryAsDefault*>或 <xref:Orleans.Hosting.AdoNetGrainDirectorySiloBuilderExtensions.UseAdoNetGrainDirectoryAsDefault*>。
+若要替换所有未标注特性的 Grain 类型的默认目录，使用提供程序的 `Use...GrainDirectoryAsDefault` 扩展方法，例如 <xref:Orleans.Hosting.RedisGrainDirectoryExtensions.UseRedisGrainDirectoryAsDefault*>、<xref:Orleans.Hosting.AzureTableGrainDirectorySiloBuilderExtensions.UseAzureTableGrainDirectoryAsDefault*> 或 <xref:Orleans.Hosting.AdoNetGrainDirectorySiloBuilderExtensions.UseAdoNetGrainDirectoryAsDefault*>。
 
-命名目录也可以配置为 `Orleans:GrainDirectory:{name}` , 并安装了声明提供者 :
+安装声明式提供程序后，还可以在 `Orleans:GrainDirectory:{name}` 下配置命名目录：
 
 ```json
 {
@@ -82,32 +82,32 @@ Grain 类型 <xref:Orleans.GrainDirectory.GrainDirectoryAttribute> 继续使用�
 
 <a id="strongly-consistent-in-cluster-directory"></a>
 
-## 集群内名录高度一致
+## 强一致性的集群内目录
 
 <a id="key-features"></a>
 <a id="when-to-use"></a>
 
-默认 `DistributedGrainDirectory` 是基于分隔幅度和会籍视图的一组内一个非常一致的目录。 <xref:Orleans.Hosting.CoreHostingExtensions.AddDistributedGrainDirectory*> 明确选择该目录,或为同一目录例登记另一个名称。
+默认 `DistributedGrainDirectory` 是基于分区范围和成员资格视图的强一致性集群内目录。<xref:Orleans.Hosting.CoreHostingExtensions.AddDistributedGrainDirectory*> 可显式选择它，或为同一个目录实例注册额外的名称。
 
-在整个集中配置默认和命名目录映射。多个名称共享相同的分布目录实例 。
+在整个集群中一致地配置默认目录及命名目录的映射。多个名称共享同一个分布式目录实例。
 
-分布式目录默认为每个 silo (<xref:Orleans.Configuration.GrainDirectoryOptions.PartitionsPerSilo> = `1`)分区。只有在测试了预期的组群大小和工作量后才能更改此值。
+分布式目录默认每个 Silo 一个分区（<xref:Orleans.Configuration.GrainDirectoryOptions.PartitionsPerSilo> = `1`）。仅在使用预期集群规模和工作负载进行测试后才更改此设置。
 
-<xref:Orleans.Configuration.GrainDirectoryOptions.GetPartitionBoundaries> configures the function which assigns starting hash boundaries to numbered partitions. The default uses the silo's consistent hash for a single partition and cached uniform hashes in generation order for multiple partitions. A custom function returns an initialized <xref:System.Collections.Immutable.ImmutableArray`1> containing exactly the configured number of boundaries, with each index identifying a partition. Keep each partition's starting boundary stable throughout the silo's membership and use equivalent functions on every silo. The immutable array shares its backing storage safely with directory membership snapshots.
+<xref:Orleans.Configuration.GrainDirectoryOptions.GetPartitionBoundaries> 配置为各编号分区分配起始哈希边界的函数。默认情况下，单分区使用 Silo 的一致性哈希，多分区使用按生成顺序缓存的均匀哈希。自定义函数应返回已初始化的 <xref:System.Collections.Immutable.ImmutableArray`1>，其中恰好包含配置数量的边界，且每个索引标识一个分区。在 Silo 的整个成员资格期间保持每个分区的起始边界稳定，并在每个 Silo 上使用等效函数。不可变数组可安全地与目录成员资格快照共享底层存储。
 
-如果边界函数丢弃或返回无效结果, Orleans 停止会籍目录处理并向成员阅读者报告一个 <xref:Orleans.Runtime.OrleansConfigurationException> 和刷新电话。修改边界配置并重新启动受影响的 silos。
+如果边界函数抛出异常或返回无效结果，Orleans 将停止目录成员资格处理，并向成员资格读取方和刷新调用报告 <xref:Orleans.Runtime.OrleansConfigurationException>。修正边界配置后重启受影响的 Silo。
 
-创建目录时, 分区计数和边界函数会被记录。 使组合群中两个部分保持一致 。
+分区数量和边界函数在创建目录时捕获。应使两者在整个集群中保持一致。
 
 <a id="operational-guidance"></a>
 
-## 业务指导
+## 运维指导
 
-- 保持目录后端延时空低;激活和第一调延时空取决于此。
-- 为集群总工作量和故障爆发提供外部目录。
-- 不要使用 grain 目录作为应用国家存储。
-- 保持 grain 激活和解除无能状态。
-- 测试 silo 损失、滚动升级和全集群重新开工。
-- 监测重复激活、目录、会员和提供者错误。
+- 保持目录后端的低延迟；激活及首次调用延迟取决于它。
+- 根据整个集群的总工作负载以及故障期间的突发负载为外部目录配置资源。
+- 不要将 Grain 目录用作应用程序状态存储。
+- 保持 Grain 激活和停用操作的幂等性。
+- 测试 Silo 丢失、滚动升级和全集群重启。
+- 监控重复激活、目录、成员资格及提供程序错误。
 
-建筑背景见 [Grain 目录实施](../implementation/grain-directory.md)。
+有关架构背景，请参阅[Grain 目录实现](../implementation/grain-directory.md)。

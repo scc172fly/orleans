@@ -179,8 +179,8 @@ public class HostedClientDrainTests
             Assert.Equal(2, first.ClassifierCalls);
             Assert.Equal(0, first.InvocationCount);
 
-            // 唯一的读者在经理入门前被封锁。
-            // 频道接收了第1602号信息,而不仅仅是由测试排程器排队的。
+            // 唯一的读取者在管理器准入之前被阻塞。此调用返回可以证明
+            // 消息 1602 已获准进入通道，而不是仅被测试调度器排入队列。
             fixture.Deliver(second);
             Assert.Equal(0, second.InvocationCount);
             var stop = fixture.Stop(TestContext.Current.CancellationToken);
@@ -251,8 +251,8 @@ public class HostedClientDrainTests
             Assert.False(stop.IsCompleted, fixture.DescribeState());
             Assert.False(invocation.Exited.Task.IsCompleted, fixture.DescribeState());
 
-            // 模拟一个已经发布外出调用, 不设 SendRequest/ 路由。
-            // 采取 InsideRuntimeClient的只回调分支:没有触动目录或传输。
+            // 模拟已发出的出站调用，无需 SendRequest 或路由。成功响应
+            // 经过 InsideRuntimeClient 仅处理回调的分支：不涉及目录或传输层。
             using var responseBody = Response.FromResult(731);
             var response = new Message
             {
@@ -278,7 +278,7 @@ public class HostedClientDrainTests
             Assert.Equal(731, Assert.IsType<int>(invocation.CallbackResult));
             fixture.AssertExecuted(invocation);
 
-            // 重复答复不得第二次完成最初的许诺。
+            // 重复响应不得再次完成原来的 Promise。
             fixture.Hosted.ReceiveMessage(response);
             Assert.Equal(1, completion.CompletionCount);
             Assert.False(callbacks.ContainsKey(key));
@@ -289,8 +289,8 @@ public class HostedClientDrainTests
         }
         finally
         {
-            // 在一个主张/阶段失败后,在确定/阶段失败之后,仅失为救援。
-            // 以上成功途径完成要求,从未进入运输通道。
+            // 仅在断言或阶段失败后执行应急解阻。它无法证明上述任何
+            // 成功路径的完成断言成立，而且绝不会进入传输路径。
             try
             {
                 if (!succeeded && callback is { IsCompleted: false })
@@ -317,12 +317,12 @@ public class HostedClientDrainTests
             await fixture.StartAsync();
             fixture.Deliver(invocation);
             await fixture.WaitAsync(invocation.ScopeEntered.Task, "1751: cancellable observer held");
-            var stop = fixture.Stop(TestContext.Current.CancellationToken); // 同步关闭频道 。
+            var stop = fixture.Stop(TestContext.Current.CancellationToken); // 同步关闭通道。
             Assert.False(stop.IsCompleted, fixture.DescribeState());
             Assert.Equal(0, invocation.CancelCount);
 
-            // 这必须绕过现在关闭的应用程序频道, 到达真实
-            // LocalObjectData 取消延期,而不仅仅是一个间断测试机体。
+            // 此操作必须绕过现已关闭的应用程序通道，到达实际的
+            // LocalObjectData 取消扩展，而非仅进入交错执行的测试调用主体。
             fixture.Hosted.ReceiveMessage(new Message
             {
                 Id = new CorrelationId(1752),
@@ -344,7 +344,7 @@ public class HostedClientDrainTests
         }
         finally
         {
-            // 成功路径上没有测试释放: 只有 CancelRequest 释放此身体。
+            // 成功路径中不由测试解除阻塞：只有 CancelRequest 才会解除此调用主体的阻塞。
             await fixture.CleanupAsync();
         }
     }
@@ -368,7 +368,7 @@ public class HostedClientDrainTests
             fixture.AssertScopeLive();
             Assert.False(invocation.Exited.Task.IsCompleted, fixture.DescribeState());
 
-            // 取消的生命周期等待返回后, 主机拆解可请求丢弃 。
+            // 已取消的生命周期等待返回后，宿主清理可以请求 Dispose。
             await fixture.DisposeOnWorkerAsync("Dispose after canceled OnStop returned");
             fixture.AssertScopeLive();
             var drain = fixture.Stop(TestContext.Current.CancellationToken);
@@ -399,8 +399,8 @@ public class HostedClientDrainTests
             await fixture.WaitAsync(invocation.ScopeEntered.Task, "1901: observer held before direct Dispose");
             Assert.Equal(0, fixture.StopCalls);
 
-            // 每个工人只在同步发送回电后发出信号。
-            // 停止闭合握手失败;任务时间安排/错开时间不是符咒。
+            // 每个工作线程仅在同步 Dispose 调用返回之后发出信号。若 Dispose 阻塞，
+            // 有时限的握手将失败；任务调度或经过的时间并不是正确性判据。
             await fixture.DisposeOnWorkerAsync("first direct Dispose returned");
             await fixture.DisposeOnWorkerAsync("repeated direct Dispose returned");
             Assert.Equal(2, fixture.DisposeReturns);
@@ -449,9 +449,9 @@ public class HostedClientDrainTests
             fixture.AssertExecuted(invocation);
             fixture.AssertDisposedAfterExecution();
 
-            // 不仅在第一个背景处理信号后对计数进行抽样。
-            // 真正的排水管已经完全完成 无防守的抛物道会同步叫包装纸
-            // 背后的一时冲动无法掩盖这些呼声
+            // 不要仅在首次后台释放信号之后采样计数。实际排空现已完成，
+            // 未加保护的 Dispose 会在这些握手之前再次同步调用包装器。
+            // 底层 DI 的幂等性不能掩盖这些调用。
             await fixture.DisposeOnWorkerAsync("ownership: fourth Dispose returned after completed drain");
             await fixture.DisposeOnWorkerAsync("ownership: fifth Dispose returned after completed drain");
             Assert.Equal(5, fixture.DisposeReturns);
@@ -468,8 +468,8 @@ public class HostedClientDrainTests
 
     private static ConcurrentDictionary<(GrainId, CorrelationId), CallbackData> ReadCallbacks(InsideRuntimeClient runtime)
     {
-        // 唯一的反向接缝:读取现有的分类账,永远不要更换或检查
-        // 频道/管理者/生命周期/处置状态。 这个模型是一个未完成的外出呼叫 。
+        // 唯一使用反射的接入点：读取现有台账，绝不替换它，也不检查托管
+        // 通道、管理器、生命周期或释放状态。这用于模拟尚未完成的出站调用。
         var field = typeof(InsideRuntimeClient).GetField("callbacks", BindingFlags.Instance | BindingFlags.NonPublic);
         if (field?.GetValue(runtime) is not ConcurrentDictionary<(GrainId, CorrelationId), CallbackData> callbacks)
         {
@@ -521,7 +521,7 @@ public class HostedClientDrainTests
             var referenceActivator = new GrainReferenceActivator(
                 Scopes, [new UntypedReferenceProvider(_root, referenceRuntime)]);
             var silo = Substitute.For<ILocalSiloDetails>();
-            // 仅地址数据:无套接字、端口分配、 DNS 或 silo 启动。
+            // 仅地址数据：无套接字、端口分配、DNS 或 Silo 启动。
             silo.SiloAddress.Returns(Address);
             silo.GatewayAddress.Returns((SiloAddress)null!);
             Runtime = new InsideRuntimeClient(
@@ -531,9 +531,9 @@ public class HostedClientDrainTests
                 new GrainInterfaceTypeToGrainTypeResolver(Substitute.For<IClusterManifestProvider>()),
                 deepCopier, Clock, mapping, instruments);
 
-            // 仅建构式运输图。 GatewayAddress == 保护抛石厂
-            // 本地回调、状态和缓存校验路径使用配置的运行时间。
-            // 观察员机构使用有效的 OneWay 可援引物,包括对于故障。
+            // 仅构造的传输层对象图。GatewayAddress == null 防止调用会引发异常的工厂。
+            // 本地回调、状态和缓存失效路径使用配置好的运行时。
+            // 观察者调用主体使用有效的 OneWay 可调用对象，包括失败时。
             var messageCenter = new MessageCenter(
                 siloDetails: silo,
                 messageFactory: messageFactory,
@@ -592,7 +592,7 @@ public class HostedClientDrainTests
 
         internal T Track<T>(T invocation) where T : ScopeCheckingInvokable
         {
-            // 所有申请在任何生命周期开始或工人启动之前都登记。
+            // 在启动任何生命周期或工作线程之前注册所有请求。
             _invocations.Add(invocation);
             return invocation;
         }
@@ -602,7 +602,7 @@ public class HostedClientDrainTests
 
         internal Task Stop(CancellationToken cancellationToken)
         {
-            // 直接援引:这在返回之前关闭频道,而不是对在册工人。
+            // 直接调用：此操作在返回前关闭通道，而不是在安排的工作线程上关闭。
             var stop = _lifecycleObserver.OnStop(cancellationToken);
             _stops.Enqueue(stop);
             return stop;
@@ -690,8 +690,8 @@ public class HostedClientDrainTests
                 invocation.ReleaseForCleanup();
             }
 
-            // 清理工作有一个独立、未排查的后援站。如果工人/排水系统未完成,
-            // 故意让提供人免于被活处死
+            // 清理有独立且不会被取消的兜底机制。如果工作线程或排空未完成，
+            // 抛出包含上下文的异常，并刻意为仍在运行的执行实例保留提供程序。
             var drain = Stop(CancellationToken.None);
             foreach (var worker in _workers)
             {
@@ -702,17 +702,17 @@ public class HostedClientDrainTests
                 }
                 catch (OperationCanceledException) when (worker.IsCanceled && TestContext.Current.CancellationToken.IsCancellationRequested)
                 {
-                    // Task.Run 可以在工人开始之前取消。 没有
-                    // 工人执行后加入;独立开始的排水管仍必须完成。
+                    // Task.Run 可能在工作线程开始之前被取消。此时没有
+                    // 工作线程执行需要等待；但独立启动的排空仍必须完成。
                 }
             }
 
             await DrainTestHelpers.AwaitCleanupAsync(
                 Task.WhenAll(_stops), "cleanup: actual hosted drains joined", DescribeState);
             await DrainTestHelpers.AwaitCleanupAsync(drain, "cleanup: pump and manager drained", DescribeState);
-            // 同时也加入实际进入的机构,因此,早期排入的倒退不能失败
-            // 让清理处理提供者,而那些已经启动的机构则正在倒流。
-            // 无发回/拒绝发送信件的信号没有退出,也不在这里等待。
+            // 同时等待实际进入执行的调用主体结束，防止过早排空的回归问题导致
+            // 清理在这些已启动的调用主体退出期间释放提供程序。
+            // 未调用或被拒绝的消息没有 Exited 信号，此处不等待它们。
             await DrainTestHelpers.AwaitCleanupAsync(
                 Task.WhenAll(_invocations.Where(invocation => invocation.InvocationCount != 0)
                     .Select(invocation => invocation.Exited.Task)),
@@ -722,12 +722,12 @@ public class HostedClientDrainTests
                 Scopes.ScopeDisposed.Task, "cleanup: owned scope disposal completed", DescribeState);
             _subscription.Dispose();
 
-            // ScopeDisposed 是在实际范围抛射后而不是 HostedClient之后排放的
-            // 整个背景方法。 剩下的尾巴仅调用 MessageCenter.SetHostedClient(null)
-            // (a) 外派任务;它不能使用以下处理的序列器/测量根。
-            // InsideRuntimeClient 公众无 API 这部短片中,我们从未
-            // 参与/ConsumeServices/启动:其监视器没有任务,它的计时器属于
-            // 与此未前置 FakeTimeProvider,没有实时/线索库的计时器可以拆掉。
+            // ScopeDisposed 在实际作用域的 Dispose 之后发出，而不是在 HostedClient 的
+            // 整个后台方法之后发出。剩余的尾部操作仅调用 MessageCenter.SetHostedClient(null)
+            // （字段赋值）；它无法使用下方已释放的序列化器或指标根对象。
+            // 在此源码快照中 InsideRuntimeClient 没有公开的 Dispose 或停止 API。我们从未
+            // 对其调用 Participate、ConsumeServices 或启动它：其监视器没有任务，其定时器属于
+            // 这个未推进时间的 FakeTimeProvider，因此无需清理基于实际时间或线程池的定时器。
             _root.Dispose();
             foreach (var invocation in _invocations)
             {
@@ -764,8 +764,8 @@ public class HostedClientDrainTests
             try
             {
                 ObservedTarget = TargetHolder?.GetTarget();
-                // 通过实际 LocalObjectData - > HostedClient 组件链进行解析。
-                // 测试还对照 HostedClient.ActivationServices检查身份。
+                // 通过实际的 LocalObjectData -> HostedClient 组件链解析。
+                // 测试还会检查它与 HostedClient.ActivationServices 的对象标识是否一致。
                 ObservedMarker = TargetHolder?.GetComponent(typeof(ScopeMarker)) as ScopeMarker
                     ?? throw new InvalidOperationException($"Request {Id} did not receive its hosted scope marker.");
                 MarkerLiveOnEntry = ObservedMarker.DisposeCount == 0;
@@ -778,8 +778,8 @@ public class HostedClientDrainTests
             }
             catch (Exception exception)
             {
-                // OneWay 例外通过生产记录,保留测试失败的状态
-                // 而不是误以为基地助手的 最终/外在信号 身体成功。
+                // 生产代码会记录 OneWay 异常，因此保留失败供测试检查，
+                // 而不是将基类辅助方法的 finally 或 Exited 信号误认为调用主体执行成功。
                 Failure = exception;
                 ScopeEntered.TrySetException(exception);
                 throw;
@@ -829,7 +829,7 @@ public class HostedClientDrainTests
         {
             Interlocked.Increment(ref _cancelCount);
             _cancellation.Cancel();
-            // 合作观察员可在取消会议后正常完成工作。
+            // 允许协作式观察者在取消后正常完成。
             Release.TrySetResult();
             return true;
         }
@@ -853,8 +853,8 @@ public class HostedClientDrainTests
         {
             get
             {
-                // 管弦手的呼叫1是 Hosted.ReceiveMessage ,呼叫2是主机
-                // 泵 LocalObjectData.ReceiveMessage,紧接在 gate.TryEnter()之前。
+                // 调用 1 是编排器上的 Hosted.ReceiveMessage。调用 2 是托管
+                // 消息泵的 LocalObjectData.ReceiveMessage，紧接在 gate.TryEnter() 之前。
                 if (Interlocked.Increment(ref _classifierCalls) == 2)
                 {
                     ClassifierEntered.TrySetResult();
@@ -911,7 +911,7 @@ public class HostedClientDrainTests
 
         private void DisposeScope(IServiceScope scope)
         {
-            // 计算每个包装机呼叫, 即使真正的DI 使得随后的处置不起作用。
+            // 统计每一次包装器调用，即使实际 DI 会使后续释放成为空操作。
             Interlocked.Increment(ref _disposeCount);
             if (!allBodiesExited())
             {

@@ -18,26 +18,26 @@ public class DeviceGrain : Grain, IDeviceGrain
     {
         if (_lastMessage is null || _lastMessage.Latitude != message.Latitude || _lastMessage.Longitude != message.Longitude)
         {
-            // 仅在职位改变时才发出通知
+            // 仅当位置发生变化时发送通知。
             double speed = GetSpeed(_lastMessage, message);
 
-            // 记录最后一条消息
+            // 记录最后一条消息。
             _lastMessage = message;
 
-            // 将信件转发给通知人 grain
+            // 将消息转发给通知 Grain。
             var velocityMessage = new VelocityMessage(message, speed);
             await _pushNotifier.SendMessage(velocityMessage);
         }
         else
         {
-            // 位置没有改变, 只记录最后一条消息
+            // 位置未发生变化，只需记录最后一条消息。
             _lastMessage = message;
         }
     }
 
     private static double GetSpeed(DeviceMessage? message1, DeviceMessage message2)
     {
-        // 使用 grain的内部状态计算设备的速度
+        // 利用 Grain 的内部状态计算设备速度。
         if (message1 is null || message2 is null)
         {
             return 0;

@@ -17,16 +17,16 @@ using Orleans.Serialization.Serializers;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 用于 DurableTasks 试验计划第一阶段的更多共用手写测试假。
-/// 存放在单独的文件 <c>TestFakes.cs</c> 以避免触碰该文件( 共享文件)
-/// 并行实现的阶段）。
+/// DurableTasks 测试计划第一阶段中使用的其他共享手写测试替身。
+/// 与 <c>TestFakes.cs</c> 分开保存，以避免修改该文件（该文件由
+/// 同时实施的各阶段共享）。
 /// </summary>
 
 /// <summary>
-/// 最起码的具体 <see cref="IDurableTaskRequest"/> 执行,真正可连号
-/// (通过 <c>[GenerateSerializer]</c> 代码生成)不同于以替代物为基础的代理,而代用法是 Orleans
-/// 序列器无法编码( 没有动态生成代理类型注册的代码) 。 这样允许使用此选项 。
-/// 运行存储代码路径(e.g. <c>SetRequest</c>),该路径作为 Orleans-已登记有效载荷的要求一直有效。
+/// 最小化的具体 <see cref="IDurableTaskRequest"/> 实现，确实支持序列化
+/// （通过 <c>[GenerateSerializer]</c> 生成代码），不同于基于 NSubstitute 的代理；Orleans
+/// 序列化器无法编码这种代理（动态生成的代理类型没有注册编解码器）。这使得测试能够
+/// 覆盖将请求持久化为 Orleans 序列化有效载荷的存储代码路径（例如 <c>SetRequest</c>）。
 /// </summary>
 [GenerateSerializer]
 [Alias("Microsoft.Orleans.DurableTasks.Tests.TestDurableTaskRequest")]
@@ -72,21 +72,21 @@ internal class TestDurableTaskRequest : IDurableTaskRequest
 }
 
 /// <summary>
-/// 要求使用另一个比 <see cref="TestDurableTaskRequest"/>的可连序连接方法:运行时间标识
-/// 请求书采用可援引类型的方法。
+/// 可序列化的请求，其调用的接口方法不同于 <see cref="TestDurableTaskRequest"/> 所调用的方法：运行时
+/// 根据请求的可调用对象类型识别请求对应的方法。
 /// </summary>
 [GenerateSerializer]
 [Alias("Microsoft.Orleans.DurableTasks.Tests.TestOtherMethodDurableTaskRequest")]
 internal sealed class TestOtherMethodDurableTaskRequest : TestDurableTaskRequest;
 
-/// <summary>一个其民意测验返回或逐个丢弃每个脚本结果的服务器, 重复最后一个。</summary>
+/// <summary>轮询时按顺序返回预设结果或抛出预设异常、并重复使用最后一个结果的服务器。</summary>
 internal sealed class ScriptedDurableTaskServer(params object[] outcomes) : IDurableTaskServer
 {
     private int _polls;
 
     public int Polls => Volatile.Read(ref _polls);
 
-    /// <summary>获取或设置每次民意测验中运行的动作。</summary>
+    /// <summary>获取或设置在每次轮询时运行的操作。</summary>
     public Action? OnPoll { get; init; }
 
     public ValueTask<DurableTaskResponse> ScheduleAsync(TaskId taskId, IDurableTaskRequest request, CancellationToken cancellationToken = default) =>
@@ -104,7 +104,7 @@ internal sealed class ScriptedDurableTaskServer(params object[] outcomes) : IDur
         };
     }
 
-    /// <summary>获取已到达服务器的取消和中止请求。</summary>
+    /// <summary>按到达顺序获取到达服务器的取消请求及中止请求。</summary>
     public ConcurrentQueue<(string Operation, string? Reason)> Requests { get; } = new();
 
     public ValueTask CancelAsync(TaskId taskId, CancellationToken cancellationToken = default) => Request("cancel", reason: null);
@@ -113,7 +113,7 @@ internal sealed class ScriptedDurableTaskServer(params object[] outcomes) : IDur
 
     public ValueTask AbortAsync(TaskId taskId, string reason, CancellationToken cancellationToken = default) => Request("abort", reason);
 
-    /// <summary>记录请求,如果结果属于例外,则与剧本的下一个结果不符。</summary>
+    /// <summary>记录请求；若预设的下一个结果为异常，则使用该异常使请求失败。</summary>
     private ValueTask Request(string operation, string? reason)
     {
         Requests.Enqueue((operation, reason));

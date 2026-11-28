@@ -6,8 +6,8 @@ using Xunit;
 namespace UnitTests.CancellationTests
 {
     /// <summary>
-    /// 测试运行时检查要求为 <see cref="GrainCancellationToken"/> 实例进行参数
-    /// 只有在请求可能提出时才有。
+    /// 测试运行时是否仅在请求可能包含 <see cref="GrainCancellationToken"/> 实例时
+    /// 检查请求参数。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]

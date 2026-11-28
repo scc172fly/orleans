@@ -3,25 +3,25 @@ using Xunit;
 
 namespace Tester
 {
-    // 必须在每组集会中确定一次大会收藏的收藏
+    // 程序集集合必须在每个程序集中定义一次。
 
     /// <summary>
-    /// 定义需要默认 Orleans 组合集设置的测试收藏。
-    /// 这份收藏中的测试有一个单一组别实例,可以用来改进业绩。
+    /// 定义一个供需要默认 Orleans 集群配置的测试使用的测试集合。
+    /// 此集合中的测试共享一个集群实例，以提高性能。
     /// </summary>
     [CollectionDefinition("DefaultCluster")]
     public class DefaultClusterTestCollection : ICollectionFixture<DefaultClusterFixture> { }
 
     /// <summary>
-    /// 定义需要共享测试环境配置的测试集。
-    /// 提供核心 Orleans 测试环境设置和资源。
+    /// 定义一个供需要共享测试环境配置的测试使用的测试集合。
+    /// 提供 Orleans 核心测试环境的设置及资源。
     /// </summary>
     [CollectionDefinition(TestEnvironmentFixture.DefaultCollection)]
     public class TestEnvironmentFixtureCollection : ICollectionFixture<TestEnvironmentFixture> { }
 
     /// <summary>
-    /// 用于 Azure- 基于集成测试的基准测试组群固定装置。
-    /// 确保 Azure 在进行测试之前能够实现储存连接。
+    /// 基于 Azure 的集成测试所用的测试集群夹具基类。
+    /// 在运行测试前确保 Azure Storage 连接可用。
     /// </summary>
     public abstract class BaseAzureTestClusterFixture : BaseTestClusterFixture
     {
@@ -33,8 +33,8 @@ namespace Tester
     }
 
     /// <summary>
-    /// Azure- 使用 <see cref="InProcessTestCluster"/>进行集成测试的基准试验组群固定装置。
-    /// 确保 Azure 在进行测试之前能够实现储存连接。
+    /// 使用 <see cref="InProcessTestCluster"/> 的 Azure 集成测试集群夹具基类。
+    /// 在运行测试前确保 Azure Storage 连接可用。
     /// </summary>
     public abstract class BaseInProcessAzureTestClusterFixture : BaseInProcessTestClusterFixture
     {

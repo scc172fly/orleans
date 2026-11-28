@@ -15,7 +15,7 @@ using Xunit;
 namespace Benchmarks.Serialization;
 
 /// <summary>
-/// 具有通告参考资料的复杂对象图表的序列化性能基准 Orleans 。
+/// 对 Orleans 序列化含循环引用的复杂对象图的性能进行基准测试。
 /// </summary>
 [Trait("Category", "Benchmark")]
 [TestSuite("Benchmark")]
@@ -57,7 +57,7 @@ public class ComplexTypeBenchmarks
             BaseInt = 192,
             Int = 501,
             String = "bananas",
-            //数组 = Enumerable.Range(0, 60)。ToArray(),
+            //Array = Enumerable.Range(0, 60).ToArray(),
             //MultiDimensionalArray = new[,] {{0, 2, 4}, {1, 5, 6}}
         };
         _value.AlsoSelf = _value.BaseSelf = _value.Self = _value;
@@ -121,13 +121,13 @@ public class ComplexTypeBenchmarks
         var reader = Reader.Create(writer.Output.GetReadOnlySpan(), _session);
         var result = _structSerializer.Deserialize(ref reader);
         Buffer.Reset();
-        return result!; // 有效载荷从上方的_价值序列。
+        return result!; // 此有效载荷由上方的 _value 序列化得到。
     }
 
     /*
-        [真
-        [基准]
-        公共无效 OrleansMessageSerializerStructRoundTrip()
+        [Fact]
+        [Benchmark]
+        public void OrleansMessageSerializerStructRoundTrip()
         {
             var buffer = new PooledBuffer();
             var (headerLength, bodyLength) = _messageSerializer.Write(ref buffer, _structMessage);
@@ -135,11 +135,11 @@ public class ComplexTypeBenchmarks
             var readBuffer = buffer.Slice();
             _messageSerializer.Read(in readBuffer, headerLength, bodyLength, out var result);
 
-            ((答复<SimpleStruct>)result.BodyObject.] 发牌();
+            ((Response<SimpleStruct>)result.BodyObject).Dispose();
         }
         */
 
-    //[基准]
+    //[Benchmark]
     public object OrleansClassRoundTrip()
     {
         var writer = Buffer.CreateWriter(_session);
@@ -150,13 +150,13 @@ public class ComplexTypeBenchmarks
         var reader = Reader.Create(writer.Output.GetReadOnlySpan(), _session);
         var result = _serializer.Deserialize(ref reader);
         Buffer.Reset();
-        return result!; // 有效载荷从上方的_价值序列。
+        return result!; // 此有效载荷由上方的 _value 序列化得到。
     }
 
     /*
-    [真
-    //[基准]
-    公共无效 OrleansMessageSerializerClassRoundTrip()
+    [Fact]
+    //[Benchmark]
+    public void OrleansMessageSerializerClassRoundTrip()
     {
         var buffer = new PooledBuffer();
         var (headerLength, bodyLength) = _messageSerializer.Write(ref buffer, _message);
@@ -164,7 +164,7 @@ public class ComplexTypeBenchmarks
         var readBuffer = buffer.Slice();
         _messageSerializer.Read(in readBuffer, headerLength, bodyLength, out var result);
 
-        ((答复<ComplexClass>)result.BodyObject.] 发牌();
+        ((Response<ComplexClass>)result.BodyObject).Dispose();
 
         _pipe.Writer.Complete();
         _pipe.Reader.Complete();
@@ -172,7 +172,7 @@ public class ComplexTypeBenchmarks
     }
     */
 
-    //[基准]
+    //[Benchmark]
     public object OrleansSerialize()
     {
         var writer = Buffer.CreateWriter(_session);
@@ -182,15 +182,15 @@ public class ComplexTypeBenchmarks
         return _session;
     }
 
-    //[基准]
+    //[Benchmark]
     public object OrleansDeserialize()
     {
         _session.Reset();
         var reader = Reader.Create(_serializedPayload, _session);
-        return _serializer.Deserialize(ref reader)!; // 基准有效载荷从非核值开始。
+        return _serializer.Deserialize(ref reader)!; // 基准测试的有效载荷使用非 null 值初始化。
     }
 
-    //[基准]
+    //[Benchmark]
     public int OrleansReadEachByte()
     {
         var sum = 0;

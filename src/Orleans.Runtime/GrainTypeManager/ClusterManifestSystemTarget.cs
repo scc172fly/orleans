@@ -40,8 +40,8 @@ namespace Orleans.Runtime
             cancellationToken.ThrowIfCancellationRequested();
             var manifest = _clusterManifestProvider.Current;
 
-            // 在版本未改变时重新使用摘要。 个人内容的杂列由
-            // 不同版本和 silos 之间均具有相同的表单,且不改变的明显身份。
+            // 版本未发生变化时复用摘要。各内容哈希按不可变清单的标识缓存，
+            // 可跨版本及具有相同清单的 Silo 复用。
             if (_cachedHashSummary is null || manifest.Version != _cachedHashSummaryVersion)
             {
                 var hashes = new Dictionary<SiloAddress, ManifestHash>();
@@ -77,14 +77,14 @@ namespace Orleans.Runtime
             cancellationToken.ThrowIfCancellationRequested();
             var manifest = _clusterManifestProvider.Current;
 
-            // 只有在更新的列表比所提供的版本新时,才返回该列表。
+            // 仅当更新后的清单比提供的版本更新时，才返回该清单。
             if (manifest.Version <= version)
             {
                 return new(_noUpdate);
             }
 
-            // 保存一个缓存, 以显示当前列表是否包含所有活动服务器, 以便它
-            // 不需要每次进行重新计数。
+            // 缓存当前清单是否包含所有活动服务端节点的结果，
+            // 从而无需每次重新计算。
             var membershipSnapshot = _clusterMembershipService.CurrentSnapshot;
             if (_cachedUpdate is null
                 || membershipSnapshot.Version > _cachedMembershipVersion
@@ -117,7 +117,7 @@ namespace Orleans.Runtime
         }
         void ILifecycleParticipant<ISiloLifecycle>.Participate(ISiloLifecycle lifecycle)
         {
-            // 我们不参与任何生命周期阶段: 启动这个实例是必需的。
+            // 不参与任何生命周期阶段，只需激活此实例即可。
         }
     }
 }

@@ -1,23 +1,23 @@
 namespace Orleans
 {
     /// <summary>
-    /// 通知观察员该组群连接已丢失的接口。
+    /// 用于通知观察者集群连接已丢失的接口。
     /// </summary>
     internal interface IClusterConnectionStatusListener
     {
         /// <summary>
-        /// 通知客户端, 已更改连接网关数量
+        /// 通知此客户端已连接的网关数量发生变化。
         /// </summary>
         /// <param name="currentNumberOfGateways">
-        /// 目前的网关数量 。
+        /// 当前网关数量。
         /// </param>
         /// <param name="previousNumberOfGateways">
-        /// 之前的网关数量 。
+        /// 此前的网关数量。
         /// </param>
         void NotifyGatewayCountChanged(int currentNumberOfGateways, int previousNumberOfGateways);
 
         /// <summary>
-        /// 通知客户该组群已失去连接。
+        /// 通知此客户端与集群的连接已丢失。
         /// </summary>
         void NotifyClusterConnectionLost();
     }

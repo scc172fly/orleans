@@ -4,11 +4,11 @@ using System.Diagnostics;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// 单曲调 <see cref="IDurableJobHandler.ExecuteJobAsync"/>,记录
-/// 通过 <see cref="DurableJobsInstruments"/> 和分布式跟踪活动
-/// 经由 <see cref="DurableJobsDiagnostics"/>。调用者必须准确记录一个终端遥测结果
-/// 使用 <see cref="RecordResult"/>、 <see cref="Completed"/>、 <see cref="AttemptCanceled"/>或 <see cref="Failed"/>
-/// 处理前。
+/// 跟踪对 <see cref="IDurableJobHandler.ExecuteJobAsync"/> 的单次调用，通过
+/// <see cref="DurableJobsInstruments"/> 记录相应指标，并通过
+/// <see cref="DurableJobsDiagnostics"/> 记录分布式跟踪 Activity。调用方必须
+/// 使用 <see cref="RecordResult"/>、<see cref="Completed"/>、<see cref="AttemptCanceled"/> 或 <see cref="Failed"/> 恰好记录一次终态遥测结果，
+/// 然后才能释放跟踪器。
 /// </summary>
 internal readonly struct HandlerExecutionTracker : IDisposable
 {
@@ -31,7 +31,7 @@ internal readonly struct HandlerExecutionTracker : IDisposable
     }
 
     /// <summary>
-    /// 记录失败结果的遥测失败,并且完成每个未失败处置的遥测。
+    /// 对失败结果记录失败遥测，对任何非失败的处置结果记录完成遥测。
     /// </summary>
     public void RecordResult(DurableJobRunResult result)
     {
@@ -48,7 +48,7 @@ internal readonly struct HandlerExecutionTracker : IDisposable
     }
 
     /// <summary>
-    /// 将成功执行的处理器记录下来,并将活动标为 <see cref="ActivityStatusCode.Ok"/>。
+    /// 记录处理程序成功执行，并将 Activity 标记为 <see cref="ActivityStatusCode.Ok"/>。
     /// </summary>
     public void Completed()
     {
@@ -57,8 +57,8 @@ internal readonly struct HandlerExecutionTracker : IDisposable
     }
 
     /// <summary>
-    /// 合作取消当前处理器执行尝试的记录。
-    /// 处置保留默认(未设置)状态,与原始执行的行为相符。
+    /// 记录当前处理程序执行尝试的协作式取消。Activity 状态保持不变，
+    /// 使释放操作保留默认的未设置状态，与原实现的行为一致。
     /// </summary>
     public void AttemptCanceled()
     {
@@ -66,7 +66,7 @@ internal readonly struct HandlerExecutionTracker : IDisposable
     }
 
     /// <summary>
-    /// 记录处理器执行失败,并将提供的例外附加到活动上。
+    /// 记录处理程序执行失败，并将指定异常附加到 Activity。
     /// </summary>
     public void Failed(Exception exception)
     {

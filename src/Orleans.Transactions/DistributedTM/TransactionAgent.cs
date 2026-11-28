@@ -104,10 +104,10 @@ namespace Orleans.Transactions
                                    .CommitReadOnly(resource.Key.Name, transactionInfo.TransactionId, resource.Value, transactionInfo.TimeStamp, CancellationToken.None));
                 }
 
-                // 等待所有回复
+                // 等待所有响应。
                 TransactionalStatus[] results = await Task.WhenAll(tasks);
 
-                // 审查返回状况
+                // 检查返回的状态。
                 foreach (var s in results)
                 {
                     if (s != TransactionalStatus.Ok)
@@ -164,7 +164,7 @@ namespace Orleans.Transactions
                 {
                     if (p.Key.Equals(manager.Key))
                         continue;
-                    // 单向准备信息
+                    // 单向准备消息。
                     protocol.Prepare(
                         p.Key,
                         transactionInfo.TransactionId,
@@ -173,7 +173,7 @@ namespace Orleans.Transactions
                         manager.Key);
                 }
 
-                // 等待TMT 进行交易
+                // 等待 TM 提交事务。
                 status = await protocol.PrepareAndCommit(
                     manager.Key,
                     transactionInfo.TransactionId,
@@ -204,7 +204,7 @@ namespace Orleans.Transactions
                 {
                     LogDebugCommitTransactionFailure(new(stopwatch), transactionInfo.TransactionId, status);
 
-                    // 退回身份是长期管理人员的决定,其队列本身也通知参与人。
+                    // 返回的状态表示管理器已持久化的决策。由其队列负责通知参与者。
                     if (status.DefinitelyAborted() && cancelNotificationOwner == CancelNotificationOwner.TransactionAgent)
                     {
                         await Task.WhenAll(writeResources
@@ -236,7 +236,7 @@ namespace Orleans.Transactions
             List<ParticipantId> participants = transactionInfo.Participants.Keys.ToList();
             LogTraceAbortTransaction(transactionInfo, new(participants));
 
-            // 发送单向中止邮件以释放锁定并滚回任何更新
+            // 发送单向中止消息，以释放锁并回滚所有更新。
             await Task.WhenAll(participants.Select(p => p.Reference.AsReference<ITransactionalResourceExtension>()
                  .Abort(p.Name, transactionInfo.TransactionId, CancellationToken.None)));
         }
@@ -250,14 +250,14 @@ namespace Orleans.Transactions
             foreach (KeyValuePair<ParticipantId, AccessCounter> participant in participants)
             {
                 ParticipantId id = participant.Key;
-                // 优先优先管理器
+                // 优先管理器
                 if (id.IsPriorityManager())
                 {
                     manager = priorityManager = (priorityManager == null)
                         ? participant
                         : throw new ArgumentOutOfRangeException(nameof(participants), "Only one priority transaction manager allowed in transaction");
                 }
-                // 资源资源
+                // 资源
                 if (id.IsResource())
                 {
                     if (resources == null)

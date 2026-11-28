@@ -10,7 +10,7 @@ using Orleans.Runtime;
 namespace Orleans.TestingHost.Logging
 {
     /// <summary>
-    /// 全部 <see cref="FileLogger"/> 共享到日志信件的日志输出 
+    /// 所有 <see cref="FileLogger"/> 共享的日志输出目标。
     /// </summary>
     public class FileLoggingOutput : IDisposable
     {
@@ -22,7 +22,7 @@ namespace Orleans.TestingHost.Logging
         private StreamWriter? logOutput;
 
         /// <summary>
-        /// 初始化 <see cref="FileLoggingOutput"/> 类静态成员。
+        /// 初始化 <see cref="FileLoggingOutput"/> 类的静态成员。
         /// </summary>
         static FileLoggingOutput()
         {
@@ -40,7 +40,7 @@ namespace Orleans.TestingHost.Logging
         /// <summary>
         /// 初始化 <see cref="FileLoggingOutput"/> 类的新实例。
         /// </summary>
-        /// <param name="fileName">日志文件的名称。</param>
+        /// <param name="fileName">日志文件名称。</param>
         public FileLoggingOutput(string fileName)
         {
             this.logFileName = fileName;
@@ -51,12 +51,12 @@ namespace Orleans.TestingHost.Logging
         /// <summary>
         /// 记录一条消息。
         /// </summary>
-        /// <typeparam name="TState">类型 <paramref name="state"/>.</typeparam>
-        /// <param name="logLevel">日志水平。</param>
+        /// <typeparam name="TState"><paramref name="state"/> 的类型。</typeparam>
+        /// <param name="logLevel">日志级别。</param>
         /// <param name="eventId">事件标识符。</param>
-        /// <param name="state">国家。</param>
-        /// <param name="exception">例外。</param>
-        /// <param name="formatter">事项的要处理。</param>
+        /// <param name="state">状态。</param>
+        /// <param name="exception">异常。</param>
+        /// <param name="formatter">格式化器。</param>
         /// <param name="category">类别。</param>
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
             Func<TState, Exception?, string> formatter, string category)
@@ -117,7 +117,7 @@ namespace Orleans.TestingHost.Logging
                         this.logOutput = null;
                         _ = Instances.TryRemove(this, out _);
 
-                        // 将输出丢弃, 这将冲洗所有缓冲 。
+                        // 释放输出对象，这会刷新所有缓冲区。
                         output.Dispose();
                     }
                 }
@@ -132,7 +132,7 @@ namespace Orleans.TestingHost.Logging
     }
 
     /// <summary>
-    /// 文件记录器, 将信件登录到文件 。
+    /// 文件日志记录器，将消息记录到文件。
     /// </summary>
     public class FileLogger : ILogger
     {
@@ -142,7 +142,7 @@ namespace Orleans.TestingHost.Logging
         /// <summary>
         /// 初始化 <see cref="FileLogger"/> 类的新实例。
         /// </summary>
-        /// <param name="output">输出对账器。</param>
+        /// <param name="output">输出日志记录器。</param>
         /// <param name="category">类别。</param>
         public FileLogger(FileLoggingOutput output, string category)
         {

@@ -471,9 +471,9 @@ public class InMemoryJobQueueTests
     [Fact]
     public async Task Enqueue_WithSameDueTimeAsDrainingBucket_DoesNotStrandJob()
     {
-        // 倒退:以与桶一样 DueTime 的工作进行工作
-        // 由先前通过 _bucket再利用已解结的桶子的量子排水器排水,
-        // 但那个桶已经不在排队的优先位置 所以新工作被搁置了
+        // 回归测试：此前，将 DueTime 与枚举器当前正在
+        // 排空的桶相同的作业入队时，会通过 _buckets 复用已出队的桶，
+        // 但该桶已不在优先队列中，导致新作业无法被处理。
         var queue = new InMemoryJobQueue();
         var sharedDueTime = DateTimeOffset.UtcNow.AddMilliseconds(-100);
         var job1 = CreateJob("job1", sharedDueTime);
@@ -483,14 +483,14 @@ public class InMemoryJobQueueTests
 
         await using var enumerator = queue.GetAsyncEnumerator(CancellationToken.None);
 
-        // 排入第一个任务。 返回后, 数字器位于 和
-        // 该桶已从 _queue 出队。
+        // 排空第一个作业。返回后，枚举器处于两次 yield 之间，且
+        // 该桶已经从 _queue 出队。
         Assert.True(await enumerator.MoveNextAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         Assert.Equal("job1", enumerator.Current.Job.Name);
         queue.RemoveJob(enumerator.Current.Job.Id);
 
-        // 在同一 DueTime添加第二份工作。如果有错误,此目标将针对
-        // 已经脱下水桶,但从未为调查员所见。
+        // 将 DueTime 相同的第二个作业入队。如果存在该缺陷，此作业会进入
+        // 已出队的桶，枚举器永远无法看到它。
         queue.Enqueue(job2, 0);
         queue.MarkAsComplete();
 
@@ -504,9 +504,9 @@ public class InMemoryJobQueueTests
     [Fact]
     public async Task Enqueue_AfterBucketProcessingCompletes_CreatesNewBucket()
     {
-        // 桶子全部排干和搬走后,再加一个同一种
-        // DueTime 必须创建一个新鲜桶子, 重新进入优先队列, 这样新的
-        // 工作处理完毕。
+        // 桶完全排空并移除后，后续使用相同
+        // DueTime 的 Enqueue 必须创建新桶并重新加入优先队列，确保新
+        // 作业得到处理。
         var queue = new InMemoryJobQueue();
         var sharedDueTime = DateTimeOffset.UtcNow.AddMilliseconds(-100);
         var job1 = CreateJob("job1", sharedDueTime);
@@ -519,8 +519,8 @@ public class InMemoryJobQueueTests
         Assert.Equal("job1", enumerator.Current.Job.Name);
         queue.RemoveJob(enumerator.Current.Job.Id);
 
-        // 任务1 已被生成并删除; 在同一 DueTime 的新工作必须可见
-        // 向下 MoveNextAsync。
+        // job1 已被 yield 返回并移除；具有相同 DueTime 的新作业必须对
+        // 下一次 MoveNextAsync 可见。
         var job2 = CreateJob("job2", sharedDueTime);
         queue.Enqueue(job2, 0);
         queue.MarkAsComplete();

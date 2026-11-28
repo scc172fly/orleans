@@ -10,7 +10,7 @@ using Xunit;
 namespace Tester.Redis.GrainDirectory
 {
     /// <summary>
-    /// 试验 Orleans 使用多个组群 grain 目录目录 Redis 作为目录存储后端 。
+    /// 测试使用多个 Grain 目录且以 Redis 为目录存储后端的 Orleans 集群。
     /// </summary>
     [TestCategory("Redis"), TestCategory("Directory"), TestCategory("Functional")]
     [Collection(TestEnvironmentFixture.DefaultCollection)]

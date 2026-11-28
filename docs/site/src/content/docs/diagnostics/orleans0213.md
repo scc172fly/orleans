@@ -1,25 +1,25 @@
 ---
-title: "ORLEANS0213:从非同步代码返回长期任务机构的任务"
-description: "了解 ORLEANS0213,其中报告方法、地方功能和羊羔在持久任务机构内是无效的,并通过返回和等待任务来加以修正。"
+title: "ORLEANS0213: 持久化任务主体中的异步代码应返回任务"
+description: 了解 ORLEANS0213：持久化任务主体中的 async void 方法、局部函数和 Lambda 表达式。通过返回并等待任务来修复。
 ms.date: 10/15/2026
 ms.topic: reference
 ---
 
 <a id="orleans0213-return-a-task-from-asynchronous-code-in-durable-task-bodies"></a>
 
-# ORLEANS0213:从非同步代码返回长期任务机构的任务
+# ORLEANS0213: 持久化任务主体中的异步代码应返回任务
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
 | 严重性 | 警告 |
-| 类别类 | 用法 |
-| 代码修正 | 无无无无 |
+| 类别 | 用法 |
+| 代码修复 | 无 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-持久任务机构宣布一个 `async void` 本地功能,或一个 `async` 羊羔,转换成返回 `void`的代表,例如 `Action`。 [ORLEANS0222](orleans0222.md) 报告有 `DurableTask.Run` 或 `DurableTask.RunInline` 收到的这种羊羔:
+持久化任务主体声明 `async void` 局部函数，或声明 `async` Lambda 表达式，该表达式转换为返回 `void` 的委托，例如 `Action`。[ORLEANS0222](orleans0222.md)报告由 `DurableTask.Run` 或 `DurableTask.RunInline` 接收的此类 Lambda 表达式：
 
 :::code source="snippets/durable-tasks/Orleans0213.cs" id="orleans0213_violation" language="csharp":::
 
@@ -27,28 +27,28 @@ ms.topic: reference
 
 ## 规则说明
 
-一个持久任务机构观察它等待的行动:结果、失败和取消。 `void` 无法等待代码。 例如:
+持久化任务主体观察它所等待的操作，包括结果、失败及取消。异步 `void` 代码不能被等待。在示例中：
 
-- 返回物体, 以及任务结果在电子邮件发送前被执行 。
-- 不发送任务会从身体中脱逃, 任务就能顺利完成, 而例外则在任务之外出现 。
-- 代码在完成身体后第一次 `await` 运行之后,在任务执行之外进行的持久操作。
+- 在邮件发送之前，主体已经返回，且任务结果已提交。
+- 发送失败逸出主体，因此任务成功完成，异常却在任务之外出现。
+- 代码在第一次 `await` 之后执行的持久化操作，会在主体完成之后、任务执行之外运行。
 
-规则和重放模型见 [重演安全规则](../grains/durable-tasks-replay-rules.md)。
+有关规则与重放模型，请参阅[重放安全规则](../grains/durable-tasks-replay-rules.md)。
 
 <a id="how-to-fix-violations"></a>
 
-## 如何纠正违反情况
+## 如何修复违规
 
-**返回a `DurableTask` 并等待着它,** 身体观察步骤的结果,重播回回录记录:
+**返回 `DurableTask` 并将其作为步骤等待。** 主体观察步骤结果，重放返回其记录：
 
 :::code source="snippets/durable-tasks/Orleans0213.cs" id="orleans0213_fix_step" language="csharp":::
 
-**从回调返回一个 `Task` 。** 使用 `Func<Task>` ,而不是 `Action` ,作为无同步回调,并等待在一步内回调:
+**从回调返回 `Task`。** 对异步回调使用 `Func<Task>` 而非 `Action`，并在步骤中等待回调：
 
 :::code source="snippets/durable-tasks/Orleans0213.cs" id="orleans0213_fix_func" language="csharp":::
 
 <a id="when-to-suppress"></a>
 
-## 何时压缩
+## 何时抑制
 
-事件处理者,需要签名 `void` 该机构可以通过其 grain.
+不要抑制此诊断。签名要求 `void` 的事件处理程序应位于持久化任务主体之外，在那里可以通过其 Grain 启动持久化任务。

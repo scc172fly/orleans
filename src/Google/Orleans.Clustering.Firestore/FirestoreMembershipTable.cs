@@ -97,7 +97,7 @@ internal partial class FirestoreMembershipTable : IMembershipTable
             }
             catch (RpcException exception) when (exception.StatusCode is StatusCode.Aborted or StatusCode.FailedPrecondition or StatusCode.NotFound)
             {
-                // 本地交易重记保护其新的资格审查。
+                // 仅刷新发生冲突的批次。原生事务重试会保护该批次重新进行的资格检查。
                 await this._storage.ExecuteTransaction(async transaction =>
                 {
                     var current = await transaction.GetAllSnapshotsAsync(
@@ -143,7 +143,7 @@ internal partial class FirestoreMembershipTable : IMembershipTable
             var collection = this._storage.GetCollection();
             var entries = await ExecuteWithContentionRetries(() => collection.Database.RunTransactionAsync(async transaction =>
             {
-                // 交易将每一份流出的文件都绑在可连序的快照上。
+                // 事务将流式读取的每份文档绑定到同一个可串行化快照。
                 var snapshot = await transaction.GetSnapshotAsync(collection, transaction.CancellationToken);
                 var versionSnapshot = snapshot.Documents.SingleOrDefault(document => document.Id == this._partitionId)
                     ?? throw new KeyNotFoundException($"Could not find cluster version entry for {this._partitionId}");
@@ -223,7 +223,7 @@ internal partial class FirestoreMembershipTable : IMembershipTable
             try
             {
                 var batch = collection.Database.StartBatch();
-                // 版本保护语句更改; 心跳写作可以改变行ETag。
+                // 版本用于保护正式成员资格变更；心跳写入可能改变记录 ETag。
                 batch.Update(siloReference, silo.GetFields(), Precondition.MustExist);
                 batch.Update(versionReference, version.GetFields(), Precondition.LastUpdated(version.ETag.Value));
                 await ExecuteWithContentionRetries(() => batch.CommitAsync(cancellationToken), cancellationToken);
@@ -308,7 +308,7 @@ internal partial class FirestoreMembershipTable : IMembershipTable
             }
             catch (RpcException exception) when (exception.StatusCode == StatusCode.Aborted && attempt < MaxContentionAttempts - 1)
             {
-                // 重试整个中止的快照或相同的有条件批次,以保留打电话者的CAS先决条件。
+                // 重试整个已中止的快照读取或原条件批次，同时保留调用方的 CAS 前置条件。
                 await Task.Delay(TimeSpan.FromMilliseconds(100 * (1 << attempt)), cancellationToken);
             }
         }

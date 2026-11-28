@@ -103,7 +103,7 @@ internal sealed partial class SiloGrainService : GrainService, ISiloGrainService
         }
         catch (Exception)
         {
-            // 我们无法获得 silo 数据, 它可能已经死了,所以杀了 grain
+            // 无法获取 Silo 统计数据，它可能已死亡，因此终止该 Grain。
             if (canDeactivate)
             {
                 _timer?.Dispose();

@@ -4,10 +4,10 @@ using UnitTests.GrainInterfaces;
 namespace TestGrains
 {
     /// <summary>
-    /// 各种日志一致性提供者的许多不同单位测试所使用的一个类别。
-    /// 班级的内容是武断的,乱七八糟的;
-    /// (不要用这个来介绍如何使用 JournaledGrain)
-    /// 是从 SimpleGrain开始的, 但随着时间推移,很多东西被添加 
+    /// 供各种日志一致性提供程序的多项单元测试使用的类。
+    /// 此类的内容比较随意且杂乱；
+    /// （请勿将此类用作 JournaledGrain 的入门示例）
+    /// 它最初基于 SimpleGrain，后来陆续增加了许多内容
     /// </summary>
     [Serializable]
     [Orleans.GenerateSerializer]
@@ -30,7 +30,7 @@ namespace TestGrains
             return string.Format("A={0} B={1} R={{{2}}}", A, B, string.Join(", ", Reservations.Select(kvp => string.Format("{0}:{1}", kvp.Key, kvp.Value))));
         }
 
-        // 全部更新操作在此列出
+        // 所有更新操作均在此处列出
         public void Apply(UpdateA x) { A = x.Val; }
         public void Apply(UpdateB x) { B = x.Val; }
         public void Apply(IncrementA x) { A++; }
@@ -59,17 +59,17 @@ namespace TestGrains
 
 
     /// <summary>
-    /// 用于测试逻辑一致性提供者的 grain 。
-    /// 有两个领域A, B, 可更新或加增;
-    /// 和保留词典,可以添加和删除
-    /// 我们对此进行分类, 为所有存储提供者创建变量
+    /// 用于测试日志一致性提供程序的 Grain。
+    /// 具有两个可更新或递增的字段 A、B；
+    /// 以及可添加或删除预订的字典
+    /// 通过派生子类为所有存储提供程序创建变体
     /// </summary>
     public abstract class LogTestGrain : JournaledGrain<MyGrainState, object>, UnitTests.GrainInterfaces.ILogTestGrain
     {
 
         public override Task OnActivateAsync(CancellationToken cancellationToken)
         {
-            return Task.CompletedTask; // 不等待初始装入
+            return Task.CompletedTask; // 不等待初始加载完成
         }
 
         public async Task SetAGlobal(int x)

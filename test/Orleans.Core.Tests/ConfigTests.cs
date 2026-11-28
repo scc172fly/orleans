@@ -15,8 +15,8 @@ using Xunit;
 namespace UnitTests
 {
     /// <summary>
-    /// 用于 Orleans 配置公用事业的测试,特别是处理敏感连接字符串的安全特征。
-    /// 这些测试核实 Orleans 正确编辑了用于记录和诊断的配置字符串中的敏感信息。
+    /// 测试 Orleans 配置辅助工具，尤其是处理敏感连接字符串的安全功能。
+    /// 这些测试验证 Orleans 能否为日志记录及诊断正确遮盖配置字符串中的敏感信息。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -66,7 +66,7 @@ namespace UnitTests
         [Fact, TestCategory("Functional"), TestCategory("Config")]
         public void ParseTimeSpan_UsesInvariantCultureUnderFrenchCurrentCulture()
         {
-            // CurrentCulture 与执行的这一背景是本地的,不是整个过程的默认。
+            // CurrentCulture 局限于此执行上下文，并非进程级默认值。
             var previousCulture = CultureInfo.CurrentCulture;
             try
             {
@@ -99,8 +99,8 @@ namespace UnitTests
         }
 
         /// <summary>
-        /// 测试 Azure 存储连接字符串的账户密钥已正确编辑 。
-        /// 这样,敏感认证信息就不会在日志中暴露。
+        /// 测试 Azure Storage 连接字符串中的账户密钥是否得到正确遮盖。
+        /// 这可防止敏感身份验证信息暴露在日志中。
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("Config")]
         public void Config_AzureConnectionInfo()
@@ -115,8 +115,8 @@ namespace UnitTests
         }
 
         /// <summary>
-        /// 测试 SQL 服务器连接字符串的密码是否正确编辑。
-        /// 这样可以确保数据库的证书在日志或错误信息中不显示。
+        /// 测试 SQL Server 连接字符串中的密码是否得到正确遮盖。
+        /// 这确保数据库凭据不会暴露在日志或错误消息中。
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("Config")]
         public void Config_AdoNetConnectionInfo()

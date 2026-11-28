@@ -37,7 +37,7 @@ namespace Orleans.Runtime.Messaging
         {
             lifecycle.Subscribe(
                 nameof(ConnectionManager),
-                ServiceLifecycleStage.RuntimeInitialize - 1, // RuntimeInitialize 需要网络的部件
+                ServiceLifecycleStage.RuntimeInitialize - 1, // RuntimeInitialize 阶段中的组件需要网络。
                 this);
         }
     }

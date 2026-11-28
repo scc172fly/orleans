@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!--
-    汇编仅针对 Net11.1.0 的软件包文档文件片断。
-    将它的片段文件从片段/ 编译到此目录中, 保留子文件夹, 如 Grains/,
-    *:引用它们的编码路径,并添加片段需要的 ProjectReference 项。
+    编译仅面向 net11.0 的包的文档代码片段。
+    为此类包编写文档的模块需要将其代码片段文件从 snippets/compiled 移至此目录，并保留 Grains/ 等子目录，更新引用它们的 :::code 路径，添加片段所需的 ProjectReference 项。
   -->
   <PropertyGroup>
     <TargetFramework>net11.0</TargetFramework>

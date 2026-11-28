@@ -22,7 +22,7 @@ public sealed class DurableJobManagerProbe
     public void FailAfterNext(string jobName) =>
         _postScheduleFailures.AddOrUpdate(jobName, 1, static (_, count) => count + 1);
 
-    /// <summary>返回下一个时间表,但不储存工作,而模拟已经运行的工作。</summary>
+    /// <summary>返回下一次调度但不存储其作业，用于模拟已经运行过的作业。</summary>
     public void SkipNext(string jobName) =>
         _skips.AddOrUpdate(jobName, 1, static (_, count) => count + 1);
 

@@ -1,7 +1,7 @@
 namespace Orleans.Streaming.AdoNet;
 
 /// <summary>
-/// 代表ADONET流源提供商的一纸空文
+/// 表示 ADO.NET 流提供程序中死信的模型。
 /// </summary>
 internal record AdoNetStreamDeadLetter(
     string ServiceId,

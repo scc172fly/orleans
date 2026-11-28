@@ -8,7 +8,7 @@ using Xunit;
 namespace Tester.AzureUtils.General
 {
     /// <summary>
-    /// 通用 grain 使用类型 Azure 表格储存作为持久性提供者。
+    /// 测试以 Azure Table Storage 为持久化提供程序的泛型 Grain 类型。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Generics")]
     [TestSuite("Functional")]
@@ -70,7 +70,7 @@ namespace Tester.AzureUtils.General
     }
 
     /// <summary>
-    /// 通用 grain 使用类型 Azure 岩浆存储公司作为持久性提供者。
+    /// 测试以 Azure Blob Storage 为持久化提供程序的泛型 Grain 类型。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Generics")]
     [TestSuite("Functional")]

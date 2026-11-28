@@ -44,7 +44,7 @@ namespace TestGrains
                     }
                     catch
                     {
-                        // Grain 可能会对测试错误率设置例外。
+                        // Grain 可能抛出异常，以测试错误率。
                     }
                 }
             }, CancellationToken.None);

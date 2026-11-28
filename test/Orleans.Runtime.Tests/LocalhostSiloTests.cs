@@ -9,17 +9,17 @@ using Xunit;
 namespace Tester
 {
     /// <summary>
-    /// 当地主机群集模式测试,设计用于地方发展和测试。
+    /// 测试为本地开发和测试设计的 localhost 集群模式。
     /// 
-    /// UseLocalhostClustering 配置 Orleans ,可在本地主机上运行,没有外部依赖
-    /// 类似 Azure 存储或 SQL 服务器。 此模式 :
-    /// - 使用成员提供机构
-    /// - 配置 silos ,通过本地主机进行通讯
-    /// - 支持单silo 和多silo 配置
-    /// - 单位测试、开发和调试的理想
+    /// UseLocalhostClustering 配置 Orleans 在 localhost 上运行，无需外部依赖项，
+    /// 例如 Azure Storage 或 SQL Server。此模式：
+    /// - 使用内存成员资格提供程序
+    /// - 配置 Silo 通过 localhost 通信
+    /// - 支持单 Silo 和多 Silo 配置
+    /// - 非常适合单元测试、开发和调试
     /// 
-    /// 这些测试核实本地主机群集对单silo两个都正确运行
-    /// 和多silo 情景,确保开发商能够很容易地本地运行 Orleans 。
+    /// 这些测试验证 localhost 集群在单 Silo
+    /// 及多 Silo 场景中均能正常工作，确保开发人员可轻松在本地运行 Orleans。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -28,28 +28,28 @@ namespace Tester
     public class LocalhostClusterTests
     {
         /// <summary>
-        /// 测试本地主机群集,使用一个 silo。
-        /// 核证:
-        /// - Silo 可以从本地主机群集开始
-        /// - 客户可以使用当地主机群集连
-        /// - 基本 grain 调用工作,在此配置中
-        /// 这是最简单的本地发展 Orleans 设置 。
+        /// 测试单 Silo 的 localhost 集群。
+        /// 验证：
+        /// - Silo 可以通过 localhost 集群配置启动
+        /// - 客户端可以通过 localhost 集群配置连接
+        /// - 基本 Grain 调用在此配置下能正常工作
+        /// 这是本地开发中最简单的 Orleans 配置。
         /// </summary>
         [Fact]
         public async Task LocalhostSiloTest()
         {
             using var portAllocator = new TestClusterPortAllocator();
             var (siloPort, gatewayPort) = portAllocator.AllocateConsecutivePortPairs(1);
-            // 配置一个带有本地主机群集的单 silo
-            // siloPort:用于 silo-至-silo 通信(未在单项 silo中使用)
-            // gatewayPort:用于客户对silo 通信
+            // 使用 localhost 集群配置单个 Silo
+            // siloPort：用于 Silo 间通信（单 Silo 时不使用）
+            // gatewayPort：用于客户端与 Silo 之间的通信
             var host = new HostBuilder().UseOrleans((ctx, siloBuilder) =>
             {
                 siloBuilder.AddMemoryGrainStorage("MemoryStore")
                 .UseLocalhostClustering(siloPort, gatewayPort);
             }).Build();
 
-            // 连接到本地主机 silo的配置客户端
+            // 配置客户端连接至本地 Silo
             var clientHost = new HostBuilder().UseOrleansClient((ctx, clientBuilder) =>
             {
                 clientBuilder.UseLocalhostClustering(gatewayPort);
@@ -75,31 +75,31 @@ namespace Tester
         }
 
         /// <summary>
-        /// 测试本地主机群集,且多个 silos 组成一个组合。
-        /// 核证:
-        /// - 多个 silos 可以组成本地主机群集
-        /// - Silos 通过主 silo 终点发现对方
-        /// - 客户可以连接多个网关,以便高可用率
-        /// - 分布 grain 目录在多silo 设置中工作
-        /// 这说明当地发展前景更加现实。
+        /// 测试多个 Silo 组成集群的 localhost 集群模式。
+        /// 验证：
+        /// - 多个 Silo 可以在 localhost 上组成集群
+        /// - Silo 通过主 Silo 终结点发现彼此
+        /// - 客户端可连接多个网关以实现高可用性
+        /// - 分布式 Grain 目录在多 Silo 配置下能正常工作
+        /// 这演示了更贴近实际情况的本地开发场景。
         /// </summary>
         [Fact]
         public async Task LocalhostClusterTest()
         {
             using var portAllocator = new TestClusterPortAllocator();
             var (baseSiloPort, baseGatewayPort) = portAllocator.AllocateConsecutivePortPairs(2);
-            // Silo 1:其他连接的初级 silo
+            // Silo 1：供其他 Silo 连接的主 Silo
             var silo1 = new HostBuilder().UseOrleans((ctx, siloBuilder) =>
             {
                 siloBuilder
                 .AddMemoryGrainStorage("MemoryStore")
                 .UseLocalhostClustering(baseSiloPort, baseGatewayPort);
-                // 分配 grain 允许目录 grain 多个倍数的激活 silos
+                // 分布式 Grain 目录允许在多个 Silo 上激活 Grain
                 siloBuilder.AddDistributedGrainDirectory();
             }).Build();
 
-            // Silo 2:中学 silo 连接到主控
-            // 注意第三个参数:发现集束的主要 silo 终点
+            // Silo 2：连接至主 Silo 的辅助 Silo
+            // 注意第三个参数：用于集群发现的主 Silo 终结点
             var silo2 = new HostBuilder().UseOrleans((ctx, siloBuilder) =>
             {
                 siloBuilder
@@ -108,7 +108,7 @@ namespace Tester
                 siloBuilder.AddDistributedGrainDirectory();
             }).Build();
 
-            // 客户端配置了多个连接端口, 用于负负平衡/ 失败
+            // 客户端配置多个网关端口，以实现负载均衡和故障转移
             var clientHost = new HostBuilder().UseOrleansClient((ctx, clientBuilder) =>
             {
                 clientBuilder.UseLocalhostClustering([baseGatewayPort, baseGatewayPort + 1]);

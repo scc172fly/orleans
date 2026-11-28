@@ -1,13 +1,13 @@
--- 运行此迁移以更新 PostgreSQL 提醒表和3.6.0之前创建的部署程序
+-- 运行此迁移脚本，为 3.6.0 之前创建的部署升级 PostgreSQL 提醒器表和例程。
 
 BEGIN;
 
--- 更改日期类型
+-- 更改日期时间类型。
 
 ALTER TABLE OrleansRemindersTable
 ALTER COLUMN StartTime TYPE TIMESTAMPTZ(3) USING StartTime AT TIME ZONE 'UTC';
 
--- 重建常规
+-- 重新创建例程。
 
 CREATE OR REPLACE FUNCTION upsert_reminder_row(
     ServiceIdArg    OrleansRemindersTable.ServiceId%TYPE,

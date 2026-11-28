@@ -6,28 +6,28 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Orleans.Durable.Journaling.Json;
 
 /// <summary>
-/// 配置 JSON 行基日记的选项。
+/// 用于配置基于 JSON Lines 的日志持久化的选项。
 /// </summary>
 public sealed class JsonJournalOptions
 {
     /// <summary>
-    /// 获取或设置序列化所用的 <see cref="JsonSerializerOptions"/> 。
+    /// 获取或设置用于序列化的 <see cref="JsonSerializerOptions"/>。
     /// </summary>
     /// <remarks>
-    /// 耐用输入编码解码器解析 <see cref="JsonTypeInfo{T}"/>
-    /// 在此选项实例中, 每个日记有效载荷类型的元数据。 配置
-    /// <see cref="JsonSerializerOptions.TypeInfoResolver"/> 或 <see cref="JsonSerializerOptions.TypeInfoResolverChain"/>
-    /// 带有源生成元数据, 用于计算或使用本地 AOT 时的日记值、 密钥和状态类型。
+    /// 持久化条目编解码器从此选项实例中解析写入日志的每种有效载荷类型的 <see cref="JsonTypeInfo{T}"/>
+    /// 元数据。执行裁剪或使用 Native AOT 时，请配置
+    /// <see cref="JsonSerializerOptions.TypeInfoResolver"/> 或 <see cref="JsonSerializerOptions.TypeInfoResolverChain"/>，
+    /// 为记入日志的值、键及状态类型提供源生成的元数据。
     /// </remarks>
     public JsonSerializerOptions SerializerOptions { get; set; } = new JsonSerializerOptions(JsonSerializerDefaults.General);
 
     /// <summary>
-    /// 将源生成的元数据 JSON 添加到用于日记有效载荷值的序列器选项中。
+    /// 将源生成的 JSON 元数据添加到用于日志有效载荷值的序列化器选项。
     /// </summary>
-    /// <param name="typeInfoResolver">解答器,通常是生成的 <see cref="System.Text.Json.Serialization.JsonSerializerContext"/> 实例。</param>
-    /// <returns>此链条选项实例。</returns>
+    /// <param name="typeInfoResolver">解析器，通常为生成的 <see cref="System.Text.Json.Serialization.JsonSerializerContext"/> 实例。</param>
+    /// <returns>用于链式调用的此选项实例。</returns>
     /// <remarks>
-    /// 使用此方法来登记每个日记密钥、值和状态类型在剪切或使用本地自动输出时的元数据。
+    /// 执行裁剪或使用 Native AOT 时，使用此方法为每种记入日志的键、值及状态类型注册元数据。
     /// </remarks>
     /// <example>
     /// <code>
@@ -47,16 +47,16 @@ public sealed class JsonJournalOptions
 }
 
 /// <summary>
-/// 配置 JSON 行 Orleans.Durable.Journaling 格式的扩展方法。
+/// 用于配置 JSON Lines Orleans.Durable.Journaling 格式的扩展方法。
 /// </summary>
 public static class JsonJournalHostingExtensions
 {
     /// <summary>
-    /// 配置此配置 silo 和 JSON 行线 Orleans.Durable.Journaling 格式化家庭。
+    /// 为此 Silo 配置 JSON Lines Orleans.Durable.Journaling 格式系列。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <param name="configure">配置 <see cref="JsonJournalOptions"/>的可选代表。</param>
-    /// <returns>链条的 silo 构建器。</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <param name="configure">用于配置 <see cref="JsonJournalOptions"/> 的可选委托。</param>
+    /// <returns>用于链式调用的 Silo 构建器。</returns>
     /// <example>
     /// <code>
     /// builder.AddJournaling().UseJsonJournalFormat();
@@ -84,14 +84,14 @@ public static class JsonJournalHostingExtensions
     }
 
     /// <summary>
-    /// 配置 silo ,使用 JSON 行 Orleans.Durable.Journaling 格式的家族式,并登记源生成元数据,以显示日记有效载荷值。
+    /// 为此 Silo 配置 JSON Lines Orleans.Durable.Journaling 格式系列，并为日志有效载荷值注册源生成的元数据。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <param name="typeInfoResolver">解答器,通常是生成的 <see cref="System.Text.Json.Serialization.JsonSerializerContext"/> 实例。</param>
-    /// <returns>链条的 silo 构建器。</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <param name="typeInfoResolver">解析器，通常为生成的 <see cref="System.Text.Json.Serialization.JsonSerializerContext"/> 实例。</param>
+    /// <returns>用于链式调用的 Silo 构建器。</returns>
     /// <remarks>
-    /// 超载是推荐的用于剪切和本地 AOT 的低阻力切入点。 提供解答器
-    /// 必须包含每个日记密钥、 值和状态类型 。
+    /// 推荐此重载作为裁剪及 Native AOT 的便捷入口。提供的解析器
+    /// 必须包含每种记入日志的键、值及状态类型。
     /// </remarks>
     /// <example>
     /// <code>

@@ -19,7 +19,7 @@ namespace UnitTests.StorageTests
     }
 
     /// <summary>
-    /// 本地数据存储操作测试,包括读、写和删除功能。
+    /// 测试本地数据存储操作，包括读取、写入和删除功能。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -106,16 +106,16 @@ namespace UnitTests.StorageTests
             sw.Restart();
             var storedData = store.ReadRow(keys);
             output.WriteLine("Read returned {0} after {1}", StorageProviderUtils.PrintOneWrite(keys, storedData, eTag), sw.Elapsed);
-            Assert.NotNull(data); // 可以从读取中获取一些数据
+            Assert.NotNull(data); // Read 应获取一些数据。
 
             sw.Restart();
             bool ok = store.DeleteRow(keys, eTag);
             Assert.True(ok, $"Row deleted OK after {sw.Elapsed}. Etag={eTag} Keys={StorageProviderUtils.PrintKeys(keys)}");
 
             sw.Restart();
-            storedData = store.ReadRow(keys); // 尝试在删除后重新读取
+            storedData = store.ReadRow(keys); // 删除后尝试重新读取。
             output.WriteLine("Re-Read took {0} and returned {1}", sw.Elapsed, StorageProviderUtils.PrintData(storedData)!);
-            Assert.NotNull(data); // 不应该从 Re- read 获取 null 数据
+            Assert.NotNull(data); // 重新读取不应得到 null 数据。
             Assert.True(storedData.Count == 0, $"Should get no data from Re-Read but got: {StorageProviderUtils.PrintData(storedData)}");
 
             sw.Restart();
@@ -137,7 +137,7 @@ namespace UnitTests.StorageTests
 
             ILocalDataStore store = new HierarchicalKeyStore(2);
 
-            // 写 # 1
+            // 第 1 次写入
             IList<Tuple<string, string>> keys = new[]
             {
                 Tuple.Create("GrainType", name),
@@ -149,7 +149,7 @@ namespace UnitTests.StorageTests
             state.A = name;
             store.WriteRow(keys, AsDictionary(state), grainState.ETag);
 
-            // 写2
+            // 第 2 次写入
             keys = new[]
             {
                 Tuple.Create("GrainType", name),
@@ -161,7 +161,7 @@ namespace UnitTests.StorageTests
             state.A = name;
             store.WriteRow(keys, AsDictionary(state), grainState.ETag);
 
-            // 多种阅读
+            // 多项读取
             keys = new[]
             {
                 Tuple.Create("GrainType", name)
@@ -169,7 +169,7 @@ namespace UnitTests.StorageTests
 
             var results = store.ReadMultiRow(keys);
 
-            Assert.Equal(2, results.Count);  // "伯爵"
+            Assert.Equal(2, results.Count);  // "Count"
         }
 
         [Fact, TestCategory("Functional"), TestCategory("Persistence"), TestCategory("MemoryStore")]
@@ -201,7 +201,7 @@ namespace UnitTests.StorageTests
             Assert.Equal(state.C, data["C"]);  // "C"
         }
 
-        // 实用方法...
+        // ---------- 辅助方法 ----------
 
         private static IList<Tuple<string, string>> GetKeys(string grainTypeName, GrainReference grain)
         {

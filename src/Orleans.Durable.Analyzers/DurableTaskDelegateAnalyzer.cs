@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Orleans.Durable.Analyzers;
 
 /// <summary>
-/// 向代表报告 <c>DurableTask.Run</c> 和 <c>DurableTask.RunInline</c> 接收的,无法运行的电话
-/// 意指:一个在工作完成之前即为空无代表的助理代表,以及一个同步步骤,其内线是作为
-/// 效果。
+/// 报告 <c>DurableTask.Run</c> 和 <c>DurableTask.RunInline</c> 接收、但无法按调用意图运行的委托：
+/// async void 委托（其完成早于实际工作结束），以及同步步骤（它以内联
+/// 效果形式运行）。
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DurableTaskDelegateAnalyzer : DiagnosticAnalyzer
@@ -72,7 +72,7 @@ public sealed class DurableTaskDelegateAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    /// <summary>返回代表参数通过转换和投影约束的函数或方法。</summary>
+    /// <summary>穿过转换和强制类型转换，返回委托实参绑定的函数或方法。</summary>
     private static IOperation GetTarget(IOperation value)
     {
         while (true)
@@ -92,8 +92,8 @@ public sealed class DurableTaskDelegateAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// 返回代表约束的对一个非同步无效函数的描述: Async 羊羔、 a sync 无效方法或 a
-    /// 声明初始化为一个且没有代码再次指定的本地。
+    /// 返回委托绑定的 async void 函数的描述：异步 Lambda 表达式、async void 方法，或
+    /// 在声明时以其中之一初始化且从未再次赋值的局部变量。
     /// </summary>
     private static string? GetAsyncVoidName(IOperation target, SemanticModel? semanticModel)
     {
@@ -113,8 +113,8 @@ public sealed class DurableTaskDelegateAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// 返回一个步骤的代表是否只做同步工作:它等待什么,不返回任务,不阅读
-    /// 步骤收到 <c>CancellationToken</c> 。
+    /// 返回步骤委托是否仅执行同步工作：不等待任何对象，不返回任务，也不读取
+    /// 传给该步骤的 <c>CancellationToken</c>。
     /// </summary>
     private static bool IsSynchronous(IAnonymousFunctionOperation function)
     {
@@ -141,7 +141,7 @@ public sealed class DurableTaskDelegateAnalyzer : DiagnosticAnalyzer
         return true;
     }
 
-    /// <summary>返回是否在界定、可选命名或屏蔽而不是分离的阶段等待一个步骤。</summary>
+    /// <summary>返回步骤是否在定义处被等待，可选地命名或屏蔽取消，且未被分离。</summary>
     private static bool IsAwaitedStep(IInvocationOperation run) =>
         DurableTaskSymbols.GetConsumer(run, "Detached", out var detached) is IAwaitOperation && !detached;
 }

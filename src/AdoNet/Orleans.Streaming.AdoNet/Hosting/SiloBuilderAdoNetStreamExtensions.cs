@@ -1,17 +1,17 @@
 namespace Orleans.Hosting;
 
 /// <summary>
-/// 允许个人配置 ADO.NET 在一个串中 silo.
+/// 允许在 Silo 中配置各个 ADO.NET 流。
 /// </summary>
 public static class SiloBuilderAdoNetStreamExtensions
 {
     /// <summary>
-    /// 配置 silo 使用 ADO.NET 串流提供者。
+    /// 将 Silo 配置为使用 ADO.NET 流提供程序。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <param name="name">流体提供者名称。</param>
-    /// <param name="configureOptions">用于配置提供者的代表。</param>
-    /// <returns>相同 <paramref name="builder"/> 实例。</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <param name="name">流提供程序名称。</param>
+    /// <param name="configureOptions">用于配置提供程序的委托。</param>
+    /// <returns>同一个 <paramref name="builder"/> 实例。</returns>
     public static ISiloBuilder AddAdoNetStreams(this ISiloBuilder builder, string name, Action<AdoNetStreamOptions> configureOptions)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -22,12 +22,12 @@ public static class SiloBuilderAdoNetStreamExtensions
     }
 
     /// <summary>
-    /// 配置 silo 使用 ADO.NET 串流提供者。
+    /// 将 Silo 配置为使用 ADO.NET 流提供程序。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <param name="name">流体提供者名称。</param>
-    /// <param name="configure">用于配置提供者的代表。</param>
-    /// <returns>相同 <paramref name="builder"/> 实例。</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <param name="name">流提供程序名称。</param>
+    /// <param name="configure">用于配置提供程序的委托。</param>
+    /// <returns>同一个 <paramref name="builder"/> 实例。</returns>
     public static ISiloBuilder AddAdoNetStreams(this ISiloBuilder builder, string name, Action<SiloAdoNetStreamConfigurator> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);

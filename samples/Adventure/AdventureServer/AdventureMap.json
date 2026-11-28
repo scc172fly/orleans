@@ -1,13 +1,13 @@
 {
     "name" : "A first game",
     "rooms" : [
-        { "id" : 0, "name" : "west-of-house", "description" : "You are standing in an open field west of a white house with a boarded front door.\nThere is a forest to the north.", "directions" : {"north" : 1 } },
-        { "id" : 1, "name" : "forest", "description" : "This is a dimly lit forest, with large trees all around.\nThere is a clearing to the north, and a house to the south.", "directions" : {"north" : 2, "south" : 0 } },
-        { "id" : 2, "name" : "clearing", "description" : "You are in a clearing, with a forest surrounding you on the west and south.\nThere is a forest to the south, and a canyon to the west.", "directions" : {"west" : 3, "south" : 1 } },
-        { "id" : 3, "name" : "canyon", "description" : "You are at the top of the great canyon on its south wall.\nThere is a beach to the west, and a clearing to the east.", "directions" : {"west" : 4, "east": 2 } },
-        { "id" : 4, "name" : "beach", "description" : "You are on a small beach on the Frigid River, past the falls.\nThere is a faint smell of sulfur coming from the ground.\nThere is a clearing to the north, and a canyon to the east.", "directions" : {"east" : 3, "down" : -1 } },
-        { "id" : -1, "name" : "styx", "description" : "In front of you is the River Styx.", "directions" : { "forward" : -2} },
-        { "id" : -2, "name" : "hades", "description" : "\nWelcome to Hades!\n\nWe must inform you that no one ever leaves.\nYou might as well end right now.", "directions" : { } }
+        { "id" : 0, "name" : "west-of-house", "description" : "你站在一所白房子西侧的空地上，房子的前门被木板封住。\n北面是一片森林。", "directions" : {"north" : 1 } },
+        { "id" : 1, "name" : "forest", "description" : "这是一片光线昏暗的森林，四周都是高大的树木。\n北面有一片空地，南面有一所房子。", "directions" : {"north" : 2, "south" : 0 } },
+        { "id" : 2, "name" : "clearing", "description" : "你在一片空地上，西面和南面被森林环绕。\n南面是一片森林，西面是一处峡谷。", "directions" : {"west" : 3, "south" : 1 } },
+        { "id" : 3, "name" : "canyon", "description" : "你位于大峡谷南侧崖壁的顶端。\n西面有一片河滩，东面有一片空地。", "directions" : {"west" : 4, "east": 2 } },
+        { "id" : 4, "name" : "beach", "description" : "你在 Frigid River 瀑布下游的一小片河滩上。\n地面散发出淡淡的硫黄气味。\n北面有一片空地，东面是一处峡谷。", "directions" : {"east" : 3, "down" : -1 } },
+        { "id" : -1, "name" : "styx", "description" : "你面前是冥河（River Styx）。", "directions" : { "forward" : -2} },
+        { "id" : -2, "name" : "hades", "description" : "\n欢迎来到冥府（Hades）！\n\n我们必须告诉你，从来没有人离开这里。\n你不妨现在就结束游戏。", "directions" : { } }
     ],
     "things" : [
         { "id" : 0, "name" : "brass key", "article": "a", "category": "key", "foundIn" : 2, "commands" : ["lock","unlock"]},

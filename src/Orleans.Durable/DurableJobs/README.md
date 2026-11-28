@@ -1,19 +1,19 @@
 <a id="microsoft-orleans-durable-jobs"></a>
 
-# Microsoft Orleans 持久工作
+# Microsoft Orleans 持久化作业（Durable Jobs）
 
 <a id="introduction"></a>
 
 ## 简介
-Microsoft Orleans 持久就业为安排在特定时间执行的一次性工作提供了分布式、可扩展的制度。 Orleans 为经常性任务设计的提醒, " 持久工作 " 是未来一次性活动的理想,如任用通知、延迟处理、排定工作流程步骤和时间触发。
+Microsoft Orleans 持久化作业提供一个分布式、可伸缩的系统，用于调度在指定时间执行的一次性作业。与面向周期性任务的 Orleans 提醒器不同，持久化作业适用于预约通知、延迟处理、定时执行的工作流步骤和基于时间的触发器等未来的一次性事件。
 
-**关键字特性:**
-- **至少有一次一次性执行**:工作计划至少运行一次
-- **持久性**:工作在 grain 停止和 silo 重新开始后得以生存
-- **分配**:任务在 silos之间自动分布和重新平衡
-- **可靠**:失败的工作可以自动地用可配置的政策重新审理。
-- **丰富元元数据**:每项工作的相关自定义元数据
-- **易可耐久可撤销**:取消请求阻止今后尝试;已经进行的尝试可能仍然完成
+**主要特性：**
+- **至少执行一次**：作业被调度为至少执行一次
+- **持久化**：作业可跨 Grain 停用和 Silo 重启存续
+- **分布式**：作业在各 Silo 之间自动分配和再均衡
+- **可靠性**：失败的作业可依据可配置的策略自动重试
+- **丰富的元数据**：可为每个作业关联自定义元数据
+- **可持久化取消**：取消请求阻止后续执行尝试；已经运行的尝试仍可能完成
 
 <a id="getting-started"></a>
 
@@ -22,13 +22,13 @@ Microsoft Orleans 持久就业为安排在特定时间执行的一次性工作�
 <a id="installation"></a>
 
 ### 安装
-要使用此软件包, 请通过 NuGet安装 :
+要使用此包，请通过 NuGet 安装：
 
 ```shell
 dotnet add package Microsoft.Orleans.Durable --prerelease
 ```
 
-对于具有持久性的生产设想情况,还应安装一个储存供应商:
+对于需要持久化的生产场景，还需安装存储提供程序：
 
 ```shell
 dotnet add package Microsoft.Orleans.Durable.AzureStorage --prerelease
@@ -40,7 +40,7 @@ dotnet add package Microsoft.Orleans.Durable.AzureStorage --prerelease
 
 <a id="using-in-memory-storage-developmenttesting"></a>
 
-#### 使用内存储(开发/测试)
+#### 使用内存存储（开发和测试）
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Orleans.Hosting;
@@ -51,7 +51,7 @@ builder.UseOrleans(siloBuilder =>
 {
     siloBuilder
         .UseLocalhostClustering()
-        // Configure in-memory Durable Jobs (no persistence)
+        // 使用内存存储配置持久化作业，作业数据不会持久保存
         .UseInMemoryDurableJobs();
 });
 
@@ -60,7 +60,7 @@ await builder.Build().RunAsync();
 
 <a id="using-azure-storage-production"></a>
 
-#### 使用 Azure 存储(生产)
+#### 使用 Azure 存储（生产环境）
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Orleans.Hosting;
@@ -71,7 +71,7 @@ builder.UseOrleans(siloBuilder =>
 {
     siloBuilder
         .UseLocalhostClustering()
-        // Configure Azure Storage Durable Jobs
+        // 使用 Azure Storage 存储持久化作业
         .UseAzureBlobDurableJobs(options =>
         {
             options.BlobServiceClient = new Azure.Storage.Blobs.BlobServiceClient("YOUR_CONNECTION_STRING");
@@ -95,26 +95,26 @@ builder.UseOrleans(siloBuilder =>
         {
             services.Configure<DurableJobsOptions>(options =>
             {
-                // Duration of each job shard (jobs are partitioned by time)
+                // 每个作业分片覆盖的时长（作业按时间分片）
                 options.ShardDuration = TimeSpan.FromMinutes(5);
 
-                // Load eligible shards within this horizon and check at this interval
+                // 加载前瞻时间窗口内符合条件的分片，并按指定间隔检查
                 options.ShardLoadLookaheadPeriod = TimeSpan.FromMinutes(10);
                 options.ShardCheckInterval = TimeSpan.FromMinutes(5);
                 
-                // Maximum number of jobs that can execute concurrently on each silo
+                // 每个 Silo 可并发执行的最大作业数
                 options.MaxConcurrentJobsPerSilo = 100;
                 
-                // Custom retry policy
+                // 自定义重试策略
                 options.ShouldRetry = (context, exception) =>
                 {
-                    // Retry up to 3 times with exponential backoff
+                    // 出队次数小于 3 时，按指数退避安排重试
                     if (context.DequeueCount < 3)
                     {
                         var delay = TimeSpan.FromSeconds(Math.Pow(2, context.DequeueCount));
                         return DateTimeOffset.UtcNow.Add(delay);
                     }
-                    return null; // Don't retry
+                    return null; // 停止重试
                 };
             });
         });
@@ -123,13 +123,13 @@ builder.UseOrleans(siloBuilder =>
 
 <a id="select-named-journal-storage"></a>
 
-## 选择命名日记存储
+## 选择命名日志存储
 
-`UseJournaledDurableJobs` 日期 时 `ISiloBuilder` 或 `IServiceCollection` 安装
-日记硬管理器和持久工作 JSON 独立运行元数据
-存储后端后端 。 注册一个目录化日记账提供者, 然后选择它
-与 `DurableJobsOptions.ActiveProviderName`。默认名称是 `"Default"`。
-`DrainingProviderNames` 初始为空 。
+`UseJournaledDurableJobs` 在 `ISiloBuilder` 或 `IServiceCollection` 上安装
+日志化分片管理器及持久化作业 JSON 元数据支持，而不依赖具体的
+存储后端。请注册支持目录功能的日志提供程序，然后使用
+`DurableJobsOptions.ActiveProviderName` 选择它。默认名称为 `"Default"`。
+`DrainingProviderNames` 最初为空。
 
 ```csharp
 siloBuilder
@@ -150,189 +150,189 @@ siloBuilder
     });
 ```
 
-命名的Blob、表 Redis、S3和挥发性登记,装订储存、目录、
-以及同一配置命名空间的州管理工厂。
-将默认提供者留为 grain 日记帐独立设置。保持每个物理
-以一个选定名称注册的命名空间。 `UseInMemoryDurableJobs`,
-`UseAzureBlobDurableJobs`和 `UseAzureTableDurableJobs` 仍为方便
-默认绑定的设置构成。
-使用持续储存恢复。
+命名的 Blob、Table、Redis、S3 和易失性存储注册将存储、目录
+和状态管理器工厂绑定到同一配置的命名空间。显式命名使
+Grain 日志记录使用的默认提供程序保持独立。每个物理
+命名空间仅应以一个选定名称进行注册。`UseInMemoryDurableJobs`、
+`UseAzureBlobDurableJobs` 和 `UseAzureTableDurableJobs` 仍是
+为默认绑定提供的便捷组合方法。易失性存储仅在其所属进程的
+生命周期内保留作业；如需重启恢复，请使用持久化存储。
 
-`"Default"` 存储套件保留现有的未命名后端选项
-管道; 非默认连接, 如 `"jobs-a"` 使用命名后端选项 。
+`"Default"` 存储绑定保留现有的未命名后端选项
+管道；`"jobs-a"` 等非默认绑定使用命名后端选项。
 
-大多数部署都选择一个提供者。 然后进行不刻录的已知硬查找
-其内容如下:不论其他日记提供者如何,供应商的元数据直接来自提供商。
-注册为 grain 状态。在迁移过程中,发现涵盖文字和
-排水提供者,和不刻板的已知ID查寻 读写提供者先,
-无法使用的提供者会显示一个搜索
-失败; 缺勤要求对所有选定的提供者进行成功检查。
+大多数部署仅选择一个提供程序。此时查找已知但未缓存的分片，
+会直接读取该提供程序的元数据，不受为 Grain 状态注册的其他日志提供程序影响。
+迁移期间，发现过程覆盖写入和
+排空提供程序；未缓存的已知 ID 查找首先查询写入提供程序，
+然后按需查询排空提供程序。提供程序不可用会导致查找
+失败；只有在所有选定提供程序中成功确认不存在，才能确定分片不存在。
 
-新计划使用在写器提供者中创建的碎片。
-原供应商 拥有、重播、执行、再试、重新安排
-取消、压缩和删除。时间戳/ GUID 碎片代号,
-`jobs/shards/<id>` 路径和自供应商独立连号 `DurableJob`
-将控件保持不变。 碎片有一个权威存储位置
-整个生命期。
+新调度使用在写入提供程序中新建的分片。现有分片在所有权管理、重放、执行、重试、重新调度、
+取消、压实和删除时均继续使用其原有提供程序。
+分片 ID 的时间戳/GUID 表示形式、
+`jobs/shards/<id>` 路径以及与提供程序无关的序列化 `DurableJob`
+句柄保持不变。分片在其整个生命周期内具有
+唯一的权威存储位置。
 
 <a id="cut-over-and-retire-a-provider"></a>
 
-### 裁员并退休
+### 切换并退役提供程序
 
-启动时定有装订条件。
+绑定在启动时确定。对于从 A 到 B 的迁移：
 
-1. 部署绑定和选择 A 进行写作和 B , 排入 **每一**
-   时间安排 silo 之前的 silo B创造工作。
-2. 将 B 推出为写作, A 展开为排水。 A 配置 silos 仍然可以创建
-   展开期间的碎片。 每次排程时, 剪切完成 silo
-   B和先前的日程安排电话已经打完。
-   如果需要严格的切换边界,则在更改期间进行。
-3. 排水要求列出, 写明, 索赔,
-   耐久更新、重试、取消、压缩和删除。
-4. 在所有作家都切开后,
-   `IDurableJobsStorageInspector.InspectAsync("jobs-a", cancellationToken)`.
-   解决所有剩余的碎片,包括未来日期、自有、有毒和
-   重复根据《公约》第19条提出的成功库存清单
-   后端的现场列名行为。
-5. 只有在经过核实的完整排出量后才能从 `DrainingProviderNames` 删除 A。
-   只有在其他消费者也完成之后,才将装订/储存设备退役。
+1. 在任何 Silo 在 B 中创建作业之前，部署两个绑定，并在**每个**
+   负责调度的 Silo 上选择 A 用于写入、B 用于排空。
+2. 滚动部署将 B 用于写入、A 用于排空。在此过程中仍配置为 A 的 Silo 依然可以创建
+   A 分片。当所有负责调度的 Silo
+   均使用 B 且先前的调度调用全部结束后，切换完成。如果需要严格的切换边界，
+   请在切换期间暂停应用调度。
+3. 保留 A 的变更权限。排空需要列举、读取、认领、
+   持久化更新、重试、取消、压实和删除操作。
+4. 所有写入方完成切换后，使用
+   `IDurableJobsStorageInspector.InspectAsync("jobs-a", cancellationToken)` 检查 A 的完整命名空间。
+   处理所有剩余分片，包括未来到期、已有所有者、有毒和
+   未识别的条目。根据存储后端的实时列举行为，重复执行成功的
+   完整清单检查。
+5. 仅在确认完全排空后，才从 `DrainingProviderNames` 中移除 A。
+   只有其他使用方也已结束使用后，才退役该绑定及存储。
 
-检查员返回 `DurableJobsStorageStatus` ,与 `ProviderName`
-`IsWriteProvider`, `ShardCount`, `OwnedShardCount`, `PoisonedShardCount`,
-`UnrecognizedShardCount`,和无效 `OldestShardStartTime` /
-`NewestShardStartTime`。它读到完整的目录简况
-使用只读化目录和元数据操作的进程。
-检查失败时, 显示 **未知** 。 计数描述碎片, 每一个
-其中有许多工作可以包含许多;拥有/投入的计算可能重叠。
-要求成功完成全零库存,加上完成的集束范围作家
-切开。
+检查器返回 `DurableJobsStorageStatus`，其中包含 `ProviderName`、
+`IsWriteProvider`、`ShardCount`、`OwnedShardCount`、`PoisonedShardCount`、
+`UnrecognizedShardCount` 以及可空的 `OldestShardStartTime` /
+`NewestShardStartTime`。它通过调用方进程，使用只读目录和元数据操作读取
+完整的目录快照。发生故障会使调用失败：
+检查失败时显示**未知**。计数描述的是分片，每个分片
+可包含多个作业；已有所有者的分片和有毒分片计数可能重叠。退役要求
+成功获得完整且总数为零的清单，并且集群范围内的写入方均完成
+切换。
 
-若要倒回, 保留两个提供者选择, 并切换给 A 和 B 的 A 写入
-B. 保留储存命名空间和
-在整个移民过程中,
+如需回滚，请保持两个提供程序均被选用，将写入切回 A，并排空 B。
+B 中的现有作业继续在 B 中处理。在整个迁移期间保留存储命名空间及
+兼容的日志读取器。
 
-见 [重新开动的移徙抽样](../../samples/DurableJobsMigration/README.md)
-耐久 Azure 模拟器储存、留存的手吊注销和当地
-清单核实和 [移徙指南](../../docs/site/src/content/docs/grains/journaling/durable-jobs-migration.md)
-用于部署和监测细节。
+参阅[基于重启的迁移示例](../../samples/DurableJobsMigration/README.md)，
+了解 Azure 模拟器中的持久化存储、使用保留句柄取消作业及本地
+清单检查；参阅[迁移指南](../../docs/site/src/content/docs/grains/journaling/durable-jobs-migration.md)，
+了解部署及监控细节。
 
 <a id="shard-discovery-and-lookahead"></a>
 
-## 硬发现和眼神
+## 分片发现与前瞻范围
 
-silo 发现启动时间在 `DurableJobsOptions.ShardLoadLookaheadPeriod`之内的碎片
-默认的外观是十分钟。
-发现碎片一旦进入 `ShardActivationBufferPeriod`,便开始处理。
-`DurableJobsOptions.ShardCheckInterval` 控制定期发现和可写硬化清除
-输入或退出活动集的 A silo 也触发
-支票和 silo 被宣布死亡,故死人是死的 silo碎片一旦在《公约》
-成员宣布它已死亡。
-外观头部接受非负向期限; 零选择起始时间在或
-在当前时间之前。发现视野以 `DateTimeOffset.MaxValue`上限。
-检查间隔允许1至4294967294毫秒的长度。
+每个 Silo 发现开始时间处于 `DurableJobsOptions.ShardLoadLookaheadPeriod` 所指定范围内的分片，
+该范围以当前持久化作业时间提供程序的时钟为基准。默认前瞻时间为 10 分钟。
+已发现的分片在其开始时间进入 `ShardActivationBufferPeriod` 时开始处理。
+`DurableJobsOptions.ShardCheckInterval` 控制定期发现及可写分片清理
+检查，默认为 5 分钟。Silo 加入或离开活动成员集合时也会触发
+检查；被宣告死亡时同样如此，因此在成员资格机制宣告该 Silo 死亡后，
+会立即接管其分片。
+前瞻时间允许非负时长；为零时选择开始时间不晚于
+当前时间的分片。发现范围以 `DateTimeOffset.MaxValue` 为上限。
+检查间隔允许 1 至 4294967294 毫秒的时长。
 
-硬化日记用名称, 例如
-`jobs/shards/20260909T1200000000000Z-<unique-id>`. 世界协调时的固定宽开工时间
-位于独一后缀前, 所以正序名称顺序是 散开启动时间顺序。 每次扫描
-列表的生 `jobs/shards/` 包含一个包含 `JournalCatalogListOptions.MaxId` 环绕着眼线的,
-范围包括每个较早的启动时间,包括长期逾期未完成的工作
-未来散落区。 在候选元数据读取前, 由目录过滤未来的散存身份 。
+分片日志使用如下形式的名称：
+`jobs/shards/20260909T1200000000000Z-<unique-id>`。固定宽度的 UTC 开始时间
+位于唯一后缀之前，因此名称的序数排序与分片开始时间的排序一致。每轮扫描
+列举原始 `jobs/shards/` 前缀，并使用包含端点的 `JournalCatalogListOptions.MaxId` 上限覆盖前瞻
+范围。该范围涵盖所有更早的开始时间，包括因长时间
+停机而逾期的作业。在读取候选分片元数据之前，目录会过滤未来分片的标识。
 
-每次定期或会员资格检查都开始对每个选定的
-供应商候选人拥有最先定购的和索赔总预算。
-发现按配置顺序列出选定目录,请求元数据
-缓冲每个供应商的候选人,直到该查点成功为止。
-完成或错误、发现命令和复制成功
-结果,然后使用每份提供
-与ETag 进行自有快照,或在无法获取时读取当前元数据。
-当地民众的简快照片 silo 发现后再用隐藏的碎片或读作
-更新描述符决定了资格、所有权,
-以及任何在开审新案之前必须提出的有条件债权。
-最老的索赔先处理,要求快照的ETag 有条件更新,所以
-用于提供持久就业的供应商
-元数据ETags和强制实施有条件更新;缺少的ETag表面是一个发现错误。
-指定碎片在打开时交付,允许在稍后期间执行
-索赔预算限制新的索赔;
-预算用完后,当地拥有的碎片仍符合资格。
+每次定期或成员资格检查都会启动新一轮本地范围扫描，遍历每个选定的
+提供程序。候选分片共享最早优先顺序和总认领预算。
+发现过程按配置顺序枚举选定的目录，请求元数据并
+缓冲各提供程序的候选分片，直到其枚举成功。当所有选定
+目录均完成或发生故障后，发现过程对成功获取的
+结果进行排序和去重，然后使用每个已提供的
+带 ETag 的所有权快照；如果快照不可用，则读取当前元数据。
+若快照将本地 Silo 标记为所有者，发现过程会复用已缓存的分片，或在缓存未命中时读取
+当前元数据。刷新后的描述符确定资格、所有权以及打开新实例前
+所需的任何条件式认领。
+认领按最早优先顺序进行，并要求使用快照的 ETag 进行条件式更新，因此
+并发的所有权变更会拒绝陈旧的认领。持久化作业使用的提供程序必须提供
+元数据 ETag 并强制执行条件式更新；缺少 ETag 时会报告发现错误。
+分配的分片在打开时即被交付，使执行能够在后续候选分片评估期间继续进行。
+认领预算仅限制新的认领；
+即使预算耗尽，本地已拥有的分片仍具有处理资格。
 
-回收一个碎片重现工作,核实当地所有权,并长期附加
-将所有者记录在单独日记流中,
-其大小取决于 silo 重度大于
-提供者的单附加件限制。 此内容承诺建立
-新的作家存储的同货币边界:
-与日记数对照的更改,新的所有人从回收的中得到进步
-状态。在承诺检测超置后,再次核实所有权
-当地同时开启一个股份
-新的日记从第一位作家开始
-每一个打电话者的取消都结束了自己的等待。 一个活跃的加入者重新输入共享
-尝试完成清理后, 其启动电话已取消打开 。
-持续性日记账提供者实施有条件内容突变;普通元数据说明和
-同样的所有者关闭保留了他们仅使用元数据重试的行为。
+恢复分片时会重放其中的作业，验证本地所有权，并在发布实例前
+在单独的日志流中持久化追加一条大小有限的所有者记录。
+该记录的大小取决于 Silo 地址，因此即使分片大于
+提供程序单次追加上限，也可以恢复。此次内容提交建立
+新写入方的存储并发边界：旧所有者的待处理写入会因日志已变更而失败，
+新所有者从恢复后的
+状态继续推进。提交后会再次验证所有权，以检测打开期间是否发生了
+覆盖此次认领的更新认领。并发的本地打开操作共享同一次恢复，并使用
+同一规范实例。新建日志从其首个写入方开始。
+每个调用方的取消只结束自身的等待。如果发起共享打开操作的调用方取消了该操作，
+仍在等待的参与方会在该次尝试完成清理后重试。
+持久化日志提供程序强制执行条件式内容变更；普通元数据标注和
+同一所有者执行的关闭操作仍保留仅针对元数据的重试行为。
 
-数据表提供者使用其储存能力,应用原始前缀和范围限制。
-时间戳表还支持较窄的日/小时前缀和包容性 `MinId`
-选择特定时间窗口的调用器间隔和 `MaxId` 间隔。
-硬化命名空间开始启动, 所有逾期未完成的工作都有资格获得。
-Azure 表格默认绘图使用索引化关键区域。 Azure 并订购普通用途
-S3 列表可以寻求下限,停在上界。 S3 Express 和 Redis 过滤时间
-发现命令选中的名称本身
-存储列表工作和请求
-长期性仍依赖供应商。 Blob、表和多波动目录提供元数据快照
-身份; S3和 Redis 要求单独列出候选元数据。
+目录提供程序利用各自的存储能力应用原始前缀和范围约束。
+时间戳表示形式还支持更窄的日或小时前缀，以及包含两端的 `MinId`
+和 `MaxId` 区间，供调用方选择特定时间窗口。恢复从
+分片命名空间的起点开始，确保所有逾期作业仍具有处理资格。
+Azure Table 默认映射使用带索引的键范围。Azure Blob 和具有排序保证的通用 S3 列举
+可以定位下界并在上界处停止。S3 Express 和 Redis 在提供程序定义的遍历期间筛选时间边界。
+发现过程自行对选定的名称进行排序，
+以保证不同提供程序之间采用一致的最早优先处理顺序。存储列举的工作量和请求
+延迟仍取决于提供程序。Blob、Table 和 Volatile 目录随标识提供元数据快照；
+S3 和 Redis 则需要单独读取候选分片的元数据。
 
-搜索者拥有其查点和选定身份组,直至完成。
-一份目录上的不合格弃置,其部分结果为供应商的部分结果;转让失败跳过其
-剩余候选人。错误随供应商名称报告,以后核对重试
-恢复的延迟期包括每个选定的目录列表请求
-配置请求超时和重试限制
-客户符合回收延迟要求。
-已经送交当地管理人员,在观察到取消之前跟踪记录,并
-继续使用其执行寿命周期。
-通过上市、元数据和日记业务的注销流动。
+每轮扫描在完成之前拥有其枚举和选定标识集合。迁移期间，
+目录故障会丢弃该提供程序的部分结果；分配故障会跳过该提供程序的
+剩余候选分片。错误会连同提供程序名称一起报告，后续检查通过新一轮扫描重试。
+恢复延迟包括每个选定目录的列举请求
+和存储客户端的重试延迟。请配置存储客户端的请求超时和重试上限，
+以满足恢复延迟要求。已经交付给本地管理器的分片
+会在观测到取消之前受到跟踪，
+并继续完成其执行生命周期。
+取消请求贯穿列举、元数据和日志操作。
 
-短期外观期缩短,减少早期装载已回收碎片。
-增加扫描频率,减少等待新插入或新符合条件的碎片的时间。
-公共 `JobShardManager.AssignJobShardsAsync` 方法收集的相同命令发现的
-将全部结果列表中的数据输入。
+较短的前瞻时间可减少恢复分片的提前加载。较短的检查间隔
+会提高扫描频率，缩短新插入或新获得处理资格的分片的等待时间。
+公开的 `JobShardManager.AssignJobShardsAsync` 方法将同一个有序发现流
+收集到其完整结果列表中。
 
 <a id="shutdown-lifecycle"></a>
 
-## 关闭关闭寿命周期
+## 关闭生命周期
 
-安排日程、取消申请和启动使用共享
-`Orleans.Internal.AdmissionGate` 功用来源 `Orleans.Core` 进入无锁门。
-调用者将返回的只读数符号保留在本地 `using` ,并检查 `Entered`
-开始工作; 处置释放入场。
-每个确认的代号都有一个拥有者 来处理它一次
-在同一行动中保留一个计数,并观察关闭旗;
-初步检查拒绝者
-也就是说,在加加薪前要关闭,所以更多的抵达者将留下排水量。
-时间安排和取消申请的审批工作将持续到完成,
-包括所有权查寻和远程取消路径。
-直至其执行任务公布并排队。
-关闭关闭时以原子方式设置关闭的旗帜,通过 `CloseAsync`、取消信号到
-飞行请求,等待这些行动,然后拍下运行的碎片
-并取消执行。 在关闭继续耗水的同时, 记录回回复失败
-请求,等待执行,释放碎片。
+调度、取消请求和激活操作使用共享的
+`Orleans.Internal.AdmissionGate` 工具（来自 `Orleans.Core`）实现无锁准入。
+调用方在 `using` 局部变量中保留返回的只读令牌，并在开始工作前检查 `Entered`；
+释放令牌会解除准入占用。
+每个成功准入的令牌均有一个所有者，并由其恰好释放一次。原子递增操作
+在同一次操作中预留计数并检查关闭标志；发现已关闭的尝试
+会立即释放其计数。预先检查会拒绝在递增前已发现关闭的调用方，
+因此后续到达的请求不会改变排空计数。
+调度及取消请求一直持有准入资格直到操作完成，
+包括所有权查找与远程取消路由。激活操作持有准入资格，
+直到其执行任务发布并入队。
+关闭通过 `CloseAsync` 原子设置关闭标志，向正在进行的请求
+发出取消信号，并在获取运行中分片的快照和取消执行之前等待这些操作完成。
+回调失败会被记录到日志中；关闭流程仍会继续排空请求、等待执行结束
+并释放分片。
 
-成功安排和取消时写着保留结果,
-即使取消的竞赛随着完成而争盘, 创建仍然拥有所有 。 然后关闭
-等待着主动扫荡和每一个被承认的碎片的处决和清理。它不登记
-缓存的碎片, 使用关闭标记仍然不活动, 然后将其处理 。
-日记提供商释放了另一个 silo 用于要求和删除空的覆盖的碎片
-碎片,包括在请求取消后完成的创建。
+已成功执行的调度和取消写入保留其结果；成功创建的分片仍由创建方拥有，
+即使取消与创建完成发生竞争也不例外。随后关闭操作
+等待当前扫描以及所有已准入分片的执行和清理。它使用关闭令牌注销
+仍处于非活动状态的缓存分片，然后释放这些分片。日志化提供程序
+释放非空分片以供其他 Silo 认领，并删除空分片，
+包括请求取消后才完成创建的分片。
 
 <a id="usage-examples"></a>
 
-## 使用率示例
+## 使用示例
 
 <a id="basic-job-scheduling"></a>
 
-### 基本工作时间安排
+### 基本作业调度
 
 <a id="1-implement-the-idurablejobhandler-interface"></a>
 
-#### 1. 实施 IDurableJobHandler 接口
+#### 1. 实现 IDurableJobHandler 接口
 ```csharp
 using Orleans;
 using Orleans.Durable.Jobs;
@@ -396,12 +396,12 @@ public class NotificationGrain : Grain, INotificationGrain, IDurableJobHandler
 
         if (cancellationRequested)
         {
-            // No future attempt will start. An already-running attempt may still complete.
+            // 取消后不会开始新的执行尝试，已经开始的尝试仍可能完成。
             _durableJob = null;
         }
     }
 
-    // This method is called when the durable job executes
+    // 执行持久化作业时会调用此方法
     public Task ExecuteJobAsync(IJobRunContext context, CancellationToken attemptCancellationToken)
     {
         var userId = this.GetPrimaryKeyString();
@@ -411,8 +411,8 @@ public class NotificationGrain : Grain, INotificationGrain, IDurableJobHandler
             "Sending notification to user {UserId}: {Message} (Job: {JobId}, Run: {RunId}, Attempt: {DequeueCount})",
             userId, message, context.Job.Id, context.RunId, context.DequeueCount);
 
-        // Send the notification here
-        // If this throws an exception, the job can be retried based on your retry policy
+        // 在此发送通知
+        // 若发送时抛出异常，是否重试由作业的重试策略决定
         
         _durableJob = null;
         return Task.CompletedTask;
@@ -422,7 +422,7 @@ public class NotificationGrain : Grain, INotificationGrain, IDurableJobHandler
 
 <a id="2-order-workflow-with-multiple-jobs"></a>
 
-#### 2. 多种工作有秩序的工作流程
+#### 2. 包含多个作业的订单工作流
 ```csharp
 public interface IOrderGrain : IGrainWithGuidKey
 {
@@ -453,10 +453,10 @@ public class OrderGrain : Grain, IOrderGrain, IDurableJobHandler
     {
         var orderId = this.GetPrimaryKey();
         
-        // Create the order
+        // 创建订单
         await _orderService.CreateOrderAsync(orderId, details);
         
-        // Schedule delivery reminder for 24 hours before delivery
+        // 安排在交付前 24 小时发送提醒
         var reminderTime = details.DeliveryDate.AddHours(-24);
         await _jobManager.ScheduleJobAsync(
             new ScheduleJobRequest
@@ -473,7 +473,7 @@ public class OrderGrain : Grain, IOrderGrain, IDurableJobHandler
             },
             CancellationToken.None);
 
-        // Schedule order expiration if payment not received
+        // 安排订单到期处理，以便在届时仍未收到付款时处理订单
         var expirationTime = DateTimeOffset.UtcNow.AddHours(24);
         await _jobManager.ScheduleJobAsync(
             new ScheduleJobRequest
@@ -539,11 +539,11 @@ public class OrderGrain : Grain, IOrderGrain, IDurableJobHandler
 
 <a id="advanced-scenarios"></a>
 
-### 高级方案
+### 高级场景
 
 <a id="job-with-retry-logic"></a>
 
-#### 重试逻辑任务
+#### 带重试逻辑的作业
 ```csharp
 public class PaymentProcessorGrain : Grain, IDurableJobHandler
 {
@@ -566,12 +566,12 @@ public class PaymentProcessorGrain : Grain, IDurableJobHandler
         catch (TransientException ex)
         {
             _logger.LogWarning(ex, "Payment processing failed with transient error, will retry");
-            throw; // Let the retry policy handle it
+            throw; // 交由重试策略处理
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Payment processing failed with permanent error");
-            throw; // This will not be retried if the retry policy returns null
+            throw; // 如果重试策略返回 null，此作业不会重试
         }
     }
 }
@@ -579,7 +579,7 @@ public class PaymentProcessorGrain : Grain, IDurableJobHandler
 
 <a id="tracking-job-completion"></a>
 
-#### 跟踪工作完成情况
+#### 跟踪作业完成情况
 ```csharp
 public class WorkflowGrain : Grain, IDurableJobHandler
 {
@@ -612,9 +612,9 @@ public class WorkflowGrain : Grain, IDurableJobHandler
 
     public Task ExecuteJobAsync(IJobRunContext context, CancellationToken attemptCancellationToken)
     {
-        // Execute the workflow step...
+        // 执行工作流步骤
         
-        // Mark as complete
+        // 将该步骤标记为已完成
         if (_pendingJobs.TryRemove(context.Job.Id, out var tcs))
         {
             tcs.SetResult();
@@ -627,20 +627,20 @@ public class WorkflowGrain : Grain, IDurableJobHandler
 
 <a id="how-it-works"></a>
 
-## 如何运作
+## 工作原理
 
 <a id="architecture-overview"></a>
 
-### 架构概览
-1. **裁断工作**:任务被分割成基于时间的碎片(默认值:1分钟窗口)
-2. **硬片所有权**:每块碎片都由单一 silo 拥有,供执行
-3. **自动重新平衡**:当一个 silo 失败时,其碎片会自动被重新分配给健康 silos
-4. **命令执行**:在碎片内,按适当时间处理工作
-5. **货币货币管制**: : 国家 `MaxConcurrentJobsPerSilo` 设置同时执行职务的限制
+### 架构概述
+1. **作业分片**：按时间窗口对作业进行分片（默认值：1 分钟窗口）
+2. **分片所有权**：每个分片由单个 Silo 拥有并负责执行
+3. **自动再均衡**：Silo 发生故障时，其分片自动重新分配给健康的 Silo
+4. **有序执行**：在分片内部，按到期时间顺序处理作业
+5. **并发控制**：`MaxConcurrentJobsPerSilo` 设置限制并发作业执行数量
 
 <a id="job-lifecycle"></a>
 
-### 工作生命周期
+### 作业生命周期
 ```
 ┌─────────────┐
 │  Scheduled  │ ──▶ Job is created and added to appropriate shard
@@ -665,49 +665,51 @@ public class WorkflowGrain : Grain, IDurableJobHandler
 
 <a id="configuration-reference"></a>
 
-## 配置引用
+## 配置参考
 
 ### DurableJobsOptions
 
-| 财产 | 类型类型 | 默认默认 | 说明 |
+| 属性 | 类型 | 默认值 | 描述 |
 |----------|------|---------|-------------|
-| `ShardDuration` | `TimeSpan` | 1分钟1分 | 每一工作强度的长度。 较小值会减少潜伏,但增加管理费用。 |
-| `MaxConcurrentJobsPerSilo` | `int` | 100 | 最多可同时执行 silo的作业数。 |
-| `ShouldRetry` | `Func<IJobRunContext, Exception, DateTimeOffset?>` | 3次重试,并进行删除。 | 确定是否要重新尝试一个失败的工作。 返回新的到期时间或 `null` 以不重试 。 |
+| `ShardDuration` | `TimeSpan` | 1 分钟 | 每个作业分片的时间跨度。较小的值可降低延迟，但会增加开销。 |
+| `MaxConcurrentJobsPerSilo` | `int` | 100 | 单个 Silo 上可同时执行的最大作业数。 |
+| `ShouldRetry` | `Func<IJobRunContext, Exception, DateTimeOffset?>` | 指数退避重试 3 次 | 确定失败作业是否应重试。返回新的到期时间，或返回 `null` 表示不重试。 |
+
+> **译者注（对应当前源码基准）：** 上表及架构概述保留了上游 README 的原始默认值，但与 DurableJobsOptions.cs 的实现不一致。实际 ShardDuration 默认为 1 小时，MaxConcurrentJobsPerSilo 默认为 10,000 × 处理器数量；默认重试函数在 DequeueCount 大于等于 5 时返回 null，否则按 2 的出队计数次方（秒）退避。请以源码及实际配置为准。
 
 <a id="best-practices"></a>
 
-## 最佳做法
+## 最佳实践
 
-1. **设定合理合理的货币限额**防止资源耗用
+1. **设置合理的并发限制**：防止资源耗尽
    ```csharp
-   options.MaxConcurrentJobsPerSilo = 100; // Adjust based on your workload
+   options.MaxConcurrentJobsPerSilo = 100; // 请根据工作负载调整并发上限
    ```
 
-2. **实施具有能力的专家工作处理员**:可以重新找工作,确保操作员是一等的
+2. **实现幂等的作业处理程序**：作业可能被重试，请确保处理程序具有幂等性
    ```csharp
    public async Task ExecuteJobAsync(IJobRunContext context, CancellationToken attemptCancellationToken)
    {
        var jobId = context.Job.Id;
-       // Check if already processed
+       // 检查作业是否已处理
        if (await _state.IsProcessed(jobId))
            return;
            
-       // Process job...
+       // 处理作业
        await _state.MarkProcessed(jobId);
    }
    ```
 
-3. **明智使用元数据**:保持元数据的轻量
+3. **合理使用元数据**：保持元数据轻量
    ```csharp
-   // Good: Store IDs
+   // 建议只存储标识符
    var metadata = new Dictionary<string, string> { ["OrderId"] = "12345" };
    
-   // Bad: Store large objects
+   // 避免存储大型对象
    var metadata = new Dictionary<string, string> { ["Order"] = JsonSerializer.Serialize(largeOrder) };
    ```
 
-4. **处理取消**:尊重注销符号
+4. **处理取消**：遵循取消令牌
    ```csharp
    public async Task ExecuteJobAsync(IJobRunContext context, CancellationToken attemptCancellationToken)
    {
@@ -717,16 +719,16 @@ public class WorkflowGrain : Grain, IDurableJobHandler
 
 <a id="documentation"></a>
 
-## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
-关于更全面的文件,请参见:
+## 文档
+如需更全面的文档，请参阅：
 - [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
-- [计时和提醒](https://dotnet.github.io/orleans/docs/grains/timers-and-reminders/)
+- [定时器与提醒器](https://dotnet.github.io/orleans/docs/grains/timers-and-reminders/)
 
 <a id="feedback--contributing"></a>
 
-## 反馈和贡献
-- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
-- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
-- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
-- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证
+## 反馈与贡献
+- 如遇到问题或希望提供反馈，请[在 GitHub 上创建 Issue](https://github.com/dotnet/orleans/issues)
+- 加入我们的 [Discord 社区](https://aka.ms/orleans-discord)
+- 关注 [@msftorleans](https://twitter.com/msftorleans) Twitter 帐号，获取 Orleans 公告
+- 欢迎贡献！请查阅我们的[贡献指南](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 本项目采用 [MIT 许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)

@@ -117,7 +117,7 @@ internal static class MembershipModel
         };
     }
 
-    // 这种过渡从来不读供应商产出或供应商象征性品。
+    // 此状态转换绝不读取提供程序的输出或令牌。
     internal static void Apply(MembershipRequest request, MembershipModelState next, int cleanupVersionDelta = 0)
     {
         ClusteringTestKitDiagnostics.Require(!next.Deleted, "model history ended at DeleteCluster");
@@ -151,7 +151,7 @@ internal static class MembershipModel
                 next.Rows[request.Key].HeartbeatVersion = next.Version;
                 break;
             case MembershipOperationKind.CleanupDead:
-                // 所有生成的时间戳都先于 CleanupCutoff,包括所有人写作和全行有效载荷。
+                // 所有生成的时间戳均早于 CleanupCutoff，包括所属 Silo 的写入及过期的整行有效负载。
                 var removed = next.Rows.Where(p => p.Value.Status == (int)SiloStatus.Dead).ToArray();
                 ClusteringTestKitDiagnostics.Require(cleanupVersionDelta >= 0 && cleanupVersionDelta <= removed.Length,
                     $"model cleanup version: expected delta in [0,{removed.Length}], observed={cleanupVersionDelta}");
@@ -369,7 +369,7 @@ internal sealed class MembershipModelExecutionContext
                     break;
                 case MembershipOperationKind.ReadPresentRow:
                 case MembershipOperationKind.ReadAbsentRow:
-                    // 保留生成的操作身份, 同时从完整快照中选择 。
+                    // 在同一个完整快照中进行选择时，保留已生成的操作标识。
                     var snapshot = await writer.ReadAllAsync(_ct);
                     var selected = snapshot.TryGet(input.SiloAddress);
                     MembershipTableTestRunner.Equal(before.Select(input.SiloAddress),
@@ -445,7 +445,7 @@ internal sealed class MembershipModelExecutionContext
             {
                 MembershipTableTestRunner.AssertCleanup(before, after, MembershipModel.CleanupCutoff);
                 cleanupVersionDelta = after.Version - before.Version;
-                // 仅在验证所有行更改和标牌之后,才选择有约束的法律结果。
+                // 仅在验证全部记录变更及令牌后，才选择限定范围内的合法结果。
                 next = MembershipModel.CopyState(_model);
                 MembershipModel.Apply(request, next, cleanupVersionDelta);
                 if (cleanupVersionDelta > 0) _previousTable = before.Next();

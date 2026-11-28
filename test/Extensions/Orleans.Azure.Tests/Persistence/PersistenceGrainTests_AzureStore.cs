@@ -7,7 +7,7 @@ using Xunit;
 namespace Tester.AzureUtils.Persistence
 {
     /// <summary>
-    /// 基础生物基因测试 -- -- 检测持久性供应商的基准等级
+    /// Base_PersistenceGrainTests：用于测试持久化提供程序的基类。
     /// </summary>
     public abstract class Base_PersistenceGrainTests_AzureStore : GrainPersistenceTestsRunner
     {

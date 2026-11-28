@@ -6,12 +6,12 @@ using Orleans.Runtime;
 namespace Orleans.BroadcastChannel
 {
     /// <summary>
-    /// 默认 <see cref="IChannelIdMapper"/> 执行。
+    /// <see cref="IChannelIdMapper"/> 的默认实现。
     /// </summary>
     public sealed class DefaultChannelIdMapper : IChannelIdMapper
     {
         /// <summary>
-        /// 此流身份映射器的名称 。
+        /// 此流标识映射器的名称。
         /// </summary>
         public const string Name = "default";
 
@@ -45,7 +45,7 @@ namespace Orleans.BroadcastChannel
             {
                 nameof(Guid) => GetGuidKey(streamId, includeNamespaceInGrainId),
                 nameof(Int64) => GetIntegerKey(streamId, includeNamespaceInGrainId),
-                _ => streamId.GetKeyIdSpan(), // 空字符串
+                _ => streamId.GetKeyIdSpan(), // null 或字符串
             };
         }
 

@@ -9,12 +9,12 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.AzureQueue
 {
     /// <summary>
-    /// 静列队列的 PLUTY 功能。
+    /// Azure Queue 持久化流提供程序的实用函数。
     /// </summary>
     public class AzureQueueStreamProviderUtils
     {
         /// <summary>
-        /// 生成默认的“ zure ” 队列名称
+        /// 生成默认 Azure 队列名称。
         /// </summary>
         /// <param name="serviceId"></param>
         /// <param name="providerName"></param>
@@ -27,11 +27,11 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// 测试助手方法。 删除指定流提供者使用的所有队列 。
+        /// 测试辅助方法。删除指定流提供程序使用的所有队列。
         /// </summary>
-        /// <param name="loggerFactory">用于使用</param>的对帐厂
-        /// <param name="azureQueueNames">将删除顺序队列名称。</param>
-        /// <param name="storageConnectionString">结结存连接字符串。</param>
+        /// <param name="loggerFactory">要使用的日志记录器工厂。</param>
+        /// <param name="azureQueueNames">要删除的 Azure 队列名称。</param>
+        /// <param name="storageConnectionString">Azure Storage 连接字符串。</param>
         public static async Task DeleteAllUsedAzureQueues(ILoggerFactory loggerFactory, List<string> azureQueueNames, string storageConnectionString)
         {
             ArgumentNullException.ThrowIfNull(azureQueueNames);
@@ -42,11 +42,11 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// 测试助手方法。 删除指定流提供者使用的所有队列 。
+        /// 测试辅助方法。删除指定流提供程序使用的所有队列。
         /// </summary>
-        /// <param name="loggerFactory">用于使用</param>的对帐厂
-        /// <param name="azureQueueNames">将删除顺序队列名称。</param>
-        /// <param name="queueOptions">顺流储存选项。</param>
+        /// <param name="loggerFactory">要使用的日志记录器工厂。</param>
+        /// <param name="azureQueueNames">要删除的 Azure 队列名称。</param>
+        /// <param name="queueOptions">Azure Storage 选项。</param>
         public static async Task DeleteAllUsedAzureQueues(ILoggerFactory loggerFactory, List<string> azureQueueNames, AzureQueueOptions queueOptions)
         {
             ArgumentNullException.ThrowIfNull(azureQueueNames);
@@ -62,11 +62,11 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// 辅助测试方法。 清除指定流提供者使用的所有队列中的全部信息 。
+        /// 测试辅助方法。清空指定流提供程序使用的所有队列中的全部消息。
         /// </summary>
-        /// <param name="loggerFactory">用于使用</param>的对帐厂
-        /// <param name="azureQueueNames">流提供者所在的部署代号。</param>
-        /// <param name="storageConnectionString">结结存连接字符串。</param>
+        /// <param name="loggerFactory">要使用的日志记录器工厂。</param>
+        /// <param name="azureQueueNames">承载流提供程序的部署 ID。</param>
+        /// <param name="storageConnectionString">Azure Storage 连接字符串。</param>
         public static async Task ClearAllUsedAzureQueues(ILoggerFactory loggerFactory, List<string> azureQueueNames, string storageConnectionString)
         {
             ArgumentNullException.ThrowIfNull(azureQueueNames);
@@ -77,11 +77,11 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// 辅助测试方法。 清除指定流提供者使用的所有队列中的全部信息 。
+        /// 测试辅助方法。清空指定流提供程序使用的所有队列中的全部消息。
         /// </summary>
-        /// <param name="loggerFactory">用于使用</param>的对帐厂
-        /// <param name="azureQueueNames">流提供者所在的部署代号。</param>
-        /// <param name="queueOptions">顺流储存选项。</param>
+        /// <param name="loggerFactory">要使用的日志记录器工厂。</param>
+        /// <param name="azureQueueNames">承载流提供程序的部署 ID。</param>
+        /// <param name="queueOptions">Azure Storage 选项。</param>
         public static async Task ClearAllUsedAzureQueues(ILoggerFactory loggerFactory, List<string> azureQueueNames, AzureQueueOptions queueOptions)
         {
             ArgumentNullException.ThrowIfNull(azureQueueNames);

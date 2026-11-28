@@ -4,12 +4,12 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 表示连接器 silo 目前处于超载/负负荷停止状态
-    /// 无法接受此信件发送。
+    /// 表示网关 Silo 当前处于过载或负载削减状态，
+    /// 因而目前无法接收正在发送的这条消息。
     /// </summary>
     /// <remarks>
-    /// 这种情况通常是暂时性的。
-    /// 如果该电文稍后再发送,则本端或另一网关可能接受。
+    /// 这种情况通常是暂时的。
+    /// 如果稍后重新发送该消息，此网关或其他网关很可能会接收它。
     /// </remarks>
     [Serializable]
     [GenerateSerializer]
@@ -27,7 +27,7 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="GatewayTooBusyException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// 信息
+        /// 消息。
         /// </param>
         public GatewayTooBusyException(string message)
             : base(message)
@@ -38,10 +38,10 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="GatewayTooBusyException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// 信息
+        /// 消息。
         /// </param>
         /// <param name="innerException">
-        /// 内在的例外
+        /// 内部异常。
         /// </param>
         public GatewayTooBusyException(string message, Exception innerException)
             : base(message, innerException)
@@ -52,10 +52,10 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="GatewayTooBusyException"/> 类的新实例。
         /// </summary>
         /// <param name="info">
-        /// 序列信息
+        /// 序列化信息。
         /// </param>
         /// <param name="context">
-        /// 背景。
+        /// 上下文。
         /// </param>
         [Obsolete]
         private GatewayTooBusyException(SerializationInfo info, StreamingContext context)

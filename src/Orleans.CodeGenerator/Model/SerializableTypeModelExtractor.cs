@@ -9,8 +9,8 @@ namespace Orleans.CodeGenerator;
 internal static class SerializableTypeModelExtractor
 {
     /// <summary>
-    /// 摘录a <see cref="SerializableTypeModel"/> 从 a 中 <see cref="ISerializableTypeDescription"/>.
-    /// 将基于符号的描述转换成可等值值模型,用于递增管道缓存。
+    /// 提取 <see cref="SerializableTypeModel"/>，其来源为 <see cref="ISerializableTypeDescription"/>。
+    /// 将基于符号的描述转换为可比较相等性的值模型，用于增量管道缓存。
     /// </summary>
     internal static SerializableTypeModel ExtractSerializableTypeModel(
         ISerializableTypeDescription description,
@@ -94,11 +94,11 @@ internal static class SerializableTypeModelExtractor
         var symbol = member.Symbol;
         var containingType = member.ContainingType;
 
-        // 确定更方便/更便利出入的战略
+        // 确定 getter/setter 的可访问性策略。
         var getterStrategy = DetermineGetterStrategy(member);
         var setterStrategy = DetermineSetterStrategy(member);
 
-        // 确定成员是否具有不可更改属性
+        // 确定成员是否具有不可变特性。
         var hasImmutableAttribute = false;
         if (symbol is IPropertySymbol prop)
         {
@@ -113,12 +113,12 @@ internal static class SerializableTypeModelExtractor
                 && a.AttributeClass.ContainingNamespace?.Name == "Orleans");
         }
 
-        // 确定是否过时
+        // 确定是否已过时。
         var isObsolete = symbol.GetAttributes().Any(a =>
             a.AttributeClass?.Name == "ObsoleteAttribute"
             && a.AttributeClass.ContainingNamespace?.Name == "System");
 
-        // 备份属性名称
+        // 对应的属性名称。
         string? backingPropertyName = null;
         if (member is IFieldDescription fieldDesc)
         {
@@ -144,7 +144,7 @@ internal static class SerializableTypeModelExtractor
             setterStrategy: setterStrategy,
             isObsolete: isObsolete,
             hasImmutableAttribute: hasImmutableAttribute,
-            isShallowCopyable: false, // 以后将用 LibraryTypes解决
+            isShallowCopyable: false, // 稍后使用 LibraryTypes 解析。
             isValueType: member.Type?.IsValueType ?? false,
             containingTypeIsValueType: containingType?.IsValueType ?? false,
             backingPropertyName: backingPropertyName);
@@ -154,7 +154,7 @@ internal static class SerializableTypeModelExtractor
     {
         if (member is IFieldDescription fieldDesc)
         {
-            // 如果有场地可进入,直接访问
+            // 字段可访问时直接访问。
             return AccessStrategy.Direct;
         }
 
@@ -231,7 +231,7 @@ internal static class SerializableTypeModelExtractor
             return ObjectCreationStrategy.Default;
         }
 
-        // 检查我们是否能够从现有表达式中确定
+        // 检查是否可根据现有表达式确定。
         var expr = description.GetObjectCreationExpression();
         if (expr is Microsoft.CodeAnalysis.CSharp.Syntax.DefaultExpressionSyntax)
         {
@@ -392,13 +392,13 @@ internal static class SerializableTypeModelExtractor
             }
         }
 
-        // 记录默认为真
+        // 对记录类型默认设为 true。
         if (typeSymbol.IsRecord)
         {
             return true;
         }
 
-        // 通过编译器生成的特性检测主建构器
+        // 通过编译器生成的属性检测主构造函数。
         var properties = typeSymbol.GetMembers().OfType<IPropertySymbol>().ToImmutableArray();
         return typeSymbol.GetMembers()
             .OfType<IMethodSymbol>()
@@ -419,7 +419,7 @@ internal static class SerializableTypeModelExtractor
 
         if (typeSymbol.IsRecord)
         {
-            // 初级建筑师在制版建筑师记录之前申报
+            // 对于记录类型，主构造函数在复制构造函数之前声明。
             var potentialPrimaryConstructor = typeSymbol.Constructors[0];
             if (!potentialPrimaryConstructor.IsImplicitlyDeclared && !potentialPrimaryConstructor.IsCompilerGenerated())
             {
@@ -436,7 +436,7 @@ internal static class SerializableTypeModelExtractor
                 return annotatedConstructors[0].Parameters;
             }
 
-            // 后退: 通过编译器生成的特性检测主建构器
+            // 回退：通过编译器生成的属性检测主构造函数。
             var properties = typeSymbol.GetMembers().OfType<IPropertySymbol>().ToImmutableArray();
             var primaryConstructor = typeSymbol.GetMembers()
                 .OfType<IMethodSymbol>()

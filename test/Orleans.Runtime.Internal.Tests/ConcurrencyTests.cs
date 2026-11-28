@@ -5,19 +5,19 @@ using Xunit;
 namespace UnitTests.ConcurrencyTests
 {
     /// <summary>
-    /// Orleans grain 货币货币特征和只读方法的测试。
+    /// 测试 Orleans Grain 的并发功能和只读方法。
     /// 
-    /// Orleans 为 grains提供了几种同值货币模型:
-    /// - 默认:以转折为基础的货币(一次提出一个请求)
-    /// - [ReadOnly:方法可以与其他方法同时使用
-    /// - [AlwaysInterleave:所有方法都可以相互间
-    /// - [重新批准]: Grain 可在等待期间处理新的请求
+    /// Orleans 为 Grain 提供多种并发模型：
+    /// - 默认：基于执行轮次的并发（一次处理一个请求）。
+    /// - [ReadOnly]：方法可以与其他方法并发执行。
+    /// - [AlwaysInterleave]：所有方法均可交错执行。
+    /// - [Reentrant]：Grain 可以在异步等待期间处理新请求。
     /// 
-    /// 这些测试侧重于[ReadOnly]方法,允许多读操作
-    /// 保持数据安全的同时同时执行。 这对以下各点至关重要:
-    /// - 改进重读工作量的处理量
-    /// - 当多个客户阅读相同数据时减少潜伏
-    /// - 保持 grain 国家一致性
+    /// 这些测试聚焦于 [ReadOnly] 方法，这些方法允许多个读操作
+    /// 并发执行，同时维护数据安全。这对于以下方面至关重要：
+    /// - 提高读取密集型工作负载的吞吐量。
+    /// - 降低多个客户端读取相同数据时的延迟。
+    /// - 保持 Grain 状态一致性。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -36,11 +36,11 @@ namespace UnitTests.ConcurrencyTests
         }
 
         /// <summary>
-        /// 标有ReadOnly的方法可以同时执行的测试。
-        /// 将5项同时提出的请求发送 ReadOnly 方法并进行核实
-        /// 全部完整, 没有序列化, 成功完成 。
-        /// 如果这些方法不同时使用,它们将依次执行,
-        /// 完成需要更长的时间。
+        /// 测试标记为 [ReadOnly] 的方法能否并发执行。
+        /// 向 ReadOnly 方法发送 5 个并发请求，验证它们
+        /// 均成功完成，而未被串行化执行。
+        /// 若这些方法不支持并发，它们将顺序执行，
+        /// 完成所需时间会长得多。
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("ReadOnly"), TestCategory("AsynchronyPrimitives")]
         public async Task ConcurrencyTest_ReadOnly()
@@ -58,14 +58,14 @@ namespace UnitTests.ConcurrencyTests
         }
 
         /// <summary>
-        /// 压力测试,以同时执行与收集返回值。
-        /// 证明:
-        /// - 多个同时通话可以安全返回收藏
-        /// - Orleans 正确处理回程值的深重复制
-        /// - 在高通货率下没有发生数据腐败(2000年重复电话x20次同时通话)
+        /// 针对返回集合的并发执行进行压力测试。
+        /// 验证以下情况：
+        /// - 多个并发调用可以安全地返回集合。
+        /// - Orleans 正确处理返回值的深拷贝。
+        /// - 高并发情况下不发生数据损坏（2000 次迭代 × 20 个并发调用）。
         /// 
-        /// 这个测试很重要,因为从同时返回的可变收藏
-        /// 如果在运行时间没有适当处理,方法可能导致种族条件。
+        /// 此测试十分重要，因为若运行时处理不当，从并发方法
+        /// 返回可变集合可能导致竞争条件。
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("ReadOnly"), TestCategory("AsynchronyPrimitives")]
         public async Task ConcurrencyTest_ModifyReturnList()

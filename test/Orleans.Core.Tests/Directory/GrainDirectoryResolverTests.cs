@@ -16,7 +16,7 @@ using Xunit;
 namespace NonSilo.Tests.Directory
 {
     /// <summary>
-    /// grain 目录解析器功能的测试,包括自定义目录分辨率和目录列表。
+    /// 测试 Grain 目录解析器功能，包括自定义目录解析及目录列举。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Directory")]
     [TestSuite("BVT")]

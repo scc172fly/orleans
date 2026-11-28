@@ -4,7 +4,7 @@ using Orleans.Runtime;
 namespace Orleans.Streams.Core
 {
     /// <summary>
-    /// 表示对一条流的订阅。
+    /// 表示对流的订阅。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class StreamSubscription
@@ -13,9 +13,9 @@ namespace Orleans.Streams.Core
         /// 初始化 <see cref="StreamSubscription"/> 类的新实例。
         /// </summary>
         /// <param name="subscriptionId">订阅标识符。</param>
-        /// <param name="streamProviderName">流体提供者的名称。</param>
-        /// <param name="streamId">流体识别符号。</param>
-        /// <param name="grainId"> grain 标识符。</param>
+        /// <param name="streamProviderName">流提供程序名称。</param>
+        /// <param name="streamId">流标识符。</param>
+        /// <param name="grainId">Grain 标识符。</param>
         public StreamSubscription(Guid subscriptionId, string streamProviderName, StreamId streamId, GrainId grainId)
         {
             this.SubscriptionId = subscriptionId;
@@ -32,23 +32,23 @@ namespace Orleans.Streams.Core
         public Guid SubscriptionId { get; }
 
         /// <summary>
-        /// 获取或设置流提供方的名称。
+        /// 获取或设置流提供程序的名称。
         /// </summary>
-        /// <value>流体提供者的名称。</value>
+        /// <value>流提供程序名称。</value>
         [Id(1)]
         public string StreamProviderName { get; }
 
         /// <summary>
         /// 获取或设置流标识符。
         /// </summary>
-        /// <value>流体识别符号。</value>
+        /// <value>流标识符。</value>
         [Id(2)]
         public StreamId StreamId { get; }
 
         /// <summary>
-        /// 获取或设置 grain 标识符。
+        /// 获取或设置 Grain 标识符。
         /// </summary>
-        /// <value> grain 标识符。</value>
+        /// <value>Grain 标识符。</value>
         [Id(3)]
         public GrainId GrainId { get; }
     }

@@ -8,7 +8,7 @@ using Xunit;
 namespace UnitTests.CatalogTests
 {
     /// <summary>
-    /// 使用模拟提醒服务,以最小间隔配置(100米)的测试提醒功能。
+    /// 使用内存提醒器服务，以最小间隔配置（100 毫秒）测试提醒器功能。
     /// </summary>
     public class MinimalReminderTests : IClassFixture<MinimalReminderTests.Fixture>
     {

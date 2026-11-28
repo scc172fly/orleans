@@ -4,18 +4,18 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// 此 grain发件箱的引用点仍然保留着,运行时日记直到发件箱退掉。
+/// 本 Grain 的发件箱通过引用保存的调用，运行时将其记入日志，直到发件箱将其退役。
 /// </summary>
-/// <param name="Target">援引开始任务时的 grain 。</param>
-/// <param name="Payload">编码的调用信。</param>
+/// <param name="Target">调用所启动任务所在的 Grain。</param>
+/// <param name="Payload">编码后的调用消息。</param>
 /// <param name="RecordId">
-/// 记录起始时间及其结果的任务的线性识别符号:电话本身的任务,或独立任务
-/// 订阅记录。 一个普通 grain 方法所张贴的根任务没有根任务。
-/// 记录树的运行,它被删除了,没有改变任何东西。
+/// 记录启动操作及其结果的任务的传输标识符：可以是调用自身的任务，也可以是分离任务的
+/// 订阅记录。由普通 Grain 方法投递的根任务没有此标识符。若退役通知指定记录所属执行树先前已删除的
+/// 一次运行，则不产生任何变更。
 /// </param>
 /// <remarks>
-/// 等待援引的表格与处决树分开,因此,在删除该表之后,仍可继续适用。
-/// 树的开始,
+/// 待处理调用表独立于执行树，因此即使删除了
+/// 启动该调用的执行树，调用仍然保留。
 /// </remarks>
 [GenerateSerializer, Immutable]
 [Alias("Orleans.Durable.Tasks.Runtime.PendingInvocation")]

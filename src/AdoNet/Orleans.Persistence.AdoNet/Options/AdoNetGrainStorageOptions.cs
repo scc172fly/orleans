@@ -7,42 +7,42 @@ using System.Data.Common;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// ADO.NET grain 储存的选项。
+    /// ADO.NET Grain 存储选项。
     /// </summary>
     public class AdoNetGrainStorageOptions : IStorageProviderSerializerOptions
     {
         /// <summary>
-        /// AdoNet 存储的连接字符串。
+        /// ADO.NET 存储的连接字符串。
         /// </summary>
         [Redact]
         public string? ConnectionString { get; set; }
 
         /// <summary>
-        /// 获取或设置打开数据库连接所使用的数据源。
+        /// 获取或设置用于打开数据库连接的数据源。
         /// </summary>
         /// <remarks>
-        /// 数据源由调用者拥有, Orleans不处置。
+        /// 数据源由调用方拥有，Orleans 不负责释放它。
         /// </remarks>
         [Redact]
         public DbDataSource? DataSource { get; set; }
 
         /// <summary>
-        /// 储存应初始化的 silo 生命周期阶段,储存必须在使用前初始化。
+        /// 应初始化存储的 Silo 生命周期阶段。存储必须在使用前完成初始化。
         /// </summary>
         public int InitStage { get; set; } = DEFAULT_INIT_STAGE;
 
         /// <summary>
-        /// 存在周期 silo 中的默认的内置阶段。
+        /// Silo 生命周期的默认初始化阶段。
         /// </summary>
         public const int DEFAULT_INIT_STAGE = ServiceLifecycleStage.ApplicationServices;
 
         /// <summary>
-        /// 如果没有给定的话, 存储所使用的默认 ADO.NET 变量。 
+        /// 未指定时使用的默认存储 ADO.NET 固定名称（invariant name）。
         /// </summary>
         public const string DEFAULT_ADONET_INVARIANT = AdoNetInvariants.InvariantNameSqlServer;
 
         /// <summary>
-        /// 存储的变量名称 。
+        /// 存储的固定名称（invariant name）。
         /// </summary>
         public string Invariant { get; set; } = DEFAULT_ADONET_INVARIANT;
 
@@ -50,38 +50,38 @@ namespace Orleans.Configuration
         public IGrainStorageSerializer GrainStorageSerializer { get; set; } = null!;
 
         /// <summary>
-        /// 获取或设置该存储供应商使用的散装拾取器。 
+        /// 获取或设置此存储提供程序使用的哈希算法选择器。
         /// </summary>
         public IStorageHasherPicker HashPicker { get; set; } = null!;
 
         /// <summary>
-        /// 设置用于此存储提供者使用的与遗留 Orleans v3 兼容的散列拾取器。 如果您需要运行, 请使用该方法
-        /// Orleans v7+ silo 相对于现有的 Orleans v3 初始化数据库,并保持现有 grain 状态。
+        /// 为此存储提供程序设置与旧版 Orleans v3 兼容的哈希算法选择器。如果需要使用
+        /// Orleans v7+ Silo 访问由 Orleans v3 初始化的现有数据库并保留原 Grain 状态，请调用此方法。
         /// </summary>
         public void UseOrleans3CompatibleHasher()
         {
-            // 与不同拾取者一起使用内容意识散列,无法使用标准 StorageHasherPicker
+            // 哈希计算需要感知内容并使用不同的选择器，无法使用标准 StorageHasherPicker。
             this.HashPicker = new Orleans3CompatibleStorageHashPicker();
         }
 
         /// <summary>
-        /// 状态清除时删除 Db 的记录行 。
+        /// 清除状态时从数据库删除对应的记录行。
         /// </summary>
         public bool DeleteStateOnClear { get; set; }
 
         /// <summary>
-        /// 获取或设置 grain 状态如何映射为存储密钥。 默认为 <see cref="AdoNetGrainStorageKeyFormat.Legacy"/>。
+        /// 获取或设置将 Grain 状态映射为存储键的方式。默认为 <see cref="AdoNetGrainStorageKeyFormat.Legacy"/>。
         /// </summary>
         /// <remarks>
-        /// <see cref="AdoNetGrainStorageKeyFormat.GrainTypeQualified"/> 用于新数据库,以便 grains
-        /// 使用 <see cref="AdoNetGrainStorageKeyFormat.Legacy"/>
-        /// 数据库中已经持有以该格式书写的国家数据。
+        /// 对于新数据库，使用 <see cref="AdoNetGrainStorageKeyFormat.GrainTypeQualified"/>，以便键相同而
+        /// 类型不同的 Grain 具有各自独立的状态。对于已有使用旧格式写入状态的数据库，保留 <see cref="AdoNetGrainStorageKeyFormat.Legacy"/>
+        /// 格式。
         /// </remarks>
         public AdoNetGrainStorageKeyFormat KeyFormat { get; set; } = AdoNetGrainStorageKeyFormat.Legacy;
     }
 
     /// <summary>
-    /// ConfigurationValidator 用于 AdoNetGrainStorageOptions
+    /// AdoNetGrainStorageOptions 的配置验证器。
     /// </summary>
     public class AdoNetGrainStorageOptionsValidator : IConfigurationValidator
     {
@@ -89,10 +89,10 @@ namespace Orleans.Configuration
         private readonly string name;
 
         /// <summary>
-        /// 构造建构器
+        /// 构造函数。
         /// </summary>
-        /// <param name="configurationOptions">选项将生效。</param>
-        /// <param name="name">需要验证的选项的名称。</param>
+        /// <param name="configurationOptions">要验证的选项。</param>
+        /// <param name="name">要验证的选项的名称。</param>
         public AdoNetGrainStorageOptionsValidator(AdoNetGrainStorageOptions configurationOptions, string name)
         {
             this.options = configurationOptions ?? throw new OrleansConfigurationException($"Invalid AdoNetGrainStorageOptions for AdoNetGrainStorage {name}. Options is required.");
@@ -130,22 +130,22 @@ namespace Orleans.Configuration
     }
 
     /// <summary>
-    /// 提供默认配置 HashPicker 用于 AdoNetGrainStorageOptions.
+    /// 为 AdoNetGrainStorageOptions 提供默认 HashPicker 配置。
     /// </summary>
     public class DefaultAdoNetGrainStorageOptionsHashPickerConfigurator : IPostConfigureOptions<AdoNetGrainStorageOptions>
     {
         /// <summary>
-        /// 当未配置散列拾取器时指定默认 Orleans 存储工具。
+        /// 如果未配置哈希算法选择器，则分配默认的 Orleans 存储哈希算法。
         /// </summary>
         /// <param name="name">选项实例的名称。</param>
         /// <param name="options">要配置的选项。</param>
         public void PostConfigure(string? name, AdoNetGrainStorageOptions options)
         {
-            // 明确保存配置 HashPicker
+            // 保留显式配置的 HashPicker。
             if (options.HashPicker != null)
                 return;
 
-            // 如果尚未配置, 设置默认值 IHashPicker
+            // 如果尚未配置 IHashPicker，则设置默认值。
             options.HashPicker = new StorageHasherPicker(new[] { new OrleansDefaultHasher() });
         }
     }

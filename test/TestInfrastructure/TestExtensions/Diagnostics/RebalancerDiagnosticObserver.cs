@@ -7,12 +7,12 @@ using Orleans.TestingHost;
 namespace TestExtensions;
 
 /// <summary>
-/// 使用 Orleans 激活再平衡器诊断事件并提供
-/// 方法,以等待重新平衡周期的决定性。
+/// 订阅 Orleans 激活实例再均衡器诊断事件的测试辅助工具，提供
+/// 确定性等待再均衡周期的方法。
 /// </summary>
 /// <remarks>
-/// 以事件驱动的等待取代重新平衡测试的 Task.Delay 模式,
-/// 使测试在等待再平衡周期时更快和更加可靠。
+/// 在再均衡测试中使用事件驱动等待替代 Task.Delay 模式，
+/// 使等待再均衡周期的测试更快且更可靠。
 /// </remarks>
 public sealed class RebalancerDiagnosticObserver : IDisposable, IObserver<ActivationRebalancerEvents.RebalancerEvent>
 {
@@ -26,27 +26,27 @@ public sealed class RebalancerDiagnosticObserver : IDisposable, IObserver<Activa
     private bool _disposed;
 
     /// <summary>
-    /// 获得所有捕捉的周期启动事件。
+    /// 获取所有捕获的周期开始事件。
     /// </summary>
     public IReadOnlyCollection<ActivationRebalancerEvents.CycleStart> CycleStartEvents => _cycleStartEvents.ToArray();
 
     /// <summary>
-    /// 获得所有捕获的循环停止事件。
+    /// 获取所有捕获的周期结束事件。
     /// </summary>
     public IReadOnlyCollection<ActivationRebalancerEvents.CycleStop> CycleStopEvents => _cycleStopEvents.ToArray();
 
     /// <summary>
-    /// 获取所有被俘获的会话启动事件 。
+    /// 获取所有捕获的会话开始事件。
     /// </summary>
     public IReadOnlyCollection<ActivationRebalancerEvents.SessionStart> SessionStartEvents => _sessionStartEvents.ToArray();
 
     /// <summary>
-    /// 得到了所有俘获的会话停止事件。
+    /// 获取所有捕获的会话结束事件。
     /// </summary>
     public IReadOnlyCollection<ActivationRebalancerEvents.SessionStop> SessionStopEvents => _sessionStopEvents.ToArray();
 
     /// <summary>
-    /// 创建了观察者的新实例,并开始聆听再平衡诊断事件。
+    /// 创建观察器的新实例，并开始监听再均衡器诊断事件。
     /// </summary>
     public static RebalancerDiagnosticObserver Create(TestCluster cluster) => Create(DiagnosticObserverSiloScope.For(cluster));
 
@@ -68,12 +68,12 @@ public sealed class RebalancerDiagnosticObserver : IDisposable, IObserver<Activa
     }
 
     /// <summary>
-    /// 等待完成整个组别中若干次具体的再平衡周期。
+    /// 等待整个集群完成指定数量的再均衡周期。
     /// </summary>
-    /// <param name="expectedCount">等待周期的最低数量。</param>
-    /// <param name="timeout">最大等待时间。 默认为60秒。</param>
-    /// <returns>任务在达到预期数时完成。</returns>
-    /// <exception cref="TimeoutException">如果在超时内未达到预期的计数, 则丢弃。</exception>
+    /// <param name="expectedCount">等待的最少周期数。</param>
+    /// <param name="timeout">最长等待时间，默认为 60 秒。</param>
+    /// <returns>达到预期计数时完成的任务。</returns>
+    /// <exception cref="TimeoutException">如果在超时前未达到预期数量，则抛出此异常。</exception>
     public Task WaitForCycleCountAsync(int expectedCount, TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(60);
@@ -84,13 +84,13 @@ public sealed class RebalancerDiagnosticObserver : IDisposable, IObserver<Activa
     }
 
     /// <summary>
-    /// 等待特定数量的再平衡周期完成,以完成具体 silo。
+    /// 等待指定 Silo 完成指定数量的再均衡周期。
     /// </summary>
-    /// <param name="siloAddress">用于过滤的 silo 地址。</param>
-    /// <param name="expectedCount">等待周期的最低数量。</param>
-    /// <param name="timeout">最大等待时间。 默认为60秒。</param>
-    /// <returns>任务在达到预期数时完成。</returns>
-    /// <exception cref="TimeoutException">如果在超时内未达到预期的计数, 则丢弃。</exception>
+    /// <param name="siloAddress">用于筛选的 Silo 地址。</param>
+    /// <param name="expectedCount">等待的最少周期数。</param>
+    /// <param name="timeout">最长等待时间，默认为 60 秒。</param>
+    /// <returns>达到预期计数时完成的任务。</returns>
+    /// <exception cref="TimeoutException">如果在超时前未达到预期数量，则抛出此异常。</exception>
     public Task WaitForCycleCountAsync(SiloAddress siloAddress, int expectedCount, TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(60);
@@ -101,10 +101,10 @@ public sealed class RebalancerDiagnosticObserver : IDisposable, IObserver<Activa
     }
 
     /// <summary>
-    /// 等待重新平衡周期的完成
+    /// 等待一个再均衡周期完成。
     /// </summary>
-    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
-    /// <returns>循环停止事件有效载荷</returns>
+    /// <param name="timeout">最长等待时间，默认为 30 秒。</param>
+    /// <returns>周期结束事件的有效载荷。</returns>
     public Task<ActivationRebalancerEvents.CycleStop> WaitForCycleAsync(TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(30);
@@ -115,10 +115,10 @@ public sealed class RebalancerDiagnosticObserver : IDisposable, IObserver<Activa
     }
 
     /// <summary>
-    /// 等待重新平衡会话开始
+    /// 等待再均衡会话开始。
     /// </summary>
-    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
-    /// <returns>会话开始事件有效载荷。</returns>
+    /// <param name="timeout">最长等待时间，默认为 30 秒。</param>
+    /// <returns>会话开始事件的有效载荷。</returns>
     public Task<ActivationRebalancerEvents.SessionStart> WaitForSessionStartAsync(TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(30);
@@ -126,11 +126,11 @@ public sealed class RebalancerDiagnosticObserver : IDisposable, IObserver<Activa
     }
 
     /// <summary>
-    /// 等待一个与指定前提匹配的重新平衡会话开始。
+    /// 等待符合指定谓词的再均衡会话开始。
     /// </summary>
-    /// <param name="predicate">用于匹配会话启动事件的上游。</param>
-    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
-    /// <returns>会话开始事件有效载荷。</returns>
+    /// <param name="predicate">用于匹配会话开始事件的谓词。</param>
+    /// <param name="timeout">最长等待时间，默认为 30 秒。</param>
+    /// <returns>会话开始事件的有效载荷。</returns>
     public Task<ActivationRebalancerEvents.SessionStart> WaitForSessionStartAsync(
         Func<ActivationRebalancerEvents.SessionStart, bool> predicate,
         TimeSpan? timeout = null)
@@ -143,10 +143,10 @@ public sealed class RebalancerDiagnosticObserver : IDisposable, IObserver<Activa
     }
 
     /// <summary>
-    /// 等待重新平衡会议完成
+    /// 等待再均衡会话完成。
     /// </summary>
-    /// <param name="timeout">最大等待时间。 默认为60秒。</param>
-    /// <returns>会话停止事件有效载荷。</returns>
+    /// <param name="timeout">最长等待时间，默认为 60 秒。</param>
+    /// <returns>会话结束事件的有效载荷。</returns>
     public Task<ActivationRebalancerEvents.SessionStop> WaitForSessionStopAsync(TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(60);
@@ -154,11 +154,11 @@ public sealed class RebalancerDiagnosticObserver : IDisposable, IObserver<Activa
     }
 
     /// <summary>
-    /// 等待重新平衡会话匹配指定前提完成。
+    /// 等待符合指定谓词的再均衡会话完成。
     /// </summary>
-    /// <param name="predicate">用于匹配会话停止事件的上游。</param>
-    /// <param name="timeout">最大等待时间。 默认为60秒。</param>
-    /// <returns>会话停止事件有效载荷。</returns>
+    /// <param name="predicate">用于匹配会话结束事件的谓词。</param>
+    /// <param name="timeout">最长等待时间，默认为 60 秒。</param>
+    /// <returns>会话结束事件的有效载荷。</returns>
     public Task<ActivationRebalancerEvents.SessionStop> WaitForSessionStopAsync(
         Func<ActivationRebalancerEvents.SessionStop, bool> predicate,
         TimeSpan? timeout = null)
@@ -171,12 +171,12 @@ public sealed class RebalancerDiagnosticObserver : IDisposable, IObserver<Activa
     }
 
     /// <summary>
-    /// 等待特定数量的会话停止活动。
+    /// 等待指定数量的会话结束事件。
     /// </summary>
-    /// <param name="expectedCount">需要等待的会话停止的最低次数 。</param>
-    /// <param name="timeout">最大等待时间。 默认为60秒。</param>
-    /// <returns>任务在达到预期数时完成。</returns>
-    /// <exception cref="TimeoutException">如果在超时内未达到预期的计数, 则丢弃。</exception>
+    /// <param name="expectedCount">等待的最少会话结束次数。</param>
+    /// <param name="timeout">最长等待时间，默认为 60 秒。</param>
+    /// <returns>达到预期计数时完成的任务。</returns>
+    /// <exception cref="TimeoutException">如果在超时前未达到预期数量，则抛出此异常。</exception>
     public Task WaitForSessionStopCountAsync(int expectedCount, TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(60);
@@ -187,37 +187,37 @@ public sealed class RebalancerDiagnosticObserver : IDisposable, IObserver<Activa
     }
 
     /// <summary>
-    /// 在所有 silos中获得完成的再平衡周期的总数。
+    /// 获取所有 Silo 已完成的再均衡周期总数。
     /// </summary>
-    /// <returns>循环停止事件的计数。</returns>
+    /// <returns>周期结束事件的数量。</returns>
     public int GetCycleCount()
     {
         return _cycleStopEvents.Count;
     }
 
     /// <summary>
-    /// 计算一个特定 silo的完成再平衡周期。
+    /// 获取指定 Silo 已完成的再均衡周期数量。
     /// </summary>
-    /// <param name="siloAddress">用于过滤的 silo 地址。</param>
-    /// <returns>循环停止活动的计算 silo.</returns>
+    /// <param name="siloAddress">用于筛选的 Silo 地址。</param>
+    /// <returns>该 Silo 的周期结束事件数量。</returns>
     public int GetCycleCount(SiloAddress siloAddress)
     {
         return _cycleStopEvents.Count(e => e.SiloAddress.Equals(siloAddress));
     }
 
     /// <summary>
-    /// 获得所有周期中迁移的激活总数。
+    /// 获取所有周期中迁移的激活实例总数。
     /// </summary>
-    /// <returns>启动的总数迁移。</returns>
+    /// <returns>已迁移的激活实例总数。</returns>
     public int GetTotalActivationsMigrated()
     {
         return _cycleStopEvents.Sum(e => e.ActivationsMigrated);
     }
 
     /// <summary>
-    /// 获取了最近循环停止事件的 星球偏差 。
+    /// 从周期结束事件获取最新的熵偏差。
     /// </summary>
-    /// <returns>环形偏差,如果没有完成周期则无效。</returns>
+    /// <returns>熵偏差；如果尚无已完成的周期，则为 null。</returns>
     public double? GetLatestEntropyDeviation()
     {
         var latest = _cycleStopEvents.OrderByDescending(e => e.CycleNumber).FirstOrDefault();
@@ -225,7 +225,7 @@ public sealed class RebalancerDiagnosticObserver : IDisposable, IObserver<Activa
     }
 
     /// <summary>
-    /// 清除所有被俘事件
+    /// 清除所有已捕获的事件。
     /// </summary>
     public void Clear()
     {

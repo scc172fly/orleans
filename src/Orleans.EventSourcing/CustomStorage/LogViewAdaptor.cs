@@ -10,17 +10,17 @@ using Orleans.EventSourcing.Common;
 namespace Orleans.EventSourcing.CustomStorage
 {
     /// <summary>
-    /// 使用用户提供的存储接口 <see cref="ICustomStorageInterface{T,E}"/>的日志一致性调整器。 
-    /// 此接口必须由使用此日志视图适配器的任何 grain 来实施。
+    /// 使用用户提供的存储接口 <see cref="ICustomStorageInterface{T,E}"/> 的日志一致性适配器。
+    /// 使用此日志视图适配器的所有 Grain 均必须实现此接口。
     /// </summary>
-    /// <typeparam name="TLogView">日志视图类型</typeparam>
-    /// <typeparam name="TLogEntry">日志输入类型</typeparam>
+    /// <typeparam name="TLogView">日志视图类型。</typeparam>
+    /// <typeparam name="TLogEntry">日志条目类型。</typeparam>
     internal class CustomStorageAdaptor<TLogView, TLogEntry> : PrimaryBasedLogViewAdaptor<TLogView, TLogEntry, SubmissionEntry<TLogEntry>>
         where TLogView : class, new()
         where TLogEntry : class
     {
         /// <summary>
-        /// 初始化 CustomStorageAdaptor 类新实例
+        /// 初始化 CustomStorageAdaptor 类的新实例。
         /// </summary>
         public CustomStorageAdaptor(ILogViewAdaptorHost<TLogView, TLogEntry> host, TLogView initialState,
             ILogConsistencyProtocolServices services, string? primaryCluster)
@@ -80,7 +80,7 @@ namespace Orleans.EventSourcing.CustomStorage
         /// <inheritdoc/>
         protected override SubmissionEntry<TLogEntry> MakeSubmissionEntry(TLogEntry entry)
         {
-            // 不需要特殊标签,因此我们创建了简单的提交条目
+            // 不需要特殊标记，因此创建普通的提交条目。
             return new SubmissionEntry<TLogEntry>() { Entry = entry };
         }
 
@@ -110,7 +110,7 @@ namespace Orleans.EventSourcing.CustomStorage
 
             var response = new ReadResponse<TLogView>() { Version = version };
 
-            // 优化: 只包括版本更新后的值
+            // 优化：仅当版本更新时才包含该值。
             if (version > request.KnownVersion)
                 response.Value = cached;
 
@@ -126,7 +126,7 @@ namespace Orleans.EventSourcing.CustomStorage
             {
                 try
                 {
-                    // 取自存储
+                    // 从存储读取。
                     var result = await ((ICustomStorageInterface<TLogView, TLogEntry>)Host).ReadStateFromStorage();
                     version = result.Key;
                     cached = result.Value;
@@ -135,11 +135,11 @@ namespace Orleans.EventSourcing.CustomStorage
 
                     LastPrimaryIssue.Resolve(Host, Services);
 
-                    break; // 成功
+                    break; // 成功。
                 }
                 catch (Exception e)
                 {
-                    // 被转发的un wrap 内例外 - 有助于调试
+                    // 解包传递过来的内部异常，有助于调试。
                     if ((e as ProtocolTransportException)?.InnerException != null)
                         e = ((ProtocolTransportException)e).InnerException!;
 
@@ -171,7 +171,7 @@ namespace Orleans.EventSourcing.CustomStorage
             }
             catch (Exception e)
             {
-                // 被转发的un wrap 内例外 - 有助于调试
+                // 解包传递过来的内部异常，有助于调试。
                 if ((e as ProtocolTransportException)?.InnerException != null)
                     e = ((ProtocolTransportException)e).InnerException!;
 
@@ -182,8 +182,8 @@ namespace Orleans.EventSourcing.CustomStorage
             {
                 Services.Log(LogLevel.Debug, "write ({0} updates) success v{1}", updates.Count, version + updates.Count);
 
-                // 现在我们通过应用相同的更新来更新缓存状态
-                // 万一遇到例外 我们会重新阅读整个州 从储存
+                // 现在通过应用相同的更新来更新缓存的状态。
+                // 如果遇到任何异常，将从存储重新读取完整状态。
                 try
                 {
                     foreach (var u in updates)
@@ -204,7 +204,7 @@ namespace Orleans.EventSourcing.CustomStorage
             {
                 Services.Log(LogLevel.Debug, "{0} failed {1}", writesuccessful ? "transitions" : "write", LastPrimaryIssue);
 
-                while (true) // 固执,直到我们重新读取国家 从储存状态
+                while (true) // 持续重试，直到能够从存储重新读取状态。
                 {
                     await LastPrimaryIssue.DelayBeforeRetry();
 
@@ -222,7 +222,7 @@ namespace Orleans.EventSourcing.CustomStorage
                     }
                     catch (Exception e)
                     {
-                        // 被转发的un wrap 内例外 - 有助于调试
+                        // 解包传递过来的内部异常，有助于调试。
                         if ((e as ProtocolTransportException)?.InnerException != null)
                             e = ((ProtocolTransportException)e).InnerException!;
 
@@ -239,7 +239,7 @@ namespace Orleans.EventSourcing.CustomStorage
         }
 
         /// <summary>
-        /// 描述更新主贮存时出现的连接问题。
+        /// 描述更新主存储时发生的连接问题。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -254,7 +254,7 @@ namespace Orleans.EventSourcing.CustomStorage
 
 
         /// <summary>
-        /// 描述读取主贮存时出现的连接问题。
+        /// 描述读取主存储时发生的连接问题。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -269,8 +269,8 @@ namespace Orleans.EventSourcing.CustomStorage
 
 
         /// <summary>
-        /// 在主机启动后发送至此 grain 远程实例的通知电文
-        /// 更新后, 让他们知道最新版本。 包含所有应用过的更新 。
+        /// 更新主存储后发送给此 Grain 的远程实例的通知消息，
+        /// 用于告知它们最新版本。包含已应用的所有更新。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -280,12 +280,12 @@ namespace Orleans.EventSourcing.CustomStorage
             [Id(0)]
             public int Version { get; set; }
 
-            /// <summary> 适用的最新清单。 </summary>
+            /// <summary>已应用的更新列表。</summary>
             [Id(1)]
             public List<TLogEntry> Updates { get; set; } = null!;
 
             /// <summary>
-            /// 说明该通知电文适合追查。
+            /// 适合用于跟踪的此通知消息的表示形式。
             /// </summary>
             public override string ToString()
             {
@@ -309,20 +309,20 @@ namespace Orleans.EventSourcing.CustomStorage
         protected override void ProcessNotifications()
         {
 
-            // 已经确认的状态背后的废弃通知
+            // 丢弃落后于已确认状态的通知。
             while (notifications.Count > 0 && notifications.ElementAt(0).Key < version)
             {
                 Services.Log(LogLevel.Debug, "discarding notification {0}", notifications.ElementAt(0).Value);
                 notifications.RemoveAt(0);
             }
 
-            // 反映下一个全球版本的处理通知
+            // 处理反映下一个全局版本的通知。
             while (notifications.Count > 0 && notifications.ElementAt(0).Key == version)
             {
                 var updatenotification = notifications.ElementAt(0).Value;
                 notifications.RemoveAt(0);
 
-                // 应用所有待处理操作 
+                // 应用待处理的所有操作。
                 foreach (var u in updatenotification.Updates)
                     try
                     {

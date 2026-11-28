@@ -80,7 +80,7 @@ public sealed class MembershipTableSystemTargetTests : IDisposable
 
         await _target.DeleteMembershipTableEntriesAsync(ClusterId, _cancellationToken);
 
-        // 删除结束此目标的表寿命, 包括在其他启动请求之后。
+        // 删除会终结此目标的表生命周期，即使此后再次收到初始化请求也是如此。
         await Assert.ThrowsAsync<NullReferenceException>(() => _target.ReadAllAsync(_cancellationToken));
         await _target.InitializeMembershipTableAsync(true, _cancellationToken);
         await Assert.ThrowsAsync<NullReferenceException>(() => _target.ReadAllAsync(_cancellationToken));
@@ -117,7 +117,7 @@ public sealed class MembershipTableSystemTargetTests : IDisposable
 
         foreach (var key in new[] { Assert.Single(before.Members).Item1.SiloAddress, null! })
         {
-#pragma warning disable CS0618 // Retired legacy and async APIs must return faulted tasks even after table deletion.
+#pragma warning disable CS0618 // 已退役的旧版和异步 API 即使在表删除后也必须返回以异常结束的任务。
             var legacy = _target.ReadRow(key);
             var current = _target.ReadRowAsync(key, _cancellationToken);
 #pragma warning restore CS0618
@@ -127,7 +127,7 @@ public sealed class MembershipTableSystemTargetTests : IDisposable
             Assert.Equal(guidance, (await Assert.ThrowsAsync<NotSupportedException>(() => current)).Message);
             using var cancellation = new CancellationTokenSource();
             cancellation.Cancel();
-#pragma warning disable CS0618 // Pre-cancellation must win over unsupported and null/deleted table access.
+#pragma warning disable CS0618 // 预先取消必须优先于不支持的操作及对 null 或已删除表的访问。
             var canceled = await Assert.ThrowsAnyAsync<OperationCanceledException>(
                 () => _target.ReadRowAsync(key, cancellation.Token));
 #pragma warning restore CS0618

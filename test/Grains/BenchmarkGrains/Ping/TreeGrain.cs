@@ -4,7 +4,7 @@ namespace BenchmarkGrains.Ping;
 
 public class TreeGrain : Grain, ITreeGrain
 {
-    // 16^4 grains (~65K)
+    // 16^4 个 Grain（约 65K 个）
     public const int FanOutFactor = 16;
     public const int MaxLevel = 4;
     private readonly List<ITreeGrain> _children;
@@ -32,7 +32,7 @@ public class TreeGrain : Grain, ITreeGrain
             tasks.Add(child.Ping());
         }
 
-        // 等待任务完成
+        // 等待任务完成。
         foreach (var task in tasks)
         {
             await task;

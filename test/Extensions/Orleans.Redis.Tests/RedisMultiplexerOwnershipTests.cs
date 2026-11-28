@@ -18,9 +18,9 @@ using Xunit;
 namespace Tester.Redis;
 
 /// <summary>
-/// 证明非流放 Redis 供应商处置其拥有的多路驱动器,同时放弃共享
-/// 多个多路驱动器未动。每个供应商都执行 <see cref="System.IDisposable"/>
-/// 和 <see cref="System.IAsyncDisposable"/> 因此,两种处置途径都是独立行使的。
+/// 验证非流式 Redis 提供程序释放其拥有的连接多路复用器，而不影响共享的
+/// （例如由 DI 提供的）连接多路复用器。各提供程序分别实现 <see cref="System.IDisposable"/>
+/// 和 <see cref="System.IAsyncDisposable"/>，因此测试涵盖两种释放路径。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("Redis")]
@@ -39,8 +39,8 @@ public sealed class RedisMultiplexerOwnershipTests
     {
         var connectionString = TestDefaultConfiguration.RedisConnectionString;
 
-        // 处置前的启动前测试不需要实时 Redis ,也从未连接,所以返回
-        // 当没有配置连接字符串时的空配置, 而不是无法分析一个空值 。
+        // 初始化前释放的测试不需要运行中的 Redis，也不会建立连接，因此在未配置连接字符串时，
+        // 回退到空配置，而不是因解析 null 值失败。
         return string.IsNullOrWhiteSpace(connectionString)
             ? new ConfigurationOptions()
             : ConfigurationOptions.Parse(connectionString);
@@ -177,7 +177,7 @@ public sealed class RedisMultiplexerOwnershipTests
 
         provider.Dispose();
 
-        // 初始化前的处置应该离开目录,以处置状态而不是扔弃。
+        // 在 Initialize 之前释放应使目录进入已释放状态，而不是抛出异常。
         Assert.Null(await provider.Lookup(GrainId.Create("test", "key")));
     }
 
@@ -202,7 +202,7 @@ public sealed class RedisMultiplexerOwnershipTests
 
         await dispose();
 
-        // 共享的多路驱动器由呼叫者拥有,因此在供应商处置后必须保持可用。
+        // 共享连接多路复用器归调用方所有，因此在提供程序释放后仍必须可用。
         Assert.True(connection.IsConnected);
         await connection.GetDatabase().PingAsync();
     }
@@ -222,7 +222,7 @@ public sealed class RedisMultiplexerOwnershipTests
 
             await dispose();
 
-            // 供应商创建了这个多路驱动器,因此拥有它 所以处置必须把它拆掉
+            // 该连接多路复用器由提供程序创建并拥有，因此释放提供程序时必须将其释放。
             Assert.False(connection.IsConnected);
         }
         finally

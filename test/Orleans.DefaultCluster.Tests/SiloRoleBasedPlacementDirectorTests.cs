@@ -7,11 +7,11 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// silo 角色定位战略测试 Orleans。
-    /// 这一安置战略允许 grains 置于具体 silos
-    /// 基于 silo 作用/名称。这对需要
-    /// grain 与特定基础设施的近似性(e.g., grains 需要
-    /// 获得当地资源或应使用专门硬件)。
+    /// Orleans 中基于 Silo 角色的放置策略测试。
+    /// 此放置策略允许基于 Silo 角色或名称
+    /// 将 Grain 放置在特定 Silo 上。这适用于需要
+    /// Grain 与特定基础设施保持亲和性的场景（例如 Grain 需要
+    /// 访问本地资源或应在专用硬件上运行）。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -23,10 +23,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 当请求的 silo 角色不存在时测试定位失败 。
-        /// 证明试图将 grain 置于不存在的 silo 角色之上
-        /// 丢出适当的例外, 确保系统快速失效
-        /// 当错误配置而不是静默地放置错误的 grains 时。
+        /// 测试请求的 Silo 角色不存在时的放置失败。
+        /// 验证尝试将 Grain 放置到不存在的 Silo 角色上时
+        /// 会引发适当的异常，确保系统配置错误时快速失败，
+        /// 而非悄悄将 Grain 错误放置。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task SiloRoleBasedPlacementDirector_CantFindSilo()
@@ -36,10 +36,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试成功放置在 silo 上并具有要求的作用。
-        /// 证明为基于角色的职位安排配置了 grains
-        /// 匹配指定角色时正确激活 silos ,
-        /// 展示有针对性的安置的基本功能。
+        /// 测试成功放置到具有请求角色的 Silo 上。
+        /// 验证配置为基于角色放置的 Grain
+        /// 在与指定角色匹配的 Silo 上正确激活，
+        /// 展示定向放置的基本功能。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task SiloRoleBasedPlacementDirector_CanFindSilo()

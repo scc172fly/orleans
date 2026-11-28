@@ -61,7 +61,7 @@ public interface ICatalogItemGrain : IGrainWithIntegerKey
 
     DurableTask<bool> ReserveAsync(Guid orderId, int units);
 
-    // 返回命令是否持有保留,因此释放是无效的。
+    // 返回订单在本次释放前是否持有预留资源，因此释放操作具有幂等性。
     DurableTask<bool> ReleaseAsync(Guid orderId);
 }
 
@@ -100,7 +100,7 @@ public sealed class CatalogItemGrain : DurableGrain, ICatalogItemGrain
         await WriteStateAsync();
     }
 
-    // 国家变化和任务结果 在一个日记中承诺。
+    // 状态变更和任务结果在同一次日志写入中提交。
     public async DurableTask<bool> ReserveAsync(Guid orderId, int units)
     {
         if (units <= 0 || _available.Value < units)
@@ -161,14 +161,14 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
             await DurableTask.Delay(TimeSpan.FromMinutes(1)).WithId("grace-period");
             DurableTask.RunInline("validate", () => SetStatus(OrderStatus.AwaitingValidation));
 
-            // 保留每一行,作为儿童储备/0、储备/1等。
+            // 并发预留每个订单行，子任务分别为 reserve/0、reserve/1 等。
             reserved = await order.Lines.Select(line => Catalog(line.ProductId).ReserveAsync(OrderId, line.Units))
                 .WhenAll()
                 .WithId("reserve");
         }
         catch (OperationCanceledException) when (DurableTask.Current.IsTaskCancellationRequested)
         {
-            // WhenAll 每一个保留都等待着,所以没有哪个保留在运行。
+            // WhenAll 已等待每个预留操作，因此没有任何预留操作仍在运行。
             return await CancelOrderAsync(order.Lines, DurableTask.Current.TaskCancellationReason);
         }
 
@@ -188,7 +188,7 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
 
         DurableTask.RunInline("pay", () => SetStatus(OrderStatus.Paid));
 
-        // 当货物在等待前到达时立即返回。
+        // 如果发货信号在等待开始前已到达，则立即返回。
         var shipment = await Shipped.WaitAsync();
         DurableTask.RunInline("ship", () => SetStatus(OrderStatus.Shipped));
         return new OrderResult(OrderStatus.Shipped, shipment.TrackingNumber);
@@ -223,7 +223,7 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
     // <durable_tasks_compensation>
     private async Task<OrderResult> CancelOrderAsync(OrderLine[] lines, string? reason)
     {
-        // 发布内容被屏蔽, 因此它会持续到结束工作流程的取消后完成。
+        // 释放操作受取消屏蔽保护，因此即使取消已结束工作流，该操作仍运行至完成。
         await lines.Select(line => Catalog(line.ProductId).ReleaseAsync(OrderId))
             .WhenAll()
             .WithId("release")
@@ -234,8 +234,8 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
     // </durable_tasks_compensation>
 
     // <durable_tasks_run_inline>
-    // 工作流程将每个状态变化作为记录效果运行,例如 DurableTask.RunInline("工资"), : 国家变化
-    // 并重播结果返回结果,而不改变国家。
+    // 工作流将每次状态变更作为已记录的效果运行，例如 DurableTask.RunInline("pay", ...)：状态变更
+    // 与记录的结果一同提交，重放直接返回结果，而不再变更状态。
     private OrderStatus SetStatus(OrderStatus status)
     {
         _status.Value = status;
@@ -281,7 +281,7 @@ public sealed class BasketGrain : DurableGrain, IBasketGrain
         // <durable_tasks_checkout_post>
         _lines.Clear();
 
-        // 张贴引用发信箱的招贴,
+        // 将调用投递到发件箱，日志写入将它与已清空的购物车一同提交。
         _ = GrainFactory.GetGrain<IOrderGrain>(orderId)
             .PlaceOrderAsync(order)
             .WithId(OrderGrain.PlaceOrderTaskId(orderId))
@@ -291,7 +291,7 @@ public sealed class BasketGrain : DurableGrain, IBasketGrain
         return orderId;
     }
 
-    // 按顺序 grain抽出工作流程,保留结果。
+    // 轮询订单 Grain 上的工作流，该 Grain 保留工作流结果。
     public async Task<OrderResult?> GetOrderResultAsync(Guid orderId)
     {
         try
@@ -303,8 +303,8 @@ public sealed class BasketGrain : DurableGrain, IBasketGrain
         }
         catch (DurableTaskNotFoundException)
         {
-            // 没有出局启动此命令, 出局的报价还没有达到订单, 或者结果还没到
-            // 保留期已终止。
+            // 可能没有结账操作启动此订单、结账调用尚未到达订单，或者结果的
+            // 保留期已结束。
             return null;
         }
     }
@@ -316,7 +316,7 @@ internal static class OrderClient
     // <durable_tasks_schedule_from_client>
     public static async Task<OrderResult> PlaceOrderAsync(IClusterClient client, Guid orderId, SubmitOrder order)
     {
-        // 将相同的请求排入同一根代号下再次返回相同的任务, 这样重试是安全的 。
+        // 使用相同根 ID 再次调度同一请求会返回同一任务，因此重试是安全的。
         ScheduledTask<OrderResult> workflow = await client.GetGrain<IOrderGrain>(orderId)
             .PlaceOrderAsync(order)
             .WithId(OrderGrain.PlaceOrderTaskId(orderId))
@@ -355,7 +355,7 @@ public sealed record ShippingQuote(string Carrier, decimal Price);
 
 public interface ICarrierGrain : IGrainWithStringKey
 {
-    // 当承运人不为路线服务时返回空 。
+    // 承运人不提供该线路的服务时返回 null。
     DurableTask<ShippingQuote?> QuoteAsync(string route);
 }
 
@@ -370,7 +370,7 @@ public interface IShippingGrain : IGrainWithGuidKey
 
 public sealed partial class ShippingGrain : DurableGrain, IShippingGrain
 {
-    // 一旦另一承运人的要求解决,返回第一承运人的报价。
+    // 等另一承运人的请求结束后，返回最先响应的承运人的报价。
     public async DurableTask<ShippingQuote?> QuoteFirstAsync(string route)
     {
         var (_, quote) = await DurableTask.Race([Carrier("ground").QuoteAsync(route), Carrier("air").QuoteAsync(route)])
@@ -393,7 +393,7 @@ public sealed partial class ShippingGrain
         }
         catch (TimeoutException)
         {
-            // 在暂停要求取消之后,承运人的要求被终止。
+            // 超时请求取消承运人的请求后，该请求以取消状态结束。
             return null;
         }
     }
@@ -422,7 +422,7 @@ public sealed partial class ShippingGrain
             }
         }
 
-        // 取消已经完成更改的请求。
+        // 取消已经完成的请求不会产生变化。
         foreach (var request in requests)
         {
             await request.CancelAsync("Enough quotes were collected.");
@@ -453,7 +453,7 @@ public sealed class AllocationGrain : DurableGrain, IAllocationGrain
             return true;
         }
 
-        // 确切地释放出保留成功行的界线,包括在取消请求之后。
+        // 仅释放预留成功的订单行所对应的资源，即使已经收到取消请求也是如此。
         var held = lines.Where((_, i) => reservations[i].TryGetResult(out var reserved) && reserved);
         await held.Select(line => Catalog(line.ProductId).ReleaseAsync(OrderId))
             .WhenAll()
@@ -490,14 +490,14 @@ public sealed class FulfillmentGrain : DurableGrain, IFulfillmentGrain
 
     public async DurableTask<string[]> FulfillAsync(Package[] packages)
     {
-        // 开始打印每个标签, 儿童标签/0, 标签/1,等等, 不等待他们。
+        // 开始打印每个标签，子任务分别为 labels/0、labels/1 等，不等待它们完成。
         var labels = await packages.Select(package => GrainFactory.GetGrain<ILabelGrain>(package.PackageId).PrintAsync(package))
             .ScheduleAll()
             .WithId("labels");
 
         await MarkPicked().WithId("pick");
 
-        // 将第一个失败丢弃在输入顺序中, 否则是第一个取消 。
+        // 按输入顺序抛出第一个失败；若无失败，则抛出第一个取消异常。
         await ScheduledTask.WhenAll(labels);
         return [.. labels.Select(label => label.GetResult())];
     }
@@ -535,7 +535,7 @@ public sealed class ExpenseGrain(IDurableTaskManager tasks) : DurableGrain, IExp
 
     public async DurableTask<ExpenseOutcome> SubmitAsync(ExpenseClaim claim)
     {
-        // 逻辑时间,重播时不改变。
+        // 逻辑时间，重放观察到的值保持不变。
         var deadline = DurableTask.Current.UtcNow.AddDays(3);
         var (received, decision) = await Decided.TryWaitAsync(deadline).WithId("decision");
         if (!received)
@@ -568,7 +568,7 @@ public sealed record InvoiceRequest(string CustomerId, decimal Amount);
 
 public interface INotificationGrain : IGrainWithStringKey
 {
-    // 返回此呼叫是否发送了收据, 所以重复收到是无操作的 。
+    // 返回本次调用是否发送了收据，因此重复发送收据为空操作。
     DurableTask<bool> SendReceiptAsync(Guid invoiceId, decimal amount);
 }
 
@@ -589,7 +589,7 @@ public sealed class InvoiceGrain : DurableGrain, IInvoiceGrain
     {
         var amount = await Record(request.Amount).WithId("record");
 
-        // 启动根任务“收到 - {”invoiceId」在通知上 grain,其中含有发票结果。
+        // 在通知 Grain 上启动根任务 "receipt-{invoiceId}"，并将启动操作与发票任务的结果一同提交。
         _ = GrainFactory.GetGrain<INotificationGrain>(request.CustomerId)
             .SendReceiptAsync(this.GetPrimaryKey(), amount)
             .Detached(ReceiptTaskId(this.GetPrimaryKey()))
@@ -618,7 +618,7 @@ public sealed class TicketGrain : DurableGrain, ITicketGrain
 
     public TicketGrain(ILogger<TicketGrain> logger)
     {
-        // 任务重放时跳过事件, 所以每个事件都记录一次 。
+        // 在任务重放期间跳过日志事件，因此每个事件只记录一次。
         _logger = logger.ReplaySafe();
         _lastNumber = StateManager.GetOrAddValue<int>("last-number");
         _paid = StateManager.GetOrAddDictionary<int, bool>("paid");
@@ -626,11 +626,11 @@ public sealed class TicketGrain : DurableGrain, ITicketGrain
 
     public async DurableTask<Ticket> IssueAsync(decimal amount, string cardLast4)
     {
-        // 重新执行代码: 它在每个重放中运行, 记录一次通过重播安全记录器。
+        // 重新执行的代码：每次重放都会运行，但通过重放安全的日志记录器只记录一次日志。
         _logger.LogInformation("Issuing a ticket for {Amount}.", amount);
 
-        // 记录效果将计数器提前、引用并读过时钟一次。
-        // 并重播回票,
+        // 已记录的效果递增计数器、生成引用编号并读取一次时钟。计数器的变更
+        // 与记录的凭证一同提交，重放直接返回该凭证，而不会再次运行效果。
         var ticket = DurableTask.RunInline(
             "allocate",
             () => new Ticket(++_lastNumber.Value, Guid.NewGuid(), DateTimeOffset.UtcNow));
@@ -639,7 +639,7 @@ public sealed class TicketGrain : DurableGrain, ITicketGrain
             .AuthorizeAsync(amount, cardLast4)
             .WithId("authorize");
 
-        // 同步尾巴:没有持久的操作 跟随这一变化, 所以它承诺任务的结果。
+        // 末尾的同步代码：此变更之后没有持久化操作，因此与任务结果一同提交。
         _paid[ticket.Number] = payment.Succeeded;
         return ticket;
     }
@@ -667,8 +667,8 @@ public sealed class HoldGrain : DurableGrain, IHoldGrain
 
     public async DurableTask<Guid> HoldAsync(int quantity)
     {
-        // 每个效果在返回之前运行于此工作项中,记录在 {taskId}/ holds-id和{taskId}/holds下。
-        // 记录和状态变化在同一个日记中承诺, 彼此之间没有其他转弯。
+        // 每个效果都在当前工作项返回前运行，并分别记录在 {taskId}/hold-id 和 {taskId}/hold 下。
+        // 它们的记录及状态变更在同一次日志写入中提交，期间不执行其他轮次。
         var holdId = DurableTask.RunInline("hold-id", Guid.NewGuid);
         DurableTask.RunInline("hold", () =>
         {
@@ -682,8 +682,8 @@ public sealed class HoldGrain : DurableGrain, IHoldGrain
 
     public async DurableTask<Guid> ConfirmAsync(Guid holdId)
     {
-        // 一步在等待时,作为带有自身背景和记录的儿童处决,该步骤在等待阶段运行
-        // {taskId}/确认-id, DurableTask.RunInline(“确认-id”,......)将使用的识别符号。
+        // 在等待步骤时，它作为具有独立上下文的子执行实例运行，并记录在
+        // {taskId}/confirmation-id，即 DurableTask.RunInline("confirmation-id", ...) 所使用的标识符。
         return await DurableTask.Run(async () => await RequestConfirmationAsync(holdId)).WithId("confirmation-id");
     }
 
@@ -715,8 +715,8 @@ public sealed class ExportGrain : DurableGrain, IExportGrain
 
     public async DurableTask<int> ExportAsync(string[] partitions)
     {
-        // 每个附件运行一次, 重播返回其记录序列, 这样它就不会发布旧的进度 。
-        // 循环的附加附件有一个共同的名字, 它识别它们为进步, 进步2,等等。
+        // 每次追加仅运行一次，重放返回记录的序号，因此不会再次发布旧进度。
+        // 循环中的追加操作共用一个名称，分别标识为 progress、progress$2 等。
         DurableTask.RunInline(() => _progress.Append(new ExportProgress(0, partitions.Length)));
         for (var i = 0; i < partitions.Length; i++)
         {
@@ -727,7 +727,7 @@ public sealed class ExportGrain : DurableGrain, IExportGrain
         return partitions.Length;
     }
 
-    // 观察员们从头一个字中按顺序阅读承诺的条目。
+    // 观察者从首条记录开始，按顺序读取已提交条目。
     public async IAsyncEnumerable<ExportProgress> WatchAsync([EnumeratorCancellation] CancellationToken cancellationToken)
     {
         await foreach (var change in _progress.ReadAsync(cancellationToken: cancellationToken))
@@ -769,23 +769,23 @@ public sealed class ConversationGrain : DurableGrain, IConversationGrain
         _transcript = StateManager.GetOrAddLog<string>("transcript");
     }
 
-    // 返回承诺响应的序列编号。
+    // 返回已提交响应的序列号。
     public async DurableTask<long> AskAsync(string prompt) => await DurableTask.Run(async cancellationToken =>
     {
         using var draft = _transcript.BeginDraft();
         var response = new StringBuilder();
         await foreach (var chunk in _model.StreamAsync(prompt, cancellationToken))
         {
-            // 观察者在到达时接收每个块,
+            // 易失性：观察者在每个数据块到达时接收它，日志写入不会包含它。
             draft.Write(chunk);
             response.Append(chunk);
         }
 
-        // 步骤的最后同步代码: 条目在同一个日记中承诺以该步骤的结果写入此步骤。
+        // 步骤末尾的同步代码：此条目与步骤结果在同一次日志写入中提交。
         return draft.Commit(response.ToString());
     }).WithId("respond");
 
-    // 观察者们接收草稿的碎片现场直播 然后是承诺的条目 取代它们
+    // 观察者实时接收草稿数据块，随后接收替换这些数据块的已提交条目。
     public IAsyncEnumerable<LogEvent<string>> WatchAsync(long fromSequence, long epoch, CancellationToken cancellationToken) =>
         _transcript.ReadAsync(fromSequence, epoch, includeDrafts: true, cancellationToken: cancellationToken);
 }
@@ -842,7 +842,7 @@ public sealed class WebhookRelayGrain(HttpClient http) : DurableGrain, IWebhookR
         var operation = GrainFactory.GetGrain<IOperationGrain>(operationKey);
         try
         {
-            // 订阅行动的结果;订阅和截止日期记录重播。
+            // 订阅操作结果；订阅及其截止时间均被记录，以供重放使用。
             var result = await operation.GetDurableTask<OperationResult>(operationId).WaitAsync(TimeSpan.FromDays(1));
             await DurableTask.Run(async ct =>
             {
@@ -852,7 +852,7 @@ public sealed class WebhookRelayGrain(HttpClient http) : DurableGrain, IWebhookR
         }
         catch (TimeoutException)
         {
-            // 操作一天后仍在运行;没有此中继继续。
+            // 一天后操作仍在运行；即使没有当前中继，它也会继续运行。
         }
     }
 }

@@ -17,8 +17,8 @@ using Xunit;
 namespace NonSilo.Tests
 {
     /// <summary>
-    /// 执行不执行 IMembershipTable 用于测试 silo 配置
-    /// 不需要实际成员结构。
+    /// IMembershipTable 的空操作实现，用于测试 Silo 配置，
+    /// 无需实际成员资格表基础设施。
     /// </summary>
     public class NoOpMembershipTable : IMembershipTable
     {
@@ -96,9 +96,9 @@ namespace NonSilo.Tests
     }
 
     /// <summary>
-    /// 测试 Orleans SiloBuilder负责配置和建设 Orleans silo 实例。
-    /// 这些测试核查了 silo 组成部分的配置验证、服务登记和适当启动
-    /// 无需全额 Orleans 组。 Silos 用于 grains 内 Orleans.
+    /// Orleans SiloBuilder 的测试，它负责配置和构建 Orleans Silo 实例。
+    /// 这些测试验证配置校验、服务注册以及 Silo 组件的正确初始化，
+    /// 无需完整的 Orleans 集群。Silo 是 Orleans 中托管 Grain 的主要单元。
     /// </summary>
     [TestCategory("BVT")]
     [TestCategory("Hosting")]
@@ -211,8 +211,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// 测试基本 silo 构建器配置,核查能够成功建造 silo
-        /// 与本地主机群集和所需配置选项一起进行。
+        /// 测试 Silo 生成器的基本配置，验证是否能够使用
+        /// 本地主机集群配置及必需的配置选项成功构建 Silo。
         /// </summary>
         [Fact]
         public void SiloBuilderTest()
@@ -236,7 +236,7 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// Grain的 CollectionAgeLimit 必须 > 0分钟。
+        /// Grain 的 CollectionAgeLimit 必须大于 0 分钟。
         /// </summary>
         [Fact]
         public async Task SiloBuilder_GrainCollectionOptionsForZeroSecondsAgeLimitTest()
@@ -443,7 +443,7 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// 确保 <see cref="LoadSheddingValidator"/> 在 LoadSheddingLimit 大于100时失败。
+        /// 确保 LoadSheddingLimit 大于 100 时 <see cref="LoadSheddingValidator"/> 校验失败。
         /// </summary>
         [Fact]
         public async Task SiloBuilder_LoadSheddingValidatorAbove100ShouldFail()
@@ -467,8 +467,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// 测试一个 silo 没有注册的 grain 类或接口就无法启动。
-        /// 这确保了 silos 在启动之前有实际工作需要完成。
+        /// 测试在未注册任何 Grain 类或接口时，Silo 无法启动。
+        /// 这确保 Silo 在启动之前有实际工作可执行。
         /// </summary>
         [Fact]
         public async Task SiloBuilderThrowsDuringStartupIfNoGrainsAdded()
@@ -476,7 +476,7 @@ namespace NonSilo.Tests
             using var host = new HostBuilder()
                 .UseOrleans((ctx, siloBuilder) =>
                 {
-                    // 只添加带有生成序列器的组件, 但没有 grain 接口或 grain 类
+                    // 仅添加一个包含生成的序列化器、但不包含 Grain 接口或 Grain 类的程序集
                     siloBuilder.UseLocalhostClustering()
                     .Configure<GrainTypeOptions>(options =>
                     {
@@ -490,8 +490,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// 试图在同一主机中配置客户端和 silo 的测试会排除一个例外。
-        /// Orleans 要求 silos 和客户分别提供主机。
+        /// 测试尝试在同一宿主中同时配置客户端和 Silo 时是否引发异常。
+        /// Orleans 要求 Silo 和客户端使用独立的宿主。
         /// </summary>
         [Fact]
         public void SiloBuilderThrowsDuringStartupIfClientBuildersAdded()
@@ -511,8 +511,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// 试图配置客户端和 silo 使用 Host.CreateApplicationBuilder API 抛出一个例外。
-        /// 由此可以核实同一限制是否适用于现代主机 API。
+        /// 测试使用 Host.CreateApplicationBuilder API 尝试同时配置客户端和 Silo 时是否引发异常。
+        /// 这验证相同的限制也适用于现代宿主 API。
         /// </summary>
         [Fact]
         public void SiloBuilderWithHotApplicationBuilderThrowsDuringStartupIfClientBuildersAdded()

@@ -15,7 +15,7 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// 向接收器的收件箱发送日记认可的信息。
+/// 将已获得日志写入确认的消息投递至接收方收件箱。
 /// </summary>
 internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandler<OutboxCommand>, IOutbox
 {
@@ -26,14 +26,14 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
     private readonly Dictionary<MessageId, OutboxDeadLetterRecord> _deadLetters = [];
     private readonly List<IOutboxMessageSource> _sources = [];
 
-    // 尚未适用交付尝试结果的条目、已完成尝试的结果以及
-    // 输入在飞行中一直停留到结果应用为止,所以它从来没有两次尝试。
+    // 记录投递尝试结果尚未应用的条目、已完成尝试的结果，以及
+    // 仍在运行的尝试数量。条目在应用结果前保持在途状态，因此不会同时有两次尝试。
     private readonly HashSet<OutboxEntry> _inFlight = new(ReferenceEqualityComparer.Instance);
     private readonly List<DeliveryOutcome> _outcomes = [];
     private int _running;
     private TaskCompletionSource? _drained;
 
-    // A grain给自己发的信息会转到自己的收件箱,所以解决发件箱可以解答收件箱。
+    // Grain 发送给自身的消息直接进入自身的收件箱，因此解析发件箱时也会解析收件箱。
     public Outbox(MessagingPump pump, Inbox inbox)
     {
         _pump = pump;
@@ -53,7 +53,7 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
     internal IReadOnlyDictionary<MessageId, OutboxDeadLetterRecord> DeadLetterState => _deadLetters;
     internal int Count => _messages.Count;
 
-    /// <summary>了解运送尝试是否在飞行中或等待泵应用。</summary>
+    /// <summary>获取投递尝试是否处于在途状态或等待消息泵应用结果。</summary>
     internal bool IsDelivering => _inFlight.Count > 0;
 
     public IOutbox Register(IOutboxMessageSource source)
@@ -79,7 +79,7 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
 
         if (message.ReceiverId == GrainId)
         {
-            // grain自己的收件箱接受调用器日记中的信件,所以发件箱永远不能保存它。
+            // Grain 自身的收件箱在调用方的日志写入中接纳消息，因此发件箱从不持有该消息。
             _inbox.StageLocal(message.ToInboxMessage(JobTimeProvider.GetUtcNow()));
             Shared.Instruments.OnOutboxMessageSent(_pump.GrainTypeTag);
             return;
@@ -102,7 +102,7 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
         EnvelopeValidation.ValidateMessageId(messageId);
         if (_messages.TryGetValue(messageId, out var existing))
         {
-            // 来源对待处理的参考条目信息具有权威性,因此重复发送联结。
+            // 消息来源是待处理引用条目消息的权威来源，因此重复发送会合并。
             if (existing.Reference is null)
             {
                 throw new InvalidOperationException(
@@ -151,14 +151,14 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
         return true;
     }
 
-    // 发送写入为每次尝试和恢复修正逻辑发送时间 。
+    // 发送时的写入固定逻辑发送时间，适用于每次尝试和恢复。
     private OutboxMessageState CreateState() =>
         new() { SentAt = JobTimeProvider.GetUtcNow() };
 
     private DateTimeOffset GetExpirationTime(OutboxMessageState state) =>
         MessagingTime.AddClamped(state.SentAt!.Value, Options.OutboxRetryTimeout);
 
-    /// <summary>返回第一个已注册的电文源及其有效电文。</summary>
+    /// <summary>返回首个提供该消息的已注册来源，以及该来源经过验证的消息。</summary>
     private IOutboxMessageSource? FindSource(MessageId messageId, out OutboxMessage message)
     {
         foreach (var source in _sources)
@@ -171,9 +171,9 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
     }
 
     /// <summary>
-    /// 返回条目的电文,从自有来源实现引用条目的电文或返回
-    /// <see langword="false"/> 用于一个回收的条目,该条目没有注册来源提供。当拥有源时丢弃
-    /// 丢弃、 返回无效的信件, 或者不再提供信件 。
+    /// 返回条目的消息；对于引用条目，从拥有它的来源实体化消息；若已恢复条目
+    /// 没有任何已注册来源提供，则返回 <see langword="false"/>。如果拥有它的来源
+    /// 抛出异常、返回无效消息或不再提供该消息，则抛出异常。
     /// </summary>
     private bool TryGetMessage(OutboxEntry entry, out OutboxMessage message)
     {
@@ -187,13 +187,13 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
         {
             if (TryGetSourceMessage(owner, entry.MessageId, out message)) return true;
 
-            // 电文发回时,所有者提供了电文,撤回经过 IOutbox.Withdraw。
+            // 拥有者在发送时提供消息，撤回操作通过 IOutbox.Withdraw 执行。
             throw new InvalidOperationException(
                 $"The outbox message source which owns message '{entry.MessageId}' no longer provides it; withdraw a message with IOutbox.Withdraw.");
         }
 
-        // 回收的入口物主是第一个没有拒绝的来源,包括一个没有提供源头的来源
-        // 以便当条目用无字母编号时通知该来源。
+        // 已恢复条目的拥有者是第一个没有拒绝接手的来源，包括尝试提供消息但失败的
+        // 来源，因此该条目转入死信时会通知该来源。
         foreach (var source in _sources)
         {
             entry.Source = source;
@@ -216,7 +216,7 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
         }
         if (message.ReceiverId == GrainId)
         {
-            // grain自己的收件箱将持有有效载荷,因此源不能保留该有效载荷作为单份副本。
+            // Grain 自身的收件箱会持有有效载荷，因此来源不能保留唯一副本。
             throw new ArgumentException(
                 $"The outbox message source addressed message '{messageId}' to the sending grain; send its message with Send(OutboxMessage) instead.",
                 nameof(messageId));
@@ -225,22 +225,22 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
         return true;
     }
 
-    /// <summary>通知退役参考条目的来源,因此释放该条目即意味着删除该条目。</summary>
+    /// <summary>通知已退出发件箱的引用条目的来源，使其释放操作随条目移除一起提交。</summary>
     private void Retire(OutboxEntry entry, OutboxMessageRetirement retirement)
     {
-        // 回收的引用, 没有源码提供, 没有所有人可以通知 。
+        // 无来源提供的已恢复引用没有需要通知的拥有者。
         entry.Source?.OnRetired(entry.MessageId, retirement);
         MessagingEvents.EmitOutboxMessageRetired(_pump.GrainContext, entry.MessageId, retirement);
     }
 
     /// <summary>
-    /// 创建来源未提供其消息的死信的电文:带空有效载荷的信息代号,
-    /// 默认接收器, 没有有效的发送信件存在 。
+    /// 为来源未能提供消息的死信创建消息：保留消息 ID，使用空有效载荷及
+    /// 默认接收方；有效出站消息不允许使用此接收方。
     /// </summary>
     private static OutboxMessage CreateUnmaterializedMessage(MessageId messageId) =>
         new() { Envelope = new() { MessageId = messageId, Payload = [] }, ReceiverId = default };
 
-    /// <summary>复制源拥有的电文的有效载荷和信头值。</summary>
+    /// <summary>复制由来源拥有的消息的有效载荷和标头值。</summary>
     private static OutboxMessage CopySourceMessage(OutboxMessage message)
     {
         var envelope = message.Envelope;
@@ -262,7 +262,7 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
                 "The outbox recovered messages which a source provides, but no outbox message source is registered. Register outbox message sources during activation setup, before journal recovery.");
         }
 
-        // 正在验证发送所有信件, 并用自己的邮件代号重放每个条目的密钥 。
+        // 发送时已验证每条消息，重放使用各条目的消息 ID 作为键。
         Debug.Assert(_messages.All(pair => pair.Key == pair.Value.MessageId
             && (pair.Value.Message is null) != (pair.Value.Reference is null)
             && pair.Value.Message?.ReceiverId != GrainId));
@@ -300,8 +300,8 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
     }
 
     /// <summary>
-    /// 选择最多不超过 <paramref name="capacity"/> 的耐久条目,这些条目到期且在飞行中没有尝试:
-    /// 并输入死信条目,
+    /// 最多选择 <paramref name="capacity"/> 个已持久化、已到期且无在途尝试的条目：包括
+    /// 需要尝试投递的消息和无需尝试即转入死信的条目。
     /// </summary>
     private (List<(OutboxEntry Entry, OutboxMessage Message)>? Candidates, List<(OutboxEntry Entry, Unavailable Reason)>? Unavailable) SelectMessages(int capacity)
     {
@@ -313,7 +313,7 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
         {
             if (entry.Sequence > _durableSequence || _inFlight.Contains(entry) || entry.State.NextAttemptAt > now) continue;
 
-            // 仅被删除的条目也计算到容量,所以通行证最多可以删除一批条目。
+            // 仅需移除的条目也计入容量，因此单轮最多移除一个批次的条目。
             if (++selected > capacity) break;
             OutboxMessage? message = null;
             Exception? error = null;
@@ -323,11 +323,11 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
             }
             catch (Exception exception)
             {
-                // 条目是耐久的, 所以一个源无法提供有效的信息 无效的邮件 仅该条目。
+                // 条目已持久化，因此无法提供有效消息的来源只会导致该条目转入死信。
                 error = exception;
             }
 
-            // 后压和失败的尝试共享发送书写所设定的绝对重试预算。
+            // 背压与失败尝试共享发送时写入所确立的绝对重试预算。
             if (GetExpirationTime(entry.State) <= now) (unavailable ??= []).Add((entry, new Unavailable.Expired(message)));
             else if (error is not null) (unavailable ??= []).Add((entry, new Unavailable.Failed(error)));
             else if (message is { } candidate) (candidates ??= []).Add((entry, candidate));
@@ -344,7 +344,7 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
         var start = Stopwatch.GetTimestamp();
         try
         {
-            // 保留和接纳使用原发送时间,包括延迟尝试和收回条目。
+            // 保留及准入采用原始发送时间，包括延迟尝试与已恢复条目。
             var delivery = new InboxMessage
             {
                 Envelope = message.Envelope,
@@ -368,11 +368,11 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
     }
 
     /// <summary>
-    /// 应用完成的传送尝试和开始使用应发信息,以跟上
-    /// <see cref="DurableMessagingOptions.OutboxBatchSize"/> 飞行尝试,并返回是否改变状态。
+    /// 应用已完成投递尝试的结果，并为到期消息启动尝试，最多保持
+    /// <see cref="DurableMessagingOptions.OutboxBatchSize"/> 次在途尝试，同时返回状态是否发生变化。
     /// </summary>
     /// <remarks>
-    /// 每次尝试都是自己完成的, 所以一个慢速接收器有一个位置 而不延迟给其他接收器的信息。
+    /// 每次尝试独立完成，因此较慢的接收方只占用一个槽位，不会延迟发往其他接收方的消息。
     /// </remarks>
     internal async ValueTask<bool> AdvanceAsync(CancellationToken cancellationToken)
     {
@@ -391,8 +391,8 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
         if (capacity <= 0) return progress;
         var (candidates, unavailable) = SelectMessages(capacity);
 
-        // 尝试在等待任何消息之前就开始尝试,所以不撤回或源代码改变信息实现之间
-        // 并呼叫接收器。
+        // 尝试在任何 await 之前启动，因此在实体化消息与
+        // 调用其接收方之间，不会交错发生撤回操作或来源变更。
         if (candidates is not null)
         {
             foreach (var (entry, message) in candidates) RunAttemptAsync(entry, message).Ignore();
@@ -429,14 +429,14 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
         {
             foreach (var outcome in outcomes)
             {
-                // 一项从尝试开始就撤回或删除并再次发送的条目,其结果已经过时。
+                // 如果条目在尝试开始后被撤回，或被移除后重新发送，则其尝试结果已过时。
                 var id = outcome.Entry.MessageId;
                 if (!_messages.TryGetValue(id, out var current) || !ReferenceEquals(current, outcome.Entry)) continue;
 
                 switch (outcome.Answer)
                 {
                     case DeliveryAnswer.Answered { Result: DeliveryResult.Expired }:
-                        // 过期是指发送时间在或低于入场层;但仍未确定是否接受先前的接收。
+                        // 过期意味着此次发送不晚于准入下限；此前是否被接纳仍未知。
                         StageDeadLetter(
                             current,
                             current.Reference is null ? outcome.Message : CopySourceMessage(outcome.Message),
@@ -454,7 +454,7 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
                         delivered++;
                         break;
                     default:
-                        // 后压、缺少的处理器和失败的通话结果未知,所以留言重试。
+                        // 背压、缺少处理器和调用失败均使结果处于未知状态，因此重试消息。
                         var attemptCount = checked(current.State.AttemptCount + 1);
                         var error = outcome.Answer switch
                         {
@@ -471,7 +471,7 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
                         }
                         else
                         {
-                            // 来源在文件留存时可发布参考条目的有效载荷和信头,因此,死信保留副本。
+                            // 引用条目退出时，来源可能释放其有效载荷和标头，因此死信保留一个副本。
                             StageDeadLetter(current, current.Reference is null ? outcome.Message : CopySourceMessage(outcome.Message), error, attemptCount);
                         }
                         break;
@@ -492,7 +492,7 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
     }
 
     /// <summary>
-    /// 返回一次尝试失败后的重试状态,或返回在重试超时过后返回 <see langword="null"/> 。
+    /// 返回失败尝试后的重试状态；若重试超时已到期，则返回 <see langword="null"/>。
     /// </summary>
     private OutboxMessageState? PrepareRetry(DeliveryOutcome outcome, int attemptCount, string error)
     {
@@ -500,7 +500,7 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
         var expirationTime = GetExpirationTime(outcome.Entry.State);
         if (expirationTime <= now) return null;
 
-        // 下一次尝试的进行时间不晚于超时, 当发件箱用死信来代替信息。
+        // 下一次尝试最迟在超时时间运行；届时若已超时，发件箱会改为将消息转入死信。
         var retryAt = MessagingTime.AddClamped(now, MessagingTime.GetBackoff(Options.RetryInitialInterval, attemptCount));
         return new OutboxMessageState
         {
@@ -512,8 +512,8 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
     }
 
     /// <summary>
-    /// 无意地在无企图的死信条目中输入:那些重新尝试超时过期者、那些其自有来源没有提供
-    /// 提供有效信息,并收回未登记来源提供的参考资料。
+    /// 无需尝试即将条目转入死信：包括重试超时已到期的条目、其所属来源未能
+    /// 提供有效消息的条目，以及没有任何已注册来源提供的已恢复引用。
     /// </summary>
     private async ValueTask DeadLetterUnavailableAsync(List<(OutboxEntry Entry, Unavailable Reason)> unavailable)
     {
@@ -521,7 +521,7 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
         {
             foreach (var (entry, reason) in unavailable)
             {
-                // 早先在这一循环中进行的退休回召可能已经撤回了条目,但结果没有结果。
+                // 本循环中较早运行的退出回调可能已撤回此条目，此时条目不再有结果。
                 var id = entry.MessageId;
                 if (!_messages.TryGetValue(id, out var current) || !ReferenceEquals(current, entry)) continue;
 
@@ -562,8 +562,8 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
     }
 
     /// <summary>
-    /// 拆除 <paramref name="entry"/> 的废纸,并用自己的来源(如果有的话)将其退款。
-    /// 在同一日记的写上。
+    /// 暂存 <paramref name="entry"/> 的移除操作及其死信，并在
+    /// 同一次日志写入中通知其所属来源（如有）该条目已退出。
     /// </summary>
     private void StageDeadLetter(
         OutboxEntry entry, OutboxMessage message, string reason, int attemptCount, OutboxMessageRetirement? retirement = null)
@@ -627,15 +627,15 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
     }
 
     /// <summary>
-    /// 返回延迟到下一次抓获的运送尝试到期时,或在无剩余 <see langword="null"/> 时返回。
+    /// 返回距下一次已捕获的投递尝试到期的延迟；如果没有剩余尝试，则返回 <see langword="null"/>。
     /// </summary>
-    /// <param name="now">当前可持久工作的时间。</param>
+    /// <param name="now">当前 Durable Jobs 时间。</param>
     internal TimeSpan? GetNextWakeupDelay(DateTimeOffset now)
     {
         TimeSpan? next = null;
         foreach (var entry in _messages.Values)
         {
-            // 抓捕是在同步准备之后进行的;它的醒悟覆盖了写作直到确认。
+            // 捕获紧随同步准备之后；相应唤醒保障此次写入，直至收到确认。
             if (entry.Sequence > _capturedSequence) continue;
             var at = entry.State.NextAttemptAt ?? now;
             var delay = at > now ? at - now : TimeSpan.Zero;
@@ -660,9 +660,9 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
         await PersistAsync().ConfigureAwait(true);
     }
 
-    /// <summary>等待飞行中运送, 观察泵的关闭标志。</summary>
+    /// <summary>等待在途投递完成，这些投递会观察消息泵的关闭令牌。</summary>
     internal Task StopAsync() => _running == 0 ? Task.CompletedTask : (_drained ??= new(TaskCreationOptions.RunContinuationsAsynchronously)).Task;
-    /// <summary>一旦启动的信号状态被丢弃, 报告的深度就会释放。</summary>
+    /// <summary>在丢弃激活实例的消息传递状态后，释放已报告的队列深度指标。</summary>
     internal void ReleaseDepth() => ReportDepth(-_messages.Count);
 
     private void ReportDepth(int delta) => Shared.Instruments.OnOutboxDepthChanged(_pump.GrainTypeTag, delta);
@@ -706,7 +706,7 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
 
     private readonly record struct DeliveryOutcome(OutboxEntry Entry, OutboxMessage Message, DeliveryAnswer Answer, TimeSpan Duration);
 
-    /// <summary>接收者对运送企图的回答 或者说没有成功 导致尝试结果不明</summary>
+    /// <summary>接收方对投递尝试的响应，或者使此次尝试结果未知的失败信息。</summary>
     private union DeliveryAnswer(DeliveryAnswer.Answered, DeliveryAnswer.Failed)
     {
         public sealed class Answered(DeliveryResult result)
@@ -720,22 +720,22 @@ internal sealed partial class Outbox : IStateMachine, IDurableValueCommandHandle
         }
     }
 
-    /// <summary>为什么一个应得条目是没有企图的写字。</summary>
+    /// <summary>已到期条目无需尝试即转入死信的原因。</summary>
     private union Unavailable(Unavailable.Expired, Unavailable.Failed, Unavailable.Unclaimed)
     {
-        /// <summary>重试超时时间已过;源信息提供后,其信息被保存在死信里。</summary>
+        /// <summary>重试超时已到期；若来源提供了消息，则将该消息保留在死信中。</summary>
         public sealed class Expired(OutboxMessage? message)
         {
             public OutboxMessage? Message { get; } = message;
         }
 
-        /// <summary>所属来源未能提供有效电文。</summary>
+        /// <summary>所属来源未能提供有效消息。</summary>
         public sealed class Failed(Exception error)
         {
             public Exception Error { get; } = error;
         }
 
-        /// <summary>没有注册来源提供已找到的参考文献。</summary>
+        /// <summary>没有已注册来源提供已恢复的引用。</summary>
         public sealed class Unclaimed
         {
             public static Unclaimed Instance { get; } = new();

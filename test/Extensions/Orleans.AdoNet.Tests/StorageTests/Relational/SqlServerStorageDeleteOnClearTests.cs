@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// 启用删除状态对清选项的 SQL 服务器持久性测试。
+    /// 启用清除时删除状态选项的 SQL Server 持久化测试。
     /// </summary>
     [TestCategory("AdoNet"), TestCategory("SqlServer"), TestCategory("Persistence")]
     [TestSuite("Functional")]

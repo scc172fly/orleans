@@ -10,11 +10,11 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Serializers;
 
 /// <summary>
-/// <typeparamref name="TField"/>的代用序列器。
+/// <typeparamref name="TField"/> 的代理序列化器。
 /// </summary>
-/// <typeparam name="TField">执行此类支持的类型。</typeparam>
-/// <typeparam name="TSurrogate">代替代用类型 <typeparamref name="TField"/>.</typeparam>
-/// <typeparam name="TConverter">转换器类型在 <typeparamref name="TField"/> 和 <typeparamref name="TSurrogate"/>.</typeparam>
+/// <typeparam name="TField">此类的实现所支持的类型。</typeparam>
+/// <typeparam name="TSurrogate">代替 <typeparamref name="TField"/> 进行序列化的代理类型。</typeparam>
+/// <typeparam name="TConverter">在 <typeparamref name="TField"/> 和 <typeparamref name="TSurrogate"/> 之间执行转换的转换器类型。</typeparam>
 public sealed class SurrogateCodec<TField, TSurrogate, TConverter>
     : IFieldCodec<TField>, IDeepCopier<TField>, IBaseCodec<TField>, IBaseCopier<TField>
     where TField : class
@@ -30,9 +30,9 @@ public sealed class SurrogateCodec<TField, TSurrogate, TConverter>
     /// <summary>
     /// 初始化 <see cref="SurrogateCodec{TField, TSurrogate, TConverter}"/> 类的新实例。
     /// </summary>
-    /// <param name="surrogateSerializer">代孕序列器</param>
-    /// <param name="surrogateCopier">代孕复印机</param>
-    /// <param name="converter">代用转换器。</param>
+    /// <param name="surrogateSerializer">代理类型序列化器。</param>
+    /// <param name="surrogateCopier">代理类型复制器。</param>
+    /// <param name="converter">代理类型转换器。</param>
     public SurrogateCodec(
         IValueSerializer<TSurrogate> surrogateSerializer,
         IDeepCopier<TSurrogate> surrogateCopier,

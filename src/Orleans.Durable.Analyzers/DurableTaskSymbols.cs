@@ -8,8 +8,8 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Orleans.Durable.Analyzers;
 
-/// <summary>决心完成这一持久任务, grain 以及规则检查的平台符号, 按元数据名称 。</summary>
-/// <remarks>匹配名称使分析师独立于抽象组装的版本。</remarks>
+/// <summary>按元数据名称解析各规则检查的持久化任务、Grain 状态及平台符号。</summary>
+/// <remarks>按名称匹配使分析器不依赖抽象层程序集的版本。</remarks>
 internal sealed class DurableTaskSymbols
 {
     private const string DurableTasksNamespace = "Orleans.Durable.Tasks";
@@ -95,23 +95,23 @@ internal sealed class DurableTaskSymbols
 
     public ImmutableArray<INamedTypeSymbol> TimerTypes { get; }
 
-    /// <summary>获取 <c>DurableTaskContext.IsTaskCancellationRequested</c>,其中报告了持久任务取消的情况。</summary>
+    /// <summary>获取 <c>DurableTaskContext.IsTaskCancellationRequested</c>，它报告持久化任务取消状态。</summary>
     public IPropertySymbol? IsTaskCancellationRequested { get; }
 
     /// <summary>
-    /// 获取 <c>DurableTaskContext.CancellationToken</c>,任务取消和尝试取消都取消了。
+    /// 获取 <c>DurableTaskContext.CancellationToken</c>，任务取消或执行尝试取消都会使该令牌取消。
     /// </summary>
     public IPropertySymbol? ContextCancellationToken { get; }
 
     public ImmutableArray<INamedTypeSymbol> NonDeterministicTypes { get; }
 
-    /// <summary>返回引用耐久任务抽象或无效的汇编符号。</summary>
+    /// <summary>返回引用持久化任务抽象层的编译所对应的符号，或 null。</summary>
     public static DurableTaskSymbols? Create(Compilation compilation) =>
         compilation.GetTypeByMetadataName("Orleans.Durable.Tasks.DurableTask") is { } durableTask
             ? new DurableTaskSymbols(compilation, durableTask)
             : null;
 
-    /// <summary>返回返回类型是否 <c>DurableTask</c> 或从它而生。</summary>
+    /// <summary>返回某类型是否为 <c>DurableTask</c> 或派生自该类型。</summary>
     public bool IsDurableTask(ITypeSymbol? type)
     {
         for (var current = type as INamedTypeSymbol; current is not null; current = current.BaseType)
@@ -125,14 +125,14 @@ internal sealed class DurableTaskSymbols
         return false;
     }
 
-    /// <summary>返回是否在耐久任务抽象名称空间中声明了一种类型。</summary>
+    /// <summary>返回某类型是否声明于持久化任务抽象层的命名空间中。</summary>
     public static bool IsDurableTasksType(ITypeSymbol? type) =>
         type?.ContainingNamespace?.ToDisplayString() is { } name
         && (name == DurableTasksNamespace || name.StartsWith(DurableTasksNamespace + ".", StringComparison.Ordinal));
 
     /// <summary>
-    /// 返回在耐久任务抽象取名称空间或其中的命名空间中是否声明某一类型,比较
-    /// 命名空间符号, 不格式化其名称 。
+    /// 返回某类型是否声明于持久化任务抽象层的命名空间或其子命名空间中，比较
+    /// 命名空间符号本身，而不格式化其名称。
     /// </summary>
     public bool IsInDurableTasksNamespace(ITypeSymbol? type)
     {
@@ -147,14 +147,14 @@ internal sealed class DurableTaskSymbols
         return false;
     }
 
-    /// <summary>返回的方法是返回一个持久任务定义还是返回一个任务的配置。</summary>
+    /// <summary>返回某方法是否返回持久化任务定义或该定义的配置。</summary>
     public bool ReturnsDefinition(IMethodSymbol method) => IsDefinitionType(method.ReturnType);
 
-    /// <summary>返回一个类型是耐久任务定义还是一个配置。</summary>
+    /// <summary>返回某类型是否为持久化任务定义或该定义的配置。</summary>
     public bool IsDefinitionType(ITypeSymbol? type) =>
         IsDurableTask(type) || (IsDurableTasksType(type) && type!.Name == "ConfiguredDurableTask");
 
-    /// <summary>返回返回返回是否一个类型或包含该类型的类型是 grain:它执行 <c>IGrainBase</c>.</summary>
+    /// <summary>返回某类型或包含它的类型是否为 Grain：即是否实现 <c>IGrainBase</c>。</summary>
     public bool IsGrain(INamedTypeSymbol? type)
     {
         if (GrainBase is null)
@@ -176,12 +176,12 @@ internal sealed class DurableTaskSymbols
         return false;
     }
 
-    /// <summary>返回一种方法是否是一个持久任务机构:一种同步方法,它返回 <c>DurableTask</c>。</summary>
+    /// <summary>返回某方法是否为持久化任务体：返回 <c>DurableTask</c> 的异步方法。</summary>
     public bool IsDurableBody(IMethodSymbol method) => method.IsAsync && IsDurableTask(method.ReturnType);
 
     /// <summary>
-    /// 返回运行是否在持久任务机构内运行: <c>async DurableTask</c> 方法,或代表
-    /// 耐久任务工厂,如 <c>DurableTask.Run</c>,运行,包括该机构所含的代码。
+    /// 返回某操作是否运行在持久化任务体中：<c>async DurableTask</c> 方法，或由持久化任务工厂
+    /// （例如 <c>DurableTask.Run</c>）运行的委托，包括此类任务体包含的代码。
     /// </summary>
     public bool IsInDurableBody(IOperation operation, ISymbol containingSymbol)
     {
@@ -200,7 +200,7 @@ internal sealed class DurableTaskSymbols
         return containingSymbol is IMethodSymbol method && IsDurableBody(method);
     }
 
-    /// <summary>返回接收代表作为论证的援引,或返回无效。</summary>
+    /// <summary>返回将委托作为实参接收的调用，或 null。</summary>
     public static IInvocationOperation? GetDelegateReceiver(IOperation function)
     {
         for (var current = function.Parent; current is not null; current = current.Parent)
@@ -221,8 +221,8 @@ internal sealed class DurableTaskSymbols
     }
 
     /// <summary>
-    /// 返回计算定义的操作,通过组合调用来包上它,以及是否
-    /// 这些呼吁是 <paramref name="configuration"/>.
+    /// 穿过包裹定义的配置调用，返回消费定义的操作，并指示其中是否有
+    /// 调用为 <paramref name="configuration"/>。
     /// </summary>
     public static IOperation? GetConsumer(IOperation definition, string configuration, out bool configured)
     {
@@ -256,8 +256,8 @@ internal sealed class DurableTaskSymbols
     }
 
     /// <summary>
-    /// 返回创建定义的操作,通过包装它的配置调用和是否
-    /// 这些呼吁是 <paramref name="configuration"/>.
+    /// 穿过包裹定义的配置调用，返回创建定义的操作，并指示其中是否有
+    /// 调用为 <paramref name="configuration"/>。
     /// </summary>
     public static IOperation GetDefinition(IOperation value, string configuration, out bool configured)
     {
@@ -273,8 +273,8 @@ internal sealed class DurableTaskSymbols
     }
 
     /// <summary>
-    /// 返回返回 是否返回 包含定义的组合调用 <c>Detached(rootId)</c>,其中提供
-    /// 任务根点标识符,因此启动不需要执行的标识符。
+    /// 返回包裹定义的配置调用中是否包含 <c>Detached(rootId)</c>；它提供
+    /// 任务的根标识，因此启动操作不占用该执行实例生成的标识符。
     /// </summary>
     public static bool SuppliesRootId(IOperation value)
     {
@@ -294,9 +294,9 @@ internal sealed class DurableTaskSymbols
     }
 
     /// <summary>
-    /// 返回返回,如果援引产生一个组合器,则返回在
-    /// 所生成的操作标识符: <c>WhenAll</c>、 <c>WhenAny</c>、 <c>Race</c>、 <c>ScheduleAll</c>,
-    /// <c>WhenAllCompleted</c>,定义 <c>WaitAsync</c> 或 <c>WaitUntilAsync</c>,或信号 <c>TryWaitAsync</c>。
+    /// 返回某调用是否创建组合器；等待它的执行实例将使用生成的操作标识将该组合器作为自身的一部分运行：
+    /// <c>WhenAll</c>、<c>WhenAny</c>、<c>Race</c>、<c>ScheduleAll</c>、
+    /// <c>WhenAllCompleted</c>、定义的 <c>WaitAsync</c> 或 <c>WaitUntilAsync</c>，或信号的 <c>TryWaitAsync</c>。
     /// </summary>
     public bool IsCombinator(IInvocationOperation invocation) =>
         IsDurableTask(invocation.TargetMethod.ReturnType)
@@ -306,8 +306,8 @@ internal sealed class DurableTaskSymbols
         && !(invocation.TargetMethod.Name == "WaitAsync" && IsSignalWait(invocation));
 
     /// <summary>
-    /// 返回一个操作是否读取 grain 状态持有的值: <c>IDurableValue&lt;T&gt;.Value</c>,
-    /// <c>IPersistentState&lt;T&gt;.State</c>,或通过其索引器进行日记收藏的一个元素。
+    /// 返回某操作是否读取 Grain 状态持有的值：<c>IDurableValue&lt;T&gt;.Value</c>、
+    /// <c>IPersistentState&lt;T&gt;.State</c>，或通过索引器访问日志化集合中的元素。
     /// </summary>
     public bool IsStateValue(IOperation operation) =>
         operation is IPropertyReferenceOperation { Instance.Type: { } stateType, Property: var property }
@@ -317,8 +317,8 @@ internal sealed class DurableTaskSymbols
                 || (property.Name == "State" && Implements(stateType, _persistentState)));
 
     /// <summary>
-    /// 返回某方法是否更改接收收藏的原样, 如 <c>List&lt;T&gt;.Add</c> 所做的那样 。
-    /// 而不是像不可更改的收藏一样,返回已修改的副本。
+    /// 返回某方法是否就地修改其接收集合，如 <c>List&lt;T&gt;.Add</c> 所做的那样，
+    /// 而不是像不可变集合那样返回修改后的副本。
     /// </summary>
     public static bool IsCollectionMutation(IMethodSymbol method) =>
         !method.IsStatic
@@ -328,7 +328,7 @@ internal sealed class DurableTaskSymbols
         && !SymbolEqualityComparer.Default.Equals(method.ReturnType.OriginalDefinition, method.ContainingType.OriginalDefinition)
         && method.ContainingNamespace?.ToDisplayString() != "System.Collections.Immutable";
 
-    /// <summary>返回,无论类型是日记还是持续 grain 或执行其中的一种类型。</summary>
+    /// <summary>返回某类型是否为日志化或持久化 Grain 状态类型，或者实现了这些类型之一。</summary>
     public bool IsGrainState(ITypeSymbol? type)
     {
         if (type is not INamedTypeSymbol named || _grainStateTypes.IsEmpty)
@@ -353,8 +353,8 @@ internal sealed class DurableTaskSymbols
     }
 
     /// <summary>
-    /// 返回是否在等待期间观察运行任务的长期运作:等待的价值或等待者是
-    /// 耐久任务类型,或生成的抽象 API 。
+    /// 返回某个 await 是否观察正在运行任务的持久化操作：被等待的值或其 awaiter 为
+    /// 持久化任务类型，或由抽象层 API 产生。
     /// </summary>
     public bool IsDurableAwait(IAwaitOperation await)
     {
@@ -367,35 +367,35 @@ internal sealed class DurableTaskSymbols
         return awaited is IInvocationOperation invocation && IsDurableTasksType(invocation.TargetMethod.ContainingType) && !IsPoll(invocation);
     }
 
-    /// <summary>返回是否出现工作效率: <c>DurableTask.RunInline</c>,命名或未命名。</summary>
+    /// <summary>返回某调用是否记录效果：具名或未命名的 <c>DurableTask.RunInline</c>。</summary>
     public bool IsRunInline(IInvocationOperation invocation) =>
         invocation.TargetMethod.Name == "RunInline"
         && SymbolEqualityComparer.Default.Equals(invocation.TargetMethod.ContainingType, DurableTask);
 
-    /// <summary>返回援引是否创建代表定义: <c>DurableTask.Run</c>。</summary>
+    /// <summary>返回某调用是否创建委托定义：<c>DurableTask.Run</c>。</summary>
     public bool IsRun(IInvocationOperation invocation) =>
         invocation.TargetMethod.Name == "Run"
         && SymbolEqualityComparer.Default.Equals(invocation.TargetMethod.ContainingType, DurableTask);
 
-    /// <summary>以下列方式返回: <c>WithId</c> 定义或配置。</summary>
+    /// <summary>返回某调用是否为持久化操作命名：在定义或配置上调用 <c>WithId</c>。</summary>
     public static bool IsWithId(IInvocationOperation invocation) =>
         invocation.TargetMethod.Name == "WithId" && IsDurableTasksType(invocation.TargetMethod.ContainingType);
 
     /// <summary>
-    /// 返回是否在引用中配置定义或配置: <c>WithId</c>、 <c>Detached</c>,或
+    /// 返回某调用是否配置定义或配置对象：<c>WithId</c>、<c>Detached</c> 或
     /// <c>Shielded</c>。
     /// </summary>
     public static bool IsConfiguration(IInvocationOperation invocation) =>
         invocation.TargetMethod.Name is "WithId" or "Detached" or "Shielded"
         && IsDurableTasksType(invocation.TargetMethod.ContainingType);
 
-    /// <summary>返回是否在某一调换时设定定义或配置。</summary>
+    /// <summary>返回某调用是否投递定义或配置对象。</summary>
     public static bool IsPost(IInvocationOperation invocation) =>
         invocation.TargetMethod.Name == "Post" && IsDurableTasksType(invocation.TargetMethod.ContainingType);
 
     /// <summary>
-    /// 返回一次职业调查是否是预定任务: <c>IsCompletedAsync</c>, <c>GetStatusAsync</c>,或
-    /// <c>GetResponseAsync</c> 民意测验在任务运行时观察任务状况,但没有任何记录。
+    /// 返回某调用是否轮询已调度任务：<c>IsCompletedAsync</c>、<c>GetStatusAsync</c> 或
+    /// 带轮询选项的 <c>GetResponseAsync</c>。轮询观察其运行时刻的任务状态，不记录任何内容。
     /// </summary>
     public static bool IsPoll(IInvocationOperation invocation) =>
         IsDurableTasksType(invocation.TargetMethod.ContainingType)
@@ -406,9 +406,9 @@ internal sealed class DurableTaskSymbols
                 && invocation.TargetMethod.Parameters[0].Type.Name == "PollingOptions"));
 
     /// <summary>
-    /// 返回 <c>DurableTask.RunInline</c> 效果无法运行的援引是否为持久操作:开始
-    /// 诸如 <c>ScheduleAsync</c> 或 <c>Post</c>或版本检查。 <c>RunInline</c> 以“一”为
-    /// 效果。
+    /// 返回某调用是否为 <c>DurableTask.RunInline</c> 效果无法运行的持久化操作：启动操作，
+    /// 例如 <c>ScheduleAsync</c> 或 <c>Post</c>，或版本检查。嵌套的 <c>RunInline</c> 作为当前
+    /// 效果的一部分运行。
     /// </summary>
     public bool IsOperationOutsideEffects(IInvocationOperation invocation)
     {
@@ -419,8 +419,8 @@ internal sealed class DurableTaskSymbols
     }
 
     /// <summary>
-    /// 返回是否在没有被捕获上下文的情况下, 以职业为由配置等待继续的等待
-    /// <c>ConfigureAwait(false)</c>,并返回争论的文字。
+    /// 返回某调用是否配置 await，使其延续操作不使用捕获的上下文，例如
+    /// <c>ConfigureAwait(false)</c>，同时返回该实参的文本。
     /// </summary>
     public static bool ContinuesOffContext(IInvocationOperation invocation, out string argument)
     {
@@ -437,18 +437,18 @@ internal sealed class DurableTaskSymbols
             {
                 bool continueOnCapturedContext => !continueOnCapturedContext,
 
-                // ConfigureAwaitOptions.ContinueOnCapturedContext 是1。
+                // ConfigureAwaitOptions.ContinueOnCapturedContext 的值为 1。
                 int options when value.Type?.TypeKind == TypeKind.Enum => (options & 1) == 0,
                 _ => false,
             };
     }
 
-    /// <summary>返回是否一个请求等待一个耐久信号。</summary>
+    /// <summary>返回某调用是否等待持久化信号。</summary>
     public bool IsSignalWait(IInvocationOperation invocation) =>
         invocation.TargetMethod.Name is "WaitAsync" or "TryWaitAsync"
         && SymbolEqualityComparer.Default.Equals(invocation.TargetMethod.ContainingType?.OriginalDefinition, DurableSignal);
 
-    /// <summary>返回是否通过日志对一个引用日志进行记录。</summary>
+    /// <summary>返回某调用是否通过日志记录器记录日志。</summary>
     public bool IsLog(IInvocationOperation invocation, out IOperation? logger)
     {
         logger = null;
@@ -482,13 +482,13 @@ internal sealed class DurableTaskSymbols
         return false;
     }
 
-    /// <summary>返回扩展方法引用或实例援引的接收者。</summary>
+    /// <summary>返回扩展方法调用的接收对象，或实例方法调用的实例。</summary>
     public static IOperation? GetExtensionReceiver(IInvocationOperation invocation) =>
         invocation.Instance ?? (invocation.Arguments.Length > 0 ? invocation.Arguments[0].Value : null);
 
     /// <summary>
-    /// 返回本地语声明给它分配的值, 当声明区块中没有代码指定本地语时
-    /// 或无效。
+    /// 若声明块中没有其他代码再次为该局部变量赋值，则返回局部变量声明赋予它的值；
+    /// 否则返回 null。
     /// </summary>
     public static IOperation? GetOnlyValue(ILocalSymbol local, SemanticModel semanticModel)
     {
@@ -506,7 +506,7 @@ internal sealed class DurableTaskSymbols
         return value;
     }
 
-    /// <summary>操作的转换和括号。</summary>
+    /// <summary>从操作中去除转换及括号。</summary>
     public static IOperation Unwrap(IOperation operation)
     {
         while (true)
@@ -591,7 +591,7 @@ internal sealed class DurableTaskSymbols
         return builder.ToImmutable();
     }
 
-    /// <summary>返回符号是否为 <paramref name="types"/>的符号。</summary>
+    /// <summary>返回某符号是否为 <paramref name="types"/> 中的一员。</summary>
     public static bool IsOneOf(ITypeSymbol? type, ImmutableArray<INamedTypeSymbol> types)
     {
         foreach (var candidate in types)
@@ -605,7 +605,7 @@ internal sealed class DurableTaskSymbols
         return false;
     }
 
-    /// <summary>返回产生运行之间不同值的类型的成员。</summary>
+    /// <summary>返回某类型中在不同运行之间产生不同值的成员。</summary>
     public static bool IsNonDeterministicMember(ISymbol member)
     {
         var type = member.ContainingType?.ToDisplayString();
@@ -624,7 +624,7 @@ internal sealed class DurableTaskSymbols
         };
     }
 
-    /// <summary>返回在被调用对象源中识别耐久操作的方法名称。</summary>
+    /// <summary>返回用于在被调用方源码中标识持久化操作的方法名称。</summary>
     public static readonly ImmutableHashSet<string> DurableOperationNames = ImmutableHashSet.Create(
         StringComparer.Ordinal,
         "WithId",

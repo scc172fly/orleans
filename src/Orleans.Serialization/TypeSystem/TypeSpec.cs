@@ -6,18 +6,18 @@ using System.Text;
 namespace Orleans.Serialization.TypeSystem
 {
     /// <summary>
-    /// 代表类型。
+    /// 表示类型。
     /// </summary>
     public abstract class TypeSpec
     {
         /// <summary>
-        /// 以 <see cref="RuntimeTypeNameParser"/>能够解析的方式对本实例进行格式化。
+        /// 将此实例格式化为可由 <see cref="RuntimeTypeNameParser"/> 解析的形式。
         /// </summary>
         public abstract string Format();
     }
 
     /// <summary>
-    /// 表示指针类型(*) 。
+    /// 表示指针（*）类型。
     /// </summary>
     public class PointerTypeSpec : TypeSpec
     {
@@ -36,7 +36,7 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// 获取元素类型 。
+        /// 获取元素类型。
         /// </summary>
         public TypeSpec ElementType { get; }
 
@@ -48,7 +48,7 @@ namespace Orleans.Serialization.TypeSystem
     }
 
     /// <summary>
-    /// 表示引用类型(&amp;) 。
+    /// 表示按引用（&amp;）类型。
     /// </summary>
     public class ReferenceTypeSpec : TypeSpec
     {
@@ -67,7 +67,7 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// 获取元素类型 。
+        /// 获取元素类型。
         /// </summary>
         public TypeSpec ElementType { get; }
 
@@ -79,7 +79,7 @@ namespace Orleans.Serialization.TypeSystem
     }
 
     /// <summary>
-    /// 代表数组类型。
+    /// 表示数组类型。
     /// </summary>
     public class ArrayTypeSpec : TypeSpec
     {
@@ -87,7 +87,7 @@ namespace Orleans.Serialization.TypeSystem
         /// 初始化 <see cref="ArrayTypeSpec"/> 类的新实例。
         /// </summary>
         /// <param name="elementType">数组元素类型。</param>
-        /// <param name="dimensions">数组的尺寸数量。</param>
+        /// <param name="dimensions">数组的维度数。</param>
         public ArrayTypeSpec(TypeSpec elementType, int dimensions)
         {
             if (elementType is null)
@@ -105,12 +105,12 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// 获得数组维数。
+        /// 获取数组的维度数。
         /// </summary>
         public int Dimensions { get; }
 
         /// <summary>
-        /// 获取元素类型 。
+        /// 获取元素类型。
         /// </summary>
         public TypeSpec ElementType { get; }
 
@@ -122,16 +122,16 @@ namespace Orleans.Serialization.TypeSystem
     }
 
     /// <summary>
-    /// 表示已建通用型。
+    /// 表示构造后的泛型类型。
     /// </summary>
     public class ConstructedGenericTypeSpec : TypeSpec
     {
         /// <summary>
         /// 初始化 <see cref="ConstructedGenericTypeSpec"/> 类的新实例。
         /// </summary>
-        /// <param name="unconstructedType">未构建的类型。</param>
-        /// <param name="arity">类型参数的预期数量。</param>
-        /// <param name="arguments">通用类型参数。</param>
+        /// <param name="unconstructedType">尚未构造的泛型类型。</param>
+        /// <param name="arity">预期的类型实参数量。</param>
+        /// <param name="arguments">泛型类型实参。</param>
         public ConstructedGenericTypeSpec(TypeSpec unconstructedType, int arity, TypeSpec[] arguments)
         {
             if (unconstructedType is AssemblyQualifiedTypeSpec)
@@ -167,12 +167,12 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// 获得非构造型号。
+        /// 获取尚未构造的泛型类型。
         /// </summary>
         public TypeSpec UnconstructedType { get; }
 
         /// <summary>
-        /// 获取类型参数。
+        /// 获取类型实参。
         /// </summary>
         public TypeSpec[] Arguments { get; }
 
@@ -184,16 +184,16 @@ namespace Orleans.Serialization.TypeSystem
     }
 
     /// <summary>
-    /// 指一个命名类型,该类型可能是未制造的通用类型。
+    /// 表示命名类型，可以是尚未构造的泛型类型。
     /// </summary>
     public class NamedTypeSpec : TypeSpec
     {
         /// <summary>
         /// 初始化 <see cref="NamedTypeSpec"/> 类的新实例。
         /// </summary>
-        /// <param name="containingType">包含类型。</param>
+        /// <param name="containingType">包含此类型的外层类型。</param>
         /// <param name="name">类型名称。</param>
-        /// <param name="arity">类型的一般性,必须大于或等于含有型的一般性。</param>
+        /// <param name="arity">此类型的泛型参数个数，必须大于或等于其外层类型的泛型参数个数。</param>
         public NamedTypeSpec(NamedTypeSpec containingType, string name, int arity)
         {
             ContainingType = containingType;
@@ -212,24 +212,24 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// 获取该类型所需的通用参数数。
+        /// 获取此类型所需的泛型参数数量。
         /// </summary>
         public int Arity { get; }
 
         /// <summary>
-        /// 获取类型名称,如果不是嵌套类型,则包含命名空间。
+        /// 获取类型名称；如果此类型不是嵌套类型，则名称包含命名空间。
         /// </summary>
         public string Name { get; }
 
         /// <summary>
-        /// 获得包含型号。
+        /// 获取外层类型。
         /// </summary>
         public NamedTypeSpec? ContainingType { get; }
 
         /// <summary>
-        /// 获取名称为空间合格型号的名称,包括包含类型(用于嵌套类型)。
+        /// 获取由命名空间限定的类型名称，对于嵌套类型还包含其外层类型。
         /// </summary>
-        /// <returns>命名空间合格类型名称。</returns>
+        /// <returns>由命名空间限定的类型名称。</returns>
         public string GetNamespaceQualifiedName()
         {
             var builder = new StringBuilder();
@@ -256,7 +256,7 @@ namespace Orleans.Serialization.TypeSystem
     }
 
     /// <summary>
-    /// 代表符合资格的组装类型。
+    /// 表示由程序集限定的类型。
     /// </summary>
     public class AssemblyQualifiedTypeSpec : TypeSpec
     {
@@ -264,7 +264,7 @@ namespace Orleans.Serialization.TypeSystem
         /// 初始化 <see cref="AssemblyQualifiedTypeSpec"/> 类的新实例。
         /// </summary>
         /// <param name="type">类型。</param>
-        /// <param name="assembly">组装。</param>
+        /// <param name="assembly">程序集。</param>
         public AssemblyQualifiedTypeSpec(TypeSpec type, string? assembly)
         {
             if (type is null)
@@ -282,12 +282,12 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// 获得组装规格
+        /// 获取程序集规范。
         /// </summary>
         public string? Assembly { get; }
 
         /// <summary>
-        /// 获得合格的类型。
+        /// 获取限定类型。
         /// </summary>
         public TypeSpec Type { get; }
 
@@ -303,15 +303,15 @@ namespace Orleans.Serialization.TypeSystem
     }
 
     /// <summary>
-    /// 代表类型函数。
+    /// 表示类型函数。
     /// </summary>
     public class TupleTypeSpec : TypeSpec
     {
         /// <summary>
         /// 初始化 <see cref="TupleTypeSpec"/> 类的新实例。
         /// </summary>
-        /// <param name="elements">等量元素。</param>
-        /// <param name="arity">类型所接受的通用类型参数数。</param>
+        /// <param name="elements">元组元素。</param>
+        /// <param name="arity">该类型接受的泛型类型参数数量。</param>
         public TupleTypeSpec(TypeSpec[] elements, int arity)
         {
             if (elements is null)
@@ -335,12 +335,12 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// 获取该类型所需的通用参数数。
+        /// 获取此类型所需的泛型参数数量。
         /// </summary>
         public int Arity { get; }
 
         /// <summary>
-        /// 得到图普元素。
+        /// 获取元组元素。
         /// </summary>
         public TypeSpec[] Elements { get; }
 
@@ -365,14 +365,14 @@ namespace Orleans.Serialization.TypeSystem
     }
 
     /// <summary>
-    /// 代表字面意思。
+    /// 表示字面量。
     /// </summary>
     public class LiteralTypeSpec : TypeSpec
     {
         /// <summary>
         /// 初始化 <see cref="LiteralTypeSpec"/> 类的新实例。
         /// </summary>
-        /// <param name="value">数值。</param>
+        /// <param name="value">值。</param>
         public LiteralTypeSpec(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -384,7 +384,7 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// 得到价值。
+        /// 获取值。
         /// </summary>
         public string Value { get; }
 

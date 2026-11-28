@@ -10,7 +10,7 @@ using static System.String;
 namespace Tester.AdoNet.Streaming;
 
 /// <summary>
-/// 测试 SQL 服务器 ADO.NET 流过滤功能。
+/// SQL Server ADO.NET 流筛选功能测试。
 /// </summary>
 [TestCategory("SqlServer"), TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("SqlServer")]
@@ -21,7 +21,7 @@ public class SqlServerAdoNetStreamFilteringTests() : AdoNetStreamFilteringTests(
 }
 
 /// <summary>
-/// MySQL ADO.NET 流过滤功能测试。
+/// MySQL ADO.NET 流筛选功能测试。
 /// </summary>
 [TestCategory("MySql"), TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("MySql")]
@@ -36,7 +36,7 @@ public class MySqlAdoNetStreamFilteringTests : AdoNetStreamFilteringTests
 }
 
 /// <summary>
-/// PostgreSQL ADO.NET 流过滤功能测试。
+/// PostgreSQL ADO.NET 流筛选功能测试。
 /// </summary>
 [TestCategory("PostgreSql"), TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("PostgreSql")]
@@ -47,7 +47,7 @@ public class PostgreSqlAdoNetStreamFilteringTests() : AdoNetStreamFilteringTests
 }
 
 /// <summary>
-/// ADO.NET 流过滤测试的基准类。
+/// ADO.NET 流筛选测试的基类。
 /// </summary>
 [TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestSuite("BVT")]
@@ -79,7 +79,7 @@ public abstract class AdoNetStreamFilteringTests : StreamFilteringTestsBase, IAs
 
         public override async ValueTask InitializeAsync()
         {
-            // 在基初始化前设置 adonet 环境
+            // 在基类初始化之前设置 ADO.NET 环境。
             _testing = await RelationalStorageForTesting.SetupInstance(
                 _invariant,
                 TestDatabaseName,

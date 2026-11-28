@@ -8,7 +8,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// 描述代理界面上可引用的方法 。
+/// 描述代理接口上的可调用方法。
 /// </summary>
 [DebuggerDisplay("{Method} (from {ProxyInterface})")]
 internal class ProxyMethodDescription : IEquatable<ProxyMethodDescription>
@@ -83,7 +83,7 @@ internal class ProxyMethodDescription : IEquatable<ProxyMethodDescription>
     public Dictionary<ITypeParameterSymbol, string> TypeParameterSubstitutions { get; }
 
     /// <summary>
-    /// 方法绘图类型返回到可引用的基准类型。 代码生成器将创建一种衍生类型的, 以方法参数作为字段 。
+    /// 方法返回类型到可调用对象基类型的映射。代码生成器将创建以方法实参为字段的派生类型。
     /// </summary>
     public IReadOnlyDictionary<INamedTypeSymbol, INamedTypeSymbol> InvokableBaseTypes => InvokableMethod.InvokableBaseTypes;
     public InvokableMethodId InvokableKey => InvokableMethod.Key;

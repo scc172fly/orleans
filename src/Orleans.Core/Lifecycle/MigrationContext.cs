@@ -33,7 +33,7 @@ internal sealed class MigrationContext : IDehydrationContext, IRehydrationContex
     [NonSerialized]
     private ArrayBufferWriter<byte> _buffer = new();
 
-    // 移民并不常见,所以复制到消费编码器的缓冲处
+    // 保留已发布的线格式。迁移并不频繁，因此复制到使用该数据的编解码器缓冲区。
     [Id(1), Immutable]
     internal PooledBuffer SerializedBuffer
     {
@@ -61,11 +61,11 @@ internal sealed class MigrationContext : IDehydrationContext, IRehydrationContex
     }
 
     /// <summary>
-    /// 获得上下限的连环大小。
+    /// 获取此上下文序列化大小的上界。
     /// </summary>
     internal long GetMaxSerializedSize()
     {
-        // 每个条目都加上其关键字和两个不同长度的整数,每个条目都有实地布局。
+        // 每个条目增加其键以及两个变长整数，每项都带有字段帧信息。
         const int EntryOverhead = 32;
         const int ContextOverhead = 64;
         lock (_lock)

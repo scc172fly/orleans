@@ -7,8 +7,8 @@ using Xunit;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// Orleans.Durable 中可序列式类型含有别名,因此,连环器在期刊和工作上写下的型号
-/// 存储中略去声明集会 。
+/// Orleans.Durable 中可序列化的类型带有别名，因此序列化器写入日志及作业
+/// 存储中的类型名称不包含声明该类型的程序集。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

@@ -8,7 +8,7 @@ namespace Orleans.AzureUtils.Utilities
         Runtime = 100000,
         AzureTableBase = Runtime + 800,
 
-        // 相关提醒
+        // 提醒器相关。
         AzureTable_38 = AzureTableBase + 38,
         AzureTable_39 = AzureTableBase + 39,
         AzureTable_40 = AzureTableBase + 40,

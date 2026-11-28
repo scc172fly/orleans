@@ -10,9 +10,9 @@ using Orleans.Runtime;
 namespace Orleans.Clustering.Cassandra;
 
 /// <summary>
-/// 本类负责保存一份已准备好的查询和查询清单。
-/// 了解其参数(包括类型和转换为目标)
-/// 类型)
+/// 此类负责维护预准备查询的列表，
+/// 并掌握查询参数（包括类型及转换为目标
+/// 类型的方式）。
 /// </summary>
 internal sealed class OrleansQueries
 {
@@ -37,7 +37,7 @@ internal sealed class OrleansQueries
 
     private OrleansQueries(ISession session, int? deadRowTtlSeconds)
     {
-        // 连环报道了全场杰出的和平协会回合,然后才披露会员数据。
+        // 串行一致性读取在公开成员资格数据之前完成尚未结束的 Paxos 轮次。
         MembershipReadConsistencyLevel = ConsistencyLevel.Serial;
         MembershipWriteConsistencyLevel = ConsistencyLevel.Quorum;
 
@@ -54,9 +54,9 @@ internal sealed class OrleansQueries
             {
                 await MakeTableAsync(cancellationToken);
             }
-            catch (WriteTimeoutException) // 如果对桌子创建有争议, 倒转一点再试一次
+            catch (WriteTimeoutException) // 如果建表时发生竞争，则短暂退避后再尝试一次。
             {
-                // 随机安排延误以避免争议,宁有更多案件等待更久
+                // 随机化延迟以避免竞争，倾向于让更多实例等待更久。
                 var nextSingle = Random.Shared.NextSingle();
                 await Task.Delay(maxRetryDelay * Math.Sqrt(nextSingle), cancellationToken);
 
@@ -77,9 +77,9 @@ internal sealed class OrleansQueries
             {
                 await ExecuteAsync(await InsertMembershipVersion(clusterIdentifier, cancellationToken), cancellationToken);
             }
-            catch (WriteTimeoutException) // 如果对桌子创建有争议, 倒转一点再试一次
+            catch (WriteTimeoutException) // 如果建表时发生竞争，则短暂退避后再尝试一次。
             {
-                // 随机安排延误以避免争议,宁有更多案件等待更久
+                // 随机化延迟以避免竞争，倾向于让更多实例等待更久。
                 var nextSingle = Random.Shared.NextSingle();
                 await Task.Delay(maxRetryDelay * Math.Sqrt(nextSingle), cancellationToken);
 
@@ -144,7 +144,7 @@ internal sealed class OrleansQueries
             .SetConsistencyLevel(consistencyLevel);
 
     /// <remarks>
-    /// 活行和静态版本将持续。死线写作可指定保留 TTL 。
+    /// 存活记录与静态版本持久保留。Dead 记录的写入可以指定保留 TTL。
     /// </remarks>
     public IStatement EnsureTableExists() => new SimpleStatement(
         """
@@ -423,8 +423,8 @@ internal sealed class OrleansQueries
 
     public async ValueTask<IStatement> GatewaysQuery(string clusterIdentifier, int status, CancellationToken cancellationToken = default)
     {
-        // 过滤只用于 `proxy_port` 过滤。 我们已经在进入分区
-        // 和二级状态指数, 两者都不需要“ALLOW FIFTLING”
+        // 仅在按 `proxy_port` 筛选时需要筛选操作。此处已按分区
+        // 及 status 二级索引查询，两者都不需要 "ALLOW FILTERING"。
         _membershipGatewaysQueryPreparedStatement ??= await PrepareStatementAsync("""
             SELECT
                 address,
@@ -475,7 +475,7 @@ internal sealed class OrleansQueries
 
     internal static async IAsyncEnumerable<Row> ReadRowsAsync(RowSet rows, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        // 包含缓冲行,以便取取随后每一页的页面时,留在可删除的等待路径上。
+        // 消费缓冲中的记录，使每次获取后续页都沿用可取消等待的异步路径。
         while (true)
         {
             var available = rows.GetAvailableWithoutFetching();
@@ -502,7 +502,7 @@ internal sealed class OrleansQueries
         }
     }
 
-    // 卡桑德拉的会话和贴出API是无价之宝。 当取消结束等待时, 观察最终的错误 。
+    // Cassandra 的会话和分页 API 不接受取消令牌；当取消结束等待后，仍需观察操作最终发生的异常。
     internal static async Task<T> AwaitAsync<T>(Task<T> operation, CancellationToken cancellationToken)
     {
         operation.Ignore();

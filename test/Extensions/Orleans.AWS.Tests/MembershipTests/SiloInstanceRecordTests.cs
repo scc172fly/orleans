@@ -8,7 +8,7 @@ using Xunit;
 namespace AWSUtils.Tests.MembershipTests
 {
     /// <summary>
-    /// 测试 DynamoDB silo 实例记录会籍表条目的键生成和检索。
+    /// 测试成员资格表条目的 DynamoDB Silo 实例记录键生成及检索。
     /// </summary>
     [TestCategory("Membership"), TestCategory("AWS"), TestCategory("DynamoDb")]
     [TestSuite("Functional")]

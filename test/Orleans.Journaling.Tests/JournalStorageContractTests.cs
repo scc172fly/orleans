@@ -6,7 +6,7 @@ namespace Orleans.Durable.Journaling.Tests;
 
 internal static class JournalStorageTestExtensions
 {
-    // 保存事件仅会在阅读日记后写出,
+    // 存储实例仅在读取日志之后才写入，与日志化状态管理器恢复时的行为相同。
     public static async Task<T> ReadForWriteAsync<T>(this T storage) where T : IJournalStorage
     {
         await storage.ReadAsync(new DiscardingConsumer(), TestContext.Current.CancellationToken);

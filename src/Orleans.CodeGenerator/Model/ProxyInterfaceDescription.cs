@@ -29,7 +29,7 @@ internal class ProxyInterfaceDescription : IEquatable<ProxyInterfaceDescription>
         Name = generationContext.GetAlias(interfaceType) ?? interfaceType.Name;
         ProxyBaseType = proxyBaseType;
 
-        // 如果名称是一个用户定义的名称,指定通用异性,则现在将该异性反向勾去
+        // 如果名称是指定了泛型元数的用户定义名称，则现在移除元数的反引号后缀。
         if (Name.IndexOfAny(FilteredNameChars) >= 0)
         {
             foreach (var c in FilteredNameChars)
@@ -78,9 +78,9 @@ internal class ProxyInterfaceDescription : IEquatable<ProxyInterfaceDescription>
             {
                 if (method.MethodKind == MethodKind.ExplicitInterfaceImplementation)
                 {
-                    // 生成代理时,可忽略明确的执行。
-                    // 代理人必须明确采用所有方法,确保接口行为忠实复制。
-                    // 在呼吁方,如果不是由某种衍生类型推翻,则要求明确执行。
+                    // 生成代理时可以忽略显式实现。
+                    // 代理必须显式实现每个方法，以确保忠实再现接口行为。
+                    // 在调用方，如果派生类型未重写显式实现，则将调用该实现。
                     continue;
                 }
 

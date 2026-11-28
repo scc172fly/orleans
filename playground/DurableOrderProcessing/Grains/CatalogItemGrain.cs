@@ -9,15 +9,15 @@ public interface ICatalogItemGrain : IGrainWithIntegerKey
 
     DurableTask<bool> ReserveAsync(Guid orderId, int units);
 
-    // 返回命令是否持有保留,因此释放是无效的。
+    // 返回该订单在释放前是否持有库存预留，以使释放操作具有幂等性。
     DurableTask<bool> ReleaseAsync(Guid orderId);
 
     DurableTask CommitAsync(Guid orderId);
 }
 
-// 每产品一个 grain 拥有其库存。
-// 支付后, 承诺偿还, 取消时释放。 每一次行动都承诺国家变化 并承诺结果 。
-// 保留结果保留每个订单的效力,而不考虑是否保留持久任务。
+// 每种商品由一个 Grain 管理其库存。订单在等待验证时预留库存，
+// 支付完成后确认扣减，取消时释放库存。每次操作的状态变更与其结果一同提交。
+// 库存预留结果独立于持久化任务的保留期，记录每个订单产生的影响。
 public sealed class CatalogItemGrain : DurableGrain, ICatalogItemGrain
 {
     private readonly IDurableValue<CatalogItem> _item;
@@ -33,7 +33,7 @@ public sealed class CatalogItemGrain : DurableGrain, ICatalogItemGrain
 
     private int ProductId => (int)this.GetPrimaryKeyLong();
 
-    // 日记在股票首次变化时持有该物品;在此之前,它是种子条目。
+    // 商品首次发生库存变更后，日志中才会保存该商品；此前使用初始数据条目。
     private CatalogItem? Item => _item.Value ?? CatalogData.Find(ProductId);
 
     public Task<CatalogItem?> GetAsync() => Task.FromResult(Item);

@@ -2,10 +2,10 @@ using TestGrainInterfaces;
 
 namespace TestGrains
 {
-    // 我们列出得到 JournaledPersonGrain支持的所有事件 
+    // 列出 JournaledPersonGrain 支持的全部事件
 
-    // 我们选择让所有这些活动 都执行以下标记界面
-    // (这是可选的,但让我们多打几下)
+    // 我们选择让所有这些事件实现以下标记接口
+    // （此操作可选，但能够提供更多类型检查）
     public interface IPersonEvent { }
 
     [Serializable]

@@ -113,7 +113,7 @@ public abstract class JobShardManagerTestsRunner(IJobShardManagerTestFixture fix
                 }
                 catch (OperationCanceledException) when (consumptionCancellation.IsCancellationRequested)
                 {
-                    // 先前的主张失败时, 停止等待消费者 。
+                    // 先前的断言失败时，停止待处理的消费者。
                 }
             }
 

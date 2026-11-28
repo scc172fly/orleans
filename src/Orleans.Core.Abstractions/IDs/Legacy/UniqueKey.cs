@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 表示遗留 Orleans grain 标识编码所用的复合密钥。
+    /// 表示 Orleans 旧版 Grain 标识符编码所使用的复合键。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     [SuppressReferenceTracking]
@@ -18,67 +18,67 @@ namespace Orleans.Runtime
     public sealed class UniqueKey : IComparable<UniqueKey>, IEquatable<UniqueKey>
     {
         /// <summary>
-        /// 编码成 UniqueKeys的型号 id值
+        /// 编码到 UniqueKey 中的类型 ID 值。
         /// </summary>
         public enum Category : byte
         {
             /// <summary>
-            /// 未指定类别 。
+            /// 未指定类别。
             /// </summary>
             None = 0,
 
             /// <summary>
-            /// 系统目标识别码
+            /// 系统目标标识符。
             /// </summary>
             SystemTarget = 1,
 
             /// <summary>
-            /// 一个系统 grain 标识符。
+            /// 系统 Grain 标识符。
             /// </summary>
             SystemGrain = 2,
 
             /// <summary>
-            /// 一个 grain 标识符。
+            /// Grain 标识符。
             /// </summary>
             Grain = 3,
 
             /// <summary>
-            /// 客户识别符。
+            /// 客户端标识符。
             /// </summary>
             Client = 4,
 
             /// <summary>
-            /// 带有密钥扩展名的 grain 标识符。
+            /// 带键扩展的 Grain 标识符。
             /// </summary>
             KeyExtGrain = 6,
-            // 7是 GeoClient
+            // 7 原先表示 GeoClient。
 
             /// <summary>
-            /// 带有密钥扩展名的系统目标识别符 。
+            /// 带键扩展的系统目标标识符。
             /// </summary>
             KeyExtSystemTarget = 8,
         }
 
         /// <summary>
-        /// 获得主键的前64位
+        /// 获取主键的前 64 位。
         /// </summary>
         [Id(0)]
         public ulong N0 { get; private set; }
 
         /// <summary>
-        /// 获得主键的第二64位
+        /// 获取主键的后 64 位。
         /// </summary>
         [Id(1)]
         public ulong N1 { get; private set; }
 
         /// <summary>
-        /// 获得包装类别和类型代码数据。
+        /// 获取打包后的类别及类型码数据。
         /// </summary>
         [Id(2)]
         public ulong TypeCodeData { get; private set; }
 
         /// <summary>
-        /// 获得可选主密钥扩展名 。
+        /// 获取可选的主键扩展。
         /// </summary>
         [Id(3)]
         public string? KeyExt { get; private set; }
@@ -87,22 +87,22 @@ namespace Orleans.Runtime
         private uint uniformHashCache;
 
         /// <summary>
-        /// 获得32位元的遗留型号代码。
+        /// 获取 32 位旧版类型码。
         /// </summary>
         public int BaseTypeCode => (int)TypeCodeData;
 
         /// <summary>
-        /// 获取 <see cref="TypeCodeData"/>编码的识别符号类别。
+        /// 获取编码于 <see cref="TypeCodeData"/> 中的标识符类别。
         /// </summary>
         public Category IdCategory => GetCategory(TypeCodeData);
 
         /// <summary>
-        /// 获得一个值,显示主密钥是否编码为 <see cref="long"/>。
+        /// 获取一个值，指示主键是否编码为 <see cref="long"/>。
         /// </summary>
         public bool IsLongKey => N0 == 0;
 
         /// <summary>
-        /// 获得一个值, 显示此密钥是否代表系统目标 。
+        /// 获取一个值，指示此键是否表示系统目标。
         /// </summary>
         public bool IsSystemTargetKey
             => IsSystemTarget(IdCategory);
@@ -111,7 +111,7 @@ namespace Orleans.Runtime
             => category == Category.SystemTarget || category == Category.KeyExtSystemTarget;
 
         /// <summary>
-        /// 获得一个值,显示此密钥是否有主密钥扩展名。
+        /// 获取一个值，指示此键是否具有主键扩展。
         /// </summary>
         public bool HasKeyExt => IsKeyExt(IdCategory);
 
@@ -147,8 +147,8 @@ namespace Orleans.Runtime
                 return NewKey(n0, n1, typeCodeData, keyExt);
             }
 
-            // 最后,为了方便起见, 我们试图使用 UID 语法来分析字符串。 这是按单位需要的
-            // 但我不知道是否生产需要
+            // 最后，为方便使用，尝试按 GUID 语法解析字符串。这是单元
+            // 测试所需的，但不确定生产环境是否需要。
             return NewKey(Guid.Parse(input.ToString()));
         }
 
@@ -165,9 +165,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 创建带有随机生成的 GUID 主密钥的密钥。
+        /// 创建具有随机生成的 GUID 主键的键。
         /// </summary>
-        /// <returns>一个新的独有密钥。</returns>
+        /// <returns>新的唯一键。</returns>
         public static UniqueKey NewKey() => new UniqueKey { Guid = Guid.NewGuid() };
 
         internal static UniqueKey NewKey(Guid guid) => new UniqueKey { Guid = guid };
@@ -185,37 +185,37 @@ namespace Orleans.Runtime
             => new UniqueKey { TypeCodeData = GetTypeCodeData(Category.SystemTarget, typeData) };
 
         /// <summary>
-        /// 创建系统目标键,使用图形用户界面数据主键。
+        /// 创建具有 GUID 主键的系统目标键。
         /// </summary>
         /// <param name="guid">主键。</param>
         /// <param name="typeData">系统目标类型数据。</param>
-        /// <returns>新系统目标键。</returns>
+        /// <returns>新的系统目标键。</returns>
         public static UniqueKey NewSystemTargetKey(Guid guid, long typeData)
             => new UniqueKey { Guid = guid, TypeCodeData = GetTypeCodeData(Category.SystemTarget, typeData) };
 
         /// <summary>
-        /// 从系统标识符创建系统目标键。
+        /// 根据系统标识符创建系统目标键。
         /// </summary>
         /// <param name="systemId">系统标识符。</param>
-        /// <returns>新系统目标键。</returns>
+        /// <returns>新的系统目标键。</returns>
         public static UniqueKey NewSystemTargetKey(short systemId)
             => new UniqueKey { N1 = (ulong)systemId, TypeCodeData = GetTypeCodeData(Category.SystemTarget) };
 
         /// <summary>
-        /// 创建有整数主键的 grain 服务密钥。
+        /// 创建具有整数主键的 Grain 服务键。
         /// </summary>
         /// <param name="key">主键。</param>
-        /// <param name="typeData">下 grain 服务型数据。</param>
-        /// <returns>一个新的 grain 服务关键字。</returns>
+        /// <param name="typeData">Grain 服务类型数据。</param>
+        /// <returns>新的 Grain 服务键。</returns>
         public static UniqueKey NewGrainServiceKey(short key, long typeData)
             => new UniqueKey { N1 = (ulong)key, TypeCodeData = GetTypeCodeData(Category.SystemTarget, typeData) };
 
         /// <summary>
-        /// 创建带有字符串主键扩展的 grain 服务密钥。
+        /// 创建具有字符串主键扩展的 Grain 服务键。
         /// </summary>
         /// <param name="key">主键扩展。</param>
-        /// <param name="typeData">下 grain 服务型数据。</param>
-        /// <returns>一个新的 grain 服务关键字。</returns>
+        /// <param name="typeData">Grain 服务类型数据。</param>
+        /// <returns>新的 Grain 服务键。</returns>
         public static UniqueKey NewGrainServiceKey(string key, long typeData)
             => NewKey(GetTypeCodeData(Category.KeyExtSystemTarget, typeData), key);
 
@@ -261,10 +261,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取整数主键及其可选的密钥扩展。
+        /// 获取整数主键及其可选的键扩展。
         /// </summary>
-        /// <param name="extendedKey">当此方法返回时, 此方法包含密钥扩展名, 或没有关键扩展名的 <see langword="null"/> 。</param>
-        /// <returns>主键整数。</returns>
+        /// <param name="extendedKey">此方法返回时，包含键扩展；若不存在，则为 <see langword="null"/>。</param>
+        /// <returns>整数主键。</returns>
         public long PrimaryKeyToLong(out string? extendedKey)
         {
             ThrowIfIsNotLong();
@@ -274,9 +274,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取一个密钥的整数主键,不附加。
+        /// 获取不带扩展的键的整数主键。
         /// </summary>
-        /// <returns>主键整数。</returns>
+        /// <returns>整数主键。</returns>
         public long PrimaryKeyToLong()
         {
             ThrowIfIsNotLong();
@@ -285,10 +285,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取 GUID 主密钥及其可选密钥扩展名。
+        /// 获取 GUID 主键及其可选的键扩展。
         /// </summary>
-        /// <param name="extendedKey">当此方法返回时, 此方法包含密钥扩展名, 或没有关键扩展名的 <see langword="null"/> 。</param>
-        /// <returns>图形用户界面数据主键。</returns>
+        /// <param name="extendedKey">此方法返回时，包含键扩展；若不存在，则为 <see langword="null"/>。</param>
+        /// <returns>GUID 主键。</returns>
         public Guid PrimaryKeyToGuid(out string? extendedKey)
         {
             extendedKey = this.KeyExt;
@@ -296,9 +296,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取一个密钥的图形界面数据主键,不附加。
+        /// 获取不带扩展的键的 GUID 主键。
         /// </summary>
-        /// <returns>图形用户界面数据主键。</returns>
+        /// <returns>GUID 主键。</returns>
         public Guid PrimaryKeyToGuid()
         {
             ThrowIfHasKeyExt("UniqueKey.PrimaryKeyToGuid");
@@ -308,8 +308,8 @@ namespace Orleans.Runtime
         /// <inheritdoc />
         public override bool Equals(object? o) => o is UniqueKey key && Equals(key);
 
-        // 我们真的希望平等 尽可能快, 最低成本, 尽可能接近本地。
-        // 没有函数呼叫,没有拳击,内嵌。
+        // 我们希望 Equals 尽可能快，使开销最小，尽可能接近原生操作的性能。
+        // 不进行函数调用、不装箱，并内联执行。
         /// <inheritdoc />
         public bool Equals(UniqueKey? other)
         {
@@ -320,8 +320,8 @@ namespace Orleans.Runtime
                    && (KeyExt is null || KeyExt == other.KeyExt);
         }
 
-        // 我们真的希望 CompareTo 尽快,尽可能地以最低成本接近本地人。
-        // 没有函数呼叫,没有拳击,内嵌。
+        // 我们希望 CompareTo 尽可能快，使开销最小，尽可能接近原生操作的性能。
+        // 不进行函数调用、不装箱，并内联执行。
         /// <inheritdoc />
         public int CompareTo(UniqueKey? other)
         {
@@ -345,7 +345,7 @@ namespace Orleans.Runtime
 
         internal uint GetUniformHashCode()
         {
-            // 禁用此 ReSharper 警告; hashCache 是逻辑上只读的变量, 因此在 GetHashCode 中访问它们是安全的 。
+            // 禁用此 ReSharper 警告；hashCache 在逻辑上是只读变量，因此在 GetHashCode 中访问它是安全的。
             // ReSharper disable NonReadonlyFieldInGetHashCode
             if (uniformHashCache == 0)
             {
@@ -367,9 +367,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 如果 KeyExt 不存在,返回结构
-        /// |8 字节|8 字节|8 字节|4 字节|，共 28 字节。
-        /// 如果存在 KeyExt ,则添加额外的 KeyExt 字节长度
+        /// 如果 KeyExt 不存在，则返回以下结构：
+        /// |8 bytes|8 bytes|8 bytes|4 bytes| - 共 28 字节。
+        /// 如果 KeyExt 存在，则总长度额外增加 KeyExt 的字节数。
         /// </summary>
         /// <returns></returns>
         internal ReadOnlySpan<byte> ToByteArray()
@@ -385,7 +385,7 @@ namespace Orleans.Runtime
             BinaryPrimitives.WriteUInt64LittleEndian(spanBytes.Slice(16, 8), TypeCodeData);
 
             const int offset = sizeof(ulong) * 3;
-            // 复制 KeyExt
+            // 复制 KeyExt。
             if (extBytes != null)
             {
                 BinaryPrimitives.WriteInt32LittleEndian(spanBytes.Slice(offset, sizeof(int)), extBytesLength);
@@ -466,7 +466,7 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// 换算功能 <see cref="UniqueKey"/> 与从这些天起 JSON 代表。
+    /// 提供 <see cref="UniqueKey"/> 实例与其 JSON 表示形式之间的转换功能。
     /// </summary>
     public sealed class UniqueKeyJsonConverter : JsonConverter<UniqueKey>
     {
@@ -509,7 +509,7 @@ namespace Orleans.Runtime
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 为 <see langword="null"/>。</exception>
         public override void Write(Utf8JsonWriter writer, UniqueKey value, JsonSerializerOptions options)
         {
             ArgumentNullException.ThrowIfNull(writer);
@@ -525,7 +525,7 @@ namespace Orleans.Runtime
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 为 <see langword="null"/>。</exception>
         public override void WriteAsPropertyName(Utf8JsonWriter writer, [DisallowNull] UniqueKey value, JsonSerializerOptions options)
         {
             ArgumentNullException.ThrowIfNull(writer);

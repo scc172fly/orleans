@@ -101,12 +101,12 @@ namespace Orleans.Reminders.Redis
                 IEnumerable<RedisValue> values;
                 if (begin < end)
                 {
-                    // - 开始******结束 --
+                    // -----begin******end-----
                     values = await _db.SortedSetRangeByValueAsync(_hashSetKey, from, to);
                 }
                 else
                 {
-                    // *****结尾 - - - -*****
+                    // *****end------begin*****
                     RedisValue[] values1 = await _db.SortedSetRangeByValueAsync(_hashSetKey, from, "\"FFFFFFFF\",#");
                     RedisValue[] values2 = await _db.SortedSetRangeByValueAsync(_hashSetKey, "\"00000000\",\"", to);
                     values = values1.Concat(values2);

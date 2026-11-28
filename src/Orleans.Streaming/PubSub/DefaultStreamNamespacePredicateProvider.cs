@@ -5,7 +5,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 默认实施内部支持的流流上游 <see cref="IStreamNamespacePredicateProvider"/> 。
+    /// 用于内部支持的流谓词的 <see cref="IStreamNamespacePredicateProvider"/> 默认实现。
     /// </summary>
     public class DefaultStreamNamespacePredicateProvider : IStreamNamespacePredicateProvider
     {
@@ -33,17 +33,17 @@ namespace Orleans.Streams
     }
 
     /// <summary>
-    /// 支持可构造对象的流命名空间上游提供者,可选择接受字符串作为构建参数。
+    /// 流命名空间谓词提供程序，支持可构造且可以选择接受字符串作为构造函数参数的对象。
     /// </summary>
     public class ConstructorStreamNamespacePredicateProvider : IStreamNamespacePredicateProvider
     {
         /// <summary>
-        /// 用于识别该上游供应商的前缀。
+        /// 用于标识此谓词提供程序的前缀。
         /// </summary>
         public const string Prefix = "ctor";
 
         /// <summary>
-        /// 格式化流命名空间前置,该前置表示要构造的混凝土 <see cref="IStreamNamespacePredicate"/> 类型,并加上一个可选参数。
+        /// 格式化流命名空间谓词，指定要构造的具体 <see cref="IStreamNamespacePredicate"/> 类型及可选参数。
         /// </summary>
         public static string FormatPattern(Type predicateType, string? constructorArgument)
         {
@@ -81,7 +81,7 @@ namespace Orleans.Streams
                 arg = predicatePattern[(index + 1)..];
             }
 
-            var type = Type.GetType(typeName, throwOnError: true)!; // throwOnError 确保返回类型或提出例外。
+            var type = Type.GetType(typeName, throwOnError: true)!; // throwOnError 确保返回 Type 或抛出异常。
 
             if (!typeof(IStreamNamespacePredicate).IsAssignableFrom(type))
             {
@@ -90,11 +90,11 @@ namespace Orleans.Streams
 
             if (string.IsNullOrEmpty(arg))
             {
-                predicate = (IStreamNamespacePredicate)Activator.CreateInstance(type)!; // CreateInstance 返回一个或几个的上游实例或投出。
+                predicate = (IStreamNamespacePredicate)Activator.CreateInstance(type)!; // CreateInstance 返回谓词实例或抛出异常。
             }
             else
             {
-                predicate = (IStreamNamespacePredicate)Activator.CreateInstance(type, arg)!; // CreateInstance 返回一个或几个的上游实例或投出。
+                predicate = (IStreamNamespacePredicate)Activator.CreateInstance(type, arg)!; // CreateInstance 返回谓词实例或抛出异常。
             }
 
             return true;

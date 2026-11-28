@@ -19,10 +19,10 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var scheduler = TaskScheduler.Current;
         Task? interleavedWrite = null;
 
-        // 该机构的最终代码将结果和要求另一机构在
-        // 尝试再次实施结果。 写作记录了每一个变化, 所以尝试的写作没有包含任何。
-        // 整个过程都发生了,所以其他测试任务“root”同时完成;外国完成,排放
-        // 绝对不能引发这个测试的写作
+        // 主体的最终代码暂存其结果，另一操作请求的写入在执行尝试再次提交结果之前
+        // 提交了该结果。该写入已捕获所有变更，因此执行尝试的写入不携带任何变更。
+        // 事件在整个进程范围内生效，因此其他测试中名为 'root' 的任务也可能并发完成；此处以确定性方式
+        // 发出的外部完成事件不得触发本测试的写入。
         using var subscription = DurableTaskEvents.AllEvents.Subscribe(new EventObserver(evt =>
         {
             if (evt is DurableTaskEvents.TaskCompleted { TaskId: var taskId } completed
@@ -74,7 +74,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await WaitUntilIdleAsync(runtime);
         ((IOutboxMessageSource)runtime).OnRetired(Assert.Single(transport.Completions).MessageId, OutboxMessageRetirement.Delivered.Instance);
 
-        // 每场活动都携带运行时间的激活,交付完成后将树删除。
+        // 每个事件都携带运行时的激活实例，已投递的完成消息会删除执行树。
         Assert.Equal(
             [
                 "TaskCreated root",
@@ -107,13 +107,13 @@ public sealed partial class DurableTaskRuntimeInvariantTests
 
         runtime.ScheduleFromInbox(rootId, request);
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
-        // 延迟恢复的恢复时间已经到了, 所以替换的重弹了一个预定的推迟。
-        // 尸体还没有计划要执行, 恢复工作从自己开始。
+        // 延迟操作的恢复与其到期时间一同暂存，因此替代激活实例会重放已调度的延迟操作。尚未由主体
+        // 调度延迟操作的延迟子任务属于待处理执行实例，恢复过程会独立启动它。
         await transport.ResumeSent.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // 替换的重放所记录的步和延迟; 到达延迟, 最后一次记录的操作, 结束
-        // 拖延的尝试又恢复了等待时机和结束
+        // 替代激活实例重放已记录的步骤和延迟操作；到达最后一个已记录操作（延迟操作）时，
+        // 重放结束而不暂存任何内容。延迟操作的执行尝试恢复等待其到期时间，然后结束。
         var (replacement, _, _, _) = CreateRuntime(storage, manager, initialize: false);
         replacement.InitializeForActivation(CreateTestActivation());
         using var events = new RuntimeEventRecorder(replacement);
@@ -124,7 +124,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await replacement.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
     });
 
-    /// <summary>记录一次运行时的事件, 以它的启动引发的顺序。</summary>
+    /// <summary>按某个运行时的激活实例引发事件的顺序记录该运行时的事件。</summary>
     private sealed class RuntimeEventRecorder : IDisposable
     {
         private readonly ConcurrentQueue<string> _events = new();
@@ -148,7 +148,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
     }
 }
 
-/// <summary>运行每次耐久任务运行时事件的一个动作, 同步进行引发该动作的过渡。</summary>
+/// <summary>针对每个持久化任务运行时事件，在引发事件的状态转换处同步执行操作。</summary>
 internal sealed class EventObserver(Action<DurableTaskEvents.DurableTaskEvent> onNext) : IObserver<DurableTaskEvents.DurableTaskEvent>
 {
     public void OnNext(DurableTaskEvents.DurableTaskEvent value) => onNext(value);

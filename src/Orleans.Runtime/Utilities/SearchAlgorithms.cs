@@ -34,10 +34,10 @@ internal static class SearchAlgorithms
         return -1;
     }
 
-    // 以一个环(例如,一个一致的散列环)为基准,按每个范围的起点排序,对环(如,一个连续的散列环)上的靶场收藏进行二进制搜索。
-    // 这与标准的二进制搜索有所不同, 因为搜索可以从开始到收藏中最后一个元素的周围环绕。
-    // 这一点通过在返回负结果之前核对收藏中最后一项内容,以适应上述情况,处理以下案件:
-    // 区域从结束到开始环绕。见 RingRange
+    // 对沿环（例如一致性哈希环）分布的范围集合进行二分查找，集合按各范围起点排序。
+    // 与标准二分查找不同，此查找可以从集合开头环绕到最后一个元素。
+    // 为处理从末尾环绕到开头的范围，在返回负数结果之前检查集合的最后一个元素，
+    // 参见 RingRange。
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int RingRangeBinarySearch<TCollection, TElement, TKey>(
         int length,
@@ -63,17 +63,17 @@ internal static class SearchAlgorithms
             }
             else if (comparison < 0)
             {
-                // 右转
+                // 向右查找。
                 left = mid + 1;
             }
             else
             {
-                // 左转
+                // 向左查找。
                 right = mid - 1;
             }
         }
 
-        // 试一下最后一个元素。
+        // 尝试最后一个元素。
         entry = getEntry(collection, length - 1);
         if (entry.CompareTo(key) == 0)
         {
@@ -81,7 +81,7 @@ internal static class SearchAlgorithms
         }
 
 #if DEBUG
-        // 试一下第一个元素。
+        // 尝试第一个元素。
         entry = getEntry(collection, 0);
         if (entry.CompareTo(key) == 0)
         {

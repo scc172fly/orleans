@@ -13,7 +13,7 @@ using SPFixture = UnitTests.ActivationRebalancingTests.StatePreservationRebalanc
 namespace UnitTests.ActivationRebalancingTests;
 
 /// <summary>
-/// 启动在托管时与国家保全重新平衡的测试 silo 死亡。
+/// 测试承载激活实例的 Silo 失效时保留状态的再均衡。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]
@@ -38,8 +38,8 @@ public class StatePreservationRebalancingTests(SPFixture fixture, ITestOutputHel
         var rebalancer = Cluster.Client!.GetGrain<IActivationRebalancerWorker>(0);
         var targetHost = Cluster.Silos[1].SiloAddress;
 
-        // 将再平衡器移动到第一二级 silo, 因为稍后我们会停止它, 我们不能停止
-        // 测试设置中的初选
+        // 将再均衡器迁移到第一个辅助 Silo，因为稍后要将其停止，而本测试配置
+        // 不允许停止主 Silo。
         await MoveRebalancerToSilo(rebalancer, targetHost);
 
         AddTestActivations(tasks, Silo1, 300);

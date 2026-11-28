@@ -5,7 +5,7 @@ using Orleans.Serialization.Session;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 耐久队列日记条目的二进制代码, 保存遗留的双行线格式 Orleans 。
+/// 持久化队列日志条目的二进制编解码器，保留旧版 Orleans 二进制传输格式。
 /// </summary>
 internal sealed class OrleansBinaryDurableQueueCommandCodec<T>(
     IFieldCodec<T> codec,

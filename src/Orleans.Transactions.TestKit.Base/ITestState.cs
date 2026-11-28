@@ -1,7 +1,7 @@
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 定义交易测试 grains所用的整数状态。
+    /// 定义事务测试 Grain 使用的整数状态。
     /// </summary>
     public interface ITestState
     {

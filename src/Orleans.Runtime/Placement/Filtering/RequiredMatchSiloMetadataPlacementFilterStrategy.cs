@@ -6,21 +6,21 @@ using Orleans.Placement;
 namespace Orleans.Runtime.Placement.Filtering;
 
 /// <summary>
-/// 配置配置布局过滤程序,该过滤程序要求 silos 匹配每个指定密钥的调用 silo元数据。
+/// 配置放置筛选策略，要求 Silo 的所有指定元数据键均与调用方 Silo 匹配。
 /// </summary>
-/// <param name="metadataKeys">元数据键的数值必须与调用 silo的数值相符。</param>
-/// <param name="order">相对于其他放置过滤器应用此过滤器的顺序。</param>
+/// <param name="metadataKeys">其值必须与调用方 Silo 一致的元数据键。</param>
+/// <param name="order">此筛选器相对于其他放置筛选器的应用顺序。</param>
 public class RequiredMatchSiloMetadataPlacementFilterStrategy(string[] metadataKeys, int order)
     : PlacementFilterStrategy(order)
 {
     /// <summary>
-    /// 获取其值必须与调用 silo的数值相符的元数据键。
+    /// 获取其值必须与调用方 Silo 一致的元数据键。
     /// </summary>
     public string[] MetadataKeys { get; private set; } = metadataKeys;
 
     /// <summary>
-    /// 初始化 <see cref="RequiredMatchSiloMetadataPlacementFilterStrategy"/> 类的新实例
-    /// 没有元数据键和默认过滤顺序。
+    /// 初始化 <see cref="RequiredMatchSiloMetadataPlacementFilterStrategy"/> 类的新实例，
+    /// 不指定元数据键，并使用默认筛选器应用顺序。
     /// </summary>
     public RequiredMatchSiloMetadataPlacementFilterStrategy() : this([], 0)
     {

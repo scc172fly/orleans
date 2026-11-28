@@ -10,23 +10,23 @@ using Xunit;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// Orleans' MessagePack 序列化支持测试。
+/// Orleans 对 MessagePack 序列化的支持测试。
 /// 
-/// MessagePack 是一个二进制序列化格式,提供:
-/// - 代表比 JSON更紧凑
-/// - 与文本格式相比,更快的序列/删除
-/// - 跨平台和跨语文支助
+/// MessagePack 是一种二进制序列化格式，具有以下特点：
+/// - 比 JSON 更紧凑的表示
+/// - 比文本格式更快的序列化和反序列化
+/// - 支持跨平台和跨语言使用
 /// 
-/// Orleans' MessagePack 整合:
-/// - 利用 MessagePack- Charp 库
-/// - 支持工会类型(受歧视的工会)
-/// - 提供序列和深复制功能
-/// - 可用于特定类型,而使用 Orleans原本格式用于其他
+/// Orleans 的 MessagePack 集成：
+/// - 使用 MessagePack-CSharp 库
+/// - 支持联合类型（可辨识联合）
+/// - 同时提供序列化和深度复制功能
+/// - 可以只将它用于特定类型，其余类型仍使用 Orleans 原生格式
 /// 
-/// 这一点在下列情况下有用:
-/// - 与使用 MessagePack系统的相互操作
-/// - 要求一种具有广泛语言支持的缩写二元格式
-/// - 需要比 JSON 更好的性能,但比 Orleans本型更便于携带
+/// 这对于以下场景很有用：
+/// - 与使用 MessagePack 的系统进行互操作
+/// - 需要具有广泛语言支持的紧凑二进制格式
+/// - 需要比 JSON 更好的性能，同时又比 Orleans 原生格式具有更好的可移植性
 /// </summary>
 [Trait("Category", "BVT")]
 [TestSuite("BVT")]
@@ -64,7 +64,7 @@ public class MessagePackCodecTests : FieldCodecTester<MyMessagePackClass?, IFiel
 
         Assert.Equal(original.IntProperty, result.IntProperty);
         Assert.Equal(original.StringProperty, result.StringProperty);
-        // 以上两个数值初始化,复制保留了嵌套对象。
+        // 两个值均已在上方初始化，复制操作会保留嵌套对象。
         Assert.Equal(original.SubClass!.Id, result.SubClass!.Id);
     }
 
@@ -77,7 +77,7 @@ public class MessagePackCodecTests : FieldCodecTester<MyMessagePackClass?, IFiel
 
         Assert.Equal(original.IntProperty, result.IntProperty);
         Assert.Equal(original.StringProperty, result.StringProperty);
-        // 以上两个数值初始化,复制保留了嵌套对象。
+        // 两个值均已在上方初始化，复制操作会保留嵌套对象。
         Assert.Equal(original.SubClass!.Id, result.SubClass!.Id);
     }
 

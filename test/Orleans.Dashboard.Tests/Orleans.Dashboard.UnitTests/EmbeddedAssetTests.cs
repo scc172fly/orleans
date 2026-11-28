@@ -113,7 +113,7 @@ namespace UnitTests
             var resourceName = $"{ResourcePrefix}index.html";
 
             using var stream = DashboardAssembly.GetManifestResourceStream(resourceName);
-            // 资源的存在由 Assembly_ containsIndexHtml 验证。
+            // 资源是否存在由 Assembly_ContainsIndexHtml 验证。
             using var reader = new System.IO.StreamReader(stream!);
             var content = reader.ReadToEnd();
 

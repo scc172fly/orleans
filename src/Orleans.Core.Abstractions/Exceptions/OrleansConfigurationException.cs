@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 表示配置例外。
+    /// 表示配置异常。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -23,8 +23,8 @@ namespace Orleans.Runtime
         }
 
         /// <inheritdoc />
-        /// <exception cref="SerializationException">类名为 <see langword="null" /> 或 <see cref="P:System.Exception.HResult" /> 为零(0)</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="info" /> 是 <see langword="null" />.</exception>
+        /// <exception cref="SerializationException">类名为 <see langword="null" />，或者 <see cref="P:System.Exception.HResult" /> 为零（0）。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="info" /> 为 <see langword="null" />。</exception>
         [Obsolete]
         private OrleansConfigurationException(SerializationInfo info, StreamingContext context) : base(info, context)
         {

@@ -15,19 +15,19 @@ using Orleans.Runtime.Scheduler;
 namespace Orleans.Runtime.GrainDirectory;
 
 /// <summary>
-/// 通往客户(外部客户和托管客户)的路线目录。
+/// 客户端（外部客户端及托管客户端）的路由目录。
 /// </summary>
 /// <remarks>
-/// <see cref="ClientDirectory"/> 为所有已知客户维持路径信息,使消费者能够查询
-/// 客户的客户 <see cref="GrainId"/>.
-/// 为实现这一目标, <see cref="ClientDirectory"/> 监测与当地有关的客户和集群成员的变化。
-/// 已知路线定期与远程 silos 共享环状装置。每个 silo 将推动更新到环状系统下一条 silo 。
-/// 当一个 silo 收到更新时,它会将其纳入路径表。如果更新导致路径表的改变,那么
-/// silo 将把更新的路线表传播到下一个 silo。这一进程将持续到所有 silos 趋同为止。
-/// 每个 <see cref="ClientDirectory"/> 都有一个内部版本号,代表它对于与当地有关的客户的看法。
-/// 此版本号码在更新期间围绕环圈传播,用于确定远程 silo的本地连线客户群何时
-/// 已经更新。
-/// 清除已关闭客户端的过程留给 <see cref="IConnectedClientCollection"/> 执行方面每个 silo.
+/// <see cref="ClientDirectory"/> 维护所有已知客户端的路由信息，并允许使用者按
+/// 客户端的 <see cref="GrainId"/> 查找它们。
+/// 为此，<see cref="ClientDirectory"/> 监控本地连接的客户端及集群成员资格变化。此外，
+/// 已知路由会定期以环形方式与远程 Silo 共享。每个 Silo 都会向环中的下一个 Silo 推送更新。
+/// Silo 收到更新后，将其合并到自己的路由表。若此次更新导致路由表发生变化，
+/// 则该 Silo 会将更新后的路由表传播给下一个 Silo。此过程持续进行，直到所有 Silo 的视图收敛。
+/// 每个 <see cref="ClientDirectory"/> 维护一个内部版本号，用于表示其对本地连接客户端的视图。
+/// 更新期间，该版本号会沿环传播，用于确定远程 Silo 的本地连接客户端集合
+/// 是否已更新。
+/// 移除已失效客户端的工作由各 Silo 上的 <see cref="IConnectedClientCollection"/> 实现负责。
 /// </remarks>
 internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirectory, IRemoteClientDirectory, ILifecycleParticipant<ISiloLifecycle>
 {
@@ -53,7 +53,7 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
     private ImmutableDictionary<GrainId, List<GrainAddress>> _currentSnapshot = ImmutableDictionary<GrainId, List<GrainAddress>>.Empty;
     private ImmutableDictionary<SiloAddress, (ImmutableHashSet<GrainId> ConnectedClients, long Version)> _table = ImmutableDictionary<SiloAddress, (ImmutableHashSet<GrainId> ConnectedClients, long Version)>.Empty;
 
-    // 与远程同步 silos。
+    // 用于与远程 Silo 同步。
     private readonly AdmissionGate _publicationGate = new();
     private Task? _nextPublishTask;
     private long _publishRequestVersion;
@@ -105,14 +105,14 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
             {
                 try
                 {
-                    // 通过远程目录循环 。
+                    // 依次遍历远程目录。
                     var remoteDirectory = remoteDirectories[(ushort)seed++ % remoteDirectories.Length];
 
-                    // 询问远程目录更新到我们视图中。
+                    // 请求远程目录提供对本地视图的更新。
                     var versionVector = _table.ToImmutableDictionary(e => e.Key, e => e.Value.Version);
                     var delta = await remoteDirectory.GetClientRoutes(versionVector, _stoppingCts.Token);
 
-                    // 如果找到更新, 更新我们的观点
+                    // 如果发现更新，则更新本地视图。
                     if (delta is not null && delta.Count > 0)
                     {
                         UpdateRoutingTable(delta);
@@ -123,8 +123,8 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
                     LogErrorCallingRemoteClientDirectory(exception);
                 }
 
-                // 试着再找找客户的路线
-                // 请注意,无论远程更新呼叫成功还是失败,都会出现这种情况。
+                // 再次尝试查找所请求客户端的路由。
+                // 注意，无论远程更新调用成功还是失败，都会执行此操作。
                 if (TryLocalLookup(grainId, out result) && result.Count > 0)
                 {
                     break;
@@ -136,7 +136,7 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
                 _schedulePublishUpdate();
             }
 
-            // 最后一次尝试找到请求客户的路线
+            // 最后再尝试一次查找所请求客户端的路由。
             if (result is null && !TryLocalLookup(grainId, out result))
             {
                 result = [];
@@ -205,7 +205,7 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
         cancellationToken.ThrowIfCancellationRequested();
         EnsureRefreshed();
 
-        // 返回一个收藏,其中含有所有缺失或过时的路线,依据是呼叫者提供的已知路径版本矢量。
+        // 根据调用方提供的已知路由版本向量，返回包含所有缺失或过时路由的集合。
         var table = _table;
         var resultBuilder = ImmutableDictionary.CreateBuilder<SiloAddress, (ImmutableHashSet<GrainId> ConnectedClients, long Version)>();
         foreach (var entry in table)
@@ -230,7 +230,7 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
             var membershipSnapshot = _clusterMembershipService.CurrentSnapshot;
             var table = default(ImmutableDictionary<SiloAddress, (ImmutableHashSet<GrainId> ConnectedClients, long Version)>.Builder);
 
-            // 纳入最新资料。
+            // 合并更新。
             if (update is not null)
             {
                 foreach (var pair in update)
@@ -238,7 +238,7 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
                     var silo = pair.Key;
                     var updatedView = pair.Value;
 
-                    // 只包含未取消的更新 silos。
+                    // 仅包含尚未失效的 Silo 的更新。
                     if ((!_table.TryGetValue(silo, out var localView) || localView.Version < updatedView.Version)
                         && !membershipSnapshot.GetSiloStatus(silo).IsTerminating())
                     {
@@ -248,7 +248,7 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
                 }
             }
 
-            // 确保远程目录更新。
+            // 确保远程目录已更新到最新状态。
             if (_observedMembership is null || membershipSnapshot.Version > _observedMembership.Version)
             {
                 var remotesBuilder = new List<IRemoteClientDirectory>(membershipSnapshot.Members.Count);
@@ -263,7 +263,7 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
                 _remoteDirectories = remotesBuilder.ToArray();
             }
 
-            // 删除已关闭 silos。
+            // 移除已失效的 Silo。
             foreach (var silo in _table.Keys)
             {
                 if (membershipSnapshot.GetSiloStatus(silo).IsTerminating())
@@ -278,13 +278,13 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
                 var silo = member.SiloAddress;
                 if (member.Status == SiloStatus.Active)
                 {
-                    // 如果 silo 刚刚开始活动,而我们尚未收到它的一系列相关客户,
-                    // 自动添加主机客户端,以加快进程。
+                    // 如果 Silo 刚进入活动状态，且尚未收到它的已连接客户端集合，
+                    // 则自动添加其托管客户端，以加快处理过程。
                     if (!_table.ContainsKey(silo) && (table is null || !table.ContainsKey(silo)))
                     {
                         table ??= _table.ToBuilder();
 
-                        // 请注意,该版本与第0版相加,低于每个 silo、1的初始版本。
+                        // 注意，添加时使用版本 0，低于每个 Silo 生成的初始版本 1。
                         table[silo] = (ImmutableHashSet.Create(HostedClient.CreateHostedClientGrainId(silo).GrainId), 0);
                     }
                 }
@@ -292,7 +292,7 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
 
             _observedMembership = membershipSnapshot;
 
-            // 更新本地连线客户。
+            // 更新本地连接的客户端。
             var (clients, version) = GetConnectedClients(_localClients, _localVersion);
             if (version > _localVersion)
             {
@@ -302,7 +302,7 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
                 _localVersion = version;
             }
 
-            // 如果路线表有变动,则需要重新修建表格和快照。
+            // 如果路由表发生了变化，则需要重建路由表及其快照。
             if (table is not null)
             {
                 _table = table.ToImmutable();
@@ -326,7 +326,7 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
     }
 
     /// <summary>
-    /// 收集了本地客户的网络
+    /// 获取本地连接的客户端集合。
     /// </summary>
     private (ImmutableHashSet<GrainId> Clients, long Version) GetConnectedClients(ImmutableHashSet<GrainId> previousClients, long previousVersion)
     {
@@ -343,10 +343,10 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
             clients.Add(client);
         }
 
-        // 无论是否发生了改动,请按观察的写上这一版本。
+        // 无论是否发生变化，都将该版本标记为已观察。
         _observedConnectedClientsVersion = connectedClientsVersion;
 
-        // 如果实际没有发生任何变化,则避免发出更改的信号。
+        // 如果实际上没有任何变化，则不要发出变化通知。
         if (clients.Count == previousClients.Count && previousClients.SetEquals(clients))
         {
             return (previousClients, previousVersion);
@@ -369,7 +369,7 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
                 membershipTask ??= membershipUpdates.MoveNextAsync().AsTask();
                 timerTask ??= _refreshTimer.NextTick();
 
-                // 等待任何一个任务完成
+                // 等待其中任一任务完成。
                 await Task.WhenAny(membershipTask, timerTask);
 
                 if (timerTask.IsCompleted)
@@ -399,7 +399,7 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
             }
             catch (OperationCanceledException) when (_stoppingCts.IsCancellationRequested)
             {
-                // 关闭时忽略 。
+                // 在关闭期间忽略。
                 break;
             }
             catch (Exception exception)
@@ -531,7 +531,7 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
             return false;
         }
 
-        // 尝试找到更新继承人所需的最低信息量 。
+        // 尝试找出更新后继节点所需的最少信息。
         var builder = newRoutes.ToBuilder();
         builder.Remove(successor);
         if (previousRoutes is not null)
@@ -547,7 +547,7 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
 
                 if (version == published.Version)
                 {
-                    // 目标已经看到此 silo的最新版本 。
+                    // 目标已观察到此 Silo 的最新版本。
                     builder.Remove(silo);
                 }
             }
@@ -583,12 +583,12 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
                 }
             }
 
-            // 返回的RPC任务在完成时拥有入场证,包括在可撤销的等待结束后。
+            // 返回的 RPC 任务在完成前一直持有准入资格，即使可取消的等待已经结束也是如此。
             ObservePublication(publishTask, _publicationGate).Ignore();
             await publishTask.WaitAsync(_stoppingCts.Token);
 
-            // 记录目前继承人所知道的下限,以便用它来尽量减少
-            // 下次更新时传输数据。
+            // 记录后继节点当前已知信息的下界，以便下一次执行更新时
+            // 尽可能减少数据传输。
             LogDebugSuccessfullyPublishedRoutes(successor);
 
             lock (_lockObj)
@@ -604,7 +604,7 @@ internal sealed partial class ClientDirectory : SystemTarget, ILocalClientDirect
         }
         catch (OperationCanceledException) when (_stoppingCts.IsCancellationRequested)
         {
-            // 在 silo 正在保密时,会有意取消公布。
+            // Silo 进入静止状态期间，有意取消发布操作。
             return false;
         }
         catch (Exception exception)

@@ -3,7 +3,7 @@ using Orleans.Serialization;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Grain 使用存储序列器 Newtonsoft.Json
+    /// 使用 Newtonsoft.Json 的 Grain 存储序列化器。
     /// </summary>
     public class JsonGrainStorageSerializer : IGrainStorageStreamingSerializer
     {

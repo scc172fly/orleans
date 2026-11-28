@@ -17,12 +17,12 @@ using SQSMessage = Amazon.SQS.Model.Message;
 namespace OrleansAWSUtils.Storage
 {
     /// <summary>
-    /// AWS SQS 队列服务周围的 Paper/帮助者类
+    /// AWS SQS 队列服务的包装及辅助类。
     /// </summary>
     internal partial class SQSStorage
     {
         /// <summary>
-        /// SQS 允许每个请求最多达到最高量的邮件数量
+        /// SQS 允许单次请求获取的最大消息数。
         /// </summary>
         public const int MAX_NUMBER_OF_MESSAGE_TO_PEEK = 10;
         private const string AccessKeyPropertyName = "AccessKey";
@@ -43,17 +43,17 @@ namespace OrleansAWSUtils.Storage
 
 
         /// <summary>
-        /// 队列名称
+        /// 队列名称。
         /// </summary>
         public string QueueName { get; private set; }
 
         /// <summary>
-        /// 默认调试器
+        /// 默认构造函数。
         /// </summary>
-        /// <param name="loggerFactory">用于使用</param>的对帐厂
-        /// <param name="queueName">队列的名称</param>
-        /// <param name="sqsOptions">SQS 连接的选项</param>
-        /// <param name="serviceId">服务编号</param>
+        /// <param name="loggerFactory">要使用的日志记录器工厂。</param>
+        /// <param name="queueName">队列名称。</param>
+        /// <param name="sqsOptions">SQS 连接选项。</param>
+        /// <param name="serviceId">服务 ID。</param>
         public SQSStorage(ILoggerFactory loggerFactory, string queueName, SqsOptions sqsOptions, string serviceId = "")
         {
             if (sqsOptions is null) throw new ArgumentNullException(nameof(sqsOptions));
@@ -117,25 +117,25 @@ namespace OrleansAWSUtils.Storage
             if (service.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                 service.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
-                // 本地 SQS 实例( 用于测试)
+                // 本地 SQS 实例（用于测试）。
                 var credentials = new BasicAWSCredentials("dummy", "dummyKey");
                 sqsClient = new AmazonSQSClient(credentials, new AmazonSQSConfig { ServiceURL = service });
             }
             else if (!string.IsNullOrEmpty(accessKey) && !string.IsNullOrEmpty(secretKey) && !string.IsNullOrEmpty(sessionToken))
             {
-                // AWS SQS 实例(通过明确全权证书提交)
+                // AWS SQS 实例（使用显式凭据进行身份验证）。
                 var credentials = new SessionAWSCredentials(accessKey, secretKey, sessionToken);
                 sqsClient = new AmazonSQSClient(credentials, new AmazonSQSConfig { RegionEndpoint = AWSUtils.GetRegionEndpoint(service) });
             }
             else if (!string.IsNullOrEmpty(accessKey) && !string.IsNullOrEmpty(secretKey))
             {
-                // AWS SQS 实例(通过明确全权证书提交)
+                // AWS SQS 实例（使用显式凭据进行身份验证）。
                 var credentials = new BasicAWSCredentials(accessKey, secretKey);
                 sqsClient = new AmazonSQSClient(credentials, new AmazonSQSConfig { RegionEndpoint = AWSUtils.GetRegionEndpoint(service) });
             }
             else
             {
-                // AWS SQS 实例( 隐含超度 - EC2 IAM 角色等)
+                // AWS SQS 实例（隐式身份验证，例如 EC2 IAM 角色）。
                 sqsClient = new AmazonSQSClient(new AmazonSQSConfig { RegionEndpoint = AWSUtils.GetRegionEndpoint(service) });
             }
         }
@@ -157,7 +157,7 @@ namespace OrleansAWSUtils.Storage
         }
 
         /// <summary>
-        /// 通过创建或连接到一个不存在的队列来初始化 SQSStorage
+        /// 通过创建队列或连接现有队列来初始化 SQSStorage。
         /// </summary>
         /// <returns></returns>
         public async Task InitQueueAsync()
@@ -173,7 +173,7 @@ namespace OrleansAWSUtils.Storage
 
                     if (sqsOptions.FifoQueue)
                     {
-                        // 流体必须具有这些属性才能成为有效的 FIFO 队列 。
+                        // 流必须具备这些属性才是有效的 FIFO 队列。
                         createQueueRequest.Attributes.Add(QueueAttributeName.FifoQueue, "true");
                         createQueueRequest.Attributes.Add(QueueAttributeName.FifoThroughputLimit, "perMessageGroupId");
                         createQueueRequest.Attributes.Add(QueueAttributeName.DeduplicationScope, "messageGroup");
@@ -204,7 +204,7 @@ namespace OrleansAWSUtils.Storage
         }
 
         /// <summary>
-        /// 删除队列
+        /// 删除队列。
         /// </summary>
         /// <returns></returns>
         public async Task DeleteQueue()
@@ -222,9 +222,9 @@ namespace OrleansAWSUtils.Storage
         }
 
         /// <summary>
-        /// 向 SQS 队列添加消息
+        /// 向 SQS 队列添加消息。
         /// </summary>
-        /// <param name="message">发件请求</param>
+        /// <param name="message">消息请求。</param>
         /// <returns></returns>
         public async Task AddMessage(SendMessageRequest message)
         {
@@ -248,10 +248,10 @@ namespace OrleansAWSUtils.Storage
         }
 
         /// <summary>
-        /// 从 SQS 队列获取消息 。
+        /// 从 SQS 队列获取消息。
         /// </summary>
-        /// <param name="count">信件最多要达到的邮件数。 最小 1 和 最大 10</param>
-        /// <returns>收藏, 内有队列</returns>中的信件
+        /// <param name="count">要获取的消息数，最小为 1，最大为 10。</param>
+        /// <returns>包含队列消息的集合。</returns>
         public async Task<IEnumerable<SQSMessage>> GetMessages(int count = 1)
         {
             try
@@ -285,9 +285,9 @@ namespace OrleansAWSUtils.Storage
         }
 
         /// <summary>
-        /// 删除 SQS 队列中的信件
+        /// 从 SQS 队列删除消息。
         /// </summary>
-        /// <param name="message">要删除的邮件</param>
+        /// <param name="message">要删除的消息。</param>
         /// <returns></returns>
         public async Task DeleteMessage(SQSMessage message)
         {

@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
-/// <summary>针对实际任务、信息、日记和日程安排服务,开展工作流程保留。</summary>
+/// <summary>使用真实的任务、消息传递、日志记录和调度服务测试预留工作流。</summary>
 public abstract class DurableTaskApplicationScenarioTests : IAsyncLifetime
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
@@ -57,7 +57,7 @@ public abstract class DurableTaskApplicationScenarioTests : IAsyncLifetime
     [Fact]
     public async Task CommittedReservationIntentRecoversBusinessResultAfterSenderDeactivation()
     {
-        // 合同:承诺的离职保留在优雅发送者解除其功能后仍能幸存,客户不重新交付。
+        // 契约：已提交的传出预留请求在发送方优雅停用后仍然存在，无需客户端重新发送。
         var (order, catalog, initial, task, retry) = await StartInterruptedReservationAsync(loseAcceptedReply: false);
         Assert.True(_fixture.Cluster.TryGetGrainContext(order.GetGrainId(), out var before));
 
@@ -74,9 +74,9 @@ public abstract class DurableTaskApplicationScenarioTests : IAsyncLifetime
     [Fact]
     public async Task LostAcceptanceReplyRedeliversSameReservationAfterReceiverRecovery()
     {
-        // 合同:失去一个公认的答案,收回接收者不会两次保留库存。
+        // 契约：丢失已接受的应答并恢复接收方，不会重复预留库存。
         var (order, catalog, initial, task, retry) = await StartInterruptedReservationAsync(loseAcceptedReply: true);
-        // 接受输入箱, 不一定执行。 等待独立应用程序本身的结果 。
+        // 接受操作提交的是收件箱的准入，而不一定是执行。等待分离运行的应用任务自身的结果。
         Assert.True((await WaitAsync(
             catalog.GetDurableTask<bool>("catalog-reservation").GetResponseAsync(Token), order, "receiver business result")).GetResult<bool>());
         await AssertCommittedStockAsync(catalog, Reserved(initial));
@@ -98,7 +98,7 @@ public abstract class DurableTaskApplicationScenarioTests : IAsyncLifetime
     [Fact]
     public async Task CommittedReservationIntentRecoversBusinessResultAfterImmediateSiloLoss()
     {
-        // 这是测试主机的即时 silo- 损失边界, 不是进程杀死或存储设备崩溃 。
+        // 这是测试宿主立即丢失 Silo 的边界，并非终止进程或存储设备崩溃。
         var (order, catalog, initial, task, retry) = await StartInterruptedReservationAsync(loseAcceptedReply: false);
         Assert.True(_fixture.Cluster.TryGetGrainContext(order.GetGrainId(), out var activation));
         var originalSilo = activation.Address.SiloAddress;
@@ -117,7 +117,7 @@ public abstract class DurableTaskApplicationScenarioTests : IAsyncLifetime
     [Fact]
     public async Task CancellationAfterOneParallelReservationCompensatesOnlyTheSuccessfulLine()
     {
-        // 合同:取消合同解除已完成的平行线,而不是尚待审定的平行线。
+        // 契约：取消会释放已经完成的并行订单项，而不是仍在等待验证的订单项。
         var order = _fixture.Client.GetGrain<IReservationScenarioGrain>(Guid.NewGuid());
         var first = _fixture.Client.GetGrain<ICatalogItemGrain>(1);
         var second = _fixture.Client.GetGrain<ICatalogItemGrain>(2);
@@ -163,8 +163,8 @@ public abstract class DurableTaskApplicationScenarioTests : IAsyncLifetime
             Timeout, Token), order, "first reservation delivery failed; retry staged")).Payload!;
         _schedule = $"{retry.MessageId}, attempt {retry.AttemptCount}, due {retry.NextAttemptAt:O}";
 
-        // 登记州政府回召观察捕捉的确认
-        // 包括该中转,而不是承认先前的同时写作。
+        // 该事件描述暂存操作。已注册状态的回调观察到包含该暂存操作的捕获内容
+        // 获得确认，而非更早的并发写入获得确认。
         await WaitAsync(_commits.WaitAsync(order.GetGrainId()), order, "retry and outgoing intent acknowledged by storage");
         Assert.Equal(1, retry.AttemptCount);
         Assert.Equal(Assert.Single(_deliveries.Attempts).Envelope.MessageId, retry.MessageId);
@@ -174,8 +174,8 @@ public abstract class DurableTaskApplicationScenarioTests : IAsyncLifetime
     private async Task AssertRetryNotDueAsync(
         IReservationScenarioGrain order, ScheduledTask<bool> task, MessagingEvents.OutboxRetryScheduled retry)
     {
-        // 投票是一项可互连运行时间请求,因此也可以启动一个其申请的恢复发送人
-        // 正在等待远程接受。普通 grain 呼叫会等待此段后面的连接 。
+        // 轮询是可交错执行的运行时请求，因此也能激活正在恢复的发送方，即使其应用
+        // 执行段正在等待远程接受。普通 Grain 调用会排在该执行段之后等待。
         Assert.False(await WaitAsync(
             task.IsCompletedAsync(new PollingOptions { PollTimeout = TimeSpan.Zero }, Token), order, "retry not due"));
         Assert.True(_fixture.JobClock.GetUtcNow() < retry.NextAttemptAt);
@@ -207,7 +207,7 @@ public abstract class DurableTaskApplicationScenarioTests : IAsyncLifetime
 
     private async Task AssertCommittedStockAsync(ICatalogItemGrain catalog, CatalogItem expected)
     {
-        // 使用生产格式代码器将序列存储重放到一个新的状态机器中。 永远不要读取激活状态 。
+        // 使用生产环境的格式编解码器将序列化的存储内容重放到新状态机中。绝不读取激活状态。
         var services = _fixture.Cluster.GetSiloServiceProvider();
         await using var reader = services.GetRequiredService<IJournaledStateManagerFactory>()
             .CreateStandalone(JournalId.FromGrainId(catalog.GetGrainId()));
@@ -246,7 +246,7 @@ public abstract class DurableTaskApplicationScenarioTests : IAsyncLifetime
         return true;
     }
 
-    /// <summary>仅读化的已承诺目录字节投影;它从不使用期刊或拥有实时应用状态。</summary>
+    /// <summary>已提交目录数据字节的只读投影；它既不记录日志，也不拥有实时应用状态。</summary>
     private sealed class CommittedCatalogReader(IDurableValueCommandCodec<CatalogItem> codec)
         : IStateMachine, IDurableValueCommandHandler<CatalogItem>
     {
@@ -259,7 +259,7 @@ public abstract class DurableTaskApplicationScenarioTests : IAsyncLifetime
         public void WriteSnapshot(JournalStreamWriter writer) => throw new InvalidOperationException("Read-only recovery projection.");
     }
 
-    /// <summary>未能在入境前或持久接受后选定交货一次;记录每份重试的身份。</summary>
+    /// <summary>在准入前或持久化接受后，使一次选定的传递失败；记录每次重试的标识。</summary>
     private sealed class ReservationDeliveryControl : IOutgoingGrainCallFilter
     {
         private readonly List<InboxMessage> _attempts = [];
@@ -393,7 +393,7 @@ public sealed class ReservationScenarioGrain : DurableGrain, IReservationScenari
     }
 }
 
-/// <summary>对齐同步的再处理钩与自有日记确认捕获。</summary>
+/// <summary>将同步重试暂存钩子与其所属日志中已获确认的捕获操作配对。</summary>
 public sealed class ScenarioRetryCommitProbe : IObserver<MessagingEvents.MessagingEvent>, IDisposable
 {
     private readonly ConcurrentDictionary<GrainId, Retry> _retries = new();

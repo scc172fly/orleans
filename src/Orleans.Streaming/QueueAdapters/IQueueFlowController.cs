@@ -3,15 +3,15 @@
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 控制检索到的队列项目流动的职能。
+    /// 提供控制所获取队列数据项流量的功能。
     /// </summary>
     public interface IQueueFlowController
     {
         /// <summary>
-        /// 获取可以添加的最大项目数。
+        /// 获取可添加的最大数据项数量。
         /// </summary>
         /// <returns>
-        /// 可添加的项目的最大数量 。
+        /// 可添加的最大数据项数量。
         /// </returns>
         int GetMaxAddCount();
     }

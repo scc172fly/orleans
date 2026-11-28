@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 与 Orleans silos组群通信的客户端。
+    /// 用于与 Orleans Silo 集群通信的客户端。
     /// </summary>
     internal class InternalClusterClient : IInternalClusterClient
     {

@@ -1,7 +1,7 @@
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 保持对环中下一个 silo 的最新提及,从而帮助构建一个一致的散列圈。
+    /// 通过维护指向环中下一个 Silo 的最新引用，帮助构建一致性哈希环。
     /// </summary>
     internal class SimpleConsistentRingProvider
     {
@@ -18,9 +18,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 得到 <see cref="SiloAddress"/> 活动 silo 最小的、 最小的 一致的散数值, 最大
-        /// 大于此 silo,或如果不存在这种 silo ,则使用绝对最小的一致散列代码的活动 silo ,
-        /// 或 <see langword="null"/> 如果没有其他活动 silos 组内。
+        /// 获取一致性哈希值大于当前 Silo 且其中最小的活动 Silo 的 <see cref="SiloAddress"/>；
+        /// 如果不存在这样的 Silo，则取所有活动 Silo 中一致性哈希值最小者；
+        /// 如果集群中没有其他活动 Silo，则为 <see langword="null"/>。
         /// </summary>
         public SiloAddress? Successor
         {
@@ -50,7 +50,7 @@ namespace Orleans.Runtime
                 return successor;
             }
 
-            // 查找 silo ,使用最小的散列码,该散列码大于此 silo。
+            // 查找哈希值大于当前 Silo 且其中最小的 Silo。
             (SiloAddress? Silo, int HashCode) firstInRing = (default, int.MaxValue);
             (SiloAddress? Silo, int HashCode) candidate = (default, int.MaxValue);
             var localSiloHashCode = _localSilo.GetConsistentHashCode();
@@ -68,29 +68,29 @@ namespace Orleans.Runtime
 
                 var memberHashCode = member.SiloAddress.GetConsistentHashCode();
 
-                // 当地 silo 有可能是圈中最后的,因此我们也发现圈中的第一个 silo 。
-                // 届时,该企业将是当地 silo的继承人。
+                // 本地 Silo 可能位于环的末尾，因此还需找到环中的第一个 Silo；
+                // 在这种情况下，它就是本地 Silo 的后继。
                 if (memberHashCode < firstInRing.HashCode)
                 {
                     firstInRing = (member.SiloAddress, memberHashCode);
                 }
 
-                // 这名成员来到环中这个 silo 之前,但不是第一个在环中。
+                // 此成员位于当前 Silo 之前，但不是环中的第一个成员。
                 if (memberHashCode < localSiloHashCode)
                 {
                     continue;
                 }
 
-                // 该成员在环中此 silo 之后,但先于现任候选人。
-                // 因此,这位成员是新候选人。
+                // 此成员位于当前 Silo 之后，但位于当前候选者之前。
+                // 因此，该成员成为新的候选者。
                 if (memberHashCode < candidate.HashCode)
                 {
                     candidate = (member.SiloAddress, memberHashCode);
                 }
             }
 
-            // 结果是 silo ,其最小的散列码大于 silo,
-            // 或环中的第一个 silo ,或在没有其他活动 silos的情况下无效。
+            // 结果为哈希值大于当前 Silo 且其中最小的 Silo，
+            // 或环中的第一个 Silo；如果没有其他活动 Silo，则为 null。
             successor = candidate.Silo ?? firstInRing.Silo;
             return successor;
         }

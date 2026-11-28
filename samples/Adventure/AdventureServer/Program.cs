@@ -24,18 +24,18 @@ if (!File.Exists(mapFileName))
     return -2;
 }
 
-// 配置主机
+// 配置宿主。
 using var host = Host.CreateDefaultBuilder(args)
     .UseOrleans(siloBuilder => siloBuilder.UseLocalhostClustering())
     .Build();
 
-// 启动主机
+// 启动宿主。
 await host.StartAsync();
 
 Console.WriteLine("Map file name is '{0}'.", mapFileName);
 Console.WriteLine("Setting up Adventure, please wait ...");
 
-// 初始化游戏世界
+// 初始化游戏世界。
 var client = host.Services.GetRequiredService<IGrainFactory>();
 var adventure = new AdventureGame(client);
 await adventure.Configure(mapFileName);
@@ -43,7 +43,7 @@ await adventure.Configure(mapFileName);
 Console.WriteLine("Setup completed.");
 Console.WriteLine("Now you can launch the client.");
 
-// 键按下任何密钥时退出
+// 按任意键退出。
 Console.WriteLine("Press any key to exit.");
 Console.ReadKey();
 await host.StopAsync();

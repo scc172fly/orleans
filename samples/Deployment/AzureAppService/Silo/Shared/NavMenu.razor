@@ -1,18 +1,18 @@
 @inject ShoppingCartService Cart
 
 <MudNavMenu Rounded="true" Margin=Margin.Normal Class="pa-2" Color=Color.Tertiary>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="shop" Icon="@Icons.Material.Filled.CreditCard">Shop Inventory</MudNavLink>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">首页</MudNavLink>
+    <MudNavLink Href="shop" Icon="@Icons.Material.Filled.CreditCard">选购商品</MudNavLink>
     <AuthorizeView Policy="@AuthorizationPolicies.ProductManagement">
         <Authorized>
             <MudNavLink Href="products" Icon="@Icons.Material.Filled.ProductionQuantityLimits">
-                Product Management
+                商品管理
             </MudNavLink>
         </Authorized>
     </AuthorizeView>
     <MudNavLink Href="cart" Icon="@Icons.Material.Filled.ShoppingCart">
         <MudBadge Color="Color.Tertiary" Overlap="true" Bordered="true" Content="@_count" Origin="Origin.CenterRight" Class="mud-width-full">
-            Cart
+            购物车
         </MudBadge>
     </MudNavLink>
 </MudNavMenu>

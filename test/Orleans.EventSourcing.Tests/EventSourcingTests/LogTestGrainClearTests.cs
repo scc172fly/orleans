@@ -9,7 +9,7 @@ using Assert = Xunit.Assert;
 namespace Tester.EventSourcingTests
 {
     /// <summary>
-    /// 非Azure 日志测试 grain 配置的清晰行为整合测试。
+    /// 针对非 Azure 日志测试 Grain 配置的清除日志行为进行集成测试。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

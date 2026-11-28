@@ -8,7 +8,7 @@ using Xunit;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// 测试Roslyn的结构性平等行为 以及罗丝琳的累积性积蓄
+/// 测试 Roslyn 增量缓存所依赖的结构相等性行为。
 /// </summary>
 public class IncrementalModelEqualityTests
 {

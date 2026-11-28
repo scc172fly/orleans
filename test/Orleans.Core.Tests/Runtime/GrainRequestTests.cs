@@ -7,7 +7,7 @@ using Xunit;
 namespace NonSilo.Tests.Runtime;
 
 /// <summary>
-/// 测试要选择 <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/> 队列的请求。
+/// 测试由 <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/> 排入队列的请求。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Scheduler")]
 public class GrainRequestTests
@@ -28,7 +28,7 @@ public class GrainRequestTests
             null,
             cancellation.Token);
 
-        // 取消在反向登记令中又回响,所以这个在请求之前就发出。
+        // 取消操作按注册顺序的逆序运行回调，因此此回调会先于请求的回调运行。
         using var entered = new ManualResetEventSlim();
         using var release = new ManualResetEventSlim();
         using var blocker = cancellation.Token.Register(() =>
@@ -109,7 +109,7 @@ public class GrainRequestTests
             ((ILocalRequest)request).Complete(response);
             await cancel;
 
-            // 无论取得什么成果,这项任务都由先到之。
+            // 任务保存最先到达的结果。
             Assert.True(request.Task.IsCanceled || request.Task.IsFaulted && ReferenceEquals(request.Task.Exception!.InnerException, filterException));
         }
     }
@@ -160,7 +160,7 @@ public class GrainRequestTests
 
         await Assert.ThrowsAsync<NotSupportedException>(() => task);
 
-        // 未发牌不再保留请求或状态。
+        // 未取消的令牌不再保留对请求或其状态的引用。
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
@@ -176,7 +176,7 @@ public class GrainRequestTests
     }
 
     /// <summary>
-    /// A grain 当地情况拒绝每个地方的要求。
+    /// 其上下文拒绝所有本地请求的 Grain。
     /// </summary>
     private sealed class ThrowingGrain : IGrainBase
     {

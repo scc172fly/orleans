@@ -4,28 +4,28 @@ using System;
 namespace Orleans.Serialization.TypeSystem;
 
 /// <summary>
-/// 重写 <see cref="TypeSpec"/> 图形。
+/// 重写 <see cref="TypeSpec"/> 图。
 /// </summary>
 internal static class RuntimeTypeNameRewriter
 {
     /// <summary>
-    /// 代表重写 <see cref="QualifiedType"/>签名。
+    /// 用于重写 <see cref="QualifiedType"/> 的委托签名。
     /// </summary>
     /// <param name="input">输入。</param>
-    /// <param name="state">国家向再版方法提供的数据。</param>
-    /// <returns>重写合格类型。</returns>
+    /// <param name="state">提供给重写方法的状态。</param>
+    /// <returns>重写后的限定类型。</returns>
     public delegate QualifiedType Rewriter<TState>(in QualifiedType input, ref TState state);
 
     /// <summary>
-    /// 代表要签名解决复合型别名。
+    /// 用于解析复合类型别名的委托签名。
     /// </summary>
     /// <param name="input">输入。</param>
-    /// <param name="state">国家提供解析方法。</param>
-    /// <returns>溶解型号。</returns>
+    /// <param name="state">提供给解析方法的状态。</param>
+    /// <returns>解析得到的类型。</returns>
     public delegate TypeSpec CompoundAliasResolver<TState>(TupleTypeSpec input, ref TState state);
 
     /// <summary>
-    /// 使用所提供的重写代表重写一个 <see cref="TypeSpec"/> 。
+    /// 使用给定的重写委托重写 <see cref="TypeSpec"/>。
     /// </summary>
     public static TypeSpec Rewrite<TState>(TypeSpec input, Rewriter<TState> rewriter, ref TState state)
     {
@@ -36,7 +36,7 @@ internal static class RuntimeTypeNameRewriter
     }
 
     /// <summary>
-    /// 使用所提供的重写代表重写一个 <see cref="TypeSpec"/> 。
+    /// 使用给定的重写委托重写 <see cref="TypeSpec"/>。
     /// </summary>
     public static TypeSpec Rewrite<TState>(TypeSpec input, Rewriter<TState> rewriter, CompoundAliasResolver<TState>? compoundAliasRewriter, ref TState state)
     {
@@ -64,7 +64,7 @@ internal static class RuntimeTypeNameRewriter
             var result = ApplyInner(input, null);
             if (result.Assembly is not null)
             {
-                // 如果再写器泡沫 组装,在这里添加。 
+                // 如果重写器向上传递了程序集，则在此处添加它。
                 return new AssemblyQualifiedTypeSpec(result.Type, result.Assembly);
             }
 
@@ -72,7 +72,7 @@ internal static class RuntimeTypeNameRewriter
         }
 
         private (TypeSpec Type, string? Assembly) ApplyInner(TypeSpec input, string? assemblyName) =>
-        // 类型组装通过图向下传递,对组装的修改(由用户提供的代表)向上流动。
+        // 类型的程序集沿类型图向下传递，用户提供的委托对程序集所作的修改则向上传递。
         input switch
         {
             ConstructedGenericTypeSpec type => HandleGeneric(type, assemblyName),
@@ -100,7 +100,7 @@ internal static class RuntimeTypeNameRewriter
             var didChange = false;
             for (var i = 0; i < type.Arguments.Length; i++)
             {
-                // 通用类型参数不继承通用类型的组装。
+                // 泛型类型的类型实参不继承该泛型类型的程序集。
                 var args = ApplyInner(type.Arguments[i], null);
 
                 if (args.Assembly is not null)
@@ -130,7 +130,7 @@ internal static class RuntimeTypeNameRewriter
 
             if (!string.Equals(nsQualified, replacementName.Type, StringComparison.Ordinal))
             {
-                // 更改类型名称并可能修改组装。
+                // 更改类型名称，并可能更改程序集。
                 var resultType = RuntimeTypeNameParser.Parse(replacementName.Type);
                 if (!(resultType is NamedTypeSpec))
                 {
@@ -141,20 +141,20 @@ internal static class RuntimeTypeNameRewriter
             }
             else if (!string.Equals(assemblyName, replacementName.Assembly, StringComparison.Ordinal))
             {
-                // 只改变集会;
+                // 仅更改程序集；
                 return (type, replacementName.Assembly);
             }
             else if (type.ContainingType is not null)
             {
-                // 用户有机会改变父/母(包括集会)的父(母)关系。
+                // 让用户有机会更改外层类型，包括其程序集。
                 var replacementParent = ApplyInner(type.ContainingType, assemblyName);
                 if (ReferenceEquals(replacementParent.Type, type.ContainingType))
                 {
-                    // 对类型无变化。
+                    // 类型未发生更改。
                     return (type, replacementParent.Assembly);
                 }
 
-                // 家长类型改变了。
+                // 外层类型发生了更改。
                 var typedReplacement = (NamedTypeSpec)replacementParent.Type;
                 return (new NamedTypeSpec(typedReplacement, type.Name, type.Arity), replacementParent.Assembly);
             }
@@ -168,15 +168,15 @@ internal static class RuntimeTypeNameRewriter
         {
             var replacement = ApplyInner(type.Type, type.Assembly);
 
-            // 组别名称更改不会在组合限定节点上出现泡沫。
+            // 程序集名称的更改不会向上传递越过程序集限定符节点。
             if (string.IsNullOrWhiteSpace(replacement.Assembly))
             {
-                // 删除组装资格
+                // 移除程序集限定信息。
                 return (replacement.Type, assemblyName);
             }
             else if (!string.Equals(replacement.Assembly, type.Assembly, StringComparison.Ordinal) || !ReferenceEquals(replacement.Type, type.Type))
             {
-                // 更新组件或类型。
+                // 更新程序集或类型。
                 return (new AssemblyQualifiedTypeSpec(replacement.Type, replacement.Assembly), assemblyName);
             }
 
@@ -230,7 +230,7 @@ internal static class RuntimeTypeNameRewriter
                 (elements[i], _) = ApplyInner(type.Elements[i], assemblyName);
             }
 
-            // 在首次试图解决每个元素之后,先确定化合物别名。
+            // 先尝试解析复合类型别名中的各个独立组成部分，再解析整个别名。
             var replacementTypeSpec = new TupleTypeSpec(elements, type.Arity);
             if (_compoundTypeRewriter is { } rewriter)
             {
@@ -240,7 +240,7 @@ internal static class RuntimeTypeNameRewriter
                     throw new InvalidOperationException($"Compound type alias resolver resolved {type} into {resolved} which is also an alias type.");
                 }
 
-                // 给重新写入者一个重写已解决名称的机会。
+                // 让重写器有机会重写解析后的名称。
                 return ApplyInner(resolved, assemblyName);
             }
 

@@ -1,50 +1,46 @@
 ---
-title: "Redis grain 持久性"
-description: "配置 Redis 作为 Orleans grain 存储提供者 。"
+title: Redis Grain 持久化
+description: 将 Redis 配置为 Orleans Grain 存储提供程序。
 ms.date: 08/07/2026
 ms.topic: how-to
 ---
 
 <a id="redis-grain-persistence"></a>
+# Redis Grain 持久化
 
-# Redis grain 持久性
-
-下 [`Microsoft.Orleans.Persistence.Redis`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.Redis) 软件包仓库 grain 状态内 [Redis](https://redis.io/docs/latest/develop/data-types/)提供商使用原子 Redis 拒绝简陋写作的脚本和ETags。
+[`Microsoft.Orleans.Persistence.Redis`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.Redis) 包将 Grain 状态存储到 [Redis](https://redis.io/docs/latest/develop/data-types/) 中。提供程序使用 Redis 原子脚本和 ETag 拒绝过时的写入。
 
 <a id="configure-a-named-provider"></a>
+## 配置命名提供程序
 
-## 配置一个命名的提供者
-
-配置有 <xref:Orleans.Hosting.RedisSiloBuilderExtensions.AddRedisGrainStorage*>的提供者 :
+使用 <xref:Orleans.Hosting.RedisSiloBuilderExtensions.AddRedisGrainStorage*> 配置提供程序：
 
 :::code language="csharp" source="./snippets/persistence/StorageConfiguration.cs" id="configure_redis":::
 
-提供者名称必须与 `[PersistentState]`中的存储名匹配。
+提供程序名称必须与 `[PersistentState]` 中指定的存储名称匹配。
 
 <a id="configure-the-default-provider"></a>
+## 配置默认提供程序
 
-## 配置默认的提供商
-
-使用 <xref:Orleans.Hosting.RedisSiloBuilderExtensions.AddRedisGrainStorageAsDefault*> 何时 grains 使用应 Redis 无需具体说明存储名称:
+当 Grain 应在不指定存储名称的情况下使用 Redis 时，请使用 <xref:Orleans.Hosting.RedisSiloBuilderExtensions.AddRedisGrainStorageAsDefault*>：
 
 :::code language="csharp" source="./snippets/persistence/StorageConfiguration.cs" id="configure_redis_default":::
 
 <a id="storage-behavior"></a>
-
 ## 存储行为
 
-<xref:Orleans.Persistence.RedisStorageOptions> supports:
+<xref:Orleans.Persistence.RedisStorageOptions> 支持以下选项：
 
-- <xref:Orleans.Persistence.RedisStorageOptions.ConfigurationOptions> for the StackExchange.Redis connection.
-- <xref:Orleans.Persistence.RedisStorageOptions.DeleteStateOnClear> to delete the Redis key instead of resetting the record.
-- <xref:Orleans.Persistence.RedisStorageOptions.EntryExpiry> to expire records.
-- <xref:Orleans.Persistence.RedisStorageOptions.CreateMultiplexer> to supply a shared or custom `IConnectionMultiplexer`.
-- <xref:Orleans.Persistence.RedisStorageOptions.GetStorageKey> to customize key generation.
-- <xref:Orleans.Persistence.RedisStorageOptions.GrainStorageSerializer> to customize the stored representation.
+- <xref:Orleans.Persistence.RedisStorageOptions.ConfigurationOptions>：配置 StackExchange.Redis 连接。
+- <xref:Orleans.Persistence.RedisStorageOptions.DeleteStateOnClear>：清除状态时删除 Redis 键，而不是重置记录。
+- <xref:Orleans.Persistence.RedisStorageOptions.EntryExpiry>：使记录过期。
+- <xref:Orleans.Persistence.RedisStorageOptions.CreateMultiplexer>：提供共享或自定义的 `IConnectionMultiplexer`。
+- <xref:Orleans.Persistence.RedisStorageOptions.GetStorageKey>：自定义键生成方式。
+- <xref:Orleans.Persistence.RedisStorageOptions.GrainStorageSerializer>：自定义存储表示形式。
 
-默认密钥格式为 `{ServiceId}/state/{grainId}/{grainType}`。
+默认键格式为 `{ServiceId}/state/{grainId}/{grainType}`。
 
 > [!WARNING]
-> 设定 <xref:Orleans.Persistence.RedisStorageOptions.EntryExpiry> 只为有意的短期状态, 如测试。 过期去除状态独立于 grain 生命周期, 并允许重复激活 。
+> 仅为有意设置为临时状态的数据（例如测试数据）设置 <xref:Orleans.Persistence.RedisStorageOptions.EntryExpiry>。过期机制独立于 Grain 生命周期删除状态，并可能允许出现重复激活实例。
 
-更改关键函数或序列键不会迁移现有的 Redis 条目。计划数据迁移或保持与先前的表达式的兼容性。
+更改键生成函数或序列化器不会迁移现有 Redis 条目。应制定数据迁移计划，或保持与先前存储表示的兼容性。

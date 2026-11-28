@@ -7,22 +7,22 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// 光标进入一个简单的队列缓存 。
+    /// 简单队列缓存中的游标。
     /// </summary>
     public partial class SimpleQueueCacheCursor : IQueueCacheCursor, IQueueCacheCursorBatchDelivery
     {
         private readonly StreamId streamId;
         private readonly SimpleQueueCache cache;
         private readonly ILogger logger;
-        private IBatchContainer? current; // 这是缓存中当前元素的指针。 将返回什么 GetCurrent().
+        private IBatchContainer? current; // 指向缓存中的当前数据项；GetCurrent() 将返回此数据项。
         private DeliveryBatch? deliveryBatch;
 
-        // 也可以作为缓存中当前元素的指针。它与当前元素不同, in
-        // 即当前是整批,在第一次呼叫 MoveNext 之前无效
-        // 或已用完的成批的雨水, MoveNext
-        // 被召到这种情况, 电流将设定为元素中的批次。
-        // 正确执行点数模式所需的数据模式,因为在这个模式下 MoveNext 会被调用
-        // 在第一次访问( Get) 之前。
+        // 这同样是指向缓存当前数据项的指针。它与 current 不同，
+        // current 仅表示批次，并且在构造之后首次调用 MoveNext 之前为 null
+        // （若之前已耗尽所有批次，则刷新之后亦如此）。在这种情况下调用 MoveNext 时，
+        // 将 current 设置为 Element 包含的批次。这是
+        // 正确实现枚举器模式所必需的，因为该模式先调用 MoveNext，
+        // 再首次访问 (Get)Current。
 
         internal LinkedListNode<SimpleQueueCacheItem>? Element { get; private set; }
         internal StreamSequenceToken? SequenceToken { get; private set; }
@@ -44,11 +44,11 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// 光标进入简单的队列缓存
+        /// 简单队列缓存中的游标。
         /// </summary>
         /// <param name="cache">缓存实例。</param>
-        /// <param name="streamId">流体识别符号。</param>
-        /// <param name="logger">日志器。</param>
+        /// <param name="streamId">流标识符。</param>
+        /// <param name="logger">日志记录器。</param>
         public SimpleQueueCacheCursor(SimpleQueueCache cache, StreamId streamId, ILogger logger)
         {
             if (cache == null)
@@ -76,7 +76,7 @@ namespace Orleans.Providers.Streams.Common
         [Obsolete("Use MoveNextWithResult instead.")]
         public virtual bool MoveNext()
         {
-            if (current == null && IsSet && IsInStream(Element!.Value.Batch)) // IsSet 是真的,所以元素是非核。
+            if (current == null && IsSet && IsInStream(Element!.Value.Batch)) // IsSet 为 true，因此 Element 不为 null。
             {
                 current = Element!.Value.Batch;
                 deliveryBatch?.Track(Element);
@@ -102,7 +102,7 @@ namespace Orleans.Providers.Streams.Common
         {
             try
             {
-#pragma warning disable CS0618 // Preserve virtual dispatch for derived cursors which override the legacy method.
+#pragma warning disable CS0618 // 对重写旧版方法的派生游标保留虚方法分派。
                 return MoveNext() ? QueueCacheCursorMoveResult.Success : QueueCacheCursorMoveResult.NoData;
 #pragma warning restore CS0618
             }
@@ -127,7 +127,7 @@ namespace Orleans.Providers.Streams.Common
         {
             if (IsSet && current != null)
             {
-                Element!.Value.DeliveryFailure = true; // IsSet 是真的,所以元素是非核。
+                Element!.Value.DeliveryFailure = true; // IsSet 为 true，因此 Element 不为 null。
             }
         }
 
@@ -164,9 +164,9 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// 完成时清理缓存数据
+        /// 使用完毕后清理缓存数据。
         /// </summary>
-        /// <param name="disposing"><see langword="true"/> ,如果处理中处理; <see langword="false"/> ,如果从最后审定人那里调用。</param>
+        /// <param name="disposing">为 <see langword="true"/> 表示正在释放实例；为 <see langword="false"/> 表示从终结器调用。</param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)

@@ -9,14 +9,14 @@ using System.Text.Json.Serialization;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// 换算功能 <see cref="IPAddress"/> 与从这些天起 JSON 代表。
+    /// 用于在 <see cref="IPAddress"/> 实例及其 JSON 表示形式之间相互转换的功能。
     /// </summary>
     public sealed class IPAddressJsonConverter : JsonConverter<IPAddress>
     {
-        private const int MaxAddressSize = 65; // 最大字节或字符堆叠位置,取自 IPAddressParser.MaxIPv6StringLength
+        private const int MaxAddressSize = 65; // 在栈上分配的最大字节数或字符数，取自 IPAddressParser.MaxIPv6StringLength。
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 为 <see langword="null"/>。</exception>
         public override void Write(Utf8JsonWriter writer, IPAddress value, JsonSerializerOptions options)
         {
             ArgumentNullException.ThrowIfNull(writer);
@@ -83,7 +83,7 @@ namespace Orleans.Serialization
             => Parse(ref reader);
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 为 <see langword="null"/>。</exception>
         public override void WriteAsPropertyName(Utf8JsonWriter writer, [DisallowNull] IPAddress value, JsonSerializerOptions options)
         {
             ArgumentNullException.ThrowIfNull(writer);

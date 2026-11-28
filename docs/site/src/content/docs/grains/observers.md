@@ -1,80 +1,73 @@
 ---
-title: "Orleans 观察员"
-description: "发送来自 grains 向客户或其他 grains."
+title: Orleans 观察者
+description: 从 Grain 向客户端或其他 Grain 发送异步通知。
 ms.date: 08/07/2026
 ms.topic: concept-article
 ---
 
 <a id="orleans-observers"></a>
+# Orleans 观察者
 
-# Orleans 观察员
+观察者使 Grain 能够调用由 Orleans 客户端或另一个 Grain 承载的对象。它们适合在接收方保持连接时发送实时的、尽力而为的通知。
 
-观察家让 grains 调用一个 Orleans 客户端或其他 grain主机的对象。这些对象在接收器连接时可用于实时、最佳操作通知。
-
-使用观察者来进行一小组已知的、现场回击。 它们具有故意瞬间性,不是持久事件公交车的一般替代物。 一个客户可以不经通知中断服务,而重新创建的观察员则有不同的身份。 当订阅或发送必须成功或者向许多独立消费者发出信号时,使用 [Orleans 流流](../streaming/index.md) 或其他耐久信息机制。
+应将观察者用于一小组已知且在线的回调目标。观察者有意采用临时机制，并非持久化事件总线的通用替代方案。客户端可能在没有通知的情况下断开连接，重新创建的观察者会具有不同的标识。如果订阅或投递必须在故障后继续有效，或者需要向许多独立消费者分发消息，应使用 [Orleans Streams](../streaming/index.md) 或其他持久化消息机制。
 
 <a id="when-to-choose-observers-versus-streams"></a>
+## 何时选择观察者或流
 
-## 何时选择观察员相对于流
+当回调目标是特定的已连接客户端对象或 Grain，且应用程序只需要在连接保持活动时发送实时通知，可使用 Grain 观察者。观察者所需的基础设施很少：注册回调目标，由 Grain 直接通知该目标。
 
-使用 a grain 选项卡中,当回调目标是一个特定连接客户端对象或 grain 观察员几乎没有什么基础设施:登记了一个回调目标,而且 grain 直接通知这一目标。
+当应用程序需要多播投递、动态订阅、回放、提供程序定义的持久性，或在客户端或 Grain 重启后恢复时，可使用 Orleans 流。流的生存期可以超越单个激活实例或连接，而观察者注册绑定于回调目标，重新连接后必须重新建立注册。
 
-使用 a Orleans 当应用程序需要多播传送、动态订阅、回放、供应商定义的持久性或客户恢复后, 程序需要多播放发送、 动态订阅、 重播、 服务商定义的耐久性或恢复时的串流 grain 重新启动。 流体可以比单个激活或连接活过一个时间, 而观察员的注册则与回调目标挂钩, 并且必须在重新连接后重建 。
+二者的取舍主要在于生存期和投递语义：
 
-取舍主要与寿命和交付的语义有关:
+- 观察者是开销较低的直接回调，最适合临时状态或 UI 更新，但不提供持久性、重放能力，也不会在断开连接后自动恢复。
+- 流需要配置提供程序并遵循其特定投递语义，因此增加运维成本。显式订阅也可能需要持久化订阅记录。作为交换，流支持独立订阅者、保留的事件以及更灵活的故障恢复。
 
-- 观察者是低头、直接回击的,最有利于短暂状态或UI更新,但不能持久、可重播或断线后自动恢复。
-- 串流通过配置的供应商和具体供应商交付语义增加了运营成本。 明确订阅也可以需要耐久的订阅记录。 作为回报,流支持独立用户、保留活动以及更灵活的故障回收。
-
-关于更广泛的决定指导意见,见 [选择 Orleans 短信抽象](../streaming/streams-why.md) 和 [Orleans 流出的API](../streaming/streams-programming-apis.md) 。
+有关更全面的选型指导，请参阅[选择 Orleans 消息传递抽象](../streaming/streams-why.md)和 [Orleans 流处理 API](../streaming/streams-programming-apis.md)。
 
 <a id="define-an-observer"></a>
+## 定义观察者
 
-## 定义观察员
-
-观察员接口来自 <xref:Orleans.IGrainObserver>:
+观察者接口继承自 <xref:Orleans.IGrainObserver>：
 
 :::code language="csharp" source="../snippets/compiled/Grains/ServicesAndObserversSnippets.cs" id="chat_observer":::
-使用非同步返回类型。 避免 `async void`。 只有当通知是故意尽最大努力,出版商不需要例外或完成时才应用 <xref:Orleans.Concurrency.OneWayAttribute> 。
+使用异步返回类型，避免 `async void`。仅当通知明确采用尽力而为的方式，且发布者无需知道异常或完成情况时，才应用 <xref:Orleans.Concurrency.OneWayAttribute>。
 
 <a id="create-and-remove-a-client-observer-reference"></a>
+## 创建与移除客户端观察者引用
 
-## 创建并删除客户端观察员引用
-
-将本地对象转换为可覆盖的引用:
+将本地对象转换为可寻址引用：
 
 :::code language="csharp" source="../snippets/compiled/Grains/ServicesAndObserversSnippets.cs" id="subscribe_observer":::
-强烈提及当地观察员只要其应当收到电话,就应保留该观察员的有力参考。完成后,取消订阅并删除目标引用:
+在本地观察者需要接收调用的整个期间，保留对该观察者的强引用。不再需要时，取消订阅并删除对象引用：
 
 :::code language="csharp" source="../snippets/compiled/Grains/ServicesAndObserversSnippets.cs" id="unsubscribe_observer":::
-删除参考文件后,客户端登记就会被解密。 如果不能删除长寿登记,资源就会流失。
+删除引用会释放客户端注册。未删除长期存在的注册可能造成资源泄漏。
 
 <a id="manage-subscriptions-in-a-grain"></a>
+## 在 Grain 中管理订阅
 
-## 管理 grain中的订阅
-
-<xref:Orleans.Utilities.ObserverManager`1> 跟踪观察员,过期失效条目,并删除通知不合格的观察员:
+<xref:Orleans.Utilities.ObserverManager`1> 跟踪观察者，使过期条目失效，并移除通知失败的观察者：
 
 :::code language="csharp" source="../snippets/compiled/Grains/ServicesAndObserversSnippets.cs" id="chat_room_observer_manager":::
-当前 API 是 <xref:Orleans.Utilities.ObserverManager`2.Notify*>,包括接受 <xref:System.Func`2> 返回的 <xref:System.Threading.Tasks.Task>超载。没有 `NotifyAsync` 方法。
+当前 API 为 <xref:Orleans.Utilities.ObserverManager`2.Notify*>，其中包括接受返回 <xref:System.Threading.Tasks.Task> 的 <xref:System.Func`2> 的重载。没有 `NotifyAsync` 方法。
 
-订阅时间在 <xref:Orleans.Utilities.ObserverManager`2.ExpirationDuration>客户应在到期前续延。 <xref:Orleans.Utilities.ObserverManager`1> 将观察者删除; 它不会让整个出版操作失败。
+订阅在 <xref:Orleans.Utilities.ObserverManager`2.ExpirationDuration> 所指定的时长后以惰性方式过期。客户端应在过期前续订。通知发生异常时，<xref:Orleans.Utilities.ObserverManager`1> 会移除该观察者；并不会导致整个发布操作失败。
 
-当订阅身份不同于观察员的参考时使用 <xref:Orleans.Utilities.ObserverManager`2> 。
+如果订阅标识需要与观察者引用不同，请使用 <xref:Orleans.Utilities.ObserverManager`2>。
 
 <a id="grain-observers"></a>
+## Grain 观察者
 
-## Grain 观察员
-
-grain 可安装观察员界面,并自带一个参考号:
+Grain 可以实现观察者接口并传递自身的引用：
 
 :::code language="csharp" source="../snippets/compiled/Grains/ServicesAndObserversSnippets.cs" id="subscribe_grain_observer":::
-别打电话 <xref:Orleans.IGrainFactory.CreateObjectReference*> a 的a grain. Grains 已经可以处理。
+不要对 Grain 调用 <xref:Orleans.IGrainFactory.CreateObjectReference*>。Grain 本身已经可以被寻址。
 
 <a id="execution-and-cancellation"></a>
+## 执行与取消
 
-## 执行和取消
+对同一客户端观察者引用的调用按顺序执行，不可重入。不同观察者引用上的调用可以并发执行。
 
-使用一个客户端观察员的参考文件, 顺序执行, 而不是重新响应。 不同的观察者引用文件可以同时执行 。
-
-观察员方法可以接受 <xref:System.Threading.CancellationToken> 参数。取消仍然合作,无法使观察员发送文件持久。请查看 [取消 Orleans grain 调用](cancellation-tokens.md) 的取消语义。
+观察者方法可以接受 <xref:System.Threading.CancellationToken> 参数。取消仍然是协作式的，并不会使观察者投递具有持久性。有关取消语义，请参阅[取消 Orleans Grain 调用](cancellation-tokens.md)。

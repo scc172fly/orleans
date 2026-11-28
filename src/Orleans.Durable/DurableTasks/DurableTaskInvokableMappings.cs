@@ -6,5 +6,5 @@ using Orleans.Runtime;
 [assembly: InvokableBaseType(typeof(GrainReference), typeof(DurableTask), typeof(DurableTaskRequest))]
 [assembly: InvokableBaseType(typeof(GrainReference), typeof(DurableTask<>), typeof(DurableTaskRequest<>))]
 
-// 抽象数据显示它们已经存在的类型的化名; 这个组装生成了它们的元数据。
+// 抽象层声明其持久化类型的别名；此程序集生成这些类型的元数据。
 [assembly: GenerateCodeForDeclaringAssembly(typeof(DurableTaskResponse))]

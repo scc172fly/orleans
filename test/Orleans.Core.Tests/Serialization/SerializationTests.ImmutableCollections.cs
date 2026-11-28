@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.Serialization
 {
     /// <summary>
-    /// 无法更改收藏的序列化测试。
+    /// 不可变集合序列化的测试。
     /// </summary>
     [Collection(TestEnvironmentFixture.DefaultCollection)]
     [TestSuite("BVT")]

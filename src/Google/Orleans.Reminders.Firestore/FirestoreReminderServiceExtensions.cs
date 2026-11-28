@@ -7,21 +7,21 @@ using Orleans.Reminders.Firestore;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// 提供配置谷歌云烟火储存提醒存储的扩展方法。
+/// 提供用于配置 Google Cloud Firestore 提醒器存储的扩展方法。
 /// </summary>
 public static class FirestoreReminderServiceExtensions
 {
     /// <summary>
-    /// 添加由 Google Firstore 支持的提醒存储。
+    /// 添加由 Google Firestore 支持的提醒器存储。
     /// </summary>
     /// <param name="services">
-    /// 服务收藏
+    /// 服务集合。
     /// </param>
     /// <param name="configure">
-    /// 代表用于配置提醒存储器 。
+    /// 用于配置提醒器存储的委托。
     /// </param>
     /// <returns>
-    /// 提供的情况 <see cref="IServiceCollection"/>用来绑链
+    /// 提供的 <see cref="IServiceCollection"/>，用于链式调用。
     /// </returns>
     public static IServiceCollection UseFirestoreReminderService(this IServiceCollection services,
         Action<FirestoreOptions> configure)
@@ -30,16 +30,16 @@ public static class FirestoreReminderServiceExtensions
     }
 
     /// <summary>
-    /// 添加由 Google Firstore 支持的提醒存储。
+    /// 添加由 Google Firestore 支持的提醒器存储。
     /// </summary>
     /// <param name="services">
-    /// 服务收藏
+    /// 服务集合。
     /// </param>
     /// <param name="configureOptions">
-    /// 组合代表
+    /// 配置委托。
     /// </param>
     /// <returns>
-    /// 提供的情况 <see cref="IServiceCollection"/>用来绑链
+    /// 提供的 <see cref="IServiceCollection"/>，用于链式调用。
     /// </returns>
     public static IServiceCollection UseFirestoreReminderService(this IServiceCollection services,
         Action<OptionsBuilder<FirestoreOptions>> configureOptions)
@@ -55,16 +55,16 @@ public static class FirestoreReminderServiceExtensions
     }
 
     /// <summary>
-    /// 添加由谷歌云火炉支持的提醒存储。
+    /// 添加由 Google Cloud Firestore 支持的提醒器存储。
     /// </summary>
     /// <param name="builder">
-    /// 建筑工
+    /// 构建器。
     /// </param>
     /// <param name="configure">
-    /// 代表用于配置提醒存储器 。
+    /// 用于配置提醒器存储的委托。
     /// </param>
     /// <returns>
-    /// 提供的情况 <see cref="ISiloBuilder"/>用来绑链
+    /// 提供的 <see cref="ISiloBuilder"/>，用于链式调用。
     /// </returns>
     public static ISiloBuilder UseFirestoreReminderService(this ISiloBuilder builder,
         Action<FirestoreOptions> configure)
@@ -74,16 +74,16 @@ public static class FirestoreReminderServiceExtensions
     }
 
     /// <summary>
-    /// 添加由谷歌云火炉支持的提醒存储。
+    /// 添加由 Google Cloud Firestore 支持的提醒器存储。
     /// </summary>
     /// <param name="builder">
-    /// 建筑工
+    /// 构建器。
     /// </param>
     /// <param name="configureOptions">
-    /// 组合代表
+    /// 配置委托。
     /// </param>
     /// <returns>
-    /// 提供的情况 <see cref="ISiloBuilder"/>用来绑链
+    /// 提供的 <see cref="ISiloBuilder"/>，用于链式调用。
     /// </returns>
     public static ISiloBuilder UseFirestoreReminderService(this ISiloBuilder builder,
         Action<OptionsBuilder<FirestoreOptions>> configureOptions)

@@ -1,6 +1,6 @@
 import React from 'react';
 
-// 由公众提供/因此制作副本的逐字记录, 保存包裹和源地图确定性。
+// 从 public/ 提供资源，使构建原样复制该资源，确保 bundle 与 source map 的确定性。
 const logo = `${import.meta.env.BASE_URL}img/OrleansLogo.png`;
 
 export default function BrandHeader() {

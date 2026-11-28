@@ -62,7 +62,7 @@ public sealed class StockGrain(
         var next = new Inventory(outcome.RemainingStock,
             reservations,
             checked(inventory.ProcessedRequests + 1));
-        // 中转前的编码SendReply ;其余更改通过返回同步运行。
+        // SendReply 在暂存消息前进行编码；其余变更一直同步执行到返回为止。
         outbox.SendReply(messages.Result, context, request.ReplyDestination, outcome);
         _inventory.Value = next;
         context.Complete();

@@ -18,7 +18,7 @@ using Benchmarks.Serialization.Utilities;
 namespace Benchmarks.Serialization.Comparison;
 
 /// <summary>
-/// 将 Orleans 序列化性能与其他各类流行的连续制导器进行比较。
+/// 比较 Orleans 与其他常用序列化器对类类型的序列化性能。
 /// </summary>
 [Trait("Category", "Benchmark")]
 [TestSuite("Benchmark")]
@@ -122,7 +122,7 @@ public class ClassSerializeBenchmark
         return HyperionBuffer.Length;
     }
 
-    //[基准]
+    //[Benchmark]
     public int ZeroFormatter()
     {
         var bytes = ZeroFormatterSerializer.Serialize(ZeroFormatterInput);

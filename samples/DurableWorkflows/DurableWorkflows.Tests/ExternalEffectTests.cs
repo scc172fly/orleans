@@ -468,7 +468,7 @@ public sealed class ExternalEffectTests : IAsyncLifetime
         var authorization = Owner.AuthorizeFollowUpAsync(_identity, followUp, "support ticket 43");
         await authorizationWakeup.Entered.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
 
-        // 正当工作间假须经授权,在记录新的修订之前应尽力完成。
+        // 到期作业与授权操作交错执行，并在记录更高修订版本前暂停其执行尝试。
         var attemptWakeup = _jobGate.HoldNext();
         var attempt = Owner.AsReference<IEffectJobTestExtension>().RunDueJobAsync();
         await attemptWakeup.Entered.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
@@ -525,7 +525,7 @@ public sealed class EffectPolicyTestExtension(IDurableStateManager manager, IGra
     }
 }
 
-// 长期提供工作与 grain的其他电话隔开;此扩展名以同样方式运行处理器。
+// 持久化作业的投递与 Grain 的其他调用交错执行；此扩展以相同方式运行处理程序。
 public interface IEffectJobTestExtension : IGrainExtension
 {
     [AlwaysInterleave]
@@ -548,7 +548,7 @@ public sealed class EffectJobTestExtension(IGrainContext context) : IEffectJobTe
     }
 }
 
-// 将下一个排队的提醒时间计时电话拖到测试释放它们为止。
+// 暂停接下来排队的唤醒调度调用，直到测试解除暂停。
 internal sealed class EffectJobGate
 {
     private readonly ConcurrentQueue<EffectWriteGate> _holds = new();
@@ -582,7 +582,7 @@ internal sealed class GatedJobManager(ILocalDurableJobManager inner, EffectJobGa
 
 internal sealed class EffectClock : TimeProvider
 {
-    // 将预定的工作保留在实际调度员的未来;测试提前所有者时钟并明确援引适当工作。
+    // 将已调度作业保持在真实调度器的未来时刻；测试推进所有者时钟，并显式调用已到期的工作。
     private long _ticks = DateTimeOffset.UtcNow.AddDays(1).Ticks;
     public override DateTimeOffset GetUtcNow() => new(Interlocked.Read(ref _ticks), TimeSpan.Zero);
     public void Advance(TimeSpan duration) => Interlocked.Add(ref _ticks, duration.Ticks);

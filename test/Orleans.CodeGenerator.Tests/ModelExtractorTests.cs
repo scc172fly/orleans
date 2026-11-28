@@ -11,9 +11,9 @@ using Xunit;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// 测试 <see cref="ModelExtractor"/> 从源申报中正确提取值模型。
-/// 验证提取模型能收集所有必要数据,以获取增量管道缓存的逐步提取模型
-/// 同样的输入产生相同的模型
+/// 测试 <see cref="ModelExtractor"/> 能否从源码声明中正确提取值模型。
+/// 验证提取的模型包含增量流水线缓存所需的全部数据，
+/// 且相同输入会产生相等的模型。
 /// </summary>
 public class ModelExtractorTests
 {
@@ -44,7 +44,7 @@ public class DemoData
         Assert.False(model.IsGenericType);
         Assert.Equal(2, model.Members.Length);
 
-        // 自动产权存储为支持字段;通过 BackingPropertyName匹配
+        // 自动属性作为支持字段存储；通过 BackingPropertyName 匹配
         var valueMember = Assert.Single(model.Members, m => m.BackingPropertyName == "Value");
         var countMember = Assert.Single(model.Members, m => m.BackingPropertyName == "Count");
         Assert.Equal((uint)0, valueMember.FieldId);
@@ -168,7 +168,7 @@ public class DemoData
 }";
         var (model1, compilation) = await ExtractFirstSerializableType(code);
 
-        // 同一汇编的摘录——应产生相同的模式
+        // 从同一编译再次提取，应生成相同的模型
         var model2 = ExtractFromCompilation(compilation);
 
         Assert.Equal(model1, model2);

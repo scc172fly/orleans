@@ -9,13 +9,13 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Runtime.Utilities;
 
 /// <summary>
-/// 提供条带带的边框缓冲。添加操作使用线索 ID 来索引
-/// 底部缓冲线阵列,如果对 TryAdd 进行对调,则线索编号为
-/// 被重新击出以选择一个不同的缓冲来重试最多三次。使用此方法
-/// 以线性方式写出同时串线数 。
+/// 提供分段有界缓冲区。添加操作使用线程 ID 作为索引来访问
+/// 底层缓冲区数组。如果 TryAdd 发生竞争，则对线程 ID
+/// 重新进行哈希计算，以选择其他缓冲区，最多重试 3 次。采用这种方式，
+/// 写入性能会随并发线程数量线性扩展。
 /// </summary>
 /// <remarks>
-/// 由Alex Peck从 BitFaster.Caching 中提取: https://github.com/bitfaster/BitFaster.Caching/blob/275b9b072c0218e20f549b769cd183df1374e2ee/BitFaster.Caching/Buffers/StripedMpscBuffer.cs
+/// Derived from BitFaster.Caching by Alex Peck: https://github.com/bitfaster/BitFaster.Caching/blob/275b9b072c0218e20f549b769cd183df1374e2ee/BitFaster.Caching/Buffers/StripedMpscBuffer.cs
 /// </remarks>
 [DebuggerDisplay("Count = {Count}/{Capacity}")]
 internal sealed class StripedMpscBuffer<T> where T : class
@@ -25,10 +25,10 @@ internal sealed class StripedMpscBuffer<T> where T : class
     private readonly MpscBoundedBuffer<T>[] _buffers;
 
     /// <summary>
-    /// 初始化 StripedMpscBuffer 类的新实例,使用指定的条纹计数和缓冲大小。
+    /// 使用指定分段数量和缓冲区大小初始化 StripedMpscBuffer 类的新实例。
     /// </summary>
-    /// <param name="stripeCount">条纹计数。</param>
-    /// <param name="bufferSize">缓冲大小。</param>
+    /// <param name="stripeCount">分段数量。</param>
+    /// <param name="bufferSize">缓冲区大小。</param>
     public StripedMpscBuffer(int stripeCount, int bufferSize)
     {
         _buffers = new MpscBoundedBuffer<T>[stripeCount];
@@ -40,32 +40,32 @@ internal sealed class StripedMpscBuffer<T> where T : class
     }
 
     /// <summary>
-    /// 获取缓冲带中包含的项目数量。
+    /// 获取缓冲区中包含的元素数量。
     /// </summary>
     public int Count => _buffers.Sum(b => b.Count);
 
     /// <summary>
-    /// 约束能力。
+    /// 容量上限。
     /// </summary>
     public int Capacity => _buffers.Length * _buffers[0].Capacity;
 
     /// <summary>
-    /// 将缓冲排入指定的阵列。
+    /// 将缓冲区中的内容排出到指定数组。
     /// </summary>
-    /// <param name="outputBuffer">输出缓冲</param>
-    /// <returns>写到输出缓冲的项数。</returns>
+    /// <param name="outputBuffer">输出缓冲区。</param>
+    /// <returns>写入输出缓冲区的数据项数量。</returns>
     /// <remarks>
-    /// 单试取/排入+多次尝试添加的线索安全。
+    /// 在单个尝试取出或排空操作与多个尝试添加操作并发进行时具有线程安全性。
     /// </remarks>
     public int DrainTo(T[] outputBuffer) => DrainTo(outputBuffer.AsSpan());
 
     /// <summary>
-    /// 将缓冲排入指定的范围。
+    /// 将缓冲区中的内容排出到指定 Span。
     /// </summary>
-    /// <param name="outputBuffer">输出缓冲</param>
-    /// <returns>写到输出缓冲的项数。</returns>
+    /// <param name="outputBuffer">输出缓冲区。</param>
+    /// <returns>写入输出缓冲区的数据项数量。</returns>
     /// <remarks>
-    /// 单试取/排入+多次尝试添加的线索安全。
+    /// 在单个尝试取出或排空操作与多个尝试添加操作并发进行时具有线程安全性。
     /// </remarks>
     public int DrainTo(Span<T> outputBuffer)
     {
@@ -87,12 +87,12 @@ internal sealed class StripedMpscBuffer<T> where T : class
     }
 
     /// <summary>
-    /// 尝试添加指定项目。
+    /// 尝试添加指定元素。
     /// </summary>
-    /// <param name="item">增列的项目 。</param>
-    /// <returns>一个 BufferStatus 值,表示操作是否成功。</returns>
+    /// <param name="item">要添加的元素。</param>
+    /// <returns>指示操作是否成功的 BufferStatus 值。</returns>
     /// <remarks>
-    /// 线索保险箱
+    /// 线程安全。
     /// </remarks>
     public BufferStatus TryAdd(T item)
     {
@@ -120,10 +120,10 @@ internal sealed class StripedMpscBuffer<T> where T : class
     }
 
     /// <summary>
-    /// 从缓冲框中删除所有值。
+    /// 移除缓冲区中的所有值。
     /// </summary>
     /// <remarks>
-    /// 线线不安全
+    /// 非线程安全。
     /// </remarks>
     public void Clear()
     {
@@ -135,27 +135,27 @@ internal sealed class StripedMpscBuffer<T> where T : class
 }
 
 /// <summary>
-/// 提供多生产器、单一消费者的线性安全环带缓冲。当缓冲器满载时,
-/// TryAdd 失败并返回假。 当缓冲区为空时, TryTake 失败并返回虚假 。
+/// 提供多生产者、单消费者的线程安全环形缓冲区。当缓冲区已满时，
+/// TryAdd 失败并返回 false。当缓冲区为空时，TryTake 失败并返回 false。
 /// </summary>
-/// 以咖啡因图书馆 BoundedBuffer 类为基础,使用 ben.manes@gmail.com (Ben Manes)
+/// Based on the BoundedBuffer class in the Caffeine library by ben.manes@gmail.com (Ben Manes).
 [DebuggerDisplay("Count = {Count}/{Capacity}")]
 internal sealed class MpscBoundedBuffer<T> where T : class
 {
     private T?[] _buffer;
     private readonly int _mask;
-    private PaddedHeadAndTail _headAndTail; // 可变元结构, 不标记只读
+    private PaddedHeadAndTail _headAndTail; // 可变结构体，不要标记为 readonly。
 
     /// <summary>
-    /// 初始化一个具有特定约束容量的 MpscBoundedBuffer 类新实例。
+    /// 使用指定容量上限初始化 MpscBoundedBuffer 类的新实例。
     /// </summary>
-    /// <param name="boundedLength">接合长度。</param>
+    /// <param name="boundedLength">长度上限。</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public MpscBoundedBuffer(int boundedLength)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(boundedLength, 0);
 
-        // 必须是 2 的功率, 才能使用( M) slotsMask 取代%
+        // 必须是 2 的幂，才能使用 & slotsMask 代替 % 取模。
         boundedLength = BitOps.CeilingPowerOfTwo(boundedLength);
 
         _buffer = new T?[boundedLength];
@@ -163,12 +163,12 @@ internal sealed class MpscBoundedBuffer<T> where T : class
     }
 
     /// <summary>
-    /// 约束能力。
+    /// 容量上限。
     /// </summary>
     public int Capacity => _buffer.Length;
 
     /// <summary>
-    /// 获取缓冲带中包含的项目数量。
+    /// 获取缓冲区中包含的元素数量。
     /// </summary>
     public int Count
     {
@@ -204,12 +204,12 @@ internal sealed class MpscBoundedBuffer<T> where T : class
     }
 
     /// <summary>
-    /// 尝试添加指定项目。
+    /// 尝试添加指定元素。
     /// </summary>
-    /// <param name="item">增列的项目 。</param>
-    /// <returns>一个 BufferStatus 值,表示操作是否成功。</returns>
+    /// <param name="item">要添加的元素。</param>
+    /// <returns>指示操作是否成功的 BufferStatus 值。</returns>
     /// <remarks>
-    /// 线索保险箱
+    /// 线程安全。
     /// </remarks>
     public BufferStatus TryAdd(T item)
     {
@@ -235,12 +235,12 @@ internal sealed class MpscBoundedBuffer<T> where T : class
 
 
     /// <summary>
-    /// 尝试删除项目。
+    /// 尝试移除一个元素。
     /// </summary>
-    /// <param name="item">要删除的项目。</param>
-    /// <returns>一个 BufferStatus 值,表示操作是否成功。</returns>
+    /// <param name="item">要移除的元素。</param>
+    /// <returns>指示操作是否成功的 BufferStatus 值。</returns>
     /// <remarks>
-    /// 单试取/排入+多次尝试添加的线索安全。
+    /// 在单个尝试取出或排空操作与多个尝试添加操作并发进行时具有线程安全性。
     /// </remarks>
     public BufferStatus TryTake(out T? item)
     {
@@ -260,7 +260,7 @@ internal sealed class MpscBoundedBuffer<T> where T : class
 
         if (item == null)
         {
-            // 尚未出版
+            // 尚未发布。
             return BufferStatus.Contended;
         }
 
@@ -270,26 +270,26 @@ internal sealed class MpscBoundedBuffer<T> where T : class
     }
 
     /// <summary>
-    /// 将缓冲排入指定的数组段。
+    /// 将缓冲区中的内容排出到指定数组段。
     /// </summary>
-    /// <param name="output">输出缓冲</param>
-    /// <returns>写到输出缓冲的项数。</returns>
+    /// <param name="output">输出缓冲区。</param>
+    /// <returns>写入输出缓冲区的数据项数量。</returns>
     /// <remarks>
-    /// 单试取/排入+多次尝试添加的线索安全。
+    /// 在单个尝试取出或排空操作与多个尝试添加操作并发进行时具有线程安全性。
     /// </remarks>
     public int DrainTo(ArraySegment<T> output) => DrainTo(output.AsSpan());
 
     /// <summary>
-    /// 将缓冲排入指定的范围。
+    /// 将缓冲区中的内容排出到指定 Span。
     /// </summary>
-    /// <param name="output">输出缓冲</param>
-    /// <returns>写到输出缓冲的项数。</returns>
+    /// <param name="output">输出缓冲区。</param>
+    /// <returns>写入输出缓冲区的数据项数量。</returns>
     /// <remarks>
-    /// 单试取/排入+多次尝试添加的线索安全。
+    /// 在单个尝试取出或排空操作与多个尝试添加操作并发进行时具有线程安全性。
     /// </remarks>
     public int DrainTo(Span<T> output) => DrainToImpl(output);
 
-    // 使用外包装器方法强制 JIT 插入内部适配器方法
+    // 使用外层包装方法强制 JIT 内联内部适配器方法。
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private int DrainToImpl(Span<T> output)
     {
@@ -314,7 +314,7 @@ internal sealed class MpscBoundedBuffer<T> where T : class
 
             if (item == null)
             {
-                // 尚未出版
+                // 尚未发布。
                 break;
             }
 
@@ -336,10 +336,10 @@ internal sealed class MpscBoundedBuffer<T> where T : class
     private static int Length(ReadOnlySpan<T> output) => output.Length;
 
     /// <summary>
-    /// 从缓冲框中删除所有值。
+    /// 移除缓冲区中的所有值。
     /// </summary>
     /// <remarks>
-    /// 线线不安全
+    /// 非线程安全。
     /// </remarks>
     public void Clear()
     {
@@ -349,57 +349,57 @@ internal sealed class MpscBoundedBuffer<T> where T : class
 }
 
 /// <summary>
-/// 指定缓冲操作状态。
+/// 指定缓冲区操作的状态。
 /// </summary>
 internal enum BufferStatus
 {
     /// <summary>
-    /// 缓冲带满了
+    /// 缓冲区已满。
     /// </summary>
     Full,
 
     /// <summary>
-    /// 缓冲是空的 。
+    /// 缓冲区为空。
     /// </summary>
     Empty,
 
     /// <summary>
-    /// 缓冲行动成功。
+    /// 缓冲区操作成功。
     /// </summary>
     Success,
 
     /// <summary>
-    /// 缓冲行动被提出主张。
+    /// 缓冲区操作发生竞争。
     /// </summary>
     Contended,
 }
 
 /// <summary>
-/// 提供比特交织操作的实用方法。
+/// 提供用于位运算的实用方法。
 /// </summary>
 internal static class BitOps
 {
     /// <summary>
-    /// 计算比输入参数大2的最小功率。
+    /// 计算大于输入参数的最小 2 的幂。
     /// </summary>
     /// <param name="x">输入参数。</param>
-    /// <returns>最小功率大于x或等于x的两倍。</returns>
+    /// <returns>大于或等于 x 的最小 2 的幂。</returns>
     public static int CeilingPowerOfTwo(int x) => (int)CeilingPowerOfTwo((uint)x);
 
     /// <summary>
-    /// 计算比输入参数大2的最小功率。
+    /// 计算大于输入参数的最小 2 的幂。
     /// </summary>
     /// <param name="x">输入参数。</param>
-    /// <returns>最小功率大于x或等于x的两倍。</returns>
+    /// <returns>大于或等于 x 的最小 2 的幂。</returns>
     public static uint CeilingPowerOfTwo(uint x) => 1u << -BitOperations.LeadingZeroCount(x - 1);
 
     /// <summary>
-    /// 计算64位混合函数的 Stafford 变式13。
+    /// 计算 64 位混合函数的 Stafford 变体 13。
     /// </summary>
     /// <param name="z">输入参数。</param>
-    /// <returns>输入参数的位组合。</returns>
+    /// <returns>对输入参数进行位混合后的结果。</returns>
     /// <remarks>
-    /// 见 http://zimbry.blogspot.com/2011/09/better-bit-mixing-improving-on.html
+    /// 参见 http://zimbry.blogspot.com/2011/09/better-bit-mixing-improving-on.html
     /// </remarks>
     public static ulong Mix64(ulong z)
     {
@@ -410,7 +410,7 @@ internal static class BitOps
 }
 
 [DebuggerDisplay("Head = {Head}, Tail = {Tail}")]
-[StructLayout(LayoutKind.Explicit, Size = 3 * Padding.CACHE_LINE_SIZE)] // 字段前后/之间/之后的
+[StructLayout(LayoutKind.Explicit, Size = 3 * Padding.CACHE_LINE_SIZE)] // 字段前、字段之间及字段后的填充。
 internal struct PaddedHeadAndTail
 {
     [FieldOffset(1 * Padding.CACHE_LINE_SIZE)] public int Head;

@@ -55,7 +55,7 @@ import Default from '@astrojs/starlight/components/MarkdownContent.astro';
       } catch (error) {
         console.error('Failed to render Mermaid diagram.', error);
         const message = document.createElement('p');
-        message.textContent = 'This diagram could not be rendered.';
+        message.textContent = '无法呈现此图表。';
         const fallback = document.createElement('pre');
         const code = document.createElement('code');
         code.textContent = source;
@@ -95,7 +95,7 @@ import Default from '@astrojs/starlight/components/MarkdownContent.astro';
 
       lightbox.role = 'button';
       lightbox.tabIndex = 0;
-      lightbox.ariaLabel = `Open image: ${thumbnail.alt}`;
+      lightbox.ariaLabel = `打开图片：${thumbnail.alt}`;
 
       function openLightbox() {
         dialogImage.src = thumbnail.currentSrc || thumbnail.src;

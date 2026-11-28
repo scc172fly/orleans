@@ -83,7 +83,7 @@ namespace Orleans.Runtime.Providers
             var manager = new PersistentStreamPullingManager(
                 managerId,
                 streamProviderName,
-                this.PubSub(pubsubOptions.PubSubType)!, // 配置的 StreamPubSubType 值总是选择运行时间。
+                this.PubSub(pubsubOptions.PubSubType)!, // 已配置的 StreamPubSubType 值始终会选定一个运行时。
                 adapterFactory,
                 queueBalancer,
                 filter,
@@ -95,10 +95,10 @@ namespace Orleans.Runtime.Providers
                 ServiceProvider.GetRequiredService<StreamInstruments>(),
                 ServiceProvider.GetRequiredService<SystemTargetShared>());
 
-            // 经理只有在当地登记后才入住。
+            // 仅在管理器完成本地注册后才初始化它。
             var pullingAgentManager = manager.AsReference<IPersistentStreamPullingManager>();
 
-            // 不过,需要把它称为一个参考 grain 。
+            // 不过必须通过 Grain 引用调用它。
             await pullingAgentManager.Initialize(cancellationToken);
             return pullingAgentManager;
         }
@@ -169,7 +169,7 @@ namespace Orleans.Runtime.Providers
                 }
             }
 
-            return grainContext.GetComponent<IGrainExtensionBinder>()! // Grain 上下文暴露扩展比对器。
+            return grainContext.GetComponent<IGrainExtensionBinder>()! // Grain 上下文公开了扩展绑定器。
                 .GetOrSetExtension<TExtension, TExtensionInterface>(newExtensionFunc);
         }
 

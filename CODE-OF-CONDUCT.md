@@ -1,8 +1,8 @@
 <a id="code-of-conduct"></a>
 
-# 行为守则
+# 行为准则
 
-该项目通过了《协助者公约》规定的行为守则。
-来澄清我们社区中预期的行为
+本项目采用 Contributor Covenant 所定义的行为准则，
+以明确社区对成员行为的期望。
 
-详情请见 [.NET 基础行为守则](https://dotnetfoundation.org/code-of-conduct)。
+有关详细信息，请参阅 [.NET Foundation 行为准则](https://dotnetfoundation.org/code-of-conduct)。

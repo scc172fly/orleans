@@ -7,16 +7,16 @@ using Orleans.GrainDirectory;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 配置 Azure 表存储目录 grain 的扩展方法。
+    /// 用于配置 Azure Table Storage Grain 目录的扩展方法。
     /// </summary>
     public static class AzureTableGrainDirectorySiloBuilderExtensions
     {
         /// <summary>
-        /// 配置 Azure 表格存储为默认 grain 目录。
+        /// 将 Azure Table Storage 配置为默认 Grain 目录。
         /// </summary>
-        /// <param name="builder">下 silo 建筑商</param>
-        /// <param name="configureOptions">用于配置提供者的代表。</param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <param name="builder">Silo 构建器。</param>
+        /// <param name="configureOptions">用于配置提供程序的委托。</param>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder UseAzureTableGrainDirectoryAsDefault(
             this ISiloBuilder builder,
             Action<AzureTableGrainDirectoryOptions> configureOptions)
@@ -25,11 +25,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 Azure 表格存储为默认 grain 目录。
+        /// 将 Azure Table Storage 配置为默认 Grain 目录。
         /// </summary>
-        /// <param name="builder">下 silo 建筑商</param>
-        /// <param name="configureOptions">用于配置提供者选项构建器的代表。</param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <param name="builder">Silo 构建器。</param>
+        /// <param name="configureOptions">用于配置提供程序选项构建器的委托。</param>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder UseAzureTableGrainDirectoryAsDefault(
             this ISiloBuilder builder,
             Action<OptionsBuilder<AzureTableGrainDirectoryOptions>> configureOptions)
@@ -38,12 +38,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 添加名为 Azure 的表格存储目录 grain 。
+        /// 添加命名的 Azure Table Storage Grain 目录。
         /// </summary>
-        /// <param name="builder">下 silo 建筑商</param>
-        /// <param name="name"> grain 目录的名称。</param>
-        /// <param name="configureOptions">用于配置提供者的代表。</param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <param name="builder">Silo 构建器。</param>
+        /// <param name="name">Grain 目录名称。</param>
+        /// <param name="configureOptions">用于配置提供程序的委托。</param>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder AddAzureTableGrainDirectory(
             this ISiloBuilder builder,
             string name,
@@ -53,12 +53,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 添加名为 Azure 的表格存储目录 grain 。
+        /// 添加命名的 Azure Table Storage Grain 目录。
         /// </summary>
-        /// <param name="builder">下 silo 建筑商</param>
-        /// <param name="name"> grain 目录的名称。</param>
-        /// <param name="configureOptions">用于配置提供者选项构建器的代表。</param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <param name="builder">Silo 构建器。</param>
+        /// <param name="name">Grain 目录名称。</param>
+        /// <param name="configureOptions">用于配置提供程序选项构建器的委托。</param>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder AddAzureTableGrainDirectory(
             this ISiloBuilder builder,
             string name,

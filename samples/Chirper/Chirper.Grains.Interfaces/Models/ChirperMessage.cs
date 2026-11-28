@@ -1,11 +1,11 @@
 namespace Chirper.Grains.Models;
 
 /// <summary>
-/// 代表一个千位消息条目的数据对象
+/// 表示单条 Chirp 消息记录的数据对象。
 /// </summary>
-/// <param name="Message">此正弦信件条目的电文内容 。</param>
-/// <param name="Timestamp">最初重发此正声电文条目的时间戳。</param>
-/// <param name="PublisherUserName">发送此正弦电文的出版商的用户名。</param>
+/// <param name="Message">此 Chirp 消息条目的内容。</param>
+/// <param name="Timestamp">此 Chirp 消息条目最初被重新发布时的时间戳。</param>
+/// <param name="PublisherUserName">此 Chirp 消息发布者的用户名。</param>
 [GenerateSerializer]
 public record class ChirperMessage(
     [property: Id(0)] string Message,
@@ -13,13 +13,13 @@ public record class ChirperMessage(
     [property: Id(2)] string PublisherUserName)
 {
     /// <summary>
-    /// 这份声频信息的独特代号
+    /// 此 Chirp 消息的唯一 ID。
     /// </summary>
     [Id(3)]
     public Guid MessageId { get; } = Guid.NewGuid();
 
     /// <summary>
-    /// 返回此信件的字符串表示。
+    /// 返回此消息的字符串表示形式。
     /// </summary>
     public override string ToString() =>
         $"Chirp: '{Message}' from @{PublisherUserName} at {Timestamp}";

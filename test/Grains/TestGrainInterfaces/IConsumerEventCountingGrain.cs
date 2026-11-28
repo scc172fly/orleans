@@ -1,7 +1,7 @@
 namespace UnitTests.GrainInterfaces
 {
     /// <summary>
-    /// 仅计算消费量的流消费 grain
+    /// 仅统计所消费事件数量的流消费者 Grain
     /// </summary>
     public interface IConsumerEventCountingGrain : IGrainWithGuidKey
     {

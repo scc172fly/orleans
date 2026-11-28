@@ -5,8 +5,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// 练习超时和比赛,其输入被调用到其它 grains:被调用者收到取消的理由、
-/// 工作流程等待被调用者的结果,而超时则在工作流的停止运行中存活下来。
+/// 测试以跨 Grain 调用为输入的超时与竞速：被调用方收到取消原因，
+/// 工作流等待被调用方的结果，且超时机制在工作流停用后仍然有效。
 /// </summary>
 public abstract class DurableTaskRaceTests(string journalFormatKey) : IAsyncLifetime
 {
@@ -29,7 +29,7 @@ public abstract class DurableTaskRaceTests(string journalFormatKey) : IAsyncLife
         await holding.WaitAsync(Timeout, cancellationToken);
         _fixture.JobClock.Advance(TimeSpan.FromHours(2));
 
-        // 被调用的人观察超时的原因,然后返回它, 所以调用的结果就是工作流程的结果。
+        // 被调用方观察到超时原因并返回该原因，因此调用结果即为工作流结果。
         Assert.Equal(TimeoutReason, (await scheduled.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken)).GetResult<string>());
     }
 
@@ -47,7 +47,7 @@ public abstract class DurableTaskRaceTests(string journalFormatKey) : IAsyncLife
         await workflow.DeactivateAsync();
         await activation.Deactivated.WaitAsync(Timeout, cancellationToken);
 
-        // 下一次激活将重播工作流程,等待第一次启动时的延迟。
+        // 下一次激活重放工作流，工作流等待第一次激活所记录的延迟。
         await workflow.PingAsync();
         _fixture.JobClock.Advance(TimeSpan.FromHours(2));
 
@@ -65,7 +65,7 @@ public abstract class DurableTaskRaceTests(string journalFormatKey) : IAsyncLife
 
         var scheduled = await workflow.RaceAsync(holdKey, quoteKey).WithId("race").ScheduleAsync(cancellationToken);
 
-        // 每场比赛都输了 呼声返回它所观察到的原因, 手控比赛也看到结果。
+        // 每次竞速中落败的调用返回其观察到的原因，针对句柄的竞速会观察该结果。
         Assert.Equal(
             "1:quote; quote; Another task won the race.",
             (await scheduled.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken)).GetResult<string>());
@@ -73,14 +73,14 @@ public abstract class DurableTaskRaceTests(string journalFormatKey) : IAsyncLife
     }
 }
 
-/// <summary>运行赛跑和超时覆盖,任务状态以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行竞速与超时相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskRaceTests() : DurableTaskRaceTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行赛跑和超时覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行竞速与超时相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -174,7 +174,7 @@ public sealed class DurableTaskRaceWorkerGrain(DurableTaskMessagingProbe probe) 
             await Task.Delay(System.Threading.Timeout.InfiniteTimeSpan, cancellationToken);
         });
 
-    // 比赛的电话一开始, 即返回该返回。 所以这个电话在运行时会看到比赛取消 。
+    // 竞争调用启动后才返回，因此该调用在运行期间会感知竞速取消。
     public DurableTask<string> QuoteAfterAsync(Guid holdKey, int started) =>
         DurableTask.Run(async cancellationToken =>
         {

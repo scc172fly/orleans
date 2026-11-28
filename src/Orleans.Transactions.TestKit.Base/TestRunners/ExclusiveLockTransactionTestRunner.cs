@@ -3,14 +3,14 @@ using AwesomeAssertions;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 使用共享锁和明确要求的独家锁定验证交易行为。
+    /// 验证事务使用共享锁和显式请求的排他锁时的行为。
     /// </summary>
     public abstract class ExclusiveLockTransactionTestRunner : TransactionTestRunnerBase
     {
         /// <summary>
         /// 初始化 <see cref="ExclusiveLockTransactionTestRunner"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">下 grain 用于测试的工厂 grains.</param>
+        /// <param name="grainFactory">用于访问测试 Grain 的 Grain 工厂。</param>
         /// <param name="output">用于写入测试输出的回调。</param>
         protected ExclusiveLockTransactionTestRunner(IGrainFactory grainFactory, Action<string> output)
             : base(grainFactory, output)
@@ -18,23 +18,23 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 证明在同一页上同时进行读出时写交易 grain
-        /// 直径 OrleansTransactionLockUpgradeException 或 OrleansBrokenTransactionLockException
-        /// 当不使用独家锁时。
+        /// 验证未使用排他锁时，在同一个 Grain 上并发执行先读后写的事务
+        /// 会引发 OrleansTransactionLockUpgradeException 或 OrleansBrokenTransactionLockException
+        /// 异常。
         ///
-        /// 假设情景(LockUpgradeException):
-        ///   TX1: PerformRead 获得共享锁
-        ///   TX2: PerformRead 获得共享锁( 相同组)
-        ///   TX1: PerformUpdate 锁定升级失败
+        /// 场景（LockUpgradeException）：
+        /// TX1：PerformRead → 获取共享锁
+        /// TX2：PerformRead → 获取共享锁（同一锁组）
+        /// TX1：PerformUpdate → 锁升级失败
         ///
-        /// 假设情景(BrokenTransactionLockException):
-        ///   TX1: PerformRead 获得共享锁
-        ///   TX2: PerformRead 获得共享锁( 相同组)
-        ///   TX2: PerformUpdate +______________________升级, TX1 倒滚
-        ///   TX1: PerformUpdate 检测到 破锁
+        /// 场景（BrokenTransactionLockException）：
+        /// TX1：PerformRead → 获取共享锁
+        /// TX2：PerformRead → 获取共享锁（同一锁组）
+        /// TX2：PerformUpdate → 锁升级成功，TX1 回滚
+        /// TX1：PerformUpdate → 检测到已失效的锁
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
-        /// <returns>一项任务,代表同时进行的交易测试。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <returns>表示并发事务测试的任务。</returns>
         public virtual async Task ConcurrentReadThenWriteWithoutExclusiveLock_ThrowsLockException(string grainStates)
         {
             const int concurrentTransactions = 10;
@@ -77,11 +77,11 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 证明在读作方法上使用[UseExclusiveLock防止
-        /// 当同时进行的交易在同一 grain上执行“读作”时,有锁定升级例外。
+        /// 验证在读取方法上使用 [UseExclusiveLock] 时，
+        /// 能够避免并发事务在同一个 Grain 上执行先读后写操作时发生锁升级异常。
         /// </summary>
-        /// <param name="grainStates">测试所使用的交易状态配置。</param>
-        /// <returns>一项任务,代表同时进行的交易测试。</returns>
+        /// <param name="grainStates">测试使用的事务状态配置。</param>
+        /// <returns>表示并发事务测试的任务。</returns>
         public virtual async Task ConcurrentReadThenWriteWithExclusiveLock_NoLockException(string grainStates)
         {
             const int concurrentTransactions = 10;
@@ -116,10 +116,10 @@ namespace Orleans.Transactions.TestKit
 
             this.testOutput($"Lock exceptions: {lockExceptions.Count} out of {concurrentTransactions} transactions");
 
-            // 不应出现任何锁升级或破锁例外
+            // 不应发生锁升级异常或锁失效异常
             lockExceptions.Should().BeEmpty("UseExclusiveLock should prevent lock upgrade conflicts by acquiring exclusive locks from the start");
 
-            // 验证 grain 状态的一致性 - 所有成功交易都应该增加其价值
+            // 验证 Grain 状态的一致性：所有成功事务都应已增加各自的数值
             int[] values = await grain.Get();
             this.testOutput($"Final grain value: {values[0]}");
             (values[0]).Should().Be(concurrentTransactions * addValue);

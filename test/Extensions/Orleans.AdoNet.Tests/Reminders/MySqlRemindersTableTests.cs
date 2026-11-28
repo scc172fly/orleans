@@ -10,7 +10,7 @@ using Xunit;
 namespace UnitTests.RemindersTest
 {
     /// <summary>
-    /// 试验 Orleans 提醒表操作 MySQL 以存储后端为缓存后端。
+    /// 使用 MySQL 作为存储后端，测试 Orleans 提醒器表的操作。
     /// </summary>
     [TestCategory("Functional"), TestCategory("Reminders"), TestCategory("AdoNet"), TestCategory("MySql")]
     [TestSuite("Functional")]

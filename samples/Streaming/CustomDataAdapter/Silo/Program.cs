@@ -60,7 +60,7 @@ void ConfigureSilo(HostBuilderContext context, ISiloBuilder siloBuilder)
                         Constants.EHConsumerGroup);
 
                 }));
-                // 在此插入事件枢纽的定制 DataAdapter
+                // 此处接入自定义 Event Hubs 数据适配器。
                 configurator.UseDataAdapter(
                     (sp, n) => ActivatorUtilities.CreateInstance<CustomDataAdapter>(sp));
                 configurator.UseAzureTableCheckpointer(

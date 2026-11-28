@@ -10,28 +10,28 @@ using System.Threading.Tasks;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// 摘要 EventhubReceiver 类,用于配置 EventHubReceiver 类内 EventhubAdapterReceiver,
-    /// 配置也使用 EHGeneratorReceiver 内 EventHubAdapterReceiver 用于试验目的
+    /// EventHubReceiver 类的抽象，用于在 EventHubAdapterReceiver 中配置 EventHubReceiver 类，
+    /// 也用于在 EventHubAdapterReceiver 中配置 EHGeneratorReceiver 以供测试。
     /// </summary>
     public interface IEventHubReceiver
     {
         /// <summary>
-        /// 向分区发送一个自动同步消息, 请求更多信件
+        /// 向分区发送异步消息，请求更多消息。
         /// </summary>
-        /// <param name="maxCount">请求中应发送的信件最大量</param>
-        /// <param name="waitTime">请求的等待时间</param>
+        /// <param name="maxCount">此请求应投递的最大消息数。</param>
+        /// <param name="waitTime">此请求的等待时间。</param>
         /// <returns></returns>
         [Obsolete("Use the overload which accepts a CancellationToken.")]
         Task<IEnumerable<EventData>> ReceiveAsync(int maxCount, TimeSpan waitTime);
 
         /// <summary>
-        /// 发送对分区中更多信件的同步请求。
+        /// 向分区发送异步请求，获取更多消息。
         /// </summary>
-        /// <param name="maxCount">要返回的信件的最大数量。</param>
-        /// <param name="waitTime">最长等待时间。</param>
-        /// <param name="cancellationToken">取消操作所用的标记。</param>
-        /// <returns>收到的信息。</returns>
-#pragma warning disable CS0618 // Required for compatibility with providers which only implement the legacy overload.
+        /// <param name="maxCount">返回的最大消息数。</param>
+        /// <param name="waitTime">最大等待时间。</param>
+        /// <param name="cancellationToken">用于取消该操作的令牌。</param>
+        /// <returns>接收到的消息。</returns>
+#pragma warning disable CS0618 // 用于与仅实现旧版重载的提供程序保持兼容。
         Task<IEnumerable<EventData>> ReceiveAsync(
             int maxCount,
             TimeSpan waitTime,
@@ -39,24 +39,24 @@ namespace Orleans.Streaming.EventHubs
 #pragma warning restore CS0618
 
         /// <summary>
-        /// 发送清理信息
+        /// 发送清理消息。
         /// </summary>
         /// <returns></returns>
         [Obsolete("Use the overload which accepts a CancellationToken.")]
         Task CloseAsync();
 
         /// <summary>
-        /// 发送可以取消的清理信件。
+        /// 发送可取消的清理消息。
         /// </summary>
-        /// <param name="cancellationToken">取消操作所用的标记。</param>
-        /// <returns>代表操作的任务。</returns>
-#pragma warning disable CS0618 // Required for compatibility with providers which only implement the legacy overload.
+        /// <param name="cancellationToken">用于取消该操作的令牌。</param>
+        /// <returns>表示该操作的任务。</returns>
+#pragma warning disable CS0618 // 用于与仅实现旧版重载的提供程序保持兼容。
         Task CloseAsync(CancellationToken cancellationToken) => CloseAsync();
 #pragma warning restore CS0618
     }
 
     /// <summary>
-    /// 通过 EventHubReceiver的装配类
+    /// EventHubReceiver 的透传装饰器类。
     /// </summary>
     internal partial class EventHubReceiverProxy : IEventHubReceiver
     {
@@ -79,20 +79,20 @@ namespace Orleans.Streaming.EventHubs
             {
                 EventPosition eventPosition;
 
-                // 下图
+                // 如果存在起始偏移量，则从该偏移量开始读取。
                 if (offset != EventHubConstants.StartOfStream)
                 {
                     LogInfoStartingRead(logger, options.EventHubName, partitionSettings.Partition, offset);
                     eventPosition = EventPosition.FromOffset(offset, true);
                 }
-                // 其它,如果配置从现在开始开始,则开始读取最新数据
+                // 否则，如果配置为从当前时刻开始，则从最新数据开始读取。
                 else if (partitionSettings.ReceiverOptions.StartFromNow)
                 {
                     eventPosition = EventPosition.Latest;
                     LogInfoStartingReadLatest(logger, options.EventHubName, partitionSettings.Partition);
                 }
                 else
-                // ,从分区开始读取
+                // 否则，从分区开头开始读取。
                 {
                     eventPosition = EventPosition.Earliest;
                     LogInfoStartingReadBegin(logger, options.EventHubName, partitionSettings.Partition);

@@ -278,7 +278,7 @@ public class CallbackDataTests
         var failed = callback.Message.TargetSilo!;
         var destination = SiloAddress.New(IPAddress.Loopback, 30002, 1);
 
-        // 一次故障扫描在呼叫被重新瞄准之前观察到了最初的目标,再瞄准之后完成。
+        // 在调用重定向目标之前观察到原始目标的一次故障扫描，在重定向之后完成。
         Assert.True(callback.TryRetarget(destination, forwardCount: 1, NotDead));
         callback.OnTargetSiloFail(failed);
 
@@ -298,7 +298,7 @@ public class CallbackDataTests
         var dead = SiloAddress.New(IPAddress.Loopback, 30002, 1);
         var live = SiloAddress.New(IPAddress.Loopback, 30003, 1);
 
-        // 更新目标, 以在第一个目标与死之间进行实 silo 土地的silo 检查。
+        // 在第一次重定向及其失效 Silo 检查之间，又发生了重定向至存活 Silo 的操作。
         Assert.True(callback.TryRetarget(dead, forwardCount: 1, silo =>
         {
             Assert.True(callback.TryRetarget(live, forwardCount: 2, NotDead));
@@ -320,7 +320,7 @@ public class CallbackDataTests
         var callback = CreateRequestCallback(completion, CreateInstruments(serviceProvider), out _);
         var destination = SiloAddress.New(IPAddress.Loopback, 30002, 1);
 
-        // 目标的故障扫描在目标重现前就已经启动 所以目标重现失败了
+        // 目标 Silo 的故障扫描在重定向发布前已执行，因此重定向使调用失败。
         Assert.True(callback.TryRetarget(destination, forwardCount: 1, silo => silo.Equals(destination)));
 
         Assert.True(callback.IsCompleted);
@@ -342,7 +342,7 @@ public class CallbackDataTests
         var original = callback.Message.TargetSilo;
         var destination = SiloAddress.New(IPAddress.Loopback, 30002, 1);
 
-        // 超时信号表示原始 silo。与其竞争的重新目标信号表示现在拥有请求的 silo 。
+        // 超时通知原始 Silo。与其发生竞争的重定向会通知现在拥有请求的 Silo。
         callback.OnTimeout();
         Assert.Equal([original], cancellationManager.Targets);
         Assert.True(callback.TryRetarget(destination, forwardCount: 1, NotDead));
@@ -402,16 +402,16 @@ public class CallbackDataTests
             timeProvider: timeProvider);
         callback.SubscribeForCancellation(cancellation.Token);
 
-        // 连接重试时保留其序列体的信息,一旦重试发送后即予以发布。
+        // 由连接重试的消息保留其序列化消息体，直到重试发送后才释放。
         callback.Message.BodyObject = null;
 
-        // 电话本身的响应超时,比默认时间长,仍然适用。
+        // 调用自身的响应超时（长于默认超时）仍然有效。
         timeProvider.Advance(TimeSpan.FromMinutes(2));
         Assert.False(callback.IsExpired(timeProvider.GetTimestamp()));
         timeProvider.Advance(CancellableInvokable.ResponseTimeout);
         Assert.True(callback.IsExpired(timeProvider.GetTimestamp()));
 
-        // 电话仍然可以取消,因此取消电话的信号是其目标。
+        // 该调用仍可取消，因此向其目标发出取消信号。
         cancellation.Cancel();
         Assert.Equal([callback.Message.TargetSilo], cancellationManager.Targets);
     }

@@ -1,7 +1,7 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// 描述单个界面的代理输出,包括该文档拥有的可引用元数据名称。
+/// 描述单个接口的代理输出，包括该文件所拥有的可调用对象元数据名称。
 /// </summary>
 internal sealed record class ProxyOutputModel(
     ProxyInterfaceModel ProxyInterface,

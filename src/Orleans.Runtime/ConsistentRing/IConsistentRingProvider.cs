@@ -1,40 +1,40 @@
 namespace Orleans.Runtime.ConsistentRing
 {
-    // 有一天, 这将是唯一的环的提供者, i.e。 目录服务将会使用此
+    // 将来这将成为环的唯一提供程序，即目录服务也将使用它。
 
     internal interface IConsistentRingProvider
     {
         /// <summary>
-        /// 获取当前 silo的责任范围
+        /// 获取当前 Silo 的责任范围。
         /// </summary>
         /// <returns></returns>
         IRingRange GetMyRange();
 
-        // 以下两个与 ISiloStatusOracle 接口类似.,这取代了 "OnRangeChanged" ,因为 OnRangeChanged 只支持一个订阅
+        // 以下两个方法类似 ISiloStatusOracle 接口，用于替代 OnRangeChanged，因为后者只支持一个订阅。
 
         /// <summary>
-        /// 订阅接收更改范围通知
+        /// 订阅范围变化通知。
         /// </summary>
-        /// <param name="observer">一个接收范围变更通知的观察员界面。</param>
-        /// <returns>上下标值,表明订阅成功与否。</returns>
+        /// <param name="observer">用于接收范围变化通知的观察者接口。</param>
+        /// <returns>指示订阅是否成功的布尔值。</returns>
         bool SubscribeToRangeChangeEvents(IRingRangeListener observer);
 
         /// <summary>
-        /// 从接收更改范围通知中取消订阅
+        /// 取消范围变化通知的订阅。
         /// </summary>
-        /// <param name="observer">一个接收范围变更通知的观察员界面。</param>
-        /// <returns>布尔值,表明未订阅是否成功</returns>
+        /// <param name="observer">用于接收范围变化通知的观察者接口。</param>
+        /// <returns>指示取消订阅是否成功的布尔值。</returns>
         bool UnSubscribeFromRangeChangeEvents(IRingRangeListener observer);
 
         /// <summary>
-        /// 获取对 silo 负责的 <paramref name="key"/> , 并按一致的散列
+        /// 根据一致性哈希获取负责 <paramref name="key"/> 的 Silo。
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
         SiloAddress? GetPrimaryTargetSilo(uint key);
     }
 
-    // 类似 ISiloStatusListener
+    // 类似 ISiloStatusListener。
     internal interface IRingRangeListener
     {
         void RangeChangeNotification(IRingRange old, IRingRange now, bool increased);

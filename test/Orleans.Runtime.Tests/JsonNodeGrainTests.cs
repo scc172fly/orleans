@@ -12,9 +12,9 @@ using Xunit;
 namespace DefaultCluster.Tests
 {
     /// <summary>
-    /// Grain 测试界面 JsonNode 通过 Orleans grain 电话
-    /// 此接口从 GitHub 质号#9568 复制假设情景, 其中的 JsonNode 参数
-    /// 用于 grain 方法,可在运行时接收 JsonValue 实例。
+    /// 用于通过 Orleans Grain 调用测试 JsonNode 序列化的 Grain 接口。
+    /// 此接口复现 GitHub issue #9568 的场景：在 Grain 方法中使用 JsonNode 参数，
+    /// 运行时可能收到 JsonValue 实例。
     /// </summary>
     public interface IJsonNodeTestGrain : IGrainWithIntegerKey
     {
@@ -23,28 +23,28 @@ namespace DefaultCluster.Tests
     }
 
     /// <summary>
-    /// 执行 JsonNode 测试 grain。
-    /// 提供测试 JsonNode 实例序列化和脱序的方法
-    /// 通过 grain 方法调用,确保问题#9568的固定在分布背景下进行。
+    /// JsonNode 测试 Grain 的实现。
+    /// 提供通过 Grain 方法调用测试 JsonNode 实例序列化和反序列化的方法，
+    /// 确保 issue #9568 的修复在分布式环境中有效。
     /// </summary>
     public class JsonNodeTestGrain : Grain, IJsonNodeTestGrain
     {
         public Task<JsonNode?> ProcessJsonNode(JsonNode? node)
         {
-            // 简单地返回节点 - 序列化应该处理
+            // 直接返回节点即可，序列化机制应能处理它
             return Task.FromResult(node);
         }
 
         public Task<string> GetJsonString(JsonNode? node)
         {
-            // 转换为字符串以验证我们收到正确数据
+            // 转换为字符串，以验证收到的数据正确
             return Task.FromResult(node?.ToJsonString() ?? "null");
         }
     }
 
     /// <summary>
-    /// 用于配置内处理 Orleans 集的测试固定装置,并配有 JSON 序列化支持。
-    /// 两者兼设 silo 客户端使用 JsonCodec 用于 System.Text.Json 类型。
+    /// 配置支持 JSON 序列化的进程内 Orleans 集群的测试夹具。
+    /// 将 Silo 和客户端均设置为对 System.Text.Json 类型使用 JsonCodec。
     /// </summary>
     public class JsonNodeGrainTestFixture : BaseInProcessTestClusterFixture
     {
@@ -72,9 +72,9 @@ namespace DefaultCluster.Tests
     }
 
     /// <summary>
-    /// 综合测试 JsonNode 中 Orleans grains.
-    /// 这些测试核实 GitHub 问题#9568的确定值在 JsonNode 类型下正确运行
-    /// 是通过 grain 方法调用,特别是当 JsonValue 被传送到 JsonNode 参数时。
+    /// Orleans Grain 中 JsonNode 序列化的集成测试。
+    /// 这些测试验证在通过 Grain 方法调用传递 JsonNode 类型时，GitHub issue #9568 的修复能否正确工作，
+    /// 尤其是向 JsonNode 参数传递 JsonValue 的情况。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -92,47 +92,47 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 生产 GitHub #9568:测试 grain 方法 JsonNode 能够接收参数 JsonValue.
-        /// 本测试核查核心固定点, 即 JsonValue (衍生类型) 被传递到预期的方法 JsonNode (基准类型)。
-        /// 在此之前,这将在消除航空化期间投掷 InvalidCastException 。
+        /// 复现 GitHub issue #9568：测试具有 JsonNode 参数的 Grain 方法能否接收 JsonValue。
+        /// 此测试验证核心修复：将 JsonValue（派生类型）传递给需要 JsonNode（基类型）的方法。
+        /// 此前这会在反序列化期间抛出 InvalidCastException。
         /// </summary>
         [Fact]
         public async Task GrainCanProcessJsonValue_AsJsonNode()
         {
-            // 当 grain 方法有一个 JsonNode 参数但收到一个 JsonValue时
+            // 当 Grain 方法具有 JsonNode 参数但收到 JsonValue 时
             var grain = _fixture.GrainFactory.GetGrain<IJsonNodeTestGrain>(1);
 
-            // 创建 JsonValue (这是 JsonNode的子类型)
+            // 创建 JsonValue（它是 JsonNode 的子类型）
             JsonNode jsonNode = JsonValue.Create(1);
 
-            // 这不应该扔出 InvalidCastException
+            // 这不应抛出 InvalidCastException
             var result = await grain.ProcessJsonNode(jsonNode);
 
-            // 核查结果
+            // 验证结果
             Assert.NotNull(result);
             Assert.Equal(1, result.GetValue<int>());
         }
 
         /// <summary>
-        /// 测试 grains 能够处理所有 JsonNode 子类型(JsonValue、 JsonArray、 JsonObject)。
-        /// 证明每种类型通过 grain 方法调用保持其结构和数值。
+        /// 测试 Grain 能否处理所有 JsonNode 子类型（JsonValue、JsonArray、JsonObject）。
+        /// 验证每种类型经过 Grain 方法调用后均能保留其结构和值。
         /// </summary>
         [Fact]
         public async Task GrainCanProcessVariousJsonNodeTypes()
         {
             var grain = _fixture.GrainFactory.GetGrain<IJsonNodeTestGrain>(2);
 
-            // 带有内注的测试 JsonValue
+            // 测试包含 int 的 JsonValue
             JsonNode intValue = JsonValue.Create(42);
             var intResult = (await grain.ProcessJsonNode(intValue))!;
             Assert.Equal(42, intResult.GetValue<int>());
 
-            // 用字符串测试 JsonValue
+            // 测试包含 string 的 JsonValue
             JsonNode stringValue = JsonValue.Create("hello");
             var stringResult = (await grain.ProcessJsonNode(stringValue))!;
             Assert.Equal("hello", stringResult.GetValue<string>());
 
-            // 用布薄测试 JsonValue
+            // 测试包含 bool 的 JsonValue
             JsonNode boolValue = JsonValue.Create(true);
             var boolResult = (await grain.ProcessJsonNode(boolValue))!;
             Assert.True(boolResult.GetValue<bool>());
@@ -152,9 +152,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试 grain 复杂嵌套处理 JSON 结构。
-        /// 证明含有混合型号 JsonNode 的深嵌套物体正确无误
-        /// 通过 grain 电话进行序列和消毒。
+        /// 测试 Grain 对复杂嵌套 JSON 结构的处理。
+        /// 验证包含混合 JsonNode 类型的深层嵌套对象在 Grain 调用中能否正确
+        /// 序列化及反序列化。
         /// </summary>
         [Fact]
         public async Task GrainCanProcessComplexJsonStructure()
@@ -178,10 +178,10 @@ namespace DefaultCluster.Tests
                 }
             };
 
-            // 通过 grain进程
+            // 通过 Grain 进行处理
             var result = await grain.ProcessJsonNode(complexNode);
 
-            // 保存了校验结构
+            // 验证结构得到保留
             Assert.NotNull(result);
             Assert.Equal(123, result["simpleValue"]!.GetValue<int>());
 
@@ -197,33 +197,33 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试 JsonNode 实例可在 grain 方法内转换成字符串。
-        /// 证明 grain 收到可被操纵的有效 JsonNode 实例。
+        /// 测试是否可以在 Grain 方法内将 JsonNode 实例转换为字符串。
+        /// 验证 Grain 收到的是可进行操作的有效 JsonNode 实例。
         /// </summary>
         [Fact]
         public async Task GrainCanConvertJsonNodeToString()
         {
             var grain = _fixture.GrainFactory.GetGrain<IJsonNodeTestGrain>(4);
 
-            // 与 JsonValue测试
+            // 使用 JsonValue 进行测试
             JsonNode valueNode = JsonValue.Create(42);
             var valueString = await grain.GetJsonString(valueNode);
             Assert.Equal("42", valueString);
 
-            // 与 JsonObject测试
+            // 使用 JsonObject 进行测试
             JsonNode objectNode = new JsonObject { ["test"] = "value" };
             var objectString = await grain.GetJsonString(objectNode);
             Assert.Contains("\"test\":\"value\"", objectString);
 
-            // 与 JsonArray测试
+            // 使用 JsonArray 进行测试
             JsonNode arrayNode = new JsonArray { 1, 2, 3 };
             var arrayString = await grain.GetJsonString(arrayNode);
             Assert.Equal("[1,2,3]", arrayString);
         }
 
         /// <summary>
-        /// 测试 grain 方法正确处理 null JsonNode 参数。
-        /// 确保无效价值适当序列,不造成例外。
+        /// 测试 Grain 方法能否正确处理值为 null 的 JsonNode 参数。
+        /// 确保 null 值能够正确序列化且不会导致异常。
         /// </summary>
         [Fact]
         public async Task GrainHandlesNullJsonNode()
@@ -239,13 +239,13 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 试验线安全和正确性同时进行 grain 电话用 JsonNode 参数。
-        /// 证明多个同时 grain 调用不同值的 JsonNode 并不相互干扰。
+        /// 测试使用 JsonNode 参数并发调用 Grain 时的线程安全性及正确性。
+        /// 验证使用不同 JsonNode 值同时发起多次 Grain 调用不会相互干扰。
         /// </summary>
         [Fact]
         public async Task MultipleConcurrentGrainCallsWithJsonNodes()
         {
-            // 测试同时调用以确保线串安全
+            // 测试并发调用，以确保线程安全
             var tasks = new Task[10];
 
             for (int i = 0; i < 10; i++)

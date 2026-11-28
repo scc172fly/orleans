@@ -10,99 +10,99 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans;
 
 /// <summary>
-/// 全部 grain 类的抽象基级。
+/// 所有 Grain 类的抽象基类。
 /// </summary>
 public abstract partial class Grain : IGrainBase, IAddressable
 {
-    // 因为我们目前没有提供注射的方法,
-    // 任何与其的交互作用将产生非单位测试代码。
-    // 客户代码(包括本类的子类别)中显示的“信息”应来自 IGrainRuntime。
-    // 更好的解决办法是重新构思这个界面,使它可以通过构建器注射。
+    // 不要直接使用它，因为目前没有提供注入它的方式；
+    // 与它交互会导致代码无法进行单元测试。客户端代码
+    // （包括此类的子类）能够访问的任何行为都应通过 IGrainRuntime 公开。
+    // 更好的解决方案是重构此接口，使其可以通过构造函数注入。
     /// <summary>
-    /// 获取此 grain 激活的运行时间上下文。
+    /// 获取此 Grain 激活实例的运行时上下文。
     /// </summary>
     [AllowNull]
     public IGrainContext GrainContext { get; private set; }
 
     /// <summary>
-    /// 获取此 grain的引用。
+    /// 获取对此 Grain 的引用。
     /// </summary>
     public GrainReference GrainReference { get { return GrainContext.GrainReference; } }
 
     internal IGrainRuntime Runtime { get; }
 
     /// <summary>
-    /// 获取一个可用于访问其它 grains的对象。如果此 grain 不与运行时间相关,例如直接为单位测试创建时,则该对象无效。
+    /// 获取一个可用于访问其他 Grain 的对象。如果此 Grain 未关联运行时（例如直接为单元测试创建时），则为 null。
     /// </summary>
     protected IGrainFactory GrainFactory => Runtime.GrainFactory;
 
     /// <summary>
-    /// 获取运行时管理 IServiceProvider 。如果此 grain 不与运行时间相关, 例如当直接为单位测试创建时, 则无效 。
+    /// 获取由运行时管理的 IServiceProvider。如果此 Grain 未关联运行时（例如直接为单元测试创建时），则为 null。
     /// </summary>
-    // 运行时间确保这不会无效,单位测试框架必须确保它不会无效。
+    // ! 运行时保证此值不为 null，单元测试框架也必须保证此值不为 null。
     protected internal IServiceProvider ServiceProvider => GrainContext?.ActivationServices ?? Runtime?.ServiceProvider!;
 
     internal GrainId GrainId => GrainContext.GrainId;
 
     /// <summary>
-    /// 绝对不应该引用这个构建器。 我们揭露它, 这样客户代码( Grain子类) 不必添加一个构建器 。
-    /// 客户端代码应使用 GrainFactory 属性来获取 Grain的引用。
+    /// 不应主动调用此构造函数。公开它是为了让客户端代码（Grain 的子类）不必添加构造函数。
+    /// 客户端代码应使用 GrainFactory 属性获取 Grain 引用。
     /// </summary>
-    // 运行时间确保这不会无效,单位测试框架必须确保它不会无效。
+    // ! 运行时保证此值不为 null，单元测试框架也必须保证此值不为 null。
     protected Grain() : this(RuntimeContext.Current!, grainRuntime: null)
     { }
 
     /// <summary>
-    /// Grain 实施者不必暴露该构建器,但可以选择这样做。
-    /// 此构建器对单位测试特别有用, 测试代码可以创建 Grain 并替换
-    /// 和有双倍试验的 IGrainIdentity 和 IGrainRuntime 。
+    /// Grain 的实现者不必公开此构造函数，但可以选择公开它。
+    /// 此构造函数尤其适用于单元测试，测试代码可以创建 Grain，并将
+    /// IGrainIdentity 和 IGrainRuntime 替换为测试替身（mock/stub）。
     /// </summary>
     protected Grain(IGrainContext grainContext, IGrainRuntime? grainRuntime = null)
     {
         GrainContext = grainContext;
 
-        // 运行时间确保这不会无效,单位测试框架必须确保它不会无效。
+        // ! 运行时保证此值不为 null，单元测试框架也必须保证此值不为 null。
         Runtime = grainRuntime ?? grainContext?.ActivationServices.GetService<IGrainRuntime>()!;
     }
 
     /// <summary>
-    /// 字符串表示 grain SiloIdentity ,包括类型和主键。
+    /// Grain 的 SiloIdentity 的字符串表示形式，包括类型和主键。
     /// </summary>
     public string IdentityString => GrainId.ToString();
 
     /// <summary>
-    /// 当前 silo的独特标识符。
-    /// 此字符串没有语义内容, 但可能对记录有用 。
+    /// 当前 Silo 的唯一标识符。
+    /// 此字符串本身不具有语义含义，但可用于日志记录。
     /// </summary>
     public string RuntimeIdentity => Runtime?.SiloIdentity ?? string.Empty;
 
     /// <summary>
-    /// 注册一个向此 grain发送定期回调的计时器。
+    /// 注册一个定时器，以便定期向此 Grain 发起回调。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 此计时器不会阻止当前 grain 被禁用 。
-    /// 如果该 grain 已停止使用,则定时器将被丢弃。
+    /// 此定时器不会阻止当前 Grain 被停用。
+    /// 如果 Grain 被停用，定时器也将被丢弃。
     /// </para>
     /// <para>
-    /// 直到任务从回调中返回 解决了,
-    /// 下次定时器时,将不会排期。
-    /// 也就是说,时间推回从不中断转弯。
+    /// 在回调返回的 Task 完成之前，
+    /// 不会调度下一次定时器触发。
+    /// 也就是说，同一定时器的回调执行轮次绝不会相互交错。
     /// </para>
     /// <para>
-    /// 可随时调用 <c>Dispose</c> 方法,停止计时器
-    /// 调用时, 计时器手柄上返回。
+    /// 可以随时通过调用 <c>Dispose</c> 方法停止定时器，
+    /// 该方法位于本次调用返回的定时器句柄上。
     /// </para>
     /// <para>
-    /// 被调回时被任务推出或错出的任何例外 
-    /// 将会登录, 但不会阻止下一次计时器的刻录 。
+    /// 回调抛出的任何异常或回调返回的 Task 中的故障异常
+    /// 都会被记录，但不会阻止下一次定时器触发进入队列。
     /// </para>
     /// </remarks>
-    /// <param name="callback">计时器勾选时要援引回调函数。</param>
-    /// <param name="state">标的时作为辩论通过的国家 <paramref name="callback"/>.</param>
-    /// <param name="dueTime">第一次定时器选中的合适时间。</param>
-    /// <param name="period">后一个计时器计时周期。</param>
-    /// <returns>处理此计时器 。</returns>
+    /// <param name="callback">定时器触发时调用的回调函数。</param>
+    /// <param name="state">调用 <paramref name="callback"/> 时作为参数传入的状态对象。</param>
+    /// <param name="dueTime">首次定时器触发前的延迟时间。</param>
+    /// <param name="period">后续定时器触发的周期。</param>
+    /// <returns>此定时器的句柄。</returns>
     [Obsolete("Use 'this.RegisterGrainTimer(callback, state, new() { DueTime = dueTime, Period = period, Interleave = true })' instead.")]
     protected IDisposable RegisterTimer(Func<object?, Task> callback, object? state, TimeSpan dueTime, TimeSpan period)
     {
@@ -110,27 +110,27 @@ public abstract partial class Grain : IGrainBase, IAddressable
 
         EnsureRuntime();
 
-        // 运行时间确保这不会无效,单位测试框架必须确保它不会无效。
+        // ! 运行时保证此值不为 null，单元测试框架也必须保证此值不为 null。
         return Runtime.TimerRegistry.RegisterTimer(GrainContext ?? RuntimeContext.Current!, callback, state, dueTime, period);
     }
 
     /// <summary>
-    /// 解除此激活 grain 在当前 grain 方法调用已完成。
-    /// 此调用将标志着当前 grain 的激活, 在当前方法结束时停止使用并移除 。
-    /// 下次调用此 grain 将导致使用不同的激活, 典型地意味着在运行时将自动生成新的激活。
+    /// 当前 Grain 方法调用完成后，停用此 Grain 激活实例。
+    /// 此调用将标记当前 Grain 的此激活实例，使其在当前方法结束后被停用并移除。
+    /// 下一次调用此 Grain 时将使用另一个激活实例，通常意味着由运行时自动创建新的激活实例。
     /// </summary>
     protected void DeactivateOnIdle()
     {
         EnsureRuntime();
 
-        // 运行时间确保这不会无效,单位测试框架必须确保它不会无效。
+        // ! 运行时保证此值不为 null，单元测试框架也必须保证此值不为 null。
         Runtime.DeactivateOnIdle(GrainContext ?? RuntimeContext.Current!);
     }
 
     /// <summary>
-    /// 开始尝试将这个实例移到另一个地方。
-    /// 移民捕捉到当前的 <see cref="RequestContext"/>,向启动的安置主任提供,以便其在选择新地点时能够加以考虑。
-    /// 移民将不同步地发生,而没有执行任何请求;如果启动的安置主任不选择其他地点,则不会出现移徙。
+    /// 开始尝试将此实例迁移到另一个位置。
+    /// 迁移会捕获当前 <see cref="RequestContext"/>，并将其提供给此激活实例的放置决策器，以便选择新位置时加以考虑。
+    /// 迁移将在没有正在执行的请求时异步进行；如果此激活实例的放置决策器未选出其他位置，则不会迁移。
     /// </summary>
     protected void MigrateOnIdle()
     {
@@ -139,34 +139,34 @@ public abstract partial class Grain : IGrainBase, IAddressable
     }
 
     /// <summary>
-    /// 延迟至少要在指定时间内取消激活 。
-    /// <para>积极 <c>timeSpan</c> 值系指“防止GC在这段时间内启动该激活”。</para>
-    /// <para>A <see cref="TimeSpan.Zero"/> 值中,“包括” <see cref="DelayDeactivation(TimeSpan)"/> 并按正常的启动垃圾收集设置,使这种激活行为成为行动”。</para>
-    /// <para>A <see cref="Timeout.InfiniteTimeSpan"/> 值指“无限期停止使用”。</para>
-    /// <para><see cref="DeactivateOnIdle"/> 将撤销/取代任何当前“保持生命”设置,
-    /// 立即将 grain 用于禁用。</para>
+    /// 将此激活实例的停用至少延迟指定的时长。
+    /// <para>正数 <c>timeSpan</c> 表示“在该时长内阻止回收此激活实例”。</para>
+    /// <para><see cref="TimeSpan.Zero"/> 表示“取消上一次 <see cref="DelayDeactivation(TimeSpan)"/> 调用所设置的延迟，恢复此激活实例的常规激活实例垃圾回收设置”。</para>
+    /// <para><see cref="Timeout.InfiniteTimeSpan"/> 表示“无限期延迟停用”。</para>
+    /// <para><see cref="DeactivateOnIdle"/> 会撤销或覆盖当前所有“保持活动”设置，
+    /// 使此 Grain 立即具备被停用的条件。</para>
     /// </summary>
     protected void DelayDeactivation(TimeSpan timeSpan)
     {
         EnsureRuntime();
 
-        // 运行时间确保这不会无效,单位测试框架必须确保它不会无效。
+        // ! 运行时保证此值不为 null，单元测试框架也必须保证此值不为 null。
         Runtime.DelayDeactivation(GrainContext ?? RuntimeContext.Current!, timeSpan);
     }
 
     /// <summary>
-    /// 启动 grain的过程结束时,该方法被调用。
-    /// 任何信息发至 grain之前,请先拨打该邮件。
-    /// 对于宣布为持续状态的 grains ,这种方法在国有财产人口密集后使用。
+    /// 此方法在 Grain 激活过程的最后阶段调用。
+    /// 在向 Grain 分派任何消息之前调用此方法。
+    /// 对于声明了持久化状态的 Grain，在 State 属性填充完成后调用此方法。
     /// </summary>
-    /// <param name="cancellationToken">取消符号, 当激活时的信号被取消时将发出此信号。</param>
+    /// <param name="cancellationToken">指示正在取消激活操作的取消令牌。</param>
     public virtual Task OnActivateAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
     /// <summary>
-    /// 在解除 grain激活过程的开始时,就要求使用这种方法。
+    /// 此方法在 Grain 停用过程开始时调用。
     /// </summary>
-    /// <param name="reason">停止使用的理由。仅提供信息。</param>
-    /// <param name="cancellationToken">取消符号,该符号在解除功能时发出信号后应立即完成。</param>
+    /// <param name="reason">停用原因，仅供参考。</param>
+    /// <param name="cancellationToken">指示停用过程应尽快完成的取消令牌。</param>
     public virtual Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken) => Task.CompletedTask;
 
     internal void EnsureRuntime()
@@ -179,29 +179,29 @@ public abstract partial class Grain : IGrainBase, IAddressable
 }
 
 /// <summary>
-/// 宣布为持久性状态的 Grain 基级。
+/// 声明了持久化状态的 Grain 的基类。
 /// </summary>
-/// <typeparam name="TGrainState">持久性状态物体的等级</typeparam>
+/// <typeparam name="TGrainState">持久化状态对象的类。</typeparam>
 public class Grain<TGrainState> : Grain
 {
     /// <summary>
-    /// 基本的国家储存。
+    /// 底层状态存储。
     /// </summary>
-    [AllowNull] // 这是由激活期间的运行时间设定的, 所以在构建器中可以无效 。
+    [AllowNull] // 此字段由运行时在激活期间设置，因此在构造函数中可能为 null。
     private IStorage<TGrainState> _storage;
 
     /// <summary>
     /// 初始化 <see cref="Grain{TGrainState}"/> 类的新实例。
     /// </summary>
     /// <remarks>
-    /// 绝对不应该引用这个构建器。 我们揭露它, 这样客户代码( 本类次分类) 就不必添加一个构建器了 。
-    /// 客户端代码应使用 GrainFactory 来获取 Grain的引用。
+    /// 不应主动调用此构造函数。公开它是为了让客户端代码（此类的子类）不必添加构造函数。
+    /// 客户端代码应使用 GrainFactory 获取 Grain 引用。
     /// </remarks>
     protected Grain()
     {
         var observer = new LifecycleObserver(this);
 
-        // 运行时间确保这不会无效,单位测试框架必须确保它不会无效。
+        // ! 运行时保证此值不为 null，单元测试框架也必须保证此值不为 null。
         var lifecycle = RuntimeContext.Current!.ObservableLifecycle;
         lifecycle.AddMigrationParticipant(observer);
         lifecycle.Subscribe(RuntimeTypeNameFormatter.Format(GetType()), GrainLifecycleStage.SetupState, observer);
@@ -211,12 +211,12 @@ public class Grain<TGrainState> : Grain
     /// 初始化 <see cref="Grain{TGrainState}"/> 类的新实例。
     /// </summary>
     /// <param name="storage">
-    /// 储存执行情况。
+    /// 存储实现。
     /// </param>
     /// <remarks>
-    /// Grain 实施者不必暴露该构建器,但可以选择这样做。
-    /// 此构建器对单位测试特别有用, 测试代码可以创建 Grain 并替换
-    /// (a) IGrainIdentity、 IGrainRuntime 和具有双倍试验的国家(模 / 根)。
+    /// Grain 的实现者不必公开此构造函数，但可以选择公开它。
+    /// 此构造函数尤其适用于单元测试，测试代码可以创建 Grain，并将
+    /// IGrainIdentity、IGrainRuntime 和 State 替换为测试替身（mock/stub）。
     /// </remarks>
     protected Grain(IStorage<TGrainState> storage)
     {
@@ -224,7 +224,7 @@ public class Grain<TGrainState> : Grain
     }
 
     /// <summary>
-    /// 获取或设置 grain 状态。
+    /// 获取或设置 Grain 状态。
     /// </summary>
     protected TGrainState State
     {
@@ -233,29 +233,29 @@ public class Grain<TGrainState> : Grain
     }
 
     /// <summary>
-    /// 从备份存储清除当前 grain 状态数据。
+    /// 从后端存储清除当前 Grain 状态数据。
     /// </summary>
     /// <returns>
-    /// 代表行动的一个 <see cref="Task"/> 。
+    /// 表示该操作的 <see cref="Task"/>。
     /// </returns>
     protected virtual Task ClearStateAsync() => _storage.ClearStateAsync();
 
     /// <summary>
-    /// 将当前 grain 状态数据写入支持存储处。
+    /// 将当前 Grain 状态数据写入后端存储。
     /// </summary>
     /// <returns>
-    /// 代表行动的一个 <see cref="Task"/> 。
+    /// 表示该操作的 <see cref="Task"/>。
     /// </returns>
     protected virtual Task WriteStateAsync() => _storage.WriteStateAsync();
 
     /// <summary>
-    /// 从备份存储处读取 grain 状态,更新 <see cref="State"/>。
+    /// 从后端存储读取 Grain 状态并更新 <see cref="State"/>。
     /// </summary>
     /// <remarks>
-    /// grain 状态数据的任何先前内容将被覆盖。
+    /// Grain 状态数据原有的所有内容都将被覆盖。
     /// </remarks>
     /// <returns>
-    /// 代表行动的一个 <see cref="Task"/> 。
+    /// 表示该操作的 <see cref="Task"/>。
     /// </returns>
     protected virtual Task ReadStateAsync() => _storage.ReadStateAsync();
 
@@ -296,7 +296,7 @@ public class Grain<TGrainState> : Grain
                 return Task.CompletedTask;
             }
 
-            // 如果因体液补充而已经存在,则避免读取状态
+            // 如果已经通过迁移恢复获得状态，则无需再次读取状态。
             if (_isInitialized || _grain._storage?.Etag is not null)
             {
                 return Task.CompletedTask;

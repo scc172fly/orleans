@@ -1,6 +1,6 @@
 ---
 title: Microsoft Orleans
-description: "使用熟悉的 .NET 工具和模式构建可伸缩、有弹性的分布式应用。"
+description: "使用熟悉的 .NET 工具和模式构建可扩展、具有故障恢复能力的分布式应用。"
 template: splash
 editUrl: false
 prev: false
@@ -9,7 +9,7 @@ head:
   - tag: title
     content: "Microsoft Orleans — .NET 分布式应用"
 hero:
-  tagline: "使用 .NET 构建关键业务的分布式服务。<p>Orleans 将虚拟 Actor 模型与集群、故障恢复、持久化、持久作业、事务和流处理等运行时功能结合起来。</p>"
+  tagline: "使用 .NET 构建业务关键型分布式服务。<p>Orleans 将虚拟 Actor 模型与集群、故障恢复、持久化、持久化作业、事务和流处理等运行时功能结合起来。</p>"
   image:
     alt: Microsoft Orleans
     file: ../../assets/orleans-logo.svg
@@ -36,23 +36,23 @@ Orleans 提供构建和运行有状态服务所需的分布式编程模型和运
   <Card title="虚拟 Actor" icon="puzzle">
     将应用实体建模为 Grain。每个 Grain 都有稳定的标识、隔离的行为，并按轮次执行。[了解 Grain](/orleans/docs/grains/)。
   </Card>
-  <Card title="持久状态" icon="database">
+  <Card title="持久化状态" icon="database">
     使用 Azure、AWS、Google Cloud、关系型数据库、Redis 或自定义提供程序持久化 Grain 状态。[了解持久化](/orleans/docs/grains/grain-persistence/)。
   </Card>
   <Card title="流和事件处理" icon="random">
-    使用托管、持久或内存流提供程序连接生产者与消费者。[了解流处理](/orleans/docs/streaming/)。
+    使用托管、持久化或内存流提供程序连接生产者与消费者。[了解流处理](/orleans/docs/streaming/)。
   </Card>
-  <Card title="持久调度与执行" icon="clock">
-    运行激活范围内的回调、周期性持久提醒和一次性分布式作业。[计时器与提醒](/orleans/docs/grains/timers-and-reminders/)和[持久作业](/orleans/docs/resources/nuget-packages/#durable-state-jobs-messaging-and-tasks)。
+  <Card title="持久化调度与执行" icon="clock">
+    运行激活范围内的回调、周期性持久化提醒器和一次性分布式作业。[定时器与提醒器](/orleans/docs/grains/timers-and-reminders/)和[持久化作业](/orleans/docs/resources/nuget-packages/#durable-state-jobs-messaging-and-tasks)。
   </Card>
   <Card title="事务" icon="approve-check">
-    通过具有可串行化隔离级别的 ACID 事务，协调不同 Grain 中受支持的持久状态。[了解事务](/orleans/docs/grains/transactions/)。
+    通过具有可串行化隔离级别的 ACID 事务，协调不同 Grain 中受支持的持久化状态。[了解事务](/orleans/docs/grains/transactions/)。
   </Card>
   <Card title="事件溯源" icon="code-branch">
-    通过可配置的日志一致性提供程序，将 Grain 状态表示为有序事件序列。[了解事件溯源](/orleans/docs/grains/event-sourcing/)。
+    通过可配置的日志一致性提供程序，将 Grain 状态表示为有序的事件序列。[了解事件溯源](/orleans/docs/grains/event-sourcing/)。
   </Card>
   <Card title="弹性伸缩与负载均衡" icon="analytics">
-    添加或移除 Silo 时，感知资源的放置策略负责分配新的激活实例。内存压力下可释放容量，启用均衡或重新分区后还可迁移符合条件的实例。[了解放置与负载均衡](/orleans/docs/grains/grain-placement/)。
+    添加或移除 Silo 时，感知资源的放置策略负责安排新的激活实例；内存压力下的负载削减可回收容量，主动启用负载均衡或重新分区后还可迁移符合条件的激活实例。[了解放置与负载均衡](/orleans/docs/grains/grain-placement/)。
   </Card>
   <Card title="容错" icon="server">
     检测 Silo 故障，在健康主机上重新激活 Grain，并恢复已写入持久存储的状态。[了解集群与恢复](/orleans/docs/overview/#silos-and-clusters)。
@@ -63,7 +63,7 @@ Orleans 提供构建和运行有状态服务所需的分布式编程模型和运
 
 ## 常见应用场景
 
-当应用包含大量可独立寻址的实体，且状态与工作可以按标识划分时，Orleans 尤其适用。[查看应用场景](/orleans/docs/scenarios/)。
+当应用包含大量可独立寻址的实体，且状态与工作可以按标识划分时，Orleans 尤其适用。[查看完整的应用场景与用例指南](/orleans/docs/scenarios/)。
 
 <CardGrid>
   <Card title="AI 智能体与对话会话" icon="comment-alt">
@@ -73,15 +73,15 @@ Orleans 提供构建和运行有状态服务所需的分布式编程模型和运
     根据快速变化的账户、市场、策略或事件状态进行低延迟决策。[了解实时决策场景](/orleans/docs/scenarios/#fraud-protection-risk-and-low-latency-decisioning)。
   </Card>
   <Card title="物联网与数字孪生" icon="mobile-android">
-    用稳定标识、动态状态、有序命令和定时工作表示设备与资产。[了解物联网场景](/orleans/docs/scenarios/#internet-of-things-and-digital-twins)。
+    用稳定标识、不断演进的状态、有序命令和定时工作表示设备与资产。[了解物联网场景](/orleans/docs/scenarios/#internet-of-things-and-digital-twins)。
   </Card>
   <Card title="监控与作业编排" icon="analytics">
     跟踪资源、运行状况、配额、作业、依赖关系、重试和长期进度。[了解作业编排场景](/orleans/docs/scenarios/#monitoring-resource-governance-and-job-orchestration)。
   </Card>
   <Card title="多人游戏与在线游戏" icon="star">
-    管理玩家、房间、匹配、在线状态、进度与权威会话状态。[了解游戏场景](/orleans/docs/scenarios/#multiplayer-and-online-games)。
+    管理玩家、房间、对局、在线状态、成长进度与权威会话状态。[了解游戏场景](/orleans/docs/scenarios/#multiplayer-and-online-games)。
   </Card>
-  <Card title="商业与预订" icon="database">
+  <Card title="商业交易与预订" icon="database">
     管理购物车、订单、账户、预订、订阅和客户上下文。[了解商业场景](/orleans/docs/scenarios/#commerce-reservations-and-customer-services)。
   </Card>
 </CardGrid>
@@ -123,7 +123,7 @@ var total = await counter.Add(1);`} lang="csharp" title="Program.cs" />
   <LinkCard
     icon="rocket"
     href="/orleans/docs/quickstarts/build-your-first-orleans-app/"
-    title="构建您第一个应用程序"
+    title="构建第一个应用程序"
     description="创建 Silo，定义 Grain，并发出第一次分布式调用。"
   />
   <LinkCard
@@ -140,7 +140,7 @@ var total = await counter.Add(1);`} lang="csharp" title="Program.cs" />
   />
   <LinkCard
     icon="github"
-    href="https://github.com/scc172fly/orleans"
+    href="https://github.com/dotnet/orleans"
     title="加入项目"
     description="在 GitHub 上阅读源码、报告问题或参与贡献。"
   />

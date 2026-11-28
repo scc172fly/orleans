@@ -45,7 +45,7 @@ internal class TransactionClient : ITransactionClient
             throw new ArgumentNullException(nameof(transactionDelegate));
         }
 
-        // 抓取环境交易背景
+        // 获取环境事务上下文。
         var ambientTransactionInfo = TransactionContext.GetTransactionInfo();
 
         if (ambientTransactionInfo is not null && transactionOption == TransactionOption.Suppress)
@@ -86,7 +86,7 @@ internal class TransactionClient : ITransactionClient
         }
         finally
         {
-            // 恢复环境交易环境,如果有的话
+            // 恢复环境事务上下文（如果存在）。
             TransactionContext.SetTransactionInfo(ambientTransactionInfo);
         }
     }
@@ -95,11 +95,11 @@ internal class TransactionClient : ITransactionClient
     {
         if (ambientTransactionInfo is not null)
         {
-            // 代表内部不允许交易
+            // 委托内不允许存在事务。
             throw new NotSupportedException("Delegate cannot be executed within a transaction.");
         }
 
-        // 运行代表
+        // 执行委托。
         _ = await transactionDelegate();
     }
 
@@ -107,29 +107,29 @@ internal class TransactionClient : ITransactionClient
     {
         if (ambientTransactionInfo is null)
         {
-            // 运行代表
+            // 执行委托。
             _ = await transactionDelegate();
         }
         else
         {
-            // 运行代表
+            // 执行委托。
             ambientTransactionInfo.TryToCommit = await transactionDelegate();
         }
     }
 
     private static async Task RunDelegateWithSupressedTransaction(TransactionInfo? ambientTransactionInfo, Func<Task<bool>> transactionDelegate)
     {
-        // 清晰交易环境
+        // 清除事务上下文。
         TransactionContext.Clear();
 
         if (ambientTransactionInfo is null)
         {
-            // 运行代表
+            // 执行委托。
             _ = await transactionDelegate();
         }
         else
         {
-            // 运行代表
+            // 执行委托。
             ambientTransactionInfo.TryToCommit = await transactionDelegate();
         }
     }
@@ -140,73 +140,73 @@ internal class TransactionClient : ITransactionClient
 
         if (ambientTransactionInfo is null)
         {
-            // TODO: 这应该是可配置参数
+            // TODO：这里应该使用可配置参数。
             var transactionTimeout = Debugger.IsAttached ? TimeSpan.FromMinutes(30) : TimeSpan.FromSeconds(10);
 
-            // 启动交易
+            // 启动事务。
             transactionInfo = await _transactionAgent.StartTransaction(readOnly: false, transactionTimeout);
         }
         else
         {
-            // 叉环环境交易
+            // 为环境事务创建分支。
             transactionInfo = ambientTransactionInfo.Fork();
         }
 
-        // 如果请求, 应用独家锁定标记
+        // 如果有要求，则设置排他锁标志。
         if (useExclusiveLock)
         {
             transactionInfo.UseExclusiveLock = true;
         }
 
-        // 设定交易环境
+        // 设置事务上下文。
         TransactionContext.SetTransactionInfo(transactionInfo);
 
         try
         {
-            // 运行代表
+            // 执行委托。
             transactionInfo.TryToCommit = await transactionDelegate();
         }
         catch (Exception exception)
         {
-            // 记录交易的例外
+            // 在事务中记录异常。
             transactionInfo.RecordException(exception, _serializer);
         }
 
-        // 将待决行动收集到交易中
+        // 将待处理操作汇总到事务中。
         transactionInfo.ReconcilePending();
 
         if (ambientTransactionInfo is null)
         {
-            // 由于没有环境交易可加入,所以最终完成交易
+            // 由于没有可加入的环境事务，因此结束当前事务。
             await FinalizeTransaction(transactionInfo);
         }
         else
-        {   // 与环境交易合并交易
+        {   // 将事务与环境事务合并。
             ambientTransactionInfo.Join(transactionInfo);
         }
     }
 
     private async Task FinalizeTransaction(TransactionInfo transactionInfo)
     {
-        // 准备例外,如果有
+        // 准备处理异常（如果存在）。
         OrleansTransactionException? transactionException;
 
-        // 检查交易是否尚未中止
+        // 检查事务是否等待中止。
         transactionException = transactionInfo.MustAbort(_serializer);
 
         if (transactionException is not null || transactionInfo.TryToCommit is false)
         {
-            // 交易正在中止, 尚未中止
+            // 事务等待中止。
             await _transactionAgent.Abort(transactionInfo);
         }
         else
         {
-            // 尝试解决交易
+            // 尝试完成事务决议。
             var (status, exception) = await _transactionAgent.Resolve(transactionInfo);
 
             if (status != TransactionalStatus.Ok)
             {
-                // 解析交易失败
+                // 事务决议失败。
                 transactionException = status.ConvertToUserException(transactionInfo.Id, exception);
                 ExceptionDispatchInfo.SetCurrentStackTrace(transactionException);
             }
@@ -214,7 +214,7 @@ internal class TransactionClient : ITransactionClient
 
         if (transactionException != null)
         {
-            // 交易失败 - 泡沫上浮例外
+            // 事务失败，将异常向上传播。
             ExceptionDispatchInfo.Throw(transactionException);
         }
     }

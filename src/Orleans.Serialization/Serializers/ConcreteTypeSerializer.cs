@@ -9,10 +9,10 @@ using System.Buffers;
 namespace Orleans.Serialization.Serializers
 {
     /// <summary>
-    /// 可用于可即时转换的参考类型的序列式递增器。
+    /// 可实例化引用类型的序列化器。
     /// </summary>
     /// <typeparam name="TField">字段类型。</typeparam>
-    /// <typeparam name="TBaseCodec">部分序列执行类型。</typeparam>
+    /// <typeparam name="TBaseCodec">部分序列化器的实现类型。</typeparam>
     public sealed class ConcreteTypeSerializer<TField, TBaseCodec> : IFieldCodec<TField> where TField : class where TBaseCodec : IBaseCodec<TField>
     {
         private readonly Type CodecFieldType = typeof(TField);
@@ -23,7 +23,7 @@ namespace Orleans.Serialization.Serializers
         /// 初始化 <see cref="ConcreteTypeSerializer{TField, TBaseCodec}"/> 类的新实例。
         /// </summary>
         /// <param name="activator">激活器。</param>
-        /// <param name="serializer">序列器。</param>
+        /// <param name="serializer">序列化器。</param>
         public ConcreteTypeSerializer(IActivator<TField> activator, TBaseCodec serializer)
         {
             _activator = activator;
@@ -72,12 +72,12 @@ namespace Orleans.Serialization.Serializers
         }
 
         /// <summary>
-        /// 读取运行时间类型已知为 <typeparamref name="TField"/>的值。
+        /// 读取已知运行时类型为 <typeparamref name="TField"/> 的值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
-        /// <param name="field">字段页眉。</param>
-        /// <returns>消毒价值</returns>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
+        /// <param name="field">字段头。</param>
+        /// <returns>反序列化得到的值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public TField ReadValueSealed<TInput>(ref Reader<TInput> reader, Field field)
         {

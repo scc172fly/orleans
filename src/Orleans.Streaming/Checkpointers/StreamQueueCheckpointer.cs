@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Orleans.Streams;
 
 /// <summary>
-/// 使用 <see cref="IStreamCheckpointStore"/>设置的连锁商店和长长的排队检查站。
+/// 使用 <see cref="IStreamCheckpointStore"/> 合并并持久化流队列检查点。
 /// </summary>
 public sealed class StreamQueueCheckpointer : IStreamQueueCheckpointer<string>
 {
@@ -21,8 +21,8 @@ public sealed class StreamQueueCheckpointer : IStreamQueueCheckpointer<string>
     /// <summary>
     /// 初始化 <see cref="StreamQueueCheckpointer"/> 类的新实例。
     /// </summary>
-    /// <param name="store">检查站商店。</param>
-    /// <param name="options">检查站选项。</param>
+    /// <param name="store">检查点存储。</param>
+    /// <param name="options">检查点管理器选项。</param>
     public StreamQueueCheckpointer(IStreamCheckpointStore store, StreamQueueCheckpointerOptions options)
     {
         ArgumentNullException.ThrowIfNull(store);

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <VersionSuffix Condition="$(VersionSuffix) != ''">$(VersionSuffix).alpha.1</VersionSuffix>
     <VersionSuffix Condition="$(VersionSuffix) == ''">alpha.1</VersionSuffix>
-    <!-- 验证框架资产,而第一次释放则确定一揽子基准。 -->
+    <!-- 在首个版本建立包基准的同时，验证框架资产。 -->
     <OrleansPackageValidationBaselineVersion></OrleansPackageValidationBaselineVersion>
     <OrleansPackageValidationBaselineSuffix>alpha.1</OrleansPackageValidationBaselineSuffix>
     <EnablePackageValidation>true</EnablePackageValidation>

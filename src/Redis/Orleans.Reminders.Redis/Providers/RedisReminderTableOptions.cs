@@ -9,7 +9,7 @@ using StackExchange.Redis;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// Redis 提醒选项。
+    /// Redis 提醒器选项。
     /// </summary>
     public class RedisReminderTableOptions
     {
@@ -20,25 +20,25 @@ namespace Orleans.Configuration
         public ConfigurationOptions? ConfigurationOptions { get; set; }
 
         /// <summary>
-        /// 该代表用来创建 Redis 连接多路驱动器,并表明该多路转换器是否共享。
+        /// 用于创建 Redis 连接多路复用器并指明其是否共享的委托。
         /// </summary>
         /// <remarks>
-        /// 当 <c>IsShared</c> 是 <see langword="true"/>时,供应商将不处置返回的多路驱动器。
+        /// 当 <c>IsShared</c> 为 <see langword="true"/> 时，提供程序不会释放返回的连接多路复用器。
         /// </remarks>
         public Func<RedisReminderTableOptions, Task<(IConnectionMultiplexer Multiplexer, bool IsShared)>> CreateMultiplexer { get; set; } = DefaultCreateMultiplexer;
 
         /// <summary>
-        /// 输入过期, 默认为无效。 值应该只为短时间环境设定( 如测试中) 。
-        /// 设置一个与 null 不同的值, 会在一段时间后导致删除提醒项 。
+        /// 条目过期时间，默认为 null。仅应在临时环境（例如测试）中设置此值。
+        /// 将其设置为非 null 值会导致提醒器条目在一段时间后被删除。
         /// </summary>
         public TimeSpan? EntryExpiry { get; set; } = null;
 
         /// <summary>
-        /// 默认的多路驱动器创建代表 。
+        /// 默认连接多路复用器创建委托。
         /// </summary>
-        /// <param name="options">包含 Redis 连接配置的提醒表格选项。</param>
-        /// <returns>含有创建的多路驱动器的任务,并注明供应商拥有该多路驱动器。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="options"/> 是 <see langword="null"/>.</exception>
+        /// <param name="options">包含 Redis 连接配置的提醒器表选项。</param>
+        /// <returns>包含已创建的连接多路复用器以及该复用器由提供程序拥有的标志的任务。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="options"/> 为 <see langword="null"/>。</exception>
         public static async Task<(IConnectionMultiplexer Multiplexer, bool IsShared)> DefaultCreateMultiplexer(RedisReminderTableOptions options)
         {
             ArgumentNullException.ThrowIfNull(options);
@@ -52,7 +52,7 @@ namespace Orleans.Configuration
     }
 
     /// <summary>
-    /// <see cref="RedisReminderTableOptions"/>的配置验证符 。
+    /// <see cref="RedisReminderTableOptions"/> 的配置验证器。
     /// </summary>
     public class RedisReminderTableOptionsValidator : IConfigurationValidator
     {
@@ -61,7 +61,7 @@ namespace Orleans.Configuration
         /// <summary>
         /// 初始化 <see cref="RedisReminderTableOptionsValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="options">提醒表选项进行验证。</param>
+        /// <param name="options">要验证的提醒器表选项。</param>
         [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "Microsoft.Extensions.DependencyInjection supplies the registered options instance.")]
         public RedisReminderTableOptionsValidator(IOptions<RedisReminderTableOptions> options)
         {

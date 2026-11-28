@@ -3,12 +3,12 @@ using System;
 namespace Orleans
 {
     /// <summary>
-    /// 与 Orleans 集进行互动的客户界面。
+    /// 用于与 Orleans 集群交互的客户端接口。
     /// </summary>
     public interface IClusterClient : IGrainFactory
     {
         /// <summary>
-        /// 获取客户所使用的服务供应商。
+        /// 获取此客户端使用的服务提供程序。
         /// </summary>
         IServiceProvider ServiceProvider { get; }
     }

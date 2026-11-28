@@ -1,14 +1,14 @@
-<!-- 根据一项或多项协议获得 .NET 基金会的许可证。 .NET 基金会根据麻省理工学院许可证将本档案发给你。 -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. -->
 <Project>
 
   <PropertyGroup>
-    <!-- 默认情况下, 在已知目录列表下搜索符号 。 -->
+    <!-- 默认在已知目录列表下查找待签名的构建产物。 -->
     <EnableDefaultArtifacts>true</EnableDefaultArtifacts>
   </PropertyGroup>
 
   <Import Project="..\Directory.Build.props" />
 
-  <!-- 签名和/或出版的分号扩展点。 人工行为是指默认情况下的航运和浮质。 -->
+  <!-- 用于签名和/或发布的仓库扩展点。默认产物为 shipping 和 blobs。 -->
   <ItemDefinitionGroup>
     <Artifact>
       <PublishFlatContainer>true</PublishFlatContainer>
@@ -18,9 +18,8 @@
 
   <ItemGroup>
     <!--
-      其目的是保存关于签署证书的资料。
-      目前唯一需要的信息是证书能否成为
-      用于签名已签名的文件 - DualSigningAllowed:
+      用于保存签名所用证书的信息。
+      目前只需要记录证书能否用于为已签名文件再次签名（DualSigningAllowed==true）。
     -->
     <CertificatesSignInfo Include="3PartyDual" DualSigningAllowed="true" />
     <CertificatesSignInfo Include="3PartySHA2" DualSigningAllowed="true" />
@@ -31,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- PKT 的所有文件都使用默认证书/强名 :"31bf3856ad364e35" -->
+    <!-- 用于所有 PKT=="31bf3856ad364e35" 文件的默认证书/强名称。 -->
     <StrongNameSignInfo Include="MsSharedLib72" PublicKeyToken="31bf3856ad364e35" CertificateName="Microsoft400" />
     <StrongNameSignInfo Include="SilverlightCert121" PublicKeyToken="7cec85d7bea7798e" CertificateName="Microsoft400" />
     <StrongNameSignInfo Include="StrongName" PublicKeyToken="b77a5c561934e089" CertificateName="Microsoft400" />
@@ -39,10 +38,9 @@
     <StrongNameSignInfo Include="$(MSBuildThisFileDirectory)snk\Open.snk" PublicKeyToken="cc7b13ffcd2ddd51" CertificateName="Microsoft400" />
 
     <!--
-      默认证书名的文件扩展名的地图。 这些扩展名的文件是
-      与指定证书签名后, 指定证书签名。 对于没有此证书的文件特别有用
-      公共钥匙标记。
-      证书可以通过 StrongNameSignInfo 或 FileSignInfo 项组来覆盖。
+      文件扩展名到默认证书名称的映射。
+      具有这些扩展名的文件将使用指定证书签名，这对没有公钥标记的文件尤为有用。
+      可以通过 StrongNameSignInfo 或 FileSignInfo 项组覆盖证书。
     -->
     <FileExtensionSignInfo Include=".jar" CertificateName="MicrosoftJARSHA2" />
     <FileExtensionSignInfo Include=".js;.ps1;.psd1;.psm1;.psc1;.py" CertificateName="Microsoft400" />
@@ -53,42 +51,40 @@
     <FileExtensionSignInfo Include=".tgz" CertificateName="None" />
   </ItemGroup>
 
-  <!-- .NET 特定证书的名称,该证书是Microsoft400的一般替换
-       如果 UseDotNetCert 中指定在 repo 的 eng/ 中Signing.props,将替换微软400的所有使用
-       [与 MicrosoftDotNet500 -->
+  <!-- .NET 专用证书的名称，通常用于替代 Microsoft400。
+       如果仓库的 eng/Signing.props 指定 UseDotNetCert，则将 Microsoft400 的所有用法替换为 MicrosoftDotNet500。 -->
   <PropertyGroup>
     <DotNetCertificateName>MicrosoftDotNet500</DotNetCertificateName>
     <UseDotNetCertificate>false</UseDotNetCertificate>
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- 用于控制在建设和建设后签名中是否检测到空签名列表的标志。
-         国旗是分割的(而不仅仅是基于 PostBuildSign 的单次检查) :
-         有些矿址既可以在建设中,也可以在建设后签署。 -->
-    <!-- 控制是否空 ItemsToSign 调用时允许使用项目组 SignToolTask. -->
+    <!-- 控制构建期间及构建后签名是否检测空签名列表的标志。
+         之所以分别设置这些标志，而不是仅根据 PostBuildSign == true/false 进行一次检查，是因为某些仓库可能同时执行构建期间及构建后签名。 -->
+    <!-- 控制调用 SignToolTask 时是否允许 ItemsToSign 项组为空。 -->
     <AllowEmptySignList Condition="'$(PostBuildSign)' != 'true'">false</AllowEmptySignList>
     <AllowEmptySignList Condition="'$(PostBuildSign)' == 'true'">true</AllowEmptySignList>
-    <!-- 控制发布时是否允许空白 ItemsToSignPostBuild 项目组 -->
+    <!-- 控制发布期间是否允许 ItemsToSignPostBuild 项组为空。 -->
     <AllowEmptySignPostBuildList Condition="'$(PostBuildSign)' != 'true'">true</AllowEmptySignPostBuildList>
     <AllowEmptySignPostBuildList Condition="'$(PostBuildSign)' == 'true'">false</AllowEmptySignPostBuildList>
 
     <NETCORE_ENGINEERING_TELEMETRY>Signing</NETCORE_ENGINEERING_TELEMETRY>
   </PropertyGroup>
 
-  <!-- 工具平行限制符号。 这些限制可能被回购所推翻 。 -->
+  <!-- 签名工具并行度限制。仓库可以覆盖这些限制。 -->
   <PropertyGroup>
-    <!-- 平行重新包装的集装箱数量 -->
+    <!-- 并行重新打包的容器数量。 -->
     <SignToolRepackParallelism>16</SignToolRepackParallelism>
-    <!-- 在文件被连续重新包装前, 文件可能最大以 MB 显示的最大大小 -->
+    <!-- 文件可并行重新打包的最大大小（MB）；超过后改为串行重新打包。 -->
     <SignToolRepackMaximumParallelFileSize>128</SignToolRepackMaximumParallelFileSize>
   </PropertyGroup>
 
-  <!-- 允许存储库自定义签名配置 -->
+  <!-- 允许仓库自定义签名配置。 -->
   <Import Project="$(RepositoryEngineeringDir)Signing.props" Condition="Exists('$(RepositoryEngineeringDir)Signing.props')" />
 
-  <!-- 尊重个体物品复制扩展点 -->
+  <!-- 遵循 Artifact 项的仓库扩展点。 -->
   <ItemGroup Condition="'@(Artifact)' != ''">
-    <!-- 如果 PostBuildSign =真,这些都添加到 ItemsToSignPostBuild中,否则这些加入到 ItemsToSign -->
+    <!-- 如果 PostBuildSign == true，则将这些项添加到 ItemsToSignPostBuild；否则添加到 ItemsToSign。 -->
     <ItemsToSign Include="@(Artifact)" Condition="'$(PostBuildSign)' != 'true'" />
     <ItemsToSignPostBuild Include="@(Artifact->'%(Filename)%(Extension)')" Condition="'$(PostBuildSign)' == 'true'" />
   </ItemGroup>

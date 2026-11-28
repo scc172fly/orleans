@@ -7,40 +7,40 @@ using Orleans.Transactions.TestKit.Consistency;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 随机处理交易工作量,核实其记录的历史是否一致。
+    /// 执行随机事务工作负载并验证其记录的历史是否一致。
     /// </summary>
     public abstract class ConsistencyTransactionTestRunner : TransactionTestRunnerBase
     {
         /// <summary>
         /// 初始化 <see cref="ConsistencyTransactionTestRunner"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">下 grain 用于测试的工厂 grains.</param>
+        /// <param name="grainFactory">用于访问测试 Grain 的 Grain 工厂。</param>
         /// <param name="output">用于写入测试输出的回调。</param>
         protected ConsistencyTransactionTestRunner(IGrainFactory grainFactory, Action<string> output)
         : base(grainFactory, output) { }
 
 
-        // 依赖配置设置的配置设置会被运行中的子类覆盖
-        // 允许测试根据特定环境调整逻辑或跳过
+        // 依赖配置的设置可由运行器子类重写
+        // 这样测试可以针对特定上下文调整逻辑或被跳过
         /// <summary>
-        /// 获得一个值,显示存储适配器是否有有限的空间进行记录。
+        /// 获取一个值，指示存储适配器用于保存提交记录的空间是否有限。
         /// </summary>
         protected abstract bool StorageAdaptorHasLimitedCommitSpace { get; }
 
         /// <summary>
-        /// 获得一个值,显示存储错误注入是否有效。
+        /// 获取一个值，指示存储错误注入是否已启用。
         /// </summary>
         protected abstract bool StorageErrorInjectionActive { get; }
 
         /// <summary>
-        /// 运行一种确定性随机交易工作量,并核实由此产生的一致性历史。
+        /// 执行确定性的随机事务工作负载，并验证所得历史的一致性。
         /// </summary>
-        /// <param name="numGrains">编号数 grains 参与工作量。</param>
-        /// <param name="scale">工作量表,它决定工人人数和交易。</param>
-        /// <param name="avoidDeadlocks">工作量是否应当避免可能造成僵局的行动。</param>
-        /// <param name="avoidTimeouts">工作量是否应当限制能够引入反应超时的行动。</param>
-        /// <param name="readwrite">用于确定交易和 grain 电话是只读或只读写。</param>
-        /// <returns>一项代表一致性测试的任务。</returns>
+        /// <param name="numGrains">参与工作负载的 Grain 数量。</param>
+        /// <param name="scale">工作负载规模，决定工作线程和事务的数量。</param>
+        /// <param name="avoidDeadlocks">工作负载是否应避免可能导致死锁的操作。</param>
+        /// <param name="avoidTimeouts">工作负载是否应限制可能导致响应超时的操作。</param>
+        /// <param name="readwrite">确定事务和 Grain 调用是只读还是读写的策略。</param>
+        /// <returns>表示一致性测试的任务。</returns>
         [SuppressMessage("Security", "CA5394:Do not use insecure randomness",
             Justification = "A seeded PRNG derives workload seeds for transaction conformance tests.")]
         public virtual async Task RandomizedConsistency(int numGrains, int scale, bool avoidDeadlocks, bool avoidTimeouts, ReadWriteDetermination readwrite)
@@ -49,12 +49,12 @@ namespace Orleans.Transactions.TestKit
 
             var harness = new ConsistencyTestHarness(grainFactory, numGrains, random.Next(), avoidDeadlocks, avoidTimeouts, readwrite, StorageErrorInjectionActive);
 
-            // 首先,运行随机工作负荷以生成历史事件
+            // 首先执行随机工作负载以生成历史事件
             testOutput($"start at {DateTime.UtcNow}");
             int numThreads = scale;
             int numTxsPerThread = scale * scale;
 
-            // 开始运行交易的线索
+            // 启动执行事务的线程
             var tasks = new Task[numThreads];
             for (int i = 0; i < numThreads; i++)
             {
@@ -65,7 +65,7 @@ namespace Orleans.Transactions.TestKit
             await Task.WhenAll(tasks);
             testOutput($"end at {DateTime.UtcNow}");
 
-            // 金路:在避免僵局和锁定升级时,所有交易都有望通过
+            // 正常路径：在避免死锁和锁升级的情况下，预期所有事务均成功
             if (!StorageErrorInjectionActive
                 && avoidDeadlocks
                 && (readwrite == ReadWriteDetermination.PerGrain || readwrite == ReadWriteDetermination.PerTransaction))
@@ -73,7 +73,7 @@ namespace Orleans.Transactions.TestKit
                 harness.NumAborted.Should().Be(0);
             }
 
-            // 然后,分析历史结果
+            // 然后分析历史结果
             var tolerateGenericTimeouts = ShouldTolerateGenericTimeouts(scale, StorageErrorInjectionActive);
             var tolerateUnknownExceptions = StorageAdaptorHasLimitedCommitSpace || StorageErrorInjectionActive;
             harness.CheckConsistency(tolerateGenericTimeouts, tolerateUnknownExceptions);
@@ -81,8 +81,8 @@ namespace Orleans.Transactions.TestKit
 
         internal static bool ShouldTolerateGenericTimeouts(int scale, bool storageErrorInjectionActive)
         {
-            // AvoidTimeouts 限制在答复超时前的重复工作,但无法阻止
-            // 系统负荷时反应超时失效。
+            // AvoidTimeouts 会在响应超时前限制递归工作，但当系统处于负载下时，无法阻止
+            // 响应超时本身到期。
             return storageErrorInjectionActive || scale >= 3;
         }
     }

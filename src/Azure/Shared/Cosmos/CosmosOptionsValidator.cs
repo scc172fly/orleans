@@ -9,11 +9,11 @@ namespace Orleans.Streaming.Cosmos;
 #elif ORLEANS_DIRECTORY
 namespace Orleans.GrainDirectory.Cosmos;
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 
 /// <summary>
-/// 验证 <see cref="CosmosOptions"/>的事例。
+/// 验证 <see cref="CosmosOptions"/> 的实例。
 /// </summary>
 /// <typeparam name="TOptions">选项类型。</typeparam>
 public class CosmosOptionsValidator<TOptions> : IConfigurationValidator where TOptions : CosmosOptions
@@ -24,8 +24,8 @@ public class CosmosOptionsValidator<TOptions> : IConfigurationValidator where TO
     /// <summary>
     /// 初始化 <see cref="CosmosOptionsValidator{TOptions}"/> 类型的新实例。
     /// </summary>
-    /// <param name="options">有待验证的实例。</param>
-    /// <param name="name">需要验证的选项名称。</param>
+    /// <param name="options">要验证的实例。</param>
+    /// <param name="name">要验证的选项名称。</param>
     public CosmosOptionsValidator(TOptions options, string name)
     {
         _options = options;

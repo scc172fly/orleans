@@ -55,7 +55,7 @@ namespace Orleans.Streams
         public Task RegisterConsumer(GuidId subscriptionId, QualifiedStreamId streamId, GrainId streamConsumer, string? filterData, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // todo BPETIT 过滤数据?
+            // TODO BPETIT：筛选数据？
             if (!IsImplicitSubscriber(streamConsumer, streamId))
             {
                 throw CreateExplicitSubscriptionNotSupportedException(streamId);

@@ -3,12 +3,12 @@ using System;
 namespace Orleans.Connections.Transport.Security;
 
 /// <summary>
-/// 提供对谈判商定的TLS应用议定书的准入。
+/// 提供对协商得到的 TLS 应用层协议的访问。
 /// </summary>
 public interface ITlsApplicationProtocolFeature
 {
     /// <summary>
-    /// 获得谈判的 TLS 应用协议 。
+    /// 获取协商得到的 TLS 应用层协议。
     /// </summary>
     ReadOnlyMemory<byte> ApplicationProtocol { get; }
 }

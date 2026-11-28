@@ -4,45 +4,45 @@ using System.Text.Json.Serialization;
 
 namespace Orleans.Durable.Messaging;
 
-/// <summary>包含指令身份、有效载荷、主题、可选应用头和可选投送时间。</summary>
+/// <summary>包含命令标识、有效载荷、主题、可选应用标头以及可选投递时间。</summary>
 /// <remarks>
-/// 需要信件身份和有效载荷;空有效载荷有效。 Raw 协议可以省略
-/// 将有效载荷和信头放在上方,然后发布信息并保存
-/// 之后没有变化。 Struct 任务分配共享这些对象; 一般 Orleans 深重复制
-/// 和去航空化产生独立的有效载荷阵列、信头字典和信头值阵列。
+/// 消息标识和有效载荷是必需的；允许空有效载荷。原始协议可省略
+/// 主题和标头。在发布消息之前准备好有效载荷与标头，发布之后保持它们
+/// 不变。结构体赋值会共享这些对象；普通 Orleans 深拷贝
+/// 和反序列化则生成彼此独立的有效载荷数组、标头字典和标头值数组。
 /// </remarks>
 [GenerateSerializer, Alias("Orleans.Durable.Messaging.Envelope")]
 public readonly struct Envelope
 {
-    /// <summary>获取接收箱内精确的应用程序定义命令身份。</summary>
+    /// <summary>获取接收方收件箱中由应用定义的精确命令标识。</summary>
     [Id(0)]
     public required MessageId MessageId { get; init; }
 
-    /// <summary>获得所需的应用有效载荷字节,包括空有效载荷。</summary>
+    /// <summary>获取必需的应用有效载荷字节，允许为空。</summary>
     [Id(1)]
     public required byte[] Payload { get; init; }
 
-    /// <summary>获得非空正统的任择应用协议主题。</summary>
+    /// <summary>获取可选的非空应用协议主题，按序数规则比较。</summary>
     [Id(2)]
     public string? Subject { get; init; }
 
-    /// <summary>获得可选应用程序定义的用字数头标定。</summary>
-    /// <remarks>使用一个例常字典用于区分大小写标题的名称。密钥是非空的、完善的 UTF-16 字符串,而数组是非null 。</remarks>
+    /// <summary>获取应用定义的可选命名字节数组标头。</summary>
+    /// <remarks>使用按序数比较的字典来实现区分大小写的标头名称。键为非空且格式正确的 UTF-16 字符串，数组不可为 null。</remarks>
     [Id(3)]
     public Dictionary<string, byte[]>? Headers { get; init; }
 
-    /// <summary>获得接收收件箱处理信件的可选最早时间。</summary>
+    /// <summary>获取可选的最早处理时间，接收方收件箱不得早于该时间处理消息。</summary>
     /// <remarks>
     /// <para>
-    /// 发件箱立即发送消息。 收件人收件箱接受、 复制并维持
-    /// 照常,然后保持到这个时间到达 持久工作钟的时钟, 并有一个持久的觉醒
-    /// 当信件到期时恢复 grain 。 grain 发送给自己的邮件被它自己所接受
-    /// 发送日记写中的框。 <see langword="null"/> 一旦处理此消息
-    /// 接受是持久的。
+    /// 发件箱立即投递消息。接收方收件箱照常接纳、去重并持久化消息，
+    /// 随后保留该消息，直至 Durable Jobs 时钟到达指定时间；一次持久化唤醒
+    /// 会在消息到期时恢复 Grain。Grain 发送给自身的消息由其自身
+    /// 收件箱在发送日志写入中接纳。<see langword="null"/> 在消息的
+    /// 接纳已持久化后立即处理该消息。
     /// </para>
     /// <para>
-    /// 时间是命令的一部分: 重用一个不同值的待处理信件代号是一个相互矛盾的命令。
-    /// 信件从接受到完成,从接收到收件箱 <c>MaxCapacity</c> 的数。
+    /// 时间是命令的一部分：以不同的时间值复用待处理消息的 ID 构成冲突命令。
+    /// 消息从接纳到处理完成期间始终计入收件箱的 <c>MaxCapacity</c>。
     /// </para>
     /// </remarks>
     [Id(4)]

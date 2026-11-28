@@ -7,26 +7,26 @@ using Xunit;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// C# 记录类型 Orleans支持的测试。
+/// Orleans 对 C# record 类型的支持测试。
 /// 
-/// 记录是一流公民的 Orleans 序列化记录,充分支持:
-/// - 初级建筑参数
-/// - 仅使用 Init 属性
-/// - 记录继承等级制度
-/// - 基本类型简要记录摘要
-/// - 复杂的记录结构,具有多个继承等级
+/// record 是 Orleans 序列化的一等类型，全面支持：
+/// - 主构造函数参数
+/// - 仅初始化（init-only）属性
+/// - record 继承层次结构
+/// - 抽象 record 基类型
+/// - 具有多层继承关系的复杂 record 结构
 /// 
-/// Orleans 高效率地处理记录,具体做法是:
-/// - 产生最优化的序列器,能理解记录语义
-/// - 维护价值平等语义
-/// - 支持上下上下记录语法和名义上记录词法
-/// - 处理记录支架(价值类型记录)
+/// Orleans 通过以下方式高效处理 record：
+/// - 生成理解 record 语义的优化序列化器
+/// - 保留值相等性语义
+/// - 同时支持位置式和具名式 record 语法
+/// - 处理 record struct（值类型 record）
 /// 
-/// 这种支持对于现代C#应用程序至关重要,因为这些应用可以将记录用于:
-/// - 数据模型不可变
-/// - 带有价值对象的域驱动设计
-/// - 职能方案拟订模式
-/// - 清洁 API 合同
+/// 此支持对于将 record 用于以下用途的现代 C# 应用至关重要：
+/// - 不可变数据模型
+/// - 使用值对象的领域驱动设计
+/// - 函数式编程模式
+/// - 清晰的 API 契约
 /// </summary>
 [Trait("Category", "BVT")]
 [Trait("Suite", "BVT")]
@@ -270,36 +270,36 @@ public class RecordSerializationTests
         Assert.Equal("extra", deserialized.Description);
     }
 
-    // TODO: 此类型应造成构建错误, 因为“ bar” 是只使用 Init 的非自动属性, 但有 [ID(...) 属性 。
-    // 适合进行诊断分析测试,但目前的实施情况
-    // 源生成器不支持作为分析器执行。
+    // TODO: 该类型应导致构建错误，因为“Bar”是仅初始化的非自动属性，却带有 [Id(...)] 特性。
+    // 它适合作为诊断分析器测试，但当前
+    // 源生成器实现不支持作为分析器执行。
     /*
     [GenerateSerializer]
-    公开记录 RecordWithInitOnlyManualProperty
+    public record RecordWithInitOnlyManualProperty
     {
         private string _bar;
 
-        [日期0]
-        公共字符串栏
+        [Id(0)]
+        public string Bar
         {
-            获得 _bar;
-            开进
+            get => _bar;
+            init
             {
-                _bar = 值;
+                _bar = value;
                 OnSetBar(_bar);
             }
         }
 
-        RecordWithInitOnlyManualProperty(字符串栏)
+        public RecordWithInitOnlyManualProperty(string bar)
         {
             _bar = bar;
             OnSetBar(_bar);
         }
 
-        私人空 OnSetBar(字符串栏)
+        private void OnSetBar(string bar)
         {
-            // 忽略忽略
-            _ =巴;
+            // Ignore
+            _ = bar;
         }
     }
     */

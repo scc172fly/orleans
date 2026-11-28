@@ -930,7 +930,7 @@ public class ConsulMembershipTableConsistencyTests
         using var store = new ConsulHandler();
         var table = store.CreateTable();
         const string guidance = "Use ReadAllAsync and MembershipTableData.TryGet instead.";
-#pragma warning disable CS0618 // Verify both retired entrypoints and cancellation precedence.
+#pragma warning disable CS0618 // 验证两个已废弃的入口点以及取消操作的优先级。
         var legacy = table.ReadRow(Entry().SiloAddress);
         var current = table.ReadRowAsync(Entry().SiloAddress, CancellationToken);
         Assert.True(legacy.IsFaulted);
@@ -961,8 +961,8 @@ public class ConsulMembershipTableConsistencyTests
         SuspectTimes = new()
     };
 
-    // 实际的SDK序列、HTTP状态处理和交易结果。
-    // 钩子在后端实施交易之前,立即将独立供应商隔开。
+    // 测试真实 SDK 的序列化、HTTP 状态处理及事务结果。
+    // 钩子让不同提供程序的操作在后端应用事务之前交错执行。
     private sealed class ConsulHandler : HttpMessageHandler
     {
         private Dictionary<string, KVPair> _rows = new(StringComparer.Ordinal);

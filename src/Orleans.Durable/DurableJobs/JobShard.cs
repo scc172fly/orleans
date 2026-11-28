@@ -7,150 +7,150 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// 代表着在特定时限内管理大量工作的持久工作。
-/// 工作碎片负责储存、回收和管理持久工作的生命周期
-/// 属于指定时间窗口。
+/// 表示管理指定时间范围内一组作业的持久化作业分片。
+/// 作业分片负责存储、检索和管理
+/// 处于其指定时间窗口内的持久化作业的生命周期。
 /// </summary>
 /// <remarks>
-/// 使用工作碎片来将可持久工作分成不同时间段,以提高可缩放性
-/// 和性能。每个碎片都有明确的开始时间和结束时间,确定哪些任务
-/// 。当所有工作都在时间范围内时, 碎片可以标记为完整
-/// 已经处理完毕。
+/// 作业分片按时间范围对持久化作业进行分区，以提高可伸缩性
+/// 和性能。每个分片具有明确的开始和结束时间，用于确定其管理的作业。
+/// 当分片时间范围内的所有作业
+/// 均已得到处理后，可将分片标记为完成。
 /// </remarks>
 public interface IJobShard : IAsyncDisposable
 {
     /// <summary>
-    /// 获取此工作碎片的独特标识符 。
+    /// 获取此作业分片的唯一标识符。
     /// </summary>
     string Id { get; }
 
     /// <summary>
-    /// 获取由此碎片管理的时段的起始时间 。
+    /// 获取此分片管理的时间范围的开始时间。
     /// </summary>
     DateTimeOffset StartTime { get; }
 
     /// <summary>
-    /// 获取由此碎片管理的时间范围结束时间 。
+    /// 获取此分片管理的时间范围的结束时间。
     /// </summary>
     DateTimeOffset EndTime { get; }
 
     /// <summary>
-    /// 获取与此工作碎片相关的可选元数据。
+    /// 获取与此作业分片关联的可选元数据。
     /// </summary>
     IDictionary<string, string>? Metadata { get; }
 
     /// <summary>
-    /// 获得一个值, 显示是否该碎片被标记为完整且不再接受新任务 。
+    /// 获取一个指示分片是否已标记为完成且不再接受新作业的值。
     /// </summary>
     /// <remarks>
-    /// 当一个碎片被标记成完整的时, <see cref="MarkAsCompleteAsync"/>),不能增加新的工作。
+    /// 通过 <see cref="MarkAsCompleteAsync"/> 将分片标记为完成后，无法再向其中添加新作业。
     /// </remarks>
     bool IsAddingCompleted { get; }
 
     /// <summary>
-    /// 以合适的时间为条件,
+    /// 按到期时间顺序消费此分片中的持久化作业。
     /// </summary>
-    /// <returns>大量持久的工作环境。</returns>
+    /// <returns>持久化作业上下文的异步可枚举序列。</returns>
     IAsyncEnumerable<IJobRunContext> ConsumeDurableJobsAsync();
 
     /// <summary>
-    /// 试图保留一个被解密的持久工作供执行。
+    /// 尝试为已出队的持久化作业预留执行资格。
     /// </summary>
-    /// <param name="jobContext">被裁员的工作环境</param>
-    /// <param name="cancellationToken">取消操作的标记 。</param>
+    /// <param name="jobContext">已出队作业的上下文。</param>
+    /// <param name="cancellationToken">用于取消该操作的令牌。</param>
     /// <returns>
-    /// 包含任务 <see cref="DurableJobMutationResult.Applied"/> , 当尝试开始时
-    /// <see cref="DurableJobMutationResult.JobNotFound"/> 取消或完成该工作后,首先将职位从岗位上撤走,
-    /// 或 <see cref="DurableJobMutationResult.OwnershipLost"/> ,当此碎片不再由本地所有时。
+    /// 返回一个任务：允许启动执行尝试时，其结果为 <see cref="DurableJobMutationResult.Applied"/>；
+    /// 取消或完成操作已先行移除作业时，结果为 <see cref="DurableJobMutationResult.JobNotFound"/>；
+    /// 本地 Silo 不再拥有此分片时，结果为 <see cref="DurableJobMutationResult.OwnershipLost"/>。
     /// </returns>
     Task<DurableJobMutationResult> TryStartAttemptAsync(
         IJobRunContext jobContext,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// 获取当前在此碎片中安排的工作数量 。
+    /// 获取此分片中当前已调度的作业数量。
     /// </summary>
-    /// <returns>代表无同步操作的任务。任务结果包含任务计数。</returns>
+    /// <returns>表示异步操作的任务，其结果包含作业数量。</returns>
     ValueTask<int> GetJobCountAsync();
 
     /// <summary>
-    /// 将这一碎片标为完整, 从而阻止新任务排期 。
+    /// 将此分片标记为完成，阻止调度新作业。
     /// </summary>
-    /// <param name="cancellationToken">取消操作的标记 。</param>
-    /// <returns>代表无同步操作的任务。</returns>
+    /// <param name="cancellationToken">用于取消该操作的令牌。</param>
+    /// <returns>表示异步操作的任务。</returns>
     Task MarkAsCompleteAsync(CancellationToken cancellationToken);
 
     /// <summary>
-    /// 从这个碎片中删除一个耐久的工作 。
+    /// 从此分片中移除持久化作业。
     /// </summary>
-    /// <param name="jobId">要删除的任务的唯一标识符。</param>
-    /// <param name="cancellationToken">取消操作的标记 。</param>
-    /// <returns>一项任务包含持久的突变结果。</returns>
+    /// <param name="jobId">要移除的作业的唯一标识符。</param>
+    /// <param name="cancellationToken">用于取消该操作的令牌。</param>
+    /// <returns>包含持久化变更结果的任务。</returns>
     Task<DurableJobMutationResult> RemoveJobAsync(string jobId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// 重新安排日后再找工作。
+    /// 将作业重新调度到较晚的时间以供重试。
     /// </summary>
-    /// <param name="jobContext">要重新尝试的工作的上下文。</param>
+    /// <param name="jobContext">要重试的作业的上下文。</param>
     /// <param name="newDueTime">
-    /// 任务的新到期时间。 此值取代 <see cref="DurableJob.DueTime"/>
-    /// <see cref="IJobRunContext.Job"/>.
+    /// 作业的新到期时间。此值取代 <see cref="DurableJob.DueTime"/>，该属性属于
+    /// <see cref="IJobRunContext.Job"/>。
     /// </param>
-    /// <param name="cancellationToken">取消操作的标记 。</param>
-    /// <returns>一项任务包含持久的突变结果。</returns>
+    /// <param name="cancellationToken">用于取消该操作的令牌。</param>
+    /// <returns>包含持久化变更结果的任务。</returns>
     Task<DurableJobMutationResult> RetryJobLaterAsync(
         IJobRunContext jobContext,
         DateTimeOffset newDueTime,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// 重新安排成功完成的执行, 并重置计数。
+    /// 对成功完成的执行进行重新调度，并重置其出队计数。
     /// </summary>
-    /// <param name="jobContext">已完成执行的背景。</param>
+    /// <param name="jobContext">已完成的执行的上下文。</param>
     /// <param name="newDueTime">
-    /// 任务的新到期时间。 此值取代 <see cref="DurableJob.DueTime"/>
-    /// <see cref="IJobRunContext.Job"/>.
+    /// 作业的新到期时间。此值取代 <see cref="DurableJob.DueTime"/>，该属性属于
+    /// <see cref="IJobRunContext.Job"/>。
     /// </param>
-    /// <param name="cancellationToken">取消操作的标记 。</param>
-    /// <returns>一项任务包含持久的突变结果。</returns>
+    /// <param name="cancellationToken">用于取消该操作的令牌。</param>
+    /// <returns>包含持久化变更结果的任务。</returns>
     Task<DurableJobMutationResult> RescheduleJobAsync(
         IJobRunContext jobContext,
         DateTimeOffset newDueTime,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// 试图在这个碎片上安排新工作
+    /// 尝试在此分片上调度新作业。
     /// </summary>
-    /// <param name="request">载有工作时间安排参数的请求。</param>
-    /// <param name="cancellationToken">取消操作的标记 。</param>
-    /// <returns>代表非同步操作的任务。 任务结果包含如果成功, 则持久工作; 如果无法安排该工作, 则无效(e.g. 碎片标记为完整) 。</returns>
-    /// <exception cref="ArgumentOutOfRangeException">当到期时间超出碎片的时间范围时丢弃。</exception>
+    /// <param name="request">包含作业调度参数的请求。</param>
+    /// <param name="cancellationToken">用于取消该操作的令牌。</param>
+    /// <returns>表示异步操作的任务。成功时，其结果包含持久化作业；无法调度作业时（例如分片已标记为完成），结果为 null。</returns>
+    /// <exception cref="ArgumentOutOfRangeException">到期时间超出分片的时间范围时抛出。</exception>
     Task<DurableJob?> TryScheduleJobAsync(ScheduleJobRequest request, CancellationToken cancellationToken);
 }
 
 /// <summary>
-/// 描述执行后试图改变持久工作的结果。
+/// 描述作业执行后尝试对持久化作业进行变更的结果。
 /// </summary>
 public enum DurableJobMutationResult
 {
     /// <summary>
-    /// 变异被长期应用
+    /// 变更已持久化应用。
     /// </summary>
     Applied,
 
     /// <summary>
-    /// 这项工作已经不存在,通常是由于取消或完成后首先取消了。
+    /// 作业已不存在，通常是因为取消或完成操作已先行将其移除。
     /// </summary>
     JobNotFound,
 
     /// <summary>
-    /// 本地 silo 不再拥有碎片, 因此突变没有应用 。
+    /// 本地 Silo 已不再拥有此分片，因此未应用该变更。
     /// </summary>
     OwnershipLost
 }
 
 /// <summary>
-/// 实施 <see cref="IJobShard"/> 的基础,为工作零散化实施提供共同功能。
+/// <see cref="IJobShard"/> 的基础实现，为作业分片的各种实现提供通用功能。
 /// </summary>
 public abstract class JobShard : IJobShard
 {
@@ -175,9 +175,9 @@ public abstract class JobShard : IJobShard
     /// <summary>
     /// 初始化 <see cref="JobShard"/> 类的新实例。
     /// </summary>
-    /// <param name="id">此工作碎片的独特标识符。</param>
-    /// <param name="startTime">由此碎片管理的时段的起始时间。</param>
-    /// <param name="endTime">由此碎片管理的时间范围的结束时间。</param>
+    /// <param name="id">此作业分片的唯一标识符。</param>
+    /// <param name="startTime">此分片管理的时间范围的开始时间。</param>
+    /// <param name="endTime">此分片管理的时间范围的结束时间。</param>
     protected JobShard(string id, DateTimeOffset startTime, DateTimeOffset endTime)
     {
         Id = id;
@@ -348,41 +348,41 @@ public abstract class JobShard : IJobShard
     }
 
     /// <summary>
-    /// 将一项任务加入含有指定删除数的模拟队列。
+    /// 使用指定的出队计数将作业加入内存队列。
     /// </summary>
-    /// <param name="job">任务要排队。</param>
-    /// <param name="dequeueCount">任务被排队的次数。</param>
+    /// <param name="job">要入队的作业。</param>
+    /// <param name="dequeueCount">此作业的出队次数。</param>
     protected void EnqueueJob(DurableJob job, int dequeueCount)
     {
         _jobQueue.Enqueue(job, dequeueCount);
     }
 
     /// <summary>
-    /// 坚持在仓库里增加一份新工作。
+    /// 将添加新作业的操作持久化到底层存储。
     /// </summary>
-    /// <param name="job">这份工作要坚持下去</param>
-    /// <param name="cancellationToken">取消操作的标记 。</param>
-    /// <returns>代表无同步操作的任务。</returns>
+    /// <param name="job">要持久化的作业。</param>
+    /// <param name="cancellationToken">用于取消该操作的令牌。</param>
+    /// <returns>表示异步操作的任务。</returns>
     protected abstract Task PersistAddJobAsync(DurableJob job, CancellationToken cancellationToken);
 
     /// <summary>
-    /// 坚持要从底库仓库中撤换一份工作。
+    /// 将移除作业的操作持久化到底层存储。
     /// </summary>
-    /// <param name="jobId">要删除的任务的唯一标识符。</param>
-    /// <param name="cancellationToken">取消操作的标记 。</param>
-    /// <returns>代表无同步操作的任务。</returns>
+    /// <param name="jobId">要移除的作业的唯一标识符。</param>
+    /// <param name="cancellationToken">用于取消该操作的令牌。</param>
+    /// <returns>表示异步操作的任务。</returns>
     protected abstract Task PersistRemoveJobAsync(string jobId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// 坚持将工作重新安排到仓库
+    /// 将重新调度作业的操作持久化到底层存储。
     /// </summary>
-    /// <param name="jobContext">要重试的任务执行环境。</param>
+    /// <param name="jobContext">要重试的作业的执行上下文。</param>
     /// <param name="newDueTime">
-    /// 任务的新到期时间。 此值取代 <see cref="DurableJob.DueTime"/>
-    /// <see cref="IJobRunContext.Job"/>.
+    /// 作业的新到期时间。此值取代 <see cref="DurableJob.DueTime"/>，该属性属于
+    /// <see cref="IJobRunContext.Job"/>。
     /// </param>
-    /// <param name="cancellationToken">取消操作的标记 。</param>
-    /// <returns>代表无同步操作的任务。</returns>
+    /// <param name="cancellationToken">用于取消该操作的令牌。</param>
+    /// <returns>表示异步操作的任务。</returns>
     protected abstract Task PersistRetryJobAsync(IJobRunContext jobContext, DateTimeOffset newDueTime, CancellationToken cancellationToken);
 
     /// <inheritdoc/>

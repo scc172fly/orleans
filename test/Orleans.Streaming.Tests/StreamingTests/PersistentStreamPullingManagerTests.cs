@@ -70,7 +70,7 @@ public class PersistentStreamPullingManagerTests
         {
             Assert.Same(manager, directory.FindTarget(manager.GrainId));
             Assert.Equal(1, directory.Count);
-            // 初始化前拥有的计时器会观察目录处置,即使初始化不会产生定时器。
+            // 即使初始化未创建计时器，初始化前已拥有的计时器也会观察到目录的释放。
             manager.RegisterTimer(_ => Task.CompletedTask, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             var lifetimeProbe = Assert.Single(timeProvider.Timers);
 
@@ -103,7 +103,7 @@ public class PersistentStreamPullingManagerTests
                 }
             }
 
-            // 停止提供商的工作并完成初始化,最终目标所有权与目录。
+            // 停止提供程序工作并完成初始化后，最终目标的所有权仍归目录所有。
             Assert.Same(manager, directory.FindTarget(manager.GrainId));
             Assert.Equal(0, lifetimeProbe.DisposeCount);
             for (var iteration = 0; iteration < 2; iteration++)

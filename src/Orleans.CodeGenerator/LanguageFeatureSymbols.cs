@@ -6,17 +6,17 @@ using Orleans.CodeGenerator.Diagnostics;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// 封闭型和工会标志API在所支持的汇编者版本之间的兼容性边界。
+/// 支持的编译器版本之间封闭类型及联合类型符号 API 的兼容性边界。
 /// </summary>
 /// <remarks>
-/// 发电机是用老Roslyn API 编译的,这样它就装在旧的编译器上。
-/// 在上述特征之前的汇编者不能宣布封闭或工会类型,但可以参考较新的汇编者所编制的工会类型。
-/// 以其 <c>System.Runtime.CompilerServices.UnionAttribute</c> 并披露任何案件类型。
-/// 申报工会但没有发现任何案件类型的汇编者,在需要这类案件时,可得到可诉的发电机诊断。
-/// 该边界拥有 API 发现、元数据识别和报告无法提供的个案类型。
-/// 一旦最小支持的Roslyn 版本版本显示所有三种属性, 用以下方式替换电话
-/// <c>ITypeSymbol.IsClosed</c>, <c>ITypeSymbol.IsUnion</c>,和 <c>ITypeSymbol.UnionCaseTypes</c>,然后删除此类
-/// 以及从 <see cref="InvalidUnionCaseDiagnostic"/>获得的无病例型诊断。
+/// 生成器针对旧版 Roslyn API 编译，以便能够在旧版编译器中加载。
+/// 在这些功能出现之前的编译器无法声明封闭类型或联合类型，但可以引用由较新编译器编译的联合类型。
+/// 这些编译器通过 <c>System.Runtime.CompilerServices.UnionAttribute</c> 元数据识别引用的联合类型，但不公开分支类型。
+/// 声明联合类型但未公开其分支类型的编译器，在需要这些分支时会收到可据以采取措施的生成器诊断。
+/// 此边界负责 API 发现、元数据识别及报告无法获取的分支类型。
+/// 当最低支持的 Roslyn 版本公开全部三个属性时，将调用替换为
+/// <c>ITypeSymbol.IsClosed</c>、<c>ITypeSymbol.IsUnion</c> 和 <c>ITypeSymbol.UnionCaseTypes</c>，然后删除此类
+/// 及 <see cref="InvalidUnionCaseDiagnostic"/> 中无法获取分支类型的诊断。
 /// </remarks>
 internal static class LanguageFeatureSymbols
 {
@@ -51,10 +51,10 @@ internal static class LanguageFeatureSymbols
     }
 
     /// <summary>
-    /// 获得工会类型类型的案件按申报顺序排列。
+    /// 按声明顺序获取联合类型的分支类型。
     /// </summary>
     /// <exception cref="OrleansGeneratorDiagnosticAnalysisException">
-    /// 汇编者并不披露工会案件的类型。
+    /// 编译器不公开联合类型的分支类型。
     /// </exception>
     public static ImmutableArray<ITypeSymbol> GetUnionCaseTypes(INamedTypeSymbol type)
     {

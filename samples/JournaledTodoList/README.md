@@ -1,22 +1,22 @@
 <a id="journaled-todo-list"></a>
 
-# 《日刊》待办事宜列表
+# 日志化待办事项列表
 
-这个样本是Aspire托管的Blazor网络应用程序 显示耐久性
-日记日记 grain 状态使用 Orleans 逻辑一致性提供源。应用程序运行 3
-Orleans silos 以及所仿效的用途 Azure 用于集成和 Azure 布团
-储存状态 grain 。
+本示例是由 Aspire 托管的 Blazor Web 应用，使用 Orleans 日志一致性提供程序
+演示持久化的日志化 Grain 状态。应用运行三个
+Orleans Silo，并使用模拟的 Azure Table Storage 实现集群成员资格，
+使用 Azure Blob Storage 存储 Grain 状态。
 
 <a id="run-the-sample"></a>
 
-## 运行样本
+## 运行示例
 
-安装 .NET 10 SDK、 占卜器 CLI和与多克兼容的容器运行时间。
-从此目录运行 :
+安装 .NET 10 SDK、Aspire CLI 和兼容 Docker 的容器运行时。
+在当前目录运行：
 
 ```powershell
 aspire run --project JournaledTodoList.AppHost
 ```
 
-打开在星盘仪表板中显示的 `webapp` 终点。添加、完成和删除
-要练习已日记的待办事宜列表 grain的项目。
+打开 Aspire 仪表板中显示的 `webapp` 终结点。添加、完成及删除
+待办事项，以体验日志化待办事项列表 Grain。

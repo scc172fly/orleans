@@ -65,7 +65,7 @@ namespace Orleans.Serialization.Invocation
         {
             if (Interlocked.Exchange(ref _disposed, 1) == 0)
             {
-                // 清除每面书架,使集合物体无法维持自己的服务供应商的生命。
+                // 清空各线程专用的栈，避免池化对象使所属的服务提供程序一直存活。
                 _objects.Dispose();
             }
         }

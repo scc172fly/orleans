@@ -44,10 +44,10 @@ public class ServiceLifecycleTests
             }
             catch (Exception ex)
             {
-                // 我们为TCS设定了例外 以便测试检查回调的具体故障
+                // 在 TCS 上设置异常，使测试可以检查此回调的具体失败情况。
                 tcs.TrySetException(ex);
 
-                // 我们重投 LifecycleSubject 行为根据 TerminateOnError.
+                // 重新引发异常，使 LifecycleSubject 按 TerminateOnError 的配置运行。
                 throw;
             }
             return Task.CompletedTask;
@@ -87,9 +87,9 @@ public class ServiceLifecycleTests
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
 
-        // 我们登记了阻击回击 以保持舞台在“运行”状态。
-        // 强制 WaitAsync 实际阻断, 允许我们校验取消
-        // 标记中断等待。
+        // 注册一个会阻塞的回调，使阶段保持“运行中”状态。
+        // 这会强制 WaitAsync 实际阻塞，使我们能够验证取消
+        // 令牌时是否按预期中断等待。
 
         _lifecycle.Started.Register((_, _) => tcs.Task);
 
@@ -183,12 +183,12 @@ public class ServiceLifecycleTests
 
         var startTask = _subject.OnStart(TestContext.Current.CancellationToken);
 
-        // 这样可以确保回击被实际执行 我们不只是在捕捉生命周期的中断
+        // 这确保回调实际执行过，而不是仅捕获生命周期中止。
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             () => task.WaitAsync(Timeout, TestContext.Current.CancellationToken));
         Assert.Equal("Test", ex.Message);
 
-        // 现在验证生命周期启动失败 。
+        // 现在验证生命周期启动是否按预期失败。
         await Assert.ThrowsAsync<InvalidOperationException>(() => startTask);
     }
 
@@ -208,7 +208,7 @@ public class ServiceLifecycleTests
 
         var startTask = _subject.OnStart(cancellationToken);
 
-        // 我们先吞下开始例外 以便检查各项任务
+        // 先捕获并忽略启动异常，以便检查各个任务。
         try
         {
             await startTask;
@@ -219,11 +219,11 @@ public class ServiceLifecycleTests
         }
         catch
         {
-            // 忽略忽略
+            // 忽略。
         }
 
-        // 等待两个 TCS 信号完成( 而不是“ 失败 ” ) , 然后继续坚持。
-        // 防止在 OnStart 例外传播和TCS设置。
+        // 现在等待两个 TCS 信号完成（更准确地说是失败），然后再进行断言。
+        // 这可以防止 OnStart 异常传播与 TCS 设置之间出现竞态。
 
         var firstException = await Record.ExceptionAsync(() => task1.WaitAsync(Timeout, cancellationToken));
         cancellationToken.ThrowIfCancellationRequested();
@@ -240,7 +240,7 @@ public class ServiceLifecycleTests
         await _subject.OnStart(TestContext.Current.CancellationToken);
         await _subject.OnStop(TestContext.Current.CancellationToken);
 
-        // 阶段完成后登记应立即开始运行
+        // 阶段完成后进行的注册应立即运行
         var (task, _) = RegisterCallback(_lifecycle.Stopping);
 
         await task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
@@ -280,7 +280,7 @@ public class ServiceLifecycleTests
         RegisterCallback(_lifecycle.Started, (_, _) => executionOrder.Enqueue("Started"));
         RegisterCallback(_lifecycle.Stopping, (_, _) => executionOrder.Enqueue("Stopping"));
 
-        // 我们抓住被阻止的任务 等待它的具体。
+        // 捕获停止任务，以便专门等待它。
         var (stoppedTask, _) = RegisterCallback(_lifecycle.Stopped, (_, _) => executionOrder.Enqueue("Stopped"));
 
         await _subject.OnStart(TestContext.Current.CancellationToken);
@@ -325,8 +325,8 @@ public class ServiceLifecycleTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var tcs = new TaskCompletionSource<bool>();
 
-        // 我们在这里手动登记是因为逻辑是 CT在回调中处理的
-        // 返回任务结果与标准流程不同。
+        // 这里手动注册，因为逻辑专门涉及回调内的取消令牌处理，
+        // 而且返回的 Task 结果与标准流程不同。
         _lifecycle.Started.Register(async (state, ct) =>
         {
             try
@@ -357,7 +357,7 @@ public class ServiceLifecycleTests
     }
 
     /// <summary>
-    /// 简单的可取消版本, 真实的要测试取消时的试镜 。
+    /// 用于测试取消行为的实际主体对象的简易可取消版本。
     /// </summary>
     public class CancelableSiloLifecycleSubject(ILogger<SiloLifecycleSubject> logger) : SiloLifecycleSubject(logger)
     {

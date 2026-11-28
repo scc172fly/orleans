@@ -9,12 +9,12 @@ namespace Orleans.Placement.Rebalancing;
 internal interface IActivationRebalancerMonitor : ISystemTarget, IActivationRebalancer
 {
     /// <summary>
-    /// <see cref="IActivationRebalancerWorker"/> 必须向监测员报告的时间段。
+    /// <see cref="IActivationRebalancerWorker"/> 必须向监视器报告的时间间隔。
     /// </summary>
     public static readonly TimeSpan WorkerReportPeriod = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// <see cref="IActivationRebalancerWorker"/>定期提出。
+    /// 由 <see cref="IActivationRebalancerWorker"/> 定期调用。
     /// </summary>
     [Alias("Report")] Task Report(RebalancingReport report, CancellationToken cancellationToken = default);
 }

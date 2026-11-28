@@ -13,7 +13,7 @@ namespace Orleans
             var options = clientMessagingOptions.Value;
             var ipAddress = options.LocalAddress ?? ConfigUtilities.GetLocalIPAddress(options.PreferredFamily, options.NetworkInterfaceName);
 
-            // 客户世代为负数
+            // 客户端的世代编号为负数。
             var generation = -SiloAddress.AllocateNewGeneration();
             ClientAddress = SiloAddress.New(ipAddress, 0, generation);
             ClientId = ClientGrainId.Create();

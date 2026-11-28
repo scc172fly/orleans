@@ -2,17 +2,17 @@
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// 配置交易状态表。
+    /// 配置事务状态组件（facet）。
     /// </summary>
     public interface ITransactionalStateConfiguration
     {
         /// <summary>
-        /// 获得交易国名 。
+        /// 获取事务状态的名称。
         /// </summary>
         string StateName { get; }
 
         /// <summary>
-        /// 获取用于交易状态的存储提供者的名称 。
+        /// 获取事务状态所用的存储提供程序名称。
         /// </summary>
         string? StorageName { get; }
     }

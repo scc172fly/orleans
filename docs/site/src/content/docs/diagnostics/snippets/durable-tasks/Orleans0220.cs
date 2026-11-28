@@ -12,11 +12,11 @@ public sealed class LoyaltyGrain : DurableGrain
     {
         if (firstOrder)
         {
-            // 以一美元为单位,只执行第一命令
+            // $child-1，仅出现在首次下单的执行实例中。
             await SendWelcome(customer);
         }
 
-        // 以1美元或2美元为单位,以2美元为单位,以3美元为单位。
+        // 根据条件，积分操作标识为 $child-1 或 $child-2，而账单操作标识为 $child-2 或 $child-3。
         var points = DurableTask.RunInline(() => _points.Value += 100);
         await SendStatement(customer, points);
         return points;
@@ -32,7 +32,7 @@ public sealed class LoyaltyGrain : DurableGrain
             await SendWelcome(customer).WithId("send-welcome");
         }
 
-        // 每个名字都标明其呼叫站点,无论之前的作业是哪个。
+        // 无论前面执行了哪些操作，每个名称都标识其调用位置。
         var points = DurableTask.RunInline("add-points", () => _points.Value += 100);
         await SendStatement(customer, points).WithId("send-statement");
         return points;

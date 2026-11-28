@@ -29,7 +29,7 @@ namespace Orleans.Providers
             this.ServiceProvider = serviceProvider;
             this.implicitSubscriberTable = implicitSubscriberTable;
             this.clientContext = clientContext;
-            this.runtimeClient = serviceProvider.GetService<IRuntimeClient>()!; // DefaultClientServices登记。
+            this.runtimeClient = serviceProvider.GetService<IRuntimeClient>()!; // 由 DefaultClientServices 注册。
             grainBasedPubSub = new GrainBasedPubSubRuntime(GrainFactory);
             var tmp = new ImplicitStreamPubSub(this.implicitSubscriberTable);
             implicitPubSub = tmp;
@@ -43,7 +43,7 @@ namespace Orleans.Providers
 
         public StreamDirectory GetStreamDirectory()
         {
-            return streamDirectory!; // 重置只在客户端关闭时清除此选项 。
+            return streamDirectory!; // Reset 仅在客户端关闭期间清除此对象。
         }
 
         public async Task Reset(bool cleanup = true)
@@ -51,7 +51,7 @@ namespace Orleans.Providers
             if (streamDirectory != null)
             {
                 var tmp = streamDirectory;
-                streamDirectory = null; // 完全无 streamDirectory 现在,只是确保 我们只叫清理一次,在所有情况下。
+                streamDirectory = null; // 此时将 streamDirectory 置为 null，以确保在任何情况下都只调用一次清理逻辑。
                 if (cleanup)
                 {
                     await tmp.Cleanup(true, true);

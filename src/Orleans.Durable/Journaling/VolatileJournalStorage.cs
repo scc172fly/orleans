@@ -9,7 +9,7 @@ using Orleans.Storage;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 提供由日记id所查明的共享的模拟日记存储实例。
+/// 提供按日志 ID 标识的共享内存日志存储实例。
 /// </summary>
 public sealed class VolatileJournalStorageProvider : IJournalStorageProvider, IJournalStorageCatalog
 {
@@ -22,7 +22,7 @@ public sealed class VolatileJournalStorageProvider : IJournalStorageProvider, IJ
     private readonly VolatileJournalStorageOptions _storageOptions = new();
 
     /// <summary>
-    /// 使用默认日记格式初始化 <see cref="VolatileJournalStorageProvider"/> 类的新实例。
+    /// 使用默认日志格式初始化 <see cref="VolatileJournalStorageProvider"/> 类的新实例。
     /// </summary>
     public VolatileJournalStorageProvider()
     {
@@ -32,7 +32,7 @@ public sealed class VolatileJournalStorageProvider : IJournalStorageProvider, IJ
     /// <summary>
     /// 初始化 <see cref="VolatileJournalStorageProvider"/> 类的新实例。
     /// </summary>
-    /// <param name="options">被记录的国家管理选项。</param>
+    /// <param name="options">日志状态管理器选项。</param>
     public VolatileJournalStorageProvider(IOptions<JournaledStateManagerOptions> options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -41,10 +41,10 @@ public sealed class VolatileJournalStorageProvider : IJournalStorageProvider, IJ
     }
 
     /// <summary>
-    /// 使用配置的 Orleans 公尺计量表初始化一个模拟供应商。
+    /// 使用已配置的 Orleans 指标 Meter 初始化内存提供程序。
     /// </summary>
-    /// <param name="options">被记录的国家管理选项。</param>
-    /// <param name="instruments">运行时 Orleans 公 计。</param>
+    /// <param name="options">日志状态管理器选项。</param>
+    /// <param name="instruments">Orleans 运行时指标 Meter。</param>
     public VolatileJournalStorageProvider(IOptions<JournaledStateManagerOptions> options, OrleansInstruments instruments)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -54,11 +54,11 @@ public sealed class VolatileJournalStorageProvider : IJournalStorageProvider, IJ
     }
 
     /// <summary>
-    /// 初始化了一个具有可配置快照阈值的模拟供应商。
+    /// 使用可配置的快照阈值初始化内存提供程序。
     /// </summary>
-    /// <param name="options">被记录的国家管理选项。</param>
-    /// <param name="storageOptions">供应商的快照门槛</param>
-    /// <param name="instruments">任选 Orleans 运行时公尺计。</param>
+    /// <param name="options">日志状态管理器选项。</param>
+    /// <param name="storageOptions">提供程序的快照阈值。</param>
+    /// <param name="instruments">可选的 Orleans 运行时指标 Meter。</param>
     public VolatileJournalStorageProvider(
         IOptions<JournaledStateManagerOptions> options,
         IOptions<VolatileJournalStorageOptions> storageOptions,
@@ -169,19 +169,19 @@ public sealed class VolatileJournalStorageProvider : IJournalStorageProvider, IJ
 }
 
 /// <summary>
-/// 用于非耐用用途的 <see cref="IJournalStorage"/> 在开发和测试等情况下的模拟、不稳定实施。
+/// <see cref="IJournalStorage"/> 的内存易失性实现，适用于不要求持久化的场景，例如开发和测试。
 /// </summary>
 public sealed class VolatileJournalStorage : IJournalStorage
 {
     private readonly Store _store;
-    // 读取或创建前不为空日记本, 零 。
+    // 读取或创建之前为 null，日志不存在时为零。
     private long? _writeVersion;
     private readonly int _maxAppendsBeforeSnapshot;
     private readonly long _maxBytesBeforeSnapshot;
     private string? _configuredJournalFormatKey;
 
     /// <summary>
-    /// 使用默认日记格式初始化一个新的孤立的日记存储实例。
+    /// 使用默认日志格式初始化新的隔离内存日志存储实例。
     /// </summary>
     public VolatileJournalStorage() : this(new Store(CreateVolatileStorageId()), journalFormatKey: null)
     {
@@ -190,16 +190,16 @@ public sealed class VolatileJournalStorage : IJournalStorage
     /// <summary>
     /// 初始化 <see cref="VolatileJournalStorage"/> 类的新实例。
     /// </summary>
-    /// <param name="journalFormatKey">日记写时要加盖的密钥 。</param>
+    /// <param name="journalFormatKey">写入时标记的日志格式键。</param>
     public VolatileJournalStorage(string? journalFormatKey) : this(new Store(CreateVolatileStorageId()), journalFormatKey)
     {
     }
 
     /// <summary>
-    /// 初始化一个带有可配置快照阈值的孤立的模拟日记。
+    /// 使用可配置快照阈值初始化隔离的内存日志。
     /// </summary>
-    /// <param name="journalFormatKey">日记写时要加盖的密钥 。</param>
-    /// <param name="options">快速阈值。</param>
+    /// <param name="journalFormatKey">写入时标记的日志格式键。</param>
+    /// <param name="options">快照阈值。</param>
     public VolatileJournalStorage(string? journalFormatKey, VolatileJournalStorageOptions options)
         : this(new Store(CreateVolatileStorageId()), journalFormatKey, options ?? throw new ArgumentNullException(nameof(options)))
     {
@@ -397,7 +397,7 @@ public sealed class VolatileJournalStorage : IJournalStorage
         return default;
     }
 
-    // 打电话的人守着商店锁
+    // 调用方持有存储锁。
     private void ThrowIfVersionChanged(string operation)
     {
         if (_writeVersion is null)
@@ -425,7 +425,7 @@ public sealed class VolatileJournalStorage : IJournalStorage
 
         public long AppendCount { get; set; }
 
-        // 列表数和每个存储的阵列长度都与内装相容,所以总合长。
+        // 列表计数及每个已存储数组的长度均在 int 范围内，因此总和在 long 范围内。
         public long AppendedBytes { get; set; }
 
         public Dictionary<string, string> Properties { get; } = new(StringComparer.Ordinal);
@@ -436,7 +436,7 @@ public sealed class VolatileJournalStorage : IJournalStorage
 
         public long Version { get; private set; }
 
-        // 计及内容变化(创建、写作和删除),这样内容版本就永远不会被再利用;元数据更新保持不变。
+        // 对内容变更（创建、写入及删除）计数，使内容版本永不复用；元数据更新不改变此值。
         private long _contentChangeCount;
 
         public long ContentVersion => Exists ? _contentChangeCount : 0;

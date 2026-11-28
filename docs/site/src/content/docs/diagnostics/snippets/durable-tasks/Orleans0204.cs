@@ -14,7 +14,7 @@ public sealed class TicketGrain : DurableGrain
         var reference = Guid.Empty;
         DurableTask.RunInline("allocate", () =>
         {
-            // 重放返回所记录的结果,而不运行效果,所以这些任务不会发生。
+            // 重放直接返回记录的结果而不执行效果，因此这些赋值不会发生。
             number = ++_lastNumber.Value;
             reference = Guid.NewGuid();
         });
@@ -28,7 +28,7 @@ public sealed class TicketGrain : DurableGrain
     // <orleans0204_fix>
     public async DurableTask<string> IssueOnceAsync()
     {
-        // 效果返回其输出, 所以每个重播都接收记录值。
+        // 效果返回其输出，因此每次重放都获得已记录的值。
         var (number, reference) = DurableTask.RunInline("allocate", () => (++_lastNumber.Value, Guid.NewGuid()));
 
         await Print(number, reference).WithId("print");

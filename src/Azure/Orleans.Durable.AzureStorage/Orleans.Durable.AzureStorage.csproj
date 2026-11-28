@@ -10,7 +10,7 @@
     <VersionSuffix Condition="$(VersionSuffix) != ''">$(VersionSuffix).alpha.1</VersionSuffix>
     <VersionSuffix Condition="$(VersionSuffix) == ''">alpha.1</VersionSuffix>
     <OrleansPackageValidationBaselineSuffix>alpha.1</OrleansPackageValidationBaselineSuffix>
-    <!-- 验证框架资产,而第一次释放则确定一揽子基准。 -->
+    <!-- 在首个版本建立包基准的同时，验证框架资产。 -->
     <OrleansPackageValidationBaselineVersion></OrleansPackageValidationBaselineVersion>
     <EnablePackageValidation>true</EnablePackageValidation>
     <OrleansBuildTimeCodeGen>true</OrleansBuildTimeCodeGen>
@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="$(SourceRoot)src\Orleans.Runtime\Orleans.Runtime.csproj" />
-    <!-- 此软件包使用 Orleans.Durable 内部, 所以取决于该软件包的准确版本 。 -->
+    <!-- 此包使用 Orleans.Durable 的内部实现，因此依赖该包的精确版本。 -->
     <ProjectReference Include="$(SourceRoot)src\Orleans.Durable\Orleans.Durable.csproj" PackExactVersion="true" />
   </ItemGroup>
 

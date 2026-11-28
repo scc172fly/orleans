@@ -4,16 +4,16 @@ using Orleans.Configuration;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 配置 Azure 事件枢纽流提供者在 Orleans 客户端上的扩展方法。
+    /// 用于在 Orleans 客户端上配置 Azure Event Hubs 流提供程序的扩展方法。
     /// </summary>
     public static class ClientBuilderExtensions
     {
         /// <summary>
-        /// 向客户添加名为 Azure 的事件枢纽持续流提供者。
+        /// 将命名的 Azure Event Hubs 持久化流提供程序添加到客户端。
         /// </summary>
         /// <param name="builder">客户端构建器。</param>
-        /// <param name="name">流体提供者名称。</param>
-        /// <param name="configure">用于配置流提供方的代表。</param>
+        /// <param name="name">流提供程序名称。</param>
+        /// <param name="configure">用于配置流提供程序的委托。</param>
         /// <returns>客户端构建器。</returns>
         public static IClientBuilder AddEventHubStreams(
            this IClientBuilder builder,
@@ -26,11 +26,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 向客户添加名为 Azure 的事件枢纽持续流提供者。
+        /// 将命名的 Azure Event Hubs 持久化流提供程序添加到客户端。
         /// </summary>
         /// <param name="builder">客户端构建器。</param>
-        /// <param name="name">流体提供者名称。</param>
-        /// <param name="configureEventHub">用于配置事件枢纽连接的代表。</param>
+        /// <param name="name">流提供程序名称。</param>
+        /// <param name="configureEventHub">用于配置 Event Hub 连接的委托。</param>
         /// <returns>客户端构建器。</returns>
         public static IClientBuilder AddEventHubStreams(
             this IClientBuilder builder,

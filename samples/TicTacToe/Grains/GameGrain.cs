@@ -3,14 +3,14 @@ using Orleans.Concurrency;
 namespace TicTacToe.Grains;
 
 /// <summary>
-/// Orleans grain 执行类别 GameGrain
+/// Orleans Grain 实现类 GameGrain。
 /// </summary>
 [Reentrant]
 public class GameGrain : Grain, IGameGrain
 {
-    // 当前游戏中玩家列表
-    // 简单化,玩家 0 总是播放“ O” 和玩家 1 播放“ X”
-    //  谁启动游戏, 游戏一旦启动即随机调用, 并且通过 indexNextPlayerToMove设定
+    // 当前游戏的玩家列表。
+    // 为简单起见，玩家 0 始终使用 "O"，玩家 1 使用 "X"。
+    // 游戏开始时随机决定哪位玩家先走，并通过 indexNextPlayerToMove 设置。
     public List<Guid> _playerIds = new();
     private int _indexNextPlayerToMove;
 
@@ -18,23 +18,23 @@ public class GameGrain : Grain, IGameGrain
     private Guid _winnerId;
     private Guid _loserId;
 
-    // 我们记录了每一动作的游戏, 这样我们就可以重建游戏序列
-    // 在活动游戏中,我们使用 2D 数组代表棋盘,以形成
-    //  更容易检查合法动作、 彩排等 。
-    //  - 1 代表空方, 0 & 1 玩家索引
+    // 通过记录游戏中的每一步落子来保存游戏，以便重建落子顺序。
+    // 在游戏进行期间，还使用二维数组表示棋盘，以便
+    // 检查合法落子、获胜连线等。
+    // -1 表示空格，0 和 1 表示玩家索引。
     private List<GameMove> _moves = new();
     private int[,] _board = null!;
 
     private string _name = null!;
 
-    // 地址
+    // 初始化。
     public override Task OnActivateAsync(CancellationToken token)
     {
-        // 确定新建立的游戏状态正确
+        // 确保新建游戏处于正确状态。
         _playerIds = new List<Guid>();
         _moves = new List<GameMove>();
-        _indexNextPlayerToMove = -1;  // 安全安全默认 - 当游戏开始到 0或 1时设置安全缺省 -
-        _board = new int[3, 3] { { -1, -1, -1 }, { -1, -1, -1 }, { -1, -1, -1 } };  // - 1 是空的
+        _indexNextPlayerToMove = -1;  // 安全默认值——游戏开始时设置为 0 或 1。
+        _board = new int[3, 3] { { -1, -1, -1 }, { -1, -1, -1 }, { -1, -1, -1 } };  // -1 表示空格。
 
         _gameState = GameState.AwaitingPlayers;
         _winnerId = Guid.Empty;
@@ -43,32 +43,32 @@ public class GameGrain : Grain, IGameGrain
         return base.OnActivateAsync(token);
     }
 
-    // 将玩家添加到游戏
+    // 向游戏添加玩家。
     public Task<GameState> AddPlayerToGame(Guid player)
     {
-        // 选中它是否可以加入此游戏
+        // 检查是否允许加入此游戏。
         if (_gameState is GameState.Finished) throw new ApplicationException("Can't join game once its over");
         if (_gameState is GameState.InPlay) throw new ApplicationException("Can't join game once its in play");
 
-        // 添加播放器
+        // 添加玩家。
         _playerIds.Add(player);
 
-        // 选中此项游戏是否准备播放
+        // 检查游戏是否已准备好开始。
         if (_gameState is GameState.AwaitingPlayers && _playerIds.Count is 2)
         {
-            // 新游戏开始
+            // 一场新游戏即将开始。
             _gameState = GameState.InPlay;
-            _indexNextPlayerToMove = Random.Shared.Next(0, 1);  // 随机任意排列到谁第一个移动
+            _indexNextPlayerToMove = Random.Shared.Next(0, 1);  // 随机决定哪位玩家先走。
         }
 
-        // 让用户知道游戏是否准备好
+        // 告知用户游戏是否已准备好。
         return Task.FromResult(_gameState);
     }
 
-    // 游戏中移动
+    // 在游戏中落子。
     public async Task<GameState> MakeMove(GameMove move)
     {
-        // 检查其要合法移动是否合法
+        // 检查本次落子是否合法。
         if (_gameState is not GameState.InPlay) throw new ApplicationException("This game is not in play");
 
         if (_playerIds.IndexOf(move.PlayerId) < 0) throw new ArgumentException("No such playerid for this game", "move");
@@ -77,11 +77,11 @@ public class GameGrain : Grain, IGameGrain
         if (move.X < 0 || move.X > 2 || move.Y < 0 || move.Y > 2) throw new ArgumentException("Bad co-ordinates for a move", "move");
         if (_board[move.X, move.Y] != -1) throw new ArgumentException("That square is not empty", "move");
 
-        // 记录移动
+        // 记录落子。
         _moves.Add(move);
         _board[move.X, move.Y] = _indexNextPlayerToMove;
 
-        // 中胜动作的检查
+        // 检查本次落子是否获胜。
         var win = false;
         for (var i = 0; i < 3 && !win; i++)
         {
@@ -106,17 +106,17 @@ public class GameGrain : Grain, IGameGrain
             win = IsWinningLine(_board[0, 2], _board[1, 1], _board[2, 0]);
         }
 
-        // 抽图检查
+        // 检查是否平局。
         var draw = false;
         if (_moves.Count is 9)
         {
-            draw = true;  // 如果我们愿意 我们可以尝试早点寻找僵局
+            draw = true;  // 如果需要，也可以更早尝试检测无法获胜的僵局。
         }
 
-        // 游戏结束控点
+        // 处理游戏结束。
         if (win || draw)
         {
-            // 游戏结束
+            // 游戏结束。
             _gameState = GameState.Finished;
             if (win)
             {
@@ -124,20 +124,20 @@ public class GameGrain : Grain, IGameGrain
                 _loserId = _playerIds[(_indexNextPlayerToMove + 1) % 2];
             }
 
-            // 集合任务, 所以我们同时等待两个通知
+            // 收集任务，以便同时等待两个通知操作。
             var promises = new List<Task>();
-            // 向此播放器告知结果
+            // 告知此玩家游戏结果。
             var playerGrain = GrainFactory.GetGrain<IPlayerGrain>(_playerIds[_indexNextPlayerToMove]);
             promises.Add(playerGrain.LeaveGame(this.GetPrimaryKey(), win ? GameOutcome.Win : GameOutcome.Draw));
 
-            // 向其他角色告知结果
+            // 告知另一玩家游戏结果。
             playerGrain = GrainFactory.GetGrain<IPlayerGrain>(_playerIds[(_indexNextPlayerToMove + 1) % 2]);
             promises.Add(playerGrain.LeaveGame(this.GetPrimaryKey(), win ? GameOutcome.Lose : GameOutcome.Draw));
             await Task.WhenAll(promises);
             return _gameState;
         }
 
-        // 如果游戏还没有结束, 准备下一步玩家移动
+        // 如果游戏尚未结束，则准备让下一位玩家落子。
         _indexNextPlayerToMove = (_indexNextPlayerToMove + 1) % 2;
         return _gameState;
     }

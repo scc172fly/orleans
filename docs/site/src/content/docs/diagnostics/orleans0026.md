@@ -1,53 +1,53 @@
 ---
-title: "ORLEANS0026:无效的可引用基型绘图"
-description: "理解和决心 ORLEANS0026 当自定义时 grain- 呼叫返回型号映射无法产生有效的可援引请求。"
+title: "ORLEANS0026: 无效的可调用对象基类型映射"
+description: 了解并解决自定义 Grain 调用返回类型映射无法生成有效可调用请求时出现的 ORLEANS0026。
 ms.date: 08/25/2026
 ms.topic: reference
 ---
 
 <a id="orleans0026-invalid-invokable-base-type-mapping"></a>
 
-# ORLEANS0026:无效的可引用基型绘图
+# ORLEANS0026: 无效的可调用对象基类型映射
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 类别类 | 用法 |
-| 严重性 | 错误错误 |
-| 代码修正 | 不详 |
+| 类别 | 用法 |
+| 严重性 | 错误 |
+| 代码修复 | 不可用 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-适用的习惯 `InvokableBaseType` 注册无效, 对于 grain 常见原因包括登记冲突、通用性或限制无效、无法进入或密封请求基地、缺少支持的施工者或无效 `ReturnValueProxy` 初始化 。
+适用于当前 Grain 方法返回类型和所选代理基类的自定义 `InvokableBaseType` 注册无效。常见原因包括注册冲突、泛型元数或约束无效、请求基类不可访问或已密封、缺少受支持的构造函数，以及 `ReturnValueProxy` 初始化器无效。
 
 <a id="impact"></a>
 
-## 影响影响
+## 影响
 
-Orleans 无法可靠地选择或生成RPC方法的可援引请求类型。代理和请求代码生成无法产生有效的自定义调用合同 。
+Orleans 无法可靠地为 RPC 方法选择或生成可调用请求类型。代理及请求代码生成无法产生有效的自定义调用契约。
 
 <a id="how-to-fix"></a>
 
-## 如何修补
+## 修复方法
 
-确定诊断所指定的登记,然后:
+定位诊断中指出的注册，然后执行以下操作：
 
-1. 删除自相矛盾的映射, 避免通过组装登记替换内置代理默认默认值 。
-2. 将开放的通用回报和请求类型与性能和限制匹配。
-3. 使用一个可获取、非静态、无密封请求基础,并配有支持的建筑师。
-4. 校正 `ReturnValueProxy` 初始化器名称和签名。
-5. 校验 `GenerateMethodSerializers`所选的每个代理基数。
+1. 移除冲突的映射，避免通过程序集注册替换内置代理默认设置。
+2. 按元数及约束匹配开放泛型返回类型与请求类型。
+3. 使用可访问、非静态、非密封且具有受支持构造函数的请求基类。
+4. 修正 `ReturnValueProxy` 初始化器的名称和签名。
+5. 验证 `GenerateMethodSerializers` 选定的每个代理基类。
 
 <a id="suppress-the-diagnostic"></a>
 
 ## 抑制诊断
 
-禁止并不修复源生成合同,源产生器可以单独报告同一条件。 只有在独立验证了产生的输出后,仅对经证明的只显示为假正数的分析器进行抑制。
+抑制诊断并不能修复源生成契约，且源生成器可能单独报告相同问题。只有在独立验证生成输出之后，证实仅为分析器误报时才抑制。
 
 ```ini
 [*.cs]
 dotnet_diagnostic.ORLEANS0026.severity = none
 ```
 
-见 [自定义 Orleans 代码生成](../grains/code-generation-customization.md)。
+参阅[自定义 Orleans 代码生成](../grains/code-generation-customization.md)。

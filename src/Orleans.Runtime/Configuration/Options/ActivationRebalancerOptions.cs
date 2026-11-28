@@ -5,138 +5,138 @@ using Orleans.Runtime;
 namespace Orleans.Configuration;
 
 /// <summary>
-/// 配置激活再平衡的选项。
+/// 用于配置激活实例再均衡的选项。
 /// </summary>
 public sealed class ActivationRebalancerOptions
 {
     /// <summary>
-    /// 重新平衡者开始首届会议的时机到了
+    /// 再均衡器启动首次会话前的延迟时间。
     /// </summary>
     public TimeSpan RebalancerDueTime { get; set; } = DEFAULT_REBALANCER_DUE_TIME;
 
     /// <summary>
-    /// 默认值 <see cref="RebalancerDueTime"/>。
+    /// <see cref="RebalancerDueTime"/> 的默认值。
     /// </summary>
     public static readonly TimeSpan DEFAULT_REBALANCER_DUE_TIME = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// 届会连续两次重新平衡周期之间的时间。
+    /// 一次会话中相邻两轮再均衡周期之间的时间间隔。
     /// </summary>
-    /// <remarks>大于2 x <see cref="DeploymentLoadPublisherOptions.DeploymentLoadPublisherRefreshTime"/>。</remarks>
+    /// <remarks>该值必须大于 2 倍的 <see cref="DeploymentLoadPublisherOptions.DeploymentLoadPublisherRefreshTime"/>。</remarks>
     public TimeSpan SessionCyclePeriod { get; set; } = DEFAULT_SESSION_CYCLE_PERIOD;
 
     /// <summary>
-    /// 默认值 <see cref="SessionCyclePeriod"/>。
+    /// <see cref="SessionCyclePeriod"/> 的默认值。
     /// </summary>
     public static readonly TimeSpan DEFAULT_SESSION_CYCLE_PERIOD = TimeSpan.FromSeconds(15);
 
     /// <summary>
-    /// 周期的最大、连续次数,对集群的环流没有显著改善。
+    /// 集群熵没有显著改善的最大连续周期数。
     /// </summary>
-    /// <remarks>这个值是包容性的, i.e。如果这个值是“ n” ,那么“n+1” 周期将停止当前再平衡会话 。</remarks>
+    /// <remarks>此值包含边界，即若该值为 n，则第 n+1 个周期将停止当前再均衡会话。</remarks>
     public int MaxStagnantCycles { get; set; } = DEFAULT_MAX_STAGNANT_CYCLES;
 
     /// <summary>
-    /// 默认值 <see cref="MaxStagnantCycles"/>。
+    /// <see cref="MaxStagnantCycles"/> 的默认值。
     /// </summary>
     public const int DEFAULT_MAX_STAGNANT_CYCLES = 3;
 
     /// <summary>
-    /// 被认为改进的组群的变异最小值。
-    /// 当共N-连续停滞周期过后,在这段时间内, 的倍数变化小于
-    /// 量值, 然后当前再平衡会停止。 改变是一个正常值
-    /// 相对于最大可能的宇宙信通。
+    /// 集群熵变化量中被视为改善的最小值。
+    /// 如果连续经历 n 个停滞周期，其间熵的变化量始终小于
+    /// 该阈值，则当前再均衡会话将停止。变化量为归一化值，
+    /// 即相对于理论最大熵的值。
     /// </summary>
-    /// <remarks>允许范围: (0-0.1)</remarks>
+    /// <remarks>允许范围：(0-0.1]。</remarks>
     public double EntropyQuantum { get; set; } = DEFAULT_ENTROPY_QUANTUM;
 
     /// <summary>
-    /// 默认值 <see cref="EntropyQuantum"/>。
+    /// <see cref="EntropyQuantum"/> 的默认值。
     /// </summary>
     public const double DEFAULT_ENTROPY_QUANTUM = 0.0001d;
 
     /// <summary>
-    /// 代表该组当前星体的星体与理论最大值之间的允许星体偏差。
-    /// 低于这个数值的值实际上被视为“最大”,而目前的再平衡会议将停止。
-    /// 如果 <see cref="ScaleAllowedEntropyDeviation"/> 被设为 <see langword="true"/>,则此数值作为基准率。
+    /// 表示集群当前熵与理论最大熵之间允许的偏差。
+    /// 低于该值的偏差在实践中视为已达到最大熵，当前再均衡会话将停止。
+    /// 如果将 <see cref="ScaleAllowedEntropyDeviation"/> 设置为 <see langword="true"/>，则此值用作基础偏差率。
     /// </summary>
-    /// <remarks>允许的范围是: (0-0.1)</remarks>
+    /// <remarks>允许范围：(0-0.1]。</remarks>
     public double AllowedEntropyDeviation { get; set; } = DEFAULT_ALLOWED_ENTROPY_DEVIATION;
 
     /// <summary>
-    /// 默认值 <see cref="AllowedEntropyDeviation"/>。
+    /// <see cref="AllowedEntropyDeviation"/> 的默认值。
     /// </summary>
     public const double DEFAULT_ALLOWED_ENTROPY_DEVIATION = 0.0001d;
 
     /// <summary>
-    /// 确定是否应该动态缩放 <see cref="AllowedEntropyDeviation"/>
-    /// 根据激活的总数确定。设定到 <see langword="true"/>时,允许的 entropy
-    /// 到达 <see cref="ScaledEntropyDeviationActivationThreshold"/>后, 偏差将对数增加,
-    /// 并在 <see cref="MAX_SCALED_ENTROPY_DEVIATION"/>时设定上限。
+    /// 确定是否应根据激活实例总数动态调整 <see cref="AllowedEntropyDeviation"/>
+    /// 的大小。设置为 <see langword="true"/> 时，允许的熵偏差
+    /// 会在达到 <see cref="ScaledEntropyDeviationActivationThreshold"/> 后按对数增长，
+    /// 并且上限为 <see cref="MAX_SCALED_ENTROPY_DEVIATION"/>。
     /// </summary>
-    /// <remarks>之所以存在,是因为10的引爆率偏离了10,
-    /// 共对100,000个启动发生影响,比1,000个启动发生作用时的影响要大。</remarks>
+    /// <remarks>之所以引入此机制，是因为例如 10 个激活实例的偏差对于总计
+    /// 100,000 个激活实例的影响远小于对于总计 1,000 个激活实例的影响。</remarks>
     public bool ScaleAllowedEntropyDeviation { get; set; } = DEFAULT_SCALE_ALLOWED_ENTROPY_DEVIATION;
 
     /// <summary>
-    /// 默认值 <see cref="ScaleAllowedEntropyDeviation"/>。
+    /// <see cref="ScaleAllowedEntropyDeviation"/> 的默认值。
     /// </summary>
     public const bool DEFAULT_SCALE_ALLOWED_ENTROPY_DEVIATION = true;
 
     /// <summary>
-    /// <see cref="ScaleAllowedEntropyDeviation"/> 是 <see langword="true"/>时允许的最大值。
+    /// 当 <see cref="ScaleAllowedEntropyDeviation"/> 为 <see langword="true"/> 时允许的最大值。
     /// </summary>
     public const double MAX_SCALED_ENTROPY_DEVIATION = 0.1d;
 
     /// <summary>
-    /// 确定在任何再平衡周期内必须活跃的激活次数,以便 <see cref="ScaleAllowedEntropyDeviation"/>
-    /// (如果而且只有在 <see langword="true"/>开始缩放 <see cref="AllowedEntropyDeviation"/>时)
+    /// 确定任意再均衡周期中必须处于活动状态的激活实例数量，以便 <see cref="ScaleAllowedEntropyDeviation"/>
+    /// （当且仅当其值为 <see langword="true"/> 时）开始调整 <see cref="AllowedEntropyDeviation"/>。
     /// </summary>
     /// <remarks>
-    /// <para>允许的范围：[1000, ∞)。</para>
-    /// <para><strong>低于默认值的数值被劝阻。</strong></para>
+    /// <para>允许范围：[1000-∞)。</para>
+    /// <para><strong>不建议使用低于默认值的值。</strong></para>
     /// </remarks>
     public int ScaledEntropyDeviationActivationThreshold { get; set; } = DEFAULT_SCALED_ENTROPY_DEVIATION_ACTIVATION_THRESHOLD;
 
     /// <summary>
-    /// 默认值 <see cref="ScaledEntropyDeviationActivationThreshold"/>。
+    /// <see cref="ScaledEntropyDeviationActivationThreshold"/> 的默认值。
     /// </summary>
     public const int DEFAULT_SCALED_ENTROPY_DEVIATION_ACTIVATION_THRESHOLD = 10_000;
 
     /// <summary>
-    /// <para>表示对重新平衡会议期间所通过再平衡周期数目的权重。</para>
-    /// 改变这一数值对移徙率的影响远大于 <see cref="SiloNumberWeight"/>,适合控制会期。
-    /// <para>选择更高的值,如果你想加快迁移速度的话。</para>
+    /// <para>表示一次再均衡会话期间已完成的再均衡周期数量所占的权重。</para>
+    /// 修改此值对迁移速率的影响远大于修改 <see cref="SiloNumberWeight"/>，适合控制会话持续时间。
+    /// <para>若希望提高迁移速率，请选择较高的值。</para>
     /// </summary>
-    /// <remarks>允许范围: (0-1)</remarks>
+    /// <remarks>允许范围：(0-1]。</remarks>
     public double CycleNumberWeight { get; set; } = DEFAULT_CYCLE_NUMBER_WEIGHT;
 
     /// <summary>
-    /// 默认值 <see cref="CycleNumberWeight"/>。
+    /// <see cref="CycleNumberWeight"/> 的默认值。
     /// </summary>
     public const double DEFAULT_CYCLE_NUMBER_WEIGHT = 0.1d;
 
     /// <summary>
-    /// <para>表示对数字的加权数 silos 重新平衡会议期间的一组。</para>
-    /// 改变这一数值对移徙率的影响远远小于 <see cref="CycleNumberWeight"/>,适合微调。
-    /// <para>选择较低数值,如果你想加快迁移速度的话。</para>
+    /// <para>表示一次再均衡会话期间集群中 Silo 数量所占的权重。</para>
+    /// 修改此值对迁移速率的影响远小于修改 <see cref="CycleNumberWeight"/>，适合微调。
+    /// <para>若希望提高迁移速率，请选择较低的值。</para>
     /// </summary>
-    /// <remarks>允许范围: [0-1]</remarks>
+    /// <remarks>允许范围：[0-1]。</remarks>
     public double SiloNumberWeight { get; set; } = DEFAULT_SILO_NUMBER_WEIGHT;
 
     /// <summary>
-    /// 默认值 <see cref="SiloNumberWeight"/>。
+    /// <see cref="SiloNumberWeight"/> 的默认值。
     /// </summary>
     public const double DEFAULT_SILO_NUMBER_WEIGHT = 0.1d;
 
     /// <summary>
-    /// 在任何特定周期中可迁移的最大允许启动次数。
+    /// 任意一次周期允许迁移的最大激活实例数量。
     /// </summary>
     public int ActivationMigrationCountLimit { get; set; } = DEFAULT_ACTIVATION_MIGRATION_COUNT_LIMIT;
 
     /// <summary>
-    /// <see cref="ActivationMigrationCountLimit"/>的默认值。
-    /// 默认实际上没有限制 。
+    /// <see cref="ActivationMigrationCountLimit"/> 的默认值。
+    /// 默认值实际上没有限制。
     /// </summary>
     public const int DEFAULT_ACTIVATION_MIGRATION_COUNT_LIMIT = int.MaxValue;
 }

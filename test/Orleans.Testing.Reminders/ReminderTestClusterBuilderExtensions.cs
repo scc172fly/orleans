@@ -3,18 +3,18 @@ using Orleans.TestingHost;
 namespace Orleans.Testing.Reminders;
 
 /// <summary>
-/// 能够对 <see cref="InProcessTestClusterBuilder"/>进行确定性提醒-测试行为的扩展方法。
+/// 用于在 <see cref="InProcessTestClusterBuilder"/> 上启用确定性提醒器测试行为的扩展方法。
 /// </summary>
 public static class ReminderTestClusterBuilderExtensions
 {
     /// <summary>
-    /// 在所提供的 <see cref="InProcessTestClusterBuilder"/>中添加一个确定性提醒时钟。
+    /// 向指定的 <see cref="InProcessTestClusterBuilder"/> 添加确定性提醒器时钟。
     /// </summary>
-    /// <param name="builder">测试组群构建器。</param>
-    /// <param name="minimumReminderPeriod">可选择的最低提醒时间过重 。</param>
-    /// <param name="refreshReminderListPeriod">提醒列表的复新期替换。</param>
-    /// <param name="initializationTimeout">提醒启动超时覆盖选项。</param>
-    /// <returns>所附的提醒测试钟。</returns>
+    /// <param name="builder">测试集群构建器。</param>
+    /// <param name="minimumReminderPeriod">可选的最短提醒器周期覆盖值。</param>
+    /// <param name="refreshReminderListPeriod">可选的提醒器列表刷新周期覆盖值。</param>
+    /// <param name="initializationTimeout">可选的提醒器初始化超时覆盖值。</param>
+    /// <returns>已附加的提醒器测试时钟。</returns>
     public static ReminderTestClock AddReminderTestClock(
         this InProcessTestClusterBuilder builder,
         TimeSpan? minimumReminderPeriod = null,

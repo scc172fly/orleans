@@ -1,7 +1,7 @@
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 指定流数据提供者是只读、读写还是只写。
+    /// 标识流提供程序是只读、读写还是只写。
     /// </summary>
     public enum StreamProviderDirection
     {
@@ -11,17 +11,17 @@ namespace Orleans.Streams
         None,
 
         /// <summary>
-        /// 此提供者可以接收信件, 但无法发送 。
+        /// 此提供程序可以接收消息，但不能发送消息。
         /// </summary>
         ReadOnly,
 
         /// <summary>
-        /// 此提供者可以发送信件但无法接收 。
+        /// 此提供程序可以发送消息，但不能接收消息。
         /// </summary>
         WriteOnly,
 
         /// <summary>
-        /// 该提供者既可以发送也可以接收信息。
+        /// 此提供程序既可以发送也可以接收消息。
         /// </summary>
         ReadWrite
     }

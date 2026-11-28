@@ -4,7 +4,7 @@ using System;
 namespace Orleans.Serialization.Serializers
 {
     /// <summary>
-    /// 提供访问编码器、活动器和复印机的功能。
+    /// 提供访问编解码器、激活器和复制器的功能。
     /// </summary>
     public interface ICodecProvider :
         IFieldCodecProvider,
@@ -14,9 +14,9 @@ namespace Orleans.Serialization.Serializers
         IDeepCopierProvider
     {
         /// <summary>
-        /// 得到了服务供应商。
+        /// 获取服务提供程序。
         /// </summary>
-        /// <value>服务供应商。</value>
+        /// <value>服务提供程序。</value>
         IServiceProvider Services { get; }
     }
 }

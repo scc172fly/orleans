@@ -5,7 +5,7 @@ using Orleans.Configuration;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// 职能由无国籍工人类型 grain 的所有情况分担。
+/// 无状态工作者 Grain 类型的所有实例共享的功能。
 /// </summary>
 internal sealed class StatelessWorkerGrainTypeSharedContext
 {
@@ -26,32 +26,32 @@ internal sealed class StatelessWorkerGrainTypeSharedContext
     }
 
     /// <summary>
-    /// 获取通用 grain- 类型共享环境。
+    /// 获取通用的 Grain 类型级共享上下文。
     /// </summary>
     public GrainTypeSharedContext Shared { get; }
 
     /// <summary>
-    /// 获得无国籍工人的选择。
+    /// 获取无状态工作者选项。
     /// </summary>
     public StatelessWorkerOptions StatelessWorkerOptions { get; }
 
     /// <summary>
-    /// 获得允许此类 grain id 的最大允许的本地工人激活次数。
+    /// 获取此类型中每个 Grain 标识允许的本地工作者激活实例最大数量。
     /// </summary>
     public int MaxLocalWorkers { get; }
 
     /// <summary>
-    /// 获得一个数值, 显示闲置工人是否应该主动清除 。
+    /// 获取指示是否主动移除空闲工作者的值。
     /// </summary>
     public bool RemoveIdleWorkers { get; }
 
     /// <summary>
-    /// 获得工人被撤职之前所需的连续无用的检查周期的最低数量。
+    /// 获取工作者可被移除前所需的最少连续空闲检查周期数。
     /// </summary>
     public int MinIdleCyclesBeforeRemoval { get; }
 
     /// <summary>
-    /// 获得空闲工人检查之间的间隔时间。
+    /// 获取空闲工作者检查的间隔。
     /// </summary>
     public TimeSpan IdleWorkersInspectionPeriod { get; }
 }

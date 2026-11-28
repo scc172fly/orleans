@@ -8,11 +8,11 @@ internal static class VerifyModuleInitializer
     [ModuleInitializer]
     public static void Init()
     {
-        // 校验默认值, 将未知的扩展名作为二进制处理( 并拒绝字符串超载)
-        // 双进目标))。在此工程中, 抓图文件使用.jsonl 扩展名, 纯粹是编辑
-        // 语法高亮显示为 JSON 行; 内容总是 UTF-8 文本。 The the type
-        // <see cref="FileExtensions"/> 登记在 <c>EmptyFiles</c> 套件包已带入
-        // 由核查中转。
+        // Verify 默认将未知扩展名视为二进制格式（并拒绝对二进制目标使用
+        // 字符串重载）。此项目的快照文件使用 .jsonl 扩展名只是为了让编辑器
+        // 将它们作为 JSON Lines 进行语法高亮；内容始终为 UTF-8 文本。
+        // <see cref="FileExtensions"/> 注册表位于 <c>EmptyFiles</c> 包中，该包由 Verify
+        // 传递引入。
         FileExtensions.AddTextExtension("jsonl");
     }
 }

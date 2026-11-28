@@ -7,30 +7,30 @@ using Orleans.Providers;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// silos系统管理功能的接口,
-    /// 以 grain 形式暴露,用于接收远程请求/命令。
+    /// Silo 系统管理功能的接口，
+    /// 以 Grain 形式公开，用于接收远程请求或命令。
     /// </summary>
     public interface IManagementGrain : IGrainWithIntegerKey, IVersionManager
     {
         /// <summary>
-        /// 禁用指定当前实例 grain 当前所有活动 silos.
+        /// 停用当前所有活动 Silo 上指定 Grain 的现有激活实例。
         /// </summary>
         /// <remarks>
-        /// 此操作从不激活 grain 或读取其持续状态。 它包括无国籍工人
-        /// 并且当不存在实例时是无选项。它不妨碍随后的请求启动 grain。
+        /// 此操作绝不会激活 Grain 或读取其持久化状态。它包括无状态工作者；
+        /// 如果不存在激活实例，则不执行任何操作。它不会阻止后续请求激活 Grain。
         /// </remarks>
-        /// <param name="grainId">准确 grain 身份,以便解除作用</param>
-        /// <param name="cancellationToken">取消等待完成的取消。 已经请求的取消继续 。</param>
-        /// <returns>匹配实例完成后完成的禁用任务。</returns>
+        /// <param name="grainId">要停用的 Grain 的确切标识。</param>
+        /// <param name="cancellationToken">取消对操作完成的等待。已请求的停用操作会继续执行。</param>
+        /// <returns>在匹配的激活实例完成停用后完成的任务。</returns>
         [Alias("DeactivateGrain")]
         Task DeactivateGrain(GrainId grainId, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// 获取当前已知的 silo 主机列表和状态。
+        /// 获取此集群目前已知的 Silo 主机及其状态的列表。
         /// </summary>
-        /// <param name="onlyActive">是否应该返回当前活动数据 silos ,
-        /// 或默认数据,以显示所有当前和以往 silo 实例[包括加入状态或死状态中的情况]。</param>
-        /// <returns>东道主和相应的地位</returns>
+        /// <param name="onlyActive">是否仅返回当前活动 Silo 的数据，
+        /// 或者按默认行为返回所有当前及过去的 Silo 实例的数据（包括处于 Joining 或 Dead 状态的实例）。</param>
+        /// <returns>主机及其对应状态。</returns>
         [Alias("GetHosts")]
         Task<Dictionary<SiloAddress, SiloStatus>> GetHosts(bool onlyActive = false);
 
@@ -39,10 +39,10 @@ namespace Orleans.Runtime
             => GetHosts(onlyActive);
 
         /// <summary>
-        /// 获取 silo 主机列表和当前已知的本组中的会籍信息。
+        /// 获取此集群目前已知的 Silo 主机及成员资格信息的列表。
         /// </summary>
-        /// <param name="onlyActive">是否应该返回当前活动数据 silos ,
-        /// 或默认数据,以显示所有当前和以往 silo 实例[包括加入状态或死状态中的情况]。</param>
+        /// <param name="onlyActive">是否仅返回当前活动 Silo 的数据，
+        /// 或者按默认行为返回所有当前及过去的 Silo 实例的数据（包括处于 Joining 或 Dead 状态的实例）。</param>
         /// <returns>主机条目。</returns>
         [Alias("GetDetailedHosts")]
         Task<MembershipEntry[]> GetDetailedHosts(bool onlyActive = false);
@@ -52,10 +52,10 @@ namespace Orleans.Runtime
             => GetDetailedHosts(onlyActive);
 
         /// <summary>
-        /// 执行运行 .NET 指定垃圾收集器 silos.
+        /// 在指定 Silo 中执行一次 .NET 垃圾回收。
         /// </summary>
-        /// <param name="hostsIds">列表 silos 此命令要发送到 。</param>
-        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
+        /// <param name="hostsIds">此命令将发送到的 Silo 列表。</param>
+        /// <returns>表示所执行工作的 <see cref="Task"/>。</returns>
         [Alias("ForceGarbageCollection")]
         Task ForceGarbageCollection(SiloAddress[] hostsIds);
 
@@ -63,10 +63,10 @@ namespace Orleans.Runtime
         Task ForceGarbageCollection(SiloAddress[] hostsIds, CancellationToken cancellationToken)
             => ForceGarbageCollection(hostsIds);
 
-        /// <summary>执行运行 Orleans 指定区域内的激活收藏器 silos.</summary>
-        /// <param name="hostsIds">列表 silos 此命令要发送到 。</param>
-        /// <param name="ageLimit">最大空闲时间将收集到激活的待收集时间。</param>
-        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
+        /// <summary>在指定 Silo 中执行一次 Orleans 激活实例回收。</summary>
+        /// <param name="hostsIds">此命令将发送到的 Silo 列表。</param>
+        /// <param name="ageLimit">待回收激活实例的最大空闲时间。</param>
+        /// <returns>表示所执行工作的 <see cref="Task"/>。</returns>
         [Alias("ForceActivationCollectionOnSilos")]
         Task ForceActivationCollection(SiloAddress[] hostsIds, TimeSpan ageLimit);
 
@@ -75,10 +75,10 @@ namespace Orleans.Runtime
             => ForceActivationCollection(hostsIds, ageLimit);
 
         /// <summary>
-        /// 部队启动集聚
+        /// 强制执行激活实例回收。
         /// </summary>
-        /// <param name="ageLimit">年龄限制。 Grains 闲置时间超过这一期限者有资格被收。</param>
-        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
+        /// <param name="ageLimit">空闲时限。空闲时间超过此期限的 Grain 激活实例将符合回收条件。</param>
+        /// <returns>表示所执行工作的 <see cref="Task"/>。</returns>
         [Alias("ForceActivationCollection")]
         Task ForceActivationCollection(TimeSpan ageLimit);
 
@@ -86,9 +86,9 @@ namespace Orleans.Runtime
         Task ForceActivationCollection(TimeSpan ageLimit, CancellationToken cancellationToken)
             => ForceActivationCollection(ageLimit);
 
-        /// <summary>执行运行 silo 指定对象中的统计收集器 silos.</summary>
-        /// <param name="siloAddresses">列表 silos 此命令要发送到 。</param>
-        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
+        /// <summary>在指定 Silo 中执行一次 Silo 统计信息收集。</summary>
+        /// <param name="siloAddresses">此命令将发送到的 Silo 列表。</param>
+        /// <returns>表示所执行工作的 <see cref="Task"/>。</returns>
         [Alias("ForceRuntimeStatisticsCollection")]
         Task ForceRuntimeStatisticsCollection(SiloAddress[] siloAddresses);
 
@@ -97,10 +97,10 @@ namespace Orleans.Runtime
             => ForceRuntimeStatisticsCollection(siloAddresses);
 
         /// <summary>
-        /// 最近一次返回 silo 指定时间统计信息 silos.
+        /// 返回指定 Silo 最新的运行时统计信息。
         /// </summary>
-        /// <param name="hostsIds">列表 silos 此命令要发送到 。</param>
-        /// <returns>指定主机的运行时统计。</returns>
+        /// <param name="hostsIds">此命令将发送到的 Silo 列表。</param>
+        /// <returns>指定主机的运行时统计信息。</returns>
         [Alias("GetRuntimeStatistics")]
         Task<SiloRuntimeStatistics[]> GetRuntimeStatistics(SiloAddress[] hostsIds);
 
@@ -109,10 +109,10 @@ namespace Orleans.Runtime
             => GetRuntimeStatistics(hostsIds);
 
         /// <summary>
-        /// 返回最新的 grain 统计资料,该统计资料在 silos中合并。
+        /// 返回跨 Silo 汇总的最新 Grain 统计信息。
         /// </summary>
-        /// <param name="hostsIds">列表 silos 此命令要发送到 。</param>
-        /// 指定主机的简单<returns> grain 统计。</returns>
+        /// <param name="hostsIds">此命令将发送到的 Silo 列表。</param>
+        /// <returns>指定主机的简单 Grain 统计信息。</returns>
         [Alias("GetSimpleGrainStatisticsOnSilos")]
         Task<SimpleGrainStatistic[]> GetSimpleGrainStatistics(SiloAddress[] hostsIds);
 
@@ -121,9 +121,9 @@ namespace Orleans.Runtime
             => GetSimpleGrainStatistics(hostsIds);
 
         /// <summary>
-        /// 返回最新的 grain 统计资料,并综合所有 silos。
+        /// 返回跨所有 Silo 汇总的最新 Grain 统计信息。
         /// </summary>
-        /// <returns>简单 grain 统计。</returns>
+        /// <returns>简单 Grain 统计信息。</returns>
         [Alias("GetSimpleGrainStatistics")]
         Task<SimpleGrainStatistic[]> GetSimpleGrainStatistics();
 
@@ -132,11 +132,11 @@ namespace Orleans.Runtime
             => GetSimpleGrainStatistics();
 
         /// <summary>
-        /// 返回最近详细的 grain 统计信息,该信息在指定类型中以 silos 组合。
+        /// 返回跨 Silo 汇总的指定类型最新详细 Grain 统计信息。
         /// </summary>
-        /// <param name="hostsIds">列表 silos 此命令要发送到 。</param>
-        /// <param name="types">阵列数 grain 将选择类型以</param>
-        /// <returns>详细明细 grain 统计。</returns>
+        /// <param name="hostsIds">此命令将发送到的 Silo 列表。</param>
+        /// <param name="types">用于筛选结果的 Grain 类型数组。</param>
+        /// <returns>详细 Grain 统计信息。</returns>
         [Alias("GetDetailedGrainStatistics")]
         Task<DetailedGrainStatistic[]> GetDetailedGrainStatistics(string[]? types = null, SiloAddress[]? hostsIds = null);
 
@@ -147,10 +147,10 @@ namespace Orleans.Runtime
             CancellationToken cancellationToken)
             => GetDetailedGrainStatistics(types, hostsIds);
         /// <summary>
-        /// 得到 grain 特定激活计数 grain 类型。
+        /// 获取特定 Grain 类型的激活实例数量。
         /// </summary>
-        /// <param name="grainReference">下 grain 参考。</param>
-        /// <returns>获得启动次数 grains 具有与所提供的相同类型 grain 参考。</returns>
+        /// <param name="grainReference">Grain 引用。</param>
+        /// <returns>获取与所提供 Grain 引用具有相同类型的 Grain 激活实例数量。</returns>
         [Alias("GetGrainActivationCount")]
         Task<int> GetGrainActivationCount(GrainReference grainReference);
 
@@ -158,9 +158,9 @@ namespace Orleans.Runtime
         Task<int> GetGrainActivationCount(GrainReference grainReference, CancellationToken cancellationToken)
             => GetGrainActivationCount(grainReference);
         /// <summary>
-        /// 返回全部当前数的总数 grain 在所有 silos.
+        /// 返回所有 Silo 中当前所有 Grain 激活实例的总数。
         /// </summary>
-        /// <returns>总数总数 grain 在所有 silos.</returns>
+        /// <returns>所有 Silo 中 Grain 激活实例的总数。</returns>
         [Alias("GetTotalActivationCount")]
         Task<int> GetTotalActivationCount();
 
@@ -169,19 +169,19 @@ namespace Orleans.Runtime
             => GetTotalActivationCount();
 
         /// <summary>
-        /// 对组内的所有 silos 指定提供者执行控制命令。
-        /// 向每个 silo 所有已知的提供者发送命令,这些提供者既符合 <c>providerTypeFullName</c> 参数,也符合 <c>providerName</c> 参数。
+        /// 在集群所有 Silo 上的指定提供程序中执行控制命令。
+        /// 将命令发送到各 Silo 上同时匹配 <c>providerTypeFullName</c> 和 <c>providerName</c> 两个参数的所有已知提供程序。
         /// </summary>
         /// <remarks>
-        /// 供应商必须执行 <c>Orleans.Providers.IControllable</c>
-        /// 以接收这些控制频道命令。
+        /// 提供程序必须实现 <c>Orleans.Providers.IControllable</c>
+        /// 接口，才能接收这些控制通道命令。
         /// </remarks>
-        /// <param name="providerName">要发送此命令到的提供者名 。</param>
-        /// <param name="command">此命令的 ID / 序号 。
-        /// 这是对 Orleans 运行时间的不透明值 - 控制协议语义由发送者和提供者决定。</param>
-        /// <param name="arg">一个不透明的命令参数 。
-        /// 这是对 Orleans 运行时间的不透明值 - 控制协议语义由发送者和提供者决定。</param>
-        /// <returns>这一行动的完成承诺。</returns>
+        /// <param name="providerName">要接收此命令的提供程序名称。</param>
+        /// <param name="command">此命令的 ID 或序号。
+        /// 对 Orleans 运行时而言，这是一个不透明的值；控制协议的语义由发送方和提供程序约定。</param>
+        /// <param name="arg">不透明的命令参数。
+        /// 对 Orleans 运行时而言，这是一个不透明的值；控制协议的语义由发送方和提供程序约定。</param>
+        /// <returns>表示此操作完成情况的异步任务。</returns>
         [Alias("SendControlCommandToProvider")]
         public Task<object?[]> SendControlCommandToProvider<T>(string providerName, int command, object? arg = null) where T : IControllable;
 
@@ -194,14 +194,14 @@ namespace Orleans.Runtime
             => SendControlCommandToProvider<T>(providerName, command, arg);
 
         /// <summary>
-        /// 返回 <see cref="Orleans.Runtime.SiloAddress"/> 特定 Grain 激活( 如果有的话) 。
+        /// 返回指定 Grain 已激活的 <see cref="Orleans.Runtime.SiloAddress"/>（如果存在）。
         /// </summary>
         /// <remarks>
-        /// 请注意,这种方法并不代表对 Grain 目录的强烈一致看法。
-        /// 返回这种方法时,所依据的是 grain 最后已知的状态,该状态在打电话者收到请求之前可能或可能没有更新。
+        /// 请注意，此方法并不提供 Grain 激活实例目录（Catalog）的强一致性视图。
+        /// 此方法的返回值基于 Grain 最后已知的状态；调用方收到请求结果时，该状态可能已不是最新状态。
         /// </remarks>
-        /// <param name="reference">下 <see cref="Orleans.Runtime.IAddressable"/> 抬头看</param>
-        /// <returns>下 <see cref="Orleans.Runtime.SiloAddress"/> 位于 Grain 或未激活的,从该物质最后已知状态的快照中拍摄 Grain 分类表。</returns>
+        /// <param name="reference">要查找的 <see cref="Orleans.Runtime.IAddressable"/>。</param>
+        /// <returns>根据 Grain 激活实例目录最后已知状态的快照返回 Grain 已激活的 <see cref="Orleans.Runtime.SiloAddress"/>；如果未激活，则返回 null。</returns>
         [Alias("GetActivationAddress")]
         ValueTask<SiloAddress?> GetActivationAddress(IAddressable reference);
 
@@ -210,10 +210,10 @@ namespace Orleans.Runtime
             => GetActivationAddress(reference);
 
         /// <summary>
-        /// 返回指定 grain 类型的所有激活。
+        /// 返回指定 Grain 类型的所有激活实例。
         /// </summary>
         /// <param name="type">类型。</param>
-        /// <returns>全部活动列表 grains 指定类型。</returns>
+        /// <returns>指定类型的所有活动 Grain 的列表。</returns>
         [Alias("GetActiveGrains")]
         ValueTask<List<GrainId>> GetActiveGrains(GrainType type);
 
@@ -222,12 +222,12 @@ namespace Orleans.Runtime
             => GetActiveGrains(type);
 
         /// <summary>
-        /// 从指定的主机获取估计 grain 调用频率统计。
+        /// 获取指定主机上 Grain 调用频率的估计统计信息。
         /// </summary>
-        /// <param name="hostsIds">请求 grain 调用频率计数的主机。</param>
-        /// <returns>估计估计数清单 grain 呼叫频率</returns>
+        /// <param name="hostsIds">要从中请求 Grain 调用频率计数的主机。</param>
+        /// <returns>Grain 调用频率估计值的列表。</returns>
         /// <remarks>
-        /// 请注意,由此收集的电话不一定包含所有 grain 通话,其中含有对最高频率通话的估计。
+        /// 注意，结果集合不一定包含所有 Grain 调用；它包含调用频率最高的调用的估计值。
         /// </remarks>
         [Alias("GetGrainCallFrequencies")]
         Task<List<GrainCallFrequency>> GetGrainCallFrequencies(SiloAddress[]? hostsIds = null);
@@ -239,10 +239,10 @@ namespace Orleans.Runtime
             => GetGrainCallFrequencies(hostsIds);
 
         /// <summary>
-        /// 仅用于测试。 重新选择 grain 呼叫频率会根据指定的主机计算 。
+        /// 仅供测试使用。重置指定主机上的 Grain 调用频率计数。
         /// </summary>
-        /// <param name="hostsIds">请求主机启动操作。</param>
-        /// <returns>一项代表所完成的工作的任务。</returns>
+        /// <param name="hostsIds">要执行该操作的主机。</param>
+        /// <returns>表示所执行工作的任务。</returns>
         [Alias("ResetGrainCallFrequencies")]
         ValueTask ResetGrainCallFrequencies(SiloAddress[]? hostsIds = null);
 
@@ -252,7 +252,7 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// 表示从源 grain 呼叫目标 grain的频率电话的估计。
+    /// 表示从源 Grain 到目标 Grain 的调用频率估计值。
     /// </summary>
     [GenerateSerializer]
     [Alias("Orleans.Runtime.GrainCallFrequency")]
@@ -260,31 +260,31 @@ namespace Orleans.Runtime
     public struct GrainCallFrequency
     {
         /// <summary>
-        /// 源 grain。
+        /// 源 Grain。
         /// </summary>
         [Id(0)]
         public GrainId SourceGrain { get; set; }
 
         /// <summary>
-        /// 目标 grain。
+        /// 目标 Grain。
         /// </summary>
         [Id(1)]
         public GrainId TargetGrain { get; set; }
 
         /// <summary>
-        /// 源主机 。
+        /// 源主机。
         /// </summary>
         [Id(2)]
         public SiloAddress? SourceHost { get; set; }
 
         /// <summary>
-        /// 目标主机
+        /// 目标主机。
         /// </summary>
         [Id(3)]
         public SiloAddress? TargetHost { get; set; }
 
         /// <summary>
-        /// 电话的估计次数。
+        /// 估计的调用次数。
         /// </summary>
         [Id(4)]
         public ulong CallCount { get; set; }

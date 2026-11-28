@@ -1,12 +1,12 @@
 @page "/cart"
 
 <MudToolBar Gutters="false">
-    <MudText Typo="Typo.h4">Shopping Cart</MudText>
+    <MudText Typo="Typo.h4">购物车</MudText>
     <MudSpacer />
     <MudButton Variant="Variant.Outlined" StartIcon=@Icons.Material.Filled.RemoveShoppingCart
         Disabled=@(_cartItems?.Any() is false) Size=@Size.Large
         Color="Color.Secondary" OnClick=@EmptyCartAsync>
-        Empty Cart
+        清空购物车
     </MudButton>
 </MudToolBar>
 

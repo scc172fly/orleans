@@ -3,18 +3,18 @@ using Xunit;
 
 namespace Tester.AzureUtils
 {
-    // 必须在每组集会中确定一次大会收藏的收藏
+    // 测试集合必须在每个程序集中仅定义一次。
 
     /// <summary>
-    /// 定义需要默认 Orleans 组合集设置的测试收藏。
-    /// 这份收藏中的测试有一个单一组别实例,可以用来改进业绩。
+    /// 定义一个供需要默认 Orleans 集群配置的测试使用的测试集合。
+    /// 此集合中的测试共享一个集群实例，以提高性能。
     /// </summary>
     [CollectionDefinition("DefaultCluster")]
     public class DefaultClusterTestCollection : ICollectionFixture<DefaultClusterFixture> { }
 
     /// <summary>
-    /// 定义需要共享测试环境配置的测试集。
-    /// 提供 Azure 储存和相关服务的特定环境测试装置。
+    /// 定义一个供需要共享测试环境配置的测试使用的测试集合。
+    /// 提供针对 Azure Storage 及相关服务的测试环境设置。
     /// </summary>
     [CollectionDefinition(TestEnvironmentFixture.DefaultCollection)]
     public class TestEnvironmentFixtureCollection : ICollectionFixture<TestEnvironmentFixture> { }

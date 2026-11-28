@@ -67,11 +67,11 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 关闭观察员的入职和排水处理,包括取消管制和应答处理。
+        /// 关闭观察者调用准入，并排空调用处理流程，包括取消控制消息及响应处理。
         /// </summary>
         public async Task StopAsync()
         {
-            // 取消管制可在申请受理关闭时解除工作。
+            // 应用请求准入已关闭时，取消控制消息仍可以使已准入的工作结束。
             await _invocations.CloseAsync().ConfigureAwait(false);
             await _cancellations.CloseAsync().ConfigureAwait(false);
         }
@@ -192,7 +192,7 @@ namespace Orleans
                 var ownsAdmission = true;
                 try
                 {
-                    // 将招生所有权转让给泵或间断性职业。
+                    // 将请求发布到队列时，把准入许可的所有权转移给消息泵或交错执行的调用。
                     ReceiveMessage(message, ref ownsAdmission);
                 }
                 finally
@@ -209,16 +209,16 @@ namespace Orleans
                 var obj = this.LocalObject.Target;
                 if (obj is null)
                 {
-                    // 从字典记录中删除垃圾收集对象的收藏记录吗? 但现在我们无法检测无效发送 ID 。
+                    // 要从字典中移除已被垃圾回收的对象对应的记录吗？这样将无法再检测无效的分派 ID。
                     LogObserverGarbageCollected(_manager.logger, this.ObserverId, message);
-                    // 试着移走它,如果它不在那里,我们不在乎
+                    // 尝试移除。如果记录不存在，则无需处理。
                     _manager.TryDeregister(this.ObserverId);
                     message.Dispose();
                     return;
                 }
 
-                // 立即处理 AlwaysInterleave 信件( 如取消请求) , 不排队 。
-                // 即使目前正在处理另一项请求,这些讯息也需要立即处理。
+                // 立即处理 AlwaysInterleave 消息（例如取消请求），不将其排队。
+                // 即使当前有其他请求正在运行，也必须立即处理这些消息。
                 if (message.IsAlwaysInterleave)
                 {
                     bool wasCancelled;
@@ -227,7 +227,7 @@ namespace Orleans
                         wasCancelled = RemovePendingCancellation((message.SendingGrain, message.Id));
                         if (!wasCancelled)
                         {
-                            // 跟踪运行中的请求, 以便取消它 。
+                            // 跟踪正在运行的请求，以便取消它。
                             var task = Task.Factory.StartNew(
                                 static state =>
                                 {
@@ -279,25 +279,25 @@ namespace Orleans
 
                 if (start)
                 {
-                    // 我们希望确保信息泵的运行 同步
-                    // 当前线条的当前线索。 见
+                    // 我们希望确保消息泵相对于
+                    // 当前线程异步运行。参见
                     // http://channel9.msdn.com/Events/TechEd/Europe/2013/DEV-B317#fbid=aIWUq0ssW74
-                    // 位置54: 45。
+                    // 54:45 处。
                     //
-                    // 根据以下网站公布的信息:
+                    // 根据以下位置发布的信息：
                     // http://stackoverflow.com/questions/12245935/is-task-factory-startnew-guaranteed-to-use-another-thread-than-the-calling-thr
-                    // 这个语系取决于 TaskScheduler 尚未执行
-                    // 将 QueueTask 替换为任务内衬( 而不是队列) 。 这似乎似乎 。
-                    // 提交人认为不可信,因为 .NET 排期者都没有这样做,而且
-                    // 被认为不健全的形式( OrleansTaskScheduler 不这样做)。
+                    // 此惯用写法依赖于 TaskScheduler 不将重写的
+                    // QueueTask 实现为任务内联执行（而不是排队）。作者认为这种情况
+                    // 不太可能发生，因为 .NET 的所有调度器都不这样做，而且
+                    // 这被认为是不良实践（OrleansTaskScheduler 不这样做）。
                     //
-                    // 如果出于某种原因,这不正确 我们可以保证
-                    // 将占位符继续符号通过 将占位符的延续符标记切换到 Task.StartNew()
-                    // i.e替换为:
+                    // 如果出于某种原因这一假设不成立，则可以保证所需行为，
+                    // 方法是改为向 Task.StartNew() 传递一个占位的延续令牌，
+                    // 即：
                     //
                     // return Task.StartNew(() => ..., new CancellationToken());
-                    // 我们把这些选项传给 Task.Factory.StartNew ,因为它们的调用完全相同
-                    // Task.Run。见: https://blogs.msdn.microsoft.com/pfxteam/2011/10/24/task-run-vs-task-factory-startnew/
+                    // 我们向 Task.Factory.StartNew 传递这些选项，因为它们使此调用
+                    // 等同于 Task.Run。参见：https://blogs.msdn.microsoft.com/pfxteam/2011/10/24/task-run-vs-task-factory-startnew/
                     _messagePumpTask = Task.Factory.StartNew(
                             HandleFunc,
                             this,
@@ -392,7 +392,7 @@ namespace Orleans
                         else
                         {
                             response = await request.Invoke();
-                            // 复印机保留其输入的无效状态。
+                            // 复制器保留其输入的 null 状态。
                             response = _manager._responseCopier.Copy(response)!;
                         }
 
@@ -408,7 +408,7 @@ namespace Orleans
                 }
                 catch (Exception outerException)
                 {
-                    // 忽略并不断循环。
+                    // 忽略并继续循环。
                     LogErrorProcessingMessage(_manager.logger, outerException, message);
                 }
                 finally
@@ -418,7 +418,7 @@ namespace Orleans
                         _runningRequests.Remove(message);
                     }
 
-                    // 生成的接口元数据在整个请求期内保持稳定。
+                    // 生成的接口元数据在请求的整个生命周期内保持稳定。
                     _manager.GetAdmissionGate(message).Exit();
                 }
             }
@@ -467,8 +467,8 @@ namespace Orleans
                 Response deepCopy;
                 try
                 {
-                    // 如果深度副本失败,我们预期会通知打电话者。
-                    // 复印机保留其输入的无效状态。
+                    // 如果深拷贝失败，应通知调用方。
+                    // 复制器保留其输入的 null 状态。
                     deepCopy = _manager.deepCopier.Copy(resultObject)!;
                 }
                 catch (Exception exc2)
@@ -478,7 +478,7 @@ namespace Orleans
                     return;
                 }
 
-                // 深影成功
+                // 深拷贝成功。
                 _manager.runtimeClient.SendResponse(message, deepCopy);
                 return;
             }
@@ -495,8 +495,8 @@ namespace Orleans
                         Exception deepCopy;
                         try
                         {
-                            // 如果深度副本失败,我们预期会通知打电话者。
-                            // 复印机保留其输入的无效状态。
+                            // 如果深拷贝失败，应通知调用方。
+                            // 复制器保留其输入的 null 状态。
                             deepCopy = _manager.deepCopier.Copy(exception)!;
                         }
                         catch (Exception ex2)
@@ -506,7 +506,7 @@ namespace Orleans
                             return;
                         }
 
-                        // 深影成功
+                        // 深拷贝成功。
                         var response = Response.FromException(deepCopy);
                         _manager.runtimeClient.SendResponse(message, response);
                         break;
@@ -521,13 +521,13 @@ namespace Orleans
 
             public void Rehydrate(IRehydrationContext context)
             {
-                // 移民得不到支持,但是如果有背景情况的话,我们需要处理它。
+                // 不支持迁移，但如果提供了上下文，则需要释放它。
                 (context as IDisposable)?.Dispose();
             }
 
             public void Migrate(Dictionary<string, object>? requestContext, CancellationToken cancellationToken)
             {
-                // 移民得不到支持,什么都不要做:合同是这种方式试图移徙,但不能保证移徙会发生。
+                // 不支持迁移。不执行任何操作：契约规定此方法会尝试迁移，但不保证迁移一定发生。
             }
 
             ValueTask IGrainCallCancellationExtension.CancelRequestAsync(
@@ -546,7 +546,7 @@ namespace Orleans
                     var key = (senderGrainId, messageId);
                     lock (Messages)
                     {
-                        // 检查运行中的请求 。
+                        // 检查正在运行的请求。
                         foreach (var runningRequest in _runningRequests.Keys)
                         {
                             if (runningRequest.Id == messageId && runningRequest.SendingGrain == senderGrainId)
@@ -558,7 +558,7 @@ namespace Orleans
 
                         if (message is null)
                         {
-                            // 检查等待请求
+                            // 检查等待中的请求。
                             foreach (var waitingRequest in Messages)
                             {
                                 var waiting = waitingRequest;
@@ -567,7 +567,7 @@ namespace Orleans
                                     message = waiting;
                                     wasWaiting = true;
 
-                                    // 删除信件, 因为信件会立即被拒绝( 在锁外) 而不执行 。
+                                    // 移除此消息，因为它会立即在锁外被拒绝，而不会执行。
                                     var initialCount = Messages.Count;
                                     for (var i = 0; i < initialCount; i++)
                                     {
@@ -585,8 +585,8 @@ namespace Orleans
 
                         if (!wasWaiting)
                         {
-                            // 注销和援引独立交付。
-                            // 直到匹配的引用被接受或初始化了本地标记。
+                            // 取消消息和调用请求分别独立投递。保留取消记录，
+                            // 直到匹配的调用已获准进入或已初始化其本地令牌。
                             RetainPendingCancellation(key);
                         }
                     }
@@ -594,8 +594,8 @@ namespace Orleans
                     var didCancel = false;
                     if (message is not null)
                     {
-                        // 信件从未开始执行, 所以立即发送取消回复 。
-                        // 如果信件真的开始执行, 请等待它观察取消的标记并自答 。
+                        // 此消息从未开始执行，因此立即发送表示已取消的响应。
+                        // 如果消息已经开始执行，则等待其观察到取消令牌并自行响应。
                         if (wasWaiting)
                         {
                             try
@@ -615,7 +615,7 @@ namespace Orleans
                         }
                         else
                         {
-                            // 假设请求无法撤销。
+                            // 假定该请求不可取消。
                             didCancel = true;
                         }
                     }

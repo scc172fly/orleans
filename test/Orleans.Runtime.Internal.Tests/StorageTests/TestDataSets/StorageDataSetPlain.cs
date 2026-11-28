@@ -4,20 +4,20 @@ using Orleans.Runtime;
 namespace UnitTests.StorageTests.Relational.TestDataSets
 {
     /// <summary>
-    /// 一套简单的测试数据集,机智且不使用扩展键。
+    /// 一组包含有扩展键和无扩展键两种情况的简单测试数据集。
     /// </summary>
-    /// <typeparam name="TGrainKey"> grain 类型(整数、信头或字符串)</typeparam>。
+    /// <typeparam name="TGrainKey">Grain 类型（整数、GUID 或字符串）</typeparam>。
     internal sealed class StorageDataSetPlain<TGrainKey> : IEnumerable<object[]>
     {
         private const int NumCases = 3;
 
         /// <summary>
-        /// 符号设置此数据集的使用 。
+        /// 此数据集使用的符号集。
         /// </summary>
         private static SymbolSet Symbols { get; } = new SymbolSet(SymbolSet.Latin1);
 
         /// <summary>
-        /// 随机抽取的字符串长度窗体 <see cref="Symbols"/>。
+        /// 从 <see cref="Symbols"/> 中抽取的随机字符串长度。
         /// </summary>
         private const long StringLength = 15L;
 

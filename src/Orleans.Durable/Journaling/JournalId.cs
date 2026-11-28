@@ -1,7 +1,7 @@
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 指定一个日记,独立于任何 grain 激活。
+/// 独立于任何 Grain 激活实例标识一个日志。
 /// </summary>
 public readonly struct JournalId : IEquatable<JournalId>
 {
@@ -10,7 +10,7 @@ public readonly struct JournalId : IEquatable<JournalId>
     /// <summary>
     /// 初始化 <see cref="JournalId"/> 结构的新实例。
     /// </summary>
-    /// <param name="value">稳定的日记账识别符号。</param>
+    /// <param name="value">稳定日志标识符。</param>
     public JournalId(string value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(value);
@@ -18,20 +18,20 @@ public readonly struct JournalId : IEquatable<JournalId>
     }
 
     /// <summary>
-    /// 获取稳定日记账识别码。
+    /// 获取稳定日志标识符。
     /// </summary>
     public string Value { get; }
 
     /// <summary>
-    /// 获得一个值,以显示此实例是否为默认值。
+    /// 获取一个值，指示此实例是否为默认值。
     /// </summary>
     public bool IsDefault => Value is null;
 
     /// <summary>
-    /// 从 grain id 创建日记代号。
+    /// 从 Grain ID 创建日志 ID。
     /// </summary>
-    /// <param name="grainId">下 grain id. 数据。</param>
-    /// <returns>日记id。</returns>
+    /// <param name="grainId">Grain ID。</param>
+    /// <returns>日志 ID。</returns>
     public static JournalId FromGrainId(GrainId grainId)
     {
         if (grainId.IsDefault)
@@ -43,11 +43,11 @@ public readonly struct JournalId : IEquatable<JournalId>
     }
 
     /// <summary>
-    /// 创建来自解码的等级段的日记代号 。
+    /// 从解码后的层次路径段创建日志 ID。
     /// </summary>
-    /// <param name="firstSegment">首个id段</param>
-    /// <param name="additionalSegments">额外的代号段。</param>
-    /// <returns>正常日记识别码</returns>
+    /// <param name="firstSegment">第一个 ID 段。</param>
+    /// <param name="additionalSegments">其他 ID 段。</param>
+    /// <returns>规范化的日志 ID。</returns>
     public static JournalId Create(string firstSegment, params ReadOnlySpan<string> additionalSegments)
     {
         var encodedSegments = new string[additionalSegments.Length + 1];
@@ -61,10 +61,10 @@ public readonly struct JournalId : IEquatable<JournalId>
     }
 
     /// <summary>
-    /// 创建来自解码的等级段的日记代号 。
+    /// 从解码后的层次路径段创建日志 ID。
     /// </summary>
-    /// <param name="segments">ID段。</param>
-    /// <returns>正常日记识别码</returns>
+    /// <param name="segments">ID 段。</param>
+    /// <returns>规范化的日志 ID。</returns>
     public static JournalId Create(IEnumerable<string> segments)
     {
         ArgumentNullException.ThrowIfNull(segments);
@@ -73,10 +73,10 @@ public readonly struct JournalId : IEquatable<JournalId>
     }
 
     /// <summary>
-    /// 创建来自解码的等级段的日记代号 。
+    /// 从解码后的层次路径段创建日志 ID。
     /// </summary>
-    /// <param name="segments">ID段。</param>
-    /// <returns>正常日记识别码</returns>
+    /// <param name="segments">ID 段。</param>
+    /// <returns>规范化的日志 ID。</returns>
     public static JournalId Create(ReadOnlySpan<string> segments)
     {
         if (segments.Length == 0)
@@ -94,10 +94,10 @@ public readonly struct JournalId : IEquatable<JournalId>
     }
 
     /// <summary>
-    /// 确定此id 是否为 <paramref name="journalId"/>前缀。
+    /// 判断此 ID 是否为 <paramref name="journalId"/> 的前缀。
     /// </summary>
-    /// <param name="journalId">要测试的日记 ID。</param>
-    /// <returns><see langword="true"/> 如果该代号是默认值, 等于 <paramref name="journalId"/>, 或指向一个祖先段。</returns>
+    /// <param name="journalId">要测试的日志 ID。</param>
+    /// <returns><see langword="true"/> 表示此 ID 为默认值、等于 <paramref name="journalId"/> 或标识其祖先段。</returns>
     public bool IsPrefixOf(JournalId journalId)
     {
         if (IsDefault)
@@ -127,19 +127,19 @@ public readonly struct JournalId : IEquatable<JournalId>
     public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value ?? string.Empty);
 
     /// <summary>
-    /// 比较了两个杂志的平等标识。
+    /// 比较两个日志 ID 是否相等。
     /// </summary>
-    /// <param name="left">第一份日记id。</param>
-    /// <param name="right">第二日记id。</param>
-    /// <returns><see langword="true"/> 如果日记id是相等的,否则 <see langword="false"/>.</returns>
+    /// <param name="left">第一个日志 ID。</param>
+    /// <param name="right">第二个日志 ID。</param>
+    /// <returns><see langword="true"/> 表示日志 ID 相等；否则为 <see langword="false"/>。</returns>
     public static bool operator ==(JournalId left, JournalId right) => left.Equals(right);
 
     /// <summary>
-    /// 比较了两个期刊不平等的识别码。
+    /// 比较两个日志 ID 是否不相等。
     /// </summary>
-    /// <param name="left">第一份日记id。</param>
-    /// <param name="right">第二日记id。</param>
-    /// <returns><see langword="true"/> 如果日记id不相等,否则 <see langword="false"/>.</returns>
+    /// <param name="left">第一个日志 ID。</param>
+    /// <param name="right">第二个日志 ID。</param>
+    /// <returns><see langword="true"/> 表示日志 ID 不相等；否则为 <see langword="false"/>。</returns>
     public static bool operator !=(JournalId left, JournalId right) => !left.Equals(right);
 
     private static string EncodeSegment(string segment, string parameterName)

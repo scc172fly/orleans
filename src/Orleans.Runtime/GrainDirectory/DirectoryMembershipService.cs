@@ -71,7 +71,7 @@ internal sealed partial class DirectoryMembershipService : IAsyncDisposable
             yield return view;
         }
 
-        // 宣传处理器对当前和未来订户的失败。
+        // 将处理器的失败传播给当前及未来的订阅者。
         await _runTask;
     }
 
@@ -157,7 +157,7 @@ internal sealed partial class DirectoryMembershipService : IAsyncDisposable
             }
 
             completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            // 在取消回馈可以重新进入处置之前公布完成情况。
+            // 在取消回调可能重入释放操作之前，先发布用于通知完成的任务。
             _disposeTask = completion.Task;
         }
 
@@ -171,13 +171,13 @@ internal sealed partial class DirectoryMembershipService : IAsyncDisposable
         {
             try
             {
-#pragma warning disable CA1849 // Notify on the caller's scheduler before asynchronously draining the subscription.
+#pragma warning disable CA1849 // 在异步排空订阅之前，先在调用方的调度器上发出通知。
                 _shutdownCts.Cancel();
 #pragma warning restore CA1849
             }
             finally
             {
-                // 成员处理员拥有订阅权,直至其完成。
+                // 成员资格处理器在自身完成之前始终拥有其订阅。
                 await _runTask.SuppressThrowing();
                 _shutdownCts.Dispose();
             }

@@ -51,7 +51,7 @@ public partial class StateManagerTests
         var write = manager.WriteStateAsync(TestContext.Current.CancellationToken).AsTask();
         try
         {
-            // 经理在发现准备不完整后才等待准备,所以必须重新准备。
+            // 管理器仅在观察到准备操作尚未完成时才等待它，因此必须重新执行准备。
             await WaitFor(preparation.Awaited.Task);
             Assert.Equal(0, earlier.CaptureCount);
             Assert.Empty(storage.Appends);
@@ -154,7 +154,7 @@ public partial class StateManagerTests
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         Assert.Equal(1, clean.PrepareCalls);
 
-        // 一个没有有待改变的状态仍然可以否决一个写作,而其他尚待改变的写作则不得作出。
+        // 没有待处理变更的状态仍可以否决写入，使其他待处理变更不得提交。
         var veto = new InvalidOperationException("The pending changes are abandoned.");
         clean.Preparation = _ => ValueTask.FromException(veto);
         changed["intent"] = 6;
@@ -288,7 +288,7 @@ public partial class StateManagerTests
             await task;
         }
     }
-    /// <summary>准备中,一旦经理等待就发出信号</summary>
+    /// <summary>管理器开始等待时发出信号的待完成准备操作。</summary>
     private sealed class AwaitedPreparation : IValueTaskSource
     {
         private ManualResetValueTaskSourceCore<bool> _core = new() { RunContinuationsAsynchronously = true };

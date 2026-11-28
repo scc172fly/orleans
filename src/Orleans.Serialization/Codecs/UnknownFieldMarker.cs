@@ -3,7 +3,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// 标记对象用于表示未知字段及其位置,将其显示为数据流。
+    /// 标记对象，用于指示未知字段及其在数据流中的位置。
     /// </summary>
     public sealed class UnknownFieldMarker
     {
@@ -19,12 +19,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 此字段所在的流中的位置。
+        /// 此字段在流中出现的位置。
         /// </summary>
         public long Position { get; }
 
         /// <summary>
-        /// 字段信头 。
+        /// 字段头。
         /// </summary>
         public Field Field { get; }
 

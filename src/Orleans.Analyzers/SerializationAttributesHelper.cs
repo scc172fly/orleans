@@ -28,7 +28,7 @@ namespace Orleans.Analyzers
             var unannotatedSerializableMembers = new List<MemberDeclarationSyntax>();
             foreach (var member in declaration.Members)
             {
-                // 使用已有 [ID(x)] 属性的会籍跳过, 但记录 x 的最高值, 这样新添加的属性就可以从该值开始 。
+                // 跳过已有 [Id(x)] 特性的成员，但记录 x 的最大值，以便新添加的特性从该值之后开始编号。
                 if (member.TryGetAttribute(semanticModel, idAttributeSymbol, out var attribute))
                 {
                     var args = attribute.ArgumentList?.Arguments;
@@ -56,7 +56,7 @@ namespace Orleans.Analyzers
 
                 if (!member.IsInstanceMember() || !member.IsFieldOrAutoProperty() || member.HasAttribute(semanticModel, nonSerializedAttributeSymbol) || member.IsAbstract())
                 {
-                    // 无需添加任何属性。
+                    // 无需添加任何特性。
                     continue;
                 }
 

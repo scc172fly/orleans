@@ -13,8 +13,8 @@ using static VerifyXunit.Verifier;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// 具有代表性的生成序列式机载有效载荷中的锁,从而改变未来的源源生成器
-/// 可在不破坏新产生数据的情况下检查是否有线-格式漂移。
+/// 固定具有代表性的生成式序列化器负载，使将来的源生成器变更
+/// 可以在无需反序列化新生成数据的情况下检查传输格式是否发生偏移。
 /// </summary>
 [Trait("Category", "BVT")]
 [TestSuite("BVT")]
@@ -250,8 +250,8 @@ public sealed class GeneratedSerializerBitwiseCompatibilityTests : IDisposable
         [CallerMemberName] string testName = "")
     {
         var expectedPath = Path.Combine(Path.GetDirectoryName(sourceFile)!, "snapshots", $"{nameof(GeneratedSerializerBitwiseCompatibilityTests)}.{testName}.verified.hex.txt");
-        // 将上检基准保留为无电文字: 普通化和比较十六进制字符串,
-        // 但从未将其解码成字节或将它分流为对象图。
+        // 将提交到仓库的基准保持为不执行任何操作的文本：规范化并比较十六进制字符串，
+        // 但绝不将其解码回字节或反序列化为对象图。
         var normalizedExpected = NormalizeHex(File.ReadAllText(expectedPath));
         var actualHex = ToHexString(actualBytes);
 

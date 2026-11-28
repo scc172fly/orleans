@@ -6,24 +6,24 @@ using System.Threading.Tasks.Sources;
 namespace Orleans.Serialization.Invocation
 {
     /// <summary>
-    /// 能够兑现的承诺
+    /// 可完成的承诺对象（Promise）。
     /// </summary>
     public sealed class ResponseCompletionSource : IResponseCompletionSource, IValueTaskSource<Response>, IValueTaskSource
     {
-        // 此源是集合的, GetResult 返回到集合。 续发不能从 SetResult/SetException内线运行 ,
-        // 或者,它们可以在完成后卸下时段前重置/重复此实例 。
+        // 此完成源采用池化机制，GetResult 会将它归还到池中。延续操作不得在 SetResult/SetException 中内联执行，
+        // 否则可能在完成操作退出调用栈之前重置或复用该实例。
         private ManualResetValueTaskSourceCore<Response> _core = new() { RunContinuationsAsynchronously = true };
 
         /// <summary>
-        /// 此实例以 <see cref="ValueTask{Response}"/>返回。
+        /// 以 <see cref="ValueTask{Response}"/> 形式返回此实例。
         /// </summary>
-        /// <returns>此例, 作为 <see cref="ValueTask{Response}"/>。</returns>
+        /// <returns>以 <see cref="ValueTask{Response}"/> 形式返回的此实例。</returns>
         public ValueTask<Response> AsValueTask() => new(this, _core.Version);
 
         /// <summary>
-        /// 此实例以 <see cref="ValueTask"/>返回。
+        /// 以 <see cref="ValueTask"/> 形式返回此实例。
         /// </summary>
-        /// <returns>此例, 作为 <see cref="ValueTask"/>。</returns>
+        /// <returns>以 <see cref="ValueTask"/> 形式返回的此实例。</returns>
         public ValueTask AsVoidValueTask() => new(this, _core.Version);
 
         /// <inheritdoc/>
@@ -33,7 +33,7 @@ namespace Orleans.Serialization.Invocation
         public void OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags) => _core.OnCompleted(continuation, state, token, flags);
 
         /// <summary>
-        /// 重设此实例 。
+        /// 重置此实例。
         /// </summary>
         public void Reset()
         {
@@ -42,13 +42,13 @@ namespace Orleans.Serialization.Invocation
         }
 
         /// <summary>
-        /// 完成此例, 但有例外 。
+        /// 使用异常完成此实例。
         /// </summary>
-        /// <param name="exception">例外。</param>
+        /// <param name="exception">异常。</param>
         public void SetException(Exception exception) => _core.SetException(exception);
 
         /// <summary>
-        /// 完成此实例并产生结果。
+        /// 使用结果完成此实例。
         /// </summary>
         /// <param name="result">结果。</param>
         public void SetResult(Response result)
@@ -64,13 +64,13 @@ namespace Orleans.Serialization.Invocation
         }
 
         /// <summary>
-        /// 完成此实例并产生结果。
+        /// 使用结果完成此实例。
         /// </summary>
         /// <param name="value">结果值。</param>
         public void Complete(Response value) => SetResult(value);
 
         /// <summary>
-        /// 以默认结果完成此实例。
+        /// 使用默认结果完成此实例。
         /// </summary>
         public void Complete() => SetResult(Response.Completed);
 
@@ -110,25 +110,25 @@ namespace Orleans.Serialization.Invocation
     }
 
     /// <summary>
-    /// 能够兑现的承诺
+    /// 可完成的承诺对象（Promise）。
     /// </summary>
-    /// <typeparam name="TResult">基本结果类型。</typeparam>
+    /// <typeparam name="TResult">底层结果类型。</typeparam>
     public sealed class ResponseCompletionSource<TResult> : IResponseCompletionSource, IValueTaskSource<TResult?>, IValueTaskSource
     {
-        // 此源是集合的, GetResult 返回到集合。 续发不能从 SetResult/SetException内线运行 ,
-        // 或者,它们可以在完成后卸下时段前重置/重复此实例 。
+        // 此完成源采用池化机制，GetResult 会将它归还到池中。延续操作不得在 SetResult/SetException 中内联执行，
+        // 否则可能在完成操作退出调用栈之前重置或复用该实例。
         private ManualResetValueTaskSourceCore<TResult?> _core = new() { RunContinuationsAsynchronously = true };
 
         /// <summary>
-        /// 此实例以 <see cref="ValueTask{Response}"/>返回。
+        /// 以 <see cref="ValueTask{Response}"/> 形式返回此实例。
         /// </summary>
-        /// <returns>此例, 作为 <see cref="ValueTask{Response}"/>。</returns>
+        /// <returns>以 <see cref="ValueTask{Response}"/> 形式返回的此实例。</returns>
         public ValueTask<TResult?> AsValueTask() => new(this, _core.Version);
 
         /// <summary>
-        /// 此实例以 <see cref="ValueTask"/>返回。
+        /// 以 <see cref="ValueTask"/> 形式返回此实例。
         /// </summary>
-        /// <returns>此例, 作为 <see cref="ValueTask"/>。</returns>
+        /// <returns>以 <see cref="ValueTask"/> 形式返回的此实例。</returns>
         public ValueTask AsVoidValueTask() => new(this, _core.Version);
 
         /// <inheritdoc/>
@@ -138,7 +138,7 @@ namespace Orleans.Serialization.Invocation
         public void OnCompleted(Action<object?> continuation, object? state, short token, ValueTaskSourceOnCompletedFlags flags) => _core.OnCompleted(continuation, state, token, flags);
 
         /// <summary>
-        /// 重设此实例 。
+        /// 重置此实例。
         /// </summary>
         public void Reset()
         {
@@ -147,13 +147,13 @@ namespace Orleans.Serialization.Invocation
         }
 
         /// <summary>
-        /// 完成此例, 但有例外 。
+        /// 使用异常完成此实例。
         /// </summary>
-        /// <param name="exception">例外。</param>
+        /// <param name="exception">异常。</param>
         public void SetException(Exception exception) => _core.SetException(exception);
 
         /// <summary>
-        /// 完成此实例并产生结果。
+        /// 使用结果完成此实例。
         /// </summary>
         /// <param name="result">结果。</param>
         public void SetResult(TResult? result) => _core.SetResult(result);
@@ -162,21 +162,21 @@ namespace Orleans.Serialization.Invocation
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Complete(Response value)
         {
-            // 首选例外, 因为它是一个简单的空检查
+            // 先检查异常，因为这里只需进行简单的 null 检查。
             if (value.Exception is { } exception)
             {
                 SetException(exception);
                 return;
             }
 
-            // 检查打字响应( 无效返回通常)
+            // 检查强类型响应（对于 void 返回值很常见）。
             if (value is Response<TResult> typed)
             {
                 SetResult(typed.TypedResult);
                 return;
             }
 
-            // 处理未类型化的成功响应
+            // 处理无类型的成功响应。
             var result = value.Result;
             if (result is null)
             {
@@ -212,7 +212,7 @@ namespace Orleans.Serialization.Invocation
         }
 
         /// <summary>
-        /// 完成此实例并产生结果。
+        /// 使用结果完成此实例。
         /// </summary>
         /// <param name="value">结果值。</param>
         public void Complete(Response<TResult> value)

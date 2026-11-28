@@ -13,7 +13,7 @@ public class TestingUtilsTests
     [Fact]
     public async Task WaitUntilAsync_UntypedSingleParameterLambdaBindsLegacyOverload()
     {
-#pragma warning disable xUnit1051 // This test verifies binding to the legacy overload without cancellation.
+#pragma warning disable xUnit1051 // 此测试验证能否绑定到不带取消参数的旧版重载。
         await TestingUtils.WaitUntilAsync(
             _ => Task.FromResult(true),
             TimeSpan.FromSeconds(1));
@@ -144,7 +144,7 @@ public class TestingUtilsTests
         var releasePredicate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var calls = 0;
 
-#pragma warning disable xUnit1051 // This test verifies the legacy overload's deadline behavior.
+#pragma warning disable xUnit1051 // 此测试验证旧版重载的截止时间行为。
         var waitTask = TestingUtils.WaitUntilAsync(
             async (bool _) =>
             {
@@ -173,7 +173,7 @@ public class TestingUtilsTests
     {
         var calls = 0;
 
-#pragma warning disable xUnit1051 // This test verifies the legacy overload's final-attempt behavior.
+#pragma warning disable xUnit1051 // 此测试验证旧版重载的最后一次尝试行为。
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => TestingUtils.WaitUntilAsync(
             (bool lastTry) =>
             {

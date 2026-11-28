@@ -6,15 +6,15 @@ using Xunit;
 namespace Orleans.Durable.Messaging.Tests.Contracts;
 
 /// <summary>
-/// 对照独立模式检查据以重复的识别法:关键是其列表
-/// 字面部分。
+/// 使用独立模型检查去重所依赖的标识等价规则：键就是其字面量
+/// 段的列表。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("Messaging")]
 public sealed class HierarchicalKeyPropertyTests
 {
-    // 外逃的字符,多字节 UTF-8和代孕配对。
+    // 用于验证转义、多字节 UTF-8 和代理项对的字符。
     private static readonly Gen<string> Atom = Gen.OneOfConst("a", "b", "/", "\\", "\\/", "é", "😀", " ", "\0");
 
     private static readonly Gen<string> Segment = Atom.Array[1, 6].Select(static parts => string.Concat(parts));
@@ -116,7 +116,7 @@ public sealed class HierarchicalKeyPropertyTests
         }
     }
 
-    // 独立的金字塔形式的解码器 : “\” 脱险完全为“\” 或“/” , “/” 分离非空段 。
+    // 规范形式的独立解码器：'\' 仅转义 '\' 或 '/'，而 '/' 分隔非空段。
     private static bool TryModelParse(string text, out List<string> segments)
     {
         segments = [];

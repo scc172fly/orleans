@@ -1,27 +1,27 @@
 namespace Orleans.Durable.Tasks;
 
 /// <summary>
-/// 拒绝代码 grain 以妄言而否认,而且
-/// 开始记录报告。
+/// Grain 将永久拒绝的持久化任务调用转为死信时使用的拒绝代码，由
+/// 启动方的记录报告。
 /// </summary>
 /// <remarks>
-/// 启动拒绝 <see cref="Conflict"/> 以 <see cref="DurableTaskConflictException"/>失败。启动拒绝以
-/// 任何其它代码,或没有代码, <see cref="DurableTaskRejectedException"/>, whose
-/// <see cref="DurableTaskRejectedException.Code"/> 报告代码。A grain 不接受援引
-/// 另一种原因,比如不解码的原因 留给发件人的重试
+/// 使用 <see cref="Conflict"/> 拒绝的启动操作以 <see cref="DurableTaskConflictException"/> 失败。使用
+/// 其他代码或无代码拒绝的启动操作以 <see cref="DurableTaskRejectedException"/> 失败，其
+/// <see cref="DurableTaskRejectedException.Code"/> 会报告该代码。如果 Grain 出于其他原因无法接受调用，
+/// 例如调用无法解码，则交由发送方重试。
 /// </remarks>
 public static class DurableTaskRejectionCodes
 {
-    /// <summary>任务标识符已经确定了另一个请求或另一个呼叫者的任务。</summary>
+    /// <summary>任务标识符已经标识其他请求，或另一调用方的任务。</summary>
     public const string Conflict = "durable-rpc/conflict";
 
     /// <summary>
-    /// 请求在 grain的“接纳窗口” <c>DeduplicationWindow</c> 自发件人以来
-    /// 开始先进行
+    /// 调用到达时已超出 Grain 的准入窗口，即从发送方首次暂存它起，经过 Messaging 的 <c>DeduplicationWindow</c>
+    /// 所指定的时长。
     /// </summary>
     /// <remarks>
-    /// 下 grain 承认延迟重新交付一项任务, 并且它仍然储存着, 所以这个代码意味着它不保存任务
-    /// 现在,提早交货可能已经发生,保留也可能从此结束,结果不明。
+    /// 对于仍保存着的任务，Grain 会允许迟到的重新投递，因此此代码表示当前不再保存该任务。
+    /// 之前的投递可能已使任务运行，其保留期也可能已结束，所以结果未知。
     /// </remarks>
     public const string Expired = "durable-rpc/expired";
 }

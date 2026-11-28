@@ -6,7 +6,7 @@ using Orleans.Runtime;
 namespace Orleans
 {
     /// <summary>
-    /// 属性映射器,绘制一个相应的工厂实例的持久性状态属性。
+    /// 将持久化状态特性映射到相应工厂实例的特性映射器。
     /// </summary>
     public class PersistentStateAttributeMapper : IAttributeToFactoryMapper<PersistentStateAttribute>
     {
@@ -16,7 +16,7 @@ namespace Orleans
         public Factory<IGrainContext, object> GetFactory(ParameterInfo parameter, PersistentStateAttribute attribute)
         {
             IPersistentStateConfiguration config = attribute;
-            // 如果尚未指定, 则将状态名称设置为参数名称
+            // 如果尚未指定状态名称，则将参数名称用作状态名称。
             if (string.IsNullOrEmpty(config.StateName))
             {
                 config = new PersistentStateConfiguration() { StateName = parameter.Name!, StorageName = attribute.StorageName };
@@ -30,7 +30,7 @@ namespace Orleans
                     parameter.Name);
             }
 
-            // 使用通用类型参数定义收藏类型。
+            // 使用泛型类型实参定义集合类型。
             MethodInfo genericCreate = CreateMethodInfo.MakeGenericMethod(parameter.ParameterType.GetGenericArguments());
             return context => Create(context, genericCreate, config);
         }

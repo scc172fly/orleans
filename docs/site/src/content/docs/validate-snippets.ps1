@@ -1,45 +1,45 @@
 <#
 .SYNOPSIS
-    校验所有 Orleans 文件片断项目 。
+    验证所有 Orleans 文档代码片段项目。
 
 .DESCRIPTION
-    此脚本在文档片断目录中查找所有 .csproj 文件, 校验
-    或针对文件框架(或
-    OrleansDocumentationTargetFrameworkException 选择)和参考经核准的
-    Orleans 包包,然后运行
-    '以普通项目为基础或对申报的项目进行“dotnet测试”的基础上建立“ dotnet ”
-    IsTestProject=正。
+    此脚本查找文档代码片段目录中的所有 .csproj 文件，验证
+    它们是否以文档规定的框架（或由
+    OrleansDocumentationTargetFrameworkException 选择的例外框架）为目标，并引用经批准的
+    Orleans 包，然后对普通项目运行
+    'dotnet build'，对声明以下属性的项目运行 'dotnet test'：
+    IsTestProject=true。
     
-    修改后使用此脚本来验证片断代码, 以确保全部
-    文档示例仍然可以构建,且可执行的测试实例通过。
+    修改后使用此脚本验证代码片段，确保所有
+    文档示例仍可构建，且可执行的测试示例均能通过。
 
 .PARAMETER Parallel
-    运行验证,与孤立的建筑产出并行(默认:错误以获得更明确的输出)
+    并行执行验证并隔离构建输出（默认为 false，以便输出更清晰）。
 
 .PARAMETER PolicyOnly
-    校验目标框架和 Orleans 包版本,不建楼。
+    验证目标框架和 Orleans 包版本，不执行构建。
 
 .PARAMETER RootPath
-    要扫描的根目录。 默认为文档内容目录 。
+    要扫描的根目录，默认为文档内容目录。
 
 .PARAMETER SiteRootPath
-    需要解决的文件站点边界包括。
-    仓库文档,或验证固定线时的 RootPath 。
+    解析包含文件时使用的文档站点边界。对于仓库文档，默认为 docs/site；
+    验证测试夹具时则默认为 RootPath。
 
 .EXAMPLE
-    。\ validate - 的确认snippets.ps1
+    .\validate-snippets.ps1
     
-    依次校验所有片段项目并报告结果。
+    依次验证所有代码片段项目并报告结果。
 
 .EXAMPLE
-    。\ validate - 的确认snippets.ps1 - 帕拉莱
+    .\validate-snippets.ps1 -Parallel
     
-    平行校验所有片段项目,以更快的验证 。
+    并行验证所有代码片段项目，以加快验证速度。
 
 .NOTES
-    出处代码:
-    - 所有项目成功验证
-    1 - 一个或多个项目没有审定
+    退出代码：
+    0 - 所有项目验证成功
+    1 - 一个或多个项目验证失败
 #>
 
 param(
@@ -68,7 +68,7 @@ Write-Host "Orleans Documentation Snippet Validator" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# 在片段目录中查找全部.csproj 文件
+# 查找代码片段目录中的所有 .csproj 文件
 $snippetProjects = @(Get-ChildItem -Path $validationRoot -Recurse -Filter "*.csproj" |
     Where-Object { $_.FullName -match "snippets" } |
     Select-Object -ExpandProperty FullName)
@@ -531,7 +531,7 @@ Write-Host "Succeeded: $successCount" -ForegroundColor Green
 Write-Host "Failed:    $failCount" -ForegroundColor $(if ($failCount -gt 0) { "Red" } else { "Green" })
 Write-Host ""
 
-# 显示失败验证的详情
+# 显示验证失败的详细信息
 $failed = $results | Where-Object { -not $_.Success }
 if ($failed.Count -gt 0) {
     Write-Host "Failed Projects:" -ForegroundColor Red

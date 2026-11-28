@@ -6,7 +6,7 @@ public sealed class AuditCallFilter(IGrainFactory grainFactory)
 {
     public async Task Invoke(IIncomingGrainCallContext context)
     {
-        // 排除审计界面, 这样它不会重新输入此过滤器 。
+        // 排除审计接口，避免对该接口的调用递归重入当前筛选器。
         if (context.InterfaceMethod.DeclaringType != typeof(ICallAuditGrain))
         {
             var auditGrain = grainFactory.GetGrain<ICallAuditGrain>(

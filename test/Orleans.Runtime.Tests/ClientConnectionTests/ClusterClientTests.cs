@@ -27,15 +27,15 @@ namespace Tester.ClientConnectionTests
         }
 
         /// <summary>
-        /// 确保 ClusterClient.Connect 能够重新审理。
+        /// 确保 ClusterClient.Connect 可以重试。
         /// </summary>
         [Fact]
         public async Task ConnectIsRetryableTest()
         {
-            var gateways = await this.HostedCluster.Client!.ServiceProvider.GetRequiredService<IGatewayListProvider>().GetGateways(); // 固定装置会部署客户
+            var gateways = await this.HostedCluster.Client!.ServiceProvider.GetRequiredService<IGatewayListProvider>().GetGateways(); // 测试夹具部署客户端。
             var gwEndpoint = gateways.First();
 
-            // 创建一个客户端, 没有网关端点, 然后当客户端无法连接时添加网关端点 。
+            // 创建不包含网关终结点的客户端，并在客户端连接失败时添加网关终结点。
             var gatewayProvider = new MockGatewayListProvider();
             var exceptions = new List<Exception>();
 

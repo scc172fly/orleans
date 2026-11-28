@@ -9,7 +9,7 @@ using Orleans.Serialization.Session;
 namespace Benchmarks.Serialization.Comparison;
 
 /// <summary>
-/// 基准 Orleans 深处复制各种对象类型,包括阵列和价值类型的性能。
+/// 对 Orleans 深拷贝不同对象类型（包括数组和值类型）的性能进行基准测试。
 /// </summary>
 [Config(typeof(BenchmarkConfig))]
 public class CopierBenchmark

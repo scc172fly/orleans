@@ -4,27 +4,27 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests.FaultInjection;
 
 /// <summary>
-/// 系统地探索一次碰撞:每个日记在每一有代表性的工作流程上进行的每一期
-/// 参与 grain,在可持久之前或经确认后可持久的运行失败
-/// 损失了,而 grain 从日记中收回。
+/// 系统地探索单次崩溃：对于代表性工作流在每个
+/// 参与 Grain 上执行的每次日志写入，在一次运行中使该写入失败，故障发生在写入持久化之前，或持久化之后但确认消息
+/// 丢失，此后 Grain 从其日志中恢复。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 每个运行使用新鲜 grains ,在 K- 日记写一个 grain时,每个运行次以最短运行次为单位的K。
-/// 发现,包括另写恢复书。每次运行都在其 grains 没有发信息工作时就结账,所以
-/// 也探讨完成退休等结果后,
-/// 结果,应用 <see cref="DurableTask.RunInline(string, Func{int})"/> 正好在 grain日记状态
-/// 并且不留任何一纸空文
+/// 每次运行使用全新的 Grain，并对其中一个 Grain 的第 K 次日志写入预置故障，遍历小于已观察到的最长运行长度的所有 K 值，
+/// 包括恢复所增加的写入。每次运行在其 Grain 不再持有消息传递工作时达到静止状态，因此
+/// 结果产生之后的写入（例如完成记录的退役）也会被探索。每次运行都必须产生无故障时的
+/// 结果，在 Grain 的日志化状态中恰好一次地应用每个 <see cref="DurableTask.RunInline(string, Func{int})"/> 效果，
+/// 且不留下任何死信。
 /// </para>
 /// <para>
-/// 写作栏栏的失败, grain日记和停止 grain;模糊的写作与在
-/// 字符串重新调用客户的电话,
-/// 激活失败, 使用相同的任务编号。 只有客户端会调用工作流程 grain: 其它的 grain 恢复
-/// 透过它的信息和警醒, 所以一个运行的拖拉机是违反。
+/// 写入失败会隔离 Grain 的日志并使 Grain 停用；结果不确定的写入则是在
+/// 写入已持久化之后发生的同样故障，用于模拟提交点之后的崩溃。测试工具会重试因
+/// 激活失败而失败的客户端调用，并使用相同的任务 ID。只有客户端调用工作流所在的 Grain；其他所有 Grain 均由
+/// 各自的消息和唤醒操作驱动恢复，因此运行停滞表示违反契约。
 /// </para>
 /// <para>
-/// 默认套件将清除管道的模糊写法, <see cref="DurableTaskCrashSweepTests"/> 将两者都扫描
-/// 两个工作流程的失败模式。
+/// 默认测试套件遍历流水线中结果不确定的写入，<see cref="DurableTaskCrashSweepTests"/> 则遍历
+/// 两个工作流的两种故障模式。
 /// </para>
 /// </remarks>
 public abstract class DurableTaskCrashExplorationTests(string journalFormatKey) : IAsyncLifetime
@@ -48,13 +48,13 @@ public abstract class DurableTaskCrashExplorationTests(string journalFormatKey) 
     public Task EveryAmbiguousJournalWriteOfThePipelineOnlyDelaysCompletion() =>
         SweepJournalWritesAsync(_harness, FaultWorkflow.Pipeline, FaultPoint.JournalWriteAfterDurable);
 
-    /// <summary>每日每日每日写一次 grain 联 年 月 日 月 日 月 月 日 <paramref name="workflow"/> 逐个检查每场运行</summary>
+    /// <summary>依次使 <paramref name="workflow"/> 中每个 Grain 的每次日志写入失败，并检查每次运行。</summary>
     internal static Task SweepJournalWritesAsync(DurableTaskFaultHarness harness, FaultWorkflow workflow, FaultPoint point) =>
         SweepAsync(harness, workflow, point, "write", static run => run.Writes);
 
     /// <summary>
-    /// 注射针 <paramref name="point"/> 每一行动的每一 grain 联 年 月 日 月 日 月 月 日 <paramref name="workflow"/> 以
-    /// 运行 <paramref name="operations"/> 从运行结果中选择的操作, 并检查每次运行 。
+    /// 在 <paramref name="point"/> 所指定的故障点，依次对 <paramref name="workflow"/> 中每个 Grain 的每项操作注入故障，对
+    /// <paramref name="operations"/> 从运行结果中选出的操作计数，并检查每次运行。
     /// </summary>
     internal static async Task SweepAsync(
         DurableTaskFaultHarness harness,
@@ -69,9 +69,9 @@ public abstract class DurableTaskCrashExplorationTests(string journalFormatKey) 
         var injected = new Dictionary<FaultRole, int>();
         foreach (var role in Enum.GetValues<FaultRole>())
         {
-            // 合并到一起的邮件可以共享一个写或一个段,这样运行会因操作而不同。
-            // 测试每个运行指数, 包括错误后来改变的运行
-            // 业务。
+            // 同时到达的消息可能共用一次写入或一个执行片段，因此不同运行的操作次数可能相差一两次。
+            // 遍历测试会尝试小于已观察到的最长运行长度的每个操作索引，包括故障导致后续
+            // 操作位置偏移的运行。
             var longest = operations(baseline)[role];
             injected[role] = 0;
             for (var occurrence = 0; occurrence < longest; occurrence++)
@@ -96,7 +96,7 @@ public abstract class DurableTaskCrashExplorationTests(string journalFormatKey) 
     }
 }
 
-/// <summary>浏览每期期刊对两个工作流程的写作,</summary>
+/// <summary>遍历两个工作流的每次日志写入，分别使其在持久化之前失败以及以提交结果不确定的方式失败。</summary>
 public abstract class DurableTaskCrashSweepTests(string journalFormatKey) : IAsyncLifetime
 {
     private readonly DurableTaskFaultHarness _harness = new(journalFormatKey);
@@ -113,28 +113,28 @@ public abstract class DurableTaskCrashSweepTests(string journalFormatKey) : IAsy
         DurableTaskCrashExplorationTests.SweepJournalWritesAsync(_harness, workflow, point);
 }
 
-/// <summary>运行崩溃勘探,任务状态以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行崩溃探索测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskCrashExplorationTests() : DurableTaskCrashExplorationTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行以 Orleans 二进制日记格式存储的任务状态的崩溃勘探。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行崩溃探索测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class OrleansBinaryDurableTaskCrashExplorationTests() : DurableTaskCrashExplorationTests(DurableTaskRecoveryFixture.OrleansBinary);
 
-/// <summary>运行以默认 JSON 日记格式存储的任务状态的全部崩溃扫描。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行完整的崩溃遍历测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("SlowBVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskCrashSweepTests() : DurableTaskCrashSweepTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行以 Orleans 二进制日记格式存储的任务状态的全崩溃扫描。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行完整的崩溃遍历测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("SlowBVT")]
 [TestProvider("None")]

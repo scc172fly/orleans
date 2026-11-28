@@ -30,9 +30,9 @@ internal class PreferredMatchSiloMetadataPlacementFilterDirector(
             return siloList;
         }
 
-        // 返回符合大多数元数据密钥的 silos 列表。列表中的第一个密钥是最不重要的。
-        // 这意味着列表中最后一个关键字是最重要的。
-        // 如果未找到 silos 符合任何元数据密钥,请返回 silos的原始列表。
+        // 返回匹配最多元数据键的 Silo 列表。列表中的第一个键最不重要。
+        // 即列表最后一个键最重要。
+        // 如果没有 Silo 匹配任何元数据键，则返回原始 Silo 列表。
         var maxScore = 0;
         var siloScores = new int[siloList.Count];
         var scoreCounts = new int[orderedMetadataKeys.Length + 1];

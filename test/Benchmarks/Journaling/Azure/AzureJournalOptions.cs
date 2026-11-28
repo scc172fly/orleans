@@ -65,7 +65,7 @@ public sealed record AzureJournalOptions
         _ => throw new InvalidOperationException("Unknown workload.")
     };
 
-    // 包括播种、暖和、计数电话、核实和目录穿行工作。
+    // 包括初始数据填充、预热、测量期间的调用、结果验证及目录遍历操作。
     public long EstimatedWork => IsCatalog
         ? 2L * (DueJournals + FutureJournals + 2) + (Operations + 1L) * (DueJournals + FutureJournals + 1L)
         : (Operations + 1L) * (HistoryBatches + 6L);

@@ -15,7 +15,7 @@ using Orleans.Runtime;
 namespace Orleans.GrainDirectory.AzureStorage
 {
     /// <summary>
-    /// 提供a grain 支持目录的 Azure 桌子储存。
+    /// 提供以 Azure Table Storage 为后端的 Grain 目录。
     /// </summary>
     public class AzureTableGrainDirectory : IGrainDirectory, ILifecycleParticipant<ISiloLifecycle>
     {
@@ -65,9 +65,9 @@ namespace Orleans.GrainDirectory.AzureStorage
         /// <summary>
         /// 初始化 <see cref="AzureTableGrainDirectory"/> 类的新实例。
         /// </summary>
-        /// <param name="directoryOptions"> Azure 表格存储 grain 目录选项。</param>
-        /// <param name="clusterOptions">组合组合选项。</param>
-        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="directoryOptions">Azure Table Storage Grain 目录选项。</param>
+        /// <param name="clusterOptions">集群选项。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
         [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "The Orleans dependency injection container supplies the cluster options instance.")]
         public AzureTableGrainDirectory(
             AzureTableGrainDirectoryOptions directoryOptions,
@@ -81,10 +81,10 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 查看一个 grain的登记激活。
+        /// 查找 Grain 已注册的激活实例。
         /// </summary>
-        /// <param name="grainId"> grain 标识符。</param>
-        /// <returns>登记 grain 地址,或 <see langword="null"/> 不存在登记。</returns>
+        /// <param name="grainId">Grain 标识符。</param>
+        /// <returns>已注册的 Grain 地址；如果没有注册，则为 <see langword="null"/>。</returns>
         public async Task<GrainAddress?> Lookup(GrainId grainId)
         {
             var result = await this.tableDataManager.ReadSingleTableEntryAsync(this.clusterId, GrainDirectoryEntity.GrainIdToRowKey(grainId));
@@ -98,20 +98,20 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 登记a grain 如果没有注册的激活 grain.
+        /// 如果该 Grain 不存在注册记录，则注册 Grain 激活实例。
         /// </summary>
-        /// <param name="address">下 grain 注册地址。</param>
-        /// <returns>注册在目录中的 grain 地址。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="address"/> 是 <see langword="null"/>.</exception>
+        /// <param name="address">要注册的 Grain 地址。</param>
+        /// <returns>在目录中注册的 Grain 地址。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="address"/> 为 <see langword="null"/>。</exception>
         public Task<GrainAddress?> Register(GrainAddress address) => Register(address, null);
 
         /// <summary>
-        /// 登记一个 grain 激活,当指定以前的登记为当前时替换该登记。
+        /// 注册 Grain 激活实例；如果指定的旧注册仍是当前注册，则替换它。
         /// </summary>
-        /// <param name="address">下 grain 注册地址。</param>
-        /// <param name="previousAddress">替换先前的登记,或 <see langword="null"/> 需要空条目。</param>
-        /// <returns>注册在目录中的 grain 地址。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="address"/> 是 <see langword="null"/>.</exception>
+        /// <param name="address">要注册的 Grain 地址。</param>
+        /// <param name="previousAddress">要替换的先前注册；若要求条目为空，则为 <see langword="null"/>。</param>
+        /// <returns>在目录中注册的 Grain 地址。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="address"/> 为 <see langword="null"/>。</exception>
         public async Task<GrainAddress?> Register(GrainAddress address, GrainAddress? previousAddress)
         {
             ArgumentNullException.ThrowIfNull(address);
@@ -142,41 +142,41 @@ namespace Orleans.GrainDirectory.AzureStorage
                 result = await this.tableDataManager.InsertTableEntryAsync(entry);
             }
 
-            // 可能的种族状况?
+            // 可能存在竞态条件？
             return result.isSuccess ? address : await Lookup(address.GrainId);
         }
 
         /// <summary>
-        /// 当存储的激活标识符与所提供地址匹配时,删除一个 grain 激活。
+        /// 当存储的激活实例标识符与提供的地址匹配时，移除 Grain 激活实例。
         /// </summary>
-        /// <param name="address">要删除的 grain 地址。</param>
-        /// <returns>代表操作的任务。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="address"/> 是 <see langword="null"/>.</exception>
+        /// <param name="address">要移除的 Grain 地址。</param>
+        /// <returns>表示该操作的任务。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="address"/> 为 <see langword="null"/>。</exception>
         public async Task Unregister(GrainAddress address)
         {
             ArgumentNullException.ThrowIfNull(address);
 
             var result = await this.tableDataManager.ReadSingleTableEntryAsync(this.clusterId, GrainDirectoryEntity.GrainIdToRowKey(address.GrainId));
 
-            // 未找到条目
+            // 未找到记录。
             if (result.Entity is null)
             {
                 return;
             }
 
-            // 检查存储条目是否与我们被要求删除的条目相符
+            // 检查存储中的记录是否与要求删除的记录匹配。
             var entity = result.Item1;
             if (entity.ActivationId == address.ActivationId.ToParsableString())
                 await this.tableDataManager.DeleteTableEntryAsync(GrainDirectoryEntity.FromGrainAddress(this.clusterId, address), entity.ETag.ToString());
         }
 
         /// <summary>
-        /// 删除 grain 激活,如果存储的激活识别符与所提供的地址相符。
+        /// 移除存储的激活实例标识符与提供的地址匹配的 Grain 激活实例。
         /// </summary>
-        /// <param name="addresses">下 grain 要删除的地址 。</param>
-        /// <returns>代表操作的任务。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="addresses"/> 是 <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentException"><paramref name="addresses"/> 包含 a 的 <see langword="null"/> 元素。</exception>
+        /// <param name="addresses">要移除的 Grain 地址。</param>
+        /// <returns>表示该操作的任务。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="addresses"/> 为 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentException"><paramref name="addresses"/> 包含 <see langword="null"/> 元素。</exception>
         public async Task UnregisterMany(List<GrainAddress> addresses)
         {
             ArgumentNullException.ThrowIfNull(addresses);
@@ -205,13 +205,13 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 完成 silo 清除回调。 Azure 表条目通过激活专用的未登记操作清理。
+        /// 完成 Silo 清理回调。Azure Table 记录通过针对具体激活实例的取消注册操作进行清理。
         /// </summary>
-        /// <param name="siloAddresses">与清理回调相关的 silo 地址。</param>
-        /// <returns>一项已完成的任务。</returns>
+        /// <param name="siloAddresses">与清理回调关联的 Silo 地址。</param>
+        /// <returns>已完成的任务。</returns>
         public Task UnregisterSilos(List<SiloAddress> siloAddresses)
         {
-            // 使用 Azure 表格执行太昂贵
+            // 使用 Azure Table 实现此操作的成本太高。
             return Task.CompletedTask;
         }
 
@@ -242,20 +242,20 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 必要时初始化 Azure 表存储表。
+        /// 在需要时初始化 Azure Table Storage 表。
         /// </summary>
-        /// <param name="ct">取消给发的邮记 silo 生命周期。</param>
-        /// <returns>一项代表初始化操作的任务。</returns>
-        /// <remarks>使用这种方法的 silo 试验也可以使用。</remarks>
+        /// <param name="ct">Silo 生命周期提供的取消令牌。</param>
+        /// <returns>表示初始化操作的任务。</returns>
+        /// <remarks>此方法由 Silo 生命周期调用，也可用于测试。</remarks>
         public async Task InitializeIfNeeded(CancellationToken ct = default)
         {
             await this.tableDataManager.InitTableAsync(ct);
         }
 
         /// <summary>
-        /// 将 grain 目录订阅到 silo 生命周期。
+        /// 让 Grain 目录订阅 Silo 生命周期。
         /// </summary>
-        /// <param name="lifecycle">下 silo 生命周期。</param>
+        /// <param name="lifecycle">Silo 生命周期。</param>
         public void Participate(ISiloLifecycle lifecycle)
         {
 

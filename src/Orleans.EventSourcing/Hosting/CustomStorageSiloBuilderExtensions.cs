@@ -10,34 +10,34 @@ using Orleans.Configuration;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 提供定制存储日志一致性提供者配置的扩展。
+    /// 提供用于配置自定义存储日志一致性提供程序的扩展方法。
     /// </summary>
     public static class CustomStorageSiloBuilderExtensions
     {
         /// <summary>
-        /// 添加一个自定义存储日志一致性提供者作为默认日志一致性提供者。
+        /// 将自定义存储日志一致性提供程序添加为默认日志一致性提供程序。
         /// </summary>
-        /// <param name="builder">下 silo 建筑商</param>
+        /// <param name="builder">Silo 构建器。</param>
         /// <param name="primaryCluster">
-        /// 集束识别码存储在供应商选项中,并传递给每个定制储存适配器。
-        /// 自定义存储适应器接受每个组群的提交文件。
+        /// 保存在提供程序选项中并传递给每个自定义存储适配器的集群标识符。
+        /// 自定义存储适配器接受来自所有集群的提交。
         /// </param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder AddCustomStorageBasedLogConsistencyProviderAsDefault(this ISiloBuilder builder, string? primaryCluster = null)
         {
             return builder.AddCustomStorageBasedLogConsistencyProvider(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME, primaryCluster);
         }
 
         /// <summary>
-        /// 添加一个名为自定义存储日志一致性提供者的用户名。
+        /// 添加命名的自定义存储日志一致性提供程序。
         /// </summary>
-        /// <param name="builder">下 silo 建筑商</param>
-        /// <param name="name">提供者名称。</param>
+        /// <param name="builder">Silo 构建器。</param>
+        /// <param name="name">提供程序名称。</param>
         /// <param name="primaryCluster">
-        /// 集束识别码存储在供应商选项中,并传递给每个定制储存适配器。
-        /// 自定义存储适应器接受每个组群的提交文件。
+        /// 保存在提供程序选项中并传递给每个自定义存储适配器的集群标识符。
+        /// 自定义存储适配器接受来自所有集群的提交。
         /// </param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder AddCustomStorageBasedLogConsistencyProvider(this ISiloBuilder builder, string name = "LogStorage", string? primaryCluster = null)
         {
             return builder.ConfigureServices(services => services.AddCustomStorageBasedLogConsistencyProvider(name, primaryCluster));

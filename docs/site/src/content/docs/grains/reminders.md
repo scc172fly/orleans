@@ -1,104 +1,104 @@
 ---
-title: "提醒提醒"
-description: "能够维持激活和集群生命周期变化的可持久定期 grain 工作。"
+title: 提醒器
+description: 调度能够跨越激活实例和集群生命周期变化的持久化周期性 Grain 工作。
 ms.date: 08/21/2026
 ms.topic: concept-article
 ---
 
 <a id="reminders"></a>
 
-# 提醒提醒
+# 提醒器
 
-提醒会为一个逻辑 grain保存定期时间表。配置的提醒提供者保留了定义,而 Orleans 则通过正常 grain 请求列表传送滴答。当没有当前激活时, 键会启动 grain 。
+提醒器为一个逻辑 Grain 保存周期性调度计划。配置的提醒器提供程序负责保存其定义，Orleans 通过正常的 Grain 请求调度机制投递触发事件。如果 Grain 当前没有激活实例，触发事件会使其激活。
 
-提醒必须用于工作, 其时间表必须在激活变化和集束重新启动后有效。 提醒时用分钟、 小时或天计的时长。 提醒可以唤醒一个 grain , 然后为精细放大的激活范围的工作创建 [grain 计时器](timers.md) 。
+对于调度计划必须在激活实例变化和集群重启后仍然存在的工作，请使用提醒器。提醒器适用于以分钟、小时或天为单位的周期。提醒器可以唤醒 Grain，再由 Grain 创建 [Grain 定时器](timers.md)，执行更细粒度的激活实例范围内的工作。
 
 <a id="receive-reminder-ticks"></a>
 
-## 接收提醒滴答
+## 接收提醒器触发事件
 
-A grain 收到催复通知 <xref:Orleans.IRemindable>:
+接收提醒器通知的 Grain 实现 <xref:Orleans.IRemindable>：
 
 :::code language="csharp" source="../snippets/compiled/Grains/WorkersAndTimersSnippets.cs" id="remindable_report_grain":::
 
-Orleans 援引 <xref:Orleans.IRemindable.ReceiveReminder*> ,并注明提醒的名称和 <xref:Orleans.Runtime.TickStatus>。回调执行为 grain 请求,并遵循 grain的时间安排和重新使用规则。
+Orleans 使用提醒器名称和 <xref:Orleans.Runtime.TickStatus> 调用 <xref:Orleans.IRemindable.ReceiveReminder*>。该回调作为 Grain 请求执行，并遵循 Grain 的调度及可重入规则。
 
-当提醒工作超过 grain 调用超时,请使用 [长期的催提醒食谱](../how-to/long-running-reminders.md) 启动可重新启用的工人并迅速返回。
+当提醒器工作可能超过 Grain 调用超时时，请使用 [长时间运行的提醒器示例](../how-to/long-running-reminders.md)，启动一个可重新启动的工作执行器并及时返回。
 
 <a id="register-or-update-a-reminder"></a>
 
-## 登记或更新催复通知
+## 注册或更新提醒器
 
-a 记名的 grain催复通知:
+在 Grain 中注册命名提醒器：
 
 :::code language="csharp" source="../snippets/compiled/Grains/WorkersAndTimersSnippets.cs" id="register_reminder":::
 
-<xref:Orleans.GrainReminderExtensions.RegisterOrUpdateReminder*> 创建了耐久定义。 注册同一名称将再次取代其到期时间和期限 。
+<xref:Orleans.GrainReminderExtensions.RegisterOrUpdateReminder*> 创建持久化定义。再次注册同一名称时会替换其首次触发等待时间和周期。
 
-返回的 <xref:Orleans.Runtime.IGrainReminder> 是当前注册的一个控点。 在应用程序中保留提醒名称, 并在需要时在激活后获取当前控点 。
+返回的 <xref:Orleans.Runtime.IGrainReminder> 是当前注册的句柄。将提醒器名称持久化到应用状态，在激活之后按需重新获取当前句柄。
 
 <a id="retrieve-or-remove-a-reminder"></a>
 
-## 获取或删除提醒
+## 获取或移除提醒器
 
-获取当前控点并解除提醒登记 :
+获取当前句柄并注销提醒器：
 
 :::code language="csharp" source="../snippets/compiled/Grains/WorkersAndTimersSnippets.cs" id="unregister_reminder":::
 
-使用 <xref:Orleans.GrainReminderExtensions.GetReminder*> 来提醒一个被命名的提醒,使用 <xref:Orleans.GrainReminderExtensions.GetReminders*> 来提醒 grain登记的所有提醒。
+使用 <xref:Orleans.GrainReminderExtensions.GetReminder*> 获取一个命名提醒器，使用 <xref:Orleans.GrainReminderExtensions.GetReminders*> 获取 Grain 注册的所有提醒器。
 
 <a id="reminder-behavior"></a>
 
-## 提醒行为
+## 提醒器行为
 
-提醒提供者长期保存着每个定义。负责者 silo 装入定义,从持续启动时间和期间计算事件,并向 grain发出滴答请求。
+提醒器提供程序持久化保存每条定义。负责处理的 Silo 加载定义，根据已持久化的开始时间和周期计算各次触发时间，并向 Grain 发送触发请求。
 
-个人滴答信息是短暂的。 集群无法获取或所有权移动可能导致预定事件得不到落实,而持久定义则继续产生以后的事件。 所有权趋同还可能产生重复回溯执行。 每一次回调都会自动进行,并协调来自持久商业状态的工作。
+单次触发消息是临时的。集群不可用或所有权迁移可能导致某次计划触发未能投递，而持久化定义仍会继续产生后续触发事件。所有权收敛期间也可能发生重复回调。因此，每次回调都应按幂等方式处理，并根据持久化业务状态补偿或核对工作进度。
 
-<xref:Orleans.Runtime.TickStatus.FirstTickTime> and <xref:Orleans.Runtime.TickStatus.Period> identify the theoretical schedule. <xref:Orleans.Runtime.TickStatus.CurrentTickTime> records when the runtime initiated the current delivery. Applications can compare those values with persisted progress to detect and reconcile missed occurrences.
+<xref:Orleans.Runtime.TickStatus.FirstTickTime> 和 <xref:Orleans.Runtime.TickStatus.Period> 确定理论调度计划。<xref:Orleans.Runtime.TickStatus.CurrentTickTime> 记录运行时开始此次投递的时间。应用可将这些值与持久化进度比较，以发现并补偿遗漏的触发事件。
 
-Orleans 向一个启动 grain 发送激活 grain 必要时,包括收集先前的启动活动或 silo 停止了。
+Orleans 将提醒器通知投递到该 Grain 标识的一个激活实例。必要时，投递会激活 Grain，包括前一个激活实例已被回收或其所在 Silo 已停止的情况。
 
 <a id="reminder-timing-constraints"></a>
 
-## 提醒时间限制
+## 提醒器时间约束
 
-提醒登记接受这些边界的时间表:
+提醒器注册接受满足以下限制的调度计划：
 
-- `dueTime` 是 <xref:System.TimeSpan.Zero> 或更大。 零计划立即排第一个选中 。
-- `dueTime` 符合登记时间所剩 <xref:System.DateTime> 的范围。
-- `period` 是正值,至少 <xref:Orleans.Hosting.ReminderOptions.MinimumReminderPeriod?displayProperty=nameWithType>。
-- 默认最低期限为1分钟。
+- `dueTime` 大于或等于 <xref:System.TimeSpan.Zero>。零表示立即调度首次触发。
+- `dueTime` 必须处于注册时间起剩余的 <xref:System.DateTime> 可表示范围内。
+- `period` 为正数，且不小于 <xref:Orleans.Hosting.ReminderOptions.MinimumReminderPeriod?displayProperty=nameWithType>。
+- 默认最小周期为一分钟。
 
-运行时间拒绝消极价值, <xref:System.Threading.Timeout.InfiniteTimeSpan>中也拒绝 `dueTime` 后,第一个选中 <xref:System.DateTime.MaxValue>.
+运行时拒绝负数及 <xref:System.Threading.Timeout.InfiniteTimeSpan>，还会拒绝使首次触发晚于 <xref:System.DateTime.MaxValue> 的 `dueTime`。
 
-对于预定执行的某一项,登记一个有效的积极时期,并在持久工作成功后第一次调回提醒通知时不进行登记。
+如果只需要执行一次计划任务，请注册有效的正周期，并在首次回调中持久化工作成功后注销提醒器。
 
 <a id="configure-reminder-storage"></a>
 
-## 配置提醒存储
+## 配置提醒器存储
 
-每个 silo 配置相同的提醒提供者,以便让所有权在整个集群之间移动。生产部署使用一个耐久的供应商,如 Azure 表、 ADO.NET、 Redis、亚马逊 DynamoDB或 [宇宙 DB](https://www.nuget.org/packages/Microsoft.Orleans.Reminders.Cosmos)。该模拟供应商储存了该集群存在期间的定义并支持当地发展和测试。
+所有 Silo 应配置相同的提醒器提供程序，使所有权能够在集群中迁移。生产部署使用持久化提供程序，例如 Azure Table、ADO.NET、Redis、Amazon DynamoDB 或 [Cosmos DB](https://www.nuget.org/packages/Microsoft.Orleans.Reminders.Cosmos)。内存提供程序只在集群生存期内保留定义，适用于本地开发和测试。
 
-配置每个提供者, 通过其软件包提供的 API 来配置各个提供者。 编译的示例请参见 [配置亚马逊 DynamoDB 提醒](reminders/dynamodb.md) , 该示例独立配置 DynamoDB 组群和提醒存储。 当与 Aspire 组合资源时, 请见 [Orleans 和指定集成](../host/aspire-integration.md)。
+使用各提供程序所属包提供的 API 进行配置。参阅 [配置 Amazon DynamoDB 提醒器](reminders/dynamodb.md)，其中包含分别配置 DynamoDB 集群成员服务及提醒器存储的可编译示例。如果使用 Aspire 组合资源，请参阅 [Orleans 与 Aspire 集成](../host/aspire-integration.md)。
 
-提醒表是启动 silo 的一部分。提供者是否具备和是否一致决定服务能否装载、更新和调节登记。当家作主、更新和交付内部时,见 [提醒执行](../implementation/reminders.md) 。
+提醒器表是 Silo 启动流程的一部分。提供程序的可用性和一致性决定服务能否加载、更新和核对注册记录。有关所有权、刷新和投递内部机制，请参阅 [提醒器实现](../implementation/reminders.md)。
 
 <a id="poco-grains"></a>
 
-## 波哥 grains
+## POCO Grain
 
-Grains 执行中 <xref:Orleans.IGrainBase> 直接使用相同 <xref:Orleans.GrainReminderExtensions> APPs. 注射 <xref:Orleans.Timers.IReminderRegistry> 当基础设施法规需要通过当前 grain 上下文。
+直接实现 <xref:Orleans.IGrainBase> 的 Grain 使用相同的 <xref:Orleans.GrainReminderExtensions> API。如果基础设施代码需要通过当前 Grain 上下文执行更底层的访问，请注入 <xref:Orleans.Timers.IReminderRegistry>。
 
 <a id="troubleshoot-reminders"></a>
 
-## 排除故障提醒
+## 提醒器故障排查
 
-| 观察行为 | 运行时行为和行动 |
+| 观察到的现象 | 运行时行为及处理方式 |
 |---|---|
-| 登记报告提醒服务未配置。 | 在登记提醒之前,对每个 silo 配置一个提醒提供者。 |
-| 登记拒绝这一期限。 | 在 <xref:Orleans.Hosting.ReminderOptions.MinimumReminderPeriod?displayProperty=nameWithType>使用或超过正值期。 |
-| 长时间的集束中断后滴答声到达 | 使 <xref:Orleans.Runtime.TickStatus> 的理论时间表与持久进展相协调,并处理杰出的商业工作。 |
-| 在同一业务间隔内,回调执行一次以上。 | 在会籍变更期间提醒所有人。 使用每个间隔的应急关键值或耐久完成标记 。 |
-| 定义在完全集重开后消失。 | 内线供应商将定义范围扩大到集群寿命期,配置一个耐久生产供应商。 |
-| 高频工作需要分分钟间隔。 | 使用提醒来激活 grain, 然后登记活动阶段的 [grain 计时器](timers.md) 。 |
+| 注册时报告未配置提醒器服务。 | 注册提醒器前，在每个 Silo 上配置同一提醒器提供程序。 |
+| 注册拒绝指定周期。 | 使用不小于 <xref:Orleans.Hosting.ReminderOptions.MinimumReminderPeriod?displayProperty=nameWithType> 的正周期。 |
+| 集群中断很长时间后收到触发事件。 | 将 <xref:Orleans.Runtime.TickStatus> 中的理论调度计划与持久化进度核对，处理尚未完成的业务工作。 |
+| 同一业务时间区间内执行了多次回调。 | 集群成员变化期间提醒器所有权需要收敛。为每个区间使用幂等键或持久化完成标记。 |
+| 整个集群重启后定义消失。 | 内存提供程序只在集群生存期内保留定义。请配置持久化的生产提供程序。 |
+| 高频工作需要低于一分钟的时间间隔。 | 使用提醒器激活 Grain，然后在活动阶段注册 [Grain 定时器](timers.md)。 |

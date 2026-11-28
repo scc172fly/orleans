@@ -84,7 +84,7 @@ export default class GrainTable extends React.Component<GrainTableProps, GrainTa
   }
 
   renderStat = (stat: AggregatedGrainStat) => {
-    // 包括通用名在内的完全合格字型名称
+    // 缩短完全限定类型名称，包括泛型类型名称。
     const grainClassName = getName(stat.grainType);
     const systemGrain = stat.grainType.startsWith('Orleans.');
     const dashboardGrain = stat.grainType.startsWith('OrleansDashboard.');

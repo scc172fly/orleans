@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Orleans order processing</title>
+  <title>Orleans 订单处理</title>
   <style>
     body { font-family: system-ui, sans-serif; margin: 2rem; color: #222; }
     h1 { margin-top: 0; }
@@ -19,37 +19,37 @@
   </style>
 </head>
 <body>
-  <h1>Order processing</h1>
+  <h1>订单处理</h1>
   <p>
-    Buyer <input id="buyer" value="alice" size="10" />
-    <span class="muted">Orders wait <code>Ordering:GracePeriod</code> before stock validation. <a href="/dashboard">Dashboard</a></span>
+    买家 <input id="buyer" value="alice" size="10" />
+    <span class="muted">订单先等待 <code>Ordering:GracePeriod</code> ，然后验证库存。 <a href="/dashboard">仪表板</a></span>
   </p>
   <main>
     <div>
       <section>
-        <h2>Catalog</h2>
+        <h2>商品目录</h2>
         <table>
-          <thead><tr><th>Item</th><th class="num">Price</th><th class="num">Available</th><th class="num">Reserved</th><th class="num">Sold</th><th></th></tr></thead>
+          <thead><tr><th>商品</th><th class="num">价格</th><th class="num">可用库存</th><th class="num">已预留</th><th class="num">已售出</th><th></th></tr></thead>
           <tbody id="catalog"></tbody>
         </table>
       </section>
       <section>
-        <h2>Basket</h2>
+        <h2>购物篮</h2>
         <table>
-          <thead><tr><th>Item</th><th class="num">Price</th><th class="num">Quantity</th></tr></thead>
+          <thead><tr><th>商品</th><th class="num">价格</th><th class="num">数量</th></tr></thead>
           <tbody id="basket"></tbody>
         </table>
         <p>
-          Card <input id="card" value="4111111111111111" size="18" />
-          <span class="muted">Cards ending in 0002 are declined.</span>
+          卡号 <input id="card" value="4111111111111111" size="18" />
+          <span class="muted">尾号为 0002 的卡会被拒绝。</span>
         </p>
-        <button id="checkout">Checkout</button> <span id="checkout-result" class="muted"></span>
+        <button id="checkout">结算</button> <span id="checkout-result" class="muted"></span>
       </section>
     </div>
     <section>
-      <h2>Orders</h2>
+      <h2>订单</h2>
       <table>
-        <thead><tr><th>Order</th><th>Date</th><th class="num">Total</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th>订单</th><th>日期</th><th class="num">总额</th><th>状态</th><th></th></tr></thead>
         <tbody id="orders"></tbody>
       </table>
     </section>

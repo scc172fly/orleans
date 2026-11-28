@@ -11,7 +11,7 @@ using Xunit;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// 二进制日记代码执行测试 。
+/// 二进制持久化日志编解码器实现的测试。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

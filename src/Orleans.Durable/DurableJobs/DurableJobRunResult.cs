@@ -4,26 +4,26 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// 系长期执行职务的结果。
+/// 表示持久化作业的执行结果。
 /// </summary>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Jobs.DurableJobRunResult")]
 public sealed class DurableJobRunResult
 {
     /// <summary>
-    /// 获得一个值, 显示任务执行失败 。
+    /// 获取一个指示作业执行是否失败的值。
     /// </summary>
     [MemberNotNullWhen(true, nameof(Exception))]
     public bool IsFailed => Status == DurableJobRunStatus.Failed;
 
     /// <summary>
-    /// 获得一个价值,表明职务执行是否仍在进行中,在拖延后应进行民意调查。
+    /// 获取一个指示作业是否仍在执行、需要在延迟后再次轮询的值。
     /// </summary>
     [MemberNotNullWhen(true, nameof(PollAfterDelay))]
     public bool IsInProgress => Status == DurableJobRunStatus.InProgress;
 
     /// <summary>
-    /// 获得一个价值,显示成功处理的工作是否要求持久重新安排。
+    /// 获取一个指示成功处理的作业是否请求持久化重新调度的值。
     /// </summary>
     [MemberNotNullWhen(true, nameof(RescheduleTime))]
     public bool IsRescheduleRequested => Status == DurableJobRunStatus.RescheduleRequested && RescheduleTime is not null;
@@ -41,25 +41,25 @@ public sealed class DurableJobRunResult
     }
 
     /// <summary>
-    /// 获得工作执行状态。
+    /// 获取作业的执行状态。
     /// </summary>
     [Id(0)]
     public DurableJobRunStatus Status { get; }
 
     /// <summary>
-    /// 在 <see cref="Status"/> 是 <see cref="DurableJobRunStatus.InProgress"/>时,在执行者对运行过程进行民意调查之前获得延迟 。
+    /// 获取在 <see cref="Status"/> 为 <see cref="DurableJobRunStatus.InProgress"/> 时，执行器再次轮询正在运行的作业前的延迟。
     /// </summary>
     [Id(1)]
     public TimeSpan? PollAfterDelay { get; }
 
     /// <summary>
-    /// 获取 <see cref="Status"/> 是 <see cref="DurableJobRunStatus.Failed"/>时与执行失败相关的工作执行的例外。
+    /// 获取在 <see cref="Status"/> 为 <see cref="DurableJobRunStatus.Failed"/> 时，与作业执行失败关联的异常。
     /// </summary>
     [Id(2)]
     public Exception? Exception { get; }
 
     /// <summary>
-    /// 在当前执行成功完成后, 工作应该被永久重新安排的时间 。
+    /// 获取当前执行成功完成后应持久化重新调度作业的时间。
     /// </summary>
     [Id(3)]
     public DateTimeOffset? RescheduleTime { get; }
@@ -67,19 +67,19 @@ public sealed class DurableJobRunResult
     private static readonly DurableJobRunResult CompletedInstance = new(DurableJobRunStatus.Completed, null, null, null);
 
     /// <summary>
-    /// 获得一个显示工作成功完成的结果。
+    /// 获取表示作业成功完成的结果。
     /// </summary>
     public static DurableJobRunResult Completed => CompletedInstance;
 
     /// <summary>
-    /// 创建显示工作执行仍在进行中的结果,应在规定延迟后进行投票。
+    /// 创建一个表示作业仍在执行、应在指定延迟后再次轮询的结果。
     /// </summary>
-    /// <param name="delay">等待时间再投票</param>
-    /// <returns>工作成果在进行中。</returns>
+    /// <param name="delay">再次轮询执行实例前的等待时间。</param>
+    /// <returns>表示作业仍在执行的结果。</returns>
     /// <remarks>
-    /// 执行人保持当前运行和其货币汇率空缺状态,然后在延迟后再次对接收者进行民意测验。
-    /// TODO: 增加最低/最高投票延迟的验证,以防止滥用。
-    /// 考虑长期投票的货币汇率管理。
+    /// 执行器保持当前执行实例及其并发槽位处于活动状态，然后在延迟后再次轮询接收方。
+    /// TODO: 添加最小和最大轮询延迟的验证，以防止滥用。
+    /// TODO: 考虑长时间轮询时的并发槽位管理。
     /// </remarks>
     public static DurableJobRunResult InProgress(TimeSpan delay)
     {
@@ -88,15 +88,15 @@ public sealed class DurableJobRunResult
     }
 
     /// <summary>
-    /// 得出的结果显示,目前执行成功完成并请求进行长期重新安排。
+    /// 创建一个表示当前执行已成功完成并请求持久化重新调度的结果。
     /// </summary>
-    /// <param name="dueTime">下次执行的时间应到。</param>
-    /// <returns>一项持久的重新安排偿还期的结果。</returns>
+    /// <param name="dueTime">下一次执行应当到期的时间。</param>
+    /// <returns>持久化重新调度结果。</returns>
     /// <remarks>
-    /// 重排顺序 重新计数失败尝试的倒数, 所以下一个取消计数就是一。
-    /// 在每个耐用工作执行人之后,
-    /// 理解 <see cref="DurableJobRunStatus.RescheduleRequested"/> (序列值3)。
-    /// 该推出令与理解序列值0至2的操作员保持一致,保持了与执行者的兼容性。
+    /// 重新调度会重置失败尝试计数，因此下一次出队计数为 1。
+    /// 在混合版本的滚动升级期间，只有当所有持久化作业执行器
+    /// 均已支持 <see cref="DurableJobRunStatus.RescheduleRequested"/>（序列化值为 3）之后，调用方才发出此结果。
+    /// 此部署顺序可确保与仅支持序列化值 0 至 2 的执行器保持兼容。
     /// </remarks>
     public static DurableJobRunResult RescheduleAt(DateTimeOffset dueTime)
     {
@@ -104,12 +104,12 @@ public sealed class DurableJobRunResult
     }
 
     /// <summary>
-    /// 创建结果, 显示任务失败 。
+    /// 创建一个表示作业执行失败的结果。
     /// </summary>
-    /// <param name="exception">导致失败的例外。 这将传递到再试政策 。</param>
-    /// <returns>工作结果失败。</returns>
+    /// <param name="exception">导致失败的异常。该异常将传递给重试策略。</param>
+    /// <returns>表示作业失败的结果。</returns>
     /// <remarks>
-    /// 例外将转到回调,以确定是否应该重新调查该工作。
+    /// 异常将传递给重试回调，以确定是否应重试该作业。
     /// </remarks>
     public static DurableJobRunResult Failed(Exception exception)
     {
@@ -119,31 +119,31 @@ public sealed class DurableJobRunResult
 }
 
 /// <summary>
-/// 代表持久工作执行现状。
+/// 表示持久化作业的执行状态。
 /// </summary>
 public enum DurableJobRunStatus
 {
     /// <summary>
-    /// 工作成功完成, 应该从队列中删除 。
+    /// 作业已成功完成，应将其从队列中移除。
     /// </summary>
     Completed = 0,
 
     /// <summary>
-    /// 工作执行仍在进行中,应在规定的延误之后再次调查。
+    /// 作业仍在执行，应在指定延迟后再次轮询。
     /// </summary>
     InProgress = 1,
 
     /// <summary>
-    /// 工作失败,应通过再试政策处理。
+    /// 作业执行失败，应通过重试策略处理。
     /// </summary>
     Failed = 2,
 
     /// <summary>
-    /// 目前的执行顺利完成,要求进行长期重新安排,重设未成功尝试的计数。
+    /// 当前执行已成功完成，并请求持久化重新调度，同时重置失败尝试计数。
     /// </summary>
     /// <remarks>
-    /// 这个数值被序列为 3。 在滚动升级期间, 所有持久工作执行人支持后, 退出它 。
-    /// 新执行程序将未知处置值视为故障,通过配置的重试政策引导它们。
+    /// 此值序列化为 3。滚动升级期间，应在所有持久化作业执行器均支持该值后才发出此结果。
+    /// 较新版本的执行器将未知的处置结果值视为失败，并交由已配置的重试策略处理。
     /// </remarks>
     RescheduleRequested = 3
 }

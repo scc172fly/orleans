@@ -9,29 +9,29 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 表示存储在交易状态 grain 中的整数。
+    /// 表示存储在事务 Grain 状态中的整数值。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public class GrainData
     {
         /// <summary>
-        /// 获取或设置存储值。
+        /// 获取或设置存储的值。
         /// </summary>
         [Id(0)]
         public int Value { get; set; }
     }
 
     /// <summary>
-    /// 执行超过最大支助数目的协调州的交易测试业务。
+    /// 在支持的最大数量的协同事务状态上实现事务测试操作。
     /// </summary>
     public class MaxStateTransactionalGrain : MultiStateTransactionalGrainBaseClass
     {
         /// <summary>
         /// 初始化 <see cref="MaxStateTransactionalGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="stateFactory">工厂用来建立交易状态</param>
-        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="stateFactory">用于创建事务状态的工厂。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
         public MaxStateTransactionalGrain(ITransactionalStateFactory stateFactory,
             ILoggerFactory loggerFactory)
             : base(Enumerable.Range(0, TransactionTestConstants.MaxCoordinatedTransactions)
@@ -43,16 +43,16 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 执行两个交易州的交易测试业务。
+    /// 在两个事务状态上实现事务测试操作。
     /// </summary>
     public class DoubleStateTransactionalGrain : MultiStateTransactionalGrainBaseClass
     {
         /// <summary>
         /// 初始化 <see cref="DoubleStateTransactionalGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="data1">第一个交易状态。</param>
-        /// <param name="data2">第二个交易状态。</param>
-        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="data1">第一个事务状态。</param>
+        /// <param name="data2">第二个事务状态。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
         public DoubleStateTransactionalGrain(
             [TransactionalState("data1", TransactionTestConstants.TransactionStore)]
             ITransactionalState<GrainData> data1,
@@ -65,15 +65,15 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 在一个交易状态下实施交易测试业务。
+    /// 在一个事务状态上实现事务测试操作。
     /// </summary>
     public class SingleStateTransactionalGrain : MultiStateTransactionalGrainBaseClass
     {
         /// <summary>
         /// 初始化 <see cref="SingleStateTransactionalGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="data">交易状态</param>
-        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="data">事务状态。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
         public SingleStateTransactionalGrain(
             [TransactionalState("data", TransactionTestConstants.TransactionStore)]
             ITransactionalState<GrainData> data,
@@ -84,14 +84,14 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 实施交易测试业务,没有交易状态。
+    /// 在无事务状态的情况下实现事务测试操作。
     /// </summary>
     public class NoStateTransactionalGrain : MultiStateTransactionalGrainBaseClass
     {
         /// <summary>
         /// 初始化 <see cref="NoStateTransactionalGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
         public NoStateTransactionalGrain(
             ILoggerFactory loggerFactory)
             : base(Array.Empty<ITransactionalState<GrainData>>(), loggerFactory)
@@ -100,26 +100,26 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 提供对整数状态的定单收集进行交易测试的业务。
+    /// 在有序的整数状态集合上提供事务测试操作。
     /// </summary>
     public partial class MultiStateTransactionalGrainBaseClass : Grain, ITransactionTestGrain
     {
         /// <summary>
-        /// 交易国以该 grain为业务基础。
+        /// 此 Grain 操作的事务状态。
         /// </summary>
         protected ITransactionalState<GrainData>[] dataArray;
         private readonly ILoggerFactory loggerFactory;
 
         /// <summary>
-        /// 启动 grain 的登录器 。
+        /// 此 Grain 激活实例的日志记录器。
         /// </summary>
         protected ILogger logger = null!;
 
         /// <summary>
         /// 初始化 <see cref="MultiStateTransactionalGrainBaseClass"/> 类的新实例。
         /// </summary>
-        /// <param name="dataArray">被命令交易状态</param>
-        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="dataArray">有序的事务状态。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
         public MultiStateTransactionalGrainBaseClass(
             ITransactionalState<GrainData>[] dataArray,
             ILoggerFactory loggerFactory)
@@ -245,7 +245,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 表示交易状态更新后故意造成的失败。
+    /// 表示在更新事务状态之后有意引发的失败。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -257,23 +257,23 @@ namespace Orleans.Transactions.TestKit
         public AddAndThrowException() : base("Unexpected error.") { }
 
         /// <summary>
-        /// 初始化有消息的 <see cref="AddAndThrowException"/> 类的新实例。
+        /// 使用消息初始化 <see cref="AddAndThrowException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">描述失败的电文。</param>
+        /// <param name="message">描述失败的消息。</param>
         public AddAndThrowException(string message) : base(message) { }
 
         /// <summary>
-        /// 初始化 <see cref="AddAndThrowException"/> 类的新实例,其中含有一条消息和内置例外。
+        /// 使用消息和内部异常初始化 <see cref="AddAndThrowException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">描述失败的电文。</param>
-        /// <param name="innerException">造成这一失败的例外。</param>
+        /// <param name="message">描述失败的消息。</param>
+        /// <param name="innerException">导致此失败的异常。</param>
         public AddAndThrowException(string message, Exception innerException) : base(message, innerException) { }
 
         /// <summary>
-        /// 从序列数据初始化了 <see cref="AddAndThrowException"/> 类的新实例。
+        /// 从序列化数据初始化 <see cref="AddAndThrowException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">序列的例外数据。</param>
-        /// <param name="context">序列化背景。</param>
+        /// <param name="info">已序列化的异常数据。</param>
+        /// <param name="context">序列化上下文。</param>
         [Obsolete]
         protected AddAndThrowException(SerializationInfo info, StreamingContext context)
             : base(info, context)

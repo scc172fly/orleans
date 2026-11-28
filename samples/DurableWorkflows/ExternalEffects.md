@@ -1,18 +1,18 @@
 <a id="payment-and-email-effects"></a>
 
-# 支付和电子邮件效果
+# 支付及邮件效果
 
-`ExternalEffectGrain` 在其日记本中拥有每种效应的生命周期。
-核对记录申请的证据和决定。 `RecipeEffectProviderGrain`
-这是一种独立出版的演示服务, 所以这些配方是本地与样本的“ 精选主机” 一起运行的。
-生产网关使用付款或电子邮件提供者的 API执行同样的发送和查询合同。
+`ExternalEffectGrain` 在自身日志中负责各效果的生命周期。提供程序负责支付授权或
+邮件接受结果。对账记录应用程序的证据及决定。`RecipeEffectProviderGrain`
+是具有独立日志的演示服务，因此这些实践方案可通过示例的 Aspire 主机在本地运行。
+生产网关使用支付或邮件提供程序的 API 实现相同的派发及查询契约。
 
 <a id="run-a-payment-and-its-outgoing-receipt"></a>
 
-## 运行付款及其寄出收据
+## 执行支付并发送其收据
 
-开始 [README.md](README.md)中描述的样本。在 PowerShell中,将 `$service` 设为从寄件者处到服务 URL
-仪表板:保持身份和原始请求与订单保持一致;重复提交文件,再使用这些数值。
+按照 [README.md](README.md) 的说明启动示例。在 PowerShell 中，将 `$service` 设置为 Aspire
+仪表板中的服务 URL。随订单保留标识及原始请求；重复提交时复用这些值。
 
 ```powershell
 $service = 'https://localhost:YOUR_SERVICE_PORT'
@@ -45,17 +45,17 @@ $receipt = Send-EffectCommand "external-effects/$order/inspect" $receiptIdentity
 $receipt
 ```
 
-`kind` 是 `0` 付款授权, `1` 用于无能力电子邮件, `2` 需要电子邮件对账
-中断和 `3` 还款。
-`businessState: "authorized;ready-to-fulfill"` 和下一封电子邮件
-其 `nextEffectKey` 确定了这一意图。
-在同一封信中`EffectOrderGrain` ;收件箱承诺其顺序投影,并完成邮件的填写。
-物主的效应记录仍然是生命周期当局。
-它将用那记录来用尽它重新试镜的窗口。
+`kind` 为 `0` 表示支付授权，为 `1` 表示幂等邮件，为 `2` 表示中断后需要对账的邮件，
+为 `3` 表示支付退款。授权成功时，将
+`businessState: "authorized;ready-to-fulfill"` 与后续邮件
+意图一同记录。其 `nextEffectKey` 标识该意图。持久化发件箱在同一次写入中暂存发往
+`EffectOrderGrain` 的结果消息；接收方收件箱将订单投影与消息完成操作一同提交。
+所有者的效果记录仍是生命周期的权威来源。监控 Messaging 死信，并根据该记录对
+耗尽重试窗口的投递进行对账。
 
-`SubmitAsync` 确认承诺意图。 `ExternalEffectWorkflowGrain.RunAsync` 证明是持久任务
-成分:它从 `DurableTask.Current`中创建身份,在指定的步骤中提交意图和名称的使用
-并持续拖延直到记录到最终结果。
+`SubmitAsync` 确认意图已提交。`ExternalEffectWorkflowGrain.RunAsync` 演示持久化任务
+组合：从 `DurableTask.Current` 创建标识，在具名步骤中提交意图，并使用具名
+读取及持久化延迟等待已记录的终态结果。
 
 ```csharp
 var workflow = client.GetGrain<IExternalEffectWorkflowGrain>(orderId);
@@ -63,17 +63,17 @@ var handle = await workflow.RunAsync(paymentRequest).WithId("checkout").Schedule
 var result = await handle.WaitAsync(cancellationToken);
 ```
 
-工作流程保留的结果是简单描述业主的终端结果。
-取消其通过所有人 `CancelAsync` 或 `/cancel`的效果
-当业务运作应停止时,即开始作业。
+工作流保留的结果是所有者终态结果的快照。停止客户端等待或取消
+轮询工作流会停止该观察。当业务操作应停止派发时，通过其所有者的 `CancelAsync` 或 `/cancel`
+操作取消效果。
 
 <a id="exercise-a-lost-response-and-a-decline"></a>
 
-## 演习失败反应和下降
+## 演练响应丢失与拒绝
 
-开发环境暴露了示范供应商控制。
-提供方行为值为 `Apply`, `Reject`, `ProveNoEffect`, `LoseResponseAfterApply`,
-`LookupUnavailable`、和 `UnavailableBeforeApply`。
+Development 环境公开演示提供程序的控制接口。提交效果前，先配置新的提供程序账户。
+提供程序行为值为 `Apply`、`Reject`、`ProveNoEffect`、`LoseResponseAfterApply`、
+`LookupUnavailable` 和 `UnavailableBeforeApply`。
 
 ```powershell
 $order = 'lost-' + [guid]::NewGuid().ToString('N')
@@ -99,17 +99,17 @@ Invoke-RestMethod "$service/external-effects/$order/run" -Method Post
 Send-EffectCommand "external-effects/$order/inspect" $identity
 ```
 
-丢失的响应使尝试无法确定。安全重试使用原始供应商键和提供者返回
-注销额的计算截止 `Rejected` 与 `businessState: "business-rejected"` 创建
-拒绝结果信息。 成功电子邮件意向仅为应用授权创建 。
+响应丢失使本次尝试的结果不确定。安全重试使用原始提供程序键，提供程序返回
+其记录的授权结果。拒绝以 `Rejected` 完成，带有 `businessState: "business-rejected"`，并创建
+拒绝结果消息。仅在授权已生效时创建成功邮件意图。
 
 <a id="reconcile-unkeyed-email-and-authorize-a-deliberate-resend"></a>
 
-## 调和不加密的电子邮件并授权故意重发
+## 对无幂等键邮件进行对账，并授权明确的重新发送
 
-提供网络服务, 接受电子邮件,
-失去答复后,原始请求、钥匙、尝试证据、分辨率所有人、理由和下次检查时间都落空
-排定的查询在无法或没有确定的证据归还时保留不确定性。
+无幂等键邮件网关演示能够接受邮件并支持运维人员辅助调查的提供程序。
+响应丢失时，原始请求、键、尝试证据、解决责任人、原因和下次检查时间
+会保留在所有者日志中。调度的查询在失败或返回无定论证据时保留不确定性。
 
 ```powershell
 $order = 'email-' + [guid]::NewGuid().ToString('N')
@@ -145,57 +145,57 @@ Send-EffectCommand "external-effects/$order/follow-up" @{
 }
 ```
 
-积极尝试解决后授权采取后续行动。 最初指向新效果; 新效果
-保留原始钥匙和授权。未解决的原始钥匙仍保留,并继续进行调节
-将未来发送禁用后, 未来发送会停止。 和解决定使用显示的修改, 这样新的决定就会在
-延迟提供方回复。 一份老旧的修订返回 `409 Conflict`; 在再次决定前检查当前记录 。
-保护取消、解决、政策改变、后续授权和供应商应用诊断
-部署的单位的认证和授权。
+在活动尝试结束后授权后续操作。原效果指向新效果；新效果
+保留原始键及授权。未解决的原效果继续保留并进行对账，
+但禁止后续派发。对账决定使用显示的修订版本，因此更新的决定优先于
+迟到的提供程序响应。过期修订版本返回 `409 Conflict`；重新决定之前先检查当前记录。
+部署服务时，使用应用程序身份验证及授权保护取消、问题解决、策略修改、后续操作授权
+和提供程序诊断。
 
 <a id="protocol-and-policy"></a>
 
-## 议定书和政策
+## 协议及策略
 
-身份由自有 grain ID、耐用执行ID、根运行化、稳定操作名称和
-发生。 `EffectIdentity.Current("authorize", occurrence)` 捕捉任务的持续运行身份。
-使用不同发生次数值。 在一个毫不含糊的 JSON 数组上的 SHA-256 生成提供方密钥。
-儿童任务的持续持久身份识别特征仍然分开。重复身份身份返回其记录的请求/结果;要求冲突
-内容明显失败。新授权的商务操作获得新的身份。 `/on-success` 后缀是
-保留给原请求书的原始输出意图。
+标识由所有者 Grain ID、持久化执行 ID、根运行实例标识、稳定的操作名称和
+发生序号组成。`EffectIdentity.Current("authorize", occurrence)` 捕获任务持久化的运行标识。循环迭代
+使用不同的发生序号值。对无歧义的 JSON 数组执行 SHA-256 计算得到提供程序键。尝试 GUID 与
+持久化子任务 ID 保持独立。重复标识返回已记录的请求或结果；冲突的请求
+内容会显式失败。新授权的业务操作获得新标识。`/on-success` 后缀
+保留给由原始请求派生的传出意图。
 
-每种效果都与政策相似: 版本,执行模式,最大消耗尝试,后退,尝试超时
-整个最后期限、应急安全期限和对账间隔。
-`ExternalEffects` 配置一节。新的配置管理新提交材料;回收使用存储的
-`ChangePolicyAsync` 接受经审定的、明确授权的
-用于效果的政策改变没有尝试发送。
-操作员动作和预定检查。软件升级将恢复对尝试效果的支持,并采用这样的政策。
-`AddExternalEffectRecipes()` 登记所有者键 `TimeProvider` (`external-effects`),并保持失败
-持续有效政策独立限制供应商发送。
+每个效果对其策略创建快照：版本、执行模式、最大消耗尝试次数、退避、尝试超时、
+总体截止时间、幂等安全截止时间及对账间隔。服务从
+`ExternalEffects` 配置节绑定默认值。新配置适用于新提交；恢复使用已存储的
+策略、已消耗尝试次数和下一操作时间。对于尚未尝试派发的效果，`ChangePolicyAsync` 接受经验证且显式授权的
+策略变更。不受支持的已存储策略保持阻止状态，附带
+运维人员操作要求及调度检查。软件升级可恢复对使用此类策略且已尝试派发的效果的支持。
+`AddExternalEffectRecipes()` 注册所有者的键控 `TimeProvider`（`external-effects`），并使失败的
+基础设施唤醒仍符合重试条件。持久化效果策略独立限制向提供程序的派发。
 
-重试安全付款和无权限电子邮件网关承诺通过存储的安全性重复使用一个密钥
-。从供应商的保证保留中保守地设定 `ProviderKeyLifetime` ,允许按时
-所有人承认,只有在超时符合要求的情况下才试图这样做。
-期限已过或已用尽的预算转换
-一系列经证明的无效果尝试可以作为一个
-稍后的尝试“无效果失败”使先前的尝试有任何不确定性。
+支持安全重试的支付和幂等邮件网关保证同一个键在已存储安全
+截止时间之前可重复使用。根据提供程序保证的保留期保守设置 `ProviderKeyLifetime`，考虑时钟
+不确定性及最大请求处理延迟。所有者仅在一次尝试的超时能够严格落在
+总体截止时间及安全截止时间之前时才接纳该尝试。截止时间已过或重试预算耗尽会将
+不确定效果转为查询或运维人员对账。一系列经证明确实未生效的尝试可以以
+确认失败完成。较晚尝试的未生效故障会保留此前尝试产生的不确定性。
 
-对于对断对账电子邮件,所有者在发送前坚持一个尝试标记。
-提供商拒绝是一种商业结果;一种有记录的无效果
-失败仅适用于其描述的尝试。超时、通用例外、丢失回复和取消
-仅对权威用户使用供应商的调适器返回 `Applied` 或 `Rejected`
-逻辑关键结果,以及 `ProvenNoEffect` 只有在合同证明证据时才有。
+对于中断后需要对账的邮件，所有者在派发前持久化尝试标记。标记写入后、
+派发前发生崩溃同样属于结果不确定的情况。提供程序拒绝是业务结果；文档明确说明的未生效
+故障仅适用于其所描述的尝试。超时、普通异常、响应丢失及取消
+均保留可能已生效的判断。提供程序适配器仅在具有权威的
+逻辑键结果时返回 `Applied` 或 `Rejected`，仅在其契约能够确立该证据时返回 `ProvenNoEffect`。
 
-每一个待处理的写作都首先承认“持久工作提醒 ” 。 失败的意向写作将离开服务商
-完成失败的文字,通过恢复和
-完成、相关商业状态、下一个效果意图和结果发件人信息共享
-下一次提醒在查询对账证据之前就已经确定。
+每次包含可执行待办工作的写入都会先确认 Durable Jobs 唤醒。意图写入失败不会触发提供程序
+派发。即使完成记录写入失败，已提交标记及远程成功结果也可通过恢复及
+原始键保留。完成操作、相关业务状态、下一效果意图及结果发件箱消息共用
+所有者的一次日志写入。查询对账证据之前同样会先建立下一次唤醒。
 
-取消企图是合作性的,是当地当地的合作。 持久效果取消请求记录了请求,停止未来
-并保存任何可能适用于查找或操作员的任何结果。
-要求退款后可要求退款,以单独核准的补偿效力为模式。
-保持生产活动保留生产量的作业保存了未解决的记录,至少保持了
-应用程序重放窗口和供应商的“即时”窗口。
+尝试取消是协作式且局部的。持久化效果取消记录请求、停止后续
+派发，并保留任何可能已生效的结果，以供查询或运维人员处理。已确认成功的支付
+可能需要退款，退款被建模为单独授权的补偿效果。本实践方案保留所有记录。
+生产保留策略应保留未解决的记录，并至少在
+应用程序重放窗口及提供程序幂等窗口内保留已完成的标识。
 
-例如,`AuthorizeFollowUpAsync(authorizationIdentity、 refundIdentity、 approvalReference,
-paymentRequest ,{种类= EffectKind.PaymentRefund, OnSuccess = null} `记录退款授权'
-原始授权和接收意向保持不变。
+例如，`AuthorizeFollowUpAsync(authorizationIdentity, refundIdentity, approvalReference,
+paymentRequest with { Kind = EffectKind.PaymentRefund, OnSuccess = null })` 记录退款的授权
+及其与原支付的关系。原始授权及其收据意图保持不变。

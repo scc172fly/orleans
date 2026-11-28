@@ -17,9 +17,9 @@ internal sealed class AzureTableStorageJournalingProviderBuilder : IProviderBuil
         var optionsBuilder = builder.Services.AddJournalStorageOptions<AzureTableJournalStorageOptions>(name);
         optionsBuilder.Configure<IServiceProvider>((options, services) =>
         {
-            // 配置装有引信的发电机无法绑定 AzureTableJournalStorageOptions 或 Azure 客户
-            // 对象类型:它们暴露客户实例、编审中的政策和代表,以及 Azure
-            // 选择类型缺少公共建筑师,可配置成员则按个人阅读。
+            // 配置绑定生成器无法将 AzureTableJournalStorageOptions 或 Azure 客户端
+            // 选项类型作为对象进行绑定：它们公开客户端实例、管道策略和委托，而且 Azure
+            // 选项类型没有公共构造函数。因此改为逐个读取其可配置成员。
             var tableName = configurationSection[nameof(options.TableName)];
             if (!string.IsNullOrEmpty(tableName))
             {
@@ -33,7 +33,7 @@ internal sealed class AzureTableStorageJournalingProviderBuilder : IProviderBuil
             options.MetadataOnlyConflictInitialBackoff = configurationSection.GetValue(nameof(options.MetadataOnlyConflictInitialBackoff), options.MetadataOnlyConflictInitialBackoff);
             options.MetadataOnlyConflictMaxBackoff = configurationSection.GetValue(nameof(options.MetadataOnlyConflictMaxBackoff), options.MetadataOnlyConflictMaxBackoff);
 
-            // 客户端创建时通过 ConfigureTableServiceClient 创建的客户端在创建时读取 ClientOptions 。
+            // 通过 ConfigureTableServiceClient 创建的客户端在创建时读取 ClientOptions。
             var clientSection = configurationSection.GetSection(nameof(options.ClientOptions));
             if (clientSection.Exists())
             {
@@ -46,12 +46,12 @@ internal sealed class AzureTableStorageJournalingProviderBuilder : IProviderBuil
             var serviceKey = configurationSection["ServiceKey"];
             if (!string.IsNullOrEmpty(serviceKey))
             {
-                // 给客户取个名字
+                // 按名称获取客户端。
                 options.TableServiceClient = services.GetRequiredKeyedService<TableServiceClient>(serviceKey);
             }
             else
             {
-                // 构造一个连接字符串中的表格服务客户端。
+                // 根据连接字符串构造表服务客户端。
                 var connectionName = configurationSection["ConnectionName"];
                 var connectionString = configurationSection["ConnectionString"];
                 if (!string.IsNullOrEmpty(connectionName) && string.IsNullOrEmpty(connectionString))

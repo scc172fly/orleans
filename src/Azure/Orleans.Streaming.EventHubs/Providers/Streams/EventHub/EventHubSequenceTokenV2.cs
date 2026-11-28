@@ -3,13 +3,13 @@ using System;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// 事件枢纽信息包含一系列应用层事件, 所以 EventHub 符号包含三条信息 。
-    /// EventHubOffset - - 这是用于从分区中读取此信件的每个分区的独特值 。
-    /// SequenceNumber - EventHub 序列号是分隔段内信件的唯一有顺序的信件代号。  
-    ///   下 SequenceNumber 独特性和顺序要求 EventHub 分区内的信件。
-    /// 索引 - 由于每条 EventHub 电文可能包含一个以上的应用程序层事件,因此此值
-    ///   指定此符号的应用程序层事件, 在 EventHub 信息的独特性要求
-    ///   并在 EventHub 电文中命令应用层事件。
+    /// Event Hub 消息由一批应用层事件组成，因此 Event Hub 令牌包含三项信息。
+    /// EventHubOffset：分区内的唯一值，用于从分区中的这条消息开始读取。
+    /// SequenceNumber：Event Hub 序列号，是分区内消息的唯一有序 ID。
+    /// SequenceNumber 用于保证分区内 Event Hub 消息的唯一性与顺序。
+    /// 事件索引：由于每条 Event Hub 消息可能包含多个应用层事件，此值
+    /// 表示令牌对应于该 Event Hub 消息中的哪个应用层事件。它用于保证
+    /// Event Hub 消息内应用层事件的唯一性与顺序。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -18,9 +18,9 @@ namespace Orleans.Streaming.EventHubs
         /// <summary>
         /// 初始化 <see cref="EventHubSequenceTokenV2" /> 类的新实例。
         /// </summary>
-        /// <param name="eventHubOffset">EventHub ,在信件所在的分区内进行抵消。</param>
-        /// <param name="sequenceNumber">EventHub sequenceNumber 用于此消息 。</param>
-        /// <param name="eventIndex">如果在一个单一的单位内交付了多个事件,则将指数转换成一系列活动, EventHub 信息。</param>
+        /// <param name="eventHubOffset">此消息来源分区中的 Event Hub 偏移量。</param>
+        /// <param name="sequenceNumber">此消息的 Event Hub sequenceNumber。</param>
+        /// <param name="eventIndex">如果单条 Event Hub 消息投递了多个事件，则为该事件在批次中的索引。</param>
         public EventHubSequenceTokenV2(string eventHubOffset, long sequenceNumber, int eventIndex)
             : base(eventHubOffset, sequenceNumber, eventIndex)
         {
@@ -30,7 +30,7 @@ namespace Orleans.Streaming.EventHubs
         /// 初始化 <see cref="EventHubSequenceTokenV2" /> 类的新实例。
         /// </summary>
         /// <remarks>
-        /// 此构建器仅暴露于序列器使用。
+        /// 此构造函数仅供序列化器使用。
         /// </remarks>
         public EventHubSequenceTokenV2() : base()
         {

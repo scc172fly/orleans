@@ -3,17 +3,17 @@ using System.Buffers;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 格式化自有日记条目,无需解释即可复制前置。
+/// 由格式拥有的日志条目，可以在不解释其内容的情况下向后续日志复制。
 /// </summary>
 public interface IPreservedJournalEntry
 {
     /// <summary>
-    /// 获取保存此条目的日记格式密钥。
+    /// 获取此保留条目的日志格式键。
     /// </summary>
     string FormatKey { get; }
 
     /// <summary>
-    /// 获取保存条目的输入有效载荷字节。
+    /// 获取保留条目的有效载荷字节。
     /// </summary>
     ReadOnlyMemory<byte> Payload { get; }
 }

@@ -10,24 +10,24 @@ using Orleans.Runtime;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 下 silo 建设启动扩展 。
+    /// Silo 构建器启动扩展方法。
     /// </summary>
     public static class SiloBuilderStartupExtensions
     {
         /// <summary>
-        /// 添加启动任务,在 silo 启动时执行。
+        /// 添加 Silo 启动后要执行的启动任务。
         /// </summary>
         /// <param name="builder">
-        /// 建筑工
+        /// 构建器。
         /// </param>
         /// <param name="stage">
-        /// 执行启动任务的阶段,请参见 <see cref="ServiceLifecycleStage"/>中的值。
+        /// 执行启动任务的阶段，参见 <see cref="ServiceLifecycleStage"/> 中的值。
         /// </param>
         /// <typeparam name="TStartup">
-        /// 启动任务类型,包括用于依赖注射的公共建筑师。
+        /// 启动任务类型，包括用于依赖注入的公共构造函数。
         /// </typeparam>
         /// <returns>
-        /// 提供 <see cref="ISiloBuilder"/>。
+        /// 提供的 <see cref="ISiloBuilder"/>。
         /// </returns>
         public static ISiloBuilder AddStartupTask<
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TStartup>(
@@ -39,19 +39,19 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 添加启动任务,在 silo 启动时执行。
+        /// 添加 Silo 启动后要执行的启动任务。
         /// </summary>
         /// <param name="builder">
-        /// 建筑工
+        /// 构建器。
         /// </param>
         /// <param name="startupTask">
-        /// 启动任务
+        /// 启动任务。
         /// </param>
         /// <param name="stage">
-        /// 执行启动任务的阶段,请参见 <see cref="ServiceLifecycleStage"/>中的值。
+        /// 执行启动任务的阶段，参见 <see cref="ServiceLifecycleStage"/> 中的值。
         /// </param>
         /// <returns>
-        /// 提供 <see cref="ISiloBuilder"/>。
+        /// 提供的 <see cref="ISiloBuilder"/>。
         /// </returns>
         public static ISiloBuilder AddStartupTask(
             this ISiloBuilder builder,
@@ -62,19 +62,19 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 添加启动任务,在 silo 启动时执行。
+        /// 添加 Silo 启动后要执行的启动任务。
         /// </summary>
         /// <param name="builder">
-        /// 建筑工
+        /// 构建器。
         /// </param>
         /// <param name="startupTask">
-        /// 启动任务
+        /// 启动任务。
         /// </param>
         /// <param name="stage">
-        /// 执行启动任务的阶段,请参见 <see cref="ServiceLifecycleStage"/>中的值。
+        /// 执行启动任务的阶段，参见 <see cref="ServiceLifecycleStage"/> 中的值。
         /// </param>
         /// <returns>
-        /// 提供 <see cref="ISiloBuilder"/>。
+        /// 提供的 <see cref="ISiloBuilder"/>。
         /// </returns>
         public static ISiloBuilder AddStartupTask(
             this ISiloBuilder builder,

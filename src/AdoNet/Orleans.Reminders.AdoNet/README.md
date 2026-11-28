@@ -1,22 +1,22 @@
 <a id="microsoft-orleans-reminders-for-adonet"></a>
 
-# Microsoft Orleans 催复 ADO.NET
+# Microsoft Orleans ADO.NET 提醒器提供程序
 
 <a id="introduction"></a>
 
 ## 简介
-Microsoft Orleans 催复 ADO.NET 提供持久性 Orleans 使用 ADO.NET- 兼容数据库(C)SQL 服务器 MySQL, PostgreSQL等))。这样可以允许您 Orleans 用于排入连续提醒的应用程序,即使 silo 重新启动或 grain 停止使用。
+Microsoft Orleans ADO.NET 提醒器提供程序使用与 ADO.NET 兼容的数据库（SQL Server、MySQL、PostgreSQL 等）持久化 Orleans 提醒器，使 Orleans 应用程序能够安排在 Silo 重启或 Grain 停用后仍可触发的持久化提醒器。
 
 <a id="getting-started"></a>
 
 ## 入门
-要使用此软件包, 请通过 NuGet安装 :
+要使用此包，请通过 NuGet 安装：
 
 ```shell
 dotnet add package Microsoft.Orleans.Reminders.AdoNet
 ```
 
-您还需要为您的数据库安装合适的 ADO.NET 提供者:
+还需要为所用数据库安装相应的 ADO.NET 提供程序：
 
 ```shell
 # For SQL Server
@@ -31,7 +31,7 @@ dotnet add package Npgsql
 
 <a id="example---configuring-adonet-reminders"></a>
 
-## 示例 - 配置 ADO.NET 提醒
+## 示例 - 配置 ADO.NET 提醒器
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -68,7 +68,7 @@ await host.WaitForShutdownAsync();
 
 <a id="example---using-reminders-in-a-grain"></a>
 
-## 示例 - 在 Grain中使用提醒
+## 示例 - 在 Grain 中使用提醒器
 ```csharp
 using System;
 using System.Threading.Tasks;
@@ -119,17 +119,17 @@ public class ReminderGrain : Grain, IReminderGrain, IRemindable
 
 <a id="documentation"></a>
 
-## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
-关于更全面的文件,请参见:
+## 文档
+有关更全面的文档，请参阅：
 - [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
-- [提醒和计时器](https://dotnet.github.io/orleans/docs/grains/timers-and-reminders/)
+- [提醒器与定时器](https://dotnet.github.io/orleans/docs/grains/timers-and-reminders/)
 - [ADO.NET 数据库设置](https://dotnet.github.io/orleans/docs/host/configuration-guide/adonet-configuration/)
 
 <a id="feedback--contributing"></a>
 
-## 反馈和贡献
-- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
-- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
-- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
-- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证
+## 反馈与贡献
+- 如果遇到问题或希望提供反馈，请[在 GitHub 上创建 Issue](https://github.com/dotnet/orleans/issues)
+- 加入我们的 [Discord](https://aka.ms/orleans-discord) 社区
+- 关注 Twitter 上的 [@msftorleans](https://twitter.com/msftorleans) 账号，获取 Orleans 公告
+- 欢迎贡献！请阅读我们的[贡献指南](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 本项目采用 [MIT 许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)

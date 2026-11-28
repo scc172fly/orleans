@@ -86,7 +86,7 @@ namespace UnitTests.Grains
             return Task.CompletedTask;
         }
 
-        //Jerk_consumer Grai 将解除对订阅任何附加的订阅的反对
+        //Jerk_ConsumerGrai 会取消向其添加的任何订阅
         public async Task OnSubscribed(IStreamSubscriptionHandleFactory handleFactory)
         {
             var handle = handleFactory.Create<int>();

@@ -9,8 +9,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 注销点:执行时记录在身体持久运行开始时计算到的点,其
-/// 机体首先观察任务取消的情况,重播在那个时候显示取消。
+/// 取消点：执行实例记录其主体首次观察到任务取消的位置，该位置按主体启动持久化操作的次数计数；
+/// 重放会在该位置传递取消。
 /// </summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
@@ -32,7 +32,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             await activation.ScheduleAsync(workflowId, cancellationToken);
             await activation.Grain.AtGate.WaitAsync(CancellationPointTimeout, cancellationToken);
 
-            // 尸体在第二次手术开始后,在大门观察吊销:第2点。
+            // 主体在第二个操作启动后的门控处观察到取消，即取消点 2。
             await ((IDurableTaskManager)activation.Runtime).CancelAsync(workflowId, "stop", cancellationToken);
             await probe.Held.WaitAsync(CancellationPointTimeout, cancellationToken);
             await activation.Grain.UnrelatedWrites;
@@ -44,8 +44,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Equal(["first:False", "second:False", "canceled:True"], live);
         Assert.Equal(1, harness.EffectRuns);
 
-        // 激活结束, 补偿机构保持时停止。 每份日记格式都恢复记录和重放
-        // 保持耐久的牌子未加排整,直到它到达记录点,所以它走的是相同的路径。
+        // 已完成补偿的主体保持等待时，激活实例结束。每种日志格式都恢复该记录，重放
+        // 在到达已记录的取消点之前使持久化取消令牌保持未取消状态，因此会沿相同路径执行。
         await using var replay = await harness.ActivateAsync(cancellationToken);
         Assert.True(replay.Storage.TryGetTask(workflowId.Child(DurableTaskGrainRuntime.CancellationPointSegment), out var record));
         Assert.Equal(DurableTaskRecordKind.CancellationObserved, record.Kind);
@@ -74,7 +74,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             await activation.ScheduleAsync(workflowId, cancellationToken);
             await probe.AtWait.WaitAsync(CancellationPointTimeout, cancellationToken);
 
-            // 尝试停在信号等待处,其起点是第三点。
+            // 执行尝试停驻在信号等待处，该等待的启动是其第三个计数点。
             await ((IDurableTaskManager)activation.Runtime).CancelAsync(workflowId, "stop", cancellationToken);
             await probe.Held.WaitAsync(CancellationPointTimeout, cancellationToken);
             await activation.Grain.UnrelatedWrites;
@@ -84,7 +84,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
 
         Assert.Equal(["first:False", "second:False", "wait:False", "canceled:True"], live);
 
-        // 重播在启动信号等待时发送取消, 然后和第一次运行一样结束 。
+        // 重放在启动信号等待时传递取消，随后该等待以与首次运行相同的方式结束。
         await using var replay = await harness.ActivateAsync(cancellationToken);
         await probe.Held.WaitAsync(CancellationPointTimeout, cancellationToken);
         probe.Release();
@@ -116,7 +116,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             await activation.ScheduleAsync(workflowId, cancellationToken);
             await activation.Grain.AtGate.WaitAsync(CancellationPointTimeout, cancellationToken);
 
-            // 请求提出后,机构予以遵守并保存在以后的任何写作前,即记录点。
+            // 请求提交，主体观察到请求并保持等待，此时尚未有后续写入提交取消点的记录。
             await ((IDurableTaskManager)activation.Runtime).CancelAsync(workflowId, "stop", cancellationToken);
             await probe.Held.WaitAsync(CancellationPointTimeout, cancellationToken);
             Assert.Equal([2], recordedPoints);
@@ -124,8 +124,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
 
         Assert.Equal(["first:False", "second:False", "canceled:True"], probe.NextActivation());
 
-        // 重放恢复请求时没有点。 它用未排出牌子重播其记录操作,
-        // 观察注销到达最后一位时的值,并记录该点。
+        // 重放恢复没有取消点的请求。它使用未取消的令牌重放已记录的操作，
+        // 到达最后一个已记录操作时观察到取消，并记录该取消点。
         await using (var replay = await harness.ActivateAsync(cancellationToken))
         {
             await probe.Held.WaitAsync(CancellationPointTimeout, cancellationToken);
@@ -137,7 +137,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Equal(["first:False", "second:False", "canceled:True"], probe.NextActivation());
         Assert.Equal(1, harness.EffectRuns);
 
-        // 写作结果的文字也使重播点被赋予了。
+        // 提交结果的写入也提交了重放期间记录的取消点。
         await using var recovered = await harness.ActivateAsync(cancellationToken);
         Assert.Equal(2, GetCancellationPoint(recovered.Storage, workflowId));
     });
@@ -162,7 +162,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             _ = probe.NextActivation();
         }
 
-        // 重复使用同一代码 就能到达每一个记录的行动 结束它的重播 并且不会出现差异
+        // 相同代码的重放到达每个已记录操作，由此结束重放，不会发生偏离。
         using var stalls = new StallRecorder(workflowId);
         await using var replay = await harness.ActivateAsync(cancellationToken);
         await probe.Held.WaitAsync(CancellationPointTimeout, cancellationToken);
@@ -190,7 +190,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             _ = probe.NextActivation();
         }
 
-        // 后一版本在第一次操作后返回, 因此重播从未达到点2。
+        // 较新版本在第一个操作后就返回，因此其重放永远不会到达取消点 2。
         var original = harness.Workflow;
         harness.Workflow = static _ => Changed();
         using (var stalls = new StallRecorder(workflowId))
@@ -203,7 +203,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             Assert.Null(state.CompletedAt);
         }
 
-        // 到达点的代码重播执行。
+        // 能够到达该取消点的代码重放执行实例。
         harness.Workflow = original;
         await using var replay = await harness.ActivateAsync(cancellationToken);
         await probe.Held.WaitAsync(CancellationPointTimeout, cancellationToken);
@@ -220,8 +220,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
     });
 
     /// <summary>
-    /// 运行两个效果, 然后在 grain大门等待耐久牌, 所以它看到一个取消, 并到达
-    /// 在2点; 补偿效果, 并坚持到试验释放它。
+    /// 运行两个效果，随后使用持久化取消令牌在 Grain 的门控处等待，因此在该处到达的取消
+    /// 会在取消点 2 被观察到；使用效果执行补偿，并保持等待直至测试将其释放。
     /// </summary>
     private static async DurableTask<string> ObserveAtGateAsync(ReplayGrain grain, CancellationProbe probe, bool holdBeforeCompensation)
     {
@@ -247,7 +247,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         }
     }
 
-    /// <summary>运行两个效果, 然后在无人发送的信号等待处停靠, 第三个点, 然后补偿。</summary>
+    /// <summary>运行两个效果，然后停驻在无人发送信号的信号等待处（第三个计数点）；随后执行补偿。</summary>
     private static async DurableTask<string> ObserveAtSignalWaitAsync(ReplayGrain grain, CancellationProbe probe)
     {
         try
@@ -267,7 +267,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         }
     }
 
-    /// <summary>记录补偿效果,要求书面作出赔偿,并可选择保留。</summary>
+    /// <summary>记录补偿效果，请求一次提交该效果的写入，并可选择保持等待。</summary>
     private static Task CompensateAsync(ReplayGrain grain, CancellationProbe probe, bool hold)
     {
         DurableTask.RunInline("compensate", () =>
@@ -288,8 +288,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         [.. storage.GetChildren(executionId).Select(static child => child.Id).OrderBy(static id => id.ToString(), StringComparer.Ordinal)];
 
     /// <summary>
-    /// 记录一个引爆装置在每一步前 观察到的持久标志 并保持这一尝试
-    /// 它可以补偿,直到试验释放它或启动结束。
+    /// 记录一个激活实例的执行尝试在每个步骤之前观察到的持久化取消令牌状态，并在执行尝试完成补偿后
+    /// 使其保持等待，直至测试释放它或激活实例结束。
     /// </summary>
     private sealed class CancellationProbe
     {
@@ -298,13 +298,13 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         private TaskCompletionSource _held = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private TaskCompletionSource _release = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        /// <summary>一旦尝试即将完成 等待信号。</summary>
+        /// <summary>执行尝试即将等待其信号时完成。</summary>
         public Task AtWait => _atWait.Task;
 
-        /// <summary>一旦尝试暂停, 完成 。</summary>
+        /// <summary>执行尝试进入保持等待状态时完成。</summary>
         public Task Held => _held.Task;
 
-        /// <summary>获取是否在尝试保持时仍然重播。</summary>
+        /// <summary>获取执行尝试进入保持等待状态时是否仍在重放。</summary>
         public bool HeldWhileReplaying { get; private set; }
 
         public void Observe(string step)
@@ -316,7 +316,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             }
         }
 
-        /// <summary>将尝试维持到 <see cref="Release"/>或取消尝试。</summary>
+        /// <summary>使执行尝试保持等待，直至 <see cref="Release"/>，或该执行尝试被取消。</summary>
         public Task HoldAsync()
         {
             HeldWhileReplaying = DurableTask.Current.IsReplaying;
@@ -326,7 +326,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
 
         public void Release() => _release.TrySetResult();
 
-        /// <summary>返回结束激活的尝试所观察到的内容,并重新设置下一次激活的探测器。</summary>
+        /// <summary>返回已结束的激活实例的执行尝试所观察到的内容，并重置探针以供下一个激活实例使用。</summary>
         public string[] NextActivation()
         {
             string[] observed = [.. _observed];

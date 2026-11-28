@@ -85,8 +85,8 @@ public class GatewayListProviderCancellationTests
         Assert.Equal(cancellation.Token, exception.CancellationToken);
         Assert.True(operation.IsCanceled);
         Assert.False(provider.Completion.Task.IsCompleted);
-        // 兼容适配器在调用器停止等待后 也观察到了这个错误
-        // 不强制使用GC/UnobservedTaskException:这将影响无关的试验。
+        // 即使调用方已停止等待，兼容适配器仍会观察到此异常。
+        // 不要强制触发全局 GC 或 UnobservedTaskException：这会影响无关测试。
         provider.Completion.SetException(new InvalidOperationException("Late legacy gateway failure."));
     }
 

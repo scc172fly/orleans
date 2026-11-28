@@ -8,17 +8,17 @@ using Orleans.Serialization.Configuration;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// 包含 grain 型号描述。
+    /// 包含 Grain 类型描述。
     /// </summary>
     public class GrainTypeOptions
     {
         private readonly HashSet<Type> _classes = new();
 
         /// <summary>
-        /// 收集 grain 类的元数据。
+        /// 获取 Grain 类的元数据集合。
         /// </summary>
         /// <remarks>
-        /// 使用 <see cref="AddClass(Type)"/> 将 grain 类与公共建筑机组登记,供激活。
+        /// 使用 <see cref="AddClass(Type)"/> 注册 Grain 类，并保留其用于激活的公共构造函数。
         /// </remarks>
         public HashSet<Type> Classes
         {
@@ -27,10 +27,10 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// 添加一个 grain 类,并保存其公共建筑器和启用的界面。
+        /// 添加 Grain 类，并保留其公共构造函数和已实现的接口以供激活使用。
         /// </summary>
-        /// <param name="grainClass">下 grain 执行类别。</param>
-        /// <exception cref="ArgumentNullException"><paramref name="grainClass"/> 是 <see langword="null"/>.</exception>
+        /// <param name="grainClass">Grain 实现类。</param>
+        /// <exception cref="ArgumentNullException"><paramref name="grainClass"/> 为 <see langword="null"/>。</exception>
         public void AddClass(
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.Interfaces)] Type grainClass)
             => _classes.Add(grainClass ?? throw new ArgumentNullException(nameof(grainClass)));
@@ -38,13 +38,13 @@ namespace Orleans.Configuration
         internal HashSet<Type> GrainClasses => _classes;
 
         /// <summary>
-        /// 获取关于 grain 接口的元数据集。
+        /// 获取 Grain 接口的元数据集合。
         /// </summary>
         public HashSet<Type> Interfaces { get; } = new();
     }
 
     /// <summary>
-    /// <see cref="GrainTypeOptions"/>的默认配置提供者。
+    /// <see cref="GrainTypeOptions"/> 的默认配置提供程序。
     /// </summary>
     internal sealed class DefaultGrainTypeOptionsProvider : IConfigureOptions<GrainTypeOptions>
     {
@@ -53,7 +53,7 @@ namespace Orleans.Configuration
         /// <summary>
         /// 初始化 <see cref="DefaultGrainTypeOptionsProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="typeManifestOptions">类型列表选项。</param>
+        /// <param name="typeManifestOptions">类型清单选项。</param>
         public DefaultGrainTypeOptionsProvider(IOptions<TypeManifestOptions> typeManifestOptions) => _typeManifestOptions = typeManifestOptions.Value;
 
         /// <inheritdoc />
@@ -108,7 +108,7 @@ namespace Orleans.Configuration
         /// 初始化 <see cref="GrainTypeOptionsValidator"/> 类的新实例。
         /// </summary>
         /// <param name="options">选项。</param>
-        /// <param name="serviceProvider">服务供应商。</param>
+        /// <param name="serviceProvider">服务提供程序。</param>
         public GrainTypeOptionsValidator(IOptions<GrainTypeOptions> options, IServiceProvider serviceProvider)
         {
             _options = options;

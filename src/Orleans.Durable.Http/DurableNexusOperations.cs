@@ -6,8 +6,8 @@ using HttpJsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 namespace Orleans.Durable.Http;
 
-/// <summary>用于使用 Nexus 协议的耐久操作: 启动和取消, 由运行符号处理 。</summary>
-/// <remarks>见见 <see href="https://github.com/nexus-rpc/api/blob/main/SPEC.md">Nexus HTTP 规格</see>.</remarks>
+/// <summary>按 Nexus 协议提供持久化操作服务：通过操作令牌寻址，支持启动和取消操作。</summary>
+/// <remarks>参见 <see href="https://github.com/nexus-rpc/api/blob/main/SPEC.md">Nexus HTTP 规范</see>。</remarks>
 internal sealed class DurableNexusOperations(
     DurableOperationService operations,
     DurableCallbackRegistrar callbacks,
@@ -19,8 +19,8 @@ internal sealed class DurableNexusOperations(
     private readonly JsonSerializerOptions _json = jsonOptions.Value.SerializerOptions;
 
     /// <summary>
-    /// 开始 <paramref name="work"/> 请求所请求的业务 <c>Nexus-Request-Id</c> 返回其
-    /// 当它运行时是终点或标记时,
+    /// 启动 <paramref name="work"/>，将其作为由请求的 <c>Nexus-Request-Id</c> 命名的操作；当操作
+    /// 进入终态时返回结果，运行期间则返回操作令牌。
     /// </summary>
     public async Task<IResult> StartAsync(HttpContext context, DurableTask work)
     {
@@ -88,8 +88,8 @@ internal sealed class DurableNexusOperations(
     }
 
     /// <summary>
-    /// 可持久地请求取消该请求的象征性名称,并返回 <c>202 Accepted</c>,
-    /// 包括终端操作,但无变化。
+    /// 持久化地请求取消由请求令牌指定的操作，并返回 <c>202 Accepted</c>；
+    /// 对于已进入终态的操作同样如此，且不改变该操作。
     /// </summary>
     public async Task<IResult> CancelAsync(HttpContext context)
     {
@@ -120,7 +120,7 @@ internal sealed class DurableNexusOperations(
     private static IResult NotFound() =>
         NexusProtocol.HandlerError(StatusCodes.Status404NotFound, "NOT_FOUND", "The operation doesn't exist, or its retention has ended.");
 
-    /// <summary>回返a <c>UNAVAILABLE</c> 处理器错误, 请求时将操作保留原样, 调用者重试 。</summary>
+    /// <summary>对于未改变操作的请求，返回 <c>UNAVAILABLE</c> 处理程序错误，使调用方重试。</summary>
     private static IResult Unavailable() =>
         NexusProtocol.HandlerError(
             StatusCodes.Status503ServiceUnavailable,

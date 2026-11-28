@@ -1,17 +1,17 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// 描述一个众所周知的ID型号绘图。
+/// 描述已知类型 ID 映射。
 /// </summary>
 internal readonly record struct WellKnownTypeIdModel(TypeRef Type, uint Id);
 
 /// <summary>
-/// 描述一种别名绘图类型。
+/// 描述类型别名映射。
 /// </summary>
 internal readonly record struct TypeAliasModel(TypeRef Type, string Alias);
 
 /// <summary>
-/// 复合型别名路径中的单个部件 。
+/// 复合类型别名路径中的单个组成部分。
 /// </summary>
 internal readonly record struct CompoundAliasComponentModel
 {
@@ -37,12 +37,12 @@ internal readonly record struct CompoundAliasComponentModel
 }
 
 /// <summary>
-/// 描述复合类型别名条目(部件图绘制到某类型的路径)。
+/// 描述复合类型别名条目（映射到某类型的组成部分路径）。
 /// </summary>
 internal readonly record struct CompoundTypeAliasModel(EquatableArray<CompoundAliasComponentModel> Components, TypeRef TargetType);
 
 /// <summary>
-/// 描述接口的实施(一种具体类型,即可解释界面的实施)。
+/// 描述接口实现（实现可调用接口的具体类型）。
 /// </summary>
 internal readonly record struct InterfaceImplementationModel
 {
@@ -57,14 +57,14 @@ internal readonly record struct InterfaceImplementationModel
 }
 
 /// <summary>
-/// 描述供应商登记。
+/// 描述提供程序注册。
 /// </summary>
 internal readonly record struct RegisteredProviderModel(string Target, string Kind, string Name, TypeRef Type);
 
 /// <summary>
-/// 通过 <c>[GenerateCodeForDeclaringAssembly]</c>从引用组件中提取的汇总数据
-/// 和 <c>[ApplicationPart]</c> 属性。此模型由 <c>CompilationProvider</c>- 以基于
-/// 并通过结构平等缓存管道。
+/// 通过 <c>[GenerateCodeForDeclaringAssembly]</c>
+/// 和 <c>[ApplicationPart]</c> 特性从引用程序集提取的聚合数据。此模型由基于 <c>CompilationProvider</c> 的
+/// 管道生成，并通过结构相等性缓存。
 /// </summary>
 internal sealed record class ReferenceAssemblyModel(
     string AssemblyName,

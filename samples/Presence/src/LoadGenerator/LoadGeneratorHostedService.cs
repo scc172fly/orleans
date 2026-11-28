@@ -19,20 +19,20 @@ public sealed class LoadGeneratorHostedService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // 要模拟的游戏数
+        // 要模拟的游戏数量。
         var nGames = 10;
 
-        // 每一游戏中玩家数
+        // 每场游戏的玩家数量。
         var nPlayersPerGame = 4;
 
-        // 发送更新的间隔
+        // 发送更新的间隔。
         var sendInterval = TimeSpan.FromSeconds(2);
 
-        // 要发送的更新数量
+        // 要发送的更新次数。
         var nIterations = 100;
 
-        // 为每个游戏预设基心跳数据对象 。
-        // 我们每次发送之前都要修改
+        // 为每场游戏预先创建基础心跳数据对象。
+        // 每次发送之前都会修改这些对象。
         var heartbeats = new HeartbeatData[nGames];
         for (var i = 0; i < nGames; i++)
         {
@@ -45,7 +45,7 @@ public sealed class LoadGeneratorHostedService : BackgroundService
 
         var iteration = 0;
 
-        // PresenceGrain 是 StatelessWorker, 所以我们使用一个单 grain ID 来自动缩放
+        // PresenceGrain 是 StatelessWorker，因此使用单个 Grain ID 即可实现自动扩展。
         var presence = _client.GetGrain<IPresenceGrain>(0);
         var promises = new Task[nGames];
 
@@ -57,17 +57,17 @@ public sealed class LoadGeneratorHostedService : BackgroundService
             {
                 for (var i = 0; i < nGames; i++)
                 {
-                    // 模拟有意义的游戏分数
+                    // 模拟有意义的游戏分数。
                     heartbeats[i] = heartbeats[i].WithNewScore($"{iteration}:{(iteration > 5 ? iteration - 5 : 0)}");
 
-                    // 我们将 HeartbeatData 对象与字节相序号,仅用于模拟数据输入的真实生活情景
-                    // 是一个二进制的浮标,需要先进行初步处理后才能被送到适当的目的地。
-                    // 我们可以直接将 HeartbeatData 对象发送到游戏 grain ,因为我们知道游戏的代号。
-                    // 为了模拟我们假装没有
+                    // 将 HeartbeatData 对象序列化为 byte[]，只是为了模拟现实场景中数据
+                    // 以二进制数据块传入，需要先经过初步处理才能路由到正确目的地的情况。
+                    // 由于已经知道游戏 ID，本可以将 HeartbeatData 对象直接发送给游戏 Grain。
+                    // 为了模拟该场景，假设我们不知道游戏 ID。
                     promises[i] = presence.HeartbeatAsync(HeartbeatDataDotNetSerializer.Serialize(heartbeats[i]));
                 }
 
-                // 等待所有电话都打完
+                // 等待所有调用完成。
                 await Task.WhenAll(promises);
             }
             catch (Exception error)
@@ -87,11 +87,11 @@ public sealed class LoadGeneratorHostedService : BackgroundService
     }
 
     /// <summary>
-    /// 生成玩家身份识别的图形界面D。
+    /// 为玩家 ID 生成 GUID。
     /// </summary>
     private static Guid GetPlayerId(int playerIndex)
     {
-        // 为了方便起见,我们为使用此选项作为基础的玩家制作一套预先定义的后续图形界面数据。
+        // 为方便起见，以此 GUID 为基础为玩家生成一组预定义的后续 GUID。
         return Guid.ParseExact($"2349992C-860A-4EDA-9590-{playerIndex:D12}", "D");
     }
 }

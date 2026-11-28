@@ -8,14 +8,14 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
-/// <summary>运行任务状态的尝试取消覆盖, 以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行执行尝试取消相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskAttemptCancellationTests() : DurableTaskAttemptCancellationTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行任务状态中以 Orleans 二进制日记格式存储的任务状态的尝试取消覆盖。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行执行尝试取消相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -23,8 +23,8 @@ public sealed class JsonDurableTaskAttemptCancellationTests() : DurableTaskAttem
 public sealed class OrleansBinaryDurableTaskAttemptCancellationTests() : DurableTaskAttemptCancellationTests(DurableTaskRecoveryFixture.OrleansBinary);
 
 /// <summary>
-/// 测试一个取消的持久任务尝试的失败:其持久的操作会抛出,清理状态的变化
-/// 承诺,任务取消记录它的补偿。
+/// 测试持久化任务被取消的执行尝试能够退出：其持久化操作抛出异常，清理代码产生的状态变更
+/// 能够提交，而任务取消会记录补偿操作。
 /// </summary>
 public abstract class DurableTaskAttemptCancellationTests : IAsyncLifetime
 {
@@ -53,15 +53,15 @@ public abstract class DurableTaskAttemptCancellationTests : IAsyncLifetime
         await Probe.WaitAsync(grainId, AttemptCancellationProbe.Waiting, cancellationToken);
         Assert.True(_fixture.Cluster.TryGetGrainContext(grainId, out var activation));
 
-        // 尝试停在信号上 所以停止工作丢弃它: 它没有恢复,所以清理,这也不是
-        // 死刑执行过程的一部分,从不运行
+        // 执行尝试挂起于信号等待，因此停用会丢弃它：它不会恢复，所以不属于
+        // 执行历史的清理代码不会运行。
         await grain.RequestDeactivationAsync();
         await activation.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
         Assert.Equal(0, Probe.Get(grainId, AttemptCancellationProbe.Catches));
         Assert.False(Probe.GetOutcomes(grainId).ContainsKey(AttemptCancellationProbe.Caught));
 
-        // 下一次激活后重播放任务, 重新指定它的地位, 一旦收到信号就完成
-        // 不再运行效果 。
+        // 下一次激活重放任务，任务再次设置其状态，收到信号后完成，
+        // 而不会再次执行其效果操作。
         Assert.Equal(new AttemptCancellationSnapshot(Status: "running", Unrelated: 0), await grain.GetSnapshotAsync());
         await grain.SignalDurableTaskAsync(rootId, AttemptCancellationTestGrain.Approved, "approved", cancellationToken);
         Assert.Equal("approved", (await scheduled.GetResponseAsync(cancellationToken).WaitAsync(TimeSpan.FromSeconds(30), cancellationToken)).GetResult<string>());
@@ -78,8 +78,8 @@ public abstract class DurableTaskAttemptCancellationTests : IAsyncLifetime
         var scheduled = await grain.BlockedStepAsync().WithId("blocked").ScheduleAsync(cancellationToken);
         await Probe.WaitAsync(grain.GetGrainId(), AttemptCancellationProbe.Waiting, cancellationToken);
 
-        // 步骤段的段段为非复入 grain和取消(仅分期任务状态)的间断
-        // 与它,所以步骤的标志观察它。
+        // 步骤的执行段占用不可重入的 Grain，而仅暂存任务状态的取消操作与该执行段交错运行，
+        // 因此步骤的令牌能感知取消。
         await scheduled.CancelAsync(cancellationToken).AsTask().WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
         var response = await scheduled.GetResponseAsync(cancellationToken).WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
         Assert.Equal("canceled", response.GetResult<string>());
@@ -99,7 +99,7 @@ public abstract class DurableTaskAttemptCancellationTests : IAsyncLifetime
         await scheduled.AbortAsync("operator", cancellationToken);
         await Probe.WaitAsync(grainId, AttemptCancellationProbe.Unwinding, cancellationToken);
 
-        // 继续运行的 grain执行中的另一件执行过程,在中止尝试后解除时实施。
+        // 在已中止的执行尝试退出期间，仍处于活动状态的 Grain 的另一个执行完成提交。
         var increment = await grain.IncrementAsync().WithId("increment").ScheduleAsync(cancellationToken);
         Assert.Equal(1, await increment.WaitAsync(cancellationToken));
         Probe.Signal(grainId, AttemptCancellationProbe.Release);
@@ -111,7 +111,7 @@ public abstract class DurableTaskAttemptCancellationTests : IAsyncLifetime
         var cleanedUp = new AttemptCancellationSnapshot(Status: "cleaned up", Unrelated: 1, AttemptCancellationTestGrain.CleanupChanges);
         Assert.Equal(cleanedUp, await grain.GetSnapshotAsync());
 
-        // 承诺日记保持同一状态,包括中止的清理尝试。
+        // 已提交的日志包含相同状态，包括已中止尝试的清理结果。
         Assert.True(_fixture.Cluster.TryGetGrainContext(grainId, out var activation));
         await grain.RequestDeactivationAsync();
         await activation.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
@@ -136,7 +136,7 @@ public abstract class DurableTaskAttemptCancellationTests : IAsyncLifetime
         Assert.Equal(new AttemptCancellationSnapshot(Status: "compensated: buyer", Unrelated: 0), await grain.GetSnapshotAsync());
         Assert.Equal((1, 1, 1), (Probe.Get(grainId, AttemptCancellationProbe.Compensations), Probe.Get(grainId, AttemptCancellationProbe.Refunds), Probe.Get(grainId, AttemptCancellationProbe.ExternalCalls)));
 
-        // 赔偿由已承诺的日记予以保管。
+        // 已提交的日志包含补偿操作。
         Assert.True(_fixture.Cluster.TryGetGrainContext(grainId, out var activation));
         await grain.RequestDeactivationAsync();
         await activation.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
@@ -156,15 +156,15 @@ public abstract class DurableTaskAttemptCancellationTests : IAsyncLifetime
         await Probe.WaitAsync(grainId, AttemptCancellationProbe.Compensating, cancellationToken);
         Assert.True(_fixture.Cluster.TryGetGrainContext(grainId, out var activation));
 
-        // 补偿的外部电话观察了取消尝试和随后国家的变化
-        // 成功成功。
+        // 补偿的外部调用感知到执行尝试取消，其后的状态变更
+        // 成功完成。
         await grain.RequestDeactivationAsync();
         await activation.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
         var interrupted = Probe.GetOutcomes(grainId);
         Assert.IsType<TaskCanceledException>(interrupted["external-call"]);
         Assert.Null(interrupted["after-external-call"]);
 
-        // 重播发现效果记录 并重新处理其余的补偿。
+        // 重放发现效果操作已记录，并重新执行剩余补偿逻辑。
         Probe.Signal(grainId, AttemptCancellationProbe.Release);
         _ = await grain.GetSnapshotAsync();
         var response = await scheduled.GetResponseAsync(cancellationToken).WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
@@ -185,13 +185,13 @@ public abstract class DurableTaskAttemptCancellationTests : IAsyncLifetime
             Assert.Equal(reason, exception.Reason);
         }
 
-        // 清理工作对日记状态的成功的改变。
+        // 清理代码对日志化状态的变更成功完成。
         foreach (var operation in AttemptCancellationTestGrain.CleanupOperations)
         {
             Assert.Null(outcomes[operation]);
         }
 
-        // 流程中的资源在撤离时释放出来。
+        // 退出时释放进程内资源。
         Assert.Null(outcomes[AttemptCancellationProbe.SemaphoreReleased]);
         Assert.Null(outcomes[AttemptCancellationProbe.ResourceDisposed]);
     }
@@ -199,35 +199,35 @@ public abstract class DurableTaskAttemptCancellationTests : IAsyncLifetime
 
 public interface IAttemptCancellationTestGrain : IGrainWithGuidKey
 {
-    /// <summary>等待信号,记录其代码一旦尝试取消后能做什么。</summary>
+    /// <summary>等待信号，并记录执行尝试取消后其代码仍可执行的操作。</summary>
     DurableTask<string> WaitForCancellationAsync();
 
-    /// <summary>等待一小时的延迟, 当任务取消时补偿。</summary>
+    /// <summary>等待一小时的延迟，并在任务取消时进行补偿。</summary>
     DurableTask<string> CompensateOnCancellationAsync();
 
-    /// <summary>增加额 grain无关的柜台。</summary>
+    /// <summary>递增 Grain 中与此任务无关的计数器。</summary>
     DurableTask<int> IncrementAsync();
 
-    /// <summary>运行一个等待它标记的一步, 而没有持久的等待, 所以它的部分会保持 grain.</summary>
+    /// <summary>运行一个直接等待自身令牌而不进行持久化等待的步骤，因此其执行段占用 Grain。</summary>
     DurableTask<string> BlockedStepAsync();
 
     DurableTask<int> ComputeAsync(int value);
 
     Task<AttemptCancellationSnapshot> GetSnapshotAsync();
 
-    /// <summary>解除 grain,与执行者进行连接 其分段运行。</summary>
+    /// <summary>停用 Grain，并与正在运行执行段的执行交错运行。</summary>
     [AlwaysInterleave]
     Task RequestDeactivationAsync();
 }
 
-/// <summary> grain日记状态显示取消尝试清除的更改。</summary>
+/// <summary>被取消的执行尝试的清理代码所修改的 Grain 日志化状态。</summary>
 [GenerateSerializer]
 public sealed record AttemptCancellationSnapshot(
     [property: Id(0)] string? Status,
     [property: Id(1)] int Unrelated,
     [property: Id(2)] int Changes = 0);
 
-/// <summary>记录那些企图 <see cref="AttemptCancellationTestGrain"/> 观察,并同步测试与它们。</summary>
+/// <summary>记录 <see cref="AttemptCancellationTestGrain"/> 的各执行尝试所观察到的内容，并让测试与其同步。</summary>
 public sealed class AttemptCancellationProbe
 {
     public const string Waiting = "waiting";
@@ -266,7 +266,7 @@ public sealed class AttemptCancellationProbe
         }
     }
 
-    /// <summary>使 grain取消的尝试在它卸载时等待 <see cref="Release"/> 。</summary>
+    /// <summary>使 Grain 被取消的执行尝试在退出过程中等待 <see cref="Release"/>。</summary>
     public void HoldUnwinding(GrainId grainId) => _heldUnwinding[grainId] = true;
 
     public bool IsUnwindingHeld(GrainId grainId) => _heldUnwinding.ContainsKey(grainId);
@@ -300,14 +300,14 @@ public sealed class AttemptCancellationTestGrain(
 {
     public static readonly DurableSignal<string> Approved = new("approved");
 
-    /// <summary>取消尝试的代码尝试的持久操作, 每一个都扔出尝试取消。</summary>
+    /// <summary>被取消的执行尝试的代码所尝试的持久化操作，每个操作均抛出该尝试的取消异常。</summary>
     public static readonly string[] CanceledAttemptOperations =
     [
         "once", "child", "shielded-child", "detached-call", "call", "post", "schedule", "delay", "signal-wait",
         "signal-send", "subscription", "when-all", "when-any", "race", "timeout", "try-wait",
     ];
 
-    /// <summary>被日记的状态变化, 取消尝试清理后, 每一个都成功。</summary>
+    /// <summary>被取消的执行尝试的清理代码所进行的日志化状态变更，每项变更均成功。</summary>
     public static readonly string[] CleanupOperations =
     [
         "value", "dictionary", "list", "queue", "set", "log", "completion", "persistent-state", "persistent-state-write",
@@ -315,8 +315,8 @@ public sealed class AttemptCancellationTestGrain(
     ];
 
     /// <summary>
-    /// 清理后对 <see cref="AttemptCancellationSnapshot.Changes"/>增加的修改数:每个条目
-    /// 收集、完成结果和持续状态记录。
+    /// 清理代码向 <see cref="AttemptCancellationSnapshot.Changes"/> 添加的变更数量：每个
+    /// 集合中的一个条目、完成操作的结果以及持久化状态的记录。
     /// </summary>
     public const int CleanupChanges = 7;
 
@@ -376,11 +376,11 @@ public sealed class AttemptCancellationTestGrain(
         {
             DurableTask.RunInline("compensate", () => probe.Increment(grainId, AttemptCancellationProbe.Compensations));
             status.Value = "compensating";
-            // 赔偿的儿童被保护, 因为儿童 被取消的任务开始结束。
+            // 补偿操作的子任务使用取消屏蔽，因为已取消任务启动的未屏蔽子任务会直接进入已取消状态。
             await DurableTask.Run(static _ => { }).WithId("checkpoint").Shielded();
             probe.Signal(grainId, AttemptCancellationProbe.Compensating);
 
-            // 补偿令使用未遂的象征 因为任务的名义已经被取消了
+            // 补偿发起的调用使用执行尝试的令牌，因为任务的令牌已取消。
             try
             {
                 await CallExternalServiceAsync(grainId, context.AttemptCancellationToken);

@@ -6,13 +6,13 @@ import Panel from '../components/panel';
 import Page from '../components/page';
 import { getName } from '../lib/typeName';
 
-// 格式化一个完全合格的成员姓名,以便缩短该类型,但
-// 保留了成员/方法部分。
+// 格式化完全限定的成员名称，缩短类型名称但保留
+// 成员或方法名称部分。示例：
 //  - "A.B.C<T>.M" -> "C<T>.M"
 //  - "A.B.C<T>.N.M" -> "C<T>.N.M"
 function formatMemberName(value: string): string {
   if (!value) return value;
-  // 查找上层最后分隔符(点、斜线或“#”),不在非常规中
+  // 查找泛型参数之外最后一个顶层分隔符（点、斜杠或 #）。
   let depth = 0;
   for (let i = value.length - 1; i >= 0; i--) {
     const ch = value[i];
@@ -98,7 +98,7 @@ const GrainGraph: React.FC<GrainGraphProps> = (props) => {
   );
 };
 
-// 向图表添加多个轴
+// 为图表添加多个坐标轴。
 // https://jsfiddle.net/devonuto/pa7k6xn9/
 export default class Grain extends React.Component<GrainProps> {
   renderEmpty() {

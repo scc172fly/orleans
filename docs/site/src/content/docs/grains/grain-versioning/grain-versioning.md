@@ -1,60 +1,60 @@
 ---
-title: "Grain 接口版本"
-description: "路线路线 grain 不同调用时 Orleans 使用数字界面版本的部署。"
+title: Grain 接口版本控制
+description: 使用数字接口版本在异构 Orleans 部署期间路由 Grain 调用。
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
 <a id="grain-interface-versioning"></a>
 
-# Grain 接口版本
+# Grain 接口版本控制
 
-Grain 接口版本在部署期间使不同界面版本的 silos 并存。它是一个 **数字路由和定位政策**。 它不使用持久性状态, 验证两个 .NET 接口的结构兼容性, 或者迁移数据 。
+Grain 接口版本控制允许具有不同接口版本的 Silo 在部署期间共存。它是一种**基于数字版本的路由与放置策略**，不会为持久化状态进行版本控制，不会验证两个 .NET 接口的结构兼容性，也不会迁移数据。
 
 <a id="assign-a-version"></a>
 
 ## 指定版本
 
-应用 <xref:Orleans.CodeGeneration.VersionAttribute> 到 grain 接口 :
+将 <xref:Orleans.CodeGeneration.VersionAttribute> 应用于 Grain 接口：
 
 :::code language="csharp" source="../../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="versioned_cart_interface":::
-值为无符号 16 位整数。 没有属性的界面有版本 `0`。 连续修订合同时使用单元增长值 。
+该值是无符号 16 位整数。没有此特性的接口版本为 `0`。应为后续契约修订使用单调递增的版本号。
 
 <a id="how-routing-works"></a>
 
-## 路线安排如何运作
+## 路由工作原理
 
-每个请求版本都含有其调用者所使用的数字界面版本。 Orleans:
+每个带版本的请求都携带调用方使用的数字接口版本。Orleans 会：
 
-1. 读取支持版本 silos 为此, grain 接口。
-1. 应用 a [兼容战略](compatible-grains.md) 来确定哪个激活版本可以处理请求的版本。
-1. 当新激活需要放置时, 应用 [选择器战略](version-selector-strategy.md) 。
-1. 将请求的路径移到一个支持选定版本之一的 silo 。
+1. 读取各 Silo 支持的该 Grain 接口的版本。
+1. 应用 [兼容性策略](compatible-grains.md)，确定哪些版本的激活实例能够处理所请求的版本。
+1. 在需要放置新的激活实例时应用 [选择器策略](version-selector-strategy.md)。
+1. 将请求路由至支持其中一个所选版本的 Silo。
 
-如果请求达到现有启动程序,且其版本不兼容, Orleans 以理由 `IncompatibleRequest`停止运行,则取消失效地址,并重试兼容激活程序的放置。
+如果请求到达版本不兼容的现有激活实例，Orleans 会以 `IncompatibleRequest` 为原因停用该实例，使陈旧地址失效，并重新尝试放置兼容的激活实例。
 
 > [!IMPORTANT]
-> 运行时兼容性检查仅比较版本编号。 Orleans 不检查方法、参数类型、序列器合同或行为以证明兼容性。 应用程序必须维护选定战略所代表的合同。 开发过程中, 请选择使用 [Orleans 合同兼容性分析器](contract-compatibility-analyzer.md) 来跟踪源控制中的 RPC 签名和身份 。
+> 运行时兼容性检查仅比较版本号。Orleans 不会检查方法、参数类型、序列化器契约或行为来证明兼容性。应用程序必须遵守所选策略代表的契约。在开发期间，可选择启用 [Orleans 契约兼容性分析器](contract-compatibility-analyzer.md)，在源码管理中跟踪 RPC 签名和标识。
 
 <a id="configure-cluster-defaults"></a>
 
-## 配置组群默认
+## 配置集群默认值
 
-<xref:Orleans.Configuration.GrainVersioningOptions> defaults to <xref:Orleans.Versions.Compatibility.BackwardCompatible> and <xref:Orleans.Versions.Selector.AllCompatibleVersions>:
+<xref:Orleans.Configuration.GrainVersioningOptions> 的默认策略为 <xref:Orleans.Versions.Compatibility.BackwardCompatible> 和 <xref:Orleans.Versions.Selector.AllCompatibleVersions>：
 
 :::code language="csharp" source="./snippets/versioning/VersioningConfiguration.cs" id="configure_versioning":::
 
-配置的战略名称解析已注册 Orleans 战略服务。 在异式部署之前, 以一致的方式配置每个 silo 。
+配置的策略名称用于解析已注册的 Orleans 策略服务。在异构部署前，应一致地配置所有 Silo。
 
-Orleans 也暴露了运行时间战略的变化, <xref:Orleans.IVersionManager>管理层执行的 grain.变化可适用于整个集群或特定 <xref:Orleans.Runtime.GrainInterfaceType>。运行时超常是运行状态:仔细协调,重置为部署后设置的默认。
+Orleans 还通过管理 Grain 实现的 <xref:Orleans.IVersionManager> 提供运行时策略变更能力。变更可以应用到整个集群或指定的 <xref:Orleans.Runtime.GrainInterfaceType>。运行时覆盖项属于运维状态：应谨慎协调这些变更，并在部署后将其重置为配置的默认值。
 
 <a id="scope-and-limitations"></a>
 
-## 范围和限制
+## 适用范围与限制
 
-- 无国籍工人 grains 没有被版本。
-- 流式界面没有版本 。
-- 国家和储存计划演变是单独的责任。
-- 版本路由只会帮助所有部署的履约方 遵守已宣布的兼容合同
+- 无状态工作者 Grain 不支持版本控制。
+- 流处理接口不支持版本控制。
+- 状态及存储架构演进是独立的职责。
+- 只有当所有已部署的实现都遵守声明的兼容性契约时，版本路由才有帮助。
 
-滚升序列见 [部署新版本 grain](deploying-new-versions-of-grains.md) 。
+有关滚动升级顺序，请参阅 [部署新版本的 Grain](deploying-new-versions-of-grains.md)。

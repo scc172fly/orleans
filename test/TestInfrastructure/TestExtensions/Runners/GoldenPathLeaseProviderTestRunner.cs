@@ -22,7 +22,7 @@ namespace TestExtensions.Runners
             var leaseRequests = new List<LeaseRequest>() {
                 new LeaseRequest(Guid.NewGuid().ToString(), TimeSpan.FromSeconds(15)), new LeaseRequest(Guid.NewGuid().ToString(), TimeSpan.FromSeconds(15))
             };
-            //获取
+            // 获取。
             AcquireLeaseResult[] results = await this.leaseProvider.Acquire(LeaseCategory, leaseRequests.ToArray());
             for (int i = 0; i < results.Length; i++)
             {
@@ -40,10 +40,10 @@ namespace TestExtensions.Runners
             var leaseRequests = new List<LeaseRequest>() {
                 new LeaseRequest(Guid.NewGuid().ToString(), TimeSpan.FromSeconds(15)), new LeaseRequest(Guid.NewGuid().ToString(), TimeSpan.FromSeconds(15))
             };
-            //获取
+            // 获取。
             var results = await this.leaseProvider.Acquire(LeaseCategory, leaseRequests.ToArray());
-            //释放
-            await this.leaseProvider.Release(LeaseCategory, results.Select(result => result.AcquiredLease!).ToArray()); // 这条金色的道路期望每一个获得的成功。
+            // 释放
+            await this.leaseProvider.Release(LeaseCategory, results.Select(result => result.AcquiredLease!).ToArray()); // 此正常流程预期每次获取都成功。
         }
 
         [Fact]
@@ -52,10 +52,10 @@ namespace TestExtensions.Runners
             var leaseRequests = new List<LeaseRequest>() {
                 new LeaseRequest(Guid.NewGuid().ToString(), TimeSpan.FromSeconds(15)), new LeaseRequest(Guid.NewGuid().ToString(), TimeSpan.FromSeconds(15))
             };
-            //获取
+            // 获取。
             var acquireResults = await this.leaseProvider.Acquire(LeaseCategory, leaseRequests.ToArray());
-            //续续
-            var renewResults = await this.leaseProvider.Renew(LeaseCategory, acquireResults.Select(result => result.AcquiredLease!).ToArray()); // 这条金色的道路期望每一个获得的成功。
+            // 续订
+            var renewResults = await this.leaseProvider.Renew(LeaseCategory, acquireResults.Select(result => result.AcquiredLease!).ToArray()); // 此正常流程预期每次获取都成功。
             for (int i = 0; i < renewResults.Count(); i++)
             {
                 var result = renewResults[i];
@@ -73,9 +73,9 @@ namespace TestExtensions.Runners
             var leaseRequests = new List<LeaseRequest>() {
                 new LeaseRequest(resourceId, TimeSpan.FromSeconds(15)), new LeaseRequest(resourceId, TimeSpan.FromSeconds(15))
             };
-            //两个实体试图在同一释放时获得租赁
+            // 两个实体尝试获取同一资源上的租约
             var results = await this.leaseProvider.Acquire(LeaseCategory, leaseRequests.ToArray());
-            //一次尝试成功, 一个调试失败
+            // 一次尝试成功，另一次失败
             Assert.Contains(results, result => result.StatusCode == ResponseCode.OK);
             Assert.Contains(results, result => result.StatusCode == ResponseCode.LeaseNotAvailable);
         }
@@ -86,17 +86,17 @@ namespace TestExtensions.Runners
             var leaseRequests = new List<LeaseRequest>() {
                 new LeaseRequest(Guid.NewGuid().ToString(), TimeSpan.FromSeconds(15)), new LeaseRequest(Guid.NewGuid().ToString(), TimeSpan.FromSeconds(15))
             };
-            //获取
+            // 获取。
             var results = await this.leaseProvider.Acquire(LeaseCategory, leaseRequests.ToArray());
-            var acquiredLeaseWithWrongToken = results.Select(result => new AcquiredLease(result.AcquiredLease!.ResourceKey, result.AcquiredLease.Duration, Guid.NewGuid().ToString(), result.AcquiredLease.StartTimeUtc)); // 为每项不同资源购置了一份租赁。
-            //重命名错误的牌名
+            var acquiredLeaseWithWrongToken = results.Select(result => new AcquiredLease(result.AcquiredLease!.ResourceKey, result.AcquiredLease.Duration, Guid.NewGuid().ToString(), result.AcquiredLease.StartTimeUtc)); // 每个不同的资源均获取一个租约。
+            // 使用错误的令牌续订
             var renewResults = await this.leaseProvider.Renew(LeaseCategory, acquiredLeaseWithWrongToken.ToArray());
             for (int i = 0; i < renewResults.Count(); i++)
             {
                 LeaseRequest request = leaseRequests[i];
                 AcquireLeaseResult result = renewResults[i];
                 Assert.Equal(ResponseCode.InvalidToken, result.StatusCode);
-                Assert.Equal(request.ResourceKey, result.AcquiredLease!.ResourceKey); // 无效的调试保留已购租赁。
+                Assert.Equal(request.ResourceKey, result.AcquiredLease!.ResourceKey); // 无效令牌响应会保留已获取的租约。
             }
         }
 
@@ -108,10 +108,10 @@ namespace TestExtensions.Runners
                 new LeaseRequest(resourceId, TimeSpan.FromSeconds(15))
             };
 
-            //首次获得第一次
+            // 首次获取
             var acquireResults1 = await this.leaseProvider.Acquire(LeaseCategory, leaseRequests.ToArray());
-            //续续
-            var renewResults = await this.leaseProvider.Renew(LeaseCategory, acquireResults1.Select(result => result.AcquiredLease!).ToArray()); // 这一金色的道路期望获得成功。
+            // 续订
+            var renewResults = await this.leaseProvider.Renew(LeaseCategory, acquireResults1.Select(result => result.AcquiredLease!).ToArray()); // 此正常流程预期获取成功。
             for (int i = 0; i < renewResults.Count(); i++)
             {
                 var result = renewResults[i];
@@ -119,10 +119,10 @@ namespace TestExtensions.Runners
                 Assert.NotNull(result.AcquiredLease);
                 Assert.Equal(leaseRequests[i].ResourceKey, result.AcquiredLease.ResourceKey);
             }
-            //释放
-            await this.leaseProvider.Release(LeaseCategory, renewResults.Select(result => result.AcquiredLease!).ToArray()); // 成功的续期保留其租赁。
+            // 释放
+            await this.leaseProvider.Release(LeaseCategory, renewResults.Select(result => result.AcquiredLease!).ToArray()); // 成功续订后保留相应租约。
 
-            //第二次获得,在租赁解除后在同一资源上取得租借
+            // 第二次获取，在原租约释放之后重新获取同一资源上的租约
             var acquireResults2 = await this.leaseProvider.Acquire(LeaseCategory, leaseRequests.ToArray());
             for (int i = 0; i < acquireResults2.Count(); i++)
             {
@@ -130,8 +130,8 @@ namespace TestExtensions.Runners
                 Assert.Equal(ResponseCode.OK, result.StatusCode);
                 Assert.NotNull(result.AcquiredLease);
                 Assert.Equal(leaseRequests[i].ResourceKey, result.AcquiredLease.ResourceKey);
-                //以两个符号表示的租赁应为不同
-                Assert.NotEqual(acquireResults1[i].AcquiredLease!.Token, result.AcquiredLease!.Token); // 两项成功购置都有租赁。
+                // 两个租约中的令牌应当不同
+                Assert.NotEqual(acquireResults1[i].AcquiredLease!.Token, result.AcquiredLease!.Token); // 两次成功获取均返回租约。
             }
         }
 

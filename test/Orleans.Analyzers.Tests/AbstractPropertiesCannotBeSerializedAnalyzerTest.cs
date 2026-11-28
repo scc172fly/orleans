@@ -6,9 +6,9 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// 确保抽象属性的 AbstractPropertiesCannotBeSerializedAnalyzer 测试
-/// 无法用序列属性标记,因为它们没有具体实施序列属性。
-/// 此分析器通过在编译时捕获无效的序列配置来防止运行时间错误 。
+/// 测试 AbstractPropertiesCannotBeSerializedAnalyzer，该分析器确保抽象属性
+/// 无法标记序列化特性，因为它们没有可供序列化的具体实现。
+/// 此分析器在编译时捕获无效的序列化配置，从而防止运行时错误。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 [TestSuite("BVT")]
@@ -29,7 +29,7 @@ public class AbstractPropertiesCannotBeSerializedAnalyzerTest : DiagnosticAnalyz
     }
 
     /// <summary>
-    /// 证明分析器使用命名空间别名时检测到带有序列属性的抽象属性。
+    /// 验证使用命名空间别名时，分析器能否检测带序列化特性的抽象属性。
     /// </summary>
     [Fact]
     public Task AliasedAttribute()
@@ -40,7 +40,7 @@ public abstract class D { [alias::Id(0)] public abstract int F { get; set; } }
 """);
 
     /// <summary>
-    /// 证明分析器在使用全球合格命名空间时检测到带有序列属性的抽象特性。
+    /// 验证使用全局限定命名空间时，分析器能否检测带序列化特性的抽象属性。
     /// </summary>
     [Fact]
     public Task GloballyQualifiedAttribute()
@@ -50,7 +50,7 @@ public abstract class D { [global::Orleans.Id(0)] public abstract int F { get; s
 """);
 
     /// <summary>
-    /// 证明分析器使用简单的属性名称时检测到带有序列特性的抽象属性。
+    /// 验证使用简单特性名称时，分析器能否检测带序列化特性的抽象属性。
     /// </summary>
     [Fact]
     public Task SimpleAttribute()
@@ -59,8 +59,8 @@ public abstract class D { [global::Orleans.Id(0)] public abstract int F { get; s
 """);
 
     /// <summary>
-    /// 证明分析器正确识别带有序列属性的抽象属性
-    /// 即便存在其他无关的通用属性。
+    /// 验证分析器能否正确识别带有序列化特性的抽象属性，
+    /// 即使同时存在其他无关的泛型特性。
     /// </summary>
     [Fact]
     public Task UnrelatedGenericAttribute()

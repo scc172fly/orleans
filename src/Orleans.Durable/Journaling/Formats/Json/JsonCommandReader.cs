@@ -89,7 +89,7 @@ internal ref struct JsonCommandReader
     public T? DeserializeCurrent<T>(JsonTypeInfo<T> typeInfo) => JsonSerializer.Deserialize(ref _reader, typeInfo);
 
     /// <summary>
-    /// 将当前数组元素读为 <c>[draftId, sequence, count]</c> 耐久日志草案承诺。
+    /// 将当前数组元素读取为 <c>[draftId, sequence, count]</c> 形式的持久化日志草稿提交。
     /// </summary>
     public LogDraftCommit ReadCurrentDraftCommit()
     {
@@ -121,7 +121,7 @@ internal ref struct JsonCommandReader
     }
 
     /// <summary>
-    /// 以 <see cref="LogDraftId.ToString"/>格式格式整理一个耐用身份识别符号日志草稿。
+    /// 解析由 <see cref="LogDraftId.ToString"/> 格式化的持久化日志草稿标识符。
     /// </summary>
     public static LogDraftId ParseDraftId(string? value) =>
         value is not null && LogDraftId.TryParse(value, out var draftId)
@@ -329,9 +329,9 @@ internal ref struct JsonCommandReader
     }
 
     /// <summary>
-    /// 向命令下一个操作的前进,该操作有变量数。
+    /// 前进到操作数数量可变的命令的下一个操作数。
     /// </summary>
-    /// <returns><see langword="true"/> 当读者位于下一个操作上时; <see langword="false"/> 在命令的结尾处。</returns>
+    /// <returns><see langword="true"/> 表示读取器位于下一个操作数；位于命令末尾时为 <see langword="false"/>。</returns>
     public bool TryReadNextOperand()
     {
         if (!_reader.Read())

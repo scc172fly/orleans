@@ -39,7 +39,7 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
     private Task? _listenForClusterChangesTask;
     private Task? _periodicCheckTask;
 
-    // 散件跟踪状态
+    // 分片跟踪状态。
     private readonly ConcurrentDictionary<string, IJobShard> _shardCache = new();
     private readonly ConcurrentDictionary<WritableShardKey, IJobShard> _writeableShards = new();
     private readonly ConcurrentDictionary<string, WritableShardKey> _writeableShardKeys = new();
@@ -48,7 +48,7 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
     private readonly SemaphoreSlim _shardCreationLock = new(1, 1);
     private readonly SemaphoreSlim _shardCheckSignal = new(0);
 
-    // 缓慢启动状态
+    // 慢启动状态。
     private long _startTimestamp;
     private int _totalClaimedShards;
     private int _stripeCounter;
@@ -104,7 +104,7 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
             {
                 schedulingToken.ThrowIfCancellationRequested();
 
-                // 快速路径: 已经存在 shard
+                // 快速路径：分片已存在。
                 if (_writeableShards.TryGetValue(shardKey, out var existingShard))
                 {
                     DurableJob? job;
@@ -128,24 +128,24 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
                         return job;
                     }
 
-                    // 碎片是满的或不再可写,从可写成的碎片中移除并再试一次
+                    // 分片已满或不再可写，将其从可写分片中移除并重试。
                     TryRemoveWritableShard(shardKey, existingShard);
                     continue;
                 }
 
-                // 慢路径: 需要创建碎片
+                // 慢速路径：需要创建分片。
                 await _shardCreationLock.WaitAsync(schedulingToken);
                 try
                 {
                     schedulingToken.ThrowIfCancellationRequested();
 
-                    // 获取锁定后重复检查
+                    // 获取锁后再次检查。
                     if (_writeableShards.TryGetValue(shardKey, out existingShard))
                     {
                         continue;
                     }
 
-                    // 创建新散页
+                    // 创建新分片。
                     var endTime = shardKey.StartTime.Add(_options.ShardDuration);
                     var newShard = await _shardManager.CreateShardAsync(shardKey.StartTime, endTime, CreateShardMetadata(shardKey), schedulingToken);
                     if (IsRetiredShard(newShard))
@@ -154,8 +154,8 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
                     }
 
                     LogCreatingNewShard(_logger, shardKey.StartTime, shardKey.Stripe);
-                    // 即使取消与供应商返回竞争,也成功创造。
-                    // 关闭等待这个调度电话,然后排空缓存。
+                    // 即使取消与提供程序返回发生竞争，也要接管成功创建的实例。
+                    // 关闭操作在排空缓存之前等待此调度调用结束。
                     _writeableShards[shardKey] = newShard;
                     _writeableShardKeys[newShard.Id] = shardKey;
                     _shardCache.TryAdd(newShard.Id, newShard);
@@ -250,7 +250,7 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
         LogStopping(_logger, _runningShards.Count);
 
         CancelForShutdown(_requestCts, "requests");
-        // 排水请求和启动发布后,才拍下行刑快照
+        // 获取执行快照之前，排空请求并完成激活实例的发布。
         await admissionDrained;
         var runningShards = _runningShards.Values.Select(static entry => entry.Task).ToArray();
         CancelForShutdown(_cts, "execution");
@@ -271,12 +271,12 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
         {
             try
             {
-                // 进入已关闭;每件被接受的启动活动都在本快照中已有执行任务。
+                // 准入已关闭；每个已接受的激活操作的执行任务均在此快照中。
                 await Task.WhenAll(runningShards);
             }
             finally
             {
-                // 任务在完成前正在运行中, 将碎片移走; 剩下的碎片从未激活 。
+                // 运行中的任务会在完成前移除其分片；剩余分片从未激活。
                 foreach (var shard in _shardCache.Values)
                 {
                     TryRemoveWritableShard(shard);
@@ -440,11 +440,11 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
     }
 
     /// <summary>
-    /// 返回 <see langword="true"/> 时 silo 加入或离开活动组,或被宣布死亡。
+    /// 当 Silo 加入或离开活动成员集合，或者被宣告死亡时，返回 <see langword="true"/>。
     /// </summary>
     /// <remarks>
-    /// 发现者声称一旦其主人死亡后就被碎片碎片碎片。
-    /// 在宣布死亡之前 死亡声明会触发它自己的扫荡
+    /// 发现操作在分片所有者死亡后认领分片。正在停止或关闭的所有者会在
+    /// 被宣告死亡之前离开活动成员集合，因此死亡宣告会单独触发一轮扫描。
     /// </remarks>
     internal static bool ShouldCheckShards(ClusterMembershipSnapshot previous, ClusterMembershipSnapshot current)
     {
@@ -476,7 +476,7 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
             {
                 var completedTask = await Task.WhenAny(timerTask, signalTask);
                 await completedTask;
-                // 留待等待的另一件:可在发现时完成。
+                // 保留另一个待完成的等待操作，因为它可能在发现期间完成。
                 if (ReferenceEquals(completedTask, timerTask))
                 {
                     timerTask = timer.WaitForNextTickAsync(_cts.Token).AsTask();
@@ -506,7 +506,7 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
     {
         LogCheckingPendingShards(_logger);
 
-        // 清理那些已经穿过时钟窗的旧的可修剪碎片
+        // 清理已超过其时间窗口的旧可写分片。
         var now = _timeProvider.GetUtcNow();
         foreach (var key in _writeableShards.Keys.ToArray())
         {
@@ -533,20 +533,20 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
         cancellationToken.ThrowIfCancellationRequested();
         var now = _timeProvider.GetUtcNow();
         var maxDueTime = new DateTimeOffset(now.UtcDateTime.AddClamped(_options.ShardLoadLookaheadPeriod));
-        // 计算这次扫荡的缓慢启动预算。
+        // 计算本轮扫描的慢启动预算。
         var budget = ComputeClaimBudget();
         var newClaimsThisCycle = 0;
         var assignedCount = 0;
         await foreach (var shard in _shardManager.DiscoverJobShardsAsync(maxDueTime, budget, cancellationToken))
         {
-            // 发现结果可以比跑者寿命长,而发现结果正等待下一个结果。
+            // 当发现操作等待下一次产出结果时，之前的结果可能比其运行器存续更久。
             if (IsRetiredShard(shard))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 continue;
             }
 
-            // 正在通过清理,包括缓存提取后 来运行任务 拥有它们精确的碎片实例
+            // 运行任务在整个清理过程中均拥有其确切的分片实例，包括从缓存撤回之后。
             if ((!_runningShards.TryGetValue(shard.Id, out var running) || !ReferenceEquals(running.Shard, shard))
                 && _shardCache.TryAdd(shard.Id, shard))
             {
@@ -578,13 +578,13 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
     }
 
     /// <summary>
-    /// 计算在当前检查周期内 silo 可能要求的孤儿碎片的最大数量。
-    /// 返回 <see cref="int.MaxValue"/> 当无限( 跳动完成或禁用) 时 。
-    /// 返回 <c>0</c> 时 silo 超载,暂停所有新的索赔要求。
+    /// 计算当前检查周期内此 Silo 可以认领的无主分片的最大数量。
+    /// 不限制数量时（逐步放量结束或已禁用），返回 <see cref="int.MaxValue"/>。
+    /// Silo 过载时返回 <c>0</c>，暂停认领所有新分片。
     /// </summary>
     private int ComputeClaimBudget()
     {
-        // 超负荷,不管加音阶段如何,不要求任何新情况
+        // 如果过载，无论处于哪个放量阶段，都不认领任何新分片。
         if (_overloadDetector.IsOverloaded)
         {
             LogOverloadPausingShardClaims(_logger);
@@ -608,8 +608,8 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
     }
 
     /// <summary>
-    /// 纯粹根据超速参数和时间计算散装索赔预算。
-    /// 返回 <see cref="int.MaxValue"/> 当无限( 跳动完成或禁用) 时 。
+    /// 根据逐步放量参数和已过去的时间，以纯计算方式确定分片认领预算。
+    /// 不限制数量时（逐步放量结束或已禁用），返回 <see cref="int.MaxValue"/>。
     /// </summary>
     internal static int ComputeClaimBudget(
         TimeSpan rampUpDuration,
@@ -618,19 +618,19 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
         TimeSpan elapsed,
         int totalClaimedShards)
     {
-        // 硬声声标加速音速提升功能障碍
+        // 已禁用分片认领逐步放量机制。
         if (rampUpDuration <= TimeSpan.Zero)
         {
             return int.MaxValue;
         }
 
-        // 超期后无限制
+        // 逐步放量期结束后不再限制数量。
         if (elapsed >= rampUpDuration)
         {
             return int.MaxValue;
         }
 
-        // 线内插: initialBudget 吨=0, 单位: maxBudget 吨=rampUpDuration
+        // 线性插值：t=0 时为 initialBudget，t=rampUpDuration 时为 maxBudget。
         var progress = elapsed.TotalMilliseconds / rampUpDuration.TotalMilliseconds;
         var totalBudget = initialBudget + (int)(progress * (maxBudget - initialBudget));
         var remaining = totalBudget - totalClaimedShards;
@@ -647,13 +647,13 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
         }
 
         var shardId = shard.Id;
-        // 仅开始运行尚未运行
+        // 仅在尚未运行时启动。
         if (_runningShards.ContainsKey(shardId))
         {
             return;
         }
 
-        // 只有在开始时间( 在缓冲期内)才开始
+        // 仅在已到达启动时间（处于缓冲期内）时启动。
         if (!ShouldStartShardNow(shard))
         {
             LogShardNotReadyYet(_logger, shard.Id, shard.StartTime);
@@ -673,7 +673,7 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
             return;
         }
 
-        // 前一个跑者可在一生检查和登记之间完成退休。
+        // 此前的运行器可能在生命周期检查与注册之间完成退出。
         if (IsRetiredShard(shard))
         {
             var entry = new KeyValuePair<string, RunningShard>(shardId, running);
@@ -699,16 +699,16 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
             }
             catch (OperationCanceledException) when (_cts.IsCancellationRequested)
             {
-                // 取消执行后,所有权清理工作就由这个跑者来承担。
+                // 取消执行后，仍由此运行器负责所有权清理。
             }
         }
         finally
         {
-            // 解开登记可以处理碎片。 在释放所有权之前撤回其引用。
+            // 注销可能释放分片，因此在释放所有权前先撤回其引用。
             TryRemoveWritableShard(shard);
             TryRemoveCachedShard(shard);
 
-            // 清理工作因关闭期限被取消,
+            // 清理由关闭截止时间控制取消，独立于执行取消。
             try
             {
                 await _shardManager.UnregisterShardAsync(shard, _cleanupCts.Token);
@@ -721,7 +721,7 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
 
             await DisposeShardAsync(shard);
 
-            // 排程可以在清理过程中发布保留创建结果。
+            // 调度操作可能在清理期间发布仍保留的创建结果。
             TryRemoveWritableShard(shard);
             TryRemoveCachedShard(shard);
             var runningEntry = new KeyValuePair<string, RunningShard>(shard.Id, running);
@@ -858,9 +858,9 @@ internal partial class LocalDurableJobManager : SystemTarget, ILocalDurableJobMa
             return 0;
         }
 
-        // 圆环正弦任务。 条形选择是一个写面扇- 退出的 knob :
-        // 长期工作位置是碎片id,而不是(StartTime、条形),因此一致性
-        // 不需要横切拨号/silos ,圆柱在任何输入折叠下均匀分布。
+        // 轮询分配。条带选择仅用于控制写入侧的分散程度：
+        // 持久化的作业位置由分片 ID 确定，而非 (StartTime, Stripe)，因此不要求
+        // 跨调用或跨 Silo 的一致性；无论输入如何倾斜，轮询分配都能均匀分布。
         var next = (uint)Interlocked.Increment(ref _stripeCounter);
         return (int)(next % (uint)_options.ShardStripeCount);
     }

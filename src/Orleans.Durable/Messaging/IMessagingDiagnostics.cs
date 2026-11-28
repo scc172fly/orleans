@@ -6,112 +6,112 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// 提供进入 grain信息状态的业务访问。
+/// 提供对 Grain 消息传递状态的运维访问。
 /// </summary>
 public interface IMessagingDiagnostics
 {
     /// <summary>
-    /// 获取在收件箱处理过程中失败的信件 。
+    /// 获取收件箱处理期间失败的消息。
     /// </summary>
     IReadOnlyList<InboxDeadLetter> InboxDeadLetters { get; }
 
     /// <summary>
-    /// 获取无法从发件箱发送的信件 。
+    /// 获取无法从发件箱投递的消息。
     /// </summary>
     /// <remarks>
-    /// 其电文 <see cref="IOutboxMessageSource"/> 未能提供其信息而没有实现的电文:其记录
-    /// 只携带 <see cref="Envelope.MessageId"/>,且空有效载荷和默认
-    /// <see cref="OutboxMessage.ReceiverId"/>,其原因记录了源的失败。
+    /// 若 <see cref="IOutboxMessageSource"/> 未能提供消息，则没有已实体化的消息：其记录
+    /// 只包含 <see cref="Envelope.MessageId"/>，以及空有效载荷和默认的
+    /// <see cref="OutboxMessage.ReceiverId"/>，失败原因记录该来源的故障。
     /// </remarks>
     IReadOnlyList<OutboxDeadLetter> OutboxDeadLetters { get; }
 
     /// <summary>
-    /// 清除一个信箱的无名字母
+    /// 暂存收件箱死信的移除操作。
     /// </summary>
-    /// <param name="messageId">接收器- 本地指挥身份。</param>
-    /// <returns><see langword="true"/> 当那封已死的字母存在并被取走的时候,</returns>
+    /// <param name="messageId">接收方本地的命令标识。</param>
+    /// <returns><see langword="true"/> 表示死信存在且已被移除。</returns>
     /// <remarks>
-    /// 删除后与 grain下一期日记的写法保持耐久。
+    /// 移除操作随 Grain 的下一次日志写入持久化。
     /// </remarks>
     bool RemoveInboxDeadLetter(MessageId messageId);
 
     /// <summary>
-    /// 拆掉一个发箱的死信
+    /// 暂存发件箱死信的移除操作。
     /// </summary>
-    /// <param name="messageId">信件标识符。</param>
-    /// <returns><see langword="true"/> 当那封已死的字母存在并被取走的时候,</returns>
+    /// <param name="messageId">消息标识符。</param>
+    /// <returns><see langword="true"/> 表示死信存在且已被移除。</returns>
     /// <remarks>
-    /// 删除后与 grain下一期日记的写法保持耐久。
+    /// 移除操作随 Grain 的下一次日志写入持久化。
     /// </remarks>
     bool RemoveOutboxDeadLetter(MessageId messageId);
 }
 
 /// <summary>
-/// 描述一个信息, 信箱是用死字母字母写的 。
+/// 描述收件箱转为死信的消息。
 /// </summary>
 [GenerateSerializer, Alias("Orleans.Durable.Messaging.InboxDeadLetter")]
 public sealed class InboxDeadLetter
 {
     /// <summary>
-    /// 得到的信息。
+    /// 获取消息。
     /// </summary>
     /// <remarks>
-    /// 信息共享了收件箱保留的有效载荷和信头缓冲带, 所以把它们当作不可改变的对待, 就像每个
-    /// 发表 <see cref="Envelope"/>。在返回信息时,应用诊断诊断DTO使用普通 RPC复制
-    /// 缓冲带。
+    /// 该消息共享收件箱保留的有效载荷和标头缓冲区，因此应与所有已发布的
+    /// <see cref="Envelope"/> 一样将它们视为不可变。应用诊断 DTO 使用普通 RPC 拷贝机制返回消息
+    /// 缓冲区。
     /// </remarks>
     [Id(0)]
     public required InboxMessage Message { get; init; }
 
     /// <summary>
-    /// 得到的消息是死字
+    /// 获取消息转入死信的时间。
     /// </summary>
     [Id(1)]
     public DateTimeOffset DeadLetteredAt { get; init; }
 
     /// <summary>
-    /// 得到终端故障的原因。
+    /// 获取最终失败原因。
     /// </summary>
     [Id(2)]
     public required string Reason { get; init; }
 
     /// <summary>
-    /// 获得尝试的次数。
+    /// 获取已进行的尝试次数。
     /// </summary>
     [Id(3)]
     public int AttemptCount { get; init; }
 }
 
 /// <summary>
-/// 描述发件箱用死字母书写的信息。
+/// 描述发件箱转为死信的消息。
 /// </summary>
 [GenerateSerializer, Alias("Orleans.Durable.Messaging.OutboxDeadLetter")]
 public sealed class OutboxDeadLetter
 {
     /// <summary>
-    /// 得到的信息。
+    /// 获取消息。
     /// </summary>
     /// <remarks>
-    /// 将信件编码信头的编码信头作为不可更改的。
-    /// 返回信件缓冲时复制普通 RPC 。
+    /// 将消息编码后的标头视为不可变。应用诊断 DTO 在返回消息缓冲区时使用
+    /// 普通 RPC 拷贝机制。
     /// </remarks>
     [Id(0)]
     public required OutboxMessage Message { get; init; }
 
     /// <summary>
-    /// 得到的消息是死字
+    /// 获取消息转入死信的时间。
     /// </summary>
     [Id(1)]
     public DateTimeOffset DeadLetteredAt { get; init; }
 
     /// <summary>
-    /// 得到终端故障的原因。
+    /// 获取最终失败原因。
     /// </summary>
     [Id(2)]
     public required string Reason { get; init; }
 
     /// <summary>
-    /// 获得尝试的次数。
+    /// 获取已进行的尝试次数。
     /// </summary>
     [Id(3)]
     public int AttemptCount { get; init; }

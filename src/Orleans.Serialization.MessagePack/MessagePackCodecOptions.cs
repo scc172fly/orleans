@@ -5,7 +5,7 @@ using MessagePack;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// <see cref="MessagePackCodec"/>选项。
+/// <see cref="MessagePackCodec"/> 的选项。
 /// </summary>
 public class MessagePackCodecOptions
 {
@@ -15,17 +15,17 @@ public class MessagePackCodecOptions
     public MessagePackSerializerOptions SerializerOptions { get; set; } = MessagePackSerializerOptions.Standard;
 
     /// <summary>
-    /// 设置或设置允许使用 <see cref="DataContractAttribute"/> 标志性合同的 MessagePackSerializer标志。
+    /// 获取或设置一个标志，指示 MessagePackSerializer 是否允许使用带有 <see cref="DataContractAttribute"/> 标记的契约。
     /// </summary>
     public bool AllowDataContractAttributes { get; set; }
 
     /// <summary>
-    /// 获取或设置代表用来确定某一类型是否得到 MessagePack 序列器的佐证,以便进行序列和消毒。
+    /// 获取或设置一个委托，用于确定 MessagePack 序列化器是否支持某类型的序列化和反序列化。
     /// </summary>
     public Func<Type, bool?>? IsSerializableType { get; set; }
 
     /// <summary>
-    /// 获取或设置用于确定某一类型是否得到 MessagePack 序列器支持的代表复制。
+    /// 获取或设置一个委托，用于确定 MessagePack 序列化器是否支持某类型的复制。
     /// </summary>
     public Func<Type, bool?>? IsCopyableType { get; set; }
 }

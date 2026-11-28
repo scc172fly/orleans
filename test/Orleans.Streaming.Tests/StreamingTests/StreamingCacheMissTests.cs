@@ -9,17 +9,17 @@ using Xunit;
 namespace Tester.StreamingTests
 {
     /// <summary>
-    /// 测试流的缓冲行为和缓存误差情景
+    /// 测试流缓存行为及缓存未命中场景。
     /// 
-    /// Orleans 流动提供者使用缓存来改进业绩,具体做法是:
-    /// - 发送相隔信息
-    /// - 避免反复的消毒
-    /// - 使暂时失灵后能恢复
+    /// Orleans 流提供程序通过以下方式利用缓存提高性能：
+    /// - 批量投递消息
+    /// - 避免重复反序列化
+    /// - 支持从暂时性故障中恢复
     /// 
-    /// 测试证实正确行为,当:
-    /// - 由于年龄或记忆压力,事件被从缓存处逐出
-    /// - 过滤事件与缓冲驱逐行动发生互动
-    /// - 多个流竞争夺缓存空间
+    /// 这些测试验证以下场景中的正确行为：
+    /// - 事件因存留时间过长或内存压力而被逐出缓存
+    /// - 被筛除的事件与缓存逐出机制相互作用
+    /// - 多个流竞争缓存空间
     /// </summary>
     public abstract class StreamingCacheMissTests : TestClusterPerTest
     {
@@ -30,9 +30,9 @@ namespace Tester.StreamingTests
         private readonly ITestOutputHelper output;
 
         /// <summary>
-        /// 自定义流过滤器, 仅发送第一个字节等于 1 的信件 。
-        /// 用于测试过滤器和缓存驱逐之间的相互作用
-        /// 信件不应触发 grain 激活或影响缓存行为。
+        /// 自定义流筛选器，仅投递首字节等于 1 的消息。
+        /// 用于测试筛选与缓存逐出之间的相互作用：被筛除的
+        /// 消息不应触发 Grain 激活或影响缓存行为。
         /// </summary>
         protected class CustomStreamFilter : IStreamFilter
         {
@@ -49,12 +49,12 @@ namespace Tester.StreamingTests
         }
 
         /// <summary>
-        /// 测试 grains 正确处理被缓存删除的事件 。
-        /// 假设情景:
-        /// 1. 发送一个被缓存的事件
-        /// 2. 等待缓存失效和触发驱逐
-        /// 3. 发送另一事件
-        /// 证明尽管暗藏地被驱赶,但这两个事件还是发生了。
+        /// 测试 Grain 能否正确处理已被逐出缓存的事件。
+        /// 场景：
+        /// 1. 发送一个会被缓存的事件
+        /// 2. 等待缓存过期并触发逐出
+        /// 3. 发送另一个事件
+        /// 验证即使发生缓存逐出，两个事件仍会得到投递。
         /// </summary>
         [Fact]
         public virtual async Task PreviousEventEvictedFromCacheTest()
@@ -64,31 +64,31 @@ namespace Tester.StreamingTests
             cts.CancelAfter(TimeSpan.FromSeconds(30));
             var streamProvider = this.Client.GetStreamProvider(StreamProviderName);
 
-            // 测试的流和相应的 grain
+            // 被测试的流及对应的 Grain
             var key = Guid.NewGuid();
             var stream = streamProvider.GetStream<byte[]>(nameof(IImplicitSubscriptionCounterGrain), key);
             var grain = this.Client.GetGrain<IImplicitSubscriptionCounterGrain>(key);
             var streamId = StreamId.Create(nameof(IImplicitSubscriptionCounterGrain), key);
 
-            // 我们需要多个流, 所以至少另外一条流会由与“ 流” 相同的 PullingAgent 处理
-            // 这确保了缓冲压力,增加了驱逐的可能性
+            // 需要多个流，以确保至少有另一个流由与 "stream" 相同的 PullingAgent 处理。
+            // 这样可以确保存在缓存压力，并提高逐出的可能性。
             var otherStreams = new List<IAsyncStream<byte[]>>();
             for (var i = 0; i < 20; i++)
                 otherStreams.Add(streamProvider.GetStream<byte[]>(nameof(IImplicitSubscriptionCounterGrain), Guid.NewGuid()));
 
-            // 将发送到 grains的数据
+            // 将发送给 Grain 的数据
             var interestingData = new byte[1024];
             interestingData[0] = 1;
 
-            // 交付
+            // 应得到投递。
             await stream.OnNextAsync(interestingData);
 
-            // 等待缓存过期时间过错
-            // 然后将事件发送到其他流以触发缓存清理/ 动作
+            // 等待缓存过期时间结束。
+            // 然后向其他流发送事件，以触发缓存清理或逐出。
             await Task.Delay(DataMaxAgeInCache + TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
             await Task.WhenAll(otherStreams.Select(s => s.OnNextAsync(interestingData)));
 
-            // 交付
+            // 应得到投递。
             await stream.OnNextAsync(interestingData);
             await observer.WaitForItemDeliveryCountAsync(streamId, 2, StreamProviderName, cts.Token);
             await WaitForEventCounterAsync(grain, 2);
@@ -98,11 +98,11 @@ namespace Tester.StreamingTests
         }
 
         /// <summary>
-        /// 测试缓存驱逐行为及过滤事件。
-        /// 证明:
-        /// - 过滤事件无法阻止缓冲驱逐
-        /// - 缓冲驱逐后,仍然发生未过滤事件
-        /// - 过滤状态不会干扰缓存管理
+        /// 测试存在被筛除事件时的缓存逐出行为。
+        /// 验证以下情况：
+        /// - 被筛除的事件不会阻碍缓存逐出
+        /// - 未被筛除的事件在缓存逐出后仍会得到投递
+        /// - 筛选器状态不会干扰缓存管理
         /// </summary>
         [Fact]
         public virtual async Task PreviousEventEvictedFromCacheWithFilterTest()
@@ -112,35 +112,35 @@ namespace Tester.StreamingTests
             cts.CancelAfter(TimeSpan.FromSeconds(30));
             var streamProvider = this.Client.GetStreamProvider(StreamProviderName);
 
-            // 测试的流和相应的 grain
+            // 被测试的流及对应的 Grain
             var key = Guid.NewGuid();
             var stream = streamProvider.GetStream<byte[]>(nameof(IImplicitSubscriptionCounterGrain), key);
             var grain = this.Client.GetGrain<IImplicitSubscriptionCounterGrain>(key);
             var streamId = StreamId.Create(nameof(IImplicitSubscriptionCounterGrain), key);
 
-            // 我们需要多个流, 所以至少另外一条流会由与“ 流” 相同的 PullingAgent 处理
-            // 这确保了缓冲压力,增加了驱逐的可能性
+            // 需要多个流，以确保至少有另一个流由与 "stream" 相同的 PullingAgent 处理。
+            // 这样可以确保存在缓存压力，并提高逐出的可能性。
             var otherStreams = new List<IAsyncStream<byte[]>>();
             for (var i = 0; i < 20; i++)
                 otherStreams.Add(streamProvider.GetStream<byte[]>(nameof(IImplicitSubscriptionCounterGrain), Guid.NewGuid()));
 
-            // 总是被过滤的数据
+            // 始终会被筛除的数据
             var skippedData = new byte[1024];
             skippedData[0] = 2;
 
-            // 将发送到 grains的数据
+            // 将发送给 Grain 的数据
             var interestingData = new byte[1024];
             interestingData[0] = 1;
 
-            // 发送不应达到 grain的过滤过数据
+            // 发送不应到达 Grain 的被筛除数据。
             await stream.OnNextAsync(skippedData);
 
-            // 等待缓存过期并触发驱逐,且有更多过滤事件
-            // 检测缓存中过滤事件的测试 不影响交付保证
+            // 等待缓存过期，并通过更多被筛除的事件触发逐出。
+            // 这用于验证缓存中的被筛除事件不会影响投递保证。
             await Task.Delay(DataMaxAgeInCache + TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
             await Task.WhenAll(otherStreams.Select(s => s.OnNextAsync(skippedData)));
 
-            // 交付
+            // 应得到投递。
             await stream.OnNextAsync(interestingData);
             await observer.WaitForItemDeliveryCountAsync(streamId, 1, StreamProviderName, cts.Token);
             await WaitForEventCounterAsync(grain, 1);

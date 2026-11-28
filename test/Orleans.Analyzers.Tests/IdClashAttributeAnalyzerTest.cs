@@ -6,10 +6,10 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// 检测可序列类型中重复[ID]属性的分析器测试。
-/// 在 Orleans 序号序列化中,每个字段必须有一个独 [Id] 属性值以确保
-/// 重复的识别码将引起序列化
-/// grains之间交换信息时发生数据冲突和数据腐败。
+/// 测试检测可序列化类型中重复 [Id] 特性的分析器。
+/// 在 Orleans 序列化中，每个字段都必须具有唯一的 [Id] 特性值，以确保
+/// 正确反序列化及版本容错。重复 ID 会导致 Grain 之间交换消息时的
+/// 序列化冲突与数据损坏。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 [TestSuite("BVT")]
@@ -37,9 +37,9 @@ public class IdClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<IdClashAt
     }
 
     /// <summary>
-    /// 证明分析器在[GenerateSerializer]类型中多个字段时检测到
-    /// 具有与序列器相同的[Id]值。 这将引起连序冲突
-    /// 不知道在解密期间 地图上该绘制的标识
+    /// 验证分析器能否检测带 [GenerateSerializer] 的类型中多个字段
+    /// 具有相同 [Id] 值的情况。这会导致序列化冲突，因为序列化器在反序列化期间
+    /// 无法确定 ID 对应哪个字段。
     /// </summary>
     [Fact]
     public Task TypesWithGenerateSerializerAndDuplicatedIds_ShouldTriggerDiagnostic()
@@ -80,8 +80,8 @@ public class IdClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<IdClashAt
     }
 
     /// <summary>
-    /// 证明分析器没有报告在GenerateSerializer所有字段时出现问题
-    /// 类型中具有独有的[ID]值。这是 Orleans 序列化的正确模式。
+    /// 验证带 [GenerateSerializer] 的类型中所有字段均使用唯一 [Id] 值时，
+    /// 分析器不会报告问题。这是 Orleans 序列化的正确用法。
     /// </summary>
     [Fact]
     public Task TypesWithGenerateSerializerAndNoDuplicatedIds_ShouldNoTriggerDiagnostic()
@@ -122,9 +122,9 @@ public class IdClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<IdClashAt
     }
 
     /// <summary>
-    /// 证明分析器忽略了没有类型的类型 [GenerateSerializer属性,
-    /// 即使它们重复了[ID]属性。分析器只验证类型
-    /// 参与 Orleans 序列化的。
+    /// 验证分析器忽略未标记 [GenerateSerializer] 特性的类型，
+    /// 即使这些类型具有重复 [Id] 特性。分析器仅验证
+    /// 参与 Orleans 序列化的类型。
     /// </summary>
     [Fact]
     public Task TypesWithoutGenerateSerializerAndDuplicatedIds_ShouldNotTriggerDiagnostic()

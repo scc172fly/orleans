@@ -6,7 +6,7 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// 所登记的测试 grain- 调用返回类型及其分辨率,用于每个生成的代理接收器。
+/// 测试已注册的 Grain 调用返回类型，以及针对每种生成代理接收方的解析方式。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 [TestSuite("BVT")]
@@ -18,9 +18,9 @@ public class GrainInterfaceMethodReturnTypeDiagnosticAnalyzerTest : DiagnosticAn
     private const string MessageFormat = GrainInterfaceMethodReturnTypeDiagnosticAnalyzer.MessageFormat;
 
     /// <summary>
-    /// 证明分析器接受 grain 接口方法的有效返回类型:
-    /// 任务、任务&lt;T&gt;, ValueTask, ValueTask&lt;T&gt;无效是允许的,因为他们
-    /// 支持 grain 中 Orleans调用的不同步性质。
+    /// 验证分析器接受有效的 Grain 接口方法返回类型：
+    /// Task、Task&lt;T&gt;、ValueTask、ValueTask&lt;T&gt; 和 void 均允许使用，因为它们
+    /// 支持 Orleans 中 Grain 调用的异步特性。
     /// </summary>
     [Fact]
     public async Task GrainInterfaceMethodReturnTypeNoError()
@@ -59,8 +59,8 @@ public class GrainInterfaceMethodReturnTypeDiagnosticAnalyzerTest : DiagnosticAn
     }
 
     /// <summary>
-    /// 证明分析器在 grain 接口方法返回同步类型(int)时会检测到。
-    /// 无效, 因为 grain 调用必须同分布式组群工作一样同步。
+    /// 验证分析器能否检测返回同步类型（int）的 Grain 接口方法。
+    /// 这是无效的，因为 Grain 调用必须是异步的，才能跨分布式集群工作。
     /// </summary>
     [Fact]
     public async Task IncompatibleGrainInterfaceMethodReturnType()
@@ -84,9 +84,9 @@ public class GrainInterfaceMethodReturnTypeDiagnosticAnalyzerTest : DiagnosticAn
     }
 
     /// <summary>
-    /// 证明静态接口方法可以具有任何返回类型,因为它们不是
-    /// 须付 grain 静态方法不参与
-    /// 分发的 grain 援引机制。
+    /// 验证静态接口方法可以使用任意返回类型，因为它们不受
+    /// Grain 调用限制的约束。静态方法不参与
+    /// 分布式 Grain 调用机制。
     /// </summary>
     [Fact]
     public async Task StaticInterfaceMethodsWithRegularReturnsAreAllowed()

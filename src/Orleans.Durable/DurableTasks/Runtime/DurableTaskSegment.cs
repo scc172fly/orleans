@@ -8,28 +8,28 @@ using Orleans.Serialization.Invocation;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// 用于观察耐久任务尝试的一部分的 grain 调用过滤器的界面:尝试代码
-/// 两次耐久等待,这是当地关于启动 grain 请求的。
+/// Grain 调用筛选器用于观察持久化任务执行尝试的一个代码段的接口：该代码段是执行尝试
+/// 在两次持久化等待之间的代码，作为 Grain 激活实例上的本地请求运行。
 /// </summary>
 internal interface IDurableTaskSegment
 {
     internal static readonly MethodInfo MethodInfo = typeof(IDurableTaskSegment).GetMethod(nameof(RunAsync))!;
 
-    /// <summary>运行此段。</summary>
+    /// <summary>运行该代码段。</summary>
     Task RunAsync();
 }
 
-/// <summary>当地请求,其中含有一项持久任务尝试的一部分。</summary>
+/// <summary>运行持久化任务执行尝试的一个代码段的本地请求。</summary>
 /// <remarks>
-/// 激活接收请求,因为它接受 grain 呼叫,所以对于未恢复的 grain ,该段排除了
-/// grain的其他请求。请求释放了等待 <paramref name="gate"/>的尝试代码,例如
-/// 身体开始或继续等待, 并完成一次尝试公园或结束。
+/// 激活实例以准入 Grain 调用的方式准入此请求，因此在不可重入的 Grain 上，此代码段与
+/// Grain 的其他请求互斥。该请求使正在等待 <paramref name="gate"/> 的执行尝试代码恢复运行，例如
+/// 主体的开始或持久化等待的延续，并在执行尝试挂起或结束后完成。
 /// </remarks>
 internal sealed class DurableTaskSegment(GrainDurableTaskContext attempt, TaskCompletionSource gate) : ILocalRequest, IDurableTaskSegment
 {
     public ValueTask<Response> Invoke() => attempt.RunSegmentAsync(gate);
 
-    // 激活仅在一个已排队的请求不再执行时拒绝, 从而尝试以它结束。
+    // 激活实例仅在不再运行请求时才拒绝已排队的请求，因此执行尝试也已随之结束。
     void ILocalRequest.Complete(Response response)
     {
     }

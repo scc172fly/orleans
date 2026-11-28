@@ -19,10 +19,10 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// Orleans主机客户端功能测试。
-    /// 主机客户端是 Orleans 客户端, 与 silo运行在同一程序内,
-    /// 启用应用程序代码与 grains之间的进程内通信。
-    /// 这种模式在 ASP.NET 核心应用程序托管 Orleans.
+    /// Orleans 托管客户端功能的测试。
+    /// 托管客户端是与 Silo 在同一进程中运行的 Orleans 客户端，
+    /// 使应用程序代码与 Grain 能在进程内通信。
+    /// 此模式在托管 Orleans 的 ASP.NET Core 应用程序中很常见。
     /// </summary>
     [TestCategory("BVT"), TestCategory("HostedClient")]
     [TestSuite("BVT")]
@@ -90,9 +90,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 向主机客户进行基本 grain 调用测试。
-        /// 证明在处理过程中的客户端能够成功与 grains进行通信
-        /// 在同一过程中运行,展示核心托管客户端模式。
+        /// 测试从托管客户端发起的基本 Grain 调用。
+        /// 验证进程内客户端能与同一进程中运行的 Grain 成功通信，
+        /// 展示托管客户端的核心模式。
         /// </summary>
         [Fact]
         public async Task HostedClient_GrainCallTest()
@@ -106,10 +106,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试主机客户端调用 grain 的超时行为。
-        /// 证明反应超时执行得当,而且
-        /// 运行时间正确跟踪在超时情况下运行请求的轨迹。
-        /// 这在 grains 变得不反应时确保可靠性。
+        /// 测试托管客户端 Grain 调用的超时行为。
+        /// 验证响应超时得到正确执行，且
+        /// 运行时在超时场景中能正确跟踪正在运行的请求。
+        /// 这确保 Grain 无响应时的可靠性。
         /// </summary>
         [Fact]
         public async Task HostedClient_TimeoutTest()
@@ -137,7 +137,7 @@ namespace DefaultCluster.Tests.General
                 Assert.False(assertionTask.IsCompleted);
                 Assert.Equal(expected: 1, actual: runtimeClient.GetRunningRequestsCount(stuckGrainType));
 
-                // 返回到期时至少每秒检查一次。
+                // 至少每秒检查一次回调是否过期。
                 _messagingTimeProvider.Advance(timeout + TimeSpan.FromSeconds(1));
                 await assertionTask.WaitAsync(cancellationToken);
 
@@ -150,10 +150,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试通过 grain 调用对象的平等语义。
-        /// 证明不可变物体(字符串、 grain 参考)保持参考平等,
-        /// 复制可变对象(数组)时。请同时显示不可变<T> 包装器
-        /// 以在必要时维护可变物的参考平等。
+        /// 测试经由 Grain 调用传递的对象的引用相等性语义。
+        /// 验证不可变对象（字符串、Grain 引用）保持引用相等性，
+        /// 而可变对象（数组）被复制。同时展示 Immutable&lt;T&gt; 包装器，
+        /// 用于在需要时保留可变对象的引用相等性。
         /// </summary>
         [Fact]
         public async Task HostedClient_ReferenceEquality_GrainCallTest()
@@ -161,31 +161,31 @@ namespace DefaultCluster.Tests.General
             var client = _host.Services.GetRequiredService<IClusterClient>();
             var grain = client.GetGrain<IGrainWithGenericMethods>(Guid.NewGuid());
 
-            // 弦是不可改变的
+            // 字符串是不可变的。
             object expected = new string('*', 5);
             var actual = await grain.RoundTrip(expected);
             Assert.Same(expected, actual);
 
-            // Grain 引用是不可更改的。
+            // Grain 引用是不可变的。
             actual = await grain.RoundTrip(grain);
             Assert.Same(grain, actual);
 
-            // 阵列并非不可改变, 所以要复制一份 。
+            // 数组不是不可变的，因此预期会发生复制。
             var collection = new int[] { 1, 3, 9 };
             actual = await grain.RoundTrip(collection);
             Assert.NotSame(expected, actual);
 
-            // 不可更改的<T> 应绕行,不得复制。
+            // Immutable<T> 应在不进行任何复制的情况下完成往返。
             var expectedImmutable = new Immutable<int[]>(collection);
             var actualImmutable = await grain.RoundTrip(expectedImmutable);
             Assert.Same(expectedImmutable.Value, actualImmutable.Value);
         }
 
         /// <summary>
-        /// 从托管客户测试观察者模式 。
-        /// 证明客户如何登记观察员收到的物品
-        /// grains通知,有利于基于推力的通信模式。
-        /// 证明在正确的背景下适当援引回调。
+        /// 测试托管客户端的观察者模式。
+        /// 展示客户端如何注册观察者对象，以接收
+        /// 来自 Grain 的通知，从而支持基于推送的通信模式。
+        /// 验证回调在正确的上下文中得到正确调用。
         /// </summary>
         [Fact]
         public async Task HostedClient_ObserverTest()
@@ -214,7 +214,7 @@ namespace DefaultCluster.Tests.General
 
                     if (callbackCounter[0] == 1)
                     {
-                        // 允许按任何顺序进行回调
+                        // 允许回调按任意顺序发生
                         Assert.True(callbacksReceived[0] || callbacksReceived[1]);
                     }
                     else if (callbackCounter[0] == 2)
@@ -241,10 +241,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 从主机客户端测试流功能 。
-        /// 证明客户可以订阅 Orleans 流并接收
-        /// 向这些流发布信息,演示流
-        /// 由事件驱动的通信模式的抽象。
+        /// 测试托管客户端的流功能。
+        /// 验证客户端可以订阅 Orleans 流，并接收
+        /// 发布到这些流的消息，展示用于事件驱动通信模式的
+        /// 流抽象。
         /// </summary>
         [Fact]
         public async Task HostedClient_StreamTest()

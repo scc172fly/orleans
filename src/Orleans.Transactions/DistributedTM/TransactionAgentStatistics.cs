@@ -6,7 +6,7 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// 记录交易代理商的累计结果,并将其作为 Orleans 衡量标准予以公布。
+    /// 记录事务代理的累计处理结果，并将其作为 Orleans 指标发布。
     /// </summary>
     public class TransactionAgentStatistics : ITransactionAgentStatistics
     {
@@ -25,7 +25,7 @@ namespace Orleans.Transactions
         private long _transactionsThrottled;
 
         /// <summary>
-        /// 使用专用 Orleans 仪初始化新实例。
+        /// 使用专用的 Orleans Meter 初始化新实例。
         /// </summary>
         public TransactionAgentStatistics()
             : this(new Meter("Microsoft.Orleans"))
@@ -33,9 +33,9 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// 使用 Orleans 运行时计初始化新实例。
+        /// 使用 Orleans 运行时 Meter 初始化新实例。
         /// </summary>
-        /// <param name="instruments">下 Orleans 提供用于公布交易柜台的仪表的工具。</param>
+        /// <param name="instruments">提供用于发布事务计数器的 Meter 的 Orleans 指标工具。</param>
         public TransactionAgentStatistics(OrleansInstruments instruments)
             : this(instruments.Meter)
         {
@@ -50,27 +50,27 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// 获取已经开始的交易的总数 。
+        /// 获取已启动的事务总数。
         /// </summary>
         public long TransactionsStarted => _transactionsStarted;
 
         /// <summary>
-        /// 获得成功完成的交易总数。
+        /// 获取已成功完成的事务总数。
         /// </summary>
         public long TransactionsSucceeded => _transactionsSucceeded;
 
         /// <summary>
-        /// 获取失败或中止的交易的总数。
+        /// 获取失败或被中止的事务总数。
         /// </summary>
         public long TransactionsFailed => _transactionsFailed;
 
         /// <summary>
-        /// 获得通过加载停放拒绝的交易总数。
+        /// 获取因负载削减而被拒绝的事务总数。
         /// </summary>
         public long TransactionsThrottled => _transactionsThrottled;
 
         /// <summary>
-        /// 记录交易已经开始。
+        /// 记录事务已启动。
         /// </summary>
         public void TrackTransactionStarted()
         {
@@ -78,7 +78,7 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// 记录交易成功完成的记录。
+        /// 记录事务已成功完成。
         /// </summary>
         public void TrackTransactionSucceeded()
         {
@@ -86,7 +86,7 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// 记录交易失败或中止。
+        /// 记录事务失败或被中止。
         /// </summary>
         public void TrackTransactionFailed()
         {
@@ -94,7 +94,7 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// 记录显示交易被卸载后拒绝
+        /// 记录事务因负载削减而被拒绝。
         /// </summary>
         public void TrackTransactionThrottled()
         {
@@ -102,10 +102,10 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// 创建独立的、可变的交易代理统计数据快照。
+        /// 创建事务代理统计数据的独立可变快照。
         /// </summary>
-        /// <param name="initialStatistics">统计,其当前对应值的对比值初始化快照。</param>
-        /// <returns>与 <paramref name="initialStatistics"/>当前值一起草签的统计数据。</returns>
+        /// <param name="initialStatistics">用于初始化快照计数器的统计数据。</param>
+        /// <returns>使用 <paramref name="initialStatistics"/> 的当前值初始化的统计快照。</returns>
         public static ITransactionAgentStatistics Copy(ITransactionAgentStatistics initialStatistics)
         {
             return new TransactionAgentStatisticsSnapshot(initialStatistics);

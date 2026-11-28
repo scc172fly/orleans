@@ -29,16 +29,16 @@ public class PlayerGrain : Grain, IPlayerGrain
         return (await grain.GetGames()).Where(x => !_activeGames.Contains(x.GameId)).ToArray();
     }
 
-    // 创建一个新游戏, 并添加我们的位置到此游戏
+    // 创建新游戏，并让当前玩家加入。
     public async Task<Guid> CreateGame()
     {
         _gamesStarted++;
 
         var gameId = Guid.NewGuid();
-        var gameGrain = GrainFactory.GetGrain<IGameGrain>(gameId);  // 创建新游戏
+        var gameGrain = GrainFactory.GetGrain<IGameGrain>(gameId);  // 创建新游戏。
 
-        // 加入游戏
-        var playerId = this.GetPrimaryKey();  // 我们玩家的ID
+        // 将当前玩家加入游戏。
+        var playerId = this.GetPrimaryKey();  // 当前玩家的 ID。
         await gameGrain.AddPlayerToGame(playerId);
         _activeGames.Add(gameId);
         var name = $"{_username}'s {AddOrdinalSuffix(_gamesStarted.ToString())} game";
@@ -50,7 +50,7 @@ public class PlayerGrain : Grain, IPlayerGrain
         return gameId;
     }
 
-    // 加入一个等待玩家的游戏
+    // 加入正在等待玩家的游戏。
     public async Task<GameState> JoinGame(Guid gameId)
     {
         var gameGrain = GrainFactory.GetGrain<IGameGrain>(gameId);
@@ -64,14 +64,14 @@ public class PlayerGrain : Grain, IPlayerGrain
         return state;
     }
 
-    // 游戏结束后离开游戏
+    // 游戏结束时离开游戏。
     public Task LeaveGame(Guid gameId, GameOutcome outcome)
     {
-        // 管理游戏列表
+        // 管理游戏列表。
         _activeGames.Remove(gameId);
         _pastGames.Add(gameId);
 
-        // 管理运行总计
+        // 管理累计统计值。
         _ = outcome switch
         {
             GameOutcome.Win => _wins++,

@@ -1,4 +1,4 @@
--- 每次部署将只有一个(现役)成员表格版本一栏,定期更新。
+-- 每个部署仅有一条活动的成员资格版本记录，其版本列会定期更新。
 IF OBJECT_ID(N'[OrleansMembershipVersionTable]', 'U') IS NULL
 CREATE TABLE OrleansMembershipVersionTable
 (
@@ -9,7 +9,7 @@ CREATE TABLE OrleansMembershipVersionTable
 	CONSTRAINT PK_OrleansMembershipVersionTable_DeploymentId PRIMARY KEY(DeploymentId)
 );
 
--- 每一 silo 例在会籍表有行。
+-- 每个 Silo 实例在成员资格表中对应一行。
 IF OBJECT_ID(N'[OrleansMembershipTable]', 'U') IS NULL
 CREATE TABLE OrleansMembershipTable
 (

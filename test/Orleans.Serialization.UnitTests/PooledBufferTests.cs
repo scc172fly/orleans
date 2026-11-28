@@ -9,22 +9,22 @@ using Xunit;
 namespace Orleans.Serialization.UnitTests
 {
     /// <summary>
-    /// 执行 Orleans' PooledBuffer 的测试。
+    /// Orleans 的 PooledBuffer 实现测试。
     ///
-    /// PooledBuffer 是一个高绩效缓冲管理系统,它:
-    /// - 使用 ArrayPool 来尽量减少拨款和GC压力
-    /// - 支持高效的切片操作,不复制
-    /// - 通过分部分储存处理大量数据
-    /// - 提供缓冲区内内容的零副本
+    /// PooledBuffer 是一个高性能缓冲区管理系统，具有以下特点：
+    /// - 使用 ArrayPool 尽可能减少内存分配和 GC 压力
+    /// - 支持无需复制的高效切片操作
+    /// - 通过分段存储处理大数据量
+    /// - 提供对缓冲区内容的零复制访问
     ///
-    /// 测试的关键特征:
-    /// - 大型缓冲处理(多兆字节)
-    /// - 各种冲抵的切断作业
-    /// - 内存安全和约束检查
-    /// - 适当清理和重新池水
+    /// 测试的主要功能：
+    /// - 大缓冲区处理（数 MB）
+    /// - 各种偏移量下的切片操作
+    /// - 内存安全和边界检查
+    /// - 正确清理并归还到池中
     ///
-    /// 这一基础设施对于 Orleans的序列化绩效至关重要,
-    /// 特别是当处理大对象图形或流式情景时。
+    /// 此基础设施对 Orleans 的序列化性能至关重要，
+    /// 尤其是在处理大型对象图或流式场景时。
     /// </summary>
     [Trait("Category", "BVT")]
     [Trait("Suite", "BVT")]
@@ -96,7 +96,7 @@ namespace Orleans.Serialization.UnitTests
             var random = new Random();
             var randomData = new byte[1024 * 1024 * 10];
             random.NextBytes(randomData);
-            // 本测试的原始阅读/撰写操作无法访问连载器会话。
+            // 此测试中的原始 reader/writer 操作不访问序列化器会话。
             var writer = Writer.Create(new PooledBuffer(), null!);
             writer.Write(randomData);
             writer.Commit();
@@ -135,7 +135,7 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// https://github.com/dotnet/orleans/issues/8503的回归测试
+        /// 针对 https://github.com/dotnet/orleans/issues/8503 的回归测试。
         /// </summary>
         [Fact]
         public void PooledBuffer_WriteTwice()
@@ -171,7 +171,7 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// 测试序列器能够正确序列 <see cref="PooledBuffer"/>。
+        /// 测试序列化器能否正确序列化 <see cref="PooledBuffer"/>。
         /// </summary>
         [Fact]
         public void PooledBuffer_SerializerRoundTrip()
@@ -186,7 +186,7 @@ namespace Orleans.Serialization.UnitTests
             {
                 const int TargetLength = 8120;
 
-                // 注:序列器负责释放向其提供的缓冲,所以我们不放出这个。
+                // 注意：序列化器负责释放传入的缓冲区，因此我们不释放它。
                 var buffer = new PooledBuffer();
                 while (buffer.Length < TargetLength)
                 {
@@ -205,13 +205,13 @@ namespace Orleans.Serialization.UnitTests
                 var resultBytes = result.ToArray();
                 Assert.Equal(bytes, resultBytes);
 
-                // 注:我们负责处置从消毒中返回的缓冲。
+                // 注意：我们负责释放反序列化返回的缓冲区。
                 result.Dispose();
             }
         }
 
         /// <summary>
-        /// 测试序列器嵌入另一个结构时, 序列器能够正确序列 <see cref="PooledBuffer"/> 。
+        /// 测试当 <see cref="PooledBuffer"/> 嵌入其他结构时，序列化器能否正确序列化它。
         /// </summary>
         [Fact]
         public void PooledBuffer_SerializerRoundTrip_Embedded()
@@ -226,7 +226,7 @@ namespace Orleans.Serialization.UnitTests
             {
                 const int TargetLength = 8120;
 
-                // 注:序列器负责释放向其提供的缓冲,所以我们不放出这个。
+                // 注意：序列化器负责释放传入的缓冲区，因此我们不释放它。
                 var buffer = new PooledBuffer();
                 while (buffer.Length < TargetLength)
                 {
@@ -249,7 +249,7 @@ namespace Orleans.Serialization.UnitTests
                 var resultBytes = resultBuffer.ToArray();
                 Assert.Equal(bytes, resultBytes);
 
-                // 注:我们负责处置从消毒中返回的缓冲。
+                // 注意：我们负责释放反序列化返回的缓冲区。
                 resultBuffer.Dispose();
             }
         }
@@ -274,26 +274,26 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// 确保 BufferSlice的 SpanEnumerator 和 MemoryEnumerator 正确处理跨越段界的非零抵消。
-        /// 当切片从一个段段的部位开始,跨多个段段时,此测试会为计数员练习偏移数学。
+        /// 确保 BufferSlice 的 SpanEnumerator 和 MemoryEnumerator 正确处理跨越段边界的非零偏移量。
+        /// 此测试验证切片从段内某处开始且跨越多个段时，枚举器的偏移量计算。
         /// </summary>
         [Fact]
         public void PooledBuffer_SliceEnumerators_OffsetCrossSegment_Correctness()
         {
-            // 排列: 写入足够数据以确保多个部分
+            // 准备：写入足够的数据以确保涉及多个段。
             var random = new Random(42);
             var buffer = new PooledBuffer();
-            int totalLength = 16 * 1024; // 16KB, 应横跨多个区段( 4KB 分钟段大小)
+            int totalLength = 16 * 1024; // 16 KB，应跨越多个段（最小段大小为 4 KB）。
             var data = new byte[totalLength];
             random.NextBytes(data);
             buffer.Write(data);
 
-            // 选择一个偏移和长度,跨段边界
-            int offset = 3500; // 未与段边界对齐
-            int length = 7000; // 跨越至少一个段边界
+            // 选择会跨越段边界的偏移量和长度。
+            int offset = 3500; // 未与段边界对齐。
+            int length = 7000; // 至少跨越一个段边界。
             var expected = data.AsSpan(offset, length).ToArray();
 
-            // 动作和发信人: SpanEnumerator
+            // 执行与断言：SpanEnumerator
             var slice = buffer.Slice(offset, length);
             var spanConcat = new byte[length];
             int spanPos = 0;
@@ -319,30 +319,30 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// 确保: BufferSlice's SpanEnumerator 和 MemoryEnumerator 运行数值表示器位置大于零的代码路径。
-        /// 实现这一点的方法是使用切片偏移法,至少跳过一个整段,因此,在生成数据之前,该查点器必须跳过段。
-        /// 测试证实,这些测量员返回了这种非零抵消的正确数据。
+        /// 确保 BufferSlice 的 SpanEnumerator 和 MemoryEnumerator 执行枚举器位置大于零的代码路径。
+        /// 为此使用会跳过至少一个完整段的切片偏移量，使枚举器必须先跳过若干段，再返回数据。
+        /// 此测试验证枚举器针对这类非零偏移量返回正确的数据。
         /// </summary>
         [Fact]
         public void PooledBuffer_SliceEnumerators_OffsetAfterFirstSegment_CoversPositionGreaterThanZero()
         {
-            // 此测试确保 BufferSlice 计数员在 _位置 > 0处运行分支
-            // 使用切片偏移,至少跳过一个整段。输出的正确性
-            // 校验偏移数学对非零位置正确。
+            // 此测试确保 BufferSlice 的枚举器执行 _position > 0 的分支，
+            // 为此使用会跳过至少一个完整段的切片偏移量。输出的正确性
+            // 证明 _position 非零时的偏移量计算是正确的。
             var random = new Random(123);
             var buffer = new PooledBuffer();
             int segmentSize = 4 * 1024; // MinimumBlockSize
-            int totalLength = segmentSize * 3; // 3个部分
+            int totalLength = segmentSize * 3; // 3 个段
             var data = new byte[totalLength];
             random.NextBytes(data);
             buffer.Write(data);
 
-            // 选择在第一部分之后的偏移
-            int offset = segmentSize + 123; // 移位到第二部分
-            int length = 1000; // 第二部分的任意长度
+            // 选择位于第一段之后的偏移量。
+            int offset = segmentSize + 123; // 进入第二段的偏移量。
+            int length = 1000; // 第二段内任意选定的长度。
             var expected = data.AsSpan(offset, length).ToArray();
 
-            // 动作和发信人: SpanEnumerator
+            // 执行与断言：SpanEnumerator
             var slice = buffer.Slice(offset, length);
             var spanConcat = new byte[length];
             int spanPos = 0;

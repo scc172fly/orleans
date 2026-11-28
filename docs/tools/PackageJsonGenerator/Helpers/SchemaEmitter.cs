@@ -1,5 +1,5 @@
-// 根据一项或多项协定获得 .NET 基金会许可证。
-// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Text;
 using System.Text.Encodings.Web;
@@ -8,9 +8,9 @@ using System.Text.Json;
 namespace PackageJsonGenerator.Helpers;
 
 /// <summary>
-/// 以装配的图案为迷 JSON 以定数的形式。
-/// 输出仅包含具有分析 docs 的公开类型/成员, 且
-/// 顺序排列,使两个相同的 API 表面总是产生相同的 JSON。
+/// 以确定性的格式输出程序集架构 JSON。
+/// 输出仅包含具有已解析文档的公开类型和成员，并按确定的顺序排列，
+/// 因此两个完全相同的 公开 API 集合始终生成相同的 JSON。
 /// </summary>
 internal static class SchemaEmitter
 {
@@ -46,7 +46,7 @@ internal static class SchemaEmitter
             }
             writer.WriteEndObject();
 
-            // 类型——确定性分类
+            // 类型：确定性排序
             writer.WriteStartArray("types");
 
             var sortedTypes = types
@@ -75,14 +75,14 @@ internal static class SchemaEmitter
         writer.WriteString("kind", type.Kind);
         writer.WriteString("accessibility", type.Accessibility);
 
-        // 布尔旗——只有在真实时才会发出
+        // 布尔标志：仅在为 true 时输出
         if (type.IsAbstract) writer.WriteBoolean("isAbstract", true);
         if (type.IsSealed) writer.WriteBoolean("isSealed", true);
         if (type.IsStatic) writer.WriteBoolean("isStatic", true);
         if (type.IsGeneric) writer.WriteBoolean("isGeneric", true);
         if (type.IsReadOnly) writer.WriteBoolean("isReadOnly", true);
 
-        // 通用参数
+        // 泛型参数
         if (type.GenericParameters is { Count: > 0 })
         {
             writer.WriteStartArray("genericParameters");
@@ -104,7 +104,7 @@ internal static class SchemaEmitter
             writer.WriteEndArray();
         }
 
-        // 基型
+        // 基类型
         if (type.BaseType is not null)
         {
             writer.WriteString("baseType", type.BaseType);
@@ -121,7 +121,7 @@ internal static class SchemaEmitter
             writer.WriteEndArray();
         }
 
-        // 封套类型——在这类类型上申报的公巢类型的全名。
+        // 嵌套类型：该类型声明的公开嵌套类型的完整名称。
         if (type.NestedTypes is { Count: > 0 })
         {
             writer.WriteStartArray("nestedTypes");
@@ -132,7 +132,7 @@ internal static class SchemaEmitter
             writer.WriteEndArray();
         }
 
-        // 代表签名
+        // 委托签名
         if (type.DelegateReturnType is not null)
         {
             writer.WriteString("delegateReturnType", type.DelegateReturnType);
@@ -165,14 +165,14 @@ internal static class SchemaEmitter
             writer.WriteEndArray();
         }
 
-        // Do doc 文档
+        // 文档
         if (type.Docs is not null)
         {
             writer.WritePropertyName("docs");
             EmitDocumentation(writer, type.Docs);
         }
 
-        // 成员
+        // 枚举成员
         if (type.EnumMembers is { Count: > 0 })
         {
             writer.WriteStartArray("enumMembers");
@@ -190,7 +190,7 @@ internal static class SchemaEmitter
             writer.WriteEndArray();
         }
 
-        // 属性
+        // 特性
         if (type.Attributes is { Count: > 0 })
         {
             writer.WriteStartArray("attributes");
@@ -201,7 +201,7 @@ internal static class SchemaEmitter
             writer.WriteEndArray();
         }
 
-        // 来源地点
+        // 源码位置
         if (type.SourceFile is not null)
         {
             writer.WriteString("sourceFile", type.SourceFile);
@@ -211,7 +211,7 @@ internal static class SchemaEmitter
             writer.WriteString("sourceLines", type.SourceLines);
         }
 
-        // 成员——确定分
+        // 成员：确定性排序
         writer.WriteStartArray("members");
         var sortedMembers = type.Members
             .OrderBy(m => m.Kind, StringComparer.Ordinal)
@@ -287,7 +287,7 @@ internal static class SchemaEmitter
             writer.WriteEndArray();
         }
 
-        // 通用参数
+        // 泛型参数
         if (member.GenericParameters is { Count: > 0 })
         {
             writer.WriteStartArray("genericParameters");
@@ -309,7 +309,7 @@ internal static class SchemaEmitter
             writer.WriteEndArray();
         }
 
-        // 属性
+        // 特性
         if (member.Attributes is { Count: > 0 })
         {
             writer.WriteStartArray("attributes");
@@ -320,14 +320,14 @@ internal static class SchemaEmitter
             writer.WriteEndArray();
         }
 
-        // Do doc 文档
+        // 文档
         if (member.Docs is not null)
         {
             writer.WritePropertyName("docs");
             EmitDocumentation(writer, member.Docs);
         }
 
-        // 来源地点
+        // 源码位置
         if (member.SourceFile is not null)
         {
             writer.WriteString("sourceFile", member.SourceFile);

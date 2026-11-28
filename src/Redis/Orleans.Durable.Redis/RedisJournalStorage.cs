@@ -392,7 +392,7 @@ internal sealed class RedisJournalStorage : IJournalStorage
     private readonly RedisJournalStorageOptions _options;
     private readonly JournalId _journalId;
     private readonly string _encodedJournalId;
-    // 读取或创建前不为空日记 。
+    // 读取或创建前为 null；日志不存在时为空字符串。
     private string? _contentETag;
     private long _appendLength;
 
@@ -451,7 +451,7 @@ internal sealed class RedisJournalStorage : IJournalStorage
         var state = CreateStorageState(result, startIndex: 1, nameof(CreateIfNotExistsAsync));
         if (status == SuccessStatus)
         {
-            // 创建日记是此实例的写作;找到已有日记使先决条件保持不变。
+            // 创建日志是此实例执行的写入；发现已有日志时则保持前置条件不变。
             SetState(state);
         }
 
@@ -601,7 +601,7 @@ internal sealed class RedisJournalStorage : IJournalStorage
         ClearState();
     }
 
-    // 写入脚本时会使用此实例所持有的内容 ETag, 或者空字符串来要求缺少日记 。
+    // 写入脚本接收此实例持有的内容 ETag，或者接收空字符串以要求日志不存在。
     private void ThrowIfWriteBeforeRead(string operation)
     {
         if (_contentETag is null)
@@ -618,8 +618,8 @@ internal sealed class RedisJournalStorage : IJournalStorage
 
     internal static RedisValue GetMetadataKeyPattern(string keyPrefix, string? journalIdPrefix = null)
     {
-        // 正交前缀可以通过替代配对结束一半。 放大扫描
-        // 情况,因为不完全对的脱钩与编码完整的字符不符。
+        // 按序数比较的前缀可能在代理项对的中间结束。在这种情况下应扩大扫描范围，
+        // 因为转义不完整的代理项对无法匹配已编码的完整字符。
         if (journalIdPrefix is { Length: > 0 } && char.IsHighSurrogate(journalIdPrefix[^1]))
         {
             journalIdPrefix = journalIdPrefix[..^1];
@@ -813,7 +813,7 @@ internal sealed class RedisJournalStorage : IJournalStorage
         _appendLength = appendLength;
     }
 
-    // 记录显示此事件显示日记不在。
+    // 记录此实例观察到日志不存在。
     private void ClearState()
     {
         _contentETag = string.Empty;
@@ -963,7 +963,7 @@ internal sealed class RedisJournalStorage : IJournalStorage
                 continue;
             }
 
-            // URI 逃跑控点为 Unicode 电路弧;%uXXXX 保存个人未受保护的UTF-16代码单位。
+            // URI 转义处理 Unicode 标量；%uXXXX 保留各个未配对的 UTF-16 代码单元。
             result ??= new StringBuilder();
             result.Append(Uri.EscapeDataString(value[start..index]));
             result.Append("%u").Append(((int)character).ToString("X4", CultureInfo.InvariantCulture));

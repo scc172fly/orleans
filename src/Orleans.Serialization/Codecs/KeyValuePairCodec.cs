@@ -10,9 +10,9 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="KeyValuePair{TKey, TValue}"/>的序列器。
+    /// <see cref="KeyValuePair{TKey, TValue}"/> 的序列化器。
     /// </summary>
-    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TKey">键类型。</typeparam>
     /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterSerializer]
     public sealed class KeyValuePairCodec<TKey, TValue> : IFieldCodec<KeyValuePair<TKey, TValue>>
@@ -25,8 +25,8 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="KeyValuePairCodec{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="keyCodec">密钥编码器。</param>
-        /// <param name="valueCodec">值代码。</param>
+        /// <param name="keyCodec">键编解码器。</param>
+        /// <param name="valueCodec">值编解码器。</param>
         public KeyValuePairCodec(IFieldCodec<TKey> keyCodec, IFieldCodec<TValue> valueCodec)
         {
             _keyCodec = OrleansGeneratedCodeHelper.UnwrapService(this, keyCodec);
@@ -85,9 +85,9 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="KeyValuePair{TKey, TValue}"/>的复印机。
+    /// <see cref="KeyValuePair{TKey, TValue}"/> 的复制器。
     /// </summary>
-    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TKey">键类型。</typeparam>
     /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterCopier]
     public sealed class KeyValuePairCopier<TKey, TValue> : IDeepCopier<KeyValuePair<TKey, TValue>>, IOptionalDeepCopier
@@ -99,8 +99,8 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="KeyValuePairCopier{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="keyCopier">钥匙复印机。</param>
-        /// <param name="valueCopier">价值复印机。</param>
+        /// <param name="keyCopier">键复制器。</param>
+        /// <param name="valueCopier">值复制器。</param>
         public KeyValuePairCopier(IDeepCopier<TKey> keyCopier, IDeepCopier<TValue> valueCopier)
         {
             _keyCopier = OrleansGeneratedCodeHelper.UnwrapService(this, keyCopier);

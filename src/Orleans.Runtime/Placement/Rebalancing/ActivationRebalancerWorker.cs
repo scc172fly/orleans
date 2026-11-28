@@ -16,7 +16,7 @@ using Orleans.Runtime.Diagnostics;
 
 namespace Orleans.Runtime.Placement.Rebalancing;
 
-// 见: https://www.ledjonbehluli.com/posts/orleans_adaptive_rebalancing/
+// 参见：https://www.ledjonbehluli.com/posts/orleans_adaptive_rebalancing/
 
 [KeepAlive, Immovable]
 internal sealed partial class ActivationRebalancerWorker(
@@ -40,19 +40,19 @@ internal sealed partial class ActivationRebalancerWorker(
     private enum StopReason
     {
         /// <summary>
-        /// 新的会话即将开始。
+        /// 即将开始新的会话。
         /// </summary>
         SessionStarting,
         /// <summary>
-        /// 本届会议停滞不前。
+        /// 当前会话已停滞。
         /// </summary>
         SessionStagnated,
         /// <summary>
-        /// 本届会议顺利结束, 直至结束
+        /// 当前会话已成功执行完毕。
         /// </summary>
         SessionCompleted,
         /// <summary>
-        /// 要求恢复平衡者暂停活动。
+        /// 再均衡器被要求暂停活动。
         /// </summary>
         RebalancerSuspended
     }
@@ -91,7 +91,7 @@ internal sealed partial class ActivationRebalancerWorker(
         _triggerTimer = this.RegisterGrainTimer(TriggerRebalancing, new()
         {
             Interleave = true,
-            Period = 0.5 * _options.SessionCyclePeriod, // 触发期为届会周期的一半。
+            Period = 0.5 * _options.SessionCyclePeriod, // 将触发周期设为会话循环周期的一半。
             DueTime = _options.RebalancerDueTime
         });
 
@@ -148,7 +148,7 @@ internal sealed partial class ActivationRebalancerWorker(
         GrainContext.Scheduler.QueueAction(() =>
         {
             _siloStatistics.Remove(silo);
-            _rebalancingStatistics.Remove(silo); // 删除已删除的 silo重新平衡数据。
+            _rebalancingStatistics.Remove(silo); // 该 Silo 已被移除，因此删除其再均衡统计信息。
         });
     }
 
@@ -281,7 +281,7 @@ internal sealed partial class ActivationRebalancerWorker(
 
         if (entropyDeviation < allowedDeviation)
         {
-            // 偏离最大值实际上被认为是“0” i.e:我们已经达到了最高值。
+            // 与最大值的偏差实际上被视为 0，即已达到最大值。
             LogMaxEntropyDeviationReached(entropyDeviation, currentEntropy, maximumEntropy, allowedDeviation);
             cycleStopwatch.Stop();
             ActivationRebalancerEvents.EmitCycleStop(localSiloDetails.SiloAddress, cycleNumber, activationsMigrated, entropyDeviation, cycleStopwatch.Elapsed, sessionCompleted: true);
@@ -290,20 +290,20 @@ internal sealed partial class ActivationRebalancerWorker(
             return;
         }
 
-        // 我们使用正常化的绝对星球变化,因为更有助于了解
-        // 相对于最大可能值而言,变化比最大可能值大。接近1值的数值比接近0值的值要重要得多。
-        // 由于最大引温是该组群大小自然日志的函数,因此这一值在变化时非常坚固
-        // 组内 silo 编号。
+        // 使用归一化的熵变化绝对值，因为它更便于理解
+        // 变化相对于最大可能变化的显著程度。越接近 1 的值表示变化越显著，越接近 0 则相反。
+        // 最大熵是集群规模自然对数的函数，因此该值对集群内
+        // Silo 数量的变化具有很强的稳健性。
 
         var entropyChange = Math.Abs((currentEntropy - _previousEntropy) / maximumEntropy);
         Debug.Assert(entropyChange is >= 0 and <= 1);
 
         if (entropyChange < _options.EntropyQuantum)
         {
-            // 宇宙变化太低,不能认为是改进,我们有可能达到最大程度,或系统
-            // 变化动态太快 i.e。正在以高速度创建新的启动,分布不平衡;
-            // 事实上,如果目前的 微小的 微小的 微小的 微小的 微小的 微小的 微小的 微小的 微小的 微小的 微小的
-            // 与前一个周期相比,由于本周期和上一个周期发生许多启动变化。
+            // 熵变化过小，无法视为改进。这可能表示即将达到最大值，或者系统
+            // 动态变化太快，例如新激活实例高速创建且分布不均衡；
+            // 此时需要开始“冷却”。事实上，如果当前熵小于上一轮，熵变化也可能为负，
+            // 这是因为本轮与上一轮期间发生了大量激活实例变化。
 
             LogInsufficientEntropyQuantum(entropyChange, _options.EntropyQuantum);
 
@@ -572,7 +572,7 @@ internal sealed partial class ActivationRebalancerWorker(
         var suspendUntil = now + (long)(Runtime.TimeProvider.TimestampFrequency * duration.TotalSeconds);
         if (suspendUntil < now)
         {
-            // 顶值的夹板溢出
+            // 发生溢出时，将值限制为最大值。
             suspendUntil = long.MaxValue;
         }
 

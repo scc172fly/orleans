@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.Tests
 {
     /// <summary>
-    /// 使用模拟储存进行交易与扭曲时钟情景一致的测试。
+    /// 测试使用内存存储时存在时钟偏差场景下的事务一致性。
     /// </summary>
     [TestCategory("Transactions-dev")]
     [TestSuite("Nightly")]

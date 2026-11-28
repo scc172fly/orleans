@@ -5,7 +5,7 @@ using Xunit;
 namespace DefaultCluster.Tests
 {
     /// <summary>
-    /// 测试复杂类型,包括价值类型和与定制活性者进行的价值类型和类型的深度复制和序列化圆环行程。
+    /// 测试复杂类型的深拷贝与序列化往返，包括值类型以及具有自定义激活器的类型。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]

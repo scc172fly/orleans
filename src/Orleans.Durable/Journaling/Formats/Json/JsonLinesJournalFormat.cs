@@ -6,12 +6,12 @@ using Orleans.Serialization.Buffers;
 namespace Orleans.Durable.Journaling.Json;
 
 /// <summary>
-/// 将日记条目编码为 UTF-8 JSON 行,并按顺序重放完整记录。
+/// 将日志条目编码为 UTF-8 JSON Lines，并按顺序重放完整记录。
 /// </summary>
 public sealed class JsonLinesJournalFormat : IJournalFormat
 {
     /// <summary>
-    /// JSON 行日记格式的著名密钥 。
+    /// JSON Lines 日志格式的已知键。
     /// </summary>
     public const string JournalFormatKey = "json";
 
@@ -60,7 +60,7 @@ public sealed class JsonLinesJournalFormat : IJournalFormat
         }
 
         var lineOffset = offset;
-        // TryReadTo所消耗的划界器(LF)账户。
+        // 将 TryReadTo 消耗的分隔符（LF）计入。
         offset += lineBuffer.Length + 1;
 
         using (lineBuffer)

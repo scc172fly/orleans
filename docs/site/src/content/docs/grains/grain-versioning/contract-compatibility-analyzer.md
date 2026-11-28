@@ -1,17 +1,17 @@
 ---
-title: "Orleans 合同兼容性分析器"
-description: "轨道 grain RPC合同在开发期间,目的是确定可打破滚动升级的变更。"
+title: Orleans 契约兼容性分析器
+description: 在开发期间跟踪 Grain RPC 契约，识别可能破坏滚动升级的变更。
 ms.date: 08/28/2026
 ms.topic: concept-article
 ---
 
 <a id="orleans-contract-compatibility-analyzer"></a>
 
-# Orleans 合同兼容性分析器
+# Orleans 契约兼容性分析器
 
-Orleans 合同兼容性分析器将项目中的 grain 接口和混凝土 grain 类与验入合同清单进行比较,帮助审评员确定RPC身份和签名的更改,从而打破滚动升级。
+Orleans 契约兼容性分析器将项目中的 Grain 接口和具体 Grain 类与已纳入版本控制的契约清单进行比较，帮助审查人员识别可能破坏滚动升级的 RPC 标识和签名变更。
 
-分析师是 **默认禁用**。在工程文件或共享文件中明确启用它 `Directory.Build.props`:
+分析器**默认禁用**。请在项目文件或共享的 `Directory.Build.props` 中显式启用：
 
 ```xml
 <PropertyGroup>
@@ -19,24 +19,24 @@ Orleans 合同兼容性分析器将项目中的 grain 接口和混凝土 grain �
 </PropertyGroup>
 ```
 
-使用 `Microsoft.Orleans.Sdk`、 `Microsoft.Orleans.Client`或 `Microsoft.Orleans.Server` 的项目已经通过这些包接收了 Orleans 分析器。直接引用 `Microsoft.Orleans.Analyzers` 的项目可以直接使用同一财产。将这种财产的范围扩大到拥有 Orleans 合同的项目。在大型存储库中,在这些项目中或在子树的共享道具文件中设置,而不是允许在仓库根上进行合同分析。
+使用 `Microsoft.Orleans.Sdk`、`Microsoft.Orleans.Client` 或 `Microsoft.Orleans.Server` 的项目已通过这些包获得 Orleans 分析器。直接引用 `Microsoft.Orleans.Analyzers` 的项目也可以使用相同的属性。应将此属性的作用范围限制在拥有 Orleans 契约的项目。在大型仓库中，请在这些项目内或其子目录树的共享 props 文件中设置，而不是在整个仓库的根目录启用契约分析。
 
-为促进每一项合同诊断,设计标准 `Versioning` 类别:
+若要提升所有契约诊断的严重级别，请配置标准的 `Versioning` 类别：
 
 ```ini
 [*.cs]
 dotnet_analyzer_diagnostic.category-Versioning.severity = error
 ```
 
-也促进信息诊断,例如: `ORLEANS0020`配置 `dotnet_diagnostic.ORLEANS####.severity` 而不是只当只选择了合同诊断, 就会改变其严重程度时 。
+这也会提升诸如 `ORLEANS0020` 之类的信息级别诊断的严重级别。如果只需要改变指定契约诊断的严重级别，请改为配置对应的 `dotnet_diagnostic.ORLEANS####.severity` 条目。
 
 <a id="configure-the-manifest-path"></a>
 
-## 配置表列路径
+## 配置清单路径
 
-默认情况下, 分析器在工程文件旁边跟踪 `OrleansContracts.txt` 。 在 IDEs 和 `dotnet format`所使用的设计- 时间构建期间, 分析器软件包将配置的路径登记为文件存在之前的编译器 `AdditionalFile` , 允许重新创建它。 常规建构程序注册现有的单并报告 `ORLEANS0020` , 当配置的列表不存在时。 没有明确的 `AdditionalFiles` 项目或种子文件需要 。
+默认情况下，分析器跟踪项目文件同目录下的 `OrleansContracts.txt`。在 IDE 和 `dotnet format` 使用的设计时生成过程中，分析器包会在文件尚不存在时，将配置的路径注册为编译器的 `AdditionalFile`，以便重新生成操作创建该文件。常规生成会注册已有的清单，并在配置的清单缺失时报告 `ORLEANS0020`。无需显式添加 `AdditionalFiles` 项或预置文件。
 
-设置 `OrleansContractsPath` 使用其它位置或文件名:
+设置 `OrleansContractsPath` 可使用其他位置或文件名：
 
 ```xml
 <PropertyGroup>
@@ -45,59 +45,59 @@ dotnet_analyzer_diagnostic.category-Versioning.severity = error
 </PropertyGroup>
 ```
 
-也可以在 `Directory.Build.props` 中设定路径以适用存储器公约。每个项目都需要自己的显示,因为分析师对编入该项目的合同进行评估。
+也可以在 `Directory.Build.props` 中设置路径，以应用仓库约定。每个项目都需要自己的清单，因为分析器评估的是编译到该项目中的契约。
 
 <a id="create-and-update-the-manifest"></a>
 
-## 创建并更新舱单
+## 创建和更新清单
 
-在选择加入后, 构建工程。 如果没有显示数据, 诊断 `ORLEANS0020` 在第一个合同声明时识别缺失的文件。 请应用 **Revenerate OrleansContracts.txt** 为项目创建并填充列表 。
+启用分析器后，生成项目。如果清单不存在，诊断 `ORLEANS0020` 会在第一个契约声明处指出缺失的文件。应用 **Regenerate OrleansContracts.txt**（重新生成 OrleansContracts.txt）代码修复，为项目创建并填充清单。
 
-更新代码修正重建了项目汇编中每个活动界面、方法和 grain- 类条目。它保留现有的 `*RETIRED*` 条目和标记声明,这些声明不再来源于退役时。生成的页眉、行尾和正序输入顺序是决定性的。
+重新生成代码修复根据项目编译结果重建所有现用接口、方法和 Grain 类条目。它保留现有的 `*RETIRED*` 条目，并将源代码中已不存在的声明标记为退役。生成的文件头、换行符及按序数比较的条目顺序都是确定性的。
 
 <a id="regenerate-the-manifest"></a>
 
-### 重新上报货单
+### 重新生成清单
 
-应用 **重新恢复 OrleansContracts.txt** 调自 `ORLEANS0016`, `ORLEANS0017`, `ORLEANS0018`, `ORLEANS0019`, `ORLEANS0020`, `ORLEANS0022`, `ORLEANS0023`,或 `ORLEANS0024`。一个应用程序将整个项目清单重新再生。在 IDE 中,使用 **修复工程中的全部**.
+通过 `ORLEANS0016`、`ORLEANS0017`、`ORLEANS0018`、`ORLEANS0019`、`ORLEANS0020`、`ORLEANS0022`、`ORLEANS0023` 或 `ORLEANS0024` 应用 **Regenerate OrleansContracts.txt** 代码修复。执行一次即可重新生成整个项目的清单。在 IDE 中，可使用 **Fix all in project**（修复项目中的所有问题）。
 
-`ORLEANS0027` 有意保留删除的方法签名, 因此不会为该诊断提供再生。 如果这是剩下的唯一诊断, 在审查和接受线兼容性断开符后恢复源法或明确删除留存的签名 。
+`ORLEANS0027` 有意保留已删除的方法签名，因此不为该诊断提供重新生成操作。如果这是唯一剩余的诊断，请恢复源代码中的方法，或在审查并接受传输协议兼容性破坏后，显式删除保留的签名。
 
-代理和命令行工作流程可在没有 IDE 的情况下重新生成 :
+编码代理和命令行工作流无需 IDE 即可重新生成清单：
 
 ```dotnetcli
 dotnet format PATH_TO_PROJECT.csproj analyzers --severity info --diagnostics ORLEANS0016 ORLEANS0017 ORLEANS0018 ORLEANS0019 ORLEANS0020 ORLEANS0022 ORLEANS0023 ORLEANS0024
 ```
 
-从仓库 root 运行命令。 替换 `PATH_TO_PROJECT.csproj` , 以拥有的工程路径来再生一个显示器。 `--severity info` 选项包括 `ORLEANS0020`, 允许命令创建默认的列表或配置的 `OrleansContractsPath`, 包括其父目录 。
+在仓库根目录运行命令。将 `PATH_TO_PROJECT.csproj` 替换为拥有该契约清单的项目路径，以重新生成一个清单。`--severity info` 选项包含 `ORLEANS0020`，使该命令可以创建默认清单或在配置的 `OrleansContractsPath` 处创建清单（包括其父目录）。
 
-每个拥有 Orleans 合同单的项目都运行一次命令。 不要通过一个 `.sln` 或 `.slnx` 路径: `dotnet format` 在应用“全部修复”之前分析完整的解决方案, 它可以在大型仓库中花费大量时间和内存。 自动可使用连接平行的每个合同项目的项目命令 。
+对每个拥有 Orleans 契约清单的项目分别运行一次命令。不要传入 `.sln` 或 `.slnx` 路径：`dotnet format` 在应用 Fix All（全部修复）前会分析整个解决方案，这在大型仓库中可能消耗大量时间和内存。自动化可以采用有界并发，为每个契约项目调用该项目级命令。
 
-仅重置 `OrleansContracts.txt` 文件。源 `[Alias]`、 `[Id]`、 `[GrainType]`和 `[GrainInterfaceType]` 属性保持不变。
+重新生成仅编辑 `OrleansContracts.txt` 文件。源代码中的 `[Alias]`、`[Id]`、`[GrainType]` 和 `[GrainInterfaceType]` 特性保持不变。
 
-每条方法线都将有效的电线身份置于结肠前,其次是CLR方法的名称和签名。 `[Id]` 值, 源值 `[Alias]` 或生成的值 xxHash32 方法的标识 Orleans 代码生成器。 稳定身份首先显示, 所以 diffs 中合同破碎更改显着, 而仅使用 CLR 的重命名保留相同的前置值 。
+每个方法行将实际使用的传输标识放在冒号前，随后是 CLR 方法名称和签名。该标识是源代码中的 `[Id]` 值、`[Alias]` 值，或 Orleans 代码生成器已使用的、通过 xxHash32 生成的方法 ID。稳定标识位于最前面，使破坏契约的变更在差异中清晰可见，而仅修改 CLR 名称的重命名操作会保持行首的值不变。
 
-命令完成后:
+命令完成后：
 
-1. 检查 `git diff -- "*OrleansContracts.txt"` ,并记录每一个改变的身份、版本和方法签名。
-2. 保存所有 `*RETIRED*` 声明并保留除去方法签名,除非相容断开是故意的。
-3. 运行 `dotnet build PATH_TO_PROJECT.csproj` 并解决所有 Orleans 合同诊断。 `ORLEANS0027` 留待已删除的方法恢复或经兼容性审查后明确删除其保留签名。
+1. 检查 `git diff -- "*OrleansContracts.txt"`，确认每项标识、版本和方法签名变更的原因。
+2. 除非有意破坏兼容性，否则保留所有 `*RETIRED*` 声明及已删除方法的保留签名。
+3. 运行 `dotnet build PATH_TO_PROJECT.csproj` 并解决所有 Orleans 契约诊断。`ORLEANS0027` 会一直存在，直到恢复已删除的方法，或在兼容性审查后显式删除其保留签名。
 
-添加生成的文件来源控制, 在承诺前先审查它 diff 。 将每条更改的合同线视为潜在的电线兼容性变化 :
+将生成的文件纳入源代码管理，并在提交前审查其差异。将每一条发生变化的契约行视为潜在的传输协议兼容性变更：
 
-- 更改的 `GrainInterfaceType`、 `GrainType`、方法标识、参数类型或返回类型改变有线识别或签名。
-- 去除源合同成为 `*RETIRED*`,保留其身份历史并防止意外再利用。
-- 去除的辐射常动计分法仍留在舱单中,报告 `ORLEANS0027` 直到恢复该方法或取消保留签字明确接受断线。
-- `[Version]` 更改影响版本意识路径,必须与滚动升级设计保持一致。
-- 更改的CLR方法名称,身份记录不变,是反因,而 Orleans 有线合同保持稳定。
+- `GrainInterfaceType`、`GrainType`、方法标识、参数类型或返回类型的变更会改变传输标识或签名。
+- 从源代码中删除的契约变为 `*RETIRED*`，以保留标识历史并防止意外重用。
+- 删除的 RPC 方法仍保留在清单中，并报告 `ORLEANS0027`，直到恢复该方法，或通过删除保留签名明确接受传输协议兼容性破坏。
+- `[Version]` 的变更会影响感知版本的路由，必须与滚动升级设计保持一致。
+- CLR 方法名称改变而标识不变时，清单记录了此次重构，而 Orleans 传输契约仍保持稳定。
 
-编码代理人应重新生成清单而不是手动编辑活动条目,保留已退休的历史,并解释修改说明中每项合同的兼容性影响。
+编码代理应重新生成清单而不是手动编辑现用条目，应保留退役历史，并在变更说明中解释每项契约差异对兼容性的影响。
 
 <a id="manifest-format"></a>
 
-## 格式表格式
+## 清单格式
 
-界面方法缩进到接口下面:
+接口方法缩进列在对应接口声明下：
 
 ```text
 # This file is generated by the Orleans contract analyzer.
@@ -119,9 +119,9 @@ interface [GrainInterfaceType("Contoso.Grains.ICartGrain")] Contoso.Grains.ICart
 class [GrainType("cart")] Contoso.Grains.CartGrain
 ```
 
-每项声明都包含其 Orleans 身份和CLR类型名称。更改 Orleans 身份的一条数据会改变电线合同。只修改 CLR类型名称的一条数据保留了明确的 Orleans 身份。
+每项声明同时包含 Orleans 标识和 CLR 类型名称。改变 Orleans 标识的差异会改变传输契约。仅改变 CLR 类型名称的差异会保留显式 Orleans 标识。
 
-与CLR名称并列的外在身份仍然可见:
+显式标识与其 CLR 名称一同显示：
 
 ```text
 # Contoso.Grains.ICartGrain
@@ -132,13 +132,13 @@ interface [GrainInterfaceType("cart")] Contoso.Grains.ICartGrain [Version(1)]
 class [GrainType("cart")] Contoso.Grains.CartGrain
 ```
 
-结号前的值是有效运行时间身份。源 `[Id(42)]`、源 `[Alias("42")]`和生成的方法编号 `42` 描述相同的线性身份。通过 `42:` 得出并保持源出源源代码中的源代码的表单记录。别名中语法敏感字符是反斜线(后斜线)
+冒号前的值是运行时实际使用的标识。源代码中的 `[Id(42)]`、`[Alias("42")]` 和生成的方法 ID `42` 表示相同的传输标识。清单将该结果记录为 `42:`，并在源代码中保留标识的来源。别名中具有语法特殊含义的字符使用反斜杠转义。
 
-Grain 接口身份是逐字记录。源 <xref:Orleans.Runtime.GrainInterfaceTypeAttribute>、 <xref:Orleans.GrainTypeAttribute>和 <xref:Orleans.AliasAttribute> 的数值必须是非空值,不包含报价、白空间、控制字符或保留类型名称分隔符(`[](),*&`)。 [`ORLEANS0028`](../../diagnostics/orleans0028.md) 报告汇编期间无效值,在运行时属性构建和配置的型名登记验证同一合同。
+Grain 接口标识按原文记录。源代码中 <xref:Orleans.Runtime.GrainInterfaceTypeAttribute>、<xref:Orleans.GrainTypeAttribute> 和 <xref:Orleans.AliasAttribute> 的值必须非空，且不得包含引号、空白字符、控制字符或保留的类型名称分隔符（`[](),*&`）。[`ORLEANS0028`](../../diagnostics/orleans0028.md) 在编译期间报告无效值，而特性构造和已配置的类型别名注册会在运行时验证相同的契约。
 
-通用数后缀使用回溯图,然后是ASCII在每个嵌套型号名称结尾的十进制位数,总计最多64个。 [迁移 Orleans 合同身份](../../migration/contract-identities.md) 基准和持续性提高程序。
+泛型元数后缀在每个嵌套类型名称的末尾使用一个反引号后接 ASCII 十进制数字，元数总和最多为 64。有关基准清单和持久化别名升级流程，请参阅[迁移 Orleans 契约标识](../../migration/contract-identities.md)。
 
-`*RETIRED*` 表示故意取消的合同:
+`*RETIRED*` 标记有意删除的契约：
 
 ```text
 *RETIRED* interface [GrainInterfaceType("Contoso.Grains.ILegacyGrain")] Contoso.Grains.ILegacyGrain [Version(0)]
@@ -146,47 +146,47 @@ Grain 接口身份是逐字记录。源 <xref:Orleans.Runtime.GrainInterfaceType
 *RETIRED* class [GrainType("legacy")] Contoso.Grains.LegacyGrain
 ```
 
-退役条目保留合同历史,防止被删除的身份被无意再利用。
+退役条目保留契约历史，防止被删除的标识被意外重用。
 
 <a id="refactor-safe-identities"></a>
 
-## 重构件安全身份
+## 不受重构影响的标识
 
-分析器在 CLR 名称之前使用 Orleans 身份:
+分析器优先使用 Orleans 标识，其次使用 CLR 名称：
 
-- <xref:Orleans.GrainTypeAttribute> identifies grain classes.
-- <xref:Orleans.Runtime.GrainInterfaceTypeAttribute> identifies grain interfaces. Without it, the interface's <xref:Orleans.AliasAttribute>, or an alias on a containing type, replaces the CLR type name, matching the identity Orleans resolves at runtime.
-- <xref:Orleans.IdAttribute> or <xref:Orleans.AliasAttribute> identifies grain methods.
-- <xref:Orleans.AliasAttribute> identifies serialized parameter and return types.
+- <xref:Orleans.GrainTypeAttribute> 标识 Grain 类。
+- <xref:Orleans.Runtime.GrainInterfaceTypeAttribute> 标识 Grain 接口。如果没有该特性，接口的 <xref:Orleans.AliasAttribute> 或包含该接口的类型上的别名会取代 CLR 类型名称，与 Orleans 在运行时解析的标识一致。
+- <xref:Orleans.IdAttribute> 或 <xref:Orleans.AliasAttribute> 标识 Grain 方法。
+- <xref:Orleans.AliasAttribute> 标识序列化的参数类型和返回类型。
 
-当这些身份保持不变时,在保留线性身份的同时可以重新命名一个 CLR 类、 界面、 方法、 参数或别名数据类型。 更改 Orleans 身份后产生合同差异和诊断。
+当这些标识保持不变时，可以重命名 CLR 类、接口、方法、参数或具有别名的数据类型，同时保留传输标识。改变 Orleans 标识会产生契约差异及诊断。
 
-没有明确稳定的身份, Orleans 从CLR型名中得出身份,因此重新命名CLR型名改变衍生身份和合同。
+如果没有显式的稳定标识，Orleans 会根据 CLR 类型名称派生标识。因此，重命名 CLR 类型会改变派生出的标识及契约。
 
 <a id="diagnostics"></a>
 
 ## 诊断
 
-| 诊断 | 默认严重性 | 意义的含义含义 |
+| 诊断 | 默认严重级别 | 含义 |
 | --- | --- | --- |
-| [`ORLEANS0016`](../../diagnostics/orleans0016.md) | 警告 | grain 接口没有主动的表单声明。 |
-| [`ORLEANS0017`](../../diagnostics/orleans0017.md) | 警告 | 界面版本与舱面表不同。 |
-| [`ORLEANS0018`](../../diagnostics/orleans0018.md) | 警告 | RPC方法的签名没有申报 |
-| [`ORLEANS0019`](../../diagnostics/orleans0019.md) | 警告 | 移除的接口没有标记 `*RETIRED*`。 |
-| [`ORLEANS0020`](../../diagnostics/orleans0020.md) | 信息信息 | 被选入的项目没有明显的清单。 |
-| [`ORLEANS0021`](../../diagnostics/orleans0021.md) | 警告 | 接口被多次声明。 |
-| [`ORLEANS0022`](../../diagnostics/orleans0022.md) | 警告 | 混凝土 grain 类没有主动声明。 |
-| [`ORLEANS0023`](../../diagnostics/orleans0023.md) | 警告 | A grain 类身份与舱单不同。 |
-| [`ORLEANS0024`](../../diagnostics/orleans0024.md) | 警告 | 被删除的 grain 类没有标记 `*RETIRED*`。 |
-| [`ORLEANS0025`](../../diagnostics/orleans0025.md) | 警告 | grain 类被多次申报。 |
-| [`ORLEANS0027`](../../diagnostics/orleans0027.md) | 警告 | 辐射常委会方法在从源头移除后仍留在清单中。 |
+| [`ORLEANS0016`](../../diagnostics/orleans0016.md) | 警告 | Grain 接口没有现用的清单声明。 |
+| [`ORLEANS0017`](../../diagnostics/orleans0017.md) | 警告 | 接口版本与清单不同。 |
+| [`ORLEANS0018`](../../diagnostics/orleans0018.md) | 警告 | RPC 方法签名未声明。 |
+| [`ORLEANS0019`](../../diagnostics/orleans0019.md) | 警告 | 已删除的接口未标记为 `*RETIRED*`。 |
+| [`ORLEANS0020`](../../diagnostics/orleans0020.md) | 信息 | 已启用分析器的项目没有清单。 |
+| [`ORLEANS0021`](../../diagnostics/orleans0021.md) | 警告 | 接口被重复声明。 |
+| [`ORLEANS0022`](../../diagnostics/orleans0022.md) | 警告 | 具体 Grain 类没有现用声明。 |
+| [`ORLEANS0023`](../../diagnostics/orleans0023.md) | 警告 | Grain 类标识与清单不同。 |
+| [`ORLEANS0024`](../../diagnostics/orleans0024.md) | 警告 | 已删除的 Grain 类未标记为 `*RETIRED*`。 |
+| [`ORLEANS0025`](../../diagnostics/orleans0025.md) | 警告 | Grain 类被重复声明。 |
+| [`ORLEANS0027`](../../diagnostics/orleans0027.md) | 警告 | RPC 方法已从源代码删除，但仍保留在清单中。 |
 
-标准 `.editorconfig` 诊断配置可以改变这些分界线。 更倾向于固定合同漂移,而不是抑制诊断。
+标准的 `.editorconfig` 诊断配置可以修改这些严重级别。应优先修复契约漂移，而不是抑制诊断。
 
 <a id="scope"></a>
 
-## 范围范围范围
+## 范围
 
-分析器跟踪 RPC 界面签名、 数字界面版本和混凝土 grain 类身份。 行为兼容性和州体系需要使用 [后向兼容性准则](backward-compatibility-guidelines.md) 和混合版部署测试进行单独审查。
+分析器跟踪 RPC 接口签名、数值型接口版本和具体 Grain 类标识。行为兼容性和持久化状态架构需要根据[向后兼容性指南](backward-compatibility-guidelines.md)及混合版本部署测试另行审查。
 
-身份分析使用源属性和 CLR 命名惯例。 在运行时, 配置的 <xref:Orleans.Runtime.IGrainInterfaceTypeProvider> 登记优先于命名惯例, 配置的别名也参与类型格式的制作。 以 <xref:Orleans.Metadata.GrainInterfaceTypeResolver.GetGrainInterfaceType*>验证应用程序特定的身份配置 。
+标识分析使用源代码特性和 CLR 命名约定。在运行时，已配置的 <xref:Orleans.Runtime.IGrainInterfaceTypeProvider> 注册优先于命名约定，已配置的类型别名也参与类型格式化。使用 <xref:Orleans.Metadata.GrainInterfaceTypeResolver.GetGrainInterfaceType*> 验证应用程序特定的标识配置。

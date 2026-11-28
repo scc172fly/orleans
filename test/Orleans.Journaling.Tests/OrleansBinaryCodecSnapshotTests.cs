@@ -8,25 +8,25 @@ using static VerifyXunit.Verifier;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// 将 OrleansBinary 由
-/// <c>OrleansBinary*CommandCodec</c> 之下的 <see cref="Orleans.Durable.Journaling"/>履行情况。
+/// 用于固定 OrleansBinary 磁盘存储传输格式的快照测试，该格式由以下实现生成：
+/// <c>OrleansBinary*CommandCodec</c>（位于 <see cref="Orleans.Durable.Journaling"/> 下）。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 这些测试防止意外的 OrleansBinary 电线格式变化。
-/// 通过 Orleans <c>IFieldCodec</c> 路径,匹配遗留值编码
-/// 缩放框由快照字节定住。
+/// 这些测试防止 OrleansBinary 传输格式意外变更。每条命令都通过
+/// Orleans 的 <c>IFieldCodec</c> 路径写入操作数，与旧版值编码一致，而
+/// 条目帧结构由快照中的字节固定下来。
 /// </para>
 /// <para>
-/// 由于此分支将默认日记格式从 OrleansBinary 翻转到 JSONL, 以下测试
-/// 明确构建 <see cref="OrleansBinaryJournalFormat"/>/<see cref="OrleansBinaryJournalBufferWriter"/>
-/// 选择进入二进制路径。每个方案:
-/// 1. 通过实际编码将单一操作写入二元集,
-/// 2. 圆形通过 <see cref="OrleansBinaryJournalFormat"/> 对照记录
-///    状态以证明字节仍然分析并应用,然后
-/// 3. 通过 Verify.Xunit (文件)将可读人类拆卸的碎片切换到
-///    <c>snapshots/&lt;TestName&gt;.verified.txt</c>)每条简快的首行是字节
-///    HEX基线——任何线-格式的漂移都无法在单行上进行。
+/// 由于此分支将默认日志格式从 OrleansBinary 切换为 JSONL，以下测试
+/// 显式构造 <see cref="OrleansBinaryJournalFormat"/>/<see cref="OrleansBinaryJournalBufferWriter"/>
+/// 以选择二进制路径。每个场景都会：
+/// 1. 通过真实编解码器将单个操作写入二进制批次，
+/// 2. 通过 <see cref="OrleansBinaryJournalFormat"/> 对生成的字节进行往返验证，使用记录型
+///    状态证明这些字节仍可解析并应用，然后
+/// 3. 通过 Verify.Xunit 对易读的反汇编结果生成快照（文件
+///    <c>snapshots/&lt;TestName&gt;.verified.txt</c>）。每个快照的首行都是字节级
+///    HEX 基准，传输格式的任何偏差都会使这一行的校验失败。
 /// </para>
 /// </remarks>
 [TestSuite("BVT")]
@@ -50,7 +50,7 @@ public sealed class OrleansBinaryCodecSnapshotTests : JournalingTestBase
         Tag = new JournalingSnapshotRecordTag { Label = "alt-tag", Code = 17 },
     };
 
-    // 字典 -- - - - - - - -
+    // --- 字典 ----------------------------------------------------------------------------
 
     [Fact]
     public Task Dictionary_Set_Primitives() =>
@@ -129,7 +129,7 @@ public sealed class OrleansBinaryCodecSnapshotTests : JournalingTestBase
             ["set:alpha:1", "set:beta:2", "remove:alpha", "set:gamma:3"]);
     }
 
-    // - 单... - - - - - - - - - - - - - - - - -
+    // --- 列表 ----------------------------------------------------------------------------------
 
     [Fact]
     public Task List_Add_Primitives() =>
@@ -234,7 +234,7 @@ public sealed class OrleansBinaryCodecSnapshotTests : JournalingTestBase
             ["add:one", "add:two", "set:1:updated", "insert:0:head", "remove:2", "reset:2", "add:alpha", "add:beta"]);
     }
 
-    // --- Queue ---------------------------------------------------------------------------------
+    // --- 队列 ---------------------------------------------------------------------------------
 
     [Fact]
     public Task Queue_Enqueue_Primitives() =>
@@ -313,7 +313,7 @@ public sealed class OrleansBinaryCodecSnapshotTests : JournalingTestBase
             ["enqueue:10", "enqueue:20", "dequeue", "reset:2", "enqueue:30", "enqueue:40"]);
     }
 
-    // - 设定...
+    // --- 集合 -----------------------------------------------------------------------------------
 
     [Fact]
     public Task Set_Add_Primitives() =>
@@ -392,7 +392,7 @@ public sealed class OrleansBinaryCodecSnapshotTests : JournalingTestBase
             ["add:alpha", "add:beta", "remove:alpha", "reset:2", "add:beta", "add:gamma"]);
     }
 
-    // 价值... ... - - - - - - - - -
+    // --- 值 ---------------------------------------------------------------------------------
 
     [Fact]
     public Task Value_Set_Primitives()
@@ -418,7 +418,7 @@ public sealed class OrleansBinaryCodecSnapshotTests : JournalingTestBase
             () => Assert.Equal(SampleRecord, state.Value));
     }
 
-    // 国家... .. - - - - -
+    // --- 状态 ---------------------------------------------------------------------------------
 
     [Fact]
     public Task State_Set_Primitives() =>
@@ -494,7 +494,7 @@ public sealed class OrleansBinaryCodecSnapshotTests : JournalingTestBase
             (codec, writer) => codec.WriteCanceled(writer),
             ["canceled"]);
 
-    // --- Log -----------------------------------------------------------------------------------
+    // --- 日志 -----------------------------------------------------------------------------------
 
     private static readonly LogDraftId SnapshotDraftId = new(Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"), 3);
 
@@ -552,13 +552,13 @@ public sealed class OrleansBinaryCodecSnapshotTests : JournalingTestBase
             (codec, writer) => codec.WriteSnapshot(0, 0, 0, isSealed: false, [], [], writer),
             ["snapshot:0:0:0:0"]);
 
-    // - 交叉... - - - - - - - - - - - - - - - - - - - - -
+    // --- 共通行为 -------------------------------------------------------------------------
 
     [Fact]
     public Task EmptyBatch()
     {
-        // 没有写入的 $% 执行缓冲操作是空字节序列。 插入空批次
-        // 形状在 OrleansBinaryJournalBufferWriter中捕捉意外“总是会发出页眉”回归。
+        // 未写入任何操作 → 已提交的缓冲区是空字节序列。固定空批次的
+        // 格式，以发现 OrleansBinaryJournalBufferWriter 中意外出现的“始终输出头部”回归问题。
         using var batch = new OrleansBinaryJournalBufferWriter();
         var bytes = SnapshotBytes(batch);
         Assert.Empty(bytes);
@@ -568,9 +568,9 @@ public sealed class OrleansBinaryCodecSnapshotTests : JournalingTestBase
     [Fact]
     public void Determinism_RepeatedWritesProduceIdenticalBytes()
     {
-        // 单笔专写每一次电话就租一个 SerializerSessionPool 新会话,所以他们
-        // 字节一致。
-        // 如果合同发生变更,则会场泄漏与意外事故发生状态渗漏有关。
+        // 每次写入单个操作数都会从 SerializerSessionPool 租用一个新的会话，因此
+        // 多次运行产生的字节应完全相同。显式冒烟检查可防止
+        // 该契约变更时意外泄漏会话状态。
         var first = WriteOnce();
         var second = WriteOnce();
         Assert.Equal(JournalSnapshotFormatting.HexBaseline(first), JournalSnapshotFormatting.HexBaseline(second));
@@ -585,14 +585,14 @@ public sealed class OrleansBinaryCodecSnapshotTests : JournalingTestBase
         }
     }
 
-    // 内幕... 内部...
+    // --- 内部实现 -----------------------------------------------------------------------------
 
     private IFieldCodec<T> ValueCodec<T>() => CodecProvider.GetCodec<T>();
 
     /// <summary>
-    /// 使用新的,从未被扔过例外 所以快照永远也不会依赖真正的堆叠追踪
-    /// 目标地点 <see cref="Exception"/> 当被抛出的时候,
-    /// 构建配置, 和源行号 。
+    /// 使用新建且从未被抛出的异常，使快照不依赖真实堆栈跟踪或
+    /// <see cref="Exception"/> 在抛出时记录的目标方法，这些信息会随运行时、
+    /// 生成配置和源码行号而变化。
     /// </summary>
     private static InvalidOperationException MakeStableFault() => new("snapshot-faulted-message");
 

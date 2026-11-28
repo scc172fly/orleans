@@ -20,7 +20,7 @@ internal sealed partial class MessageWriteRequest : WriteRequest, IDisposable
     private Connection? _connection;
     private MessageSerializer? _messageSerializer;
 
-    // 将运输消耗后的序列式信息保存在可获取性上,以便重新检索的信息发送相同的字节。
+    // 传输层消耗消息后仍保留序列化后的消息，以使重试的消息发送相同的字节。
     private ArcBuffer _written;
     private bool _hasLargeMessages;
     private bool _disposed;
@@ -49,7 +49,7 @@ internal sealed partial class MessageWriteRequest : WriteRequest, IDisposable
     }
 
     /// <summary>
-    /// 在向运输工具提交之前,填写对此项请求的书面信息。
+    /// 在将此请求提交给传输层之前，完成消息写入。
     /// </summary>
     public void CompleteWriting()
     {
@@ -61,11 +61,11 @@ internal sealed partial class MessageWriteRequest : WriteRequest, IDisposable
     }
 
     /// <summary>
-    /// 在请求无法写出后再次发送请求中的邮件 。
+    /// 请求未能写入后，再次发送此请求中的消息。
     /// </summary>
     /// <remarks>
-    /// 信件的序列化可以消耗 <see cref="PooledBuffer"/> 参数或请求-文本条目等值。
-    /// 每条信息保留其序列体,并在重新尝试之前从书面信头恢复请求内容。
+    /// 序列化消息可能消耗某些值，例如 <see cref="PooledBuffer"/> 类型的参数或请求上下文条目。
+    /// 每条消息都保留其序列化消息体，并在重试之前从已写入的消息头恢复其请求上下文。
     /// </remarks>
     public void RerouteMessages(Exception? error)
     {
@@ -100,7 +100,7 @@ internal sealed partial class MessageWriteRequest : WriteRequest, IDisposable
         message.RequestContextData = original.RequestContextData;
         if (message._bodyObject is not MessageReadRequest && original._bodyObject is MessageReadRequest body)
         {
-            // 转移序列式文件,同时保留电文当前发送和过期的路径。
+            // 转移序列化消息体，同时保留消息当前的路由与过期信息。
             original._bodyObject = null;
             message.SetMessageReadRequest(body);
             message.Result = original.Result;

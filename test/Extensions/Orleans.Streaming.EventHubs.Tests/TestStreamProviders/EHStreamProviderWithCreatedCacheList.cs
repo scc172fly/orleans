@@ -80,7 +80,7 @@ namespace ServiceBus.Tests.TestStreamProviders
                 var cacheMonitor = this.CacheMonitorFactory(cacheMonitorDimensions, loggerFactory);
                 var cacheLogger = loggerFactory.CreateLogger($"{typeof(EventHubQueueCache).FullName}.{this.name}.{partition}");
                 var evictionStrategy = new ChronologicalEvictionStrategy(cacheLogger, timePurge, cacheMonitor, options.StatisticMonitorWriteInterval);
-                //设置 defaultMaxAddCount 到 10, 所以 TryCalculateCachePressureContribution 将很快开始计算实际捐款额
+                //将 defaultMaxAddCount 设置为 10，使 TryCalculateCachePressureContribution 很快开始计算实际贡献量
                 var cache = new QueueCacheForTesting(DefaultMaxAddCount, bufferPool, dataAdatper, evictionStrategy, checkpointer,
                     cacheLogger, cacheMonitor, options.StatisticMonitorWriteInterval);
                 this.caches.Add(cache);
@@ -109,8 +109,8 @@ namespace ServiceBus.Tests.TestStreamProviders
         public const int IsCacheBackPressureTriggeredCommand = (int)PersistentStreamProviderCommand.AdapterFactoryCommandStartRange + 3;
 
         /// <summary>
-        /// 唯一命令期待: 确定是否对创建的缓存中的任何一个文件进行后压算法
-        /// 触发。
+        /// 唯一预期的命令：判断已创建的任何缓存上的背压算法
+        /// 是否已被触发。
         /// </summary>
         /// <param name="command"></param>
         /// <param name="arg"></param>

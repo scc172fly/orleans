@@ -7,16 +7,16 @@ using Orleans.Runtime.Messaging;
 namespace Orleans
 {
     /// <summary>
-    /// 用于确定是否要重新尝试集连接的过滤器 。
+    /// 用于判断是否应重试集群连接的筛选器。
     /// </summary>
     public interface IClientConnectionRetryFilter
     {
         /// <summary>
-        /// 返回一个数值,表示是否应当重新尝试连接到 Orleans 组。
+        /// 返回一个值，指示是否应重新尝试连接 Orleans 集群。
         /// </summary>
-        /// <param name="exception">上次试图连接时的例外。</param>
-        /// <param name="cancellationToken">外部中断连接时用来通知连接的取消牌。</param>
-        /// <returns><see langword="true"/> 如果连接应重新尝试, <see langword="false"/> 如果试图连接到该组的尝试应该中止 。</returns>
+        /// <param name="exception">上一次连接尝试引发的异常。</param>
+        /// <param name="cancellationToken">用于通知连接已被外部中止的取消令牌。</param>
+        /// <returns><see langword="true"/> 表示应重新尝试连接，<see langword="false"/> 表示应中止连接集群的尝试。</returns>
         Task<bool> ShouldRetryConnectionAttempt(Exception exception, CancellationToken cancellationToken);
     }
 

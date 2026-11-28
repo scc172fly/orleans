@@ -20,7 +20,7 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.AzureQueue
 {
     /// <summary>
-    /// 原始数据调整器。 在此保持向后兼容性, 但不支持json 和其他自定义序列器
+    /// 原始数据适配器。保留它以维持向后兼容性，但不支持 JSON 和其他自定义序列化器。
     /// </summary>
     [SerializationCallbacks(typeof(OnDeserializedCallbacks))]
     public class AzureQueueDataAdapterV1 : IQueueDataAdapter<string, IBatchContainer>, IOnDeserialized
@@ -31,7 +31,7 @@ namespace Orleans.Providers.Streams.AzureQueue
         /// 初始化 <see cref="AzureQueueDataAdapterV1"/> 类的新实例。
         /// </summary>
         /// <param name="serializer"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="serializer"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="serializer"/> 为 <see langword="null"/>。</exception>
         public AzureQueueDataAdapterV1(Serializer serializer)
         {
             ArgumentNullException.ThrowIfNull(serializer);
@@ -39,7 +39,7 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// 从流事件数据创建云队列消息 。
+        /// 根据流事件数据创建云队列消息。
         /// </summary>
         public string ToQueueMessage<T>(StreamId streamId, IEnumerable<T> events, StreamSequenceToken? token, Dictionary<string, object>? requestContext)
         {
@@ -49,11 +49,11 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// 从云队列消息创建批量容器
+        /// 根据云队列消息创建批次容器。
         /// </summary>
         public IBatchContainer FromQueueMessage(string cloudMsg, long sequenceId)
         {
-            // 有效的队列信息包含一个序列式批量容器。
+            // 有效的队列消息包含序列化后的批次容器。
             var azureQueueBatch = this.serializer.Deserialize(Convert.FromBase64String(cloudMsg))!;
             azureQueueBatch.RealSequenceToken = new EventSequenceToken(sequenceId);
             return azureQueueBatch;
@@ -66,7 +66,7 @@ namespace Orleans.Providers.Streams.AzureQueue
     }
 
     /// <summary>
-    /// 使用支持自定义序列器(如json)的类型的数据适配器。
+    /// 使用支持自定义序列化器（例如 JSON）的类型的数据适配器。
     /// </summary>
     [SerializationCallbacks(typeof(OnDeserializedCallbacks))]
     public class AzureQueueDataAdapterV2 : IQueueDataAdapter<string, IBatchContainer>, IOnDeserialized
@@ -77,7 +77,7 @@ namespace Orleans.Providers.Streams.AzureQueue
         /// 初始化 <see cref="AzureQueueDataAdapterV2"/> 类的新实例。
         /// </summary>
         /// <param name="serializer"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="serializer"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="serializer"/> 为 <see langword="null"/>。</exception>
         public AzureQueueDataAdapterV2(Serializer serializer)
         {
             ArgumentNullException.ThrowIfNull(serializer);
@@ -85,7 +85,7 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// 从流事件数据创建云队列消息 。
+        /// 根据流事件数据创建云队列消息。
         /// </summary>
         public string ToQueueMessage<T>(StreamId streamId, IEnumerable<T> events, StreamSequenceToken? token, Dictionary<string, object>? requestContext)
         {
@@ -95,11 +95,11 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// 从云队列消息创建批量容器
+        /// 根据云队列消息创建批次容器。
         /// </summary>
         public IBatchContainer FromQueueMessage(string cloudMsg, long sequenceId)
         {
-            // 有效的队列信息包含一个序列式批量容器。
+            // 有效的队列消息包含序列化后的批次容器。
             var azureQueueBatch = this.serializer.Deserialize(Convert.FromBase64String(cloudMsg))!;
             azureQueueBatch.RealSequenceToken = new EventSequenceTokenV2(sequenceId);
             return azureQueueBatch;
@@ -112,8 +112,8 @@ namespace Orleans.Providers.Streams.AzureQueue
     }
 
     /// <summary>
-    /// 使用 OrleansJsonSerializer 数据适配器,用后退支持对流事件数据进行序列排序。
-    /// 该适配器是实验性的,在未来更新时会发生变化。
+    /// 使用 OrleansJsonSerializer 序列化流事件数据且支持回退的数据适配器。
+    /// 此适配器属于实验性功能，未来更新中可能发生变更。
     /// </summary>
     [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
     public class AzureQueueJsonDataAdapter : IQueueDataAdapter<string, IBatchContainer>
@@ -127,10 +127,10 @@ namespace Orleans.Providers.Streams.AzureQueue
         /// <summary>
         /// 初始化 <see cref="AzureQueueJsonDataAdapter"/> 类的新实例。
         /// </summary>
-        /// <param name="jsonSerializer">下 JSON 连环器</param>
-        /// <param name="fallbackAdapter">数据后退适配数据器(通常) AzureQueueDataAdapterV2).</param>
+        /// <param name="jsonSerializer">JSON 序列化器。</param>
+        /// <param name="fallbackAdapter">回退数据适配器（通常是 AzureQueueDataAdapterV2）。</param>
         /// <param name="options">适配器选项。</param>
-        /// <param name="logger">日志器。</param>
+        /// <param name="logger">日志记录器。</param>
         public AzureQueueJsonDataAdapter(
             OrleansJsonSerializer jsonSerializer,
             AzureQueueDataAdapterV2 fallbackAdapter,
@@ -144,7 +144,7 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// 从流事件数据创建云队列消息 。
+        /// 根据流事件数据创建云队列消息。
         /// </summary>
         public string ToQueueMessage<T>(StreamId streamId, IEnumerable<T> events, StreamSequenceToken? token, Dictionary<string, object>? requestContext)
         {
@@ -170,7 +170,7 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// 从云队列消息创建批量容器
+        /// 根据云队列消息创建批次容器。
         /// </summary>
         public IBatchContainer FromQueueMessage(string cloudMsg, long sequenceId)
         {

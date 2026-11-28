@@ -13,7 +13,7 @@ using Xunit;
 namespace Tester.Redis.Persistence
 {
     /// <summary>
-    /// 试验 grain 使用 Redis 作为存储提供商,包括 Redis- 具体设想。
+    /// 测试使用 Redis 作为存储提供程序的 Grain 持久化功能，包括 Redis 特有的场景。
     /// </summary>
     [TestCategory("Redis"), TestCategory("Persistence")]
     [Collection(TestEnvironmentFixture.DefaultCollection)]
@@ -87,7 +87,7 @@ namespace Tester.Redis.Persistence
             };
         }
 
-        // Redis 具体测试
+        // Redis 专用测试
 
         private readonly GrainState state;
         private readonly IDatabase database;
@@ -100,11 +100,11 @@ namespace Tester.Redis.Persistence
 
             //Assert.NotNull(result);
             Assert.Equal(default, result);
-            //Assert.Equal(违约(字符串), result.StringValue);
-            //Assert.Equal(违约(int), result.IntValue);
-            //Assert.Equal(违约[DateTime、 result.DateTimeValue);
-            //Assert.Equal(违约( Guid) , result.GuidValue);
-            //Assert.Equal(违约[ITestGrain、 result.GrainValue);
+            //Assert.Equal(default(string), result.StringValue);
+            //Assert.Equal(default(int), result.IntValue);
+            //Assert.Equal(default(DateTime), result.DateTimeValue);
+            //Assert.Equal(default(Guid), result.GuidValue);
+            //Assert.Equal(default(ITestGrain), result.GrainValue);
         }
 
         [Fact]

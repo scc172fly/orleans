@@ -4,59 +4,59 @@ using System.Threading.Tasks;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 流队列平衡器负责在所有其他相关的队列平衡器中加载均衡队列。
-    /// 在队列分布变化时通知所有监听器（<code>IStreamQueueBalanceListener</code>）。
-    /// 方法 GetMyQueues、 SubscribeToQueueDistributionChangeEvents和 UnSubscribeFromQueueDistributionChangeEvents 将 
-    /// 可能被调入 IStreamQueueBalanceListener线串, 以便它们需要安全
+    /// 流队列均衡器负责在所有其他相关队列均衡器之间对队列进行负载均衡。
+    /// 它会将队列分布的变化通知各侦听器（<code>IStreamQueueBalanceListener</code>）。
+    /// GetMyQueues、SubscribeToQueueDistributionChangeEvents 和 UnSubscribeFromQueueDistributionChangeEvents 方法
+    /// 很可能在 IStreamQueueBalanceListener 的线程中调用，因此这些方法必须是线程安全的。
     /// </summary>
     public interface IStreamQueueBalancer
     {
         /// <summary>
-        /// 初始化了这个实例。
+        /// 初始化此实例。
         /// </summary>
-        /// <param name="queueMapper">队列映像仪。</param>
-        /// <returns>A <see cref="Task"/> 代表操作。</returns>
+        /// <param name="queueMapper">队列映射器。</param>
+        /// <returns>表示该操作的 <see cref="Task"/>。</returns>
         Task Initialize(IStreamQueueMapper queueMapper);
 
         /// <summary>
-        /// 关闭队列平衡器
+        /// 关闭队列均衡器。
         /// </summary>
-        /// <returns>A <see cref="Task"/> 代表操作。</returns>
+        /// <returns>表示该操作的 <see cref="Task"/>。</returns>
         Task Shutdown();
 
         /// <summary>
-        /// 获取此平衡器的最新队列分布 。
+        /// 获取此均衡器的最新队列分布。
         /// </summary>
-        /// <returns>分配给此平衡器的队列 。</returns>
+        /// <returns>分配给此均衡器的队列。</returns>
         IEnumerable<QueueId> GetMyQueues();
 
         /// <summary>
-        /// 订阅接收队列分配更改通知
+        /// 订阅队列分布变化通知。
         /// </summary>
-        /// <param name="observer">一个接收队列分配变更通知的观察界面。</param>
-        /// <returns>表示订阅成功与否的值。</returns>
+        /// <param name="observer">用于接收队列分布变化通知的观察者接口。</param>
+        /// <returns>指示订阅是否成功的值。</returns>
         bool SubscribeToQueueDistributionChangeEvents(IStreamQueueBalanceListener observer);
 
         /// <summary>
-        /// 不接受队列分布通知的订阅。
+        /// 取消订阅队列分布通知。
         /// </summary>
-        /// <param name="observer">一个接收队列分配变更通知的观察界面。</param>
-        /// <returns>表示 Teh 取消订阅是否成功</returns>的数值
+        /// <param name="observer">用于接收队列分布变化通知的观察者接口。</param>
+        /// <returns>指示取消订阅是否成功的值。</returns>
         bool UnSubscribeFromQueueDistributionChangeEvents(IStreamQueueBalanceListener observer);
     }
 
     /// <summary>
-    /// 流队列均衡监听器接收流队列均衡器（<code>IStreamQueueBalancer</code>）发出的通知
-    /// 显示队列的平衡已经改变。
-    /// 实施时应当由关心排队量平衡的构成部分组成。
-    /// 收到更改通知后,听众应请求从队列平衡器中获取最新的队列列表。
+    /// 流队列均衡器侦听器接收来自流队列均衡器（<code>IStreamQueueBalancer</code>）的通知，
+    /// 表示队列的均衡分布已发生变化。
+    /// 关注流队列负载均衡的组件应实现此接口。
+    /// 收到变化通知时，侦听器应向队列均衡器请求更新后的队列列表。
     /// </summary>
     public interface IStreamQueueBalanceListener
     {
         /// <summary>
-        /// 当适应者队列责任改变时呼叫 。 
+        /// 适配器负责的队列发生变化时调用。
         /// </summary>
-        /// <returns>A <see cref="Task"/> 代表操作。</returns>
+        /// <returns>表示该操作的 <see cref="Task"/>。</returns>
         Task QueueDistributionChangeNotification();
     }
 }

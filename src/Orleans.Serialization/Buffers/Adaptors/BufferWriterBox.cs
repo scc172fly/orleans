@@ -4,9 +4,9 @@ using System.Buffers;
 namespace Orleans.Serialization.Buffers.Adaptors
 {
     /// <summary>
-    /// 将另建一个缓冲作者的 <see cref="IBufferWriter{T}"/> 执行。
+    /// <see cref="IBufferWriter{T}"/> 的一种实现，用于装箱另一个缓冲区写入器。
     /// </summary>
-    /// <typeparam name="TBufferWriter">基础缓冲写作器的类型。</typeparam>
+    /// <typeparam name="TBufferWriter">底层缓冲区写入器的类型。</typeparam>
     public class BufferWriterBox<TBufferWriter> : IBufferWriter<byte> where TBufferWriter : struct, IBufferWriter<byte>
     {
         private TBufferWriter _bufferWriter;
@@ -14,14 +14,14 @@ namespace Orleans.Serialization.Buffers.Adaptors
         /// <summary>
         /// 初始化 <see cref="BufferWriterBox{TBufferWriter}"/> 类的新实例。
         /// </summary>
-        /// <param name="bufferWriter">缓冲写作器到框中。</param>
+        /// <param name="bufferWriter">要装箱的缓冲区写入器。</param>
         public BufferWriterBox(TBufferWriter bufferWriter)
         {
             _bufferWriter = bufferWriter;
         }
 
         /// <summary>
-        /// 获取一个参考文件, 引用了基础缓冲作者 。
+        /// 获取对底层缓冲区写入器的引用。
         /// </summary>
         public ref TBufferWriter Value => ref _bufferWriter;
 

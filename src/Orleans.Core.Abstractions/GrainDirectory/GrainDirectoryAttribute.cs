@@ -7,13 +7,13 @@ using Orleans.Runtime;
 namespace Orleans.GrainDirectory
 {
     /// <summary>
-    /// 指定 grain 要用于 grain 此属性应用到的类 。
+    /// 指定应用了此特性的 Grain 类所使用的 Grain 目录提供程序名称。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class GrainDirectoryAttribute : Attribute, IGrainPropertiesProviderAttribute
     {
         /// <summary>
-        /// 默认 grain 目录。
+        /// 默认 Grain 目录。
         /// </summary>
         public const string DEFAULT_GRAIN_DIRECTORY = "default";
 
@@ -28,7 +28,7 @@ namespace Orleans.GrainDirectory
         /// 初始化 <see cref="GrainDirectoryAttribute"/> 类的新实例。
         /// </summary>
         /// <param name="grainDirectoryName">
-        /// grain 目录提供者名称。
+        /// Grain 目录提供程序名称。
         /// </param>
         public GrainDirectoryAttribute(string grainDirectoryName)
         {
@@ -36,7 +36,7 @@ namespace Orleans.GrainDirectory
         }
 
         /// <summary>
-        /// 获取或设置 grain 目录提供者名称。
+        /// 获取或设置 Grain 目录提供程序名称。
         /// </summary>
         public string GrainDirectoryName { get; set; }
 

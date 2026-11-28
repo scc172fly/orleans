@@ -12,7 +12,7 @@ using Orleans.Configuration;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 圆环 Azure 表格交易国家储存,并注入交易过失。
+    /// 包装 Azure Table 事务状态存储，以注入事务故障。
     /// </summary>
     /// <typeparam name="TState">状态类型。</typeparam>
     public class FaultInjectionAzureTableTransactionStateStorage<TState> : ITransactionalStateStorage<TState>
@@ -23,8 +23,8 @@ namespace Orleans.Transactions.TestKit
         /// <summary>
         /// 初始化 <see cref="FaultInjectionAzureTableTransactionStateStorage{TState}"/> 类的新实例。
         /// </summary>
-        /// <param name="faultInjector">交易错误注射器。</param>
-        /// <param name="azureStateStorage">包裹 Azure 国家交易储存表。</param>
+        /// <param name="faultInjector">事务故障注入器。</param>
+        /// <param name="azureStateStorage">被包装的 Azure Table 事务状态存储。</param>
         public FaultInjectionAzureTableTransactionStateStorage(ITransactionFaultInjector faultInjector,
             AzureTableTransactionalStateStorage<TState> azureStateStorage)
         {
@@ -44,13 +44,13 @@ namespace Orleans.Transactions.TestKit
             string? expectedETag,
             TransactionalStateMetaData metadata,
 
-            // 一份待编制的交易清单。
+            // 要准备的事务列表。
             List<PendingTransactionState<TState>>? statesToPrepare,
 
-            // 如果非Null, 则在包括该序列号之前并在此序号之内承诺所有待处理的交易。
+            // 若非 null，则提交序列号小于或等于此值的所有待处理事务。
             long? commitUpTo,
 
-            // 如果非中键,则中止所有序列号严格大于此序列的待决交易。
+            // 若非 null，则中止序列号严格大于此值的所有待处理事务。
             long? abortAfter
         )
         {
@@ -67,7 +67,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 创建错误输入 Azure 表格交易状态存储实例。
+    /// 创建支持故障注入的 Azure Table 事务状态存储实例。
     /// </summary>
     public class FaultInjectionAzureTableTransactionStateStorageFactory : ITransactionalStateStorageFactory,
         ILifecycleParticipant<ISiloLifecycle>
@@ -75,11 +75,11 @@ namespace Orleans.Transactions.TestKit
         private readonly AzureTableTransactionalStateStorageFactory factory;
 
         /// <summary>
-        /// 创建了错误注射交易性国家储存工厂
+        /// 创建支持故障注入的事务状态存储工厂。
         /// </summary>
-        /// <param name="services">服务供应商。</param>
-        /// <param name="name">提供者名称。</param>
-        /// <returns>交易性国家储藏厂</returns>
+        /// <param name="services">服务提供程序。</param>
+        /// <param name="name">提供程序名称。</param>
+        /// <returns>事务状态存储工厂。</returns>
         public static ITransactionalStateStorageFactory Create(IServiceProvider services, string name)
         {
             var optionsMonitor = services.GetRequiredService<IOptionsMonitor<AzureTableTransactionalStateOptions>>();
@@ -90,7 +90,7 @@ namespace Orleans.Transactions.TestKit
         /// <summary>
         /// 初始化 <see cref="FaultInjectionAzureTableTransactionStateStorageFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="factory">包裹 Azure 国家交易储存工厂</param>
+        /// <param name="factory">被包装的 Azure Table 事务状态存储工厂。</param>
         public FaultInjectionAzureTableTransactionStateStorageFactory(
             AzureTableTransactionalStateStorageFactory factory)
         {

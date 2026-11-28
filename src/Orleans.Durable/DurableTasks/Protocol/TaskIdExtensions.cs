@@ -4,23 +4,23 @@ using MessagingHierarchicalKey = Orleans.Durable.Messaging.HierarchicalKey;
 namespace Orleans;
 
 /// <summary>
-/// 在 <see cref="TaskId"/> 和 <see cref="MessagingHierarchicalKey"/>之间转换的扩展方法。
+/// 在 <see cref="TaskId"/> 与 <see cref="MessagingHierarchicalKey"/> 之间转换的扩展方法。
 /// </summary>
 /// <remarks>
-/// 这些扩展使 <see cref="TaskId"/> 类型之间能够互操作性,而从
-/// Orleans.Durable.Tasks 和 <see cref="MessagingHierarchicalKey"/> 类型来自 Orleans 通讯
-/// 这两种类型都具有相同的弦表示法和等级语义,使转换成为正变
-/// 通过字符串解析直接。
+/// 这些扩展方法使 Orleans.Durable.Tasks 中的 <see cref="TaskId"/> 类型与
+/// Orleans Messaging 中的 <see cref="MessagingHierarchicalKey"/> 类型能够互操作。
+/// 两种类型具有相同的字符串表示形式和层次语义，因此可以
+/// 通过字符串解析直接转换。
 /// </remarks>
 public static class TaskIdExtensions
 {
     /// <summary>
     /// 将 <see cref="TaskId"/> 转换为 <see cref="MessagingHierarchicalKey"/>。
     /// </summary>
-    /// <param name="taskId">下 <see cref="TaskId"/> 要转换。</param>
+    /// <param name="taskId">要转换的 <see cref="TaskId"/>。</param>
     /// <returns>
-    /// A <see cref="MessagingHierarchicalKey"/> 等同于指定 <see cref="TaskId"/>,
-    /// 或 <c>null</c> 如果 <see cref="TaskId"/> 默认值。
+    /// 一个 <see cref="MessagingHierarchicalKey"/>，与指定的 <see cref="TaskId"/> 等价，
+    /// 或者返回 <c>null</c>（当 <see cref="TaskId"/> 为默认值时）。
     /// </returns>
     /// <example>
     /// <code>
@@ -35,10 +35,10 @@ public static class TaskIdExtensions
     /// <summary>
     /// 将 <see cref="MessagingHierarchicalKey"/> 转换为 <see cref="TaskId"/>。
     /// </summary>
-    /// <param name="key">下 <see cref="MessagingHierarchicalKey"/> 要转换。</param>
+    /// <param name="key">要转换的 <see cref="MessagingHierarchicalKey"/>。</param>
     /// <returns>
-    /// A <see cref="TaskId"/> 等同于指定 <see cref="MessagingHierarchicalKey"/>,
-    /// 如果密钥未设定, 则 <see cref="TaskId.None"/> 。
+    /// 一个 <see cref="TaskId"/>，与指定的 <see cref="MessagingHierarchicalKey"/> 等价，
+    /// 或在键未设置时返回 <see cref="TaskId.None"/>。
     /// </returns>
     /// <example>
     /// <code>
@@ -52,12 +52,12 @@ public static class TaskIdExtensions
         key.IsDefault ? TaskId.None : TaskId.Parse(key.ToString(), null);
 
     /// <summary>
-    /// 将无效 <see cref="MessagingHierarchicalKey"/> 转换为 <see cref="TaskId"/>。
+    /// 将可为空的 <see cref="MessagingHierarchicalKey"/> 转换为 <see cref="TaskId"/>。
     /// </summary>
-    /// <param name="key">下 <see cref="MessagingHierarchicalKey"/> 要转换。</param>
+    /// <param name="key">要转换的 <see cref="MessagingHierarchicalKey"/>。</param>
     /// <returns>
-    /// A <see cref="TaskId"/> 等同于指定 <see cref="MessagingHierarchicalKey"/>,
-    /// 或 <see cref="TaskId.None"/> 如果密钥是 <c>null</c> 或取消设置。
+    /// 一个 <see cref="TaskId"/>，与指定的 <see cref="MessagingHierarchicalKey"/> 等价，
+    /// 或者返回 <see cref="TaskId.None"/>（键为 <c>null</c> 或未设置时）。
     /// </returns>
     public static TaskId ToTaskId(this MessagingHierarchicalKey? key) =>
         key is { } value ? value.ToTaskId() : TaskId.None;

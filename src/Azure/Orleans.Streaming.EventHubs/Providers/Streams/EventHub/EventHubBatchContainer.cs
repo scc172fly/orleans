@@ -10,7 +10,7 @@ using Orleans.Streams;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// 批发集装箱为 EventHub EventData的一组事件提供有效载荷和流位置信息。
+    /// 为 Event Hub EventData 中的一组事件提供有效载荷及流位置数据的批次容器。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -29,20 +29,20 @@ namespace Orleans.Streaming.EventHubs
         private readonly EventHubSequenceToken token = null!;
 
         /// <summary>
-        /// 此批次是溪流的串流识别符 。
+        /// 此批次所属流的标识符。
         /// </summary>
         public StreamId StreamId => eventHubMessage.StreamId;
 
         /// <summary>
-        /// 开始这批货的串流序列 Token 。
+        /// 此批次起始位置的流序列令牌。
         /// </summary>
         public StreamSequenceToken SequenceToken => token;
 
-        // 有效载荷是已解除的 payloadBytes本地缓存。不应作为批量容器的一部分进行序列化,在批量集装箱序化过程中将始终使用原 payloadBytes 。
+        // Payload 是反序列化后的 payloadBytes 的本地缓存，绝不能作为批次容器的一部分进行序列化。序列化批次容器时始终使用原始 payloadBytes。
         [NonSerialized]
         private Body? payload;
 
-        // 该容器处理的事件枢纽信息总是包含一个序列式的体。
+        // 此容器处理的 Event Hub 消息始终包含序列化后的消息体。
         private Body GetPayload() => payload ?? (payload = this.Serializer.Deserialize<Body>(eventHubMessage.Payload)!);
 
         [Serializable]
@@ -56,7 +56,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 将事件从缓存的批发集装箱运送到 EventHub 数据相关数据 orleans 溪流
+        /// 从与 Orleans 流关联的缓存 Event Hub 数据投递事件的批次容器。
         /// </summary>
         public EventHubBatchContainer(EventHubMessage eventHubMessage, Serializer serializer)
         {
@@ -72,7 +72,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 从批量中获取特定类型的事件 。
+        /// 从批次获取指定类型的事件。
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
@@ -82,10 +82,10 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 给一个机会 IBatchContainer 中设置数据 RequestContext 此前 IBatchContainer 发送到消费者。
-        /// 可以是生成事件时设定的数据,并排入持续提供方或任何其他数据。
+        /// 允许 IBatchContainer 在发送给消费者之前，在 RequestContext 中设置任意数据。
+        /// 这些数据可以是事件生成并入队到持久化提供程序时设置的数据，也可以是其他数据。
         /// </summary>
-        /// <returns>如果 RequestContext 确实被修改, 且以其他方式伪造, 则属 True。</returns>
+        /// <returns>RequestContext 确实发生修改时为 true，否则为 false。</returns>
         public bool ImportRequestContext()
         {
             if (GetPayload().RequestContext != null)
@@ -97,7 +97,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 将事件列表及其上下文放置到 EventData 对象中
+        /// 将事件列表及其上下文放入 EventData 对象。
         /// </summary>
         public static EventData ToEventData<T>(Serializer bodySerializer, StreamId streamId, IEnumerable<T> events, Dictionary<string, object>? requestContext)
         {
@@ -108,13 +108,13 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 以事件列表及其上下文更新事件数据。
+        /// 使用事件列表及其上下文更新事件数据。
         /// </summary>
-        /// <param name="eventData"> <see cref="EventData"/> 实例将使用新的机构和上下文更新。</param>
-        /// <param name="bodySerializer">用于创建事件体有效载荷的序列器。</param>
-        /// <param name="streamId">与事件上下文关联的流标识符。</param>
-        /// <param name="events">有效载荷要使用的事件列表。</param>
-        /// <param name="requestContext">请求与活动关联的背景。</param>
+        /// <param name="eventData">要用新消息体和上下文更新的 <see cref="EventData"/> 实例。</param>
+        /// <param name="bodySerializer">用于创建事件消息体有效载荷的序列化器。</param>
+        /// <param name="streamId">要与事件上下文关联的流标识符。</param>
+        /// <param name="events">用于有效载荷的事件列表。</param>
+        /// <param name="requestContext">要与事件关联的请求上下文。</param>
         public static void UpdateEventData<T>(EventData eventData, Serializer bodySerializer, StreamId streamId, IEnumerable<T> events, Dictionary<string, object>? requestContext)
         {
             eventData.EventBody = CreateEventDataBody(bodySerializer, events, requestContext);

@@ -12,8 +12,8 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// 正确创建核查 OnDeactivateAsync 跟踪间隔的测试
-    /// grain 在不同情景下停止使用期间。
+    /// 测试各种 Grain 停用场景中，是否正确创建
+    /// OnDeactivateAsync 跟踪跨度。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -395,7 +395,7 @@ namespace UnitTests.General
                 }
                 catch (InconsistentStateException)
                 {
-                    // 预期预期预计预计预计预计预计预计的预期预计预计预计预计的预期预计预计预计的
+                    // 符合预期
                 }
 
                 await deactivated;
@@ -443,10 +443,10 @@ namespace UnitTests.General
                 }
                 catch
                 {
-                    // 预期 - 启动失败
+                    // 符合预期：激活失败
                 }
 
-                // 简单等待任何解除功能完成
+                // 短暂等待，让可能的停用操作完成
                 await Task.Delay(500, TestContext.Current.CancellationToken);
 
                 var onDeactivateSpans = Started.Where(a => a.OperationName == ActivityNames.OnDeactivate).ToList();
@@ -575,7 +575,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// 基本失能跟踪测试的 grain 接口。
+    /// 用于基本停用跟踪测试的 Grain 接口。
     /// </summary>
     public interface IDeactivationTracingTestGrain : IGrainWithIntegerKey
     {
@@ -584,8 +584,8 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// 基本失能跟踪测试的试验 grain 实施。
-    /// 执行简单的 OnDeactivateAsync 来验证间隔。
+    /// 用于基本停用跟踪测试的 Grain 实现。
+    /// 实现简单的 OnDeactivateAsync 以验证是否创建跟踪跨度。
     /// </summary>
     public class DeactivationTracingTestGrain : Grain, IDeactivationTracingTestGrain
     {
@@ -618,7 +618,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// 测试 grain 接口,用于在 OnDeactivateAsync中工作以停止追踪。
+    /// 用于测试在 OnDeactivateAsync 内执行操作时的停用跟踪的 Grain 接口。
     /// </summary>
     public interface IDeactivationWithWorkTracingTestGrain : IGrainWithIntegerKey
     {
@@ -628,7 +628,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// 跟踪失能状态的测试 grain 状态。
+    /// 用于跟踪停用的测试 Grain 状态。
     /// </summary>
     [GenerateSerializer]
     public class DeactivationWorkState
@@ -641,8 +641,8 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// 测试测试 grain 执行期间的工作 OnDeactivateAsync.
-    /// 使用持久性状态跟踪是否发生失能。
+    /// 在 OnDeactivateAsync 期间执行操作的测试 Grain 实现。
+    /// 使用持久化状态来跟踪停用是否发生。
     /// </summary>
     public class DeactivationWithWorkTracingTestGrain : Grain, IDeactivationWithWorkTracingTestGrain
     {
@@ -687,7 +687,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// 用于禁用跟踪的测试 grain 接口,除 OnDeactivateAsync中的情况外。
+    /// 用于测试 OnDeactivateAsync 抛出异常时的停用跟踪的 Grain 接口。
     /// </summary>
     public interface IDeactivationWithExceptionTracingTestGrain : IGrainWithIntegerKey
     {
@@ -696,8 +696,8 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// 测试 grain 实施期间排除例外的 OnDeactivateAsync。
-    /// 用于核实 OnDeactivate 是否正确切换错误。
+    /// 在 OnDeactivateAsync 期间抛出异常的测试 Grain 实现。
+    /// 用于验证 OnDeactivate 跟踪跨度是否正确记录错误。
     /// </summary>
     public class DeactivationWithExceptionTracingTestGrain : Grain, IDeactivationWithExceptionTracingTestGrain
     {
@@ -730,7 +730,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// 与移民参与者进行测试 grain 接口,以进行禁用追踪。
+    /// 用于测试具有迁移参与者时的停用跟踪的 Grain 接口。
     /// </summary>
     public interface IDeactivationMigrationTracingTestGrain : IGrainWithIntegerKey
     {
@@ -741,8 +741,8 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// 测试测试 grain 执行中执行 IGrainMigrationParticipant 用于禁用跟踪。
-    /// 用于核实 OnDeactivate 跨度时,在迁移过程中脱水之前先设定。
+    /// 实现 IGrainMigrationParticipant 以测试停用跟踪的 Grain 实现。
+    /// 用于验证迁移期间在提取状态之前已创建 OnDeactivate 跟踪跨度。
     /// </summary>
     [RandomPlacement]
     public class DeactivationMigrationTracingTestGrain : Grain, IDeactivationMigrationTracingTestGrain, IGrainMigrationParticipant
@@ -786,7 +786,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// 测试测试 grain 界面的接口 InconsistentStateException 停止追踪试验。
+    /// 用于 InconsistentStateException 停用跟踪测试的 Grain 接口。
     /// </summary>
     public interface IInconsistentStateDeactivationGrain : IGrainWithIntegerKey
     {
@@ -795,8 +795,8 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// 测试测试 grain 执行中丢弃 InconsistentStateException.
-    /// 用于校验 OnDeactivate 宽度时, 以 ApplicationError 理由创建 。
+    /// 抛出 InconsistentStateException 的测试 Grain 实现。
+    /// 用于验证创建的 OnDeactivate 跟踪跨度具有 ApplicationError 原因。
     /// </summary>
     public class InconsistentStateDeactivationGrain : Grain, IInconsistentStateDeactivationGrain
     {
@@ -831,7 +831,7 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// 启动故障禁用跟踪测试的测试 grain 接口。
+    /// 用于激活失败时的停用跟踪测试的 Grain 接口。
     /// </summary>
     public interface IActivationFailureDeactivationGrain : IGrainWithIntegerKey
     {
@@ -839,14 +839,14 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// 启动期间失败的测试 grain 执行。
-    /// 用于校验 OnDeactivate 宽度的值在 PreviousState 时没有创建 != 有效 。
+    /// 在激活期间失败的测试 Grain 实现。
+    /// 用于验证 PreviousState != Valid 时不会创建 OnDeactivate 跟踪跨度。
     /// </summary>
     public class ActivationFailureDeactivationGrain : Grain, IActivationFailureDeactivationGrain
     {
         public ActivationFailureDeactivationGrain()
         {
-            // 丢弃例外于构建器失败启动
+            // 在构造函数中抛出异常，使激活失败
             throw new InvalidOperationException("Simulated activation failure for testing deactivation tracing");
         }
 
@@ -868,13 +868,13 @@ namespace UnitTests.General
 
         public override Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
         {
-            // 启动失败后,就永远不应该叫这名字
+            // 由于激活失败，不应调用此方法
             return Task.CompletedTask;
         }
     }
 
     /// <summary>
-    /// 测试测试 grain 界面的接口 GrainContext.Deactivate 停止追踪试验。
+    /// 用于 GrainContext.Deactivate 停用跟踪测试的 Grain 接口。
     /// </summary>
     public interface IGrainContextDeactivationGrain : IGrainWithIntegerKey
     {
@@ -883,8 +883,8 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// 测试测试 grain 使用 GrainContext.Deactivate 习惯上有原因。
-    /// 用于校验 OnDeactivate 宽度时,会根据自定义原因创建。
+    /// 使用带自定义原因的 GrainContext.Deactivate 的测试 Grain 实现。
+    /// 用于验证创建的 OnDeactivate 跟踪跨度具有自定义原因。
     /// </summary>
     public class GrainContextDeactivationGrain : Grain, IGrainContextDeactivationGrain
     {
@@ -919,7 +919,7 @@ namespace UnitTests.General
 
 
     /// <summary>
-    /// 测试测试 grain 界面的接口 IAsyncEnumerable 停止追踪试验。
+    /// 用于 IAsyncEnumerable 停用跟踪测试的 Grain 接口。
     /// </summary>
     public interface IAsyncEnumerableDeactivationGrain : IGrainWithIntegerKey
     {
@@ -929,8 +929,8 @@ namespace UnitTests.General
 
 
     /// <summary>
-    /// 测试 grain 实施,通过 IAsyncEnumerable 产生值,然后在 DisposeAsync之后停止使用。
-    /// 使用 grain 调用过滤器在可编算的自动同步处理后触发停用。
+    /// 通过 IAsyncEnumerable 返回值并在 DisposeAsync 后停用的测试 Grain 实现。
+    /// 使用 Grain 调用筛选器，在异步可枚举序列释放后触发停用。
     /// </summary>
     public class AsyncEnumerableDeactivationGrain : Grain, IAsyncEnumerableDeactivationGrain
     {

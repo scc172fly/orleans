@@ -4,7 +4,7 @@ using Xunit;
 namespace UnitTests.OrleansRuntime.Streams
 {
     /// <summary>
-    /// 测试固定规模缓冲池和分部分分配。
+    /// 固定大小缓冲区池化及分段分配测试。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]

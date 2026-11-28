@@ -9,19 +9,19 @@ using Orleans.Serialization.Utilities.Internal;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// <see cref="ISerializerBuilder"/>的扩展方法。
+/// <see cref="ISerializerBuilder"/> 的扩展方法。
 /// </summary>
 public static class SerializationHostingExtensions
 {
     private static readonly ServiceDescriptor ServiceDescriptor = new(typeof(MessagePackCodec), typeof(MessagePackCodec));
 
     /// <summary>
-    /// 添加支持,以便使用 <see cref="MessagePackSerializer"/>进行序列化和去序化。
+    /// 添加使用 <see cref="MessagePackSerializer"/> 对值进行序列化和反序列化的支持。
     /// </summary>
-    /// <param name="serializerBuilder">序列器的构建器。</param>
-    /// <param name="isSerializable">代表用来表示该编码器应按哪些类型进行序列。</param>
-    /// <param name="isCopyable">一位代表曾指出该编码器应复制哪类代码。</param>
-    /// <param name="messagePackSerializerOptions"> MessagePack 序列器选项。</param>
+    /// <param name="serializerBuilder">序列化构建器。</param>
+    /// <param name="isSerializable">用于指示此编解码器应序列化哪些类型的委托。</param>
+    /// <param name="isCopyable">用于指示此编解码器应复制哪些类型的委托。</param>
+    /// <param name="messagePackSerializerOptions">MessagePack 序列化器选项。</param>
     public static ISerializerBuilder AddMessagePackSerializer(
         this ISerializerBuilder serializerBuilder,
         Func<Type, bool>? isSerializable = null,
@@ -42,12 +42,12 @@ public static class SerializationHostingExtensions
     }
 
     /// <summary>
-    /// 添加支持,以便使用 <see cref="MessagePackSerializer"/>进行序列化和去序化。
+    /// 添加使用 <see cref="MessagePackSerializer"/> 对值进行序列化和反序列化的支持。
     /// </summary>
-    /// <param name="serializerBuilder">序列器的构建器。</param>
-    /// <param name="isSerializable">代表用来表示该编码器应按哪些类型进行序列。</param>
-    /// <param name="isCopyable">一位代表曾指出该编码器应复制哪类代码。</param>
-    /// <param name="configureOptions">用于配置 MessagePack 编码器选项的代表。</param>
+    /// <param name="serializerBuilder">序列化构建器。</param>
+    /// <param name="isSerializable">用于指示此编解码器应序列化哪些类型的委托。</param>
+    /// <param name="isCopyable">用于指示此编解码器应复制哪些类型的委托。</param>
+    /// <param name="configureOptions">用于配置 MessagePack 编解码器选项的委托。</param>
     public static ISerializerBuilder AddMessagePackSerializer(
         this ISerializerBuilder serializerBuilder,
         Func<Type, bool>? isSerializable,

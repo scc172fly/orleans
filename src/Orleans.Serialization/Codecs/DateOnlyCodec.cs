@@ -8,7 +8,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs;
 
 /// <summary>
-/// <see cref="DateOnly"/>的序列器。
+/// <see cref="DateOnly"/> 的序列化器。
 /// </summary>
 [RegisterSerializer]
 public sealed class DateOnlyCodec : IFieldCodec<DateOnly>
@@ -21,7 +21,7 @@ public sealed class DateOnlyCodec : IFieldCodec<DateOnly>
     }
 
     /// <summary>
-    /// 写入没有类型信息( 期待的类型为静态) 的字段。
+    /// 写入字段而不写入类型信息（预期类型已静态确定）。
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, DateOnly value) where TBufferWriter : IBufferWriter<byte>
@@ -38,10 +38,10 @@ public sealed class DateOnlyCodec : IFieldCodec<DateOnly>
     /// <summary>
     /// 读取 <see cref="DateOnly"/> 值。
     /// </summary>
-    /// <typeparam name="TInput">读者输入类型。</typeparam>
-    /// <param name="reader">读者</param>
+    /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+    /// <param name="reader">读取器。</param>
     /// <param name="field">字段。</param>
-    /// <returns>数值 <see cref="DateOnly"/> 。</returns>
+    /// <returns><see cref="DateOnly"/> 值。</returns>
     [return: System.Diagnostics.CodeAnalysis.MaybeNull]
     public static DateOnly ReadValue<TInput>(ref Reader<TInput> reader, Field field)
     {

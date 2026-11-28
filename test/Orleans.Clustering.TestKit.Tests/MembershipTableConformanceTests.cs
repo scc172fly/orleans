@@ -62,7 +62,7 @@ public sealed class MembershipTableConformanceTests
         await backend.Fixture().RunAsync((fixture, ct) =>
         {
             var runner = new MembershipTableTestRunner(fixture, concurrencyRowCount: 5);
-#pragma warning disable CS0618 // Exercise retained public scenario aliases.
+#pragma warning disable CS0618 // 验证仍保留的公开场景别名。
             return concurrent ? runner.ConcurrentReadRow_ReturnsOnlyAtomicCommittedViews(ct)
                 : runner.ReadRow_AndReadAll_AgreeForPresentAndAbsentIdentities(ct);
 #pragma warning restore CS0618

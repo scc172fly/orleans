@@ -18,9 +18,9 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// 用于跟踪 grain 界面定义及其版本的分析器测试。
-/// 此分析器确保界面的修改与版本加插数相配合
-/// 滚动升级期间兼容性。
+/// 测试跟踪 Grain 接口定义及其版本的分析器。
+/// 此分析器确保接口变更伴随着版本号递增，
+/// 以便在滚动升级期间保持兼容性。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 public class GrainInterfaceVersionAnalyzerTest
@@ -91,7 +91,7 @@ public class GrainInterfaceVersionAnalyzerTest
     {
         const string fileName = "Test.cs";
 
-        // 使用
+        // 在前面添加 using 指令
         var sb = new StringBuilder();
         foreach (var @using in Usings)
         {
@@ -138,7 +138,7 @@ public class GrainInterfaceVersionAnalyzerTest
     }
 
     /// <summary>
-    /// 为测试目的简单实施 AdditionalText 。
+    /// 用于测试的简单 AdditionalText 实现。
     /// </summary>
     private sealed class TestAdditionalText : AdditionalText
     {
@@ -210,7 +210,7 @@ public interface IMyGrain : IGrain
     Task DoSomething();
 }
 ";
-        // 使用 *重新发布* 用于假界面,使其不触发 ORLEANS0019
+        // 为模拟接口使用 *RETIRED* 标记，使其不触发 ORLEANS0019
         const string grainInterfacesFile = @"
 # OrleansContracts.txt
 *RETIRED* SomeOther.IGrain [Version(1)]
@@ -306,7 +306,7 @@ IMyGrain [Version(1)]
         Assert.Contains(diagnostics, d => d.Id == GrainInterfaceVersionAnalyzer.RuleId0017);
         var diagnostic = diagnostics.First(d => d.Id == GrainInterfaceVersionAnalyzer.RuleId0017);
         Assert.Contains("IMyGrain", diagnostic.GetMessage());
-        Assert.Contains("1", diagnostic.GetMessage()); // 预期成果版本
+        Assert.Contains("1", diagnostic.GetMessage()); // 预期版本
         Assert.Contains("2", diagnostic.GetMessage()); // 实际版本
     }
 
@@ -996,7 +996,7 @@ public interface IMyService
 ";
         var diagnostics = await GetDiagnosticsAsync(source, grainInterfacesFileContent: null);
 
-        // 没有诊断-没有跟踪非grain 接口
+        // 完全没有诊断，因为不会跟踪非 Grain 接口
         Assert.Empty(diagnostics);
     }
 
@@ -1026,7 +1026,7 @@ IMyObserver [Version(0)]
     [Fact]
     public async Task IGrainBase_NotTracked()
     {
-        // 测试IGrain 等 Orleans 基接口没有报告
+        // 测试不会报告 IGrain 本身等 Orleans 基础接口
         const string source = @"
 // User code doesn't define IGrain - it comes from Orleans
 public class SomeClass { }
@@ -1036,7 +1036,7 @@ public class SomeClass { }
 ";
         var diagnostics = await GetDiagnosticsAsync(source, grainInterfacesFile);
 
-        // 不应该将IGRAIN、 IGrainWithStringKey等报告为失踪
+        // 不应报告缺少 IGrain、IGrainWithStringKey 等接口
         Assert.Empty(diagnostics);
     }
 
@@ -1093,7 +1093,7 @@ IMyGrain [Version(1)]
 ";
         var diagnostics = await GetDiagnosticsAsync(source, grainInterfacesFile);
 
-        // 尽管有备注, 仍应该正确分析
+        // 即使存在注释，也应正确解析
         Assert.DoesNotContain(diagnostics, d => d.Id == GrainInterfaceVersionAnalyzer.RuleId0016);
         Assert.DoesNotContain(diagnostics, d => d.Id == GrainInterfaceVersionAnalyzer.RuleId0017);
         Assert.DoesNotContain(diagnostics, d => d.Id == GrainInterfaceVersionAnalyzer.RuleId0018);
@@ -1662,7 +1662,7 @@ public class Outer
         Assert.Contains(retiredDeclaration, content);
         Assert.Empty(await GetDiagnosticsAsync(source, content));
 
-        // 重新命名嵌套接口包含的类型时, 不能更改已退出的身份 。
+        // 重命名嵌套接口的包含类型时，不得改变已退役的标识。
         const string movedSource = @"
 public class RenamedOuter
 {
@@ -1714,7 +1714,7 @@ public class Outer
         Assert.Contains("*RETIRED* interface [GrainInterfaceType(\"Outer+IMyGrain\")] Outer.IMyGrain [Version(0)]", content);
         Assert.Empty(await GetDiagnosticsAsync(source, content));
 
-        // 在重新命名了包含型号后,仍不能再使用退休身份。
+        // 重命名包含类型之后，仍不得复用已退役的标识。
         const string movedSource = @"
 public class RenamedOuter
 {
@@ -2170,7 +2170,7 @@ public interface IMyGrain : IGrain
 
         Assert.NotNull(diagnostic);
 
-        // 应用代码修正
+        // 应用代码修复
         var codeFixer = new GrainInterfaceVersionCodeFix();
         var actions = new List<CodeAction>();
         var context = new CodeFixContext(
@@ -2256,7 +2256,7 @@ public interface IMyGrain : IGrain
     {
         const string fileName = "Test.cs";
 
-        // 使用
+        // 在前面添加 using 指令
         var sb = new StringBuilder();
         foreach (var @using in Usings)
         {
@@ -2307,7 +2307,7 @@ public interface IMyGrain : IGrain
                 filePath: "Generated.g.cs");
         }
 
-        // 如果内容已提供,添加附加文档
+        // 如果提供了内容，则添加附加文档
         if (grainInterfacesFileContent is not null)
         {
             var contractsDocumentPath = configuredContractsPath is null
@@ -3831,7 +3831,7 @@ public interface IMyGrain : IGrain
         var changedText = await changedDocument!.GetTextAsync(TestContext.Current.CancellationToken);
         var content = changedText.ToString();
 
-        // 包含新接口
+        // 应包含新接口
         Assert.Contains("IMyGrain [Version(1)]", content);
         AssertContainsGeneratedMethod(content, "IMyGrain.DoSomething() -> Task", "() -> Task");
         Assert.DoesNotContain("Utility", content);
@@ -4150,7 +4150,7 @@ IMyGrain [Version(1)]
         var changedText = await changedDocument!.GetTextAsync(TestContext.Current.CancellationToken);
         var content = changedText.ToString();
 
-        // 本来应该更新版本
+        // 应具有更新后的版本
         Assert.Contains("IMyGrain [Version(2)]", content);
         Assert.DoesNotContain("[Version(1)]", content);
     }
@@ -4476,7 +4476,7 @@ IOldGrain.DoSomething() -> Task";
         var changedText = await changedDocument!.GetTextAsync(TestContext.Current.CancellationToken);
         var content = changedText.ToString();
 
-        // 应有 *应重新* 前缀
+        // 应具有 *RETIRED* 前缀
         Assert.Contains("*RETIRED* interface IOldGrain [Version(1)]", content);
     }
 
@@ -4560,7 +4560,7 @@ BDD4EFFA: DoDerived() -> Task
 ";
         var diagnostics = await GetDiagnosticsAsync(source, grainInterfacesFile);
 
-        // 两个接口应匹配
+        // 两个接口均应匹配
         Assert.DoesNotContain(diagnostics, d => d.Id == GrainInterfaceVersionAnalyzer.RuleId0016);
         Assert.DoesNotContain(diagnostics, d => d.Id == GrainInterfaceVersionAnalyzer.RuleId0017);
         Assert.DoesNotContain(diagnostics, d => d.Id == GrainInterfaceVersionAnalyzer.RuleId0018);
@@ -4589,7 +4589,7 @@ E1000F29: DoBase() -> Task
 ";
         var diagnostics = await GetDiagnosticsAsync(source, grainInterfacesFile);
 
-        // IDerivedGrain 应报告为未申报
+        // 应报告 IDerivedGrain 未声明
         Assert.Contains(diagnostics, d => d.Id == GrainInterfaceVersionAnalyzer.RuleId0016);
         var diagnostic = diagnostics.First(d => d.Id == GrainInterfaceVersionAnalyzer.RuleId0016);
         Assert.Contains("IDerivedGrain", diagnostic.GetMessage());

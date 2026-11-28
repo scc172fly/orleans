@@ -1,45 +1,45 @@
 ---
-title: "ORLEANS0022: Grain 类在 OrleansContracts.txt中不活跃"
-description: "理解和决心 ORLEANS0022 当混凝土 grain 合同清单中缺少或退职的等级。"
+title: "ORLEANS0022: Grain 类在 OrleansContracts.txt 中未处于活动状态"
+description: 了解并解决契约清单中缺少具体 Grain 类或该类已停用时出现的 ORLEANS0022。
 ms.date: 08/27/2026
 ms.topic: reference
 ---
 
 <a id="orleans0022-grain-class-is-not-active-in-orleanscontractstxt"></a>
 
-# ORLEANS0022: Grain 类在 OrleansContracts.txt中不活跃
+# ORLEANS0022: Grain 类在 OrleansContracts.txt 中未处于活动状态
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 类别类 | 版本 |
+| 类别 | 版本控制 |
 | 严重性 | 警告 |
-| 代码修正 | 可用 |
+| 代码修复 | 可用 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-混凝土 grain 或系统目标类没有与其有效 `GrainType`相符的主动明确声明。
+具体 Grain 类或系统目标类在清单中没有与其有效 `GrainType` 匹配的活动声明。
 
 <a id="impact"></a>
 
-## 影响影响
+## 影响
 
-实施身份不受合同审查的保护。没有稳定的 `[GrainType]`或 `GrainType` 更改的 CLR 重命名,可创建一种独特的逻辑 grain 类型,并干扰路线或状态连续性。
+实现标识未受到契约审查保护。没有稳定 `[GrainType]` 的 CLR 重命名，或 `GrainType` 变更，都可能创建不同的逻辑 Grain 类型，并破坏路由或状态连续性。
 
 <a id="how-to-fix"></a>
 
-## 如何修补
+## 修复方法
 
-验证该类的耐久性 grain 类型, 当必须保持独立于 CLR 名称时添加 `[GrainType]` , 并应用 **添加到 OrleansContracts.txt**。代码修正会增加或重新启动分类声明 。
+核实类的持久标识所对应的 Grain 类型；需要独立于 CLR 名称保持稳定时添加 `[GrainType]`，然后应用 **Add to OrleansContracts.txt**。代码修复会添加或重新激活类声明。
 
-应用 **Regenerate OrleansContracts.txt** 重建完整的项目清单。为每个合同项目分别运行再生,并利用 [合同兼容性指导](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)审查产生的 diff 。
+应用 **Regenerate OrleansContracts.txt** 以重建完整项目清单。分别为各契约项目执行重新生成，并依据[契约兼容性指南](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)检查生成的差异。
 
 <a id="suppress-the-diagnostic"></a>
 
 ## 抑制诊断
 
-仅对故意被排除在部署合同跟踪之外的 grain 类禁止。
+仅对明确排除在部署契约跟踪范围之外的 Grain 类抑制诊断。
 
 ```ini
 [*.cs]

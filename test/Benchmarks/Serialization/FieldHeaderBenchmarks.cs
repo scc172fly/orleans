@@ -9,7 +9,7 @@ using Benchmarks.Serialization.Utilities;
 namespace Benchmarks.Serialization;
 
 /// <summary>
-/// 基准 Orleans 有线协议外地页头编码和写作性能。
+/// 对 Orleans 传输协议的字段头编码及写入性能进行基准测试。
 /// </summary>
 [Config(typeof(BenchmarkConfig))]
 public class FieldHeaderBenchmarks
@@ -30,7 +30,7 @@ public class FieldHeaderBenchmarks
     {
         var writer = new SingleSegmentBuffer(OrleansBuffer).CreateWriter(Session);
 
-        // 使用预期类型和字段代号,其值小到足以嵌入。
+        // 使用预期类型，以及数值足够小、可嵌入字段头的字段 ID。
         writer.WriteFieldHeader(4, typeof(uint), typeof(uint), WireType.VarInt);
     }
 
@@ -39,7 +39,7 @@ public class FieldHeaderBenchmarks
     {
         var writer = new SingleSegmentBuffer(OrleansBuffer).CreateWriter(Session);
 
-        // 使用字段 id 三角洲,该字段太大,无法嵌入。
+        // 使用数值过大、无法嵌入字段头的字段 ID 增量。
         writer.WriteFieldHeader(Tag.MaxEmbeddedFieldIdDelta + 20, typeof(uint), typeof(uint), WireType.VarInt);
     }
 
@@ -48,7 +48,7 @@ public class FieldHeaderBenchmarks
     {
         var writer = new SingleSegmentBuffer(OrleansBuffer).CreateWriter(Session);
 
-        // 使用预期类型和字段代号,其值小到足以嵌入。
+        // 使用预期类型，以及数值足够小、可嵌入字段头的字段 ID。
         writer.WriteFieldHeaderExpected(4, WireType.VarInt);
     }
 
@@ -57,7 +57,7 @@ public class FieldHeaderBenchmarks
     {
         var writer = new SingleSegmentBuffer(OrleansBuffer).CreateWriter(Session);
 
-        // 使用字段 id 三角洲,该字段太大,无法嵌入。
+        // 使用数值过大、无法嵌入字段头的字段 ID 增量。
         writer.WriteFieldHeaderExpected(Tag.MaxEmbeddedFieldIdDelta + 20, WireType.VarInt);
     }
 

@@ -1,5 +1,5 @@
-// 根据一项或多项协定获得 .NET 基金会许可证。
-// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Buffers;
@@ -57,9 +57,9 @@ internal sealed class SocketSender : SocketAwaitableEventArgs
 
     public void Reset()
     {
-        // 在我们把它放回池子之前,我们先清清缓冲和缓冲清单
-        // 但它能消除混乱 当它看着垃圾场看这些垃圾堆时
-        // 缓冲器回到池子里时,它会紧紧抓住缓冲剂
+        // 将其放回池之前，清空缓冲区引用和缓冲区列表。
+        // 这会带来少量性能开销，但可以避免分析转储文件时产生困惑，
+        // 即对象已回到池中却仍持有缓冲区引用。
         if (BufferList != null)
         {
             BufferList = null;
@@ -111,7 +111,7 @@ internal sealed class SocketSender : SocketAwaitableEventArgs
             _bufferList.Add(b.GetArray());
         }
 
-        // 设置此列表的行为, 设定内部缓冲列表中的缓冲
+        // 设置此列表的操作会同时设置内部缓冲区列表中的缓冲区。
         BufferList = _bufferList;
     }
 }

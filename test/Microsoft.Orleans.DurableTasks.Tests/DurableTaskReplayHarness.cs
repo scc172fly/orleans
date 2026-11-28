@@ -20,12 +20,12 @@ using Orleans.Serialization.Invocation;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 在一个日记上主持耐久任务运行时间和 grain的日记状态,因此测试观察每份日记的内容
-/// 仅从承诺日记上进行并收回每次激活。
+/// 在同一日志上承载持久化任务运行时及 Grain 的日志化状态，使测试能够观察每次日志
+/// 写入提交的内容，并仅从已提交的日志恢复各激活实例。
 /// </summary>
 /// <remarks>
-/// 停止激活的终止时间停止运行时没有进一步的写作, 以崩溃或停用的方式停止运行, 所以请说明
-/// 未写入已执行的写作已丢失。 下一次激活将恢复日记并重播未完成的工作流程 。
+/// 结束激活实例会停止其运行时而不再执行写入，与崩溃或停用时相同，因此
+/// 未经任何写入提交的状态都会丢失。下一个激活实例恢复日志并重放待处理工作流。
 /// </remarks>
 internal sealed class DurableTaskReplayHarness(
     Func<ReplayGrain, DurableTask> workflow,
@@ -36,19 +36,19 @@ internal sealed class DurableTaskReplayHarness(
     private readonly DurableTaskJournalHarness _journal = new(journalFormatKey);
     private int _effectRuns;
 
-    /// <summary>获取或设置每个激活运行的工作流程,例如部署后较晚版本。</summary>
+    /// <summary>获取或设置每个激活实例运行的工作流，例如部署后的较新版本。</summary>
     public Func<ReplayGrain, DurableTask> Workflow { get; set; } = workflow;
 
-    /// <summary>获得每个激活运行时间的选项。</summary>
+    /// <summary>获取每个激活实例的运行时所读取的选项。</summary>
     public DurableTaskOptions Options { get; } = new() { ResultRetentionPeriod = TimeSpan.FromHours(1) };
 
-    /// <summary>得到每次激活都有多少次效果运行。</summary>
+    /// <summary>获取跨所有激活实例运行效果的总次数。</summary>
     public int EffectRuns => Volatile.Read(ref _effectRuns);
 
-    /// <summary>计为效果的一行。</summary>
+    /// <summary>将效果的运行次数加一。</summary>
     public void CountEffectRun() => Interlocked.Increment(ref _effectRuns);
 
-    /// <summary>创建激活,并从承诺日记本上恢复其状态和待处理的工作流程。</summary>
+    /// <summary>创建激活实例，并从已提交日志恢复其状态及待处理工作流。</summary>
     public async Task<ReplayActivation> ActivateAsync(CancellationToken cancellationToken)
     {
         var scope = _journal.CreateScope();
@@ -96,7 +96,7 @@ internal sealed class DurableTaskReplayHarness(
         [.. storage.Tasks.Where(static task => task.State.CompletedAt.HasValue).Select(static task => task.Id)];
 }
 
-/// <summary>启动 grain 减去 <see cref="DurableTaskReplayHarness"/> 主机主机。</summary>
+/// <summary>由 <see cref="DurableTaskReplayHarness"/> 承载的 Grain 的一个激活实例。</summary>
 internal sealed class ReplayActivation(
     AsyncServiceScope scope,
     DurableTaskGrainRuntime runtime,
@@ -110,19 +110,19 @@ internal sealed class ReplayActivation(
 
     public ReplayGrain Grain { get; } = grain;
 
-    /// <summary>获取 grain计数器、其日志条目计数和每个日记所写已完成的任务。</summary>
+    /// <summary>获取每次日志写入收集到的 Grain 计数器、其日志的条目数及已完成的任务。</summary>
     public IReadOnlyCollection<(int Counter, int Entries, TaskId[] Completed)> Writes => probe.Writes;
 
-    /// <summary>完成后一旦写失败的完整 <see cref="FailWrites"/>.</summary>
+    /// <summary>在 <see cref="FailWrites"/> 之后有写入失败时完成。</summary>
     public Task FailedWrite => probe.FailedWrite;
 
     /// <summary>
-    /// 将以后的日记在到达存储前写不成功, 所以从现在开始启动阶段的变化
-    /// 当它灭亡的时候,他们迷失了;当它灭亡的时候,他们却像在它们灭亡的时候 silo 写作前坠机。
+    /// 使后续每次日志写入都在到达存储前失败，因此激活实例从现在起暂存的变更
+    /// 会在激活实例结束时丢失，与 Silo 在写入前崩溃的情况相同。
     /// </summary>
     public void FailWrites() => probe.FailWrites();
 
-    /// <summary>将工具的工作流程与客户端一样排入时间表。</summary>
+    /// <summary>采用与客户端相同的方式调度测试工具的工作流。</summary>
     public async Task ScheduleAsync(TaskId taskId, CancellationToken cancellationToken) =>
         await ((IDurableTaskServer)Runtime).ScheduleAsync(
             taskId,
@@ -136,7 +136,7 @@ internal sealed class ReplayActivation(
         await ((IDurableTaskManager)Runtime).GetTask(taskId).GetResponseAsync(cancellationToken)
             .WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
 
-    /// <summary>不再写日记, 即终止激活。</summary>
+    /// <summary>结束激活实例，不再执行日志写入。</summary>
     public async ValueTask DisposeAsync()
     {
         await Runtime.StopAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(10));
@@ -144,7 +144,7 @@ internal sealed class ReplayActivation(
     }
 }
 
-/// <summary>下 grain 一种激活实例:其日记计数和日志,以及工作流程的控制。</summary>
+/// <summary>一个激活实例的 Grain 实例：其日志化计数器、日志及工作流的控制机制。</summary>
 internal sealed class ReplayGrain(
     DurableTaskReplayHarness harness,
     IDurableValue<int> counter,
@@ -157,16 +157,16 @@ internal sealed class ReplayGrain(
 
     public DurableTaskReplayHarness Harness { get; } = harness;
 
-    /// <summary>获取 grain日记状态。</summary>
+    /// <summary>获取 Grain 的日志化状态。</summary>
     public IDurableValue<int> Counter { get; } = counter;
 
-    /// <summary>获取 grain日志,工作流程发布其进度。</summary>
+    /// <summary>获取 Grain 的持久化日志，工作流向其中发布进度。</summary>
     public IDurableLog<int> Log { get; } = log;
 
-    /// <summary>一旦工作流程在大门等候,完成。</summary>
+    /// <summary>工作流在门控处等待时完成。</summary>
     public Task AtGate => _atGate.Task;
 
-    /// <summary>等待测试打开大门,或尝试中止。</summary>
+    /// <summary>等待测试打开门控，或等待执行尝试被中止。</summary>
     public Task WaitAtGateAsync()
     {
         _atGate.TrySetResult();
@@ -175,16 +175,16 @@ internal sealed class ReplayGrain(
 
     public void OpenGate() => _gate.TrySetResult();
 
-    /// <summary>要求一个日记像其他 grain 工作一样,记录运行时所演的任何戏。</summary>
+    /// <summary>请求一次日志写入，提交该写入运行时所有已暂存的内容，与其他 Grain 工作所做的操作相同。</summary>
     public void RequestUnrelatedWrite() => _unrelatedWrites.Enqueue(manager.WriteStateAsync().AsTask());
 
-    /// <summary>等待工作流程所要求的不相干写作。</summary>
+    /// <summary>等待工作流请求的不相关写入。</summary>
     public Task UnrelatedWrites => Task.WhenAll(_unrelatedWrites);
 
     public DurableTask CreateWorkflow() => Harness.Workflow(this);
 }
 
-/// <summary>一份日记国家机器, 什么都不写,记录每个写着收集的东西,</summary>
+/// <summary>不实际写入、记录每次写入所收集的内容且能够使写入失败的日志状态机。</summary>
 internal sealed class WriteProbe(Func<(int Counter, int Entries, TaskId[] Completed)> snapshot) : IStateMachine
 {
     private readonly ConcurrentQueue<(int Counter, int Entries, TaskId[] Completed)> _writes = new();
@@ -193,10 +193,10 @@ internal sealed class WriteProbe(Func<(int Counter, int Entries, TaskId[] Comple
 
     public IReadOnlyCollection<(int Counter, int Entries, TaskId[] Completed)> Writes => _writes;
 
-    /// <summary>一旦探测器写不出来, 就会完成 。</summary>
+    /// <summary>探针使一次写入失败时完成。</summary>
     public Task FailedWrite => _failedWrite.Task;
 
-    /// <summary>无法编写每以后的书稿,因此以后不会写到储存处。</summary>
+    /// <summary>使后续每次写入的准备过程失败，从而使后续写入均无法到达存储。</summary>
     public void FailWrites() => _failsWrites = true;
 
     ValueTask IStateMachine.PrepareWriteAsync(CancellationToken cancellationToken)
@@ -222,7 +222,7 @@ internal sealed class WriteProbe(Func<(int Counter, int Entries, TaskId[] Comple
     void IStateMachine.WriteSnapshot(JournalStreamWriter writer) => _writes.Enqueue(snapshot());
 }
 
-/// <summary>一份可连号请求,用于运行启动工作流程,该程序的目标。</summary>
+/// <summary>可序列化的请求，用于运行其目标激活实例的工作流。</summary>
 [GenerateSerializer]
 [Alias("Microsoft.Orleans.DurableTasks.Tests.ReplayWorkflowRequest")]
 internal sealed class ReplayWorkflowRequest : IDurableTaskRequest

@@ -5,19 +5,19 @@ using System.Threading.Tasks;
 namespace Orleans
 {
     /// <summary>
-    /// 与生命周期观察员合作的扩展。
+    /// 用于操作生命周期观察者的扩展方法。
     /// </summary>
     public static class LifecycleExtensions
     {
         /// <summary>
-        /// 创建可支配的生命周期订阅。
+        /// 创建可释放的生命周期订阅。
         /// </summary>
-        /// <param name="observable">生命周期可以观察到。</param>
-        /// <param name="observerName">观察员的姓名。</param>
-        /// <param name="stage">参与的阶段。</param>
-        /// <param name="onStart">该代表在开始特定生命周期阶段时打电话。</param>
-        /// <param name="onStop">停止特定生命周期阶段时,应召代表。</param>
-        /// <returns>一个 <see cref="IDisposable"/> 实例,可以处理解除观察员的生命周期登记。</returns>
+        /// <param name="observable">可观察的生命周期。</param>
+        /// <param name="observerName">观察者名称。</param>
+        /// <param name="stage">要参与的阶段。</param>
+        /// <param name="onStart">启动指定生命周期阶段时调用的委托。</param>
+        /// <param name="onStop">停止指定生命周期阶段时调用的委托。</param>
+        /// <returns>一个 <see cref="IDisposable"/> 实例，释放它即可取消观察者对生命周期的订阅。</returns>
         public static IDisposable Subscribe(this ILifecycleObservable observable, string observerName, int stage, Func<CancellationToken, Task> onStart, Func<CancellationToken, Task>? onStop)
         {
             if (observable is null)
@@ -39,28 +39,28 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 创建可支配的生命周期订阅。
+        /// 创建可释放的生命周期订阅。
         /// </summary>
-        /// <param name="observable">生命周期可以观察到。</param>
-        /// <param name="observerName">观察员的姓名。</param>
-        /// <param name="stage">参与的阶段。</param>
-        /// <param name="onStart">该代表在开始特定生命周期阶段时打电话。</param>
-        /// <returns>一个 <see cref="IDisposable"/> 实例,可以处理解除观察员的生命周期登记。</returns>
+        /// <param name="observable">可观察的生命周期。</param>
+        /// <param name="observerName">观察者名称。</param>
+        /// <param name="stage">要参与的阶段。</param>
+        /// <param name="onStart">启动指定生命周期阶段时调用的委托。</param>
+        /// <returns>一个 <see cref="IDisposable"/> 实例，释放它即可取消观察者对生命周期的订阅。</returns>
         public static IDisposable Subscribe(this ILifecycleObservable observable, string observerName, int stage, Func<CancellationToken, Task> onStart)
         {
             return observable.Subscribe(observerName, stage, onStart, null);
         }
 
         /// <summary>
-        /// 创建可支配的生命周期订阅。
+        /// 创建可释放的生命周期订阅。
         /// </summary>
         /// <typeparam name="TObserver">
-        /// 用于诊断的观察类型。
+        /// 观察者类型，用于诊断。
         /// </typeparam>
-        /// <param name="observable">生命周期可以观察到。</param>
-        /// <param name="stage">参与的阶段。</param>
-        /// <param name="observer">观察员</param>
-        /// <returns>一个 <see cref="IDisposable"/> 实例,可以处理解除观察员的生命周期登记。</returns>
+        /// <param name="observable">可观察的生命周期。</param>
+        /// <param name="stage">要参与的阶段。</param>
+        /// <param name="observer">观察者。</param>
+        /// <returns>一个 <see cref="IDisposable"/> 实例，释放它即可取消观察者对生命周期的订阅。</returns>
         public static IDisposable Subscribe<TObserver>(this ILifecycleObservable observable, int stage, ILifecycleObserver observer)
         {
             ArgumentNullException.ThrowIfNull(observable);
@@ -69,43 +69,43 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 创建可支配的生命周期订阅。
+        /// 创建可释放的生命周期订阅。
         /// </summary>
         /// <typeparam name="TObserver">
-        /// 用于诊断的观察类型。
+        /// 观察者类型，用于诊断。
         /// </typeparam>
-        /// <param name="observable">生命周期可以观察到。</param>
-        /// <param name="stage">参与的阶段。</param>
-        /// <param name="onStart">该代表在开始特定生命周期阶段时打电话。</param>
-        /// <param name="onStop">在停止特定生命周期阶段时,将调用Teh代表。</param>
-        /// <returns>一个 <see cref="IDisposable"/> 实例,可以处理解除观察员的生命周期登记。</returns>
+        /// <param name="observable">可观察的生命周期。</param>
+        /// <param name="stage">要参与的阶段。</param>
+        /// <param name="onStart">启动指定生命周期阶段时调用的委托。</param>
+        /// <param name="onStop">停止指定生命周期阶段时调用的委托。</param>
+        /// <returns>一个 <see cref="IDisposable"/> 实例，释放它即可取消观察者对生命周期的订阅。</returns>
         public static IDisposable Subscribe<TObserver>(this ILifecycleObservable observable, int stage, Func<CancellationToken, Task> onStart, Func<CancellationToken, Task> onStop)
         {
             return observable.Subscribe(GetTypeName(typeof(TObserver)), stage, onStart, onStop);
         }
 
         /// <summary>
-        /// 创建可支配的生命周期订阅。
+        /// 创建可释放的生命周期订阅。
         /// </summary>
         /// <typeparam name="TObserver">
-        /// 用于诊断的观察类型。
+        /// 观察者类型，用于诊断。
         /// </typeparam>
-        /// <param name="observable">生命周期可以观察到。</param>
-        /// <param name="stage">参与的阶段。</param>
-        /// <param name="onStart">该代表在开始特定生命周期阶段时打电话。</param>
-        /// <returns>一个 <see cref="IDisposable"/> 实例,可以处理解除观察员的生命周期登记。</returns>
+        /// <param name="observable">可观察的生命周期。</param>
+        /// <param name="stage">要参与的阶段。</param>
+        /// <param name="onStart">启动指定生命周期阶段时调用的委托。</param>
+        /// <returns>一个 <see cref="IDisposable"/> 实例，释放它即可取消观察者对生命周期的订阅。</returns>
         public static IDisposable Subscribe<TObserver>(this ILifecycleObservable observable, int stage, Func<CancellationToken, Task> onStart)
         {
             return observable.Subscribe(GetTypeName(typeof(TObserver)), stage, onStart, null);
         }
 
         /// <summary>
-        /// 创建可支配的生命周期订阅。
+        /// 创建可释放的生命周期订阅。
         /// </summary>
-        /// <param name="observable">生命周期可以观察到。</param>
-        /// <param name="stage">参与的阶段。</param>
-        /// <param name="observer">观察员</param>
-        /// <returns>一个 <see cref="IDisposable"/> 实例,可以处理解除观察员的生命周期登记。</returns>
+        /// <param name="observable">可观察的生命周期。</param>
+        /// <param name="stage">要参与的阶段。</param>
+        /// <param name="observer">观察者。</param>
+        /// <returns>一个 <see cref="IDisposable"/> 实例，释放它即可取消观察者对生命周期的订阅。</returns>
         public static IDisposable Subscribe(this ILifecycleObservable observable, int stage, ILifecycleObserver observer)
         {
             ArgumentNullException.ThrowIfNull(observable);

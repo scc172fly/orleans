@@ -87,7 +87,7 @@ internal static class KinesisStreamTestResource
         }
         catch (OperationCanceledException) when (testCancellationToken.IsCancellationRequested)
         {
-            // 保留在受约束的清理后取消原试验。
+            // 在有界清理后保留原始测试的取消状态。
         }
     }
 

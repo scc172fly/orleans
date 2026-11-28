@@ -6,10 +6,10 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// Orleans grain 键扩展功能测试。
-    /// 密钥扩展允许 grains 通过合并主键组合组合组合组合键复用密钥
-    /// ( GUID、 长或字符串) 带有字符串扩展名。 这允许使用类似
-    /// 同一 grain 类型下每个租户的情况不同,多租房。
+    /// Orleans Grain 键扩展功能的测试。
+    /// 键扩展允许将主键
+    /// （GUID、long 或字符串）与字符串扩展部分组合成复合键。这支持
+    /// 多租户等场景，同一 Grain 类型可为不同租户拥有不同实例。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -21,9 +21,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 证明 grains 具有相同的基主键但不同的键扩展
-        /// 将分别作为 grain 不同实例处理,并单独启动。
-        /// 这是多租期和分治情景的基本假设。
+        /// 验证具有相同基础主键但不同键扩展的 Grain
+        /// 被视为具有独立激活实例的不同 Grain 实例。
+        /// 这对于多租户和分区场景至关重要。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("PrimaryKeyExtension")]
         public async Task PrimaryKeyExtensionsShouldDifferentiateGrainsUsingTheSameBasePrimaryKey()
@@ -41,14 +41,14 @@ namespace DefaultCluster.Tests.General
             var grainId2 = await grain2.GetGrainReference();
             var activationId2 = await grain2.GetActivationId();
 
-            Assert.NotEqual(grainId1, grainId2); // 配错的密钥扩展名应该区分一个相同的基底主键。
-            Assert.NotEqual(activationId1, activationId2); // 配错的密钥扩展名应该区分一个相同的基底主键。
+            Assert.NotEqual(grainId1, grainId2); // 不同的键扩展应能区分具有相同基础主键的 Grain。
+            Assert.NotEqual(activationId1, activationId2); // 不同的键扩展应能区分具有相同基础主键的 Grain。
         }
 
         /// <summary>
-        /// 证明 grains 具有不同基底主键是独立的
-        /// 即使它们具有相同的关键扩展值。
-        /// 确保在不同 grain 实例之间保持适当的隔离。
+        /// 验证具有不同基础主键的 Grain 是不同的 Grain，
+        /// 即使它们共享相同的键扩展值。
+        /// 确保不同 Grain 实例之间的正确隔离。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("PrimaryKeyExtension")]
         public async Task PrimaryKeyExtensionsShouldDifferentiateGrainsUsingDifferentBaseKeys()
@@ -66,14 +66,14 @@ namespace DefaultCluster.Tests.General
             var grainId2 = await grain2.GetGrainReference();
             var activationId2 = await grain2.GetActivationId();
 
-            Assert.NotEqual(grainId1, grainId2); // 基准键应区分相同的扩展键, 其大小不匹配。
-            Assert.NotEqual(activationId1, activationId2); // 基准键应区分相同的扩展键, 其大小不匹配。
+            Assert.NotEqual(grainId1, grainId2); // 不同的基础键应能区分具有相同扩展部分的键。
+            Assert.NotEqual(activationId1, activationId2); // 不同的基础键应能区分具有相同扩展部分的键。
         }
 
         /// <summary>
-        /// 验证不允许使用空字符串密钥扩展名 。
-        /// 防止意外 grain 身份混淆,并确保
-        /// 使用时的有意义的键扩展名。
+        /// 验证不允许使用空字符串键扩展。
+        /// 这可防止 Grain 标识意外混淆，并确保
+        /// 使用键扩展时扩展部分具有实际含义。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("PrimaryKeyExtension")]
         public void EmptyKeyExtensionsAreDisallowed()
@@ -87,9 +87,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 证明只允许空白密钥扩展 。
-        /// 这确保关键扩展号包含有意义的识别特征
-        /// 防止隐微的虫子从隐形字符中消失。
+        /// 验证不允许使用仅包含空白字符的键扩展。
+        /// 这确保键扩展包含有意义的标识符，
+        /// 并防止由不可见字符引发的隐蔽错误。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("PrimaryKeyExtension")]
         public void WhiteSpaceKeyExtensionsAreDisallowed()
@@ -103,9 +103,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 证明不允许无名密钥扩展 。
-        /// 强制规定关键延长期必须明确规定
-        /// 当使用扩展 grain 工厂方法时。
+        /// 验证不允许使用 null 键扩展。
+        /// 强制要求在使用支持扩展键的 Grain 工厂方法时
+        /// 显式提供键扩展。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("PrimaryKeyExtension")]
         public void NullKeyExtensionsAreDisallowed()
@@ -119,9 +119,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 证明密钥扩展可超过127字节长度。
-        /// 这确保该系统能够处理长识别特征,例如
-        /// 文件路径、 URL 或其他无人为限制的扩展标识符 。
+        /// 验证键扩展长度可以超过 127 字节。
+        /// 这确保系统能处理较长的标识符，例如
+        /// 文件路径、URL 或其他扩展标识符，不受人为长度限制。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("PrimaryKeyExtension")]
         public async Task PrimaryKeyExtensionsShouldPermitStringsLongerThan127BytesLong()
@@ -133,13 +133,13 @@ namespace DefaultCluster.Tests.General
             var localGrainRef = this.GrainFactory.GetGrain<IKeyExtensionTestGrain>(baseKey, kx1, null);
             var remoteGrainRef = await localGrainRef.GetGrainReference();
 
-            Assert.Equal(localGrainRef, remoteGrainRef); // ID 错误的 grain 。
+            Assert.Equal(localGrainRef, remoteGrainRef); // Grain ID 不匹配。
         }
 
         /// <summary>
-        /// 从 grain 引用中获取主键字符串的测试。
-        /// 验证密钥对 grains 可以提取他们的密钥
-        /// 从 grain 参考文献中取出,用于诊断或路由目的。
+        /// 测试从 Grain 引用获取主键字符串。
+        /// 验证可从使用字符串键的 Grain 的引用中提取其键，
+        /// 用于诊断或路由。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("PrimaryKeyExtension")]
         public void GetPrimaryKeyStringOnGrainReference()
@@ -149,7 +149,7 @@ namespace DefaultCluster.Tests.General
             var grain = this.GrainFactory.GetGrain<IStringGrain>(key);
             var key2 = ((GrainReference)grain).GetPrimaryKeyString();
 
-            Assert.Equal(key, key2); // 意外的密钥被返回 。
+            Assert.Equal(key, key2); // 返回了意外的键。
         }
     }
 }

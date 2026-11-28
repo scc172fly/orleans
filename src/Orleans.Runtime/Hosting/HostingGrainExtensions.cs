@@ -6,15 +6,15 @@ using Orleans.Runtime;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 配置方法 <see cref="IGrainExtension"/>秒对a silo.
+    /// 用于在 Silo 上配置 <see cref="IGrainExtension"/> 的方法。
     /// </summary>
     public static class HostingGrainExtensions
     {
         /// <summary>
-        /// 登记指定接口的 grain 扩展执行。
+        /// 为指定接口注册 Grain 扩展实现。
         /// </summary>
-        /// <typeparam name="TExtensionInterface"> <see cref="IGrainExtension"/> 接口正在登记。</typeparam>
-        /// <typeparam name="TExtension">执行《执行和执行执行执行 <typeparamref name="TExtensionInterface"/>包括用于依赖注射的公共建筑师。</typeparam>
+        /// <typeparam name="TExtensionInterface">要注册的 <see cref="IGrainExtension"/> 接口。</typeparam>
+        /// <typeparam name="TExtension"><typeparamref name="TExtensionInterface"/> 的实现，包括用于依赖注入的公共构造函数。</typeparam>
         public static ISiloBuilder AddGrainExtension<
             TExtensionInterface,
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TExtension>(

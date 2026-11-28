@@ -11,7 +11,7 @@ using Xunit;
 namespace Tester.StreamingTests
 {
     /// <summary>
-    /// 测试单网关配置的持久性流,验证系统目标路径行为。
+    /// 测试单网关配置下的持久化流，验证系统目标的路由行为。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -62,12 +62,12 @@ namespace Tester.StreamingTests
 
             this.fixture.Logger.LogInformation("************************ PersistentStreamingOverSingleGatewayTest *********************************");
 
-            // 生成流Id
+            // 生成流 ID。
             List<Guid> streamIds = Enumerable.Range(0, streamCount)
                 .Select(i => Guid.NewGuid())
                 .ToList();
 
-            // 订阅所有流
+            // 订阅所有流。
             foreach (Guid streamId in streamIds)
             {
                 IStreamProvider streamProvider = this.fixture.Client.GetStreamProvider(Fixture.StreamProviderName);
@@ -75,19 +75,19 @@ namespace Tester.StreamingTests
                 await stream.SubscribeAsync(OnNextAsync);
             }
 
-            // 创建制片人 grains
+            // 创建生产者 Grain。
             List<ISampleStreaming_ProducerGrain> producers = streamIds
                 .Select(id => this.fixture.GrainFactory.GetGrain<ISampleStreaming_ProducerGrain>(id))
                 .ToList();
 
-            // 成为生产者
+            // 成为生产者。
             await Task.WhenAll(Enumerable.Range(0, streamCount).Select(i => producers[i].BecomeProducer(
                 streamIds[i],
                 null!,
                 Fixture.StreamProviderName,
                 TestContext.Current.CancellationToken)));
 
-            // 产生一些事件
+            // 生成一些事件。
             var periodicProducingStarted = true;
             try
             {
@@ -108,7 +108,7 @@ namespace Tester.StreamingTests
 
             int[] counts = await Task.WhenAll(Enumerable.Range(0, streamCount).Select(i => producers[i].GetNumberProduced()));
 
-            // 保证一切顺利
+            // 确保一切正常。
             await TestingUtils.WaitUntilAsync(
                 (lastTry, cancellationToken) => CheckCounters(counts.Sum(), lastTry, cancellationToken),
                 Timeout,

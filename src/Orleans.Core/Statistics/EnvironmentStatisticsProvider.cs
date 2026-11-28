@@ -39,7 +39,7 @@ internal sealed class EnvironmentStatisticsProvider : IEnvironmentStatisticsProv
 
     private EnvironmentStatisticsProvider(Meter meter)
     {
-        GC.Collect(0, GCCollectionMode.Forced, true); // 我们确保GC结构不会空, 并履行封锁GC保证立即收取。
+        GC.Collect(0, GCCollectionMode.Forced, true); // 确保 GC 结构不为空，同时执行阻塞式 GC 可保证立即进行回收。
 
         _availableMemoryGauge = meter.CreateObservableGauge(InstrumentNames.RUNTIME_MEMORY_AVAILABLE_MEMORY_MB, () => (long)(_availableMemoryBytes / OneKiloByte / OneKiloByte), unit: "MB");
         _maximumAvailableMemoryGauge = meter.CreateObservableGauge(InstrumentNames.RUNTIME_MEMORY_TOTAL_PHYSICAL_MEMORY_MB, () => (long)(_maximumAvailableMemoryBytes / OneKiloByte / OneKiloByte), unit: "MB");
@@ -116,11 +116,11 @@ internal sealed class EnvironmentStatisticsProvider : IEnvironmentStatisticsProv
         }
     }
 
-    // 见: https://www.ledjonbehluli.com/posts/orleans_resource_placement_kalman/
+    // 参见：https://www.ledjonbehluli.com/posts/orleans_resource_placement_kalman/
 
-    // 使用合作双模式KF的理由是我们希望输入信号沿着
-    // 与原信标速度相比,衰变速度慢于原信标的速度,但一旦信号增加,也会跟踪信号
-    // 两者都很重要,但它们彼此之间却反相相关。
+    // 使用协作双模式卡尔曼滤波器（KF）的理由是，希望输入信号遵循这样一条轨迹：
+    // 它的衰减速度低于原始信号，但在信号上升时也能够跟踪信号
+    // （信号上升意味着可能发生过载）。这两点都很重要，但彼此存在反向关联。
     private sealed class DualModeKalmanFilter
     {
         private const float SlowProcessNoiseCovariance = 0f;

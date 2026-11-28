@@ -3,9 +3,9 @@ using Orleans.Durable.Tasks;
 
 namespace DurableWorkflows;
 
-// 每项持久任务方法的状态变化都承诺在同一份日记上写成。 grains 记录每
-// 返回重复操作的记录效果,因此要重新或重复工作流程
-// 每种效果都适用一次。
+// 每个持久化任务方法的状态变更与其结果在同一次日志写入中提交。Grain 按操作 ID 记录每个
+// 副作用，重复操作时返回记录的副作用结果，因此重试或重复执行工作流
+// 只会应用每个副作用一次。
 public sealed class ActivityGrain : DurableGrain, IActivityGrain
 {
     private readonly IDurableDictionary<string, ActivityResult> _effects;

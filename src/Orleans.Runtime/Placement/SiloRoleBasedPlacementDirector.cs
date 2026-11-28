@@ -30,7 +30,7 @@ namespace Orleans.Runtime.Placement
                 throw new OrleansException($"Cannot place grain with RoleName {siloRole}. Either Role name is invalid or there are no active silos with type {siloRole} in MembershipTableSnapshot registered yet.");
             }
 
-            // 如果指定了有效的放置提示, 请使用它 。
+            // 如果指定了有效的放置提示，则使用该提示。
             if (IPlacementDirector.GetPlacementHint(target.RequestContextData, compatibleSilos) is { } placementHint)
             {
                 return Task.FromResult(placementHint);

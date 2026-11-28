@@ -10,25 +10,25 @@ using Orleans.Transactions.State;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 配置下一个匹配交易阶段的输入错误 。
+    /// 配置在下一次匹配的事务阶段中注入的故障。
     /// </summary>
     [GenerateSerializer]
     public class FaultInjectionControl
     {
         /// <summary>
-        /// 获取或设置输入过错的交易阶段。
+        /// 获取或设置注入故障的事务阶段。
         /// </summary>
         [Id(0)]
         public TransactionFaultInjectPhase FaultInjectionPhase = TransactionFaultInjectPhase.None;
 
         /// <summary>
-        /// 获取或设置注射的错误类型。
+        /// 获取或设置要注入的故障类型。
         /// </summary>
         [Id(1)]
         public FaultInjectionType FaultInjectionType = FaultInjectionType.None;
 
         /// <summary>
-        /// 清除配置的过失注射。
+        /// 清除已配置的故障注入。
         /// </summary>
         public void Reset()
         {
@@ -106,111 +106,111 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 指明了可以注入过失的交易阶段。
+    /// 标识可以注入故障的事务阶段。
     /// </summary>
     [GenerateSerializer]
     public enum TransactionFaultInjectPhase
     {
         /// <summary>
-        /// 未选择交易阶段 。
+        /// 未选择事务阶段。
         /// </summary>
         None,
 
         /// <summary>
-        /// 实施只读交易后,会发生过失。
+        /// 提交只读事务后注入故障。
         /// </summary>
         AfterCommitReadOnly,
 
         /// <summary>
-        /// 准备交易后发生过失。
+        /// 准备事务后注入故障。
         /// </summary>
         AfterPrepare,
 
         /// <summary>
-        /// 准备和进行交易后,发生过失。
+        /// 准备并提交事务后注入故障。
         /// </summary>
         AfterPrepareAndCommit,
 
         /// <summary>
-        /// 中止交易后发生错误。
+        /// 中止事务后注入故障。
         /// </summary>
         AfterAbort,
 
         /// <summary>
-        /// 在收到预先通知后,即发生过失。
+        /// 收到准备完成通知后注入故障。
         /// </summary>
         AfterPrepared,
 
         /// <summary>
-        /// 注销交易后发生错误。
+        /// 取消事务后注入故障。
         /// </summary>
         AfterCancel,
 
         /// <summary>
-        /// 证实交易后,即产生过失。
+        /// 确认事务后注入故障。
         /// </summary>
         AfterConfirm,
 
         /// <summary>
-        /// 处理交易按键后,发生故障。
+        /// 处理事务探测请求后注入故障。
         /// </summary>
         AfterPing,
 
         /// <summary>
-        /// 在确认交易前先输入错误。
+        /// 确认事务前注入故障。
         /// </summary>
         BeforeConfirm,
 
         /// <summary>
-        /// 准备交易前先输入错误。
+        /// 准备事务前注入故障。
         /// </summary>
         BeforePrepare,
 
         /// <summary>
-        /// 准备和进行交易前先输入过失。
+        /// 准备并提交事务前注入故障。
         /// </summary>
         BeforePrepareAndCommit
     }
 
     /// <summary>
-    /// 指明了将错误注入交易。
+    /// 标识要注入事务的故障。
     /// </summary>
     public enum FaultInjectionType
     {
         /// <summary>
-        /// 没有错注射。
+        /// 不注入故障。
         /// </summary>
         None,
 
         /// <summary>
-        /// 在选定的交易阶段之后,关闭 grain 。
+        /// 在选定事务阶段之后停用 Grain。
         /// </summary>
         Deactivation,
 
         /// <summary>
-        /// 在存储交易状态之前, 丢弃了存储例外 。
+        /// 在存储事务状态之前引发存储异常。
         /// </summary>
         ExceptionBeforeStore,
 
         /// <summary>
-        /// 在存储交易状态后, 将存储例外丢弃 。
+        /// 在存储事务状态之后引发存储异常。
         /// </summary>
         ExceptionAfterStore,
 
         /// <summary>
-        /// 在存储交易状态后, 抛出一个通用例外。
+        /// 在存储事务状态之后引发一般异常。
         /// </summary>
         GenericExceptionAfterStore
     }
 
     /// <summary>
-    /// 提供交易状态,其操作可注入受控过失。
+    /// 提供操作时能够注入受控故障的事务状态。
     /// </summary>
     /// <typeparam name="TState">状态类型。</typeparam>
     public interface IFaultInjectionTransactionalState<TState> : ITransactionalState<TState> where TState : class, new()
     {
         /// <summary>
-        /// 设置或设置错误注射配置。
+        /// 获取或设置故障注入配置。
         /// </summary>
         FaultInjectionControl FaultInjectionControl { get; set; }
     }
@@ -240,10 +240,10 @@ namespace Orleans.Transactions.TestKit
 
         internal void SetupResourceFactory(IGrainContext context, string stateName, TransactionQueue<TState> queue)
         {
-            // 将资源工厂添加到 grain 上下文
+            // 将资源工厂添加到 Grain 上下文
             context.RegisterResourceFactory<ITransactionalResource>(stateName, () => new FaultInjectionTransactionalResource<TState>(this.faultInjector, FaultInjectionControl, new TransactionalResource<TState>(queue), context, logger, grainRuntime));
 
-            // grain 上下文添加 tm 工厂
+            // 将事务管理器工厂添加到 Grain 上下文
             context.RegisterResourceFactory<ITransactionManager>(stateName, () => new FaultInjectionTransactionManager<TState>(this.faultInjector, FaultInjectionControl, new TransactionManager<TState>(queue), context, logger, grainRuntime));
         }
 

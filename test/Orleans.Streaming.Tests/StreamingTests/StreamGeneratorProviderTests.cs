@@ -15,7 +15,7 @@ using Xunit;
 namespace UnitTests.StreamingTests
 {
     /// <summary>
-    /// 测试流式发电机供应商的功能,验证自动流式发电和事件交付。
+    /// 测试流生成器提供程序的功能，验证自动流生成和事件投递。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -87,7 +87,7 @@ namespace UnitTests.StreamingTests
             var report = await reporter.GetReport(Fixture.StreamProviderName, Fixture.StreamNamespace, cancellationToken);
             if (assertIsTrue)
             {
-                // 每个队列一串
+                // 每个队列对应一个流。
                 Assert.Equal(TotalQueueCount, report.Count);
                 foreach (int eventsPerStream in report.Values)
                 {

@@ -4,22 +4,22 @@ using Orleans.Storage;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// MemoryGrainStorage选项
+    /// MemoryGrainStorage 的选项。
     /// </summary>
     public class MemoryGrainStorageOptions : IStorageProviderSerializerOptions
     {
         /// <summary>
-        /// 队列存储的默认数 grains。
+        /// 队列存储 Grain 的默认数量。
         /// </summary>
         public const int NumStorageGrainsDefaultValue = 10;
 
         /// <summary>
-        /// 获取或设置要使用的存储 grains 的数量。
+        /// 获取或设置要使用的存储 Grain 数量。
         /// </summary>
         public int NumStorageGrains { get; set; } = NumStorageGrainsDefaultValue;
 
         /// <summary>
-        /// 获取或设置 silo 生命周期阶段,其中存储应初始化。 存储必须在使用前初始化 。
+        /// 获取或设置存储初始化所处的 Silo 生命周期阶段。存储必须在使用前完成初始化。
         /// </summary>
         public int InitStage { get; set; } = DEFAULT_INIT_STAGE;
 
@@ -27,7 +27,7 @@ namespace Orleans.Configuration
         public IGrainStorageSerializer GrainStorageSerializer { get; set; } = null!;
 
         /// <summary>
-        /// 默认 init 阶段
+        /// 默认初始化阶段。
         /// </summary>
         public const int DEFAULT_INIT_STAGE = ServiceLifecycleStage.ApplicationServices;
     }

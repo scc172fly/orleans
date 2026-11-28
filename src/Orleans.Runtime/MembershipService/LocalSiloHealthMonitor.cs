@@ -54,30 +54,30 @@ namespace Orleans.Runtime.MembershipService
     internal interface ILocalSiloHealthMonitor
     {
         /// <summary>
-        /// 返回从拖拉探测器的时间源中返回时间戳。
+        /// 从停顿检测器的时间源返回时间戳。
         /// </summary>
-        /// <returns>一个适合与 <see cref="GetStallDurationAsync"/>一起使用的时标。</returns>
+        /// <returns>适合与 <see cref="GetStallDurationAsync"/> 一起使用的时间戳。</returns>
         long GetTimestamp();
 
         /// <summary>
-        /// 等待摊位探测器在间隔结束时进行取样,然后返回检测到的滞期。
+        /// 等待停顿检测器完成区间结束之后的采样，然后返回检测到的停顿时长。
         /// </summary>
-        /// <param name="startTimestamp">间隔的开始。</param>
-        /// <param name="endTimestamp">间隔的结束。</param>
-        /// <param name="cancellationToken">取消等待的符号 。</param>
-        /// <returns>检测到的停顿期。</returns>
+        /// <param name="startTimestamp">区间起点。</param>
+        /// <param name="endTimestamp">区间终点。</param>
+        /// <param name="cancellationToken">取消等待的令牌。</param>
+        /// <returns>检测到的停顿时长。</returns>
         ValueTask<TimeSpan> GetStallDurationAsync(
             long startTimestamp,
             long endTimestamp,
             CancellationToken cancellationToken);
 
         /// <summary>
-        /// 返回在提供间隔内当地健康状况的总和。
+        /// 返回给定区间内汇总的本地健康状况。
         /// </summary>
-        /// <param name="startTimestamp">累计间隔的开始时间。</param>
-        /// <param name="endTimestamp">累计间隔的包容性结束。</param>
-        /// <param name="categories">健康检查的类别包括:</param>
-        /// <returns>总体健康状况。</returns>
+        /// <param name="startTimestamp">汇总区间的包含式起点。</param>
+        /// <param name="endTimestamp">汇总区间的包含式终点。</param>
+        /// <param name="categories">要包含的健康检查类别。</param>
+        /// <returns>汇总的健康状况。</returns>
         LocalSiloHealthStatus GetLocalHealthStatus(
             long startTimestamp,
             long endTimestamp,
@@ -88,7 +88,7 @@ namespace Orleans.Runtime.MembershipService
             LocalSiloHealthCheckCategory categories);
 
         /// <summary>
-        /// 最新发现的健康问题清单。
+        /// 最近检测到的健康问题列表。
         /// </summary>
         ImmutableArray<string> Complaints { get; }
     }
@@ -104,23 +104,23 @@ namespace Orleans.Runtime.MembershipService
     }
 
     /// <summary>
-    /// 利用综合的累进学来监测当地节点的健康,以产生健康退化分数。
-    /// 以布尔值暴露:是否使当地节点的健康退化。
+    /// 使用多种启发式规则监控本地节点健康状况，生成健康恶化评分，
+    /// 并以布尔值公开：本地节点的健康状况是否已恶化。
     /// </summary>
     /// <remarks>
-    /// 这一功能的主要目标是使退化节点失效,以免它们驱逐健康节点。
-    /// 这一功能受生命保护文件(https://arxiv.org/abs/1707.00788)的启发,该文件是一系列扩展
-    /// SWIM 成员算法 (https://research.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf)。 Orleans
-    /// 使用高度一致的会员算法,并非SWIM的所有救生员扩展适用于 Orleans'
-    /// 成员算法(例如拒绝)。
-    /// 该监测仪执行下列经济理论:
+    /// 此功能的主要目标是使健康状况恶化的节点趋于被动，以避免它们逐出健康节点。
+    /// 此功能受 Lifeguard 论文（https://arxiv.org/abs/1707.00788）启发，它是一组
+    /// 对 SWIM 成员资格算法（https://research.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf）的扩展。Orleans
+    /// 使用强一致的成员资格算法，Lifeguard 对 SWIM 的扩展并非都适用于 Orleans 的
+    /// 成员资格算法（例如反驳机制）。
+    /// 监控器实现以下启发式规则：
     /// <list type="bullet">
-    ///   <item><description>检查此 silos 被标为积极成员。</description></item>
-    ///   <item><description>检查没有其他 silo 怀疑这一点 silo。</description></item>
-    ///   <item><description>检查最近收到的成功按铃回复(通过 <see cref="IProbeHealthMonitor"/>)。</description></item>
-    ///   <item><description>检查最近收到的(通过 <see cref="IProbeHealthMonitor"/>)拨号请求。</description></item>
-    ///   <item><description>检查 .NET 线索库是否按时间表执行定期的定时器回调。</description></item>
-    ///   <item><description>检查当地同步计时器是否按时(在规定时间3秒内)开火。</description></item>
+    /// <item><description>检查此 Silo 在成员表中是否被标记为活跃。</description></item>
+    /// <item><description>检查是否没有其他 Silo 怀疑此 Silo。</description></item>
+    /// <item><description>检查近期是否收到成功的 ping 响应（通过 <see cref="IProbeHealthMonitor"/>）。</description></item>
+    /// <item><description>检查近期是否收到 ping 请求（通过 <see cref="IProbeHealthMonitor"/>）。</description></item>
+    /// <item><description>检查 .NET 线程池是否按计划执行周期性定时器回调。</description></item>
+    /// <item><description>检查本地异步定时器是否按时触发（与到期时间相差不超过 3 秒）。</description></item>
     /// </list>
     /// </remarks>
     internal partial class LocalSiloHealthMonitor :
@@ -359,7 +359,7 @@ namespace Orleans.Runtime.MembershipService
                     _clusteredSinceTimestamp ??= timestamp;
                 }
 
-                // 只有在 silo 在一定时期内一直是多silo 组别成员时,才考虑某些检查。
+                // 仅在 Silo 已作为多 Silo 集群成员持续一定时间之后，才考虑某些检查。
                 var recencyWindow = _clusterMembershipOptions.GetFailureDetectionTimeout();
                 if (_clusteredSinceTimestamp is { } clusteredSince
                     && _timeProvider.GetElapsedTime(clusteredSince, timestamp) > recencyWindow)
@@ -438,7 +438,7 @@ namespace Orleans.Runtime.MembershipService
                     statusComplaint,
                     Duration: null));
 
-                // 检查是否对这个节点持有有效票数 。
+                // 检查是否存在针对本节点的有效投票。
                 var expiration = _clusterMembershipOptions.DeathVoteExpirationTimeout;
                 var freshVotes = membershipEntry.GetFreshVotes(now, expiration);
                 foreach (var vote in freshVotes)
@@ -504,7 +504,7 @@ namespace Orleans.Runtime.MembershipService
             List<string> complaints)
         {
             var membershipSnapshot = _membershipManager.CurrentSnapshot;
-            // 使用 ActiveNodeCount - 1 作为监测节点计数的代理( 我们不监测我们自己)
+            // 使用 ActiveNodeCount - 1 近似表示监控节点数量（不监控自身）。
             var monitoredNodeCount = Math.Max(0, membershipSnapshot.ActiveNodeCount - 1);
             var score = _probeHealthMonitor.CheckReceivedProbeResponses(now, monitoredNodeCount, out var complaint);
             if (complaint is not null)

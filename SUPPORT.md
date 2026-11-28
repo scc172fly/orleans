@@ -1,32 +1,32 @@
 <a id="support"></a>
 
-# 支助支助支助支助支助支助支助支助支助支助支助支助支助支助支助支助支助支助支助
+# 支持
 
 <a id="how-to-file-issues-and-get-help"></a>
 
-## 如何提交问题和获取帮助  
+## 如何提交问题和获取帮助
 
-此工程使用 GitHub [问题:问题、问题、问题、议题、问题、问题、问题](https://github.com/dotnet/orleans/issues) 跟踪错误和功能请求。 请搜索现有的 
-在提交新问题之前先提出新的问题以避免重复。对于新问题,请将您的错误或功能请求作为 [新问题](https://github.com/dotnet/orleans/issues/new)存档。
+本项目使用 GitHub [Issues](https://github.com/dotnet/orleans/issues) 跟踪缺陷和功能请求。提交新问题前，请搜索现有
+问题以免重复。对于新问题，请将缺陷报告或功能请求提交为[新 Issue](https://github.com/dotnet/orleans/issues/new)。
 
 <a id="community"></a>
 
 ## 社区
 
-社会 Orleans 社区就我们的 [脱调服务器](https://aka.ms/orleans-discord)和问题客户在此处的 GitHub档案中进行了热烈的讨论。如果你想与我们活跃、友好的社区接触,请使用下面的一个链接来找到可以提供帮助的人。 
+Orleans 社区在 [Discord 服务器](https://aka.ms/orleans-discord) 和用户在 GitHub 上提交的 Issues 中开展活跃的讨论。如果您希望与活跃且友好的社区交流，请通过以下链接寻求帮助。
 
-[![不一致](https://discordapp.com/api/guilds/333727978460676096/widget.png?style=banner4)](https://aka.ms/orleans-discord)
+[![Discord](https://discordapp.com/api/guilds/333727978460676096/widget.png?style=banner4)](https://aka.ms/orleans-discord)
     
-* 问 [GitHub打开期](https://github.com/dotnet/orleans/issues) 或问 [堆叠溢流](https://stackoverflow.com/questions/ask?tags=orleans)
-* [调和时聊天](https://aka.ms/orleans-discord)
-* 查询 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) Twitter账户通知的 Orleans 。
-* [OrleansContrib - GitHub 社区组织对 Orleans](https://github.com/OrleansContrib/) 各种社区项目,包括监测、设计模式、储存提供者等。
-* 想要 [向 Orleans贡献源代码修改](CONTRIBUTING.md)的开发商指南。
-* 也鼓励您报告错误或启动技术讨论,为此启动新的 [线线索](https://github.com/dotnet/orleans/issues) 日期 时 GitHub.
+* 通过[在 GitHub 上提交问题](https://github.com/dotnet/orleans/issues)或在 [Stack Overflow](https://stackoverflow.com/questions/ask?tags=orleans) 上提问。
+* [在 Discord 上交流](https://aka.ms/orleans-discord)
+* 关注 Twitter 账号 [@msftorleans](https://twitter.com/msftorleans)，获取 Orleans 公告。
+* [OrleansContrib — Orleans 社区扩展的 GitHub 组织](https://github.com/OrleansContrib/)：提供各种社区项目，包括监控、设计模式、存储提供程序等。
+* 希望[为 Orleans 贡献代码修改](CONTRIBUTING.md)的开发者可参阅贡献指南。
+* 也欢迎通过在 GitHub 上开启新的[讨论帖](https://github.com/dotnet/orleans/issues)报告缺陷或发起技术讨论。
 
 <a id="microsoft-support-policy"></a>
 
-## Microsoft 支助政策  
+## Microsoft 支持政策
 
-Orleans 得到 Microsoft的正式支持。有支助合同的客户可以通过 https://aka.ms/orleanssupport开出支持票。 Orleans 列在 ASP.NET 核心下:
-![图像图像图像](https://github.com/dotnet/orleans/assets/203839/30b02291-06a1-4364-9e1c-9a06209c386d)
+Orleans 获得 Microsoft 官方支持。签订支持合同的客户可以通过 https://aka.ms/orleanssupport 创建支持工单。Orleans 列在 ASP.NET Core 类别下：
+![image](https://github.com/dotnet/orleans/assets/203839/30b02291-06a1-4364-9e1c-9a06209c386d)

@@ -83,7 +83,7 @@ public class WorkItemGroupLoggingTests
         public ILogger CreateLogger(string categoryName) => this;
         public bool IsEnabled(LogLevel logLevel)
         {
-            // 等到最后转弯获得其登录器后再处置激活服务。
+            // 等待最后一个执行轮次获取其日志记录器，再释放激活实例的服务。
             if (logLevel == LogLevel.Warning && FollowingTurnStarted)
             {
                 FollowingTurnChecked.TrySetResult();

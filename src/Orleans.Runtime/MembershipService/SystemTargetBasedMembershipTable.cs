@@ -60,12 +60,12 @@ namespace Orleans.Runtime.MembershipService
             return result;
         }
 
-        // 仅在 MembershipTableGrain 中用于等待初级启动。
+        // 仅在使用 MembershipTableGrain 时用于等待主节点启动。
         private async Task WaitForTableGrainToInit(IMembershipTableSystemTarget membershipTableSystemTarget, CancellationToken cancellationToken)
         {
             var timespan = Debugger.IsAttached ? TimeSpan.FromMinutes(5) : TimeSpan.FromSeconds(5);
-            // 这是一个快速的临时解决办法,使主节点能够在二元前完全启动。
-            // 二级 silos 等待到创建 GrainBasedMembershipTable 。
+            // 这是一个快速的临时解决办法，以便主节点在辅助节点之前完整启动。
+            // 辅助 Silo 会等待 GrainBasedMembershipTable 创建完成。
             for (int i = 0; i < 100; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -134,14 +134,14 @@ namespace Orleans.Runtime.MembershipService
 
         private MembershipVersion GetCurrentVersion()
         {
-            // 包括通过承诺书写和流言而学到的版本。
+            // 在所有者构造完成后解析，并纳入通过已提交的写入和 Gossip 获知的版本。
             var manager = this.membershipManager ??= this.serviceProvider.GetRequiredService<IMembershipManager>();
             return manager.CurrentSnapshot.Version;
         }
 
         private void ValidateVersion(MembershipVersion observedVersion, MembershipTableData table)
         {
-            // 与本文开始之前的版本相比,
+            // 与此次读取开始之前已知的版本进行比较，使重叠的读取可以不按顺序完成。
             if (table.Version.Version < observedVersion.Value)
             {
                 var reason = $"The development membership table version decreased from {observedVersion} to {table.Version.Version}. "
@@ -329,7 +329,7 @@ namespace Orleans.Runtime.MembershipService
 
         void ILifecycleParticipant<ISiloLifecycle>.Participate(ISiloLifecycle lifecycle)
         {
-            // 什么都不做, 只要确保创建此实例, 这样它就可以在目录中注册 。
+            // 不执行任何操作，仅确保创建此实例，使其能够在 激活实例目录 中注册自身。
         }
 
         [LoggerMessage(

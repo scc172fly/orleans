@@ -1,25 +1,25 @@
 ---
-title: "ORLEANS0200:记录效果或最后一次耐用操作后,进入 grain 状态"
-description: "理解 ORLEANS0200, 其中报告持久任务代码, 读取或修改 grain 的代码, 说明重播再次运行的位置, 用记录的效果、同步尾巴或本地步骤来修正它 。"
+title: "ORLEANS0200: 在已记录效果中或最后一次持久化操作之后访问 Grain 状态"
+description: 了解 ORLEANS0200：持久化任务代码在重放时会再次执行的位置读取或修改 Grain 状态。使用已记录效果、同步尾部或本地步骤修复。
 ms.date: 10/15/2026
 ms.topic: reference
 ---
 
 <a id="orleans0200-access-grain-state-in-recorded-effects-or-after-the-last-durable-operation"></a>
 
-# ORLEANS0200:记录效果或最后一次耐用操作后,进入 grain 状态
+# ORLEANS0200: 在已记录效果中或最后一次持久化操作之后访问 Grain 状态
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
 | 严重性 | 警告 |
-| 类别类 | 用法 |
-| 代码修正 | 无无无无 |
+| 类别 | 用法 |
+| 代码修复 | 无 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-持久任务机构读取或更改其仍然能够持续运行的点 grain 状态。 Grain 状态是一个田地或财产,其类型是或执行一种已日记收藏、 `IDurableValue<T>`、 `IDurableDictionary<TKey, TValue>`、 `IDurableList<T>`、 `IDurableQueue<T>`、 `IDurableSet<T>`、 `IDurableTaskCompletionSource<T>`或 `IDurableLog<T>`,或国家持续存在, `IPersistentState<TState>`。
+持久化任务主体在之后仍会到达持久化操作的位置读取或修改 Grain 状态。Grain 状态指类型为或实现了日志化集合（`IDurableValue<T>`、`IDurableDictionary<TKey, TValue>`、`IDurableList<T>`、`IDurableQueue<T>`、`IDurableSet<T>`、`IDurableTaskCompletionSource<T>` 或 `IDurableLog<T>`）或持久化状态（`IPersistentState<TState>`）的字段或属性。第一个方法在发送提醒前计数，第二个方法依据一个被自身步骤修改的状态进行分支：
 
 :::code source="snippets/durable-tasks/Orleans0200.cs" id="orleans0200_violation" language="csharp":::
 
@@ -27,39 +27,39 @@ ms.topic: reference
 
 ## 规则说明
 
-重播从一开始就运行身体, 而每个记录的行动都返回了记录的结果。 Grain 状态没有重建: 它持有所有承诺的改变, 包括后来操作所做的修改。 因此, 在机构最后一次持久操作之前的代码再次与新国家对抗 :
+重放从头执行任务主体，每个已记录操作返回其已记录的结果。Grain 状态不会重新构建：它保有全部已提交的变更，包括后续操作所作的变更。因此，主体最后一次持久化操作之前的代码会针对更新后的状态再次执行：
 
-- **重新应用写作。** 停止使用后, `RemindAsync` 例加加加加 `_remindersSent` 第二次,尽管《古兰经》曾被派遣一次。
-- **阅读后会观察写作。** 重放 `ShipWhenPaidAsync` 原文如下: `Shipped`记录,其中 `ship` 步骤写入, 跳过第一个运行的分支。 重放会显示不同的操作或相同操作, 或带有不同参数的相同的操作, 返回不同的结果或差异并阻断执行 。
+- **写入再次生效。** 停用后，重放 `RemindAsync` 会再次递增 `_remindersSent`，尽管提醒只发送了一次。
+- **读取观察到后续写入。** 重放 `ShipWhenPaidAsync` 时会读到 `Shipped`，即已记录的 `ship` 步骤所写入的状态，并跳过首次运行进入的分支。如果重放调度不同的操作，或者以不同参数调度相同操作，就会返回不同的结果，或出现分歧并使执行停滞。
 
-三次访问 grain 状态一次:
+以下三个位置只访问一次 Grain 状态：
 
-- `DurableTask.RunInline` 效果运行一次,其状态变化随记录而承诺。
-- 当地一步, `async DurableTask` 方法的相同 grain,承诺对其最终代码进行州级修改并取得记录结果。
-- 身体的同步尾巴, 代码,在最后一次持久操作后, 承诺改变状态 与任务的结果。
+- `DurableTask.RunInline` 效果执行一次，其状态变更与记录一同提交。
+- 本地步骤，即同一 Grain 上的 `async DurableTask` 方法，将其最后一段代码的状态变更与已记录结果一同提交。
+- 主体的同步尾部，即最后一次持久化操作之后的代码，将其状态变更与任务结果一同提交。
 
-规则和重放模型见 [重演安全规则](../grains/durable-tasks-replay-rules.md)。
+有关规则与重放模型，请参阅[重放安全规则](../grains/durable-tasks-replay-rules.md)。
 
 <a id="how-to-fix-violations"></a>
 
-## 如何纠正违反情况
+## 如何修复违规
 
-**记录访问 `DurableTask.RunInline`.** 效果运行一次并返回其输出, 重放返回记录值。 读取状态以同样的方式决定后期操作, 然后将进度附加到 `IDurableLog<T>` 与 `DurableTask.RunInline(() => log.Append(entry))`,因此每个条目都附后一次:
+**使用 `DurableTask.RunInline` 记录访问。** 效果执行一次并返回其输出，重放返回已记录的值。同样记录用于决定后续操作的状态读取；将进度追加到 `IDurableLog<T>` 时使用 `DurableTask.RunInline(() => log.Append(entry))`，确保每个条目只追加一次：
 
 :::code source="snippets/durable-tasks/Orleans0200.cs" id="orleans0200_fix_once" language="csharp":::
 
-**将更改移动到同步尾部。** 修改若在任务结果完成后没有持久操作,则更改:
+**将变更移到同步尾部。** 如果变更之后没有持久化操作，则该变更与任务结果一同提交：
 
 :::code source="snippets/durable-tasks/Orleans0200.cs" id="orleans0200_fix_tail" language="csharp":::
 
-**将更改改变为本地步骤。** 一个其身体改变状态和返回的阶梯,如上面 `MarkShipped` ,会以记录的结果来实施修改,而重放结果则不运行该阶梯:
+**在本地步骤中执行变更。** 主体修改状态后返回的步骤（如上述 `MarkShipped`）将变更与已记录结果一同提交，重放直接返回结果而不执行步骤：
 
 :::code source="snippets/durable-tasks/Orleans0200.cs" id="orleans0200_fix_step" language="csharp":::
 
-记录效果见 [记录的效果、当地步骤和调用其他 grains](../grains/durable-tasks.md#recorded-effects-local-steps-and-calls-to-other-grains)。
+有关已记录效果，请参阅[已记录效果、本地步骤及对其他 Grain 的调用](../grains/durable-tasks.md#recorded-effects-local-steps-and-calls-to-other-grains)。
 
 <a id="when-to-suppress"></a>
 
-## 何时压缩
+## 何时抑制
 
-禁止用于读取其价值永远无法决定持久操作、其参数或状态变化的诊断, 如仅达到日志消息的值, 以及任务运行时没有改变的状态, 例如 grain 在创建时写过一次数值 。
+可以对不决定持久化操作、其参数或状态变更的读取抑制诊断，例如值仅用于日志消息；也可对任务运行期间不会被任何操作修改的状态抑制，例如 Grain 创建时只写入一次的值。

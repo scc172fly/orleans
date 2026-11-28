@@ -13,9 +13,9 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// 警告分析师的测试 ConfigureAwait(虚假)或 ConfigureAwait 无
-/// ContinueOnCapturedContext 内 grain 代码。 Grains 必须保持同步的上下文
-/// 以确保在 grain启动背景下适当执行。
+/// 测试在 Grain 代码中使用 ConfigureAwait(false) 或使用未包含
+/// ContinueOnCapturedContext 的 ConfigureAwait 时发出警告的分析器。Grain 必须维持同步上下文，
+/// 以确保代码在 Grain 的激活上下文中正确执行。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 [TestSuite("BVT")]
@@ -50,7 +50,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     {
         extraUsings ??= Array.Empty<string>();
 
-        // 使用
+        // 在前面添加 using 指令
         var sb = new StringBuilder();
         foreach (var @using in Usings.Concat(extraUsings))
         {
@@ -67,10 +67,10 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
         sb.AppendLine(expectedFixedCode);
         var fullExpectedCode = sb.ToString();
 
-        // 创建项目并获得诊断
+        // 创建项目并获取诊断
         var project = CreateProject(fullOriginalCode);
         var document = project.Documents.First();
-        // C##项目总是支持汇编。
+        // C# 项目始终支持编译。
         var compilation = (await project.GetCompilationAsync())!;
 
         var analyzer = new ConfigureAwaitAnalyzer();
@@ -82,7 +82,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
         var diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
         Assert.NotEmpty(diagnostics);
 
-        // 应用代码修正
+        // 应用代码修复
         var codeFixer = new ConfigureAwaitCodeFix();
         var actions = new List<CodeAction>();
         var context = new CodeFixContext(
@@ -96,7 +96,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
 
         var operations = await actions.First().GetOperationsAsync(CancellationToken.None);
         var changedSolution = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
-        // 应用代码修正保存原始文件。
+        // 应用代码修复时保留原始文档。
         var changedDocument = changedSolution.GetDocument(document.Id)!;
         var changedText = await changedDocument.GetTextAsync();
 
@@ -128,7 +128,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
             .Cast<MetadataReference>()
             .ToList();
 
-        // System.Private.CoreLib 从文件支持的组装装入 。
+        // System.Private.CoreLib 是从基于文件的程序集加载的。
         var assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
         metadataReferences.Add(MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "mscorlib.dll")));
         metadataReferences.Add(MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.dll")));
@@ -141,7 +141,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
             .AddMetadataReferences(projectId, metadataReferences)
             .AddDocument(documentId, fileName, SourceText.From(source));
 
-        // 该项目是上文提到的这一解决办法中增加的。
+        // 上方已将项目添加到此解决方案。
         return solution.GetProject(projectId)!
             .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
@@ -149,7 +149,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     #region ConfigureAwait(false) in Grain
 
     /// <summary>
-    /// 证明: ConfigureAwait(假)a grain 等级触发诊断。
+    /// 验证 Grain 类中的 ConfigureAwait(false) 会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InGrainClass_ShouldTriggerDiagnostic()
@@ -173,7 +173,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait(假)a grain 执行可重设接口的分类触发诊断。
+    /// 验证实现 IAddressable 接口的 Grain 类中的 ConfigureAwait(false) 会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InGrainClassWithIAddressableInterface_ShouldTriggerDiagnostic()
@@ -197,7 +197,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait在一个POCO中(假) grain 课级执行 IGrainBase 触发诊断。
+    /// 验证实现 IGrainBase 的 POCO Grain 类中的 ConfigureAwait(false) 会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InPocoGrainClassImplementingIGrainBase_ShouldTriggerDiagnostic()
@@ -224,7 +224,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait(假)a grain 类类的 GrainType 属性触发诊断。
+    /// 验证带 GrainType 特性的 Grain 类中的 ConfigureAwait(false) 会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InGrainClassWithGrainTypeAttribute_ShouldTriggerDiagnostic()
@@ -247,7 +247,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait(假)通用 grain 等级触发诊断。
+    /// 验证泛型 Grain 类中的 ConfigureAwait(false) 会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InGenericGrainClass_ShouldTriggerDiagnostic()
@@ -273,7 +273,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait(真)在 grain 类不会触发诊断。
+    /// 验证 Grain 类中的 ConfigureAwait(true) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitTrue_InGrainClass_ShouldNotTriggerDiagnostic()
@@ -301,7 +301,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     #region ConfigureAwait(false) in non-grain class
 
     /// <summary>
-    /// 证明在普通阶级(无继承)中的 ConfigureAwait(假冒)不引发诊断。
+    /// 验证普通类（无继承）中的 ConfigureAwait(false) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InPlainClass_ShouldNotTriggerDiagnostic()
@@ -320,7 +320,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait在一个班级中,grain 接口不触发诊断。
+    /// 验证实现非 Grain 接口的类中的 ConfigureAwait(false) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InClassImplementingNonGrainInterface_ShouldNotTriggerDiagnostic()
@@ -344,7 +344,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait在一个阶层中,他继承了一个非grain 基类不触发诊断。
+    /// 验证继承非 Grain 基类的类中的 ConfigureAwait(false) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InClassInheritingNonGrainBase_ShouldNotTriggerDiagnostic()
@@ -367,7 +367,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait在一个阶层中,在深非grain 继承不会引发诊断。
+    /// 验证具有多层非 Grain 继承关系的类中的 ConfigureAwait(false) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InClassWithDeepNonGrainInheritance_ShouldNotTriggerDiagnostic()
@@ -394,8 +394,8 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明支架 ConfigureAwait(假)不触发诊断。
-    /// 条理不能为 grains。
+    /// 验证结构体中的 ConfigureAwait(false) 不会触发诊断。
+    /// 结构体不能用作 Grain。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InStruct_ShouldNotTriggerDiagnostic()
@@ -414,8 +414,8 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明记录中的 ConfigureAwait(假)不触发诊断。
-    /// 记录不能是 grains (它们不继承 Grain 或执行 IGrainBase)。
+    /// 验证记录类型中的 ConfigureAwait(false) 不会触发诊断。
+    /// 记录类型不能用作 Grain（它们不继承 Grain 或实现 IGrainBase）。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InRecord_ShouldNotTriggerDiagnostic()
@@ -434,7 +434,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明在创纪录的支架中 ConfigureAwait(假)不触发诊断。
+    /// 验证记录结构体中的 ConfigureAwait(false) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InRecordStruct_ShouldNotTriggerDiagnostic()
@@ -453,7 +453,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait在一个执行不可(不) grain ) 并不触发诊断。
+    /// 验证实现 IDisposable（非 Grain 接口）的类中的 ConfigureAwait(false) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InClassImplementingIDisposable_ShouldNotTriggerDiagnostic()
@@ -474,8 +474,8 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明静态类中的 ConfigureAwait(假)不触发诊断。
-    /// 静态类不能为 grains。
+    /// 验证静态类中的 ConfigureAwait(false) 不会触发诊断。
+    /// 静态类不能用作 Grain。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InStaticClass_ShouldNotTriggerDiagnostic()
@@ -494,7 +494,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait抽象的(假)grain 类不会触发诊断。
+    /// 验证抽象非 Grain 类中的 ConfigureAwait(false) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InAbstractNonGrainClass_ShouldNotTriggerDiagnostic()
@@ -513,7 +513,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait(假)一般非-grain 类不会触发诊断。
+    /// 验证泛型非 Grain 类中的 ConfigureAwait(false) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InGenericNonGrainClass_ShouldNotTriggerDiagnostic()
@@ -532,7 +532,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait在一个非非-grain 类不会触发诊断。
+    /// 验证非 Grain 类的嵌套类中的 ConfigureAwait(false) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InNestedClassInsideNonGrain_ShouldNotTriggerDiagnostic()
@@ -554,8 +554,8 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明 ConfigureAwait(ConfigureAwaitOptions)没有 ContinueOnCapturedContext 
-    /// 非grain 类中,不触发诊断。
+    /// 验证未包含 ContinueOnCapturedContext 的 ConfigureAwait(ConfigureAwaitOptions)
+    /// 在非 Grain 类中不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitOptions_ForceYielding_InNonGrainClass_ShouldNotTriggerDiagnostic()
@@ -580,7 +580,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     #region No ConfigureAwait
 
     /// <summary>
-    /// 证明没有 ConfigureAwait a 中 grain 类不会触发诊断。
+    /// 验证 Grain 类中未使用 ConfigureAwait 的 await 不会触发诊断。
     /// </summary>
     [Fact]
     public Task NoConfigureAwait_InGrainClass_ShouldNotTriggerDiagnostic()
@@ -608,7 +608,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     #region IGrainBase implementation
 
     /// <summary>
-    /// 证明: ConfigureAwait在一个班级执行(假) IGrainBase 触发诊断。
+    /// 验证实现 IGrainBase 的类中的 ConfigureAwait(false) 会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InIGrainBaseImplementation_ShouldTriggerDiagnostic()
@@ -640,14 +640,14 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     #region ISystemTarget implementation
 
     /// <summary>
-    /// 证明: ConfigureAwait在一个班级执行(假) ISystemTarget 触发诊断。
-    /// ISystemTarget 中 Orleans 命名空间( 不 Orleans.Runtime))定义的定义 Orleans.Core.Abstractions.
+    /// 验证实现 ISystemTarget 的类中的 ConfigureAwait(false) 会触发诊断。
+    /// ISystemTarget 位于 Orleans 命名空间（不是 Orleans.Runtime），定义在 Orleans.Core.Abstractions 中。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InISystemTargetImplementation_ShouldTriggerDiagnostic()
     {
-        // 注: ISystemTarget 的定义在名称空间 Orleans (在 Orleans.Core.Abstractions 组装中)中,
-        // 因此不需要额外使用,因为我们已经“使用 Orleans;”
+        // 注意：ISystemTarget 定义在 Orleans 命名空间（Orleans.Core.Abstractions 程序集）中，
+        // 因此不需要额外的 using 指令，因为已经有 "using Orleans;"。
         var code = """
                     public class MySystemTarget : ISystemTarget
                     {
@@ -666,7 +666,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     #region Nested classes and lambdas
 
     /// <summary>
-    /// 证明: ConfigureAwait在一个山里,在一只羊中, grain 等级触发诊断。
+    /// 验证 Grain 类中的 Lambda 表达式使用 ConfigureAwait(false) 时会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InLambdaInsideGrain_ShouldTriggerDiagnostic()
@@ -694,7 +694,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明 ConfigureAwait(假)类中嵌套的类别在 grain 类中触发诊断。
+    /// 验证 Grain 类的嵌套类中的 ConfigureAwait(false) 会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InNestedClassInsideGrain_ShouldTriggerDiagnostic()
@@ -719,7 +719,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
                     }
                     """;
 
-        // 嵌套类位于 grain 类内, 所以仍然应该触发
+        // 嵌套类位于 Grain 类内，因此仍应触发诊断。
         return VerifyHasDiagnostic(code);
     }
 
@@ -728,7 +728,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     #region Inherited grain classes
 
     /// <summary>
-    /// 证明: ConfigureAwait在一个从他人继承的阶级中, grain 等级触发诊断。
+    /// 验证继承其他 Grain 类的类中的 ConfigureAwait(false) 会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_InInheritedGrainClass_ShouldTriggerDiagnostic()
@@ -760,7 +760,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     #region ValueTask
 
     /// <summary>
-    /// 证明: ConfigureAwait(假) ValueTask a 中 grain 等级触发诊断。
+    /// 验证 Grain 类对 ValueTask 调用 ConfigureAwait(false) 会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_OnValueTask_InGrainClass_ShouldTriggerDiagnostic()
@@ -786,7 +786,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait(假) ValueTask&lt;T&gt; a 中 grain 等级触发诊断。
+    /// 验证 Grain 类对 ValueTask&lt;T&gt; 调用 ConfigureAwait(false) 会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_OnGenericValueTask_InGrainClass_ShouldTriggerDiagnostic()
@@ -812,7 +812,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait(真) 开 ValueTask a 中 grain 类不会触发诊断。
+    /// 验证 Grain 类对 ValueTask 调用 ConfigureAwait(true) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitTrue_OnValueTask_InGrainClass_ShouldNotTriggerDiagnostic()
@@ -838,7 +838,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait(假) ValueTask 中为grain 类不会触发诊断。
+    /// 验证非 Grain 类对 ValueTask 调用 ConfigureAwait(false) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_OnValueTask_InNonGrainClass_ShouldNotTriggerDiagnostic()
@@ -863,7 +863,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     #region IAsyncEnumerable
 
     /// <summary>
-    /// 证明: ConfigureAwait(假) IAsyncEnumerable 等待在 grain 等级触发诊断。
+    /// 验证 Grain 类在 await foreach 中对 IAsyncEnumerable 调用 ConfigureAwait(false) 会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_OnIAsyncEnumerable_InGrainClass_ShouldTriggerDiagnostic()
@@ -899,7 +899,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait(真) 开 IAsyncEnumerable 等待在 grain 类不会触发诊断。
+    /// 验证 Grain 类在 await foreach 中对 IAsyncEnumerable 调用 ConfigureAwait(true) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitTrue_OnIAsyncEnumerable_InGrainClass_ShouldNotTriggerDiagnostic()
@@ -935,7 +935,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait(假) IAsyncEnumerable 中为grain 类不会触发诊断。
+    /// 验证非 Grain 类对 IAsyncEnumerable 调用 ConfigureAwait(false) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_OnIAsyncEnumerable_InNonGrainClass_ShouldNotTriggerDiagnostic()
@@ -966,7 +966,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明等待的每个人 ConfigureAwait a 中 grain 类不会触发诊断。
+    /// 验证 Grain 类中未使用 ConfigureAwait 的 await foreach 不会触发诊断。
     /// </summary>
     [Fact]
     public Task NoConfigureAwait_OnIAsyncEnumerable_InGrainClass_ShouldNotTriggerDiagnostic()
@@ -1006,7 +1006,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     #region Task<T>
 
     /// <summary>
-    /// 证明: ConfigureAwait任务( 虚假)&lt;T&gt; a 中 grain 等级触发诊断。
+    /// 验证 Grain 类对 Task&lt;T&gt; 调用 ConfigureAwait(false) 会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitFalse_OnGenericTask_InGrainClass_ShouldTriggerDiagnostic()
@@ -1030,7 +1030,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait任务( rit)&lt;T&gt; a 中 grain 类不会触发诊断。
+    /// 验证 Grain 类对 Task&lt;T&gt; 调用 ConfigureAwait(true) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitTrue_OnGenericTask_InGrainClass_ShouldNotTriggerDiagnostic()
@@ -1058,8 +1058,8 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     #region ConfigureAwait(ConfigureAwaitOptions)
 
     /// <summary>
-    /// 证明 ConfigureAwait(ConfigureAwaitOptions.None)类中的 grain 类别触发诊断
-    /// 因为它不包括 ContinueOnCapturedContext。
+    /// 验证 Grain 类中的 ConfigureAwait(ConfigureAwaitOptions.None) 会触发诊断，
+    /// 因为它未包含 ContinueOnCapturedContext。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitOptions_None_InGrainClass_ShouldTriggerDiagnostic()
@@ -1085,8 +1085,8 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明 ConfigureAwait(ConfigureAwaitOptions.ForceYielding)类中的 grain 类别触发诊断
-    /// 因为它不包括 ContinueOnCapturedContext。
+    /// 验证 Grain 类中的 ConfigureAwait(ConfigureAwaitOptions.ForceYielding) 会触发诊断，
+    /// 因为它未包含 ContinueOnCapturedContext。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitOptions_ForceYielding_InGrainClass_ShouldTriggerDiagnostic()
@@ -1112,8 +1112,8 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明 ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing)类中的 grain 类别触发诊断
-    /// 因为它不包括 ContinueOnCapturedContext。
+    /// 验证 Grain 类中的 ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing) 会触发诊断，
+    /// 因为它未包含 ContinueOnCapturedContext。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitOptions_SuppressThrowing_InGrainClass_ShouldTriggerDiagnostic()
@@ -1139,8 +1139,8 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明 ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext)类中的 grain 类别
-    /// 并不触发诊断。
+    /// 验证 Grain 类中的 ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext)
+    /// 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitOptions_ContinueOnCapturedContext_InGrainClass_ShouldNotTriggerDiagnostic()
@@ -1166,8 +1166,8 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明 ConfigureAwait 加混合旗,包括 ContinueOnCapturedContext
-    /// 并不触发诊断。
+    /// 验证使用包含 ContinueOnCapturedContext 的组合标志调用 ConfigureAwait 时
+    /// 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitOptions_CombinedWithContinueOnCapturedContext_InGrainClass_ShouldNotTriggerDiagnostic()
@@ -1193,8 +1193,8 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明 ConfigureAwait 加加加号,但不包括 ContinueOnCapturedContext
-    /// 触发诊断。
+    /// 验证使用不包含 ContinueOnCapturedContext 的组合标志调用 ConfigureAwait 时
+    /// 会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitOptions_CombinedWithoutContinueOnCapturedContext_InGrainClass_ShouldTriggerDiagnostic()
@@ -1220,7 +1220,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait(ConfigureAwaitOptions)在非-grain 类不会触发诊断。
+    /// 验证非 Grain 类中的 ConfigureAwait(ConfigureAwaitOptions) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitOptions_None_InNonGrainClass_ShouldNotTriggerDiagnostic()
@@ -1241,7 +1241,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait(ConfigureAwaitOptions任务&lt;T&gt; 工作正确 。
+    /// 验证对 Task&lt;T&gt; 调用 ConfigureAwait(ConfigureAwaitOptions) 时能够正常处理。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitOptions_None_OnGenericTask_InGrainClass_ShouldTriggerDiagnostic()
@@ -1267,7 +1267,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明: ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext任务&lt;T&gt; 并不触发诊断。
+    /// 验证对 Task&lt;T&gt; 调用 ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext) 不会触发诊断。
     /// </summary>
     [Fact]
     public Task ConfigureAwaitOptions_ContinueOnCapturedContext_OnGenericTask_InGrainClass_ShouldNotTriggerDiagnostic()
@@ -1297,7 +1297,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     #region Code Fix Tests
 
     /// <summary>
-    /// 证明代码修正将 ConfigureAwait(假)转换为 ConfigureAwait(真)。
+    /// 验证代码修复将 ConfigureAwait(false) 转换为 ConfigureAwait(true)。
     /// </summary>
     [Fact]
     public Task CodeFix_ConfigureAwaitFalse_ChangesToTrue()
@@ -1336,7 +1336,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 验证代码修正转换 ConfigureAwait(假)至 ConfigureAwait(真) 开 ValueTask.
+    /// 验证代码修复将 ValueTask 上的 ConfigureAwait(false) 转换为 ConfigureAwait(true)。
     /// </summary>
     [Fact]
     public Task CodeFix_ConfigureAwaitFalse_OnValueTask_ChangesToTrue()
@@ -1379,7 +1379,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 验证代码修正转换 ConfigureAwait(ConfigureAwaitOptions.None至 ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext).
+    /// 验证代码修复将 ConfigureAwait(ConfigureAwaitOptions.None) 转换为 ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext)。
     /// </summary>
     [Fact]
     public Task CodeFix_ConfigureAwaitOptionsNone_ChangesToContinueOnCapturedContext()
@@ -1422,7 +1422,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明代码固定将 ContinueOnCapturedContext 添加到 ConfigureAwait(ConfigureAwaitOptions.ForceYielding)。
+    /// 验证代码修复将 ContinueOnCapturedContext 添加至 ConfigureAwait(ConfigureAwaitOptions.ForceYielding)。
     /// </summary>
     [Fact]
     public Task CodeFix_ConfigureAwaitOptionsForceYielding_AddsContinueOnCapturedContext()
@@ -1465,7 +1465,7 @@ public class ConfigureAwaitAnalyzerTest : DiagnosticAnalyzerTestBase<ConfigureAw
     }
 
     /// <summary>
-    /// 证明代码修正将 ContinueOnCapturedContext 添加到合并 ConfigureAwaitOptions。
+    /// 验证代码修复将 ContinueOnCapturedContext 添加至组合的 ConfigureAwaitOptions。
     /// </summary>
     [Fact]
     public Task CodeFix_ConfigureAwaitOptionsCombined_AddsContinueOnCapturedContext()

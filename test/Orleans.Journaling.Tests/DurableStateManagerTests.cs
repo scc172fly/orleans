@@ -210,7 +210,7 @@ public sealed class DurableStateManagerTests
         Assert.Equal(0, callerMarker.DisposalCount);
         Assert.Equal(2, constructions.Count);
 
-        // 光是不同的活值并不能吸引两位管理人员向同一日记写信。
+        // 仅检查不同的当前值，无法发现两个管理器向同一日志写入的问题。
         await using var recoveredScopeA = CreateActivationScope(services, idA);
         await using var recoveredScopeB = CreateActivationScope(services, idB);
         var recoveredA = recoveredScopeA.ServiceProvider.GetRequiredService<IDurableStateManager>();
@@ -623,7 +623,7 @@ public sealed class DurableStateManagerTests
         AssertExisting(manager, "state", original);
         var keyedError = Assert.Throws<InvalidOperationException>(() => services.GetRequiredKeyedService<TState>("state"));
         Assert.Contains("state", keyedError.Message);
-        // 内建自注册:这条路诊断了执行中的矛盾,而不是它的接口。
+        // 内置实现会自行注册：此路径诊断的是发生冲突的实现，而不是其接口。
         Assert.Contains(typeof(TImplementation).ToString(), keyedError.Message);
         AssertExisting(manager, "state", original);
     }

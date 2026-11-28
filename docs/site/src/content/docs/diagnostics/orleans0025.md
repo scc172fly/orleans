@@ -1,43 +1,43 @@
 ---
-title: "ORLEANS0025:重复 grain 类声明"
-description: "理解和决心 ORLEANS0025 何时 OrleansContracts.txt 宣布a grain 身份不止一次"
+title: "ORLEANS0025: 重复的 Grain 类声明"
+description: 了解并解决 OrleansContracts.txt 多次声明同一 Grain 标识时出现的 ORLEANS0025。
 ms.date: 08/27/2026
 ms.topic: reference
 ---
 
 <a id="orleans0025-duplicate-grain-class-declaration"></a>
 
-# ORLEANS0025:重复 grain 类声明
+# ORLEANS0025: 重复的 Grain 类声明
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 类别类 | 版本 |
+| 类别 | 版本控制 |
 | 严重性 | 警告 |
-| 代码修正 | 不详 |
+| 代码修复 | 不可用 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-`OrleansContracts.txt` 重复有效的 grain 类身份。有效身份是存在时的 `GrainType` ,以及根据记录中的CLR名称得出的身份,使用 Orleans 公约来进行遗留声明。
+`OrleansContracts.txt` 中重复出现了有效的 Grain 类标识。如果存在 `GrainType`，它就是有效标识；对于旧版声明，则按照 Orleans 约定从记录的 CLR 名称派生标识。
 
 <a id="impact"></a>
 
-## 影响影响
+## 影响
 
-grain 身份历史变得模糊不清,分析者只接受第一份声明。
+Grain 标识历史产生歧义，解析器只接受第一个声明。
 
 <a id="how-to-fix"></a>
 
-## 如何修补
+## 修复方法
 
-将具有相同有效身份的声明合并为一个卡尼基门入境。 当声明在身份移徙中记录不同的明确 `GrainType` 值时, 主动和退休声明可以共享一个 CLR 名称 。
+将具有相同有效标识的声明合并为一个规范条目。标识迁移期间，如果活动声明和已停用声明记录了不同的显式 `GrainType` 值，则可以共享同一 CLR 名称。
 
 <a id="suppress-the-diagnostic"></a>
 
 ## 抑制诊断
 
-修复错误的显示器,而不是抑制诊断。
+请修复格式错误的清单，而不是抑制此诊断。
 
 ```ini
 [*.cs]

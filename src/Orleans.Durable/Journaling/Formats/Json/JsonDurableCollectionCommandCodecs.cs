@@ -4,7 +4,7 @@ using System.Text.Json.Serialization.Metadata;
 namespace Orleans.Durable.Journaling.Json;
 
 /// <summary>
-/// 用于持久列表日记条目的JSON 编码。
+/// 持久化列表日志条目的 JSON 编解码器。
 /// </summary>
 public sealed class JsonDurableListCommandCodec<T>(JsonSerializerOptions? options = null)
     : IDurableListCommandCodec<T>
@@ -161,7 +161,7 @@ public sealed class JsonDurableListCommandCodec<T>(JsonSerializerOptions? option
     }
 }
 /// <summary>
-/// 耐久的队列日记条目的JSON 编码器
+/// 持久化队列日志条目的 JSON 编解码器。
 /// </summary>
 public sealed class JsonDurableQueueCommandCodec<T>(JsonSerializerOptions? options = null)
     : IDurableQueueCommandCodec<T>
@@ -275,7 +275,7 @@ public sealed class JsonDurableQueueCommandCodec<T>(JsonSerializerOptions? optio
 }
 
 /// <summary>
-/// 耐久设置日记条目的JSON 编码。
+/// 持久化集合日志条目的 JSON 编解码器。
 /// </summary>
 public sealed class JsonDurableSetCommandCodec<T>(JsonSerializerOptions? options = null)
     : IDurableSetCommandCodec<T>

@@ -28,7 +28,7 @@ public sealed class CassandraMembershipStatementTests
         backend.Session.ClearReceivedCalls();
         var address = Entry(SiloStatus.Active).SiloAddress;
         const string guidance = "Use ReadAllAsync and MembershipTableData.TryGet instead.";
-#pragma warning disable CS0618 // Verify both retired entrypoints and cancellation precedence.
+#pragma warning disable CS0618 // 验证两个已退役的入口点以及取消请求的优先级。
         var legacy = ((IMembershipTable)table).ReadRow(address);
         var current = table.ReadRowAsync(address, TestContext.Current.CancellationToken);
         Assert.True(legacy.IsFaulted);
@@ -204,7 +204,7 @@ public sealed class CassandraMembershipStatementTests
             var entry = Entry(SiloStatus.Dead, backend.Entries.Count + 1);
             entry.StartTime = field == 0 ? Timestamp : Timestamp.AddDays(-1);
             entry.IAmAliveTime = field == 1 ? Timestamp : Timestamp.AddDays(-1);
-            // 最新的投票是有意的先进行。
+            // 有意将最新的投票放在首位。
             entry.SuspectTimes = field == 2
                 ? [Tuple.Create(entry.SiloAddress, Timestamp), Tuple.Create(entry.SiloAddress, Timestamp.AddDays(-1))]
                 : null;

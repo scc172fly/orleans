@@ -4,98 +4,98 @@ using Orleans.Runtime;
 namespace Orleans.Configuration;
 
 /// <summary>
-/// 管理设置设置的设置 grains 使用时横横集 <see cref="ResourceOptimizedPlacement"/>.
+/// 使用 <see cref="ResourceOptimizedPlacement"/> 时调节集群内 Grain 放置的设置。
 /// </summary>
-/// <remarks><i>体重的所有属性, 彼此相相对。</i></remarks>
+/// <remarks><i>所有权重属性的取值均是相对的。</i></remarks>
 public sealed class ResourceOptimizedPlacementOptions
 {
     /// <summary>
-    /// silo使用CPU的重要性。
+    /// Silo 的 CPU 使用量的重要程度。
     /// </summary>
     /// <remarks><i>
-    /// <para>A <u>高</u> 导致有利于职位定位的值 silos 与 <u>下</u> 使用 cpu 。</para>
-    /// <para>有效范围是[0-100]</para>
+    /// <para><u>较高</u>的值会使放置更偏向 CPU 使用量<u>较低</u>的 Silo。</para>
+    /// <para>有效范围为 [0-100]。</para>
     /// </i></remarks>
     public int CpuUsageWeight { get; set; } = DEFAULT_CPU_USAGE_WEIGHT;
 
     /// <summary>
-    /// 默认值 <see cref="CpuUsageWeight"/>。
+    /// <see cref="CpuUsageWeight"/> 的默认值。
     /// </summary>
     public const int DEFAULT_CPU_USAGE_WEIGHT = 40;
 
     /// <summary>
-    /// silo记忆用法的重要性。
+    /// Silo 的内存使用量的重要程度。
     /// </summary>
     /// <remarks><i>
-    /// <para>A <u>高</u> 导致有利于职位定位的值 silos 与 <u>下</u> 内存使用量。</para>
-    /// <para>有效范围是[0-100]</para>
+    /// <para><u>较高</u>的值会使放置更偏向内存使用量<u>较低</u>的 Silo。</para>
+    /// <para>有效范围为 [0-100]。</para>
     /// </i></remarks>
     public int MemoryUsageWeight { get; set; } = DEFAULT_MEMORY_USAGE_WEIGHT;
 
     /// <summary>
-    /// 默认值 <see cref="MemoryUsageWeight"/>。
+    /// <see cref="MemoryUsageWeight"/> 的默认值。
     /// </summary>
     public const int DEFAULT_MEMORY_USAGE_WEIGHT = 20;
 
     /// <summary>
-    /// 可用存储对 silo的重要性。
+    /// Silo 可用内存的重要程度。
     /// </summary>
     /// <remarks><i>
-    /// <para>A <u>高</u> 导致有利于职位设置的值 silos 与 <u>高</u> 可使用的内存 。</para>
-    /// <para>有效范围是[0-100]</para>
+    /// <para><u>较高</u>的值会使放置更偏向可用内存<u>较多</u>的 Silo。</para>
+    /// <para>有效范围为 [0-100]。</para>
     /// </i></remarks>
     public int AvailableMemoryWeight { get; set; } = DEFAULT_AVAILABLE_MEMORY_WEIGHT;
 
     /// <summary>
-    /// 默认值 <see cref="AvailableMemoryWeight"/>。
+    /// <see cref="AvailableMemoryWeight"/> 的默认值。
     /// </summary>
     public const int DEFAULT_AVAILABLE_MEMORY_WEIGHT = 20;
 
     /// <summary>
-    /// 最大可用内存对 silo的重要性。
+    /// Silo 最大可用内存的重要程度。
     /// </summary>
     /// <remarks><i>
-    /// <para>A <u>高</u> 导致有利于职位设置的值 silos 与 <u>高</u> 最大可用内存。</para>
-    /// <para>这可能对资源分布不均的集群产生影响。 silos.</para>
-    /// <para>这与 silo中的物理内存和配置的内存限制(如果已经配置)有强烈关联。</para>
-    /// <para>有效范围是[0-100]</para>
+    /// <para><u>较高</u>的值会使放置更偏向最大可用内存<u>较多</u>的 Silo。</para>
+    /// <para>当集群内各 Silo 的资源分布不均时，此项可能产生影响。</para>
+    /// <para>这与 Silo 中的物理内存及配置的内存限制（如果已配置）密切相关。</para>
+    /// <para>有效范围为 [0-100]。</para>
     /// </i></remarks>
     public int MaxAvailableMemoryWeight { get; set; } = DEFAULT_MAX_AVAILABLE_MEMORY_WEIGHT;
 
     /// <summary>
-    /// 默认值 <see cref="MaxAvailableMemoryWeight"/>。
+    /// <see cref="MaxAvailableMemoryWeight"/> 的默认值。
     /// </summary>
     public const int DEFAULT_MAX_AVAILABLE_MEMORY_WEIGHT = 5;
 
     /// <summary>
-    /// 当前激活计数对 silo的重要性。
+    /// Silo 当前激活实例数的重要程度。
     /// </summary>
     /// <remarks><i>
-    /// <para>A <u>高</u> 导致有利于职位设置的值 silos 与 <u>下</u> 启动计数</para>
-    /// <para>有效范围是[0-100]</para>
+    /// <para><u>较高</u>的值会使放置更偏向激活实例数<u>较少</u>的 Silo。</para>
+    /// <para>有效范围为 [0-100]。</para>
     /// </i></remarks>
     public int ActivationCountWeight { get; set; } = DEFAULT_ACTIVATION_COUNT_WEIGHT;
 
     /// <summary>
-    /// 默认值 <see cref="ActivationCountWeight"/>。
+    /// <see cref="ActivationCountWeight"/> 的默认值。
     /// </summary>
     public const int DEFAULT_ACTIVATION_COUNT_WEIGHT = 15;
 
     /// <summary>
-    /// 具体差幅:如果两个 silos (其中一个是当前待激活的当地值),其利用率得分在本幅度内应视为“相同”。
+    /// 指定容差范围：若两个 Silo（其中一个是当前待放置激活实例所在的本地 Silo）的资源利用率评分差距在此范围内，则视为相同。
     /// <list type="bullet">
-    /// <item><description>当该值为 0 时, 该政策将始终有利于资源利用率较低的 silo , 即使 silo 距离当前待激活的时间很远。</description></item>
-    /// <item><description>当该值为100时, 该政策将始终偏向于本地 silo, 不论其相对利用率分为何。 此政策基本上等同于 <see cref="PreferLocalPlacement"/>。</description></item>
+    /// <item><description>当此值为 0 时，策略始终优先选择资源利用率较低的 Silo，即使相对于当前待放置激活实例，该 Silo 位于远程。</description></item>
+    /// <item><description>当此值为 100 时，策略始终优先选择本地 Silo，无论其相对资源利用率评分如何。此策略实际上等同于 <see cref="PreferLocalPlacement"/>。</description></item>
     /// </list>
     /// </summary>
     /// <remarks><i>
-    /// <para>请将此 e.g的低值减为: 5- 10</para>
-    /// <para>有效范围是[0-100]</para>
+    /// <para>建议此值偏低，例如 5-10。</para>
+    /// <para>有效范围为 [0-100]。</para>
     /// </i></remarks>
     public int LocalSiloPreferenceMargin { get; set; } = DEFAULT_LOCAL_SILO_PREFERENCE_MARGIN;
 
     /// <summary>
-    /// 默认值 <see cref="LocalSiloPreferenceMargin"/>。
+    /// <see cref="LocalSiloPreferenceMargin"/> 的默认值。
     /// </summary>
     public const int DEFAULT_LOCAL_SILO_PREFERENCE_MARGIN = 5;
 }

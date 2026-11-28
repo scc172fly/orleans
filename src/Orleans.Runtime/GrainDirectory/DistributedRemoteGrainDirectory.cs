@@ -12,9 +12,9 @@ using Orleans.Runtime.Scheduler;
 namespace Orleans.Runtime.GrainDirectory;
 
 /// <summary>
-/// 系统目标,执行 <see cref="IRemoteGrainDirectory"/> 委托给 <see cref="DistributedGrainDirectory"/>.
-/// 启用此功能 silos 运行旧 <see cref="LocalGrainDirectory"/> 将目录请求转发到 silos 运行
-/// 滚动升级期间的 <see cref="DistributedGrainDirectory"/> 。
+/// 实现 <see cref="IRemoteGrainDirectory"/> 的系统目标，它将操作委托给 <see cref="DistributedGrainDirectory"/>。
+/// 这使运行旧版 <see cref="LocalGrainDirectory"/> 的 Silo 能够在滚动升级期间将目录请求转发给运行
+/// 新版 <see cref="DistributedGrainDirectory"/> 的 Silo。
 /// </summary>
 internal sealed partial class DistributedRemoteGrainDirectory : SystemTarget, IRemoteGrainDirectory
 {
@@ -44,9 +44,9 @@ internal sealed partial class DistributedRemoteGrainDirectory : SystemTarget, IR
     }
 
     /// <summary>
-    /// 创建系统目标对齐,以替换 <see cref="RemoteGrainDirectory"/> 何时
-    /// <see cref="DistributedGrainDirectory"/> 是默认目录: <see cref="Constants.DirectoryServiceType"/>的目录 1
-    /// <see cref="Constants.DirectoryCacheValidatorType"/>中一个。
+    /// 创建一对替代 <see cref="RemoteGrainDirectory"/> 的系统目标，此时
+    /// <see cref="DistributedGrainDirectory"/> 为默认目录：其中一个用于 <see cref="Constants.DirectoryServiceType"/>，
+    /// 另一个用于 <see cref="Constants.DirectoryCacheValidatorType"/>。
     /// </summary>
     internal static (DistributedRemoteGrainDirectory DirectoryService, DistributedRemoteGrainDirectory CacheValidator)
         Create(DistributedGrainDirectory directory, DirectoryMembershipService membershipService, SystemTargetShared shared)
@@ -57,9 +57,9 @@ internal sealed partial class DistributedRemoteGrainDirectory : SystemTarget, IR
     }
 
     /// <summary>
-    /// 确保名录在处理请求之前先有初始成员观点。
-    /// 没有这个, 便在名录处理首次更新成员之前接到电话
-    /// 将无限期地在 <see cref="DistributedGrainDirectory"/>的内部重试循环中屏蔽。
+    /// 确保目录在处理请求前已有初始化的成员资格视图。
+    /// 否则，在目录处理首次成员资格更新之前到达的调用
+    /// 会在 <see cref="DistributedGrainDirectory"/> 的内部重试循环中无限期阻塞。
     /// </summary>
     private async Task EnsureDirectoryInitializedAsync(CancellationToken cancellationToken)
     {
@@ -281,8 +281,8 @@ internal sealed partial class DistributedRemoteGrainDirectory : SystemTarget, IR
             case UnregistrationCause.Force:
                 return _directory.UnregisterAsync(address, cancellationToken);
             case UnregistrationCause.NonexistentActivation:
-                // LocalGrainDirectory 只有在 LazyDeregistrationDelay之后才删除这些条目。
-                // 此兼容路径无法跟踪进入年龄, 所以保留有条件的语义, 而不是强制移动输入 。
+                // LocalGrainDirectory 仅在 LazyDeregistrationDelay 之后移除这些条目。
+                // 此兼容路径不跟踪条目存在的时长，因此不强制移除条目，以保留原有的条件删除语义。
                 return Task.CompletedTask;
             default:
                 throw new ArgumentOutOfRangeException(nameof(cause), cause, $"Deregistration cause {cause} is unknown and is not supported. This is a bug.");

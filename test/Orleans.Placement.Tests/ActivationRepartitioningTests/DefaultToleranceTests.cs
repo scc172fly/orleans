@@ -13,9 +13,9 @@ using Xunit;
 namespace UnitTests.ActivationRepartitioningTests;
 
 /// <summary>
-/// 在激活重新分配时,包括 grain 移动和安置决定中,对默认容忍假想进行测试。
+/// 测试激活实例重新分区的默认容差场景，包括 Grain 迁移和放置决策。
 /// </summary>
-// 此处可看到视觉情景: https://github.com/dotnet/orleans/pull/8877
+// 场景示意图见：https://github.com/dotnet/orleans/pull/8877
 [TestSuite("Functional")]
 [TestProvider("None")]
 [TestArea("Placement")]
@@ -60,12 +60,12 @@ public class DefaultToleranceTests(DefaultToleranceTests.Fixture fixture) : Repa
             () => $"Expected A to move from {Silo1}, but it remained on {a_host}.",
             cancellationToken);
 
-        // 更新
+        // 刷新。
         a_host = await a.GetAddress();
         b_host = await b.GetAddress();
         c_host = await c.GetAddress();
 
-        Assert.Equal(Silo2, a_host);  // A 现在是 silo 2
+        Assert.Equal(Silo2, a_host);  // A 现在位于 Silo 2。
         Assert.Equal(Silo2, b_host);
         Assert.Equal(Silo2, c_host);
 
@@ -111,14 +111,14 @@ public class DefaultToleranceTests(DefaultToleranceTests.Fixture fixture) : Repa
             () => $"Expected C to move from {Silo2}, but it remained on {c_host}.",
             cancellationToken);
 
-        // 更新
+        // 刷新。
         a_host = await a.GetAddress();
         b_host = await b.GetAddress();
         c_host = await c.GetAddress();
 
         Assert.Equal(Silo1, a_host);
         Assert.Equal(Silo1, b_host);
-        Assert.Equal(Silo1, c_host);  // C 现为 silo 1
+        Assert.Equal(Silo1, c_host);  // C 现在位于 Silo 1。
 
         await ResetCounters(cancellationToken);
     }
@@ -167,14 +167,14 @@ public class DefaultToleranceTests(DefaultToleranceTests.Fixture fixture) : Repa
             () => $"Expected A and B to move from {Silo1}, but A was on {a_host} and B was on {b_host}.",
             cancellationToken);
 
-        // 更新
+        // 刷新。
         a_host = await a.GetAddress();
         b_host = await b.GetAddress();
         c_host = await c.GetAddress();
 
-        Assert.Equal(Silo2, a_host);  // A 现在是 silo 2
-        Assert.Equal(Silo2, b_host);  // B 现为 silo 2
-        Assert.Equal(Silo2, c_host);  // C 仍然在 silo 2
+        Assert.Equal(Silo2, a_host);  // A 现在位于 Silo 2。
+        Assert.Equal(Silo2, b_host);  // B 现在位于 Silo 2。
+        Assert.Equal(Silo2, c_host);  // C 仍位于 Silo 2。
 
         await ResetCounters(cancellationToken);
     }
@@ -224,16 +224,16 @@ public class DefaultToleranceTests(DefaultToleranceTests.Fixture fixture) : Repa
             () => $"Expected A to move from {Silo1} or C to move from {Silo2}, but A was on {a_host} and C was on {c_host}.",
             cancellationToken);
 
-        // 更新
+        // 刷新。
         a_host = await a.GetAddress();
         b_host = await b.GetAddress();
         c_host = await c.GetAddress();
         d_host = await d.GetAddress();
 
-        // 也可以去 Silo 2,或者C可以来到 Silo 1,两者都有效,所以我们需要检查二者。
+        // A 可以迁移到 Silo 2，C 也可以迁移到 Silo 1；两种结果都有效，因此需要检查两种情况。
         if (a_host == Silo2 && c_host == Silo2)
         {
-            Assert.Equal(Silo2, a_host);  // A 现在是 silo 2
+            Assert.Equal(Silo2, a_host);  // A 现在位于 Silo 2。
             Assert.Equal(Silo1, b_host);
             Assert.Equal(Silo2, c_host);
             Assert.Equal(Silo2, d_host);
@@ -245,7 +245,7 @@ public class DefaultToleranceTests(DefaultToleranceTests.Fixture fixture) : Repa
         {
             Assert.Equal(Silo1, a_host);
             Assert.Equal(Silo1, b_host);
-            Assert.Equal(Silo1, c_host);  // C 现为 silo 1
+            Assert.Equal(Silo1, c_host);  // C 现在位于 Silo 1。
             Assert.Equal(Silo2, d_host);
 
             return;
@@ -391,7 +391,7 @@ public class DefaultToleranceTests(DefaultToleranceTests.Fixture fixture) : Repa
             sr1_host != receiverSilo && sr2_host != receiverSilo,
             $"Receivers did not move from {receiverSilo} to pulling-agent silo {pullingAgentSilo} within {allowedDuration}. SR1 was on {sr1_host}; SR2 was on {sr2_host}.");
 
-        // 更新
+        // 刷新。
         sr1_host = await sr1.GetAddress();
         sr2_host = await sr2.GetAddress();
         sr3_host = await sr3.GetAddress();
@@ -580,8 +580,8 @@ public class DefaultToleranceTests(DefaultToleranceTests.Fixture fixture) : Repa
     [Immovable(ImmovableKind.Repartitioner)]
     public class SP : GrainBase, ISP
     {
-        // 我们只是这种类型的“不可移动”的, 因为我们只是想让信息向流传
-        // 以某种原因推向流经集群客户端的流,并不引致消费者 grains。
+        // 此类型仅标记为 'Immovable'，因为只需要它向流推送消息，
+        // 而出于某种原因，通过集群客户端向流推送消息并未调用消费者 Grain。
 
         private IAsyncStream<int> _stream = null!;
 
@@ -633,10 +633,10 @@ public class DefaultToleranceTests(DefaultToleranceTests.Fixture fixture) : Repa
                     })
                     .Configure<ActivationRepartitionerOptions>(o =>
                     {
-                        // 使计时器实际上不开火!我们将手动援引协议。
+                        // 设置为让定时器实际上几乎不会触发！测试将手动调用协议。
                         o.MinRoundPeriod = TimeSpan.FromSeconds(299);
                         o.MaxRoundPeriod = TimeSpan.FromSeconds(300);
-                        // 使这个几乎为零,这样我们就可以不止一次援引议定书而无需拖延试验。 
+                        // 将此值设为接近零，以便测试中无需延迟即可多次调用协议。
                         o.RecoveryPeriod = TimeSpan.FromMilliseconds(1);
                     })
                     .AddMemoryStreams(StreamProviderName, c =>

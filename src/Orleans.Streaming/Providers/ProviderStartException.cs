@@ -5,7 +5,7 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 供应商未能启动时,就提出例外。
+    /// 提供程序启动失败时抛出的异常。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -20,7 +20,7 @@ namespace Orleans.Streams
         /// <summary>
         /// 初始化 <see cref="ProviderStartException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">电文。</param>
+        /// <param name="message">消息。</param>
         public ProviderStartException(string message)
             : base(message)
         { }
@@ -28,8 +28,8 @@ namespace Orleans.Streams
         /// <summary>
         /// 初始化 <see cref="ProviderStartException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">电文。</param>
-        /// <param name="innerException">内在的例外</param>
+        /// <param name="message">消息。</param>
+        /// <param name="innerException">内部异常。</param>
         public ProviderStartException(string message, Exception innerException)
             : base(message, innerException)
         { }
@@ -37,7 +37,7 @@ namespace Orleans.Streams
         /// <summary>
         /// 初始化 <see cref="ProviderStartException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">序列号信息。</param>
+        /// <param name="info">序列化信息。</param>
         /// <param name="context">上下文。</param>
         [Obsolete]
         private ProviderStartException(SerializationInfo info, StreamingContext context)

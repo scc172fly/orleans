@@ -282,7 +282,7 @@ internal sealed class CassandraClusteringTable : IMembershipTable, IDisposable
             var hasOpeningVersion = rows.GetAvailableWithoutFetching() > 0;
             if (!singlePage && !hasOpeningVersion && !before.HasValue)
             {
-                // 空开页不提供版本。 以明确的打开栅栏重新开始 。
+                // 起始页为空时不会提供版本；使用显式起始版本屏障重新开始。
                 before = await ReadVersionAsync(cancellationToken);
                 continue;
             }
@@ -290,7 +290,7 @@ internal sealed class CassandraClusteringTable : IMembershipTable, IDisposable
             var result = await GetMembershipTableData(rows, cancellationToken);
             if (singlePage && result is not null)
             {
-                // 分区的静态版本和选定行共享本地读取边界。
+                // 分区的静态版本与所选记录共享同一原生读取边界。
                 return result;
             }
 
@@ -300,8 +300,8 @@ internal sealed class CassandraClusteringTable : IMembershipTable, IDisposable
             }
 
             var after = await ReadVersionAsync(cancellationToken);
-            // 使用首页的版本,或者前面的清晰栅栏
-            // 并重新使用结束版本, 下次尝试时当读取点没有或扫描比赛时再使用。
+            // 分页不提供快照。使用起始页的版本或先前显式设置的版本屏障；
+            // 若点读取未找到记录或扫描发生竞态，则将结束时的版本用于下一次尝试。
             if ((hasOpeningVersion ? result?.Version.Version : before) == after && (result is null || result.Version.Version == after))
             {
                 return result ?? new MembershipTableData([], new TableVersion(after, after.ToString(CultureInfo.InvariantCulture)));

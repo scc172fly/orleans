@@ -19,10 +19,10 @@ namespace Orleans.Runtime.Messaging
 {
     internal sealed partial class Gateway : IConnectedClientCollection
     {
-        // 客户是所有相关客户的主要授权收藏。
-        // 系统中的任何客户端目前都出现在此收藏中 。
-        // 此外,我们使用 clientConnections 收集法进行 ClientState快速回溯。
-        // 这2个收款中出现的任何情况也应出现在主要客户收款中。
+        // clients 是包含所有已连接客户端的主要权威集合。
+        // 当前系统中的任何客户端均出现在此集合中。
+        // 此外，使用 clientConnections 集合快速获取 ClientState。
+        // 出现在这两个集合中的任何内容也应出现在主要的 clients 集合中。
         private readonly ConcurrentDictionary<ClientGrainId, ClientState> clients = new();
         private readonly Dictionary<GatewayInboundConnection, ClientState> clientConnections = new();
         private readonly SiloAddress siloAddress;
@@ -68,9 +68,9 @@ namespace Orleans.Runtime.Messaging
 
         public static GrainAddress GetClientActivationAddress(GrainId clientId, SiloAddress siloAddress)
         {
-            // 需要为客户选择一个独特的确定 ActivationId 。
-            // 我们把它存储在 grain 目录中, 每一个 GrainId , 我们用 ActivationId 作为密钥
-            // 所以每个GW都需要表现为不同的“激活” 与不同的 ActivationId (不足以表示它们有不同的 SiloAddress)
+            // 需要为此客户端选择唯一且确定的 ActivationId。
+            // 将它存储在 Grain 目录中；在该目录中，对每个 GrainId 使用 ActivationId 作为键，
+            // 因此每个网关都需要表现为具有不同 ActivationId 的激活实例（仅 SiloAddress 不同是不够的）。
 
             Span<byte> bytes = stackalloc byte[16];
             BinaryPrimitives.WriteUInt32LittleEndian(bytes, clientId.Type.GetUniformHashCode());
@@ -145,7 +145,7 @@ namespace Orleans.Runtime.Messaging
                     var oldSocket = clientState.Connection;
                     if (oldSocket != null)
                     {
-                        // 旧的插座会自己关闭
+                        // 旧套接字稍后会自行关闭。
                         clientConnections.Remove(oldSocket);
                     }
                 }
@@ -179,22 +179,22 @@ namespace Orleans.Runtime.Messaging
 
         internal SiloAddress? TryToReroute(Message msg)
         {
-            // ** 这里系统目标的特殊路由规则 **
-            // 客户对一用户提出请求/答复 SystemTarget, 和 TargetSilo 被设定为
-            //  - 目标 GatewayAddress silo (例如,当客户想要获得群集图时)
-            //  - “内部” Silo- -Silo 地址,如果客户端想向特定 SystemTarget发送信息
-            //    正在激活的 silo 没有可用的网关(或客户端没有
-            //    连接到该网关)
-            // 所以,如果 TargetGrain 是一个 SystemTarget ,我们总是信任从 Message.TargetSilo 和向前的数值
-            // 地址是...
-            // 如果值等于当前 GatewayAddress值,则例外:在这种情况下我们将返回
-            // 无效, 本地调度器将把信件转发到本地 SystemTarget 激活
+            // ** 系统目标的特殊路由规则 **
+            // 当客户端向系统目标发送请求或从系统目标接收响应时，TargetSilo 可以设置为以下之一：
+            // - 目标 Silo 的 GatewayAddress（例如客户端希望获取集群类型映射时）。
+            // - 内部的 Silo 间通信地址，用于客户端希望向特定系统目标
+            // 激活实例发送消息，而该实例所在 Silo 没有可用网关（或者客户端未
+            // 连接到该网关）的情况。
+            // 因此，如果 TargetGrain 为系统目标，则始终信任 Message.TargetSilo 的值，并将消息转发
+            // 到此地址……
+            // 但如果该值等于当前 GatewayAddress，则返回
+            // null，由本地分发器将消息转发给本地系统目标激活实例。
             if (msg.TargetGrain.IsSystemTarget() && !IsTargetingLocalGateway(msg.TargetSilo!))
             {
                 return msg.TargetSilo;
             }
 
-            // 答复者的答复 ClientAddressableObject 至 ClientGrain 尝试使用 clientsReplyRoutingCache 直接回送答复。
+            // 对从 ClientAddressableObject 发往 ClientGrain 的响应，尝试使用 clientsReplyRoutingCache 直接发送回复。
             if (!msg.SendingGrain.IsClient() || !msg.TargetGrain.IsClient())
             {
                 return null;
@@ -223,14 +223,14 @@ namespace Orleans.Runtime.Messaging
 
         private bool IsTargetingLocalGateway(SiloAddress siloAddress)
         {
-            // 客户客户使用的地址是回回的特殊情况
+            // 客户端使用环回地址时的特殊情况。
             return this.gatewayAddress.Matches(siloAddress)
                 || (IPAddress.IsLoopback(siloAddress.Endpoint.Address)
                     && siloAddress.Endpoint.Port == this.gatewayAddress.Endpoint.Port
                     && siloAddress.Generation == this.gatewayAddress.Generation);
         }
 
-        // 不需要获取个人 ClientState 锁,因为我们只关闭旧的套接字。
+        // 无需获取单个 ClientState 的锁，因为只关闭旧套接字。
         internal void DropDisconnectedClients()
         {
             var trackDroppedClients = GatewayEvents.IsClientDroppedEnabled();
@@ -248,7 +248,7 @@ namespace Orleans.Runtime.Messaging
 
                             if (clients.TryRemove(kv.Key, out _))
                             {
-                                // 拒绝所有来自客户端的待发信件 。
+                                // 拒绝来自客户端的全部待处理消息。
                                 client.Drop();
                                 if (trackDroppedClients)
                                 {
@@ -274,13 +274,13 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// 查看此信件是否是用于代理 grain 的, 如果需要的话, 请排队发送 。
+        /// 检查消息是否以此网关代理的 Grain 为目标；若是，则将消息加入待投递队列。
         /// </summary>
         /// <param name="msg"></param>
-        /// <returns>如果电文被发送到代理 grain, 则属实, 如果没有的话是虚假的。</returns>
+        /// <returns>若消息应投递给被代理的 Grain，则为 true，否则为 false。</returns>
         internal bool TryDeliverToProxy(Message msg)
         {
-            // 看看是不是 grain 我们代理的
+            // 检查是否为此网关代理的 Grain。
             var targetGrain = msg.TargetGrain;
             if (!ClientGrainId.TryParse(targetGrain, out var clientId))
             {
@@ -292,9 +292,9 @@ namespace Orleans.Runtime.Messaging
                 return false;
             }
 
-            // 当此网关接收客户 X 给客户端可地址对象 Y 的信件时
-            // 它需要记录此信件来源的原始网关地址( X 连接到的网关地址)
-            // 它会使用这个通道 将正方位从Y返回 X 重新排入 X 。
+            // 当此网关收到从客户端 X 发往客户端可寻址对象 Y 的消息时，
+            // 需要记录该消息经过的原始网关地址（X 所连接的网关地址），
+            // 并使用该网关将 Y 的回复重新路由给 X。
             if (msg.SendingGrain.IsClient())
             {
                 clientsReplyRoutingCache.RecordClientRoute(msg.SendingGrain, msg.SendingSilo!);
@@ -323,7 +323,7 @@ namespace Orleans.Runtime.Messaging
 
             internal ClientState(Gateway gateway, ClientGrainId id)
             {
-                // 确保客户不掌握任何 AsyncLocal 状态等
+                // 确保客户端不会捕获任何 AsyncLocal 状态等信息。
                 using var suppressExecutionContext = new ExecutionContextSuppressor();
 
                 _gateway = gateway;
@@ -411,7 +411,7 @@ namespace Orleans.Runtime.Messaging
                             continue;
                         }
 
-                        // 发送所有待发信件 。
+                        // 发送全部待处理消息。
                         while (_pendingToSend.TryDequeue(out var message))
                         {
                             if (TrySend(connection, message))
@@ -420,7 +420,7 @@ namespace Orleans.Runtime.Messaging
                             }
                             else
                             {
-                                // 再次收发消息。 设置在队列的末尾是正常的: 信件顺序没有保证 。
+                                // 将消息重新入队。位于队列末尾没有问题：不保证消息顺序。
                                 _pendingToSend.Enqueue(message);
                                 return;
                             }
@@ -464,13 +464,13 @@ namespace Orleans.Runtime.Messaging
             }
         }
 
-        // 此缓存用于记录客户连接到的端口地址 。
-        // 用于从客户可移动的物体中向客户发送回复
-        // 如果没有此缓存, 此 Gateway 将不知道如何将回复回客户端
-        // (因为客户不在目录中登记,而且这个网关可能不是答复所针对的客户的代理)。
+        // 此缓存用于记录客户端连接所经过的网关地址。
+        // 它用于将客户端可寻址对象的回复路由给客户端。
+        // 没有此缓存，当前网关就无法知道如何将回复路由回客户端
+        // （因为客户端不在目录中注册，且当前网关可能不代理该回复的目标客户端）。
         private class ClientsReplyRoutingCache
         {
-            // 每个客户都使用: 用于回溯回复的通道, 加上上次客户通过此通道连接到该通道。
+            // 对每个客户端，记录将回复路由回该客户端时所使用的网关，以及客户端最近一次通过该网关连接的时间。
             private readonly ConcurrentDictionary<GrainId, Tuple<SiloAddress, DateTime>> clientRoutes = new();
             private readonly TimeSpan TIME_BEFORE_ROUTE_CACHED_ENTRY_EXPIRES;
 

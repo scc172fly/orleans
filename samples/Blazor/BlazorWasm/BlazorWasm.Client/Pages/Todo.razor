@@ -1,7 +1,7 @@
 @page "/todo"
 @inject ApiService ApiService
 
-<h1>Todo (@todos.Count(todo => !todo.IsDone))</h1>
+<h1>待办事项 (@todos.Count(todo => !todo.IsDone))</h1>
 @foreach (var todo in todos.OrderBy(x => x.Timestamp))
 {
     <div class="input-group mb-3">
@@ -10,7 +10,7 @@
                    type="checkbox"
                    checked="@todo.IsDone"
                    @onchange="@(() => HandleTodoDoneAsync(todo, !todo.IsDone))"
-                   aria-label="Toggle task status">
+                   aria-label="切换任务状态">
         </div>
         <button class="btn btn-outline-danger" type="button" @onclick="@(() => HandleDeleteTodoAsync(todo))">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
@@ -19,7 +19,7 @@
             </svg>
         </button>
         <InputText class="form-control"
-                   aria-label="Task"
+                   aria-label="任务"
                    Value="@todo.Title"
                    ValueChanged="@(title => HandleTodoTitleChangeAsync(todo, title))"
                    ValueExpression="() => todo.Title" />
@@ -28,8 +28,8 @@
 
 <form @onsubmit="@AddTodoAsync">
     <div class="input-group mb-3">
-        <input type="text" @bind="@newTodo" class="form-control" placeholder="Something todo" aria-label="Something todo" aria-describedby="button-add">
-        <button class="btn btn-outline-secondary" type="submit" id="button-add">Add Todo</button>
+        <input type="text" @bind="@newTodo" class="form-control" placeholder="待办事项" aria-label="待办事项" aria-describedby="button-add">
+        <button class="btn btn-outline-secondary" type="submit" id="button-add">添加待办事项</button>
     </div>
 </form>
 
@@ -50,7 +50,7 @@
     {
         if (!string.IsNullOrWhiteSpace(newTodo))
         {
-            // 创建一个新待办事宜
+            // 创建新的待办事项
             var todo = new TodoItem
             {
                 Key = Guid.NewGuid(),
@@ -59,13 +59,13 @@
                 Title = newTodo
             };
 
-            // 将之加入到分组中
+            // 将其添加到集群
             await ApiService.SetTodoAsync(todo);
 
             // 在用户界面中显示
             todos.Add(todo);
 
-            // 重置框
+            // 重置输入框
             newTodo = null;
         }
     }

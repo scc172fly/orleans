@@ -1,50 +1,50 @@
 ---
-title: "ORLEANS0016: Grain 接口在 OrleansContracts.txt中不活跃"
-description: "理解和决心 ORLEANS0016 时 grain 合同清单中缺少或退出接口。"
+title: "ORLEANS0016: Grain 接口在 OrleansContracts.txt 中未处于活动状态"
+description: 了解并解决契约清单中缺少 Grain 接口或接口已停用时出现的 ORLEANS0016。
 ms.date: 08/27/2026
 ms.topic: reference
 ---
 
 <a id="orleans0016-grain-interface-is-not-active-in-orleanscontractstxt"></a>
 
-# ORLEANS0016: Grain 接口在 OrleansContracts.txt中不活跃
+# ORLEANS0016: Grain 接口在 OrleansContracts.txt 中未处于活动状态
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 类别类 | 版本 |
+| 类别 | 版本控制 |
 | 严重性 | 警告 |
-| 代码修正 | 可用 |
+| 代码修复 | 可用 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-合同分析师发现 grain 没有主动声明匹配其界面的 `GrainInterfaceType` 内 `OrleansContracts.txt`。匹配声明也可以存在,但可以标记 `*RETIRED*`.
+契约分析器发现一个 Grain 接口，其 `GrainInterfaceType` 在 `OrleansContracts.txt` 中没有匹配的活动声明。匹配的声明也可能存在，但已标为 `*RETIRED*`。
 
 <a id="impact"></a>
 
-## 影响影响
+## 影响
 
-界面身份、版本和方法在合同审查中不存在。 重命名或身份变更可以成为新的RPC合同,而没有明确的明确数据。
+接口标识、版本及方法未纳入契约审查。重命名或标识变更可能在清单没有显式差异的情况下成为新的 RPC 契约。
 
 <a id="how-to-fix"></a>
 
-## 如何修补
+## 修复方法
 
-校验接口身份和版本, 然后应用 **添加到 OrleansContracts.txt**。代码修正会增加或重新启动界面并记录其普通程序方法 。
+核实接口标识及版本，再应用 **Add to OrleansContracts.txt**。代码修复会添加或重新激活接口，并记录其普通实例方法。
 
-如果接口被意外恢复, 则从源代码中删除它或引入一个单独命名的替换, 而不是重复使用已取消的身份 。
+如果该接口是意外恢复的，请从源码中移除它，或引入另行命名的替代接口，而不是复用已停用的标识。
 
-应用 **Regenerate OrleansContracts.txt** 重建完整的项目清单。为每个合同项目分别运行再生,并利用 [合同兼容性指导](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)审查产生的 diff 。
+应用 **Regenerate OrleansContracts.txt** 以重建完整项目清单。分别为各契约项目执行重新生成，并依据[契约兼容性指南](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)检查生成的差异。
 
 <a id="suppress-the-diagnostic"></a>
 
 ## 抑制诊断
 
-如果项目故意不保持合同清单,则停止为项目进行合同分析,而不是压制个人接口。
+可部署的 RPC 契约应保留在清单中。如果项目明确不维护契约清单，请为项目禁用契约分析器，而不是抑制各个接口的诊断。
 
 ```xml
 <EnableOrleansContractsAnalyzer>false</EnableOrleansContractsAnalyzer>
 ```
 
-见 [Orleans 合同兼容性分析器](../grains/grain-versioning/contract-compatibility-analyzer.md)。
+参阅[Orleans 契约兼容性分析器](../grains/grain-versioning/contract-compatibility-analyzer.md)。

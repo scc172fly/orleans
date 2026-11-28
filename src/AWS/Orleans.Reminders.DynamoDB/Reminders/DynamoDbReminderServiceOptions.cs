@@ -1,7 +1,7 @@
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// 亚马逊 DynamoDB 提醒存储配置 。
+    /// Amazon DynamoDB 提醒器存储配置。
     /// </summary>
     public class DynamoDBReminderTableOptions
     {

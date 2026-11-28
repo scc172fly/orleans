@@ -20,8 +20,8 @@ namespace Orleans.Hosting
         /// <summary>
         /// 初始化 <see cref="PersistentStreamStorageConfigurationValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="services">服务。</param>
-        /// <param name="streamProviderName">流体提供者的名称。</param>
+        /// <param name="services">服务提供程序。</param>
+        /// <param name="streamProviderName">流提供程序名称。</param>
         private PersistentStreamStorageConfigurationValidator(IServiceProvider services, string streamProviderName)
         {
             this.services = services;
@@ -45,9 +45,9 @@ namespace Orleans.Hosting
         /// <summary>
         /// 创建新的 <see cref="PersistentStreamStorageConfigurationValidator"/> 实例。
         /// </summary>
-        /// <param name="services">服务。</param>
+        /// <param name="services">服务提供程序。</param>
         /// <param name="name">名称。</param>
-        /// <returns>新建实例。</returns>
+        /// <returns>新创建的实例。</returns>
         public static IConfigurationValidator Create(IServiceProvider services, string name)
         {
             return new PersistentStreamStorageConfigurationValidator(services, name);
@@ -55,22 +55,22 @@ namespace Orleans.Hosting
     }
 
     /// <summary>
-    /// 配置持久性流。
+    /// 配置持久化流。
     /// </summary>
     public class SiloPersistentStreamConfigurator : NamedServiceConfigurator, ISiloPersistentStreamConfigurator
     {
         /// <summary>
         /// 初始化 <see cref="SiloPersistentStreamConfigurator"/> 类的新实例。
         /// </summary>
-        /// <param name="name">流体提供者名称。</param>
-        /// <param name="configureDelegate">配置代表。</param>
-        /// <param name="adapterFactory">适配厂</param>
+        /// <param name="name">流提供程序名称。</param>
+        /// <param name="configureDelegate">配置委托。</param>
+        /// <param name="adapterFactory">适配器工厂。</param>
         public SiloPersistentStreamConfigurator(string name, Action<Action<IServiceCollection>> configureDelegate, Func<IServiceProvider, string, IQueueAdapterFactory> adapterFactory)
             : base(name, configureDelegate)
         {
             this.ConfigureDelegate(services => services.AddSiloStreaming());
             this.ConfigureComponent(PersistentStreamProvider.Create);
-            // PersistentStreamProvider 执行不可控。
+            // PersistentStreamProvider 实现 IControllable。
             this.ConfigureComponent((s, n) => (s.GetRequiredKeyedService<IStreamProvider>(n) as IControllable)!);
             this.ConfigureDelegate(services => services.AddSingleton(sp => PersistentStreamProvider.ParticipateIn<ISiloLifecycle>(sp, this.Name)));
             this.ConfigureComponent(adapterFactory);

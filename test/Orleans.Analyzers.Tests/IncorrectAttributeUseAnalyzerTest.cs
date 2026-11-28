@@ -6,10 +6,10 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// 用于分析器的测试,以防止在 grain 类中错误使用序列属性。
-/// Grain 类别(继承) Grain 或 Grain&lt;T&gt;)不应用[Alias]或
-/// GenerateSerializer是因为 grains 没有序列化,而只有其状态和方法参数。
-/// 此分析器有助于开发者避免混淆 grain 执行和可序列数据类型。
+/// 测试禁止在 Grain 类上错误使用序列化特性的分析器。
+/// Grain 类（继承 Grain 或 Grain&lt;T&gt;）不应标记 [Alias] 或
+/// [GenerateSerializer]，因为不会序列化 Grain 本身，仅序列化其状态和方法参数。
+/// 此分析器帮助开发者区分 Grain 实现与可序列化数据类型。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 [TestSuite("BVT")]
@@ -37,9 +37,9 @@ public class IncorrectAttributeUseAnalyzerTest : DiagnosticAnalyzerTestBase<Inco
     #region Grain
 
     /// <summary>
-    /// 证明分析器检测到从 Grain 继承的某一类人何时继承
-    /// 应用序列属性。 Grains 他们没有被连成若干级,
-    /// 因此这些属性毫无意义,表明对 Orleans 模式的误解。
+    /// 验证分析器能否检测继承 Grain 的类上
+    /// 应用序列化特性的情况。不会序列化 Grain 本身，
+    /// 因此这些特性没有意义，并且表明对 Orleans 模型存在误解。
     /// </summary>
     [Theory]
     [MemberData(nameof(Attributes))]
@@ -57,9 +57,9 @@ public class IncorrectAttributeUseAnalyzerTest : DiagnosticAnalyzerTestBase<Inco
     }
 
     /// <summary>
-    /// 证明分析器允许正常班级的序列属性
-    /// 无法继承 Grain。这些类别可以作为方法参数序列化
-    /// 或 grain 状态。
+    /// 验证分析器允许在不继承 Grain 的普通类上
+    /// 应用序列化特性。这些类可以作为方法参数
+    /// 或 Grain 状态进行序列化。
     /// </summary>
     [Theory]
     [MemberData(nameof(Attributes))]
@@ -77,8 +77,8 @@ public class IncorrectAttributeUseAnalyzerTest : DiagnosticAnalyzerTestBase<Inco
     }
 
     /// <summary>
-    /// 证明没有序列属性的 grain 类不会触发
-    /// 分析器。 这是执行 grain 的正确模式 。
+    /// 验证未使用序列化特性的 Grain 类不会触发
+    /// 分析器诊断。这是 Grain 实现的正确模式。
     /// </summary>
     [Fact]
     public Task ClassInheritingFromGrain_NotHavingAttributeApplied_ShouldNotTriggerDiagnostic()
@@ -98,9 +98,9 @@ public class IncorrectAttributeUseAnalyzerTest : DiagnosticAnalyzerTestBase<Inco
     #region Grain<TGrainState>
 
     /// <summary>
-    /// 证明分析器检测到从 Grain&lt;T&gt; 继承的某一类人何时继承
-    /// 应用的序列属性。与非通用 grains、状态 grains一样
-    /// 他们没有被连为系列 - 只有他们的状况。
+    /// 验证分析器能否检测继承 Grain&lt;T&gt; 的类上
+    /// 应用序列化特性的情况。与非泛型 Grain 一样，有状态 Grain
+    /// 本身不会被序列化，只有其状态会被序列化。
     /// </summary>
     [Theory]
     [MemberData(nameof(Attributes))]
@@ -123,9 +123,9 @@ public class IncorrectAttributeUseAnalyzerTest : DiagnosticAnalyzerTestBase<Inco
     }
 
     /// <summary>
-    /// 证明分析器允许正常班级的序列属性
-    /// 继承遗产 Grain&lt;T&gt;。这些类别可以作为方法参数序列
-    /// 或 grain 状态。
+    /// 验证分析器允许在不继承 Grain&lt;T&gt; 的普通类上
+    /// 应用序列化特性。这些类可以作为方法参数
+    /// 或 Grain 状态进行序列化。
     /// </summary>
     [Theory]
     [MemberData(nameof(Attributes))]
@@ -143,8 +143,8 @@ public class IncorrectAttributeUseAnalyzerTest : DiagnosticAnalyzerTestBase<Inco
     }
 
     /// <summary>
-    /// 证明没有序列属性的状态 grain 类不会触发
-    /// 分析器。 这是显示状态的正确模式 grain 执行。
+    /// 验证未使用序列化特性的有状态 Grain 类不会触发
+    /// 分析器诊断。这是有状态 Grain 实现的正确模式。
     /// </summary>
     [Fact]
     public Task ClassInheritingFromGenericGrain_NotHavingAttributeApplied_ShouldNotTriggerDiagnostic()

@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.AzureStorage.Tests
 {
     /// <summary>
-    /// 使用 Azure 储存进行与随机错漏喷射一致的交易测试。
+    /// 测试使用 Azure Storage 时随机故障注入场景下的事务一致性。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Transactions-dev")]
     [TestSuite("Nightly")]

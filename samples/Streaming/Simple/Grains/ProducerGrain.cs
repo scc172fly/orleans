@@ -25,12 +25,12 @@ public class ProducerGrain : Grain, IProducerGrain
         if (_timer is not null)
             throw new Exception("This grain is already producing events");
 
-        // 获取溪流
+        // 获取流。
         var streamId = StreamId.Create(ns, key);
         _stream = this.GetStreamProvider(Constants.StreamProvider)
             .GetStream<int>(streamId);
 
-        // 登记每秒产生事件的时间计时器
+        // 注册每秒生成一个事件的定时器。
         var period = TimeSpan.FromSeconds(1);
         _timer = this.RegisterGrainTimer(TimerTick, new GrainTimerCreationOptions
         {

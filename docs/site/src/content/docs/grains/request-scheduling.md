@@ -1,117 +1,117 @@
 ---
-title: "Grain 请求申请时间安排"
-description: "理解 Orleans 转手执行,中继和再生"
+title: "Grain 请求调度"
+description: "了解 Orleans 基于执行轮次的执行模型、交错执行与可重入性。"
 ms.date: 10/15/2026
 ms.topic: concept-article
 ---
 
 <a id="grain-request-scheduling"></a>
 
-# Grain 请求申请时间安排
+# Grain 请求调度
 
-每个启动 grain 一次执行一个转折。 Orleans 将请求运行到完成或达到不完整的 `await`,然后将继续时间安排在另一个转弯上。两个转弯从不同时执行同一激活。
+每个 Grain 激活实例同一时间只执行一个执行轮次（turn）。Orleans 执行一个请求，直到请求完成或遇到尚未完成的 `await`，随后将其后续执行（continuation）调度为另一个执行轮次。同一个激活实例中的两个执行轮次绝不会并行执行。
 
-默认情况下, 当当前请求不完整时激活不会启动不同的请求。 这种非输入模式使得变异 grain 状态更容易解释:
+默认情况下，当前请求尚未完成时，激活实例不会开始执行其他请求。这种不可重入的模型使可变 Grain 状态更容易理解和推理：
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="serialized_counter_grain":::
-虽然方法在 `await`时的产量,但在该请求完成之前,另一项请求没有观察到或改变 `_value` 。
+尽管该方法在 `await` 处让出执行权，但在当前请求完成之前，其他请求不会读取或修改 `_value`。
 
 <a id="avoid-blocking"></a>
 
-## 避免屏蔽
+## 避免阻塞
 
-永远不要同步地阻断从 grain 代码中输入的不完整任务。 `.Result`、 `.Wait()`、 `WaitAll`和 `GetAwaiter().GetResult()` 可以使激活陷入僵局,并消耗线串线索。使用 `await`。
+绝不要在 Grain 代码中同步阻塞等待尚未完成的任务。`.Result`、`.Wait()`、`WaitAll` 和 `GetAwaiter().GetResult()` 可能使激活实例发生死锁，并占用线程池线程。请使用 `await`。
 
-普通普通 `await` 恢复 grain 激活调度器上的代码。 不要使用 `ConfigureAwait(false)` 内 grain 方法,因为继续可以避免 grain 普通目的图书馆可在内部使用; grain 返回到 grain 当它通常等待图书馆时, 排程器 。
+普通的 `await` 会使 Grain 代码在激活实例的调度器上继续执行。不要在 Grain 方法中使用 `ConfigureAwait(false)`，因为后续执行可能脱离 Grain 调度器。通用库可以在内部使用它；只要 Grain 代码以普通的 `await` 等待该库的操作，后续执行就会回到 Grain 调度器上。
 
 <a id="interleaving-and-reentrancy"></a>
 
-## 间断和再留空
+## 交错执行与可重入性
 
-插入 Orleans 允许在先前的请求不完整时开始或恢复另一项请求。激活仍为单行,但从不同的请求中转转可以换行。每 `await`后重新检查关于变异状态的假设。
+交错执行允许 Orleans 在先前的请求尚未完成时开始或恢复另一个请求。激活实例仍以单线程方式执行，但不同请求的执行轮次可以交替进行。每次 `await` 之后，都要重新检查关于可变状态的假设是否仍然成立。
 
-| 机制机制机制 | 范围范围范围 |
+| 机制 | 作用范围 |
 |---|---|
-| <xref:Orleans.Concurrency.ReentrantAttribute> | 所有申请 grain 级的申请均可中断。 |
-| <xref:Orleans.Concurrency.AlwaysInterleaveAttribute> | 标记的接口方法可以与任何请求发生间断。 |
-| <xref:Orleans.Concurrency.ReadOnlyAttribute> | 标记的只读方法可以与其他只读的方法相互交叉。 |
-| <xref:Orleans.Concurrency.MayInterleaveAttribute> | 每项请求都有一个上游检查。 |
-| <xref:Orleans.Runtime.RequestContext.AllowCallChainReentrancy> | 范围明确的呼叫链可以重新激活 已经进入了该链条 |
+| <xref:Orleans.Concurrency.ReentrantAttribute> | 对该 Grain 类的所有请求均可交错执行。 |
+| <xref:Orleans.Concurrency.AlwaysInterleaveAttribute> | 标记的接口方法可与任何请求交错执行。 |
+| <xref:Orleans.Concurrency.ReadOnlyAttribute> | 标记的只读方法可与其他只读方法交错执行。 |
+| <xref:Orleans.Concurrency.MayInterleaveAttribute> | 使用谓词检查每个请求。 |
+| <xref:Orleans.Runtime.RequestContext.AllowCallChainReentrancy> | 在指定的调用链作用域中，可以回调该调用链中已有的激活实例。 |
 
-使用最狭窄的机制解决问题。 耐力可以改善I/ O- Heavy grains 的吞吐量,防止周期性呼叫僵局,但也允许国家改变两轮之间的交替。
+选择能够解决问题且作用范围最小的机制。可重入性可以提高 I/O 密集型 Grain 的吞吐量，并防止循环调用导致的死锁，但也允许状态在不同执行轮次之间发生变化。
 
 <a id="reentrant-grains"></a>
 
-### 重新ENTRant grains
+### 可重入 Grain
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="reentrant_catalog_grain":::
-不同的请求代码并非同时运行, 但多个不完整的电话可以通过交替转动来取得进展。
+不同请求中的代码不会同时执行，但多个尚未完成的调用可以通过交替执行各自的轮次取得进展。
 
 <a id="method-level-interleaving"></a>
 
-### 方法层次间距
+### 方法级交错执行
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="interleaving_method_attributes":::
-`ReadOnly` 是一个列表承诺。主动的只读请求可以相互串连,在每次只读的请求完成之前,集体排除可写请求,除非另一项政策允许重叠。保持 grain 与只读方法的状态不变。
+`ReadOnly` 是对调度器作出的承诺。正在处理的只读请求可以彼此交错执行，并共同阻止可写请求执行，直到所有这些只读请求完成，除非其他交错执行策略允许重叠。只读方法不得修改 Grain 状态。
 
 <a id="predicate-based-interleaving"></a>
 
-### 基于预发性连接
+### 基于谓词的交错执行
 
-`MayInterleave` 指接受 <xref:Orleans.Serialization.Invocation.IInvokable>的上游。使用其访问器方法;不存在 `Arguments` 属性:
+`MayInterleave` 指定一个接收 <xref:Orleans.Serialization.Invocation.IInvokable> 的谓词。请使用其访问器方法；它没有 `Arguments` 属性：
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="may_interleave_grain":::
-保持上游的确定性,快速和副作用自由。
+谓词应具有确定性、执行迅速且没有副作用。
 
 <a id="call-chain-reentrancy"></a>
 
-### 呼叫链回转
+### 调用链可重入性
 
-当已知的呼叫路径必须回拨启动激活时使用呼叫链中继器 :
+当已知的调用路径必须回调发起调用的激活实例时，可以使用调用链可重入性：
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="call_chain_reentrancy":::
-范围允许在处置之前与该呼叫链相关的回调,但比标记整个 grain 重新输入线窄。
+该作用域在被释放之前，允许与这条调用链关联的回调。它的作用范围比将整个 Grain 标记为可重入更小。
 
 <a id="timers-and-external-work"></a>
 
-## 计时器和外部工作
+## 定时器与外部工作
 
-Grain 计时器回调会参与日程安排。回调不会默认中断; 当故意时配置 `GrainTimerCreationOptions.Interleave` 。
+Grain 定时器回调也参与请求调度。回调默认不与其他请求交错执行；确有需要时，显式配置 `GrainTimerCreationOptions.Interleave`。
 
-要在激活的日程安排下从另一线索运行工作,请见 [将背景工作作为 grain 请求运行](#run-background-work-as-a-grain-request)。
+要从其他线程提交工作并使其遵循激活实例的调度规则，请参阅[将后台工作作为 Grain 请求执行](#run-background-work-as-a-grain-request)。
 
-仅使用 <xref:System.Threading.Tasks.Task.Run*> 来从 Orleans 排程器中分离出不可避免的同步阻塞或 CPU 工作。 不要从线状资源库代表处访问 grain 状态。在激活调度器上恢复执行后,等待并更新 grain 状态。 见 [外部任务和 grains](external-tasks-and-grains.md)。
+仅在需要将不可避免的同步阻塞操作或 CPU 密集型工作与 Orleans 调度器隔离时，才使用 <xref:System.Threading.Tasks.Task.Run*>。不要在线程池委托中访问 Grain 状态。等待该任务，并在执行恢复到激活实例的调度器上之后再更新 Grain 状态。请参阅[外部任务与 Grain](external-tasks-and-grains.md)。
 
 <a id="run-background-work-as-a-grain-request"></a>
 
-## 将背景工作作为 grain 请求运行
+## 将后台工作作为 Grain 请求执行
 
-<xref:Orleans.GrainBaseExtensions.RunRequestAsync*> 激活时作为请求再回调。从任何线索,例如流、信息或图书馆回调中调用它来应用结果 grain 与表上所列日期相同 grain 电话:
+<xref:Orleans.GrainBaseExtensions.RunRequestAsync*> 在激活实例上将回调作为一个请求执行。可以从任意线程调用它，例如从流、消息传递或库的回调中调用，使结果在与 Grain 调用相同的调度规则下应用到 Grain 状态：
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="run_request_from_callback":::
-默认 <xref:Orleans.Runtime.LocalRequestOptions>,请求:
+使用默认的 <xref:Orleans.Runtime.LocalRequestOptions> 时，该请求具有以下行为：
 
-- 跟随 grain重新恢复规则及当前对未恢复请求的后排 grain.
-- 通过 grain 呼叫过滤器,这些过滤器将它视为没有参数的 `IGrainRequestInvoker.RunRequestAsync` 。
-- 启动一个新的呼叫链。调用线上的 <xref:Orleans.Runtime.RequestContext> 值不会流入回拨中。
-- 恢复激活的闲置收集期
-- 绕过 <xref:Orleans.Configuration.SiloMessagingOptions.MaxEnqueuedRequestsHardLimit>。
+- 遵循 Grain 的可重入规则；对于不可重入的 Grain，请求会在当前请求之后排队。
+- 经过传入 Grain 调用筛选器；筛选器将其识别为没有参数的 `IGrainRequestInvoker.RunRequestAsync` 调用。
+- 启动新的调用链。调用线程的 <xref:Orleans.Runtime.RequestContext> 值不会传递到回调中。
+- 重新开始计算激活实例的空闲回收时间。
+- 不受 <xref:Orleans.Configuration.SiloMessagingOptions.MaxEnqueuedRequestsHardLimit> 限制。
 
-回调可以同步,如此示例中那样,或者返回一个 `Task` 或 `Task<TResult>`。返回的任务随着回调的结果或例外而完成。回调收到传递到 `RunRequestAsync`的取消牌,并在请求被排队时取消。如果在请求运行之前启动停止操作,任务与 <xref:Orleans.Runtime.OrleansMessageRejectionException>有错。
+回调可以像本例一样是同步的，也可以返回 `Task` 或 `Task<TResult>`。返回的任务会以回调的结果或异常完成。回调会收到传给 `RunRequestAsync` 的取消令牌；如果请求仍在队列中时取消该令牌，请求也会被取消。如果激活实例在请求执行之前停用，该任务将因 <xref:Orleans.Runtime.OrleansMessageRejectionException> 而失败。
 
-过 grain 其他数值的数值,以及 `state` 参数,并使用 a `static` 羊羔,所以电话不能分配结束时间 grain,等待着在相同的启动僵局上提出的另一项请求的返回任务,因为排队的请求等待当前完成。
+通过 `state` 参数传入 Grain 和其他值，并使用 `static` Lambda 表达式，这样调用就不必分配闭包对象。对于不可重入的 Grain，如果在同一激活实例的另一个请求中等待返回的任务，将会发生死锁，因为排队的请求必须等待当前请求完成。
 
 <a id="configure-the-request"></a>
 
 ### 配置请求
 
-传送 <xref:Orleans.Runtime.LocalRequestOptions> 以更改请求的日程安排。 将常用背景工作设为 <xref:Orleans.Runtime.LocalRequestOptions.KeepAlive> `false` , 以免在内存中保持一个否则闲置的激活。 设置 <xref:Orleans.Runtime.LocalRequestOptions.Interleave> 到 `true` , 以便与其他 `[AlwaysInterleave]` 方法一样, 在其它请求的交替之间运行请求 :
+传入 <xref:Orleans.Runtime.LocalRequestOptions> 可以更改请求的调度方式。对于频繁执行但不应让原本空闲的激活实例一直驻留内存的后台工作，将 <xref:Orleans.Runtime.LocalRequestOptions.KeepAlive> 设为 `false`。将 <xref:Orleans.Runtime.LocalRequestOptions.Interleave> 设为 `true`，可使该请求像 `[AlwaysInterleave]` 方法一样，在其他请求的执行轮次之间交错执行：
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="run_request_options":::
 <a id="deliver-a-custom-request"></a>
 
-### 提交海关请求
+### 投递自定义请求
 
-<xref:Orleans.Runtime.IGrainContext.ReceiveLocalRequest*> 向激活发送了 <xref:Orleans.Runtime.ILocalRequest> ,与 `RunRequestAsync`相同的时间表。调用过滤器、日志和跟踪观察请求方自己的界面名称、方法名称和参数,因此自定义的请求可以描述工作内容。启动请求传递请求方对 <xref:Orleans.Runtime.ILocalRequest.Complete*>的答复,或者如果启动拒绝请求则作为例外。请求书向其观察员报告结果,包括任何失败:
+<xref:Orleans.Runtime.IGrainContext.ReceiveLocalRequest*> 将 <xref:Orleans.Runtime.ILocalRequest> 投递到激活实例，并采用与 `RunRequestAsync` 相同的调度规则。调用筛选器、日志和跟踪能够获取该请求自己的接口名称、方法名称和参数，因此自定义请求可以向它们描述实际工作。激活实例将请求的响应传给 <xref:Orleans.Runtime.ILocalRequest.Complete*>；如果拒绝该请求，则传递异常。请求将结果（包括失败）报告给其观察者：
 
 :::code language="csharp" source="../snippets/compiled/Grains/RequestsAndVersioningSnippets.cs" id="receive_local_request":::

@@ -1,7 +1,7 @@
 /*
-Orleans 串流消息序列。
-此序列减少了 [MessageId] 值的生成与身份列的产生之间的争论。
-CACE参数可以增加,以进一步减少争议。
+Orleans 流消息序列。
+与标识列相比，此序列可减少生成 [MessageId] 值时的争用。
+可增大 CACHE 参数以进一步减少争用。
 */
 CREATE SEQUENCE OrleansStreamMessageSequence
 AS BIGINT
@@ -13,61 +13,61 @@ CACHE 1000;
 GO
 
 /*
-Orleans 流动信件队列
+Orleans 流消息队列。
 
-此表格存储队列的等待 Orleans处理的信件。
+此表存储等待 Orleans 处理的入队消息。
 
-要求编制本表的要求如下:
+此表需要满足以下要求：
 
-1. 表格中增加新行时,只看到尾部的插入。
-2. 表格将用高频进行抽查,以保留第一批符合众所周知的标准( " 可看见"和 " 未过期 " 和 " 最大尝试 " )的行。
-3. 表格将看到,在确认信息后,正删除各行头。
-4. 表格将看到,随着过期信息被移到死字,各行头将删除。
-5. 由于上述询问每次涉及不止一行,有可能出现僵局。
-6. 少数错误或有毒信息在被移到死字之前,头部可能停留一段时间。
-7. 表格偶尔会变成空的或至少是随着集群成功地赶上所有信息而变得稀少。
+1. 添加新行时，仅在表尾插入。
+2. 高频轮询此表，以预留第一批符合既定条件的行（可见、未过期且未达到最大尝试次数）。
+3. 确认消息时，从表头移除行。
+4. 将过期消息移至死信表时，从表头移除行。
+5. 由于上述查询一次涉及多行，可能发生死锁。
+6. 少量处理失败的消息或毒消息可能在表头滞留一段时间，之后才移至死信表。
+7. 当集群成功处理完所有待处理消息时，表偶尔会变为空，或至少变得稀疏。
 
-虽然[1-6] 随着时间的推移所有原因都造成页块分割,但[7] 通过允许 sql 服务器最终删除所有页面,自行解决这一退化。
-因此,设计试图优化[2],同时假设由此造成的退化最终会自行解决。
+虽然 [1-6] 随时间均会导致页碎片，但 [7] 允许 SQL Server 最终移除所有页，从而自行消除这种性能下降。
+因此，此设计尝试针对 [2] 进行优化，同时假定由此产生的性能下降最终会自行消除。
 
-设计还试图尽量减少僵局的可能性,而牺牲了更高的锁定争议。
-这样做的方式是,迫使所有查询都按组群指数的完全相同顺序接触数据。
-这导致订购资源锁定获取,同时避免了订购本身的费用。
+该设计还试图以增加锁争用为代价，尽可能降低死锁的概率。
+这是通过强制所有查询严格按照聚集索引的顺序访问数据来实现的。
+这样既能按顺序获取资源锁，又避免额外排序的开销。
 
 */
 CREATE TABLE OrleansStreamMessage
 (
-	/* 确定申请 */
+	/* 标识应用程序。 */
 	ServiceId NVARCHAR(150) NOT NULL,
 
-    /* 确定申请内供应商的身份 */
+    /* 标识应用程序中的提供程序。 */
     ProviderId NVARCHAR(150) NOT NULL,
 
-	/* 指定在提供者中配置的单个队列碎片*/
+	/* 标识提供程序配置的单个队列分片。 */
 	QueueId NVARCHAR(150) NOT NULL,
 
-	/* 队列信件的独特升序数 */
+	/* 入队消息的唯一递增编号。 */
 	MessageId BIGINT NOT NULL,
 
-	/* 事件被取消的次数 */
+	/* 事件出队的次数。 */
 	Dequeued INT NOT NULL,
 
-	/* 活动将可见的UTC时间 */
+	/* 事件变为可见的 UTC 时间。 */
 	VisibleOn DATETIME2(7) NOT NULL,
 
-	/* 事件即将结束的时点UTC */
+	/* 事件过期的 UTC 时间。 */
 	ExpiresOn DATETIME2(7) NOT NULL,
 
-    /* 创建事件时的 UTC 时间 - 只排除故障 */
+    /* 事件创建的 UTC 时间，仅用于故障排查。 */
 	CreatedOn DATETIME2(7) NOT NULL,
 
-    /* 更新该事件时的UTC时间 - 只排除故障 */
+    /* 事件更新的 UTC 时间，仅用于故障排查。 */
 	ModifiedOn DATETIME2(7) NOT NULL,
 
-	/* 任意大片事件有效载荷 */
+	/* 任意大小的事件有效载荷。 */
 	Payload VARBINARY(MAX) NOT NULL,
 
-	/* 这个分组式的PK支持各种有秩序扫描查询。 */
+	/* 此聚集主键支持各种有序扫描查询。 */
 	CONSTRAINT PK_OrleansStreamMessage PRIMARY KEY CLUSTERED
 	(
 		ServiceId ASC,
@@ -79,50 +79,50 @@ CREATE TABLE OrleansStreamMessage
 GO
 
 /*
-Orleans 串流死亡信
+Orleans 流死信表。
 
-本表列出无法在允许的尝试次数内处理或过期的事件。
+此表存储未能在允许的尝试次数内完成处理的事件，或已经过期的事件。
 */
 CREATE TABLE OrleansStreamDeadLetter
 (
-	/* 确定申请 */
+	/* 标识应用程序。 */
 	ServiceId NVARCHAR(150) NOT NULL,
 
-    /* 确定申请内供应商的身份 */
+    /* 标识应用程序中的提供程序。 */
     ProviderId NVARCHAR(150) NOT NULL,
 
-	/* 指定在提供者中配置的单个队列碎片*/
+	/* 标识提供程序配置的单个队列分片。 */
 	QueueId NVARCHAR(150) NOT NULL,
 
-	/* 队列信件的独特升序数 */
+	/* 入队消息的唯一递增编号。 */
 	MessageId BIGINT NOT NULL,
 
-	/* 事件被取消的次数 */
+	/* 事件出队的次数。 */
 	Dequeued INT NOT NULL,
 
-	/* 活动将可见的UTC时间 */
+	/* 事件变为可见的 UTC 时间。 */
 	VisibleOn DATETIME2(7) NOT NULL,
 
-	/* 事件即将结束的时点UTC */
+	/* 事件过期的 UTC 时间。 */
 	ExpiresOn DATETIME2(7) NOT NULL,
 
-    /* 创建事件时的 UTC 时间 - 只排除故障 */
+    /* 事件创建的 UTC 时间，仅用于故障排查。 */
 	CreatedOn DATETIME2(7) NOT NULL,
 
-    /* 更新该事件时的UTC时间 - 只排除故障 */
+    /* 事件更新的 UTC 时间，仅用于故障排查。 */
 	ModifiedOn DATETIME2(7) NOT NULL,
 
-    /* 放弃活动时的UTC时间 -- -- 只排除故障 */
+    /* 放弃处理事件的 UTC 时间，仅用于故障排查。 */
 	DeadOn DATETIME2(7) NOT NULL,
 
-	/* 将事件从死信中删除的UTC时间 */
+	/* 计划将事件从死信表中移除的 UTC 时间。 */
 	RemoveOn DATETIME2(7) NOT NULL,
 
-	/* 任意大片事件有效载荷 */
+	/* 任意大小的事件有效载荷。 */
 	Payload VARBINARY(MAX) NULL,
 
-	/* 这个分组式的PK支持各种有秩序扫描查询。 */
-    /* 其主要目的是帮助分割更新行锁,以尽量减少解开争论。 */
+	/* 此聚集主键支持各种有序扫描查询。 */
+    /* 其主要目的是对行级更新锁进行分区，以尽量减少出队时的争用。 */
 	CONSTRAINT PK_OrleansStreamDeadLetter PRIMARY KEY CLUSTERED
 	(
 		ServiceId ASC,
@@ -134,24 +134,24 @@ CREATE TABLE OrleansStreamDeadLetter
 GO
 
 /*
-Orleans 流式控制表。
-本表包含用于帮助提供者自行管理自身工作的调度变量。
+Orleans 流控制表。
+此表保存计划变量，帮助提供程序自行管理其工作。
 */
 CREATE TABLE OrleansStreamControl
 (
-	/* 确定申请 */
+	/* 标识应用程序。 */
 	ServiceId NVARCHAR(150) NOT NULL,
 
-    /* 确定申请内供应商的身份 */
+    /* 标识应用程序中的提供程序。 */
     ProviderId NVARCHAR(150) NOT NULL,
 
-	/* 指定在提供者中配置的单个队列碎片 */
+	/* 标识提供程序配置的单个队列分片。 */
 	QueueId NVARCHAR(150) NOT NULL,
 
-    /* 下一步要将信件搬迁的到期时间排 */
+    /* 下一次消息清理的计划时间。 */
     EvictOn DATETIME2(7) NOT NULL,
 
-    /* 每个行代表单个队列的平面配置对象 */
+    /* 每行代表单个队列的扁平配置对象。 */
 	CONSTRAINT PK_OrleansStreamControl PRIMARY KEY CLUSTERED
 	(
 		ServiceId ASC,
@@ -161,7 +161,7 @@ CREATE TABLE OrleansStreamControl
 );
 GO
 
-/* 将消息排到 Orleans 串列中的信件队列 */
+/* 将消息加入 Orleans 流消息队列。 */
 CREATE PROCEDURE QueueStreamMessage
 	@ServiceId NVARCHAR(150),
     @ProviderId NVARCHAR(150),
@@ -175,9 +175,9 @@ SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
 /*
-MessageIds 必须在每一队列内分配次序中显示。 否则,
-后 MessageId 将插入较早的
-仍然未承诺, 违反溪流缓存的单声道序列 变换。
+MessageId 必须在各自队列内按分配顺序变为可见。否则，
+并发事务可能在较早的插入尚未提交时暴露较晚分配的 MessageId，
+从而违反流缓存的单调序列不变量。
 */
 DECLARE @LockResource NVARCHAR(255) = CONCAT
 (
@@ -281,8 +281,8 @@ SELECT
 	'EXECUTE QueueStreamMessage @ServiceId = @ServiceId, @ProviderId = @ProviderId, @QueueId = @QueueId, @Payload = @Payload, @ExpiryTimeout = @ExpiryTimeout'
 GO
 
-/* 从 Orleans 串流信件队列中获取批发的信件 */
-/* 还应利用机会在应进行驱逐活动时开展驱逐活动 */
+/* 从 Orleans 流消息队列获取消息批次。 */
+/* 还会在清理活动到期时择机执行这些活动。 */
 CREATE PROCEDURE GetStreamMessages
 	@ServiceId NVARCHAR(150),
     @ProviderId NVARCHAR(150),
@@ -302,7 +302,7 @@ SET XACT_ABORT ON;
 DECLARE @Now DATETIME2(7) = SYSUTCDATETIME();
 DECLARE @VisibleOn DATETIME2(7) = DATEADD(SECOND, @VisibilityTimeout, @Now);
 
-/* 轻量检查,以确定是否应该进行驱逐活动 */
+/* 轻量级检查是否有到期的清理活动。 */
 DECLARE @EvictOn DATETIME2(7) =
 (
     SELECT EvictOn
@@ -313,12 +313,12 @@ DECLARE @EvictOn DATETIME2(7) =
         AND QueueId = @QueueId
 );
 
-/* 只有当一项活动应引起 */
+/* 仅当清理任务到期时，才进一步尝试执行清理。 */
 IF @EvictOn IS NULL OR @EvictOn < @Now
 BEGIN
 
-    /* 试图赢得更新时间表的竞赛 */
-    /* 必要时,此程序还将初始化表格 */
+    /* 尝试在更新计划时间的竞争中获胜。 */
+    /* 必要时，此操作也会初始化该表。 */
     WITH Candidate AS
     (
         SELECT
@@ -351,12 +351,12 @@ BEGIN
         EvictOn
     );
 
-    /* 如果上述声明赢得了比赛,那么我们也可以进行驱逐 */
-    /* 其他同时进行的查询将继续正常运行,直至下次适当时间 */
+    /* 如果上述语句竞争成功，则同时获得执行清理的资格。 */
+    /* 其他并发查询将继续正常运行，直到下一次计划时间。 */
     IF (@@ROWCOUNT > 0)
     BEGIN
 
-        /* 驱逐信件 */
+        /* 清理消息。 */
         EXECUTE EvictStreamMessages
             @ServiceId = @ServiceId,
             @ProviderId = @ProviderId,
@@ -365,7 +365,7 @@ BEGIN
             @RemovalTimeout = @RemovalTimeout,
             @BatchSize = @EvictionBatchSize
 
-        /* 驱逐死亡信 */
+        /* 清理死信。 */
         EXECUTE EvictStreamDeadLetters
             @ServiceId = @ServiceId,
             @ProviderId = @ProviderId,
@@ -376,7 +376,7 @@ BEGIN
 
 END;
 
-/* 以与分组索引相同的顺序更新信息,以避免与其他查询陷入僵局 */
+/* 严格按照聚集索引顺序更新消息，以避免与其他查询发生死锁。 */
 WITH Batch AS
 (
 	SELECT TOP (@MaxCount)
@@ -437,7 +437,7 @@ SELECT
 	'EXECUTE GetStreamMessages @ServiceId = @ServiceId, @ProviderId = @ProviderId, @QueueId = @QueueId, @MaxCount = @MaxCount, @MaxAttempts = @MaxAttempts, @VisibilityTimeout = @VisibilityTimeout, @RemovalTimeout = @RemovalTimeout, @EvictionInterval = @EvictionInterval, @EvictionBatchSize = @EvictionBatchSize'
 GO
 
-/* 确认发送流信息。 */
+/* 确认流消息已投递。 */
 CREATE PROCEDURE ConfirmStreamMessages
 	@ServiceId NVARCHAR(150),
     @ProviderId NVARCHAR(150),
@@ -449,7 +449,7 @@ BEGIN
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
-/* 分析要删除的信件标识符 */
+/* 解析要删除的消息标识符。 */
 DECLARE @ItemsTable TABLE
 (
     MessageId BIGINT PRIMARY KEY NOT NULL,
@@ -470,10 +470,10 @@ SELECT
 FROM
 	Items;
 
-/* 计算要删除的信件数,以便我们在下一个查询中使用顺序 */
+/* 统计待删除消息数量，以便在下一条查询中使用 ORDER BY。 */
 DECLARE @Count INT = (SELECT COUNT(*) FROM @ItemsTable);
 
-/* 立即再交付的收据发布信息 */
+/* 负值出队回执会释放消息，使其立即重新投递。 */
 IF EXISTS (SELECT 1 FROM @ItemsTable WHERE Dequeued < 0)
 BEGIN
     DECLARE @Now DATETIME2(7) = SYSUTCDATETIME();
@@ -514,8 +514,8 @@ BEGIN
     RETURN;
 END;
 
-/* 删除的电文顺序与分组索引相同,以避免与其他查询陷入僵局 */
-/* 正在同时更改信件, 因为其删除的接收可能不再匹配 */
+/* 严格按照聚集索引顺序删除消息，以避免与其他查询发生死锁。 */
+/* 跳过正在被并发修改的消息，因为其出队回执可能已不再匹配。 */
 WITH Batch AS
 (
 	SELECT TOP (@Count)
@@ -559,10 +559,10 @@ SELECT
 	'EXECUTE ConfirmStreamMessages @ServiceId = @ServiceId, @ProviderId = @ProviderId, @QueueId = @QueueId, @Items = @Items'
 GO
 
-/* 对特定电文适用交付失败规则。 */
-/* 如果信息被解密太多次,我们把它移到死信桌。 */
-/* 如果消息过期了 我们就转到死信桌 */
-/* 如果该电文仍然有资格发送,则再次显示。 */
+/* 将投递失败规则应用于指定消息。 */
+/* 若消息的出队次数过多，则将其移至死信表。 */
+/* 若消息已过期，则将其移至死信表。 */
+/* 若消息仍符合投递条件，则将其重新设为可见。 */
 CREATE PROCEDURE FailStreamMessage
 	@ServiceId NVARCHAR(150),
     @ProviderId NVARCHAR(150),
@@ -579,7 +579,7 @@ SET XACT_ABORT ON;
 DECLARE @Now DATETIME2(7) = SYSUTCDATETIME();
 DECLARE @RemoveOn DATETIME2(7) = DATEADD(SECOND, @RemovalTimeout, @Now);
 
-/* 如果该信息仍然可以解排, 那么试图再次显示它标记 */
+/* 如果消息仍可出队，则尝试将其重新标记为可见。 */
 UPDATE OrleansStreamMessage
 SET
     VisibleOn = @Now,
@@ -593,7 +593,7 @@ WHERE
 
 IF @@ROWCOUNT > 0 RETURN;
 
-/* 试图将电文移到死字 */
+/* 否则尝试将消息移至死信表。 */
 DELETE FROM OrleansStreamMessage
 OUTPUT
     Deleted.ServiceId,
@@ -642,7 +642,7 @@ SELECT
 	'EXECUTE FailStreamMessage @ServiceId = @ServiceId, @ProviderId = @ProviderId, @QueueId = @QueueId, @MessageId = @MessageId, @MaxAttempts = @MaxAttempts, @RemovalTimeout = @RemovalTimeout'
 GO
 
-/* 将未发送的信件从电文表格移到死信表格,用于人类排除故障。 */
+/* 将未投递的消息从消息表移至死信表，供人工排查。 */
 CREATE PROCEDURE EvictStreamMessages
 	@ServiceId NVARCHAR(150),
     @ProviderId NVARCHAR(150),
@@ -659,7 +659,7 @@ SET XACT_ABORT ON;
 DECLARE @Now DATETIME2(7) = SYSUTCDATETIME();
 DECLARE @RemoveOn DATETIME2(7) = DATEADD(SECOND, @RemovalTimeout, @Now);
 
-/* 删除的电文顺序与分组索引相同,以避免与其他查询陷入僵局 */
+/* 严格按照聚集索引顺序删除消息，以避免与其他查询发生死锁。 */
 WITH Batch AS
 (
 	SELECT TOP (@BatchSize)
@@ -682,14 +682,14 @@ WITH Batch AS
         AND ProviderId = @ProviderId
 		AND QueueId = @QueueId
 
-        -- 给电文提供完成
+        -- 该消息已获得完成处理的机会。
         AND VisibleOn <= @Now
 		AND
 		(
-			-- 信息被解密过多次
+			-- 该消息的出队次数过多。
 			Dequeued >= @MaxAttempts
 			OR
-			-- 信件过期
+			-- 该消息已过期。
 			ExpiresOn <= @Now
 		)
 	ORDER BY
@@ -741,7 +741,7 @@ SELECT
 	'EXECUTE EvictStreamMessages @ServiceId = @ServiceId, @ProviderId = @ProviderId, @QueueId = @QueueId, @BatchSize = @BatchSize, @MaxAttempts = @MaxAttempts, @RemovalTimeout = @RemovalTimeout'
 GO
 
-/* 从已死字母表格中删除信息。 */
+/* 从死信表移除消息。 */
 CREATE PROCEDURE EvictStreamDeadLetters
 	@ServiceId NVARCHAR(150),
     @ProviderId NVARCHAR(150),
@@ -755,7 +755,7 @@ SET XACT_ABORT ON;
 
 DECLARE @Now DATETIME2(7) = SYSUTCDATETIME();
 
-/* 删除的电文顺序与分组索引相同,以避免与其他查询陷入僵局 */
+/* 严格按照聚集索引顺序删除消息，以避免与其他查询发生死锁。 */
 WITH Batch AS
 (
     SELECT TOP (@BatchSize)

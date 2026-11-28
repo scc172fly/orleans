@@ -19,7 +19,7 @@ public sealed class InboxEnvelopeValidationTests : MessagingBehaviorTestBase
     {
         var receiver = NewGrain();
         _ = await receiver.GetSnapshotAsync();
-        // 外部消毒在进入前可能变成无效的默认字段。
+        // 外部反序列化可能在准入之前生成具有无效默认字段的对象。
         var malformed = new InboxMessage { Envelope = default, SentAt = Fixture.JobNow };
         var context = Fixture.GetGrainContext(receiver);
         if (existingKey)

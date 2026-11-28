@@ -5,11 +5,11 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// 多元测试 grain 功能在 Orleans.
-    /// 多元 grains 可实施多个接口并访问
-    /// 使用 AsReference<T>() 通过不同的界面引用。
-    /// 这使 grains 能够向不同的消费者披露不同的API
-    /// 中,同时保留一个 grain 实例。
+    /// Orleans 多面 Grain 功能测试。
+    /// 多面 Grain 可以实现多个接口，并可使用不同接口引用，
+    /// 通过 AsReference&lt;T&gt;() 访问。
+    /// 这使 Grain 能向不同消费者公开不同的 API，
+    /// 同时保持单一 Grain 实例。
     /// </summary>
     //using ValueUpdateEventArgs = MultifacetGrainClient.ValueUpdateEventArgs;
     [TestArea("Runtime")]
@@ -18,7 +18,7 @@ namespace DefaultCluster.Tests.General
         private IMultifacetWriter writer = null!;
         private IMultifacetReader reader = null!;
 
-        //以 eventCounter;
+        //int eventCounter;
         private const int EXPECTED_NUMBER_OF_EVENTS = 4;
         private readonly TimeSpan timeout = TimeSpan.FromSeconds(5);
 
@@ -27,10 +27,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试通过不同接口的方方面面访问 grain 。
-        /// 证明一个 grain 实施多个接口(撰稿人和读者)
-        /// 可以通过两个接口中的任何一个接口使用 AsReference<T>()访问,
-        /// 并且两个参考文献在相同的 grain 基本状态下运作。
+        /// 测试通过不同接口侧面访问 Grain。
+        /// 验证实现多个接口（写入器和读取器）的 Grain
+        /// 可以使用 AsReference&lt;T&gt;() 通过任一接口访问，
+        /// 且两个引用均操作同一底层 Grain 状态。
         /// </summary>
         [TestSuite("Functional")]
         [TestProvider("None")]
@@ -48,10 +48,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 证明无效的界面投影会丢弃适当的例外。
-        /// 试图投放 grain 引用界面的测试
-        /// 它不执行结果 在 InvalidCastException,
-        /// 保证多面模式中的类型安全。
+        /// 验证无效接口转换引发适当的异常。
+        /// 测试尝试将 Grain 引用转换为该 Grain 未实现的接口时，
+        /// 会引发 InvalidCastException，
+        /// 从而确保多面模式中的类型安全。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -66,10 +66,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试工厂的方法,以返回 grain的不同方面。
-        /// 证明工厂 grains 能够创建和返回参考文件
-        /// 同一 grain、扶持型
-        /// 何 地 grain 创建逻辑返回合适的界面到调用者。
+        /// 测试返回 Grain 不同侧面的工厂方法。
+        /// 验证工厂 Grain 可以创建并返回对同一个 Grain 的不同接口的引用，
+        /// 从而支持 Grain 创建逻辑向调用方返回
+        /// 适当接口的模式。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -87,10 +87,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试通过 grain 界面引用作为方法参数。
-        /// 证明 grain 的不同接口面可以通过
-        /// 将其他 grains储存,这些参考文献仍保留
-        /// 在同一基础 grain 实例上有效并运行。
+        /// 测试将 Grain 接口引用作为方法参数传递。
+        /// 验证 Grain 的不同接口侧面可以传递给其他 Grain 并由其保存，
+        /// 且这些引用仍然有效，并操作
+        /// 同一底层 Grain 实例。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]

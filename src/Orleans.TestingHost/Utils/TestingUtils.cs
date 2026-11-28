@@ -11,16 +11,16 @@ using Orleans.TestingHost.Logging;
 
 namespace Orleans.TestingHost.Utils
 {
-    /// <summary> 收集测试用设施 </summary>
+    /// <summary>测试实用工具集合。</summary>
     public static class TestingUtils
     {
         private static long uniquifier = Stopwatch.GetTimestamp();
 
         /// <summary>
-        /// 配置配置 <paramref name="builder" /> 具有 a 的 <see cref="FileLoggerProvider" /> 日志的日志 <paramref name="filePath" />
-        /// 违约;
+        /// 配置 <paramref name="builder" />，使用 <see cref="FileLoggerProvider" /> 将日志记录到 <paramref name="filePath" />，
+        /// 作为默认行为。
         /// </summary>
-        /// <param name="builder">建筑工。</param>
+        /// <param name="builder">构建器。</param>
         /// <param name="filePath">文件路径。</param>
         public static void ConfigureDefaultLoggingBuilder(ILoggingBuilder builder, string filePath)
         {
@@ -28,11 +28,11 @@ namespace Orleans.TestingHost.Utils
         }
 
         /// <summary>
-        /// 在特定部署中为特定节点或客户端创建跟踪文件名
+        /// 为特定部署中的特定节点或客户端创建跟踪文件名称。
         /// </summary>
-        /// <param name="nodeName">节点的名称。</param>
-        /// <param name="clusterId">集束识别符号。</param>
-        /// <returns>新的追踪文件名称。</returns>
+        /// <param name="nodeName">节点名称。</param>
+        /// <param name="clusterId">集群标识符。</param>
+        /// <returns>新的跟踪文件名称。</returns>
         public static string CreateTraceFileName(string nodeName, string clusterId)
         {
             const string traceFileFolder = "logs";
@@ -48,29 +48,29 @@ namespace Orleans.TestingHost.Utils
         }
 
         /// <summary>
-        /// 创建默认的日志工厂, 该工厂将配置一个 <see cref="FileLoggerProvider" /> 记录厂, 它将将日志写到 <paramref name="filePath" /> 和控台。
-        /// 违约;
+        /// 创建默认日志工厂，它使用 <see cref="FileLoggerProvider" /> 配置日志工厂，将日志写入 <paramref name="filePath" /> 和控制台，
+        /// 作为默认行为。
         /// </summary>
         /// <param name="filePath">文件路径。</param>
-        /// <returns>ILoggerFactory.</returns>
+        /// <returns>ILoggerFactory。</returns>
         public static ILoggerFactory CreateDefaultLoggerFactory(string filePath)
         {
             return CreateDefaultLoggerFactory(filePath, new LoggerFilterOptions());
         }
 
         /// <summary>
-        /// 创建默认的日志工厂, 该工厂将配置一个 <see cref="FileLoggerProvider"/> 记录厂, 它将将日志写到 <paramref name="filePath"/> 和控台。
-        /// 违约;
+        /// 创建默认日志工厂，它使用 <see cref="FileLoggerProvider"/> 配置日志工厂，将日志写入 <paramref name="filePath"/> 和控制台，
+        /// 作为默认行为。
         /// </summary>
-        /// <param name="filePath">日志器文件路径</param>
-        /// <param name="filters">日志过滤器</param>
+        /// <param name="filePath">日志文件路径。</param>
+        /// <param name="filters">用于配置日志记录的日志筛选器。</param>
         /// <returns></returns>
         public static ILoggerFactory CreateDefaultLoggerFactory(string filePath, LoggerFilterOptions filters)
         {
             var factory = new LoggerFactory(new List<ILoggerProvider>(), filters);
             try
             {
-#pragma warning disable CA2000 // LoggerFactory.AddProvider owns the provider; the factory is disposed before construction failures propagate.
+#pragma warning disable CA2000 // LoggerFactory.AddProvider 拥有提供程序；在构造失败向上传播之前释放工厂。
                 factory.AddProvider(new FileLoggerProvider(filePath));
 #pragma warning restore CA2000
                 return factory;
@@ -82,12 +82,12 @@ namespace Orleans.TestingHost.Utils
             }
         }
 
-        /// <summary>运行上游直到它成功或超时。</summary>
-        /// <param name="predicate">所运行的上游</param>
-        /// <param name="timeout">超时值</param>
-        /// <param name="delayOnFail">下次对失败通知的延迟时间</param>
-        /// <returns>代表操作的任务。</returns>
-        /// <exception cref="TimeoutException">延时之前,上游没有成功。</exception>
+        /// <summary>运行谓词，直到成功或超时。</summary>
+        /// <param name="predicate">要运行的谓词。</param>
+        /// <param name="timeout">超时值。</param>
+        /// <param name="delayOnFail">失败后下一次调用前的延迟时间。</param>
+        /// <returns>表示该操作的任务。</returns>
+        /// <exception cref="TimeoutException">谓词在超时时限内未成功。</exception>
         public static Task WaitUntilAsync(Func<bool, Task<bool>> predicate, TimeSpan timeout, TimeSpan? delayOnFail = null)
             => WaitUntilAsync(predicate, timeout, delayOnFail, TimeProvider.System);
 
@@ -104,17 +104,17 @@ namespace Orleans.TestingHost.Utils
             return WaitUntilAsync((lastTry, _) => predicate(lastTry), timeout, delayOnFail, default, timeProvider, predicateName);
         }
 
-        /// <summary>运行上游直到它成功或超时。</summary>
+        /// <summary>运行谓词，直到成功或超时。</summary>
         /// <param name="predicate">
-        /// 第一个论点表明最后的尝试,允许上游提出详细的断言失败。
-        /// 当最后期限到期或请求取消时, 命令会被取消 。
+        /// 要运行的谓词。第一个参数指示最后一次尝试，以便谓词抛出详细的断言失败异常。
+        /// 截止时间到期或请求取消时，此令牌会被取消。
         /// </param>
         /// <param name="timeout">超时值。</param>
-        /// <param name="delayOnFail">尝试失败后重新尝试前的延误。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <param name="predicateExpression">提供给 <paramref name="predicate"/>的表达式。</param>
-        /// <returns>代表操作的任务。</returns>
-        /// <exception cref="TimeoutException">延时之前,上游没有成功。</exception>
+        /// <param name="delayOnFail">尝试失败后重试前的延迟。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <param name="predicateExpression">为 <paramref name="predicate"/> 提供的表达式。</param>
+        /// <returns>表示该操作的任务。</returns>
+        /// <exception cref="TimeoutException">谓词在超时时限内未成功。</exception>
         public static Task WaitUntilAsync(
             Func<bool, CancellationToken, Task<bool>> predicate,
             TimeSpan timeout,
@@ -149,12 +149,12 @@ namespace Orleans.TestingHost.Utils
             }
         }
 
-        /// <summary>运行上游,直到其成功或单声道最后期限到期。</summary>
-        /// <param name="predicate">要运行的上游。当最后期限到期或请求取消时,该符号将被取消 。</param>
+        /// <summary>运行谓词，直到成功或单调时钟的截止时间到期。</summary>
+        /// <param name="predicate">要运行的谓词。截止时间到期或请求取消时，此令牌会被取消。</param>
         /// <param name="timeout">超时值。</param>
-        /// <param name="delayOnFail">尝试失败后重新尝试前的延误。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns><see langword="true"/> 如果在最后期限之前成功,则该上游;否则, <see langword="false"/>。</returns>
+        /// <param name="delayOnFail">尝试失败后重试前的延迟。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns><see langword="true"/> 表示谓词在截止时间之前成功；否则为 <see langword="false"/>。</returns>
         public static async Task<bool> WaitUntilSucceededAsync(
             Func<CancellationToken, Task<bool>> predicate,
             TimeSpan timeout,
@@ -283,11 +283,11 @@ namespace Orleans.TestingHost.Utils
         }
 
         /// <summary>
-        /// 乘以一个值的超时
+        /// 将超时乘以一个值。
         /// </summary>
         /// <param name="time">时间。</param>
-        /// <param name="value">数值。</param>
-        /// <returns>由此得出的时间跨值。</returns>
+        /// <param name="value">值。</param>
+        /// <returns>计算得到的时间间隔值。</returns>
         public static TimeSpan Multiply(TimeSpan time, double value)
         {
             double ticksD = checked(time.Ticks * value);

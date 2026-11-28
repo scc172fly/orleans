@@ -15,13 +15,13 @@ using Orleans.Storage.Internal;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// 这是储存提供者在存储器的简单(Q0Q)执行中的一种简单的模拟 grain 。
+    /// 这是一个基于内存 Grain 的简单存储提供程序实现。
     /// </summary>
     /// <remarks>
-    /// 该储存提供者仅用于简单的模拟开发/单元测试设想。
-    /// 这一类不应用于生产环境,
-    ///  由于[按设计 无法提供任何抗御力
-    ///  或长期持久性能力。
+    /// 此存储提供程序仅适用于简单的内存开发及单元测试场景。
+    /// 此类不得用于生产环境，
+    /// 因为根据其设计，它不提供任何故障恢复能力
+    /// 或长期持久化能力。
     /// </remarks>
     [DebuggerDisplay("MemoryStore:{" + nameof(name) + "}")]
     public partial class MemoryGrainStorage : IGrainStorage, IDisposable
@@ -34,7 +34,7 @@ namespace Orleans.Storage
         private readonly bool _overridesLegacyWriteState;
         private readonly bool _overridesLegacyClearState;
 
-        /// <summary> 此存储提供者实例的名称。 </summary>
+        /// <summary>此存储提供程序实例的名称。</summary>
         private readonly string name;
 
         /// <summary>
@@ -42,10 +42,10 @@ namespace Orleans.Storage
         /// </summary>
         /// <param name="name">名称。</param>
         /// <param name="options">选项。</param>
-        /// <param name="logger">日志器。</param>
-        /// <param name="grainFactory">下 grain 工厂。</param>
-        /// <param name="defaultGrainStorageSerializer">默认默认 grain 存储序列器。</param>
-        /// <param name="activatorProvider">用于创建 grain 状态实例的提供者。</param>
+        /// <param name="logger">日志记录器。</param>
+        /// <param name="grainFactory">Grain 工厂。</param>
+        /// <param name="defaultGrainStorageSerializer">默认的 Grain 存储序列化器。</param>
+        /// <param name="activatorProvider">用于创建 Grain 状态实例的提供程序。</param>
         [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "Microsoft.Extensions.DependencyInjection supplies the resolved options instance.")]
         public MemoryGrainStorage(
             string name,
@@ -64,7 +64,7 @@ namespace Orleans.Storage
             storageGrains = new Lazy<IMemoryStorageGrain>[options.NumStorageGrains];
             for (int i = 0; i < storageGrains.Length; i++)
             {
-                int idx = i; // 避免修改关闭错误的抓取变量
+                int idx = i; // 捕获变量，避免闭包中变量被修改的问题。
                 storageGrains[idx] = new Lazy<IMemoryStorageGrain>(() => grainFactory.GetGrain<IMemoryStorageGrain>(idx));
             }
 
@@ -257,9 +257,9 @@ namespace Orleans.Storage
         public void Dispose() { }
 
         /// <summary>
-        /// 从二进制数据进行脱序
+        /// 从二进制数据反序列化。
         /// </summary>
-        /// <param name="data">序列存储数据</param>
+        /// <param name="data">存储的序列化数据。</param>
         internal T? ConvertFromStorageFormat<T>(ReadOnlyMemory<byte> data)
         {
             T? dataValue = default;
@@ -289,15 +289,15 @@ namespace Orleans.Storage
         /// <summary>
         /// 序列化为存储格式。
         /// </summary>
-        /// <param name="grainState"> grain 国家数据将按序号</param>
+        /// <param name="grainState">要序列化的 Grain 状态数据。</param>
         /// <remarks>
-        /// 见:
+        /// 参见：
         /// http://msdn.microsoft.com/en-us/library/system.web.script.serialization.javascriptserializer.aspx
-        /// 更多 JSON 连环器
+        /// 以了解有关 JSON 序列化器的更多信息。
         /// </remarks>
         internal ReadOnlyMemory<byte> ConvertToStorageFormat<T>(T? grainState)
         {
-            // 转换为二进制格式
+            // 转换为二进制格式。
             return this.storageSerializer.Serialize<T>(grainState);
         }
 
@@ -335,16 +335,16 @@ namespace Orleans.Storage
     }
 
     /// <summary>
-    /// 创建 MemoryGrainStorage工厂
+    /// 用于创建 MemoryGrainStorage 的工厂。
     /// </summary>
     public static class MemoryGrainStorageFactory
     {
         /// <summary>
         /// 创建新的 <see cref="MemoryGrainStorage"/> 实例。
         /// </summary>
-        /// <param name="services">服务。</param>
+        /// <param name="services">服务提供程序。</param>
         /// <param name="name">名称。</param>
-        /// <returns>储存。</returns>
+        /// <returns>存储实例。</returns>
         public static MemoryGrainStorage Create(IServiceProvider services, string name)
         {
             return ActivatorUtilities.CreateInstance<MemoryGrainStorage>(services,

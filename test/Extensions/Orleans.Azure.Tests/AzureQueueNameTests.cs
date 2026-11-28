@@ -46,7 +46,7 @@ public class AzureQueueNameTests
     [InlineData(InvalidQueueNameCase.NonAsciiDigitEnd)]
     public void Constructor_InvalidName_ThrowsWithQueueNameParameter(InvalidQueueNameCase testCase)
     {
-        // 将 Unicode 保存为理论参数和报告名称以及源文本之外。
+        // 不要在理论测试参数、报告名称和源文本中使用 Unicode 字符。
         var queueName = testCase switch
         {
             InvalidQueueNameCase.BelowMinimumLength => "ab",

@@ -5,56 +5,56 @@ products:
 - dotnet
 - dotnet-orleans
 page_type: sample
-name: "Orleans Visual Basic sample app"
+name: "Orleans Visual Basic 示例应用"
 urlFragment: "orleans-vb-sample"
-description: "以视觉基本内容为字的 Orleans 样本应用程序示例。"
+description: "使用 Visual Basic 编写的 Orleans 示例应用。"
 ---
 
 <a id="visual-basic-sample-app"></a>
 
-# 基本视觉样本应用
+# Visual Basic 示例应用
 
-本样本演示如何使用“视觉基本”来写入 grain 代码。 样本包括三个项目:
+本示例演示如何使用 Visual Basic 编写 Grain 代码。示例由三个项目组成：
 
-* _Hello WorldFaterfaces_:一个C#项目,包含 grain 接口 `IHelloGrain`。
-* _Granins_:执行视觉基础项目 `IHelloGrain`。
-* :一个C#项目,主办 grains。
+* _HelloWorldInterfaces_：包含 Grain 接口 `IHelloGrain` 的 C# 项目。
+* _Grains_：实现 `IHelloGrain` 的 Visual Basic 项目。
+* _HelloWorld_：托管 Grain 的 C# 项目。
 
-下 `Microsoft.Orleans.Sdk` 软件包不支持排放视觉基本代码。 但是, 它支持分析视觉基本组件和 C# 代码。 因此, 这个样本工作通过指示代码生成器分析 `Grains` 项目在为 `HelloWorld` 工程。 `HelloWorld`'s `Program.cs` 文件 :
+`Microsoft.Orleans.Sdk` 包不支持生成 Visual Basic 代码，但支持分析 Visual Basic 程序集并生成 C# 代码。因此，本示例指示代码生成器在为 `HelloWorld` 项目生成代码时分析 `Grains` 项目。为此，在 `HelloWorld` 的 `Program.cs` 文件中使用以下指令：
 
 ```csharp
 [assembly: GenerateCodeForDeclaringAssembly(typeof(HelloGrain))]
 [assembly: GenerateCodeForDeclaringAssembly(typeof(IHelloGrain))]
 ```
 
-有了上述属性,代码生成器分析视觉基本组装,并将C#代码发布到 `HelloWorld` 项目中。
+设置上述特性后，代码生成器会分析 Visual Basic 程序集，并将生成的 C# 代码输出到 `HelloWorld` 项目。
 
 <a id="sample-prerequisites"></a>
 
-## 抽样的前提条件
+## 示例先决条件
 
-本样本以C#和视觉基本和目标 .NET 10 写成。 它要求 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后填写。
+本示例使用 C# 和 Visual Basic 编写，目标框架为 .NET 10。需要 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本。
 
 <a id="building-the-sample"></a>
 
-## 建立样本
+## 构建示例
 
-下载和运行样本时,请遵循以下步骤:
+按照以下步骤下载并运行示例：
 
-1. 下载并解开样本的平面
-2. 视觉演播室(2022年或以后):
-    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
-    2. 打开解压后的示例目录，再打开其中的 C# 项目文件（`.csproj`）。
-    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 直接运行。
-3. 从命令行 :
-   1. 导航到持有未设偏移样本代码的文件夹 。
-   2. 在命令行,类型 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
+1. 下载并解压示例。
+2. 在 Visual Studio（2022 或更高版本）中：
+    1. 在菜单栏中选择 **文件** > **打开** > **项目/解决方案**。
+    2. 导航到存放已解压示例代码的文件夹，并打开 C# 项目（.csproj）文件。
+    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 在不调试的情况下运行项目。
+3. 从命令行运行：
+   1. 导航到存放已解压示例代码的文件夹。
+   2. 在命令行输入 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
 
 <a id="running-the-sample"></a>
 
-## 运行样本
+## 运行示例
 
-通过打开终端窗口运行样本,并在命令提示处执行以下操作:
+打开终端窗口，在命令提示符下执行以下命令以运行示例：
 
 ```dotnetcli
 dotnet run --project HelloWorld

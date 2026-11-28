@@ -32,7 +32,7 @@ internal abstract partial class ConnectionListener
         ConnectionCommon connectionShared)
     {
 
-        // 获取根据配置有效的听众。
+        // 获取根据配置判定为有效的监听器。
         _listeners = GetListeners(listeners, middleware).ToArray();
         _connectionManager = connectionManager;
         ConnectionOptions = connectionOptions.Value;
@@ -40,7 +40,7 @@ internal abstract partial class ConnectionListener
 
         static IEnumerable<MessageTransportListener> GetListeners(IEnumerable<MessageTransportListener> registered, IEnumerable<IMessageTransportListenerMiddleware> middleware)
         {
-            // 清除重复和无验证的听众
+            // 筛除重复和无效的监听器。
             var seen = new HashSet<string>(StringComparer.Ordinal);
             foreach (var listener in registered)
             {

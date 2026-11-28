@@ -224,16 +224,16 @@ namespace Orleans.Serialization.UnitTests
     public interface IRuntimeCodeGenGrain<T> : IMyInvokableBaseType
     {
         /// <summary>
-        /// 设置并返回 grain状态。
+        /// 设置并返回 Grain 的状态。
         /// </summary>
         /// <param name="value">新状态。</param>
-        /// <returns>现状。</returns>
+        /// <returns>当前状态。</returns>
         Task<T> SetState(T value);
 
         /// <summary>
-        /// 测试代码生成正确处理方法的方法是否与保留的关键字识别符号正确。
+        /// 测试代码生成能否正确处理使用保留关键字作为标识符的方法。
         /// </summary>
-        /// <returns>当前状态事件。</returns>
+        /// <returns>当前状态的 event。</returns>
         Task<@event> @static();
     }
 
@@ -246,7 +246,7 @@ namespace Orleans.Serialization.UnitTests
     }
 
     /// <summary>
-    /// 用于测试代码生成正确处理保留关键字的类别。
+    /// 用于测试代码生成能否正确处理保留关键字的类。
     /// </summary>
     [GenerateSerializer]
     public class @event : IEquatable<@event?>
@@ -260,31 +260,31 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// 公共领域。
+        /// 公共字段。
         /// </summary>
         [Id(0)]
         public Guid Id;
 
         /// <summary>
-        /// 私人田地
+        /// 私有字段。
         /// </summary>
         [Id(1)]
         private Guid privateId;
 
         /// <summary>
-        /// 带有保留关键字类型和识别符号的属性。
+        /// 类型和标识符均使用保留关键字的属性。
         /// </summary>
         [Id(2)]
         public @event? @public { get; set; }
 
         /// <summary>
-        /// 设置或设置大号
+        /// 获取或设置枚举。
         /// </summary>
         [Id(3)]
         public @enum Enum { get; set; }
 
         /// <summary>
-        /// 有保留关键词通用类型和识别符号的属性。
+        /// 泛型类型和标识符均使用保留关键字的属性。
         /// </summary>
         [Id(4)]
         public List<@event>? @if { get; set; }
@@ -298,7 +298,7 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// 获取或设置私人身份。
+        /// 获取或设置私有 id。
         /// </summary>
         // ReSharper disable once ConvertToAutoProperty
         public Guid PrivateId
@@ -356,7 +356,7 @@ namespace Orleans.Serialization.UnitTests
             }
             if (this.@if != other.@if)
             {
-                // 分级的平等投入保留了事件清单是否存在。
+                // 用于相等性比较的序列化输入会保留 event 列表是否存在的信息。
                 if (this.@if != null && !this.@if.SequenceEqual(other.@if!, EventComparer))
                 {
                     return false;
@@ -378,7 +378,7 @@ namespace Orleans.Serialization.UnitTests
         {
             public bool Equals(@event? x, @event? y)
             {
-                // 本测试中列出的宣布非无效事件元素的清单 。
+                // 本测试中的列表声明其 event 元素不可为 null。
                 return x!.Equals(y);
             }
 
@@ -424,19 +424,19 @@ namespace Orleans.Serialization.UnitTests
     }
 
     /// <summary>
-    /// 嵌套类不会失败代码生成的测试 。
+    /// 测试嵌套类不会导致代码生成失败。
     /// </summary>
     public class NestedGenericGrain : INestedGenericGrain
     {
         public Task<int> Do(NestedGeneric<int> value)
         {
-            // 本试验中产生的请求总是提供初始有效载荷。
+            // 本测试中生成的请求始终提供已初始化的负载。
             return Task.FromResult(value.Payload!.Value);
         }
 
         public Task<int> Do(NestedConstructedGeneric value)
         {
-            // 本试验中产生的请求总是提供初始有效载荷。
+            // 本测试中生成的请求始终提供已初始化的负载。
             return Task.FromResult(value.Payload!.Value);
         }
     }

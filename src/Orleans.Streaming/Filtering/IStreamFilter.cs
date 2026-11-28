@@ -3,17 +3,17 @@ using Orleans.Runtime;
 namespace Orleans.Streams.Filtering
 {
     /// <summary>
-    /// 过滤流的功能。
+    /// 提供筛选流的功能。
     /// </summary>
     public interface IStreamFilter
     {
         /// <summary>
-        /// 返回一个值,以显示是否应该交付指定的流项。
+        /// 返回一个值，指示是否应投递指定流数据项。
         /// </summary>
-        /// <param name="streamId">流体识别符号。</param>
-        /// <param name="item">流项目。</param>
-        /// <param name="filterData">过滤数据。</param>
-        /// <returns><see langword="true" /> 如果流项目应交付,则以其他方式 <see langword="false" /> 。</returns>
+        /// <param name="streamId">流标识符。</param>
+        /// <param name="item">流数据项。</param>
+        /// <param name="filterData">筛选数据。</param>
+        /// <returns>如果应投递流数据项，则为 <see langword="true" />；否则为 <see langword="false" />。</returns>
         bool ShouldDeliver(StreamId streamId, object item, string? filterData);
     }
 

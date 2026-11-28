@@ -875,22 +875,22 @@ namespace Orleans.Serialization.UnitTests
     }
 
     /// <summary>
-    /// Orleans' 低水平阅读器和作家实施测试。
+    /// Orleans 底层 Reader 和 Writer 实现的测试。
     /// 
-    /// 这些测试核实了 Orleans 序号化的基本组成部分:
-    /// - 原始类型二元编码/代法
-    /// - 空间效率的变量长整数编码(VarInt)
-    /// - 缓冲管理和集中战略
-    /// - 以流为基础的和以记忆为基础的一/O临时业务
+    /// 这些测试验证 Orleans 序列化的基础构件：
+    /// - 基元类型的二进制编码和解码
+    /// - 节省空间的可变长度整数编码（VarInt）
+    /// - 缓冲区管理及池化策略
+    /// - 基于流和基于内存的 I/O 操作
     /// 
-    /// 读者/作家基础设施提供:
-    /// - 高性能二进制序列化原始
-    /// - 通用设想情况零分配模式
-    /// - 支持各种缓冲类型(流、阵列、管)
-    /// - 通过分片缓冲带有效处理大数据
+    /// Reader/Writer 基础设施提供：
+    /// - 高性能二进制序列化基元
+    /// - 常见场景的零分配模式
+    /// - 支持多种缓冲区类型（流、数组、管道）
+    /// - 通过分段缓冲区高效处理大数据量
     /// 
-    /// 这些组成部分对于 Orleans电汇协议效率至关重要
-    /// 并直接影响 grain 通信的履行。
+    /// 这些组件对 Orleans 传输协议的效率至关重要，
+    /// 并直接影响 Grain 通信的性能。
     /// </summary>
     [Trait("Category", "BVT")]
     [Trait("Suite", "BVT")]
@@ -1259,18 +1259,18 @@ namespace Orleans.Serialization.UnitTests
 
             var buffer = new PooledBuffer();
 
-            // PooledBuffer / BufferSlice 比 ReadOnlySequence更抽象,因此我们依赖 
-            // 执行细节。
+            // PooledBuffer / BufferSlice 比 ReadOnlySequence 更抽象，因此我们依赖其
+            // 实现细节。
             var buf = buffer.GetMemory(1);
             Assert.True(MemoryMarshal.TryGetArray<byte>(buf, out var seg));
-            // 成功调用 TryGetArray 保证返回的段系以数组支持。
+            // TryGetArray 调用成功即可保证返回的段由数组作为后备存储。
             var offset = seg.Array!.Length - b.Length;
             buffer.Write(new byte[offset]);
             buffer.Write(b);
             buffer.Write(b2);
             var slice = buffer.Slice(offset);
 
-            // 核实切片是否是我们期望的
+            // 验证切片符合预期。
             var count = 0;
             foreach (var s in slice)
             {
@@ -1311,7 +1311,7 @@ namespace Orleans.Serialization.UnitTests
             var services = new ServiceCollection();
             _ = services.AddSerializer();
             _serviceProvider = services.BuildServiceProvider();
-            // AddSerializer 保证会场集合已经登记。
+            // AddSerializer 保证已注册会话池。
             _sessionPool = _serviceProvider.GetService<SerializerSessionPool>()!;
             _testOutputHelper = testOutputHelper;
         }

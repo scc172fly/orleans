@@ -6,11 +6,11 @@ using Xunit;
 namespace UnitTDefaultCluster.Tests.General
 {
     /// <summary>
-    /// 请求上下文功能的 Orleans 测试。
-    /// 请求环境允许流动的环境数据(如相关身份、用户背景、用户背景、
-    /// 请求或请求提供元数据)以及 grain 调用电话,但没有明确通过
-    /// 。这是 Orleans' 等量的线-本地存储或同步-本地
-    /// 存储,但设计用于在 grains 和 silos之间分配调用。
+    /// Orleans 请求上下文功能测试。
+    /// 请求上下文使环境数据（例如关联 ID、用户上下文
+    /// 或请求元数据）能够随 Grain 调用传递，而无需显式作为
+    /// 参数传递。它类似 Orleans 中的线程本地存储或异步本地存储，
+    /// 但专为跨 Grain 和 Silo 的分布式调用设计。
     /// </summary>
     [TestArea("Runtime")]
     public class RequestContextTests : HostedTestClusterEnsureDefaultStarted
@@ -20,11 +20,11 @@ namespace UnitTDefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试请求由调用者到被调用者之间产生的背景。
-        /// 证明该数据集 RequestContext 在 a 之前 grain 调
-        /// grain 方法执行范围内可用,证明
-        /// 环境环境环境的自动传播跨越 grain 边界。
-        /// 这对相关身份识别、认证符号等有用。
+        /// 测试请求上下文从调用方传递到被调用方。
+        /// 验证 Grain 调用之前在 RequestContext 中设置的数据
+        /// 在 Grain 方法执行期间可用，展示
+        /// 跨 Grain 边界自动传播环境上下文的机制。
+        /// 这适用于关联 ID、身份验证令牌等。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -32,9 +32,9 @@ namespace UnitTDefaultCluster.Tests.General
         public async Task RequestContextCallerToCalleeFlow()
         {
             var grain = this.GrainFactory.GetGrain<ISimplePersistentGrain>(Random.Shared.Next());
-            // 设置要发送到 grain的上下文
+            // 设置要发送给 Grain 的上下文
             RequestContext.Set("GrainInfo", 10);
-            // 此 grain 方法读取上下文并返回它
+            // 此 Grain 方法读取上下文并返回它。
             var infoFromGrain = await grain.GetRequestContext();
             Assert.NotNull(infoFromGrain);
             Assert.True((int)infoFromGrain == 10);
@@ -43,11 +43,11 @@ namespace UnitTDefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试请求由被调用者返回到调用者处的上下文。
-        /// 将核实该数据集 RequestContext a 内 grain 方法
-        /// 电话在通话结束后可供打电话者使用。
-        /// 注:由于特性可能不完全支持,因此目前跳过这一测试。
-        /// 请求通常单向流动(呼叫被传唤者),以孤立。
+        /// 测试请求上下文从被调用方传回调用方。
+        /// 此测试本应验证在 Grain 方法中设置到 RequestContext 的数据，
+        /// 在调用完成后可供调用方使用。
+        /// 注意：当前跳过此测试，因为该功能可能尚未完全受支持。
+        /// 为保持隔离，请求上下文通常单向传递（从调用方到被调用方）。
         /// </summary>
         [TestSuite("Functional")]
         [TestProvider("None")]
@@ -55,9 +55,9 @@ namespace UnitTDefaultCluster.Tests.General
         public async Task RequestContextCalleeToCallerFlow()
         {
             var grain = this.GrainFactory.GetGrain<ISimplePersistentGrain>(Random.Shared.Next());
-            // grain 中的这一方法确实 RequestContext.Set
+            // Grain 中的此方法会调用 RequestContext.Set
             await grain.SetRequestContext(15);
-            // 读取 grain中的信息集
+            // 读取 Grain 中设置的信息
             var infoFromGrain = RequestContext.Get("GrainInfo");
             Assert.NotNull(infoFromGrain);
             Assert.True((int)infoFromGrain == 15);

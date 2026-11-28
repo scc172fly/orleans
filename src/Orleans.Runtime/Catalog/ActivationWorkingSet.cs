@@ -13,7 +13,7 @@ using Orleans.Runtime.Internal;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 维持最近激活的启动列表 。
+    /// 维护最近活跃的激活实例列表。
     /// </summary>
     internal sealed partial class ActivationWorkingSet : IActivationWorkingSet, ILifecycleParticipant<ISiloLifecycle>
     {
@@ -219,84 +219,84 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// 管理最近活动的 <see cref="IGrainContext"/> 实例集。
+    /// 管理最近活跃的 <see cref="IGrainContext"/> 实例集合。
     /// </summary>
     public interface IActivationWorkingSet
     {
         /// <summary>
-        /// 返回最近激活的 grain 启动次数。
+        /// 返回最近活跃的 Grain 激活实例数。
         /// </summary>
         public int Count { get; }
 
         /// <summary>
-        /// 将新成员添加到工作集中。
+        /// 向工作集添加新成员。
         /// </summary>
         void OnActivated(IActivationWorkingSetMember member);
 
         /// <summary>
-        /// 表示成员积极活动,应参加工作。
+        /// 发出成员处于活跃状态且应位于工作集中的信号。
         /// </summary>
         void OnActive(IActivationWorkingSetMember member);
 
         /// <summary>
-        /// 信号说,一个成员已开始停止工作。
+        /// 发出成员已开始停用的信号。
         /// </summary>
         /// <param name="member"></param>
         void OnDeactivating(IActivationWorkingSetMember member);
 
         /// <summary>
-        /// 信号显示成员已停止使用
+        /// 发出成员已停用的信号。
         /// </summary>
         void OnDeactivated(IActivationWorkingSetMember member);
     }
 
     /// <summary>
-    /// 从 <see cref="IActivationWorkingSet"/>的角度看,激活是指启动。
+    /// 从 <see cref="IActivationWorkingSet"/> 的视角表示激活实例。
     /// </summary>
     public interface IActivationWorkingSetMember
     {
         /// <summary>
-        /// 如果成员有资格被除名,则返回 <see langword="true"/> ,否则返回 <see langword="false"/> 。
+        /// 若成员符合移除条件，则返回 <see langword="true"/>，否则返回 <see langword="false"/>。
         /// </summary>
-        /// <returns><see langword="true"/> 如果该成员有资格被除名, <see langword="false"/> 就另外予以删除。</returns>
+        /// <returns>若成员符合移除条件则为 <see langword="true"/>，否则为 <see langword="false"/>。</returns>
         /// <remarks>
-        /// 如果该方法返回 <see langword="true"/> 和 <paramref name="wouldRemove"/> 是 <see langword="true"/>,则必须将该成员从工作组中除名,并有资格通过呼叫 <see cref="IActivationWorkingSet.OnActivated(IActivationWorkingSetMember)"/>再次添加。
+        /// 若此方法返回 <see langword="true"/> 且 <paramref name="wouldRemove"/> 为 <see langword="true"/>，则必须从工作集中移除此成员，之后可通过调用 <see cref="IActivationWorkingSet.OnActivated(IActivationWorkingSetMember)"/> 再次加入。
         /// </remarks>
         bool IsCandidateForRemoval(bool wouldRemove);
     }
 
     /// <summary>
-    /// A 音 A <see cref="IActivationWorkingSet"/> 观察员。
+    /// <see cref="IActivationWorkingSet"/> 的观察者。
     /// </summary>
     public interface IActivationWorkingSetObserver
     {
         /// <summary>
-        /// 当激活被添加到工作组时呼叫 。
+        /// 激活实例加入工作集时调用。
         /// </summary>
         void OnAdded(IActivationWorkingSetMember member) { }
 
         /// <summary>
-        /// 当激活启动时呼叫 。
+        /// 激活实例进入活跃状态时调用。
         /// </summary>
         void OnActive(IActivationWorkingSetMember member) { }
 
         /// <summary>
-        /// 当激活闲置时呼叫 。
+        /// 激活实例变为空闲时调用。
         /// </summary>
         void OnIdle(IActivationWorkingSetMember member) { }
 
         /// <summary>
-        /// 工作组移除激活时呼叫 。
+        /// 激活实例从工作集中移除时调用。
         /// </summary>
         void OnEvicted(IActivationWorkingSetMember member) { }
 
         /// <summary>
-        /// 当激活开始停止活动时呼叫 。
+        /// 激活实例开始停用时调用。
         /// </summary>
         void OnDeactivating(IActivationWorkingSetMember member) { }
 
         /// <summary>
-        /// 激活解除后呼叫
+        /// 激活实例停用后调用。
         /// </summary>
         void OnDeactivated(IActivationWorkingSetMember member) { }
     }

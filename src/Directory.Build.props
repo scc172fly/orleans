@@ -12,15 +12,15 @@
     <CompatibilityTargetFrameworks>netstandard2.0</CompatibilityTargetFrameworks>
     <DefaultTargetFrameworks>net10.0;net11.0</DefaultTargetFrameworks>
     <!--
-      软件包审定对照最新放行情况核对包装的 API 和框架资产。
-      在每个稳定 Orleans 释放并去除该基准废弃的抑制物后更新这一数据。
-      有意破坏性变革工作流程见 CONTRIBUTING.md 。
+      包验证将打包后的 API 及框架资产与最新发布版本进行比较。
+      每个 Orleans 稳定版本发布后更新此基准，并删除因新基准而过时的抑制项。
+      有意引入破坏性变更的流程见 CONTRIBUTING.md。
     -->
     <OrleansPackageValidationBaselineVersion>10.4.0</OrleansPackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- 净额8.0没有支持,因此有意删除。一旦基线不再包含净额8.0资产,则删去此句。 -->
+    <!-- net8.0 已结束支持，因此有意移除。当基准不再包含 net8.0 资产时，删除此项。 -->
     <PackageValidationBaselineFrameworkToIgnore Include="net8.0" />
   </ItemGroup>
 

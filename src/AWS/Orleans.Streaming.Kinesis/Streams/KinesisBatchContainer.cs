@@ -17,7 +17,7 @@ namespace Orleans.Streaming.Kinesis
         [Id(0)]
         private readonly byte[] _rawRecord = null!;
 
-        // 有效载荷是已解除的 payloadBytes本地缓存。不应作为批量容器的一部分进行序列化,在批量集装箱序化过程中将始终使用原 payloadBytes 。
+        // Payload 是反序列化后的 payloadBytes 的本地缓存，不应作为批容器的一部分序列化。序列化批容器时始终使用原始 payloadBytes。
         [NonSerialized]
         private Body? _payload;
 
@@ -44,19 +44,19 @@ namespace Orleans.Streaming.Kinesis
         }
 
         /// <summary>
-        /// 此批次是溪流的串流识别符 。
+        /// 此批次所属的流的标识。
         /// </summary>
         public StreamId StreamId => GetPayload().StreamId;
 
         /// <summary>
-        /// 开始这批货的串流序列 Token 。
+        /// 表示此批次起始位置的流序列令牌。
         /// </summary>
         public StreamSequenceToken SequenceToken => Token;
 
         private Body GetPayload() => _payload ??= this.Serializer.Deserialize(_rawRecord)!;
 
         /// <summary>
-        /// 从批量中获取特定类型的事件 。
+        /// 从批次中获取指定类型的事件。
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
@@ -66,10 +66,10 @@ namespace Orleans.Streaming.Kinesis
         }
 
         /// <summary>
-        /// 给一个机会 IBatchContainer 中设置数据 RequestContext 此前 IBatchContainer 发送到消费者。
-        /// 可以是生成事件时设定的数据,并排入持续提供方或任何其他数据。
+        /// 允许 IBatchContainer 在发送给消费者前向 RequestContext 写入数据。
+        /// 数据可以是事件生成并加入持久化提供程序队列时设置的，也可以是其他数据。
         /// </summary>
-        /// <returns>如果 RequestContext 确实被修改, 且以其他方式伪造, 则属 True。</returns>
+        /// <returns>若确实修改了 RequestContext，则为 true，否则为 false。</returns>
         public bool ImportRequestContext()
         {
             if (GetPayload().RequestContext != null)

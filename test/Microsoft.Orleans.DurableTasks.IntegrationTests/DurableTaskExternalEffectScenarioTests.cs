@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
-/// <summary>对照受管制边界,对抽样的实际付款/电子邮件所有人和单独记账的供应商进行检查。</summary>
+/// <summary>在受控边界下运行示例中的实际支付/邮件所有者以及单独记录日志的提供程序。</summary>
 public abstract class DurableTaskExternalEffectScenarioTests : IAsyncLifetime
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
@@ -23,8 +23,8 @@ public abstract class DurableTaskExternalEffectScenarioTests : IAsyncLifetime
     protected DurableTaskExternalEffectScenarioTests(string format)
     {
         _format = format;
-        // 今后继续自动交付调度器。这些案例都援引了生产业余操作员
-        // 明确; 应用程序所有人,而非会员或持久工作拥有这个时钟。
+        // 将调度器的自动传递安排在未来。这些用例显式调用生产环境的到期作业处理程序；
+        // 此时钟由应用所有者控制，而非成员资格服务或持久化作业。
         _clock.Advance(TimeSpan.FromDays(2));
         _fixture = new(format, silo =>
         {
@@ -61,7 +61,7 @@ public abstract class DurableTaskExternalEffectScenarioTests : IAsyncLifetime
     public async Task EffectIntentAcknowledgementFollowsStorageNotStaging(bool afterAcknowledgement)
     {
         var (owner, _, identity, request) = await CreateAsync(EffectKind.PaymentAuthorization, RecipeProviderBehavior.Apply);
-        // 建立初始快照, 使选中的写作是附件, 不是首期日记替换 。
+        // 建立初始快照，使选定的写入成为追加操作，而非初始日志替换。
         var existingIdentity = identity with { OperationId = "existing-intent" };
         await owner.SubmitAsync(existingIdentity, request);
         var key = identity.ProviderKey(owner.GetGrainId().ToString());
@@ -99,7 +99,7 @@ public abstract class DurableTaskExternalEffectScenarioTests : IAsyncLifetime
     [Fact]
     public async Task PaymentAppliedWithLostResponseRetriesTheSameKeyAfterOwnerRecovery()
     {
-        // 合同:因回复丢失而付款的付款将重新使用其供应商钥匙,并带有新的尝试身份和一种应用效果。
+        // 契约：响应丢失的支付复用提供程序键，使用新的尝试 ID，且效果只应用一次。
         var (owner, provider, identity, request) = await CreateAsync(
             EffectKind.PaymentAuthorization, RecipeProviderBehavior.LoseResponseAfterApply);
         var accepted = await owner.SubmitAsync(identity, request);
@@ -132,8 +132,8 @@ public abstract class DurableTaskExternalEffectScenarioTests : IAsyncLifetime
     [Fact]
     public async Task InterruptedNonRepeatableEmailRecoversItsReconciliationOwnerWithoutRedispatch()
     {
-        // 合同:在适用不可再重复的供应商之后,所有人损失其回购书的原主结果笔记本将收回已承诺支付的款项
-        // 恢复必须调和, 绝不将缺失的答案解释为允许重现。
+        // 契约：不可重复执行的提供程序应用效果后，所有者的结果写入丢失，恢复时读取已提交的
+        // 尝试标记。恢复必须进行对账，绝不能将应答缺失视为允许重新发送。
         var (owner, provider, identity, request) = await CreateAsync(EffectKind.Email, RecipeProviderBehavior.Apply);
         await provider.HoldNextResponseAsync();
         _gate.Arm(provider.GetGrainId(), afterAcknowledgement: true);
@@ -177,8 +177,8 @@ public abstract class DurableTaskExternalEffectScenarioTests : IAsyncLifetime
     [Fact]
     public async Task ExhaustedRetryDecisionAndAuthorizedFollowUpSurviveImmediateSiloLoss()
     {
-        // 合同:用尽经证明没有效果的尝试产生持久的终极判决。
-        // 后续行动保留了自己的特性和在直接 silo 损失中的联系,而没有重新开审原损失。
+        // 契约：用尽已证实未产生效果的尝试后，形成持久化终态决策。另行授权的
+        // 后续操作在 Silo 立即丢失后仍保有自己的标识和关联，且不重新打开原操作。
         var (owner, provider, identity, request) = await CreateAsync(
             EffectKind.PaymentAuthorization, RecipeProviderBehavior.ProveNoEffect);
         var accepted = await owner.SubmitAsync(identity, request);

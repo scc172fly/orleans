@@ -7,108 +7,108 @@ using System.Threading;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 可观测到的 grain 生命周期。
+    /// 可观察的 Grain 生命周期。
     /// </summary>
     /// <remarks>
-    /// 此类型通常在 <see cref="ILifecycleParticipant{IGrainLifecycle}"/> 中用作通用参数,
-    /// a 参加 grain 激活生命周期阶段的手段。
+    /// 此类型通常用作 <see cref="ILifecycleParticipant{IGrainLifecycle}"/> 的泛型参数，
+    /// 以便参与 Grain 激活实例的各个生命周期阶段。
     /// </remarks>
     public interface IGrainLifecycle : ILifecycleObservable
     {
         /// <summary>
-        /// 登记一名 grain 移徙与会者。
+        /// 注册 Grain 迁移参与者。
         /// </summary>
-        /// <param name="participant">与会人员。</param>
+        /// <param name="participant">参与者。</param>
         void AddMigrationParticipant(IGrainMigrationParticipant participant);
 
         /// <summary>
-        /// 不登记户a grain 移徙参与者。
+        /// 注销 Grain 迁移参与者。
         /// </summary>
-        /// <param name="participant">与会人员。</param>
+        /// <param name="participant">参与者。</param>
         void RemoveMigrationParticipant(IGrainMigrationParticipant participant);
     }
 
     /// <summary>
-    /// 参与移徙期间 grain 活化的脱水和补液。
+    /// 在迁移期间参与 Grain 激活实例状态的提取和恢复。
     /// </summary>
     public interface IGrainMigrationParticipant
     {
         /// <summary>
-        /// 在 <see cref="IGrainBase.OnDeactivateAsync(DeactivationReason, CancellationToken)"/> 完成后,在移民启动时,要求启动初始激活。
-        /// 参加者可以接触并更新脱水环境。
+        /// 启动迁移时，在 <see cref="IGrainBase.OnDeactivateAsync(DeactivationReason, CancellationToken)"/> 完成后于原激活实例上调用。
+        /// 参与者可以访问和更新状态提取上下文。
         /// </summary>
-        /// <param name="dehydrationContext">脱水环境</param>
+        /// <param name="dehydrationContext">状态提取上下文。</param>
         void OnDehydrate(IDehydrationContext dehydrationContext);
 
         /// <summary>
-        /// 在移民后,在 <see cref="IGrainBase.OnActivateAsync(CancellationToken)"/> 被调用之前,要求启动新的激活。
-        /// 参与者可以恢复移徙状态。
+        /// 迁移后，在调用 <see cref="IGrainBase.OnActivateAsync(CancellationToken)"/> 之前于新激活实例上调用。
+        /// 参与者可以从迁移上下文恢复状态。
         /// </summary>
-        /// <param name="rehydrationContext">补液环境</param>
+        /// <param name="rehydrationContext">状态恢复上下文。</param>
         void OnRehydrate(IRehydrationContext rehydrationContext);
     }
 
     /// <summary>
-    /// 记录正在脱水以向另一地点迁移的 grain 启动状态。
+    /// 记录正在为迁移到另一位置而提取状态的 Grain 激活实例的状态。
     /// </summary>
     public interface IDehydrationContext
     {
         /// <summary>
-        /// 获得在上下文中的钥匙。
+        /// 获取上下文中的键。
         /// </summary>
         IEnumerable<string> Keys { get; }
 
         /// <summary>
-        /// 将序列与提供的密钥联系起来,在脱水环境添加字节顺序。
+        /// 将字节序列添加到状态提取上下文，并将其与提供的键关联。
         /// </summary>
-        /// <param name="key">密钥。</param>
-        /// <param name="value">数值。</param>
+        /// <param name="key">键。</param>
+        /// <param name="value">值。</param>
         void AddBytes(string key, ReadOnlySpan<byte> value);
 
         /// <summary>
-        /// 将序列与提供的密钥联系起来,在脱水环境添加字节顺序。
+        /// 将字节序列添加到状态提取上下文，并将其与提供的键关联。
         /// </summary>
-        /// <param name="key">密钥。</param>
-        /// <param name="valueWriter">一位代表曾将所提供的价值写在上下文。</param>
-        /// <param name="value">向 <paramref name="valueWriter"/>提供的价值。</param>
+        /// <param name="key">键。</param>
+        /// <param name="valueWriter">用于将给定值写入上下文的委托。</param>
+        /// <param name="value">要传递给 <paramref name="valueWriter"/> 的值。</param>
         void AddBytes<T>(string key, Action<T, IBufferWriter<byte>> valueWriter, T value);
 
         /// <summary>
-        /// 试图对脱水环境的价值,与所提供的钥匙相关,使用 <see cref="Orleans.Serialization.Serializer"/>进行序列排序。
-        /// 如果找到序列器, 且密钥尚未添加, 那么该值就会被添加, 方法返回 <see langword="true"/>。
-        /// 如果不存在序列器或密钥已经添加,则不会增加值,方法返回 <see langword="false"/>。
+        /// 尝试将一个值添加到状态提取上下文并与提供的键关联，使用 <see cref="Orleans.Serialization.Serializer"/> 对该值进行序列化。
+        /// 如果找到该值的序列化器，且键尚未添加，则添加该值并返回 <see langword="true"/>。
+        /// 如果不存在序列化器或键已添加，则不添加该值，方法返回 <see langword="false"/>。
         /// </summary>
-        /// <param name="key">密钥。</param>
-        /// <param name="value">增加值。</param>
+        /// <param name="key">键。</param>
+        /// <param name="value">要添加的值。</param>
         bool TryAddValue<T>(string key, T? value);
     }
 
     /// <summary>
-    /// 包含从另一地点移动后正在补水的 grain 激活状态。
+    /// 包含从其他位置迁移后正在恢复状态的 Grain 激活实例的状态。
     /// </summary>
     public interface IRehydrationContext
     {
         /// <summary>
-        /// 获得在上下文中的钥匙。
+        /// 获取上下文中的键。
         /// </summary>
         IEnumerable<string> Keys { get; }
 
         /// <summary>
-        /// 尝试从补液环境获得一个序列的字节,与提供的钥匙相关。
+        /// 尝试从状态恢复上下文获取与提供的键关联的字节序列。
         /// </summary>
-        /// <param name="key">密钥。</param>
-        /// <param name="value">如果存在的话, 值 。</param>
-        /// <returns><see langword="true"/> 如果在上下文中存在钥匙,否则 <see langword="false"/>。</returns>
+        /// <param name="key">键。</param>
+        /// <param name="value">值（如果存在）。</param>
+        /// <returns>如果上下文中存在该键则返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
         bool TryGetBytes(string key, out ReadOnlySequence<byte> value);
 
         /// <summary>
-        /// 试图从补液环境获得与所提供的钥匙相关的价值,使用 <see cref="Orleans.Serialization.Serializer"/>使其脱序。
-        /// 如果找到序列器,且有键存在,则该数值被降为新线,方法返回 <see langword="true"/>。
-        /// 如果不存在序列器或密钥已经添加,则不会增加值,方法返回 <see langword="false"/>。
+        /// 尝试从状态恢复上下文获取与提供的键关联的值，使用 <see cref="Orleans.Serialization.Serializer"/> 对该值进行反序列化。
+        /// 如果找到该值的序列化器且键存在，则反序列化该值并返回 <see langword="true"/>。
+        /// 如果不存在序列化器或键已添加，则不添加该值，方法返回 <see langword="false"/>。
         /// </summary>
-        /// <param name="key">密钥。</param>
-        /// <param name="value">如果存在的话, 值 。</param>
-        /// <returns><see langword="true"/> 如果在上下文中存在钥匙,否则 <see langword="false"/>。</returns>
+        /// <param name="key">键。</param>
+        /// <param name="value">值（如果存在）。</param>
+        /// <returns>如果上下文中存在该键则返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
         bool TryGetValue<T>(string key, [NotNullWhen(true)] out T? value);
     }
 }

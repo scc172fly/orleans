@@ -6,70 +6,70 @@ using Orleans.Storage;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// 配置 DynamoDB grain 存储提供者。
+    /// 配置 DynamoDB Grain 存储提供程序。
     /// </summary>
     public class DynamoDBStorageOptions : DynamoDBClientOptions, IStorageProviderSerializerOptions
     {
         /// <summary>
-        /// 获取或设置此项服务的独特识别符,该服务应能在部署和重新部署后生存。
+        /// 获取或设置此服务的唯一标识，该标识应在部署及重新部署后保持不变。
         /// </summary>
         /// <remarks>
-        /// 值前缀每个 grain 状态的键,必须明确设置。
-        /// 对于新的部署,使用稳定识别符号,如 <see cref="ClusterOptions.ServiceId"/>。
-        /// 对于现有的部署,保留用于写出其状态的数值,包括
-        /// 从上一个空字符串默认值升级时<see cref="string.Empty"/> 。
+        /// 此值作为每个 Grain 状态键的前缀，必须显式设置。
+        /// 对于新部署，使用诸如 <see cref="ClusterOptions.ServiceId"/> 的稳定标识。
+        /// 对于现有部署，保留原先写入状态时使用的值，包括
+        /// 从此前默认空字符串的版本升级时使用的 <see cref="string.Empty"/>。
         /// </remarks>
         public string? ServiceId { get; set; }
 
         /// <summary>
-        /// 表中已提供投入的用途
+        /// 对表使用预置吞吐量。
         /// </summary>
         public bool UseProvisionedThroughput { get; set; } = true;
 
         /// <summary>
-        /// 如果表格不存在创建表格
+        /// 如果表不存在，则创建该表。
         /// </summary>
         public bool CreateIfNotExists { get; set; } = true;
 
         /// <summary>
-        /// 如果有更新表格,则更新列表
+        /// 如果表存在，则更新该表。
         /// </summary>
         public bool UpdateIfExists { get; set; } = true;
 
         /// <summary>
-        /// DynamoDB 储存读能力单位
+        /// DynamoDB 存储的读取容量单位。
         /// </summary>
         public int ReadCapacityUnits { get; set; } = DynamoDBStorage.DefaultReadCapacityUnits;
 
         /// <summary>
-        /// DynamoDB 储存的写能力单位
+        /// DynamoDB 存储的写入容量单位。
         /// </summary>
         public int WriteCapacityUnits { get; set; } = DynamoDBStorage.DefaultWriteCapacityUnits;
 
         /// <summary>
-        /// DynamoDB 表格名称。
-        /// 默认值为 'OrleansGrainState' 。
+        /// DynamoDB 表名称。
+        /// 默认值为 OrleansGrainState。
         /// </summary>
         public string TableName { get; set; } = "OrleansGrainState";
 
         /// <summary>
-        /// 表明 grain 数据应删除,或当 grain 清清楚楚,这是状态。
+        /// 指示 Grain 清除状态时应删除 Grain 数据还是将其重置为默认值。
         /// </summary>
         public bool DeleteStateOnClear { get; set; } = false;
 
         /// <summary>
-        /// 储存应初始化的 silo 生命周期阶段,储存必须在使用前初始化。
+        /// 应初始化存储的 Silo 生命周期阶段。存储必须在使用前完成初始化。
         /// </summary>
         public int InitStage { get; set; } = DEFAULT_INIT_STAGE;
 
         /// <summary>
-        /// 存储提供者初始化的默认 silo 生命周期阶段。
+        /// 初始化存储提供程序的默认 Silo 生命周期阶段。
         /// </summary>
         public const int DEFAULT_INIT_STAGE = ServiceLifecycleStage.ApplicationServices;
 
         /// <summary>
-        /// 指定项目未来过期的期间
-        /// 每 StateWrite 将增加 grain的TTL
+        /// 指定条目距未来过期的时间跨度。
+        /// 每次 StateWrite 都会延长 Grain 的 TTL。
         /// </summary>
         public TimeSpan? TimeToLive { get; set; }
 
@@ -78,7 +78,7 @@ namespace Orleans.Configuration
     }
 
     /// <summary>
-    /// DynamoDBStorageOptions的配置验证符
+    /// DynamoDBStorageOptions 的配置验证器。
     /// </summary>
     public class DynamoDBGrainStorageOptionsValidator : IConfigurationValidator
     {
@@ -86,10 +86,10 @@ namespace Orleans.Configuration
         private readonly string name;
 
         /// <summary>
-        /// 构造建构器
+        /// 构造函数。
         /// </summary>
-        /// <param name="options">选项将生效。</param>
-        /// <param name="name">需要验证的选项名称。</param>
+        /// <param name="options">要验证的选项。</param>
+        /// <param name="name">要验证的选项名称。</param>
         public DynamoDBGrainStorageOptionsValidator(DynamoDBStorageOptions options, string name)
         {
             this.options = options;

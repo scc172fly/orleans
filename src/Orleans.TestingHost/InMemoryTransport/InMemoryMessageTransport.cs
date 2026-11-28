@@ -56,12 +56,12 @@ internal class InMemoryMessageTransport : MessageTransportBase
 
     private async Task ProcessConnectionAsync()
     {
-        // 立即回到同步呼叫器
+        // 立即返回给同步调用方。
         await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
 
         try
         {
-            // 斯普曼发送和接收逻辑
+            // 启动发送及接收逻辑。
             (var receiveTask, var sendTask) = StartProcessing();
 
             (Task ReceiveTask, Task SendTask) StartProcessing()
@@ -74,7 +74,7 @@ internal class InMemoryMessageTransport : MessageTransportBase
                 }
             }
 
-            // 等待两个都完成
+            // 等待两者完成。
             try
             {
                 await receiveTask;
@@ -162,14 +162,14 @@ internal class InMemoryMessageTransport : MessageTransportBase
             return;
         }
 
-        // 等待完成或取消
+        // 等待完成或取消。
         try
         {
             await _processingTask.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // 如果请求取消,则关闭武力
+            // 如果已请求取消，则强制关闭。
             _connectionClosingCts.Cancel();
         }
     }
@@ -224,13 +224,13 @@ internal class InMemoryMessageTransport : MessageTransportBase
         var reader = new ArcBufferReader(bufferWriter);
         try
         {
-            // 循环到终止
+            // 循环直到终止。
             while (!_connectionClosingCts.IsCancellationRequested)
             {
                 // 处理每个请求。
                 while (TryDequeue(out request))
                 {
-                    // 处理完成请求。
+                    // 将请求处理至完成。
                     while (true)
                     {
                         if (request.OnRead(reader))
@@ -322,12 +322,12 @@ gracefulTermination:
 
         try
         {
-            // 循环到终止
+            // 循环直到终止。
             while (!_connectionClosingCts.IsCancellationRequested)
             {
                 if (requests.Count == 0)
                 {
-                    // 等待前检查待定信件 。
+                    // 等待之前检查是否存在待处理消息。
                     RefreshRequestQueue(ref requests);
 
                     if (requests.Count == 0)
@@ -362,11 +362,11 @@ gracefulTermination:
 
                 if (error is not null)
                 {
-                    // 将错误放上泡泡
+                    // 向上传播错误。
                     break;
                 }
 
-                // 信号要求已满足
+                // 发出请求已完成的信号。
                 foreach (var request in processingRequests)
                 {
                     request.SetResult();
@@ -377,7 +377,7 @@ gracefulTermination:
         }
         catch (Exception ex)
         {
-            // 这出乎意料
+            // 这是非预期情况。
             error = ex;
         }
         finally
@@ -398,7 +398,7 @@ gracefulTermination:
                 _writesCompleted = true;
             }
 
-            // 排水请求
+            // 排空请求。
             while (requests.TryDequeue(out var request) || _writeRequests.TryDequeue(out request))
             {
                 request.SetException(requestError);

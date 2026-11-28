@@ -66,10 +66,10 @@ internal sealed partial class WorkItemGroup : IThreadPoolWorkItem, IWorkItemSche
     }
 
     /// <summary>
-    /// 添加任务到此激活 。
-    /// 如果我们把它加到运行名单里 我们过去总是等着 现在我们可以逃命了
+    /// 向此激活实例添加任务。
+    /// 如果将任务添加到运行列表且之前处于等待状态，则现在进入可运行状态。
     /// </summary>
-    /// <param name="task">要添加的工作项目。</param>
+    /// <param name="task">要添加的工作项。</param>
     public void EnqueueTask(Task task)
     {
 #if DEBUG
@@ -122,7 +122,7 @@ internal sealed partial class WorkItemGroup : IThreadPoolWorkItem, IWorkItemSche
     }
 
     /// <summary>
-    /// 只用于调试器目的 。
+    /// 仅供调试器使用。
     /// </summary>
     internal IEnumerable<Task> GetScheduledTasks()
     {
@@ -132,9 +132,9 @@ internal sealed partial class WorkItemGroup : IThreadPoolWorkItem, IWorkItemSche
         }
     }
 
-    // 执行一个或多个旋转键进行此激活 。
-    // 这种方法总是在一个单行环境中使用,也就是说,不超过一个
-    // 将同时使用此方法 -- -- 但其他的同步线索仍可能是排队任务等。
+    // 为此激活实例执行一个或多个执行轮次。
+    // 此方法始终在单线程环境中调用，也就是说，任意时刻最多有一个
+    // 线程处于此方法中，但其他异步线程仍可能向队列中添加任务等。
     public void Execute()
     {
         RuntimeContext.SetExecutionContext(GrainContext, out var originalContext);
@@ -143,7 +143,7 @@ internal sealed partial class WorkItemGroup : IThreadPoolWorkItem, IWorkItemSche
         try
         {
 
-            // 处理多个项目 -- -- 排出此激活所需的队列( 最多到最大项)
+            // 处理多个工作项：排空此激活实例的队列（不超过最大工作项数）。
             long loopStart, taskStart, taskEnd;
             loopStart = taskStart = taskEnd = Environment.TickCount64;
             do
@@ -153,7 +153,7 @@ internal sealed partial class WorkItemGroup : IThreadPoolWorkItem, IWorkItemSche
                 {
                     _state = WorkGroupStatus.Running;
 
-                    // 获取列表中的第一个工作项目
+                    // 获取列表中的第一个工作项。
                     if (_workItems.Count > 0)
                     {
                         _currentTask = task = _workItems.Dequeue();
@@ -161,7 +161,7 @@ internal sealed partial class WorkItemGroup : IThreadPoolWorkItem, IWorkItemSche
                     }
                     else
                     {
-                        // 如果清单是空的,那我们就完了
+                        // 如果列表为空，则处理完毕。
                         break;
                     }
                 }
@@ -196,9 +196,9 @@ internal sealed partial class WorkItemGroup : IThreadPoolWorkItem, IWorkItemSche
         }
         finally
         {
-            // 现在我们不再逃亡了
-            // 如果我们把工作项目留在运行列表中, 我们是可以运行的, 需要回到 silo 运行队列;
-            // 如果我们的竞选名单是空的,那么我们就等着
+            // 现在已不再处于运行状态。
+            // 如果运行列表中仍有工作项，则处于可运行状态，需要重新加入 Silo 运行队列；
+            // 如果运行列表为空，则处于等待状态。
             lock (_lockObj)
             {
                 if (_workItems.Count > 0)

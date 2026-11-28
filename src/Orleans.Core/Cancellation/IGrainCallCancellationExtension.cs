@@ -8,16 +8,16 @@ namespace Orleans.Runtime;
 internal interface IGrainCallCancellationExtension : IGrainExtension
 {
     /// <summary>
-    /// 表示取消一个标记已被取消 。
+    /// 表示取消令牌已被取消。
     /// </summary>
     /// <param name="senderGrainId">
-    /// 原始发件人的 <see cref="GrainId"/> 。
+    /// 原始消息发送方的 <see cref="GrainId"/>。
     /// </param>
     /// <param name="messageId">
-    /// 请求信件的代号已取消 。
+    /// 正在取消的请求消息的消息 ID。
     /// </param>
     /// <returns>
-    /// 代表行动的一个 <see cref="Task"/> 。
+    /// 表示该操作的 <see cref="Task"/>。（译注：此方法实际返回 ValueTask。）
     /// </returns>
     [AlwaysInterleave, OneWay]
     [Alias("FA239824")]
@@ -25,12 +25,12 @@ internal interface IGrainCallCancellationExtension : IGrainExtension
 }
 
 /// <summary>
-/// 取消 grain 通话功能。
+/// 用于取消 Grain 调用的功能。
 /// </summary>
 internal interface IGrainCallCancellationManager
 {
     /// <summary>
-    /// 试图取消 grain 呼叫 。
+    /// 尝试取消 Grain 调用。
     /// </summary>
     void SignalCancellation(SiloAddress? targetSilo, GrainId targetGrainId, GrainId sendingGrainId, CorrelationId messageId);
 }

@@ -34,7 +34,7 @@ public class ShardExecutorTests
 
         await executor.RunShardAsync(shard, CancellationToken.None);
 
-        // 对所有工作都进行了核查,并删除了碎片
+        // 验证全部作业均已处理并从分片移除。
         Assert.Equal(3, completedJobs.Count);
         Assert.Contains("job-0", completedJobs);
         Assert.Contains("job-1", completedJobs);
@@ -56,7 +56,7 @@ public class ShardExecutorTests
         var completedJobs = new List<string>();
         ConfigureGrainFactoryToTrackCompletions(grainFactory, completedJobs);
 
-        // 模拟系统初始超载过负荷, 3次检查后清理
+        // 模拟系统最初过载，并在检查 3 次后解除过载。
         var checkCount = 0;
         overloadDetector.IsOverloaded.Returns(_ =>
         {
@@ -66,7 +66,7 @@ public class ShardExecutorTests
 
         await executor.RunShardAsync(shard, CancellationToken.None);
 
-        // 超载清除后, 工作应该成功完成, 探测器应该多次检查
+        // 过载解除后，作业应成功完成，且检测器应被多次检查。
         Assert.Equal(2, completedJobs.Count);
         Assert.True(checkCount > 3, $"Expected multiple overload checks, got {checkCount}");
     }
@@ -82,10 +82,10 @@ public class ShardExecutorTests
         var completedJobs = new List<string>();
         ConfigureGrainFactoryToTrackCompletions(grainFactory, completedJobs);
 
-        // 工作逐渐到达, 以便让超负荷状态在处理过程中切换
+        // 作业陆续到达，使过载状态可在处理过程中切换。
         var shard = CreateJobShardWithDelayedYield(5, TimeSpan.FromMilliseconds(10));
 
-        // 代理超载状态 与每张支票: 超载, 不超载,超载...
+        // 每次检查时交替切换过载状态：过载、未过载、过载……
         var checkCount = 0;
         overloadDetector.IsOverloaded.Returns(_ =>
         {
@@ -95,7 +95,7 @@ public class ShardExecutorTests
 
         await executor.RunShardAsync(shard, CancellationToken.None);
 
-        // 所有的岗位应该都完成 尽管超负荷状态很复杂
+        // 即使过载状态交替变化，全部作业也应完成。
         Assert.Equal(5, completedJobs.Count);
         for (int i = 0; i < 5; i++)
         {
@@ -119,7 +119,7 @@ public class ShardExecutorTests
         var jobs = CreateJobs(10);
         var shard = CreateJobShard(jobs);
 
-        // 跟踪最大同时执行任务数
+        // 跟踪最大并发作业执行数。
         ConfigureGrainFactoryWithSlowJobExecution(grainFactory, async () =>
         {
             lock (concurrentLock)
@@ -141,7 +141,7 @@ public class ShardExecutorTests
 
         await executor.RunShardAsync(shard, CancellationToken.None);
 
-        // 核查同货币值的限制得到遵守,同时执行的工作
+        // 验证作业并行执行时遵守并发限制。
         Assert.True(maxObservedConcurrent <= maxConcurrent,
             $"Max concurrent jobs was {maxObservedConcurrent}, but limit was {maxConcurrent}");
         Assert.True(maxObservedConcurrent > 1,
@@ -162,7 +162,7 @@ public class ShardExecutorTests
         var completedJobs = new List<string>();
         ConfigureGrainFactoryToTrackCompletions(grainFactory, completedJobs);
 
-        // 启动后不久取消取消, 而执行程序正在等待超载清除
+        // 启动后不久，在执行器等待过载解除时取消。
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromMilliseconds(100));
 
@@ -171,7 +171,7 @@ public class ShardExecutorTests
             await executor.RunShardAsync(shard, cts.Token);
         }).WaitAsync(cancellationToken);
 
-        // 不应该执行任何任务, 因为后端等待时发生取消事件
+        // 由于取消发生在退避等待期间，不应有任何作业执行。
         Assert.Empty(completedJobs);
     }
 
@@ -194,7 +194,7 @@ public class ShardExecutorTests
         var failedJobs = new List<string>();
         var jobExecutionCount = 0;
 
-        // 定期报告超负荷,以测试与工作失败的互动
+        // 定期报告过载，以测试过载与作业失败之间的交互。
         var checkCount = 0;
         overloadDetector.IsOverloaded.Returns(_ =>
         {
@@ -202,12 +202,12 @@ public class ShardExecutorTests
             return checkCount % 3 == 1;
         });
 
-        // 第一份工作失败,剩余工作成功
+        // 第一个作业失败，其余作业成功。
         ConfigureGrainFactoryWithSelectiveFailures(grainFactory, completedJobs, failedJobs, ref jobExecutionCount);
 
         await executor.RunShardAsync(shard, CancellationToken.None);
 
-        // 失败的工作应安排重新试入,成功的工作应删除
+        // 失败的作业应安排重试，成功的作业应被移除。
         Assert.Equal(2, completedJobs.Count);
         Assert.Single(failedJobs);
 
@@ -265,7 +265,7 @@ public class ShardExecutorTests
         var runningJobs = 0;
         var lockObj = new object();
 
-        // 模拟慢速执行任务,以确保同时运行
+        // 模拟作业缓慢执行，确保其中部分作业并发运行。
         ConfigureGrainFactoryWithSlowJobExecution(grainFactory, async () =>
         {
             lock (lockObj) { runningJobs++; }
@@ -279,7 +279,7 @@ public class ShardExecutorTests
 
         await executor.RunShardAsync(shard, CancellationToken.None);
 
-        // 核查返回 RunShardAsync 之前完成的所有工作
+        // 验证 RunShardAsync 返回前，全部作业均已完成。
         Assert.Equal(0, runningJobs);
         Assert.Equal(5, completedJobs.Count);
     }
@@ -298,10 +298,10 @@ public class ShardExecutorTests
 
         await executor.RunShardAsync(shard, CancellationToken.None);
 
-        // 核查 HandleDurableJobAsync 调用4次(1次初次加3投票)
+        // 验证 HandleDurableJobAsync 被调用 4 次（1 次初始调用 + 3 次轮询）。
         Assert.Equal(4, callBox.Value);
 
-        // 完成后,核查工作被删除
+        // 验证作业完成后被移除。
         await shard.Received(1).RemoveJobAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
@@ -395,10 +395,10 @@ public class ShardExecutorTests
 
         await executor.RunShardAsync(shard, CancellationToken.None);
 
-        // 核查 HandleDurableJobAsync 调用4次(1个初始+2在建结果+1失败)
+        // 验证 HandleDurableJobAsync 被调用 4 次（1 次初始调用 + 2 次进行中结果 + 1 次失败）。
         Assert.Equal(4, callBox.Value);
 
-        // 校验工作已排入重试( 未删除)
+        // 验证作业已安排重试（而未被移除）。
         await shard.Received(1).RetryJobLaterAsync(
             Arg.Any<IJobRunContext>(),
             Arg.Any<DateTimeOffset>(),
@@ -779,7 +779,7 @@ public class ShardExecutorTests
         var releaseJobs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var concurrencyIncreased = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        // 足够练习慢启动加速的作业
+        // 使用足够数量的作业，以验证慢启动逐步提升并发度的过程。
         var jobs = CreateJobs(20);
         var shard = CreateJobShard(jobs);
 
@@ -820,7 +820,7 @@ public class ShardExecutorTests
             await runTask;
         }
 
-        // 开始缓慢应该限制初始货币货币, 然后加速
+        // 慢启动应限制初始并发度，随后逐步提高。
         Assert.True(maxObservedConcurrent <= maxConcurrency,
             $"Max concurrent jobs was {maxObservedConcurrent}, but limit was {maxConcurrency}");
         Assert.True(maxObservedConcurrent > initialConcurrency,
@@ -866,7 +866,7 @@ public class ShardExecutorTests
 
         await executor.RunShardAsync(shard, CancellationToken.None);
 
-        // 未经缓慢开始,应立即提供所有货币汇率的空缺
+        // 不使用慢启动时，全部并发槽位应立即可用。
         Assert.True(maxObservedConcurrent <= maxConcurrency,
             $"Max concurrent jobs was {maxObservedConcurrent}, but limit was {maxConcurrency}");
         Assert.Equal(maxConcurrency, maxObservedConcurrent);
@@ -887,7 +887,7 @@ public class ShardExecutorTests
         validator.ValidateConfiguration();
     }
 
-    // 帮助工具
+    // 辅助方法。
 
     private static IOptions<DurableJobsOptions> CreateOptions(
         int maxConcurrentJobs = 10,
@@ -901,7 +901,7 @@ public class ShardExecutorTests
         {
             MaxConcurrentJobsPerSilo = maxConcurrentJobs,
             OverloadBackoffDelay = overloadBackoffDelay ?? TimeSpan.FromMilliseconds(100),
-            ShouldRetry = shouldRetry ?? ((_, _) => null), // 默认: 没有重试
+            ShouldRetry = shouldRetry ?? ((_, _) => null), // 默认：不重试。
             ConcurrencySlowStartEnabled = concurrencySlowStartEnabled,
             SlowStartInitialConcurrency = slowStartInitialConcurrency ?? Environment.ProcessorCount,
             SlowStartInterval = slowStartInterval ?? TimeSpan.FromSeconds(10)
@@ -993,7 +993,7 @@ public class ShardExecutorTests
             context.DequeueCount.Returns(1);
             yield return context;
 
-            // 只在 RunShardAsync 登记了所完成的工作任务后,才恢复迭代器。
+            // 只有 RunShardAsync 注册 yield 返回的作业任务后，迭代器才会恢复执行。
             if (i == 0)
             {
                 firstJobRegistered?.TrySetResult();
@@ -1081,7 +1081,7 @@ public class ShardExecutorTests
                 var context = callInfo.ArgAt<IJobRunContext>(0);
                 var currentExecution = Interlocked.Increment(ref executionCount);
 
-                // 首份工作失败
+                // 第一个作业失败。
                 if (currentExecution == 1)
                 {
                     lock (failedJobs)
@@ -1092,7 +1092,7 @@ public class ShardExecutorTests
                     return DurableJobRunResult.Failed(exception);
                 }
 
-                // 其他工作成功
+                // 其他作业成功。
                 lock (completedJobs)
                 {
                     completedJobs.Add(context.Job.Id);
@@ -1125,7 +1125,7 @@ public class ShardExecutorTests
 
         var extension = Substitute.For<IDurableJobReceiverExtension>();
 
-        // 头3个呼叫返回 InProgress,第4个呼叫返回
+        // 前 3 次调用返回 InProgress，第 4 次返回 Completed。
         extension.HandleDurableJobAsync(Arg.Any<IJobRunContext>(), Arg.Any<CancellationToken>())
             .Returns(callInfo =>
             {
@@ -1149,7 +1149,7 @@ public class ShardExecutorTests
 
         var extension = Substitute.For<IDurableJobReceiverExtension>();
 
-        // 头三通呼叫返回 InProgress, 第4次返回失败
+        // 前 3 次调用返回 InProgress，第 4 次返回 Failed。
         extension.HandleDurableJobAsync(Arg.Any<IJobRunContext>(), Arg.Any<CancellationToken>())
             .Returns(callInfo =>
             {
@@ -1176,7 +1176,7 @@ public class ShardExecutorTests
 
         var extension = Substitute.For<IDurableJobReceiverExtension>();
 
-        // 头3个呼叫返回 InProgress (初始呼叫后记录时间戳),第4个返回完成
+        // 前 3 次调用返回 InProgress（记录初次调用之后的时间戳），第 4 次返回 Completed。
         extension.HandleDurableJobAsync(Arg.Any<IJobRunContext>(), Arg.Any<CancellationToken>())
             .Returns(callInfo =>
             {

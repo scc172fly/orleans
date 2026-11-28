@@ -1,6 +1,6 @@
 /*
- * 由Doug Lea在JCP成员协助下撰写
- * 向公共领域开放的专家组,如以下解释
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
@@ -9,22 +9,22 @@ using Orleans;
 namespace Orleans.Caching.Internal;
 
 /// <summary>
-/// 适合高通量的线性安全计数器 能够同时通过许多线索
+/// 线程安全的计数器，适用于多个并发线程的高吞吐量计数。
 /// </summary>
-/// 根据道格·莉亚的 LongAdder 类
-// 由Alex Peck从 BitFaster.Caching 取出
+/// 基于 Doug Lea 的 LongAdder 类。
+// Derived from BitFaster.Caching by Alex Peck
 // https://github.com/bitfaster/BitFaster.Caching/blob/5b2d64a1afcc251787fbe231c6967a62820fc93c/BitFaster.Caching/Counters/Counter.cs
 internal sealed class Counter : Striped64
 {
     /// <summary>
-    /// 创建初始数为零的新的对帐台。
+    /// 创建初始总和为零的新 Counter。
     /// </summary>
     public Counter() { }
 
     /// <summary>
-    /// 计算当前数。
+    /// 计算当前计数。
     /// </summary>
-    /// <returns>当前金额。</returns>
+    /// <returns>当前总和。</returns>
     public long Count()
     {
         var @as = cells; Cell a;
@@ -41,7 +41,7 @@ internal sealed class Counter : Striped64
     }
 
     /// <summary>
-    /// 增加1倍
+    /// 增加 1。
     /// </summary>
     public void Increment()
     {
@@ -49,9 +49,9 @@ internal sealed class Counter : Striped64
     }
 
     /// <summary>
-    /// 添加指定值。
+    /// 加上指定值。
     /// </summary>
-    /// <param name="value">增加值。</param>
+    /// <param name="value">要添加的值。</param>
     public void Add(long value)
     {
         Cell[]? @as;

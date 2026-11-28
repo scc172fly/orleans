@@ -34,7 +34,7 @@ public class GrainTypeResolverConventionTests
         Assert.Equal(GrainType.Create(expectedName), result);
     }
 
-    // 平级命名练习,不添加生成的或序列化 grain 固定装置。
+    // 使用普通类测试命名规则，不添加生成或序列化的 Grain 测试夹具。
     private sealed class MiXeDCaSe;
     private sealed class PendingGrAiN;
     private sealed class GrainLedger;

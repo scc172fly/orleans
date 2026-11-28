@@ -8,7 +8,7 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// 为当前 grain 激活创建并初始化交易状态方面。
+    /// 为当前 Grain 激活实例创建并初始化事务状态组件。
     /// </summary>
     public class TransactionalStateFactory : ITransactionalStateFactory
     {
@@ -17,7 +17,7 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="TransactionalStateFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="contextAccessor">当前 grain 上下文的存取器。</param>
+        /// <param name="contextAccessor">当前 Grain 上下文的访问器。</param>
         public TransactionalStateFactory(IGrainContextAccessor contextAccessor)
         {
             this.contextAccessor = contextAccessor;
@@ -33,10 +33,10 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// 创建 JSON 适合持续交易状态的序列器设置。
+        /// 创建适用于持久化事务状态的 JSON 序列化器设置。
         /// </summary>
-        /// <param name="serviceProvider">用于解决序列服务的服务供应商。</param>
-        /// <returns>配置 JSON 序列器设置。</returns>
+        /// <param name="serviceProvider">用于解析序列化服务的服务提供程序。</param>
+        /// <returns>配置完成的 JSON 序列化器设置。</returns>
         public static JsonSerializerSettings GetJsonSerializerSettings(IServiceProvider serviceProvider)
         {
             var serializerSettings = OrleansJsonSerializerSettings.GetDefaultSerializerSettings(serviceProvider);

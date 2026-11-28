@@ -5,27 +5,27 @@ using Orleans.Serialization.Codecs;
 namespace Orleans.Serialization.Utilities.Internal;
 
 /// <summary>
-/// 配置依赖注射的扩展方法。
+/// 用于配置依赖注入的扩展方法。
 /// </summary>
 public static class InternalServiceCollectionExtensions
 {
     /// <summary>
-    /// 登记 <typeparamref name="TImplementation"/> 作为服务类型 <typeparamref name="TService"/>的现有登记。
+    /// 将 <typeparamref name="TImplementation"/> 的已有注册项注册为服务类型 <typeparamref name="TService"/> 的提供程序。
     /// </summary>
     /// <typeparam name="TService">所提供的服务类型。</typeparam>
-    /// <typeparam name="TImplementation">执行《执行和执行执行执行 <typeparamref name="TService"/>.</typeparam>
-    /// <param name="services">服务收藏。</param>
+    /// <typeparam name="TImplementation"><typeparamref name="TService"/> 的实现。</typeparam>
+    /// <param name="services">服务集合。</param>
     public static void AddFromExisting<TService, TImplementation>(this IServiceCollection services) where TImplementation : TService
     {
         services.AddFromExisting(typeof(TService), typeof(TImplementation));
     }
 
     /// <summary>
-    /// 登记 <paramref name="implementation"/> 作为服务类型 <paramref name="service"/>的现有登记。
+    /// 将 <paramref name="implementation"/> 的已有注册项注册为服务类型 <paramref name="service"/> 的提供程序。
     /// </summary>
-    /// <param name="services">服务收藏。</param>
+    /// <param name="services">服务集合。</param>
     /// <param name="service">所提供的服务类型。</param>
-    /// <param name="implementation">执行《执行和执行执行执行 <paramref name="service"/>.</param>
+    /// <param name="implementation"><paramref name="service"/> 的实现。</param>
     public static void AddFromExisting(this IServiceCollection services, Type service, Type implementation)
     {
         ArgumentNullExceptionPolyfill.ThrowIfNull(services);

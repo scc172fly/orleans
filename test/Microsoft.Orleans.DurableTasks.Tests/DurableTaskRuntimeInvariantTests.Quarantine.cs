@@ -9,8 +9,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 任务/任务失败:储存的请求不再仅对检疫工作解码,而取消
-/// 任何任务都不得托付,除非打电话者取消儿童,而超过儿童的祈祷。
+/// 单任务故障隔离：无法再解码的已存储请求只隔离其所属任务，而取消请求若指定的任务
+/// 不存在，则不存储任何内容，除非调用方对子任务的取消先于该子任务的调用到达。
 /// </summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
@@ -30,13 +30,13 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         stateMachine.OnRecoveryCompleted();
         using var stalls = new StallRecorder(undecodableId);
 
-        // 激活解除代码不提出任何请求,因此它恢复了,而另一项任务将持续完成。
+        // 激活过程中不解码任何请求，因此激活实例能够恢复，且另一个任务能够运行至完成。
         await runtime.ResumePendingTasksAsync(TestContext.Current.CancellationToken);
         await WaitUntilAsync(() => storage.Get(otherId).Result is { IsCompleted: true });
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
         Assert.Equal(8, storage.Get(otherId).Result!.GetResult<int>());
 
-        // 要求不解码摊位的任务 保留存储的要求 民意调查报告为未完成
+        // 请求无法解码的任务会停滞，保留已存储的请求，轮询将其报告为待完成。
         var stalled = await stalls.Stalled.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         Assert.Equal(DurableTaskAttemptCancellationReason.Diverged, stalled.Reason);
         Assert.Contains($"The request which durable task '{undecodableId}' stores no longer decodes", stalled.Exception.Message, StringComparison.Ordinal);
@@ -50,7 +50,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Equal(TimeSpan.FromMinutes(1), runtime.GetWakeupDelay());
         await runtime.StopAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // 稍后启动,其代码解码请求的代码将执行任务。
+        // 后续能够解码该请求的激活实例会运行该任务。
         undecodable.RequestDecodeFailure = null;
         var (replacement, _, _, _) = CreateRuntime(storage, manager);
         await replacement.ResumePendingTasksAsync(TestContext.Current.CancellationToken);
@@ -92,7 +92,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var childId = TaskId.Parse("starter/call");
         var storedId = CallerScope.GetTaskId(caller, childId);
 
-        // 打电话者取消孩子的电话 可能会超过孩子的召唤 所以收件箱记录下来
+        // 调用方对子任务的取消可能先于该子任务的调用到达，因此收件箱会记录取消。
         Assert.True(CreateHandler(runtime).TryAccept(CancellationMessage(caller, runtime.GrainId, childId, "caller"), out var result));
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
 

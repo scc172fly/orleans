@@ -37,7 +37,7 @@ namespace Orleans.Runtime
 
         public ValueTask<TResult?> InvokeMethodAsync<TResult>(GrainReference reference, IInvokable request, InvokeMethodOptions options)
         {
-            // TODO: 删除昂贵的接口类型检查
+            // TODO：移除成本高昂的接口类型检查。
             if (this.filters.Length == 0 && request is not IOutgoingGrainCallFilter)
             {
                 SetGrainCancellationTokensTarget(this.cancellationTokenRuntime, reference, request);
@@ -53,7 +53,7 @@ namespace Orleans.Runtime
 
         public ValueTask InvokeMethodAsync(GrainReference reference, IInvokable request, InvokeMethodOptions options)
         {
-            // TODO: 删除昂贵的接口类型检查
+            // TODO：移除成本高昂的接口类型检查。
             if (filters.Length == 0 && request is not IOutgoingGrainCallFilter)
             {
                 SetGrainCancellationTokensTarget(this.cancellationTokenRuntime, reference, request);
@@ -71,7 +71,7 @@ namespace Orleans.Runtime
         {
             Debug.Assert((options & InvokeMethodOptions.OneWay) != 0);
 
-            // TODO: 删除昂贵的接口类型检查
+            // TODO：移除成本高昂的接口类型检查。
             if (filters.Length == 0 && request is not IOutgoingGrainCallFilter)
             {
                 SetGrainCancellationTokensTarget(this.cancellationTokenRuntime, reference, request);
@@ -111,7 +111,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 将目标 grain 设为已找到的类型 GrainCancellationToken
+        /// 为找到的 GrainCancellationToken 类型实例设置目标 Grain。
         /// </summary>
         internal static void SetGrainCancellationTokensTarget(IGrainCancellationTokenRuntime cancellationTokenRuntime, GrainReference target, IInvokable request)
         {
@@ -124,7 +124,7 @@ namespace Orleans.Runtime
             for (var i = 0; i < argumentCount; i++)
             {
                 var arg = request.GetArgument(i);
-#pragma warning disable CS0618 // Preserve runtime propagation for the legacy cancellation token.
+#pragma warning disable CS0618 // 保留旧版取消令牌的运行时传播支持。
                 if (arg is not GrainCancellationToken grainToken)
 #pragma warning restore CS0618
                 {

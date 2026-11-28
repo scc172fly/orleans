@@ -16,7 +16,7 @@ internal sealed class NativeSocketDiagnostics(Action<string> write) : EventListe
     {
         if (eventSource.Name == "Private.InternalDiagnostics.System.Net.Sockets")
         {
-            // SDK 指定自己的 SocketError之前, 抓取本地补全错误 。
+            // 在 SDK 设置自身的 SocketError 之前捕获原生操作的完成错误。
             EnableEvents(eventSource, EventLevel.Error, (EventKeywords)1);
             _write($"{DateTime.UtcNow:O} [NativeSockets#{GetHashCode()}] Error listener enabled");
         }

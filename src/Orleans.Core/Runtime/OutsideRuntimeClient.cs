@@ -129,7 +129,7 @@ namespace Orleans
 
                 this.GrainReferenceRuntime = this.ServiceProvider.GetRequiredService<IGrainReferenceRuntime>();
 
-                // Init 客户端/ 签名信件
+                // 客户端初始化或登录消息。
                 LogStartingClient(logger, RuntimeVersion.Current, _localClientDetails.ClientAddress, _localClientDetails.ClientId);
 
                 if (TestOnlyThrowExceptionDuringInit)
@@ -151,15 +151,15 @@ namespace Orleans
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            // 故意避免在启动时捕捉当前同步环境, 并在默认的调度器上执行 。
-            // 这有助于避免因执行客户同步环境/时间表而造成的任何问题(如僵局)。
+            // 启动期间刻意避免捕获当前同步上下文，而在默认调度器上执行。
+            // 这样有助于避免在客户端的同步上下文或调度器上执行所导致的问题（例如死锁）。
             try
             {
                 await Task.Run(() => this.StartInternal(cancellationToken), CancellationToken.None).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // 客户生命周期从此方法后开始, 所以取消这里的网络清理 。
+                // 客户端生命周期在此方法之后启动，因此此处的取消处理负责清理网络资源。
                 await StopObserverInvocationsAsync().ConfigureAwait(false);
                 await ServiceProvider.GetRequiredService<ConnectionManager>().Close(CancellationToken.None).ConfigureAwait(false);
                 if (MessageCenter is null)
@@ -180,8 +180,8 @@ namespace Orleans
             var drain = this.localObjects?.StopAsync() ?? Task.CompletedTask;
             this.callbackTimer.Dispose();
 
-            // 在任何取消敏感待等前的错误回调。 完成它们可以恢复代码
-            // 发出后续电话,要求受理必须已经结案。
+            // 在进行任何可能受取消影响的等待之前，先使回调进入失败状态。完成这些回调可能会恢复
+            // 发出后续调用的代码，因此必须已经关闭请求准入。
             BreakOutstandingMessages();
             return drain;
         }
@@ -208,7 +208,7 @@ namespace Orleans
             ConstructorReset();
         }
 
-        // 用于测试的( 有意的) 允许两个客户在相同程序下进行测试( 注意! )
+        // 用于测试，以谨慎地允许同一进程中存在两个客户端。
         private async Task StartInternal(CancellationToken cancellationToken)
         {
             var retryFilter = ServiceProvider.GetService<IClientConnectionRetryFilter>();
@@ -317,13 +317,13 @@ namespace Orleans
 
             if (SystemTargetGrainId.TryParse(targetGrainId, out var systemTargetGrainId))
             {
-                // 如果未提供该 silo ,则发送者将填充该报出入口 silo。
+                // 如果未提供 Silo，则由发送方将其填充为网关 Silo。
                 message.TargetSilo = systemTargetGrainId.GetSiloAddress();
             }
 
             if (this.clientMessagingOptions.DropExpiredMessages && message.IsExpirableMessage())
             {
-                // 不要设置系统目标信息失效时间 。
+                // 不为系统目标消息设置过期时间。
                 var ttl = request.GetDefaultResponseTimeout() ?? this.clientMessagingOptions.ResponseTimeout;
                 message.TimeToLive = ttl;
             }
@@ -383,8 +383,8 @@ namespace Orleans
                 {
                     if (clientMessagingOptions.CancelUnknownRequestOnStatusUpdate)
                     {
-                        // 电话取消后,电话已经放弃
-                        // 请注意,目标和发送方的论据被转换,因为这是对原始请求的答复。
+                        // 由于调用方已放弃该调用，因此取消它。
+                        // 注意，目标和发送方参数已互换，因为这是对原始请求的响应。
                         _cancellationManager?.SignalCancellation(
                             response.SendingSilo,
                             targetGrainId: response.SendingGrain,
@@ -405,8 +405,8 @@ namespace Orleans
             var found = callbacks.TryRemove(response.Id, out callbackData);
             if (found)
             {
-                // 我们也需要在这里进口 RequestContext
-                // 不幸的是,这还不够,因为 CallContext.LogicalGetData 任务完成源不会“上传”到已解决的任务中。
+                // 此处也需要导入 RequestContext。
+                // 遗憾的是，这还不够，因为 CallContext.LogicalGetData 无法从任务完成源向上流入已完成的任务。
                 // RequestContextExtensions.Import(response.RequestContextData);
                 callbackData!.DoCallback(response);
             }

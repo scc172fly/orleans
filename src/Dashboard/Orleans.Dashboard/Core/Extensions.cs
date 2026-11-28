@@ -10,7 +10,7 @@ internal static class Extensions
 
     public static string PrimaryKeyAsString(this GrainReference grainRef)
     {
-        if (grainRef.IsPrimaryKeyBasedOnLong()) // 长
+        if (grainRef.IsPrimaryKeyBasedOnLong()) // 长整型
         {
             var longKey = grainRef.GetPrimaryKeyLong(out var longExt);
             var key = longKey.ToString(CultureInfo.InvariantCulture);
@@ -20,7 +20,7 @@ internal static class Extensions
 
         var stringKey = grainRef.GetPrimaryKeyString();
 
-        if (stringKey == null) // 指导指南
+        if (stringKey == null) // GUID
         {
             var guidKey = grainRef.GetPrimaryKey(out var guidExt).ToString();
 

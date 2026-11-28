@@ -10,7 +10,7 @@ using Xunit;
 namespace UnitTests.SiloMetadataTests;
 
 /// <summary>
-/// 测试 silo 元数据配置、检索和同步跨组的测试。
+/// 测试集群中 Silo 元数据的配置、检索和同步。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]
@@ -215,7 +215,7 @@ public static class SiloMetadataTestExtensions
                 remoteMetadata.Add(otherSilo.SiloAddress, metadata);
             }
 
-            //断言这两个字典有相同的键盘,而这两个关键词的值是相同的
+            //断言两个字典具有相同的键，并且对应键的值相同。
             Assert.Equal(exampleSiloMetadata.Count, remoteMetadata.Count);
             foreach (var kvp in exampleSiloMetadata)
             {

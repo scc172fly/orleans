@@ -1,22 +1,22 @@
 namespace Orleans.Durable.Tasks;
 
-/// <summary>描述援引的持久任务如何处理信号。</summary>
+/// <summary>描述被调用的持久化任务如何处理信号。</summary>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Tasks.DurableSignalResult")]
 public enum DurableSignalResult
 {
-    /// <summary>任务记录了信号值。</summary>
+    /// <summary>任务已记录信号的值。</summary>
     Accepted,
 
-    /// <summary>信号的任务已经具有等值, 因此没有变化 。</summary>
+    /// <summary>任务已保存相等的信号值，因此保持不变。</summary>
     Duplicate,
 
-    /// <summary>任务对信号持有不同的值,所以拒绝了该值。</summary>
+    /// <summary>任务已保存不同的信号值，因此拒绝此值。</summary>
     Conflict,
 
-    /// <summary>下 grain 与标识符一起保留不执行引用的任务。</summary>
+    /// <summary>Grain 未保留具有该标识符的被调用任务。</summary>
     TaskNotFound,
 
-    /// <summary>任务为终端,对信号没有价值,因此拒绝值。</summary>
+    /// <summary>任务已处于终态且没有该信号的值，因此拒绝此值。</summary>
     TaskCompleted,
 }

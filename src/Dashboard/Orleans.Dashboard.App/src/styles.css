@@ -1,8 +1,8 @@
-/* 自定义紫皮肤外光主题 */
+/* 导入自定义紫色皮肤主题 */
 @import './skin-purple.css';
 
-/* 导入主题系统(光/达克) */
+/* 导入主题系统（浅色／深色） */
 @import './themes.css';
 
-/* 导入自定义 Orleans Dashboard 样式 */
+/* 导入 Orleans Dashboard 自定义样式 */
 @import './custom.css';

@@ -8,36 +8,36 @@ using Orleans.Serialization.Buffers;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// 二进制和JSONL代码快照测试所使用的编码化快速格式化辅助器。
+/// 与编解码器无关的快照格式化辅助工具，供二进制和 JSONL 编解码器快照测试共同使用。
 /// </summary>
 /// <remarks>
-/// 这些帮手有意对特定指挥歧视者一无所知。 OrleansBinary
-/// 字典/list/queue/set/valu/ State codecs 使用 varint 命令代号,但 TaskCompletionSource
-/// 代码化使用单一状态字节。 只分割通用框架( 输入长度前缀和流代号)
-/// 保持帮助者在继续跨越每次进入边界时, 将助手保留为每个编码家庭所适用
-/// 审查人员需要阅读快照。
+/// 这些辅助工具特意不依赖任何特定的命令鉴别值。OrleansBinary 的
+/// 字典、列表、队列、集合、值和状态编解码器使用 varuint 命令 ID，而 TaskCompletionSource
+/// 编解码器使用单个状态字节。仅解析通用帧结构（条目长度前缀和流 ID），
+/// 可使辅助工具适用于所有编解码器系列，同时仍呈现每个条目的边界，
+/// 方便审查人员阅读快照差异。
 /// </remarks>
 public static class JournalSnapshotFormatting
 {
     /// <summary>
-    /// 返回 <paramref name="bytes"/>的大写、无分隔符十六进制表示。
+    /// 返回 <paramref name="bytes"/> 的大写、无分隔符十六进制表示。
     /// </summary>
     /// <remarks>
-    /// 这是作为二进制快照文件第一行使用的字节基线: 任何线格式
-    /// 修改单行时, 无法将 CI 移动 。
+    /// 这是用作二进制快照文件首行的字节级基准：传输格式的任何
+    /// 偏差都会改变这一行并导致 CI 失败。
     /// </remarks>
     public static string HexBaseline(ReadOnlySpan<byte> bytes) => Convert.ToHexString(bytes);
 
     /// <summary>
-    /// 重命名一个 OrleansBinary 日记段,作为方便快照多线视图。
+    /// 将 OrleansBinary 日志段呈现为便于查看快照的多行文本。
     /// </summary>
     /// <remarks>
-    /// 输出以单 <c>HEX: …</c> 行(字数级基准)开始,然后是
-    /// <c>DISASSEMBLY:</c> 区域。对每一条目,拆卸的拆散释放一个与
-    /// 通用设置字段 OrleansBinary 阅读器分析(输入框架版本、输入体长度,
-    /// 命令有效载荷的16字节/秒x+ASCII倾弃。如果
-    /// 将拆卸后跌回到未分割尾巴的原始倾弃处;这让
-    /// 即使在对抗性投入中,也安全地使用辅助手,在拍片时不扔掷。
+    /// 输出从单行 <c>HEX: …</c>（字节级基准）开始，随后是
+    /// <c>DISASSEMBLY:</c> 部分。反汇编结果为每个条目输出一行标题，包含
+    /// OrleansBinary 读取器解析的通用帧字段（条目帧版本、条目主体长度
+    /// 和流 ID），以及命令有效载荷的十六进制和 ASCII 转储（每行 16 字节）。如果
+    /// 日志段格式错误，反汇编会退回到直接转储尚未解析的尾部；这样即使面对
+    /// 恶意构造的输入，辅助工具也能安全使用，不会在生成快照时抛出异常。
     /// </remarks>
     public static string FormatBinary(ReadOnlySpan<byte> bytes)
     {
@@ -51,8 +51,8 @@ public static class JournalSnapshotFormatting
             return builder.ToString();
         }
 
-        // 复制到数组, 这样我们就可以在不受限制的情况下从循环中重新使用字节
-        // 跨方法边界的语义(StringBuilder 呼叫,Hex/ASCII倾弃助手)
+        // 复制到数组，以便在循环内部复用 byte[]，而不受跨方法边界的
+        // span 语义限制（StringBuilder 调用及十六进制/ASCII 转储辅助方法）。
         var data = bytes.ToArray();
         using var bufferWriter = new ArcBufferWriter();
         bufferWriter.Write(data);
@@ -181,8 +181,8 @@ public static class JournalSnapshotFormatting
     }
 
     /// <summary>
-    /// 解码 1 Orleans-format varint (可变长无符号整数)。 <c>false</c> 何时
-    /// 输入不包含完整的正弦。
+    /// 解码一个 Orleans 格式的 varint（变长无符号整数）。在以下情况下返回 <c>false</c>：
+    /// 输入不包含完整的 varint。
     /// </summary>
     private static bool TryDecodeVarUInt(ArcBuffer input, out ulong value, out int bytesRead)
     {
@@ -207,9 +207,9 @@ public static class JournalSnapshotFormatting
     }
 
     /// <summary>
-    /// 附加一个语库 <c>OFFSET  16-byte hex  | ASCII</c> 倾 <paramref name="bytes"/> 至
-    /// <paramref name="builder"/>。输出使用字 <c>\n</c> ,因此产生的文本在
-    /// Windows 和 Linux CI 无需取决于 <see cref="Environment.NewLine"/>。
+    /// 将规范化的 <c>OFFSET  16-byte hex  | ASCII</c> 格式的 <paramref name="bytes"/> 转储追加到
+    /// <paramref name="builder"/>。输出使用字面量 <c>\n</c>，因此生成的文本在
+    /// Windows 和 Linux CI 中保持一致，无需依赖 <see cref="Environment.NewLine"/>。
     /// </summary>
     private static void AppendHexAsciiDump(StringBuilder builder, ReadOnlySpan<byte> bytes)
     {
@@ -326,9 +326,9 @@ public static class JournalTestReplayContext
 }
 
 /// <summary>
-/// 记录 <see cref="IStateMachine"/> 字典编码快照测试。
-/// 状态合同( 这样日记阅读器会发送到它) 和字典操作处理程序
-/// (因此编码器通过 <c>state is THandler</c>接受)。
+/// 用于字典编解码器快照测试的记录型 <see cref="IStateMachine"/>。它同时实现
+/// 状态契约（使日志读取器能够向它分派操作）和字典操作处理器
+/// （使编解码器通过 <c>state is THandler</c> 接受它）。
 /// </summary>
 public sealed class RecordingDictionaryState<TKey, TValue> : IStateMachine, IDurableDictionaryCommandHandler<TKey, TValue>
     where TKey : notnull
@@ -365,7 +365,7 @@ public sealed class RecordingDictionaryState<TKey, TValue> : IStateMachine, IDur
 
 }
 
-/// <summary>记录列表代码快照测试的状态</summary>
+/// <summary>用于列表编解码器快照测试的记录型状态。</summary>
 public sealed class RecordingListState<T> : IStateMachine, IDurableListCommandHandler<T>
 {
     private readonly IDurableListCommandCodec<T> _codec;
@@ -402,7 +402,7 @@ public sealed class RecordingListState<T> : IStateMachine, IDurableListCommandHa
 
 }
 
-/// <summary>队列码快照测试的录制状态。</summary>
+/// <summary>用于队列编解码器快照测试的记录型状态。</summary>
 public sealed class RecordingQueueState<T> : IStateMachine, IDurableQueueCommandHandler<T>
 {
     private readonly IDurableQueueCommandCodec<T> _codec;
@@ -435,7 +435,7 @@ public sealed class RecordingQueueState<T> : IStateMachine, IDurableQueueCommand
 
 }
 
-/// <summary>设定码快照测试的记录状态</summary>
+/// <summary>用于集合编解码器快照测试的记录型状态。</summary>
 public sealed class RecordingSetState<T> : IStateMachine, IDurableSetCommandHandler<T>
 {
     private readonly IDurableSetCommandCodec<T> _codec;
@@ -468,7 +468,7 @@ public sealed class RecordingSetState<T> : IStateMachine, IDurableSetCommandHand
 
 }
 
-/// <summary>记录价值代码快照测试的状态</summary>
+/// <summary>用于值编解码器快照测试的记录型状态。</summary>
 public sealed class RecordingValueState<T> : IStateMachine, IDurableValueCommandHandler<T>
 {
     private readonly IDurableValueCommandCodec<T> _codec;
@@ -501,7 +501,7 @@ public sealed class RecordingValueState<T> : IStateMachine, IDurableValueCommand
 
 }
 
-/// <summary>州码快照测试的记录状态</summary>
+/// <summary>用于状态编解码器快照测试的记录型状态。</summary>
 public sealed class RecordingStateState<T> : IStateMachine, IPersistentStateCommandHandler<T>
 {
     private readonly IPersistentStateCommandCodec<T> _codec;
@@ -534,7 +534,7 @@ public sealed class RecordingStateState<T> : IStateMachine, IPersistentStateComm
 
 }
 
-/// <summary>任务完成记录状态 代码化快照测试</summary>
+/// <summary>用于任务完成源编解码器快照测试的记录型状态。</summary>
 public sealed class RecordingTcsState<T> : IStateMachine, IDurableTaskCompletionSourceCommandHandler<T>
 {
     private readonly IDurableTaskCompletionSourceCommandCodec<T> _codec;

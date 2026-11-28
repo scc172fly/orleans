@@ -12,7 +12,7 @@ using Azure.Identity;
 namespace Tests.GeoClusterTests
 {
     /// <summary>
-    /// 测试基于日志的、具有不同储存配置的一致性提供者。
+    /// 测试不同存储配置下基于日志的一致性提供程序。
     /// </summary>
     [TestCategory("GeoCluster"), TestCategory("Functional")]
     [TestSuite("Functional")]
@@ -109,18 +109,18 @@ namespace Tests.GeoClusterTests
 
         private async Task ThreeCheckers(string grainClass, int phases)
         {
-            // 全球 
+            // 全局
             async Task checker1()
             {
                 int x = GetRandom();
                 var grain = this.fixture.GrainFactory.GetGrain<ILogTestGrain>(x, grainClass);
                 await grain.SetAGlobal(x);
                 int a = await grain.GetAGlobal();
-                Assert.Equal(x, a); // 活值 grain 调用
+                Assert.Equal(x, a); // A 的值在 Grain 调用之后仍保留。
                 Assert.Equal(1, await grain.GetConfirmedVersion());
             }
 
-            // 当地当地
+            // 本地
             async Task checker2()
             {
                 int x = GetRandom();
@@ -128,13 +128,13 @@ namespace Tests.GeoClusterTests
                 Assert.Equal(0, await grain.GetConfirmedVersion());
                 await grain.SetALocal(x);
                 int a = await grain.GetALocal();
-                Assert.Equal(x, a); // 活值 grain 调用
+                Assert.Equal(x, a); // A 的值在 Grain 调用之后仍保留。
             }
 
-            // 当地(或全球)
+            // 先本地，后全局。
             async Task checker3()
             {
-                // 当地(或全球)
+                // 先本地，后全局。
                 int x = GetRandom();
                 var grain = this.fixture.GrainFactory.GetGrain<ILogTestGrain>(x, grainClass);
                 await grain.SetALocal(x);
@@ -143,12 +143,12 @@ namespace Tests.GeoClusterTests
                 Assert.Equal(1, await grain.GetConfirmedVersion());
             }
 
-            // 以序列顺序测试它们
+            // 依次测试它们。
             await checker1();
             await checker2();
             await checker3();
 
-            // 每个检查器的测试( 相) 实例, 全部平行
+            // 并行测试每个检查器的（phases 个）实例。
             var tasks = new List<Task>();
             for (int i = 0; i < phases; i++)
             {

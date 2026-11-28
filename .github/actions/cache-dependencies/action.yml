@@ -35,8 +35,8 @@ runs:
       }
       "sdk=$sdk" >> $env:GITHUB_OUTPUT
       "path=$($Matches[1])" >> $env:GITHUB_OUTPUT
-  # GitHub 将请求的抓取缓存写到合并参考文件, 同时允许从基础分支读取 。
-  # 种子更改需要新鲜存储,因为 NuGet 能够满足已经提取的包件的恢复。
+  # GitHub 将拉取请求的缓存写入隔离在其合并引用中，同时允许读取基分支的缓存。
+  # 包源变更需要使用全新的缓存存储，因为 NuGet 可以利用已解压的包完成还原。
   - name: Cache NuGet packages
     if: inputs.nuget == 'true'
     uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5

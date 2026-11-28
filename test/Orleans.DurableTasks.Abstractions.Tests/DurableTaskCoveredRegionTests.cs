@@ -5,9 +5,9 @@ using Xunit;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// 验证覆盖的区域, 即保存记录包含在处决历史之外的代码的机制:
-/// 同步区域,例如效应和东道国对州的业务以及非同步覆盖的流量,如:
-/// 交易机构,由主机通过内部成员进入。
+/// 验证已覆盖区域，这是将记录已覆盖的代码排除在执行实例历史之外的唯一机制：
+/// 同步区域（例如效果及宿主的状态操作）和异步覆盖流程（例如
+/// 事务体），宿主通过内部成员进入这些区域。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -30,7 +30,7 @@ public class DurableTaskCoveredRegionTests
                 {
                     await Task.Yield();
 
-                    // 等待之后仍被覆盖:影响是流动的一部分,持久行动也是持续进行。
+                    // await 之后仍处于覆盖区域中：效果作为该流程的一部分运行，持久化操作会抛出异常。
                     var value = DurableTask.RunInline("inner", static () => 1) + DurableTask.RunInline(static () => 1);
                     failures.Add(Assert.Throws<InvalidOperationException>(static () => DurableTask.Run(static _ => 0).Post()));
                     failures.Add(Assert.Throws<InvalidOperationException>(static () => DurableTask.GetVersion("change", 0, 1)));
@@ -38,7 +38,7 @@ public class DurableTaskCoveredRegionTests
                     return value;
                 });
 
-                // 该地区就此结束,因此下一个业务记录,流量没有识别资料。
+                // 区域已经结束，因此后续操作会被记录；此前的流程未占用任何标识符。
                 return nested + DurableTask.RunInline(static () => 10) + DurableTask.RunInline("inner", static () => 100);
             }),
             context);
@@ -59,7 +59,7 @@ public class DurableTaskCoveredRegionTests
         var response = await DurableTaskRuntimeHelper.RunAsync(
             DurableTask.Run(async _ =>
             {
-                // 被覆盖的体不会开始记录其效果 而被覆盖的体流运行。
+                // 未由覆盖区域任务体启动的流程，在覆盖流程运行期间仍记录其效果。
                 var other = RecordLaterAsync(release.Task);
                 var covered = await RunInCoveredFlowAsync(DurableTask.Current, async () =>
                 {
@@ -101,7 +101,7 @@ public class DurableTaskCoveredRegionTests
             }),
             context);
 
-        // 拒绝启动的点名事件会让它自由存在
+        // 被拒绝的启动原本会占用的具名出现位置仍然可用。
         Assert.Equal(2, response.GetResult<int>());
         Assert.Equal(["root/covered"], context.Effects);
         Assert.Equal(["root/child"], context.Posts);
@@ -118,7 +118,7 @@ public class DurableTaskCoveredRegionTests
             .GetMethod("EnterCoveredRegion", BindingFlags.Instance | BindingFlags.NonPublic)!
             .Invoke(context, null)!;
 
-    /// <summary>存储效果和发布功能的东道主,同时完成所有其他业务。</summary>
+    /// <summary>记录效果和投递操作、并立即完成其他所有操作的宿主。</summary>
     private sealed class RecordingContext() : DurableTaskContext(TaskId.CreateRoot("root"))
     {
         public List<string> Effects { get; } = [];

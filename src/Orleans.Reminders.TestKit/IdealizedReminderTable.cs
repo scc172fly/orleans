@@ -9,24 +9,24 @@ using Orleans.Runtime;
 namespace Orleans.Reminders.TestKit;
 
 /// <summary>
-/// 确定性、强烈一致和初步参照 <see cref="IReminderTable"/>
-/// 合同,与每个生产提醒提供者独立订立。
+/// <see cref="IReminderTable"/> 契约的确定性、强一致性、内存参考实现，
+/// 独立于所有生产环境提醒器提供程序编写。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 甲骨文的存在,以便能对照已知的正确执行程序验证符合性套件
-/// 指出的是真正的供应商,它不是生产供应商的包装纸:它维持自己的储存、其销售和销售。
-/// 自己的单体ETag序列和其本身的射程评价直接来自有文件证明的合同。
+/// 此参考实现用于在将符合性测试套件应用于实际提供程序之前，
+/// 先使用已知正确的实现验证测试套件。它不是生产环境提供程序的包装器，而是维护自身的存储、
+/// 自身单调递增的 ETag 序列，以及直接依据文档契约实现的范围判断逻辑。
 /// </para>
-/// <para>内审: <see cref="Snapshot"/>, <see cref="Operations"/>, <see cref="OperationCount"/>.</para>
+/// <para>内部状态观测：<see cref="Snapshot"/>、<see cref="Operations"/>、<see cref="OperationCount"/>。</para>
 /// <para>
-/// 控制: <see cref="SetAvailable"/> (储存中断)、 <see cref="InjectFailure"/> (中度故障),
-/// <see cref="BlockNext"/> (确定同步障碍)、 <see cref="FreezeReads"/> (短片)和
-/// 对 <see cref="StartAsync"/> 和 <see cref="StopAsync"/>的注销观测。
+/// 控制项：<see cref="SetAvailable"/>（存储中断）、<see cref="InjectFailure"/>（暂时性故障）、
+/// <see cref="BlockNext"/>（确定性同步屏障）、<see cref="FreezeReads"/>（过期快照），以及
+/// 对 <see cref="StartAsync"/> 和 <see cref="StopAsync"/> 的取消观测。
 /// </para>
 /// <para>
-/// 导致这些侵犯行为的行动发现各种侵犯行为,报告为:
-/// <see cref="ReminderConformanceException"/> 带有结构化 <see cref="ReminderFailureReport"/>。
+/// 在导致不变量被破坏的操作处检测违规，并将其报告为
+/// <see cref="ReminderConformanceException"/>，其中携带结构化的 <see cref="ReminderFailureReport"/>。
 /// </para>
 /// </remarks>
 public sealed class IdealizedReminderTable : IReminderTable
@@ -48,19 +48,19 @@ public sealed class IdealizedReminderTable : IReminderTable
     /// <summary>
     /// 初始化 <see cref="IdealizedReminderTable"/> 类的新实例。
     /// </summary>
-    /// <param name="name">用于识别诊断中此实例的名称。</param>
+    /// <param name="name">用于在诊断中标识此实例的名称。</param>
     public IdealizedReminderTable(string name = "IdealizedReminderTable")
     {
         Name = string.IsNullOrWhiteSpace(name) ? "IdealizedReminderTable" : name;
     }
 
     /// <summary>
-    /// 获取用于在诊断中识别此实例的名称 。
+    /// 获取用于在诊断中标识此实例的名称。
     /// </summary>
     public string Name { get; }
 
     /// <summary>
-    /// 获得一个值,以显示 <see cref="StartAsync"/> 是否最近完成过 <see cref="StopAsync"/>。
+    /// 获取一个值，指示 <see cref="StartAsync"/> 的完成时间是否晚于 <see cref="StopAsync"/>。
     /// </summary>
     public bool IsStarted
     {
@@ -74,7 +74,7 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// 获得一个值,以显示表格是否正在满足请求。
+    /// 获取一个值，指示此表当前是否正在处理请求。
     /// </summary>
     public bool IsAvailable
     {
@@ -88,9 +88,9 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// 返回的每个持久记录都有一个定序快照。
+    /// 返回所有持久化记录按确定性顺序排列的快照。
     /// </summary>
-    /// <returns>统一散列码下的命令记录 grain 和提醒名称。</returns>
+    /// <returns>按均匀哈希码、Grain 标识和提醒器名称排序的记录。</returns>
     public IReadOnlyList<ReminderTableRecord> Snapshot()
     {
         lock (_gate)
@@ -100,11 +100,11 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// 试图阅读一份单一的持久记录。
+    /// 尝试读取单条持久化记录。
     /// </summary>
-    /// <param name="grainId"> grain 标识符。</param>
-    /// <param name="reminderName">提醒的名称。</param>
-    /// <returns>(a) 记录,或 <see langword="null"/> 不存在时。</returns>
+    /// <param name="grainId">Grain 标识符。</param>
+    /// <param name="reminderName">提醒器名称。</param>
+    /// <returns>该记录；不存在时返回 <see langword="null"/>。</returns>
     public ReminderTableRecord? Find(GrainId grainId, string reminderName)
     {
         lock (_gate)
@@ -114,7 +114,7 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// 返回本表格所观察到的每个操作的顺序日志。
+    /// 返回此表观测到的所有操作的有序日志。
     /// </summary>
     public IReadOnlyList<ReminderTableOperation> Operations
     {
@@ -128,10 +128,10 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// 计及迄今观察到的指定类型的操作。
+    /// 统计目前为止观测到的指定类型操作的数量。
     /// </summary>
     /// <param name="kind">操作类型。</param>
-    /// <returns>计数。</returns>
+    /// <returns>数量。</returns>
     public int OperationCount(ReminderTableOperationKind kind)
     {
         lock (_gate)
@@ -141,7 +141,7 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// 清除记录中的操作日志,不影响耐久状态。
+    /// 清除记录的操作日志，不影响持久化状态。
     /// </summary>
     public void ClearOperations()
     {
@@ -152,9 +152,9 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// 标出可用或无法使用的表格,模拟储存中断和回收。
+    /// 将表标记为可用或不可用，以模拟存储中断及恢复。
     /// </summary>
-    /// <param name="available">表格是否满足请求。</param>
+    /// <param name="available">此表是否应处理请求。</param>
     public void SetAvailable(bool available)
     {
         lock (_gate)
@@ -164,11 +164,11 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// 将指定操作种类的一个或多个注射失败。
+    /// 将针对指定操作类型注入的一个或多个故障加入队列。
     /// </summary>
-    /// <param name="kind">操作类型失败。</param>
-    /// <param name="count">连续发生失败的次数。</param>
-    /// <param name="exceptionFactory">生产例外情形或 <see langword="null"/> 的工厂,因违约。</param>
+    /// <param name="kind">要使其失败的操作类型。</param>
+    /// <param name="count">要连续失败的次数。</param>
+    /// <param name="exceptionFactory">生成异常的工厂；使用 <see langword="null"/> 表示采用默认工厂。</param>
     public void InjectFailure(ReminderTableOperationKind kind, int count = 1, Func<Exception>? exceptionFactory = null)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(count, 1);
@@ -189,7 +189,7 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// 删除每个队列的注射失败 。
+    /// 移除队列中的全部注入故障。
     /// </summary>
     public void ClearInjectedFailures()
     {
@@ -200,10 +200,10 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// 屏蔽指定类型的下一次操作,直到返回的大门被释放。
+    /// 阻塞下一次指定类型的操作，直至返回的门控对象被释放。
     /// </summary>
-    /// <param name="kind">封堵的操作类型。</param>
-    /// <returns>大门</returns>
+    /// <param name="kind">要阻塞的操作类型。</param>
+    /// <returns>门控对象。</returns>
     public ReminderTableOperationGate BlockNext(ReminderTableOperationKind kind)
     {
         var gate = new ReminderTableOperationGate(this, kind);
@@ -216,10 +216,10 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     /// <summary>
-    /// 冻结规定与目前的耐久状态相反,
-    /// 继续适用。
+    /// 将读取冻结在当前持久化状态，使后续读取观测到过期快照，同时写入
+    /// 仍继续生效。
     /// </summary>
-    /// <returns>处理时恢复活的控点读作。</returns>
+    /// <returns>释放时恢复实时读取的句柄。</returns>
     public IDisposable FreezeReads()
     {
         lock (_gate)
@@ -388,7 +388,7 @@ public sealed class IdealizedReminderTable : IReminderTable
     }
 
     // ---------------------------------------------------------------------------------------------------------
-    // 内部内部
+    // 内部实现
     // ---------------------------------------------------------------------------------------------------------
 
     private async Task BeforeOperationAsync(
@@ -533,14 +533,14 @@ public sealed class IdealizedReminderTable : IReminderTable
     };
 
     /// <summary>
-    /// 确定统一的散列代码是否属于范围(<paramref name="begin"/>、 <paramref name="end"/>)
+    /// 判断均匀哈希码是否位于范围 (<paramref name="begin"/>, <paramref name="end"/>] 内。
     /// </summary>
-    /// <param name="hash">统一的散列代码。</param>
-    /// <param name="begin">排他性下限约束</param>
-    /// <param name="end">包含式上约束。</param>
-    /// <returns><see langword="true"/> 当散列在范围之内时。</returns>
-    /// <remarks>当 <paramref name="begin"/> 大于或等于 <paramref name="end"/> 时, 范围包
-    /// 零周围和匹配的支盘高于 <paramref name="begin"/> 或位于或低于 <paramref name="end"/>。</remarks>
+    /// <param name="hash">均匀哈希码。</param>
+    /// <param name="begin">下界（不含该端点）。</param>
+    /// <param name="end">上界（包含该端点）。</param>
+    /// <returns><see langword="true"/> 表示哈希码位于范围内。</returns>
+    /// <remarks>当 <paramref name="begin"/> 大于或等于 <paramref name="end"/> 时，范围跨越
+    /// 零点，并匹配大于 <paramref name="begin"/> 或小于等于 <paramref name="end"/> 的哈希码。</remarks>
     public static bool InRange(uint hash, uint begin, uint end)
         => begin < end ? hash > begin && hash <= end : hash > begin || hash <= end;
 

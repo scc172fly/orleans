@@ -5,10 +5,10 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// 用于建议使用[GenerateSerializer]而不是[可序列]属性的分析器测试。
-/// Orleans 使用自己的序列系统进行高效 grain 通信和[GenerateSerializer
-/// 属性使代码生成能够用于最佳序列化性能。使用遗留 [可存储]
-/// 属性可能导致序列化速度放慢和信件大小较大。
+/// 测试建议使用 [GenerateSerializer] 特性代替 [Serializable] 特性的分析器。
+/// Orleans 使用自己的序列化系统实现高效的 Grain 通信，[GenerateSerializer]
+/// 特性能够启用代码生成以优化序列化性能。使用旧版 [Serializable]
+/// 特性可能导致序列化速度降低及消息体积增大。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 [TestSuite("BVT")]
@@ -35,32 +35,32 @@ public class GenerateGenerateSerializerAttributeAnalyzerTest : DiagnosticAnalyze
     }
 
     /// <summary>
-    /// 证明分析器检测到某一类使用 [可序列]属性时,分析器会检测
-    /// 建议使用[GenerateSerializer而不是为了更好 Orleans 连续性业绩。
+    /// 验证分析器能否检测使用 [Serializable] 特性的类，
+    /// 并建议改用 [GenerateSerializer] 以获得更好的 Orleans 序列化性能。
     /// </summary>
     [Fact]
     public Task SerializableClass()
         => VerifyGeneratedDiagnostic(@"[System.Serializable] public class D { }");
 
     /// <summary>
-    /// 证明分析器在构造使用[可序列]属性时能够检测到
-    /// 建议使用[GenerateSerializer而不是为了更好 Orleans 连续性业绩。
+    /// 验证分析器能否检测使用 [Serializable] 特性的结构体，
+    /// 并建议改用 [GenerateSerializer] 以获得更好的 Orleans 序列化性能。
     /// </summary>
     [Fact]
     public Task SerializableStruct()
         => VerifyGeneratedDiagnostic(@"[System.Serializable] public struct D { }");
 
     /// <summary>
-    /// 证明分析器在记录使用[可编 属性时检测到
-    /// 建议使用[GenerateSerializer而不是为了更好 Orleans 连续性业绩。
+    /// 验证分析器能否检测使用 [Serializable] 特性的记录类型，
+    /// 并建议改用 [GenerateSerializer] 以获得更好的 Orleans 序列化性能。
     /// </summary>
     [Fact]
     public Task SerializableRecord()
         => VerifyGeneratedDiagnostic(@"[System.Serializable] public record D { }");
 
     /// <summary>
-    /// 证明分析器在记录结构使用[可序列]属性时能够检测到
-    /// 建议使用[GenerateSerializer而不是为了更好 Orleans 连续性业绩。
+    /// 验证分析器能否检测使用 [Serializable] 特性的记录结构体，
+    /// 并建议改用 [GenerateSerializer] 以获得更好的 Orleans 序列化性能。
     /// </summary>
     [Fact]
     public Task SerializableRecordStruct()

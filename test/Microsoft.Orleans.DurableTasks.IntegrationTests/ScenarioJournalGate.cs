@@ -6,7 +6,7 @@ using Orleans.Durable.Journaling;
 
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
-/// <summary>在进入前或储存后立即持有一份真实日记,确认其为真。</summary>
+/// <summary>在准入前或存储确认后立即阻塞一次真实日志写入。</summary>
 internal sealed class ScenarioJournalGate
 {
     private readonly TaskCompletionSource _entered = new(TaskCreationOptions.RunContinuationsAsynchronously);

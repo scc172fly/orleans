@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Tester.Directories;
 
-// 自定义 Grain 目录的基准测试
+// 自定义 Grain 目录的基础测试
 public abstract class GrainDirectoryTests<TGrainDirectory> where TGrainDirectory : IGrainDirectory
 {
     protected readonly ILoggerFactory loggerFactory;
@@ -77,7 +77,7 @@ public abstract class GrainDirectoryTests<TGrainDirectory> where TGrainDirectory
     }
 
     /// <summary>
-    /// 如果注册电话包含匹配的 "previousAddress" 参数,则覆盖已有条目。
+    /// 如果注册调用包含匹配的 "previousAddress" 参数，则覆盖现有条目。
     /// </summary>
     [Fact]
     public async Task OverwriteEntryIfMatch()
@@ -106,13 +106,13 @@ public abstract class GrainDirectoryTests<TGrainDirectory> where TGrainDirectory
             MembershipVersion = initial.MembershipVersion
         };
 
-        // 成功,没有登记,所以忽略了上一个地址。
+        // 成功，尚无注册记录，因此忽略先前地址。
         Assert.Equal(initial, await GrainDirectory.Register(initial, differentSilo, TestContext.Current.CancellationToken));
 
-        // 成功, 前一个地址与现有的登记相符 。
+        // 成功，先前地址与现有注册记录匹配。
         Assert.Equal(differentActivation, await GrainDirectory.Register(differentActivation, initial, TestContext.Current.CancellationToken));
 
-        // 失败时, 前一个地址与现有的登记不符 。
+        // 失败，先前地址与现有注册记录不匹配。
         Assert.Equal(differentActivation, await GrainDirectory.Register(differentSilo, initial, TestContext.Current.CancellationToken));
 
         Assert.Equal(differentActivation, await GrainDirectory.Lookup(initial.GrainId, TestContext.Current.CancellationToken));

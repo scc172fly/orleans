@@ -1,24 +1,24 @@
 namespace Orleans.EventSourcing
 {
     /// <summary>
-    /// 由所有使用日志-视图一致性的 grains 用户所执行的界面
-    /// 它使日志视图调整器访问 grain- 特定信息和回调。
+    /// 所有使用日志视图一致性的 Grain 实现的接口。
+    /// 此接口使日志视图适配器能够访问特定于 Grain 的信息及回调。
     /// </summary>
-    /// <typeparam name="TLogView">日志视图类型</typeparam>
-    /// <typeparam name="TLogEntry">类日志条目类型</typeparam>
+    /// <typeparam name="TLogView">日志视图的类型。</typeparam>
+    /// <typeparam name="TLogEntry">日志条目的类型。</typeparam>
     public interface ILogViewAdaptorHost<TLogView, TLogEntry> : IConnectionIssueListener
     {
         /// <summary>
-        /// 实施观点过渡。 
-        /// 任何被抛出的任何例外将被抓住并登入记录作为警告。/ >
+        /// 视图转换的实现。
+        /// 抛出的任何异常都会被捕获，并作为警告记录。
         /// </summary>
         void UpdateView(TLogView view, TLogEntry entry);
 
         /// <summary>
-        /// 通知主机状态变化 grain 。 
-        /// 在临时或确认的状态变化时,调用 <see cref="ILogViewAdaptor{TLogView,TLogEntry}"/> 。
-        /// 执行在是否和多少批次变更通知方面可能有所不同。
-        /// 任何被抛出的任何例外将被抓住并登入记录作为警告。/ >
+        /// 将状态变化通知宿主 Grain。
+        /// 每当暂定状态或已确认状态变化时，由 <see cref="ILogViewAdaptor{TLogView,TLogEntry}"/> 调用。
+        /// 不同实现可以选择是否批处理变化通知以及批处理的程度。
+        /// 抛出的任何异常都会被捕获，并作为警告记录。
         /// </summary>
         void OnViewChanged(bool tentative, bool confirmed);
 

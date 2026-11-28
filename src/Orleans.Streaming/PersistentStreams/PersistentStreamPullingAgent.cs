@@ -146,14 +146,14 @@ namespace Orleans.Streams
         Task ITestAccessor.Shutdown() => this.RunOrQueueTask(() => Shutdown(CancellationToken.None));
 
         /// <summary>
-        /// 负责新队列,通过新的范围指派给我。
-        /// 我们首先在内部数据结构中 储存新的队列, 尝试初始化它并启动一个抽水计时器。
-        /// 错误的手势:
-        ///     处理启动和关闭故障的责任在 INewQueueAdapterReceiver 代码之内。
-        ///     代理商将一次性调用初始化并记录错误。 它不会再次调用初始化 。
-        ///     接收人本身可能后来试图从这一错误中收回,并再次进行初始化。
-        ///     代理商将假定启动成功,随后开始呼叫抽水接收器。
-        ///     关闭同样适用。
+        /// 接管通过新范围分配给本代理的新队列。
+        /// 首先将新队列存入内部数据结构，尝试初始化它，并启动拉取定时器。
+        /// 错误处理：
+        /// 初始化和关闭故障的处理责任在 INewQueueAdapterReceiver 代码中。
+        /// 代理调用 Initialize 一次并记录错误，不会再次调用 Initialize。
+        /// 接收器本身可以稍后尝试从错误中恢复并重新初始化。
+        /// 代理假定初始化已成功，随后开始调用拉取接收操作。
+        /// 同样适用于关闭操作。
         /// </summary>
         /// <returns></returns>
         public async Task Initialize(CancellationToken cancellationToken)
@@ -208,12 +208,12 @@ namespace Orleans.Streams
             {
                 LogErrorReceiverInit(new(QueueId), exception);
 
-                // 忽略这一例外,继续,仿佛初始化成功一样。
-                // 我们已经记录了个人通话的个别例外, 不需要再次登录 。
+                // 忽略此异常，按 Initialize 已成功继续处理。
+                // 已记录各次 Initialize 调用的单独异常，无需再次记录。
             }
 
-            // 为新接收器设置阅读器 。
-            // 即使接收器没有初始化, 也可以把它当作是正数处理, 然后开始抽它。 重试初始化是接收器的责任 。
+            // 为新接收器设置读取器。
+            // 即使接收器初始化失败，也将其视为正常并开始拉取。重试初始化是接收器的责任。
             var randomTimerOffset = RandomTimeSpan.Next(this.options.GetQueueMsgsTimerPeriod);
             timer = RegisterGrainTimer(RunQueuePump, QueueId, randomTimerOffset, this.options.GetQueueMsgsTimerPeriod);
             StreamingEvents.EmitPullingAgentStarted(streamProviderName, Silo, QueueId, randomTimerOffset, this.options.GetQueueMsgsTimerPeriod);
@@ -245,7 +245,7 @@ namespace Orleans.Streams
 
         private async Task ShutdownCore(CancellationToken cancellationToken)
         {
-            // 停止从不属于我的队列中拉动。
+            // 停止从不再属于本代理范围的队列中拉取消息。
             LogInfoShutdown(GetType().Name, new(QueueId));
 
             var drainTask = _workAdmission.CloseAsync();
@@ -257,7 +257,7 @@ namespace Orleans.Streams
                 StreamingEvents.EmitPullingAgentStopped(streamProviderName, Silo, QueueId);
             }
 
-            // 等待登记后,用户的进展不确定,即使用户在排水沟中退出。
+            // 尚未完成的注册会导致订阅者进度不确定，即使它们在排空期间退出也是如此。
             var hasPendingRegistrations = pubSubCache.Values.Any(static stream => stream.RegistrationTask is { IsCompleted: false });
 
             Task? localReceiverInitTask = receiverInitTask;
@@ -270,7 +270,7 @@ namespace Orleans.Streams
             await _activePumpTask.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext);
             await drainTask;
 
-            // 所有接受的工作都已完成了进度簿记工作,并发放了分批/登记证。
+            // 所有已接受的工作均已完成进度记录，并解除批次和注册的固定引用。
             if (!hasPendingRegistrations)
             {
                 NotifyDeliveryProgress();
@@ -290,7 +290,7 @@ namespace Orleans.Streams
                 if (localReceiver != null)
                 {
                     var task = OrleansTaskExtentions.SafeExecute(() => localReceiver.Shutdown(this.options.InitQueueTimeout, cancellationToken));
-#pragma warning disable CA2025 // LogException awaits the shutdown task, and its result is awaited before provider cleanup continues.
+#pragma warning disable CA2025 // LogException 会等待关闭任务，在继续清理提供程序之前也会等待其结果。
                     task = task.LogException(logger, ErrorCode.PersistentStreamPullingAgent_07,
                         $"QueueAdapterReceiver {QueueId} failed to Shutdown.");
 #pragma warning restore CA2025
@@ -299,8 +299,8 @@ namespace Orleans.Streams
             }
             catch
             {
-                // 忽略这一例外,继续做下去,好像关闭成功一样。
-                // 我们已经记录了个别电话的例外, 不需要再次登录。
+                // 忽略此异常，按 Shutdown 已成功继续处理。
+                // 已记录各次 Shutdown 调用的单独异常，无需再次记录。
             }
 
             var unregisterTasks = new List<Task>();
@@ -331,7 +331,7 @@ namespace Orleans.Streams
         {
             cancellationToken.ThrowIfCancellationRequested();
             LogDebugAddSubscriber(streamId, streamConsumer);
-            // 不能等待,因为明确的消费者触发了这一呼吁,因此可能导致僵局。
+            // 此处不能使用 await，因为显式消费者会触发此调用，可能导致死锁。
             AddSubscriber_Impl(subscriptionId, streamId, streamConsumer, filterData, null)
                 .LogException(logger, ErrorCode.PersistentStreamPullingAgent_26,
                     $"Failed to add subscription for stream {streamId}.")
@@ -339,7 +339,7 @@ namespace Orleans.Streams
             return Task.CompletedTask;
         }
 
-        // 由会合呼叫 当新的远程用户订阅此流时。
+        // 当新的远程订阅者订阅此流时，由会合点调用。
         private async Task AddSubscriber_Impl(
             GuidId subscriptionId,
             QualifiedStreamId streamId,
@@ -352,7 +352,7 @@ namespace Orleans.Streams
 
             if (!pubSubCache.TryGetValue(streamId, out var streamDataCollection))
             {
-                // 如果溪流不在普丁子暗藏处 我们没有收到任何消息 并且会要求从普丁子那里订账
+                // 如果流不在 pubsub 缓存中，则尚未收到此流上的任何事件；收到事件时再从 pubsub 获取订阅信息。
                 return;
             }
 
@@ -379,7 +379,7 @@ namespace Orleans.Streams
                     data.IsRegistered = true;
                     StreamingEvents.EmitSubscriptionAttached(streamProviderName, streamId.StreamId, subscriptionId.Guid, streamConsumer, Silo);
                     if (data.State == StreamConsumerDataState.Inactive)
-                        RunConsumerCursor(data).Ignore(); // 如果不积极开展,则开始交付活动
+                        RunConsumerCursor(data).Ignore(); // 如果当前未在投递事件，则开始投递。
                 }
             }
             finally
@@ -412,7 +412,7 @@ namespace Orleans.Streams
             StreamHandshakeToken? requestedHandshakeToken = null;
             StreamHandshakeToken? effectiveHandshakeToken = null;
             var providerDefaultRequest = false;
-            // 如果不是缓存,那么我们就不能得到光标 没有理由要求消费者代币
+            // 如果没有缓存，就无法获取游标，也没有必要向消费者询问令牌。
             if (queueCache != null)
             {
                 Exception? exceptionOccured = null;
@@ -422,7 +422,7 @@ namespace Orleans.Streams
                     requestedHandshakeToken = await AsyncExecutorWithRetries.ExecuteWithRetries(
                          i => consumerData.StreamConsumer.GetSequenceToken(consumerData.SubscriptionId),
                          AsyncExecutorWithRetries.INFINITE_RETRIES,
-                         // 如果代理机构正在关闭, 或如果例外是 ClientNotAvailableException, 不重试
+                         // 如果代理正在关闭，或异常是 ClientNotAvailableException，则不要重试。
                          (exception, i) => exception is not ClientNotAvailableException && !IsShutdown
                              && handshakeRequestId == consumerData.HandshakeRequestId,
                          this.options.MaxEventDeliveryTime,
@@ -461,7 +461,7 @@ namespace Orleans.Streams
                             || effectiveHandshakeToken is StartToken
                                 && SubscriptionMarker.IsImplicitSubscription(consumerData.SubscriptionId.Guid))
                         {
-                            // 发送凭证和暗示回收凭证,标明已经处理的事件。
+                            // 投递令牌与隐式恢复令牌标识已经处理过的事件。
                             consumerData.Cursor = GetAdvancedCursorOrFallback(
                                 consumerData.StreamId,
                                 requestedToken,
@@ -489,7 +489,7 @@ namespace Orleans.Streams
                     else
                     {
                         var registrationToken = cacheToken ?? consumerData.PendingStartToken;
-                        if (consumerData.Cursor == null) // 如果消费者没有要求特定标记, 我们已经有一个光标, 只要继续使用它。
+                        if (consumerData.Cursor == null) // 如果消费者未请求特定令牌且已经存在游标，则继续使用该游标。
                             consumerData.Cursor = GetCacheCursorOrThrow(consumerData.StreamId, registrationToken);
                     }
                 }
@@ -501,7 +501,7 @@ namespace Orleans.Streams
                 }
                 if (exceptionOccured != null)
                 {
-                    // 如果我们关闭了, 忽略错误
+                    // 如果正在关闭，则忽略错误。
                     if (IsShutdown) return false;
 
                     bool faultedSubscription = await ErrorProtocol(
@@ -531,7 +531,7 @@ namespace Orleans.Streams
             consumerData.StartPositionIsProviderDefault = providerDefaultRequest
                 && effectiveHandshakeToken is StartPositionToken;
             consumerData.LastToken = effectiveHandshakeToken;
-            // 如果我们还没有光标( 握手有错误或数据没有可用的 Exc), 则在触发消费者订阅的事件上获得光标 。
+            // 如果尚无游标（握手发生错误或数据不可用异常），则获取指向触发该消费者订阅的事件的游标。
             if (consumerData.Cursor == null && queueCache != null)
             {
                 try
@@ -793,7 +793,7 @@ namespace Orleans.Streams
 
             if (!pubSubCache.TryGetValue(streamId, out var streamData)) return;
 
-            // 删除消费者
+            // 移除消费者。
             bool removed = streamData.RemoveConsumer(subscriptionId, logger);
             if (removed)
             {
@@ -833,19 +833,19 @@ namespace Orleans.Streams
                     receiverInitTask = null;
                 }
 
-                if (IsShutdown || cancellationToken.IsCancellationRequested) return; // 时间计已删除, 最后一个选中
+                if (IsShutdown || cancellationToken.IsCancellationRequested) return; // 定时器已经移除，这是最后一次触发。
 
-                // 循环到队列中,直到它为空。
-                while (!IsShutdown && !cancellationToken.IsCancellationRequested) // 关闭设置 IsShutdown 并取消计时器牌 。
+                // 循环读取队列，直到队列为空。
+                while (!IsShutdown && !cancellationToken.IsCancellationRequested) // 关闭操作设置 IsShutdown 并取消定时器令牌。
                 {
                     int maxCacheAddCount = queueCache?.GetMaxAddCount() ?? QueueAdapterConstants.UNLIMITED_GET_QUEUE_MSG;
                     if (maxCacheAddCount != QueueAdapterConstants.UNLIMITED_GET_QUEUE_MSG && maxCacheAddCount <= 0)
                         return;
 
-                    // 如果阅读成功,而且有更多的数据,我们继续阅读。
-                    // 如果阅读成功, 数据不再, 我们就会打破循环
-                    // 如果读失败, 我们再重复6次, 并使用后退政策 。
-                    //    我们每次登录失败作为警告。 如果仍然失败, 6次重试后, 我们打破循环并记录错误
+                    // 如果读取成功且还有数据，则继续读取。
+                    // 如果读取成功且没有更多数据，则退出循环。
+                    // 如果读取失败，按退避策略再重试 6 次。
+                    // 将每次失败记录为警告。如果重试 6 次后仍失败，则退出循环并记录错误。
                     bool moreData = await AsyncExecutorWithRetries.ExecuteWithRetries(
                         i => ReadFromQueue(queueId, receiver, maxCacheAddCount, cancellationToken),
                         ReadLoopRetryMax,
@@ -875,13 +875,13 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 从队列中读取 。
-        /// 返回真实, 如果数据被读取, 返回为真实, 否则返回为虚假
+        /// 从队列读取。
+        /// 如果读取到数据，则返回 true；否则返回 false。
         /// </summary>
         /// <param name="myQueueId"></param>
         /// <param name="rcvr"></param>
         /// <param name="maxCacheAddCount"></param>
-        /// <param name="cancellationToken">取消牌。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
         /// <returns></returns>
         private async Task<bool> ReadFromQueue(QueueId myQueueId, IQueueAdapterReceiver? rcvr, int maxCacheAddCount, CancellationToken cancellationToken)
         {
@@ -890,7 +890,7 @@ namespace Orleans.Streams
                 return false;
             }
 
-            // 暂停所有队列,这样冷溪的第一批就一直固定到登记完成为止。
+            // 暂停所有队列读取，使冷流的首个批次保持固定，直到注册完成。
             if (pubSubCache.Values.Any(static stream => stream.RegistrationTask is { IsCompleted: false }))
             {
                 return false;
@@ -899,7 +899,7 @@ namespace Orleans.Streams
             var now = _timeProvider.GetUtcNow().UtcDateTime;
             TagList? tags = null;
 
-            // 尝试清理可配置 StreamInactivityPeriod十次的阴道缓存。
+            // 尝试清理 pubsub 缓存，频率为每个可配置的 StreamInactivityPeriod 清理 10 次。
             if ((now - lastTimeCleanedPubSubCache) >= this.options.StreamInactivityPeriod.Divide(StreamInactivityCheckFrequency))
             {
                 lastTimeCleanedPubSubCache = now;
@@ -937,16 +937,16 @@ namespace Orleans.Streams
 
             if (queueCache is not null && queueCache.IsUnderPressure())
             {
-                // 后压下,退出循环,下次回调时还会尝试
+                // 当前处于背压状态。退出循环，下次定时器回调时再次尝试。
                 LogInfoStreamCacheUnderPressure();
                 return false;
             }
 
-            // 检索一号 multiBatch 队列中选择的 multiBatch 拥有无数 IBatchContainers, 每个 IBatchContainer 可能发生多次事件。
+            // 从队列取出一个 multiBatch。每个 multiBatch 包含一个由 IBatchContainer 组成的 IEnumerable，每个 IBatchContainer 可能包含多个事件。
             IList<IBatchContainer>? multiBatch = await rcvr.GetQueueMessagesAsync(maxCacheAddCount, cancellationToken);
 
-            // 与旧版本 Orleans 相配的接收器仍可返回无效。
-            if (multiBatch is null || multiBatch.Count == 0) return false; // 队列为空。退出循环。下次回调时将再次尝试。
+            // 基于较旧 Orleans 版本构建的接收器仍可能返回 null。
+            if (multiBatch is null || multiBatch.Count == 0) return false; // 队列为空。退出循环，下次定时器回调时再次尝试。
 
             queueCache?.AddToCache(multiBatch);
             numMessages += multiBatch.Count;
@@ -972,8 +972,8 @@ namespace Orleans.Streams
                 }
                 else
                 {
-                    // 运行背景登记,以便冷流小泡
-                    // 调用时不会停止对同一队列上的其他流发送消息。
+                    // 在后台执行注册，使冷流的 pubsub
+                    // 调用不会阻塞同一队列上其他流的消息投递。
                     RegisterStream(streamId, startToken, now, CancellationToken.None);
                 }
             }
@@ -1009,7 +1009,7 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 计算关闭前的交付进度, 这样队列可以维持最新的手转检查站。
+        /// 关闭前计算投递进度，使队列能够持久化最新的交接检查点。
         /// </summary>
         private void NotifyDeliveryProgress()
         {
@@ -1094,10 +1094,10 @@ namespace Orleans.Streams
 
             var streamData = new StreamConsumerCollection(now);
 
-            // 创建假光标以指向缓存 。
-            // 这样我们就不会从暗藏处清除事件 直到我们和酒吧潜水艇谈话
-            // 这将有助于确保(潜在的新订客户)原有下标之间“多处一致”
-            // 以后再生产。
+            // 创建一个临时游标，使其指向缓存内部。
+            // 这样，在与 pub/sub 通信之前，不会从缓存中清除此事件。
+            // 这有助于确保已有订阅（可能是新发现但已订阅的消费者）
+            // 与后续生产之间的因果一致性。
             IQueueCacheCursor? pinCursor;
             try
             {
@@ -1130,16 +1130,16 @@ namespace Orleans.Streams
                         return;
                     }
 
-                    // 生产者注册成功;现在建立了流条目。
-                    // 订户机故障不能从这里开始拆掉
+                    // 生产者注册成功；流条目现已建立。
+                    // 从此时起，订阅者握手失败不得销毁此条目。
                     streamData.StreamRegistered = true;
                     StreamingEvents.EmitPullingAgentStreamRegistered(streamProviderName, Silo, QueueId, streamId.StreamId, GrainId, subscribers.Count);
 
                     LogDebugGotBackSubscribers(subscribers.Count, streamId);
 
-                    // 等待所有初始用户手握手后再释放指针光标,这样
-                    // 无法在每一个用户之前从缓存中清除第一批
-                    // 已经建立了自己的光标。
+                    // 等待所有初始订阅者握手完成后再释放用于固定缓存的游标，
+                    // 以免在每个订阅者建立自己的游标之前，
+                    // 首个批次就已从缓存中清除。
                     if (subscribers.Count > 0)
                     {
                         var addSubscriptionTasks = new List<Task>(subscribers.Count);
@@ -1189,7 +1189,7 @@ namespace Orleans.Streams
                 LogWarningFailedToRegisterStream(streamId, exception);
                 StreamingEvents.EmitPullingAgentStreamRegistrationFailed(streamProviderName, Silo, QueueId, streamId.StreamId, exception);
 
-                // 只有在生产者登记本身失败时才能达到。
+                // 仅当生产者注册本身失败时才会到达此处。
                 if (pubSubCache.TryGetValue(streamId, out var cachedStreamData)
                     && ReferenceEquals(cachedStreamData, streamData))
                 {
@@ -1226,13 +1226,13 @@ namespace Orleans.Streams
                     return;
                 }
 
-                // 有些消费者可能尚未完全登记
+                // 某些消费者可能尚未完成注册。
                 if (consumerData.IsRegistered)
                 {
                     consumerData.Cursor?.Refresh(startToken);
                     if (consumerData.State == StreamConsumerDataState.Inactive)
                     {
-                        // 唤醒非活动消费者
+                        // 唤醒非活动消费者。
                         RunConsumerCursor(consumerData, cancellationToken).Ignore();
                     }
                 }
@@ -1255,7 +1255,7 @@ namespace Orleans.Streams
             TagList? tags = null;
             try
             {
-                // 中继时的双复选
+                // 再次检查，以防发生交错执行。
                 if (consumerData.State == StreamConsumerDataState.Active ||
                     consumerData.Cursor is null) return;
 
@@ -1288,8 +1288,8 @@ namespace Orleans.Streams
 
                         if (!nextBatch.HasProgress)
                         {
-                            // 只有当我们从交付向空投过渡时,才排放光标排练的光标,
-                            // 不是在每一个空洞的民意测验。
+                            // 仅当状态从正在投递转换为空时才发出游标排空事件，
+                            // 而不是在每次空轮询时都发出。
                             if (deliveredAny)
                                 StreamingEvents.EmitConsumerCursorDrained(streamProviderName, consumerData.StreamId.StreamId, consumerData.SubscriptionId.Guid, Silo);
                             break;
@@ -1339,14 +1339,14 @@ namespace Orleans.Streams
                             StreamHandshakeToken? newToken = await AsyncExecutorWithRetries.ExecuteWithRetries(
                                 i => DeliverBatchToConsumer(consumerData, batch, handshakeToken, cancellationToken),
                                 AsyncExecutorWithRetries.INFINITE_RETRIES,
-                                // 如果代理机构正在关闭, 或如果例外是 ClientNotAvailableException, 不重试
+                                // 如果代理正在关闭，或异常是 ClientNotAvailableException，则不要重试。
                                 (exception, i) => exception is not ClientNotAvailableException && !IsShutdown
                                     && handshakeGeneration == consumerData.HandshakeGeneration,
                                 this.options.MaxEventDeliveryTime,
                                 deliveryBackoffProvider,
                                 cancellationToken: cancellationToken);
 
-                            // 已完成握手的一方拥有其替换职位,包括待重播。
+                            // 已完成的握手拥有其替换位置的所有权，包括待重放的位置。
                             if (handshakeGeneration != consumerData.HandshakeGeneration)
                             {
                                 continue;
@@ -1382,8 +1382,8 @@ namespace Orleans.Streams
                                     if (SubscriptionMarker.IsImplicitSubscription(consumerData.SubscriptionId.Guid))
                                     {
                                         consumerData.LastProcessedToken = sequenceToken;
-                                        // 含义的恢复标牌表示前激活处理的最后一件事。
-                                        // 如果该标记被拆迁, 则当前批次是接收器第一个可用的消息 。
+                                        // 隐式恢复令牌标识上一个激活实例最后处理的事件。
+                                        // 如果该令牌已被逐出缓存，则当前批次是接收器最早可用的消息。
                                         newCursor = GetAdvancedCursorOrFallback(
                                             consumerData.StreamId,
                                             sequenceToken,
@@ -1401,8 +1401,8 @@ namespace Orleans.Streams
                                     var sequenceToken = newToken.Token
                                         ?? throw new InvalidOperationException("A delivery handshake token must contain a stream sequence token.");
                                     consumerData.LastProcessedToken = sequenceToken;
-                                    // 握手牌指向已经处理的事件, 请提前过。
-                                    // 如果该标记被拆迁, 则当前批次是接收器第一个可用的消息 。
+                                    // 握手令牌指向已处理的事件，因此需要前进到该事件之后。
+                                    // 如果该令牌已被逐出缓存，则当前批次是接收器最早可用的消息。
                                     newCursor = GetAdvancedCursorOrFallback(
                                         consumerData.StreamId,
                                         sequenceToken,
@@ -1421,7 +1421,7 @@ namespace Orleans.Streams
                             }
                             else
                             {
-                                // 跟踪定期交付扫描的进展。
+                                // 跟踪进度，供周期性投递扫描使用。
                                 consumerData.LastProcessedToken = nextBatch.ProgressToken;
                             }
                         }
@@ -1447,7 +1447,7 @@ namespace Orleans.Streams
                             ? exc
                             : new StreamEventDeliveryFailureException(consumerData.StreamId);
                     }
-                    // 如果我们没有交付一批
+                    // 如果未能成功投递批次。
                     if (exceptionOccured is not null)
                     {
                         var batch = nextBatch.Batch;
@@ -1471,7 +1471,7 @@ namespace Orleans.Streams
             }
             catch (Exception exc)
             {
-                // RunConsumerCursor 被用. Ignore 开火,所以如果出了差错我们应该记录下来 因为没有人能抓住例外
+                // RunConsumerCursor 通过 .Ignore 启动，因此如果发生任何错误都应记录日志，因为没有调用方捕获异常。
                 LogErrorRunConsumerCursor(exc);
                 consumerData.State = StreamConsumerDataState.Inactive;
                 throw;
@@ -1612,7 +1612,7 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 添加批次发送呼叫的上下文, 然后立即明确背景, 不放弃转机 。
+        /// 为批次投递调用添加调用上下文，然后立即清除上下文，不让出当前执行轮次。
         /// </summary>
         private static Task<StreamHandshakeToken?> ContextualizedDeliverBatchToConsumer(
             StreamConsumerData consumerData,
@@ -1634,7 +1634,7 @@ namespace Orleans.Streams
             {
                 if (isRequestContextSet)
                 {
-                    // 清楚 RequestContext 等待着!
+                    // 在 await 之前清除 RequestContext！
                     RequestContext.Clear();
                 }
             }
@@ -1657,7 +1657,7 @@ namespace Orleans.Streams
             {
                 if (isRequestContextSet)
                 {
-                    RequestContext.Clear(); // 清楚 RequestContext 等待着!
+                    RequestContext.Clear(); // 在 await 之前清除 RequestContext！
                 }
             }
             await errorDeliveryTask;
@@ -1675,7 +1675,7 @@ namespace Orleans.Streams
         {
             if (!IsCurrent()) return false;
 
-            // 客户损失,我们只是删除订阅
+            // 如果客户端丢失，则直接移除订阅。
             if (exceptionOccured is ClientNotAvailableException)
             {
                 LogWarningConsumerIsDead(consumerData.StreamConsumer, consumerData.StreamId);
@@ -1683,11 +1683,11 @@ namespace Orleans.Streams
                 return true;
             }
 
-            // 通知消费者错误或数据不可用。
+            // 通知消费者发生错误或数据不可用。
             await DeliverErrorToConsumer(consumerData, exceptionOccured, batch, cancellationToken).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext);
             if (!IsCurrent()) return false;
 
-            // 记录中显示有交付发生故障
+            // 记录发生了投递失败。
             if (isDeliveryError)
             {
                 await streamFailureHandler.OnDeliveryFailure(
@@ -1701,14 +1701,14 @@ namespace Orleans.Streams
 
             if (!IsCurrent()) return false;
 
-            // 如果配置为交付失败造成错误,且这不是默认订阅、错误和删除订阅
+            // 如果配置为在投递失败时将订阅标记为故障，且不是隐式订阅，则使订阅进入故障状态并移除它。
             if ((forceFaultSubscription || streamFailureHandler.ShouldFaultSubsriptionOnError)
                 && !SubscriptionMarker.IsImplicitSubscription(consumerData.SubscriptionId.Guid))
             {
                 var faultRequested = false;
                 try
                 {
-                    // 通知用户订阅错误,如果可以的话。
+                    // 如果可能，通知消费者订阅已进入故障状态。
                     await DeliverErrorToConsumer(
                         consumerData,
                         new FaultedSubscriptionException(consumerData.SubscriptionId, consumerData.StreamId),
@@ -1716,7 +1716,7 @@ namespace Orleans.Streams
                         cancellationToken).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext);
                     if (!IsCurrent()) return false;
 
-                    // 标记为错误订阅 。
+                    // 将订阅标记为故障状态。
                     faultRequested = true;
                     await pubSub.FaultSubscription(consumerData.StreamId, consumerData.SubscriptionId, cancellationToken);
                 }

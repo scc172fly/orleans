@@ -1,7 +1,7 @@
 namespace UnitTests.StorageTests.Relational.TestDataSets
 {
     /// <summary>
-    /// 一个国家用来测试储存功能是否如预期的那样保存、读取和清理。
+    /// 用于测试存储的保存、读取及清除是否按预期工作的状态。
     /// </summary>
     [Serializable]
     [Orleans.GenerateSerializer]

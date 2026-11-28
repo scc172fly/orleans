@@ -12,7 +12,7 @@ using Xunit;
 namespace DefaultCluster.Tests;
 
 /// <summary>
-/// 测试 System.Text.Json 序列序列 Orleans 包括 GrainId 收集种类各异。
+/// 测试使用 System.Text.Json 序列化 Orleans 类型，包括 GrainId 以及它在多种集合类型中的使用。
 /// </summary>
 [TestCategory("Serialization"), TestCategory("BVT")]
 [TestSuite("BVT")]

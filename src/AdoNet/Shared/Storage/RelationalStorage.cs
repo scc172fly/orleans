@@ -21,49 +21,49 @@ namespace Orleans.GrainDirectory.AdoNet.Storage
 #elif TESTER_SQLUTILS
 namespace Orleans.Tests.SqlUtils
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 {
     /// <summary>
-    /// 与特定关系数据库和 ADO.NET 提供者合作的一般用途类。
+    /// 用于操作给定关系数据库及 ADO.NET 提供程序的通用类。
     /// </summary>
     [DebuggerDisplay("InvariantName = {InvariantName}, ConnectionString = {ConnectionString}")]
     internal class RelationalStorage : IRelationalStorage
     {
         /// <summary>
-        /// 要使用的连接字符串 。
+        /// 要使用的连接字符串。
         /// </summary>
         private readonly string _connectionString;
 
         /// <summary>
-        /// 用于打开连接的可选数据源 。
+        /// 用于打开连接的可选数据源。
         /// </summary>
         private readonly DbDataSource? _dataSource;
 
         /// <summary>
-        /// 此数据库连接器的变量名称 。
+        /// 此数据库连接器的固定名称（invariant name）。
         /// </summary>
         private readonly string _invariantName;
 
         /// <summary>
-        /// 如果此存储的 ADO.NET 提供者支持不支持注销。
-        /// 查询能力,结果在此缓存。
+        /// 此存储的 ADO.NET 提供程序是否支持取消。此处会查询该功能
+        /// 并缓存查询结果。
         /// </summary>
         private readonly bool _supportsCommandCancellation;
 
         /// <summary>
-        /// 如果基本 ADO.NET 执行是本地非同步的
-        /// (和 ADO.NET 调数b*. XXXAsync课程是否被推翻)或否。
+        /// 底层 ADO.NET 实现是否原生支持异步操作
+        /// （即重写 ADO.NET Db*.XXXAsync 类中的异步实现）。
         /// </summary>
         private readonly bool _isSynchronousAdoNetImplementation;
 
         /// <summary>
-        /// 给定数据提供者的命令截击器。
+        /// 给定数据提供程序的命令拦截器。
         /// </summary>
         private readonly ICommandInterceptor _databaseCommandInterceptor;
 
         /// <summary>
-        /// 此数据库连接器的变量名称 。
+        /// 此数据库连接器的固定名称（invariant name）。
         /// </summary>
         public string InvariantName
         {
@@ -75,7 +75,7 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// 连接到数据库的连接字符串。
+        /// 用于连接数据库的连接字符串。
         /// </summary>
         public string ConnectionString
         {
@@ -87,10 +87,10 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// 创建类型 <see cref="IRelationalStorage"/>的数据库实例。
+        /// 创建 <see cref="IRelationalStorage"/> 类型的数据库实例。
         /// </summary>
-        /// <param name="invariantName">此数据库连接器的变量名称。</param>
-        /// <param name="connectionString">此数据库的连接字符串应用于数据库操作 。</param>
+        /// <param name="invariantName">此数据库连接器的固定名称（invariant name）。</param>
+        /// <param name="connectionString">此数据库执行数据库操作时应使用的连接字符串。</param>
         /// <returns></returns>
         public static IRelationalStorage CreateInstance(string invariantName, string connectionString)
         {
@@ -108,11 +108,11 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// 创建类型 <see cref="IRelationalStorage"/>的数据库实例。
+        /// 创建 <see cref="IRelationalStorage"/> 类型的数据库实例。
         /// </summary>
-        /// <param name="invariantName">此数据库连接器的变量名称。</param>
+        /// <param name="invariantName">此数据库连接器的固定名称（invariant name）。</param>
         /// <param name="dataSource">用于打开数据库连接的数据源。</param>
-        /// <returns>相关存储实例。</returns>
+        /// <returns>关系存储实例。</returns>
         public static IRelationalStorage CreateInstance(string invariantName, DbDataSource dataSource)
         {
             if (string.IsNullOrWhiteSpace(invariantName))
@@ -126,7 +126,7 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// 使用一个已配置的连接源创建实例。
+        /// 使用恰好一个配置的连接来源创建实例。
         /// </summary>
         public static IRelationalStorage CreateInstance(string invariantName, string? connectionString, DbDataSource? dataSource)
         {
@@ -142,32 +142,32 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// 执行给定语句。 特别打算与 <em>SELECT</em> 语句一起使用。
+        /// 执行给定语句，主要用于 <em>SELECT</em> 语句。
         /// </summary>
         /// <typeparam name="TResult">结果类型。</typeparam>
-        /// <param name="query">执行给定语句。 <em>选择</em> 语句。</param>
-        /// <param name="parameterProvider">添加参数到查询中。参数名称必须与查询中所定义的名称匹配。</param>
-        /// <param name="selector">此函数转换原始 <see cref="IDataRecord"/> 类型结果 <see paramref="TResult"/> 排 <see cref="int"/> 参数是结果图编号。</param>
-        /// <param name="commandBehavior">应该使用的命令行为。 默认为 <see cref="CommandBehavior.Default"/>。</param>
-        /// <param name="cancellationToken">取消牌。 默认为 <see cref="CancellationToken.None"/>。</param>
-        /// <returns>由该天体组成的物体列表 <see paramref="query"/>.</returns>
-        /// <example>这个样本显示如何使用手调数据库呼叫 。
+        /// <param name="query">执行给定语句，主要用于 <em>SELECT</em> 语句。</param>
+        /// <param name="parameterProvider">向查询添加参数。参数名称必须与查询中的定义一致。</param>
+        /// <param name="selector">此函数将原始 <see cref="IDataRecord"/> 结果转换为 <see paramref="TResult"/> 类型，其中 <see cref="int"/> 参数为结果集编号。</param>
+        /// <param name="commandBehavior">应使用的命令行为。默认为 <see cref="CommandBehavior.Default"/>。</param>
+        /// <param name="cancellationToken">取消令牌。默认为 <see cref="CancellationToken.None"/>。</param>
+        /// <returns><see paramref="query"/> 的结果对象列表。</returns>
+        /// <example>此示例演示如何执行手工优化的数据库调用。
         /// <code>
-        /// // 此结构体保存本示例的返回值。
+        /// //This struct holds the return value in this example.
         /// public struct Information
         /// {
         ///     public string TABLE_CATALOG { get; set; }
         ///     public string TABLE_NAME { get; set; }
         /// }
         ///
-        /// // 此处定义了两个查询。也可以定义更多查询，此时
-        /// // 通过一个计数参数区分结果集。本例中的查询是
-        /// // SELECT 语句，也可以使用或混用其他语句。
+        /// //Here are defined two queries. There can be more than two queries, in which case
+        /// //the result sets are differentiated by a count parameter. Here the queries are
+        /// //SELECT clauses, but they can be whatever, even mixed ones.
         /// IEnumerable&lt;Information&gt; ret =
         ///     await storage.ReadAsync&lt;Information&gt;("SELECT * FROM INFORMATION_SCHEMA.TABLES; SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @tp1", command =>
         /// {
-        ///     // 按此方式创建并添加参数。
-        ///     // 这些参数与数据库供应商无关。
+        ///     //Parameters are added and created like this.
+        ///     //They are database vendor agnostic.
         ///     var tp1 = command.CreateParameter();
         ///     tp1.ParameterName = "tp1";
         ///     tp1.Value = "some test value";
@@ -175,12 +175,12 @@ namespace Orleans.Tests.SqlUtils
         ///     tp1.Direction = ParameterDirection.Input;
         ///     command.Parameters.Add(tp1);
         ///
-        ///     // 选择器用于从结果集中选取结果。本例有两个结构相同的
-        ///     // 结果集，因此无需判断选择器接收的是哪一个结果集，该参数可以
-        ///     // 按惯例用下划线（_）标记。
+        ///     //The selector is used to select the results within the result set. In this case there are two homogenous
+        ///     //result sets, so there is actually no need to check which result set the selector holds and it could
+        ///     //marked with by convention by underscore (_).
         /// }, (selector, resultSetCount) =>
         ///    {
-        ///        // 此函数对每个返回行调用一次，因此最终结果将是一个
+        ///        //This function is called once for each row returned, so the final result will be an
         ///        //IEnumerable&lt;Information&gt;.
         ///        return new Information
         ///        {
@@ -192,7 +192,7 @@ namespace Orleans.Tests.SqlUtils
         /// </example>
         public async Task<IEnumerable<TResult>> ReadAsync<TResult>(string query, Action<IDbCommand>? parameterProvider, Func<IDataRecord, int, CancellationToken, Task<TResult>> selector, CommandBehavior commandBehavior = CommandBehavior.Default, CancellationToken cancellationToken = default)
         {
-            //如果查询是其它不可接受的(e.g. 空字符串),则将有一个适当的数据库例外。
+            // 如果查询是其他不可接受的内容（例如空字符串），则会抛出相应的数据库异常。
             if (query == null)
             {
                 throw new ArgumentNullException(nameof(query));
@@ -208,29 +208,29 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// 执行给定的语句。 特别打算用于 <em>INSERT</em>、 <em>Uppate</em>、 <em>Delete</em> 或 <em>DDL</em> 查询。
+        /// 执行给定语句，主要用于 <em>INSERT</em>、<em>UPDATE</em>、<em>DELETE</em> 或 <em>DDL</em> 查询。
         /// </summary>
         /// <param name="query">要执行的查询。</param>
-        /// <param name="parameterProvider">添加参数到查询中。参数名称必须与查询中所定义的名称匹配。</param>
-        /// <param name="commandBehavior">应该使用的命令行为。 默认为 <see cref="CommandBehavior.Default"/>。</param>
-        /// <param name="cancellationToken">取消牌。 默认为 <see cref="CancellationToken.None"/>。</param>
+        /// <param name="parameterProvider">向查询添加参数。参数名称必须与查询中的定义一致。</param>
+        /// <param name="commandBehavior">应使用的命令行为。默认为 <see cref="CommandBehavior.Default"/>。</param>
+        /// <param name="cancellationToken">取消令牌。默认为 <see cref="CancellationToken.None"/>。</param>
         /// <returns>受影响的行数。</returns>
-        /// <example>这个样本显示如何使用手调数据库呼叫 。
+        /// <example>此示例演示如何执行手工优化的数据库调用。
         /// <code>
-        /// // 执行查询比读取查询更简单，它只返回
-        /// // 受影响的行数（如果可用）。
+        /// //In contract to reading, execute queries are simpler as they return only
+        /// //the affected rows count if it is available.
         /// var query = ""IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Test') CREATE TABLE Test(Id INT PRIMARY KEY IDENTITY(1, 1) NOT NULL);"
         /// int affectedRowsCount = await storage.ExecuteAsync(query, command =>
         /// {
-        ///     // 此处没有参数。添加参数的方法与读取查询相同。
-        ///     // 由于只返回受影响的行数，因此
-        ///     // 无须读取其他数据。
+        ///     //There aren't parameters here, but they'd be added like when reading.
+        ///     //As the affected rows count is the only thing returned, there isn't
+        ///     //facilities to read anything.
         /// }).ConfigureAwait(continueOnCapturedContext: false);
         /// </code>
         /// </example>
         public async Task<int> ExecuteAsync(string query, Action<IDbCommand>? parameterProvider, CommandBehavior commandBehavior = CommandBehavior.Default, CancellationToken cancellationToken = default)
         {
-            //如果查询是其它不可接受的(e.g. 空字符串),则将有一个适当的数据库例外。
+            // 如果查询是其他不可接受的内容（例如空字符串），则会抛出相应的数据库异常。
             if (query == null)
             {
                 throw new ArgumentNullException(nameof(query));
@@ -240,10 +240,10 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// 创建类型 <see cref="RelationalStorage"/>的数据库实例。
+        /// 创建 <see cref="RelationalStorage"/> 类型的数据库实例。
         /// </summary>
-        /// <param name="invariantName">此数据库连接器的变量名称。</param>
-        /// <param name="connectionString">此数据库的连接字符串应用于数据库操作 。</param>
+        /// <param name="invariantName">此数据库连接器的固定名称（invariant name）。</param>
+        /// <param name="connectionString">此数据库执行数据库操作时应使用的连接字符串。</param>
         private RelationalStorage(string invariantName, string connectionString)
         {
             this._connectionString = connectionString;
@@ -356,10 +356,10 @@ namespace Orleans.Tests.SqlUtils
 
         private static void CommandCancellation(object? state)
         {
-            //MSDN文件显示,如果读者关闭了, DbCommand.Cancel()不应要求使用 SqlCommand
-            //以避免出现导致 SQL 服务器流出结果集的种族状况
-            //尽管连接已经关闭 。 资料来源: https://msdn.microsoft.com/en-us/library/system.data.sqlclient.sqlcommand.cancel(v=vs.110.aspx。
-            //在所有提供者中实施这种行为似乎并不伤害所有人。
+            // MSDN 文档指出，如果读取器已关闭，不应对 SqlCommand 调用 DbCommand.Cancel()，
+            // 以避免竞态条件导致 SQL Server 在连接已关闭的情况下仍然流式传输
+            // 结果集。来源：https://msdn.microsoft.com/en-us/library/system.data.sqlclient.sqlcommand.cancel(v=vs.110).aspx。
+            // 在所有提供程序中强制执行此行为似乎也没有不利影响。
             var stateTuple = (Tuple<DbDataReader, DbCommand>)state!;
             if (!stateTuple.Item1.IsClosed)
             {

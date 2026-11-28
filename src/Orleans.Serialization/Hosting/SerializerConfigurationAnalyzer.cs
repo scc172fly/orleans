@@ -10,23 +10,23 @@ using System.Threading.Tasks;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// 分析序列器配置以查找可能的配置问题 。
+    /// 分析序列化器配置，查找可能存在的配置问题。
     /// </summary>
     public static class SerializerConfigurationAnalyzer
     {
         /// <summary>
-        /// 分析 grain 接口方法,以找到不可序列的参数类型和返回类型。
+        /// 分析 Grain 接口方法，找出无法序列化的参数类型和返回类型。
         /// </summary>
         /// <param name="codecProvider">
-        /// 代码提供者
+        /// 编解码器提供程序。
         /// </param>
         /// <param name="options">
-        /// 类型列表选项。
+        /// 类型清单选项。
         /// </param>
         /// <returns>
-        /// 一系列具有连带性问题的类型。
+        /// 存在可序列化性问题的类型集合。
         /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="codecProvider"/> 或 <paramref name="options"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="codecProvider"/> 或 <paramref name="options"/> 为 <see langword="null"/>。</exception>
         public static Dictionary<Type, SerializerConfigurationComplaint> AnalyzeSerializerAvailability(ICodecProvider codecProvider, TypeManifestOptions options)
         {
             if (codecProvider is null) throw new ArgumentNullException(nameof(codecProvider));
@@ -108,22 +108,22 @@ namespace Orleans.Serialization
             => interfaceType.GetMethods(BindingFlags.Instance | BindingFlags.Public);
 
         /// <summary>
-        /// 代表接口方法所用类型序列性的配置问题。
+        /// 表示与接口方法所用类型的可序列化性有关的配置问题。
         /// </summary>
         public class SerializerConfigurationComplaint
         {
             /// <summary>
-            /// 获取一系列界面类型, 其中引用了该投诉所代表的类型 。
+            /// 获取引用此问题所涉及类型的接口类型集合。
             /// </summary>
             public Dictionary<Type, HashSet<MethodInfo>> Methods { get; } = new();
 
             /// <summary>
-            /// 获取或设置值,以显示是否可使用此类型的序列器。
+            /// 获取或设置一个值，指示此类型是否有可用的序列化器。
             /// </summary>
             public bool HasSerializer { get; set; }
 
             /// <summary>
-            /// 获取或设置值,以显示是否为该类型提供复印机。
+            /// 获取或设置一个值，指示此类型是否有可用的复制器。
             /// </summary>
             public bool HasCopier { get; set; }
         }

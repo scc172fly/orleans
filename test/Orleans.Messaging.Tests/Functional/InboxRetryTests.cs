@@ -15,10 +15,10 @@ public sealed class InboxRetryTests() : MessagingBehaviorTestBase(new RetryFixtu
 {
     private static readonly TimeSpan RetryDelay = TimeSpan.FromMinutes(1);
 
-    // 尝试在0、1、3、7、15、31和63次重试延迟时运行;第八和最后一次的重试在超时后运行。
+    // 尝试分别在 0、1、3、7、15、31 和 63 个重试延迟单位时运行；第八次也是最后一次，在超时到期时运行。
     private static readonly TimeSpan RetryTimeout = RetryDelay * 100;
 
-    // 考试的进度与 grain 时无关,在“持久工作钟”之后重新试定期限。
+    // 重试截止时间以 Durable Jobs 时钟为准，这些测试独立于 Grain 时钟推进该时钟。
     private ManualJobClock JobClock => ((RetryFixture)Fixture).JobClock;
 
     [Fact]
@@ -37,7 +37,7 @@ public sealed class InboxRetryTests() : MessagingBehaviorTestBase(new RetryFixtu
         Assert.Equal(start + RetryDelay, state.NextAttemptAt);
         Assert.Equal(start + RetryTimeout, state.ExpirationTime);
 
-        // 将 grain 时钟移过重试超时,既不重写也不对信件进行废字母。
+        // 将 Grain 时钟推进至重试超时之后，既不会重试，也不会将消息转为死信。
         Fixture.Clock.Advance(RetryTimeout * 2);
         Assert.Equal(DurableJobRunStatus.RescheduleRequested, (await Fixture.RunPumpAsync(receiver)).Status);
         var pending = await receiver.GetSnapshotAsync();
@@ -67,7 +67,7 @@ public sealed class InboxRetryTests() : MessagingBehaviorTestBase(new RetryFixtu
         Assert.Equal(1, state.AttemptCount);
         Assert.Equal(now + RetryDelay, state.NextAttemptAt);
 
-        // 重试到期前的醒过来时, 不能运行操作器 。
+        // 重试到期之前的唤醒不得运行处理程序。
         var early = await Fixture.RunPumpAsync(receiver);
         Assert.Equal(DurableJobRunStatus.RescheduleRequested, early.Status);
         _ = await Fixture.RunPumpAsync(receiver);
@@ -82,7 +82,7 @@ public sealed class InboxRetryTests() : MessagingBehaviorTestBase(new RetryFixtu
         Assert.Equal(0, completed.InboxCount);
         Assert.Empty(completed.InboxDeadLetters);
 
-        // 净化的觉醒,没有工作 立即完成 并且什么也没有改变。
+        // 不存在待处理工作时，虚假唤醒立即完成，不改变任何状态。
         Assert.Equal(DurableJobRunStatus.Completed, (await Fixture.RunPumpAsync(receiver)).Status);
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await DeliverAsync(receiver, envelope));
         Assert.Equal(1, Assert.Single((await receiver.GetSnapshotAsync()).Effects).Count);
@@ -110,8 +110,8 @@ public sealed class InboxRetryTests() : MessagingBehaviorTestBase(new RetryFixtu
     }
 
     /// <summary>
-    /// 等待启动,其尝试结束,但无结果解除作用, grain,该费用
-    /// 并返回信息电源状态
+    /// 等待尝试在没有结果时结束的激活实例停用，再重新激活 Grain，由此计入
+    /// 尝试次数并返回消息计次后的状态。
     /// </summary>
     private async Task<InboxMessageState> RecoverChargedAttemptAsync(IMessagingTestGrain receiver, IGrainContext failed, MessageId messageId)
     {
@@ -121,9 +121,9 @@ public sealed class InboxRetryTests() : MessagingBehaviorTestBase(new RetryFixtu
         return await Fixture.OnGrainAsync(receiver, () => InboxTestAccess.GetMessageState(inbox, messageId));
     }
 
-    // 每次失败的尝试都未能成功启动并收回其收费。 验证每笔诉讼的重试状态和预付款
-    // 下次尝试的工作时间, 其唤醒它的时间, 直到时间到达最后一次尝试
-    // 失败一。返回该尝试运行的激活。
+    // 每次失败的尝试都会使其激活实例失败，恢复时计入该次尝试。验证每次计次后的重试状态，并将
+    // 作业时钟推进到下一次尝试的时间，由其唤醒触发该尝试，直到时钟到达最后一次失败
+    // 之后的尝试时间。返回运行该次尝试的激活实例。
     private async Task<IGrainContext> RunFailedAttemptsAsync(
         IMessagingTestGrain receiver, IGrainContext failed, MessageId messageId, DateTimeOffset start, int failedAttempts)
     {
@@ -156,11 +156,11 @@ public sealed class InboxRetryTests() : MessagingBehaviorTestBase(new RetryFixtu
 
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, envelope));
 
-        // 每次尝试都加倍后退, 上次尝试在第一次失败之后 InboxRetryTimeout 倒数时进行。
+        // 每次尝试的退避时间翻倍，最后一次尝试在首次失败后经过 InboxRetryTimeout 时运行。
         failed = await RunFailedAttemptsAsync(receiver, failed, messageId, start, failedAttempts: 7);
         Assert.Equal(start + RetryTimeout, JobClock.GetUtcNow());
 
-        // 最后一次尝试也失败了 收取费用后收回的钱 也给信息写了死字
+        // 最后一次尝试也失败，计入此次尝试的恢复过程将消息转为死信。
         await failed.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
         _ = await receiver.GetSnapshotAsync();
         var deadLettered = await Fixture.WaitForDeadLetterCountAsync(receiver, 1);
@@ -191,13 +191,13 @@ public sealed class InboxRetryTests() : MessagingBehaviorTestBase(new RetryFixtu
             await WaitForBarrierAsync(receiver, barrier);
             await receiver.ConfigureHandlerAsync(false);
 
-            // 停止活动取消飞行企图,但结果毫无结果。
+            // 停用会取消正在进行的尝试，该尝试在没有结果的情况下结束。
             await receiver.RequestDeactivationAsync();
             await context.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
         }
 
-        // 回收费用 重复 尝试中断 即使没有处理器, 和收费开始重新试窗口
-        // 而不是用死字字母来写信息
+        // 即使没有处理程序，恢复过程也会计入被中断的尝试，此次计次会开启重试窗口，
+        // 而不会将消息转为死信。
         var withoutHandler = await receiver.GetSnapshotAsync();
         Assert.Equal(1, withoutHandler.InboxCount);
         Assert.Empty(withoutHandler.Effects);
@@ -206,11 +206,11 @@ public sealed class InboxRetryTests() : MessagingBehaviorTestBase(new RetryFixtu
         var state = await Fixture.OnGrainAsync(receiver, () => InboxTestAccess.GetMessageState(inbox, envelope.Envelope.MessageId));
         Assert.Equal(1, state.AttemptCount);
 
-        // 没有处理器, 待定信件将无法提醒 。
+        // 没有处理程序时，挂起消息不保有唤醒作业。
         Assert.Equal(DurableJobRunStatus.Completed, (await Fixture.RunPumpAsync(receiver)).Status);
         Assert.Equal(1, (await receiver.GetSnapshotAsync()).InboxCount);
 
-        // 在同一激活上注册处理器的操作器, 将在其重试到期后恢复信件的未执行 。
+        // 在同一激活实例上注册处理程序后，挂起消息将在重试到期时恢复处理。
         await receiver.ConfigureHandlerAsync(true);
         JobClock.Advance(state.NextAttemptAt!.Value - JobClock.GetUtcNow());
         Assert.Equal(DurableJobRunStatus.Completed, (await Fixture.RunPumpAsync(receiver)).Status);
@@ -228,7 +228,7 @@ public sealed class InboxRetryTests() : MessagingBehaviorTestBase(new RetryFixtu
         var pump = Fixture.GetPump(receiver);
         var target = receiver.GetGrainId();
 
-        // 排定的工作在接到呼叫返回前完成,不再有剩余工作。
+        // 已调度的作业在调度调用返回之前就已运行完毕，且没有剩余工作。
         Fixture.JobManagerProbe.SkipNext(MessagingPump.JobName);
         using var schedule = Fixture.JobManagerProbe.BlockNext(MessagingPump.JobName);
         var scheduling = await Fixture.OnGrainAsync(receiver, () => pump.EnsureWakeupAsync(DateTimeOffset.MinValue, TestContext.Current.CancellationToken).AsTask());
@@ -237,7 +237,7 @@ public sealed class InboxRetryTests() : MessagingBehaviorTestBase(new RetryFixtu
         schedule.Continue();
         await scheduling.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
 
-        // 以后的工作安排是自己自己在工作时的觉醒时间。
+        // 后续工作会调度自己的唤醒作业。
         var attempts = Fixture.JobManagerProbe.GetAttemptCount(MessagingPump.JobName, target);
         var envelope = CreateEnvelope(receiver, NewMessage(195, "later-work"));
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, envelope));
@@ -247,7 +247,7 @@ public sealed class InboxRetryTests() : MessagingBehaviorTestBase(new RetryFixtu
 
     private sealed class RetryFixture : MessagingClusterFixture
     {
-        // 与 grain 时间,所以一个读错钟的测试 就会看到错误的最后期限
+        // 与 Grain 时钟相差数天，因此使用错误时钟的测试会得到错误的截止时间。
         public ManualJobClock JobClock { get; } = new(DateTimeOffset.UtcNow + TimeSpan.FromDays(3));
 
         protected override void ConfigureOptions(DurableMessagingOptions options)

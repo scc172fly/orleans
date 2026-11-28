@@ -1,71 +1,71 @@
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// 接收直接发送信息到应用程序所属日记状态, 因此其有效载荷被日记一次。
+/// 将投递的消息直接接收到应用拥有的日志化状态中，使其有效载荷只被记录一次。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 在审定和重复之后,收件箱以登记顺序向登记的汇发送每条电文。
-/// 包括 grain 向自己发送的信息和 <see cref="Envelope.DeliverAt"/>发往自己的信息。
-/// 接收信息后决定其 <see cref="DeliveryResult"/>。
-/// <see cref="DeliveryResult.Accepted"/> 以自己的日记状态同步播放了电文效果。
-/// 收件箱中,然后是日记只处理电文的经处理记录,没有有效载荷,在同一日记本写作和报告
-/// 写入时的运行效果,例如开始工作
-/// <see cref="Orleans.Durable.Journaling.IStateMachine.OnWriteCompleted"/>.
+/// 在验证和去重后，收件箱按注册顺序将每条消息提供给已注册的接收器，
+/// 包括 Grain 向自身发送的消息以及带有 <see cref="Envelope.DeliverAt"/> 的消息。首个
+/// 接受消息的接收器决定其 <see cref="DeliveryResult"/>。报告
+/// <see cref="DeliveryResult.Accepted"/> 的接收器已经在自身日志化状态中同步暂存了消息效果。随后，
+/// 收件箱在同一次日志写入中仅记录消息的处理记录，而不记录其有效载荷，并在
+/// 该写入持久化后报告结果。依赖于该写入的效果（例如启动工作）应从
+/// <see cref="Orleans.Durable.Journaling.IStateMachine.OnWriteCompleted"/> 中运行。
 /// </para>
 /// <para>
-/// 由汇组成的信息从未占据收件箱容量,也没有信箱再试生命周期:水槽拥有处理能力,
-/// 包括履行信息 <see cref="Envelope.DeliverAt"/>。每个汇的下降会被接受的信息
-/// 发送到 <see cref="IInboxHandler"/> 发生时 <see cref="Envelope.DeliverAt"/> 拥有
-/// 已经通过; 拒绝一个预定信件, 以便到那时才能保存该信箱 。
+/// 由接收器拥有的消息不占用收件箱容量，也没有收件箱重试生命周期；接收器负责处理该消息，
+/// 包括遵守消息的 <see cref="Envelope.DeliverAt"/>。所有接收器均拒绝接收的消息将由
+/// 收件箱接受，并在向 <see cref="IInboxHandler"/> 实例分派之前，等待其 <see cref="Envelope.DeliverAt"/> 所指定的时间
+/// 到达；若希望收件箱持有计划消息直至该时间，则拒绝接收该消息。
 /// </para>
 /// <para>
-/// Sinks 必须是一无所有。 信箱在保留处理过的记录时复制了信件代号, 因为
-/// <c>DeduplicationWindow</c> 消息后 <see cref="InboxMessage.SentAt"/>。收到后延迟重试
-/// 到达汇时<see cref="DeliveryResult.Expired"/> 。如果日记写失败,则将邮件重新发送到
-/// 下次激活,它从日记上恢复了水槽状态。
+/// 接收器必须具有幂等性。收件箱在保留处理记录期间按消息 ID 去重，即在消息的
+/// <c>DeduplicationWindow</c> 指定的窗口内，起点为消息的 <see cref="InboxMessage.SentAt"/>。超过该期限的延迟重试将
+/// 在到达接收器前收到 <see cref="DeliveryResult.Expired"/>。日志写入失败的消息将重新投递给
+/// 下一个激活实例，该实例会从日志恢复接收器的状态。
 /// </para>
 /// </remarks>
 public interface IInboxMessageSink
 {
-    /// <summary>将信息带入汇的日记状态,或拒绝。</summary>
-    /// <param name="message">有效、可撤消的信件。</param>
+    /// <summary>将消息接收到接收器的日志化状态中，或拒绝接收。</summary>
+    /// <param name="message">已经验证并去重的消息。</param>
     /// <param name="result">
-    /// 当此方法返回 <see langword="true"/>时, 信箱向发送者报告交付结果。
+    /// 当此方法返回 <see langword="true"/> 时，表示收件箱向发送方报告的投递结果。
     /// </param>
     /// <returns>
-    /// <see langword="true"/> 当水槽接收信息并报告时 <paramref name="result"/>;
-    /// <see langword="false"/> 当它拒绝信息 没有任何动作。
+    /// <see langword="true"/> 表示接收器接受了消息并报告 <paramref name="result"/>；
+    /// <see langword="false"/> 表示拒绝接收且未暂存任何变更。
     /// </returns>
     /// <remarks>
     /// <para>
-    /// 同步运行激活调度器。 在启动任何更改前验证信件。 汇报告
-    /// 其中一项成果是:
+    /// 在激活调度器上同步运行。在暂存任何变更之前验证消息。接收器报告
+    /// 以下结果之一：
     /// </para>
     /// <list type="bullet">
     /// <item><description>
-    /// <see cref="DeliveryResult.Accepted"/>:汇槽使电文的效果发生,信箱记录电文
-    /// 在同一书中处理。
+    /// <see cref="DeliveryResult.Accepted"/>：接收器已暂存消息效果，收件箱在同一次写入中将消息记录为
+    /// 已处理。
     /// </description></item>
     /// <item><description>
-    /// <see cref="DeliveryResult.Duplicate"/>: 水槽已经持有信息, 没有分阶段进行。 信箱报告
-    /// 一旦任何写作进行中,只要能保留原件,就具有持久性。
+    /// <see cref="DeliveryResult.Duplicate"/>：接收器已持有消息，不暂存任何变更。收件箱在可能包含原始消息的
+    /// 正在进行的写入持久化之后报告此结果。
     /// </description></item>
     /// <item><description>
-    /// <see cref="DeliveryResult.Backpressured"/>:汇汇在容量和阶段上,没有任何步骤,所以发送方重新试
-    /// 。后来,一个信息,即 grain 发送到自己手中的信息,不能等待重试,所以此结果无法发送。
+    /// <see cref="DeliveryResult.Backpressured"/>：接收器达到容量上限且不暂存任何变更，因此发送方
+    /// 稍后重试。Grain 向自身发送的消息不能等待重试，因此该结果会导致此次发送失败。
     /// </description></item>
     /// <item><description>
-    /// <see cref="DeliveryResult.DeadLettered"/>: 水槽拒绝信件, 并且不分阶段进行。 信箱记录
-    /// 将信息与结果的原因和 <see cref="DeliveryResult.DeadLettered.Code"/>一起处理,并返回
-    /// 发送者。 信件的复制件, 如第一次答错的重试, 也收到相同的拒绝 。
+    /// <see cref="DeliveryResult.DeadLettered"/>：接收器拒绝消息且不暂存任何变更。收件箱将消息记录为
+    /// 已处理，保存结果的原因及 <see cref="DeliveryResult.DeadLettered.Code"/>，并将其返回给
+    /// 发送方。重复消息（例如因首次应答丢失而发起的重试）会收到相同的拒绝结果。
     /// </description></item>
     /// </list>
     /// <para>
-    /// 汇的例外,或任何其他结果,意味着结果未知,所以收件箱没有分阶段,也没有失败
-    /// 发送件发件人发件人发件箱重新发送它,并回溯到 <c>OutboxRetryTimeout</c>,再发送至 grain
-    /// 投出或报告其他结果的水槽必须不留下任何分阶段的变化。
-    /// 返回 <see cref="DeliveryResult.DeadLettered"/> 永久拒绝信件。
+    /// 接收器抛出异常或返回其他结果时，处理结果未知，因此收件箱不会暂存任何变更，并使
+    /// 投递失败：发送方的发件箱进行退避重试，直至 <c>OutboxRetryTimeout</c>；Grain 向自身发送
+    /// 消息时则向调用方抛出异常。抛出异常或报告其他结果的接收器不得留下暂存变更。
+    /// 返回 <see cref="DeliveryResult.DeadLettered"/> 以永久拒绝消息。
     /// </para>
     /// </remarks>
     bool TryAccept(InboxMessage message, out DeliveryResult result);

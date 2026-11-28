@@ -1,10 +1,10 @@
 <Project>
-  <!-- 在此设定 InformationVersion , 因为$( Verion) 已经在此点设定 。 -->
+  <!-- 在此设置 InformationVersion，因为此时 $(Version) 已经设置。 -->
   <PropertyGroup>
     <InformationalVersion>$(Version). Commit Hash: $(GitHeadSha)</InformationalVersion>
   </PropertyGroup>
 
-  <!-- Roslyn 作者项目使得其项目档案中能够有扩展分析器规则。 -->
+  <!-- 开发 Roslyn 扩展的项目在其项目文件中启用扩展分析规则。 -->
   <ItemGroup Condition="'$(EnforceExtendedAnalyzerRules)' != 'true'">
     <EditorConfigFiles Include="$(MSBuildThisFileDirectory)eng\roslyn-non-authoring.globalconfig" />
   </ItemGroup>
@@ -15,7 +15,7 @@
     Project="$(MSBuildThisFileDirectory)src/Orleans.Core/build/Microsoft.Orleans.Core.targets" />
 
   <ItemGroup>
-    <!-- 可包装项目保留分析员的依附性,同时不将其集会列入当地产出。 -->
+    <!-- 可打包项目保留分析器依赖项，但不将其程序集复制到本地输出目录。 -->
     <ProjectReference
       Include="$(SourceRoot)src/Orleans.CodeGenerator/Orleans.CodeGenerator.csproj"
       OutputItemType="Analyzer"

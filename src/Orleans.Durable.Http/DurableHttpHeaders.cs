@@ -1,29 +1,29 @@
 namespace Orleans.Durable.Http;
 
-/// <summary>命名耐久 HTTP 操作协议的 HTTP 页头。</summary>
+/// <summary>定义持久化 HTTP 操作协议使用的 HTTP 请求头与响应头名称。</summary>
 public static class DurableHttpHeaders
 {
     /// <summary>
-    /// 请求页头可识别启动操作的请求, 请求的重写可一次启动 。
+    /// 用于标识启动操作请求的请求头，使重复请求只启动一次操作。
     /// </summary>
     /// <remarks>
-    /// 数值遵循Srakee和IETTF <c>Idempotency-Key</c> 草稿:1至255可打印的 ASCII 字符,发送
-    /// 或作为引用的结构字段字符串。关键是操作的识别符号,即一个 URL 路径路路段,因此它已经
-    /// 无 无 <c>/</c> 而不是 <c>.</c> 或 <c>..</c>.
+    /// 值遵循 Stripe 和 IETF <c>Idempotency-Key</c> 草案：1 至 255 个可打印 ASCII 字符，可按
+    /// 裸值或带引号的结构化字段字符串发送。该键是操作标识符，也是 URL 路径段，因此
+    /// 不包含 <c>/</c>，且不为 <c>.</c> 或 <c>..</c>。
     /// </remarks>
     public const string IdempotencyKey = "Idempotency-Key";
 
-    /// <summary>定位行动状态监测器的应答信头,作为 Azure 长期行动就是如此。</summary>
+    /// <summary>用于定位操作状态监视器的响应头，沿用 Azure 长时间运行操作的约定。</summary>
     public const string OperationLocation = "Operation-Location";
 
     /// <summary>
-    /// 注册回调 URL 的请求信头,一旦操作即接收运行状态监视器
-    /// 即为终端。每发货都携带请求书信头,以 <see cref="OperationCallbackHeaderPrefix"/>开头,
-    /// 没有前缀。
+    /// 用于注册回调 URL 的请求头；操作进入终态时该 URL 接收操作的状态监视器。
+    /// 每次交付均携带请求中名称以 <see cref="OperationCallbackHeaderPrefix"/> 开头的请求头，
+    /// 并去掉此前缀。
     /// </summary>
     public const string OperationCallback = "Operation-Callback";
 
-    /// <summary>请求信头的前缀,每个回击交付时携带的请求信头的前缀没有前缀。</summary>
+    /// <summary>每次回调交付携带的请求头的名称前缀，实际交付时去掉该前缀。</summary>
     public const string OperationCallbackHeaderPrefix = "Operation-Callback-";
     internal const string Prefer = "Prefer";
     internal const string PreferenceApplied = "Preference-Applied";

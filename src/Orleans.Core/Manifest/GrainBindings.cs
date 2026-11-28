@@ -8,18 +8,18 @@ using Orleans.Runtime;
 namespace Orleans.Metadata
 {
     /// <summary>
-    /// 描述给定 grain 类型类型的绑定。
+    /// 描述指定 Grain 类型的绑定。
     /// </summary>
     /// <remarks>
-    /// 约束性是将 grains 与其他资源建立公开联系的一种方式。
+    /// 绑定是一种以声明方式将 Grain 与其他资源相连的机制。
     /// </remarks>
     public class GrainBindings
     {
         /// <summary>
         /// 初始化 <see cref="GrainBindings"/> 类的新实例。
         /// </summary>
-        /// <param name="grainType"> grain 类型。</param>
-        /// <param name="bindings">指定 grain 类型组装的绑定。</param>
+        /// <param name="grainType">Grain 类型。</param>
+        /// <param name="bindings">指定 Grain 类型的绑定。</param>
         public GrainBindings(GrainType grainType, ImmutableArray<ImmutableDictionary<string, string>> bindings)
         {
             this.GrainType = grainType;
@@ -27,18 +27,18 @@ namespace Orleans.Metadata
         }
 
         /// <summary>
-        /// 获取 grain 类型。
+        /// 获取 Grain 类型。
         /// </summary>
         public GrainType GrainType { get; }
 
         /// <summary>
-        /// 获取指定 grain 类型上的绑定。
+        /// 获取指定 Grain 类型的绑定。
         /// </summary>
         public ImmutableArray<ImmutableDictionary<string, string>> Bindings { get; }
     }
 
     /// <summary>
-    /// 解决对 grain 类型的约束。
+    /// 解析 Grain 类型的绑定。
     /// </summary>
     public class GrainBindingsResolver
     {
@@ -53,7 +53,7 @@ namespace Orleans.Metadata
         /// 初始化 <see cref="GrainBindingsResolver"/> 类的新实例。
         /// </summary>
         /// <param name="clusterManifestProvider">
-        /// 集束货单提供者。
+        /// 集群清单提供程序。
         /// </param>
         public GrainBindingsResolver(IClusterManifestProvider clusterManifestProvider)
         {
@@ -62,12 +62,12 @@ namespace Orleans.Metadata
         }
 
         /// <summary>
-        /// 为提供 grain 类型设置绑定。
+        /// 获取所提供 Grain 类型的绑定。
         /// </summary>
         /// <param name="grainType">
-        /// 类型 grain 。
+        /// Grain 类型。
         /// </param>
-        /// <returns>装订 grain 。</returns>
+        /// <returns>Grain 绑定。</returns>
         public GrainBindings GetBindings(GrainType grainType)
         {
             GrainType lookupType;
@@ -93,9 +93,9 @@ namespace Orleans.Metadata
         }
 
         /// <summary>
-        /// 装订所有的约束。
+        /// 获取所有绑定。
         /// </summary>
-        /// <returns>全部收藏 grain 约束性。</returns>
+        /// <returns>所有 Grain 绑定的集合。</returns>
         public (MajorMinorVersion Version, ImmutableDictionary<GrainType, GrainBindings> Bindings) GetAllBindings()
         {
             var cache = GetCache();

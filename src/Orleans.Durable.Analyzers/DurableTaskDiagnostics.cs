@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Orleans.Durable.Analyzers;
 
-/// <summary>描述持久任务机构重播安全规则。</summary>
+/// <summary>描述持久化任务体的重放安全规则。</summary>
 internal static class DurableTaskDiagnostics
 {
     private const string Category = "Usage";
@@ -219,8 +219,8 @@ internal static class DurableTaskDiagnostics
             helpLinkUri: GetHelpLink(id));
 
     /// <summary>
-    /// 返回诊断性帮助链接: Orleans 诊断指数,该索引的诊断链接与
-    /// Orleans 分析器使用同样的表格。
+    /// 返回诊断的帮助链接：Orleans 诊断索引，其中对应诊断的锚点链接到
+    /// 它的页面。Orleans 分析器使用相同形式。
     /// </summary>
     internal static string GetHelpLink(string id) => $"https://aka.ms/orleans/diagnostics#{id.ToLowerInvariant()}";
 }

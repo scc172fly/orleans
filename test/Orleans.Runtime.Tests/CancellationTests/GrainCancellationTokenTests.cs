@@ -7,9 +7,9 @@ using Xunit;
 
 namespace UnitTests.CancellationTests
 {
-#pragma warning disable CS0618 // This suite exercises the legacy cancellation token API.
+#pragma warning disable CS0618 // 此套件测试旧版取消令牌 API。
     /// <summary>
-    /// 测试 GrainCancellationToken 功能,包括任务取消和象征性回调。
+    /// 测试 GrainCancellationToken 功能，包括任务取消和令牌回调。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]

@@ -8,9 +8,9 @@ using Xunit;
 namespace NonSilo.Tests
 {
     /// <summary>
-    /// 用于 AsyncExecutorWithRetries 通用类的测试,该类提供有再试逻辑的抗耐力非同步执行。
-    /// 这种类测试 Orleans内部再试验机制,用于处理非同步操作中的瞬态故障。
-    /// AsyncExecutorWithRetries 用于整个 Orleans 可靠地执行可能暂时失效的行动。
+    /// 测试 AsyncExecutorWithRetries 辅助类，该类提供带重试逻辑的弹性异步执行。
+    /// 此类测试 Orleans 用于处理异步操作中暂时性故障的内部重试机制。
+    /// Orleans 广泛使用 AsyncExecutorWithRetries，以可靠地执行可能暂时失败的操作。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -93,8 +93,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// 测试 AsyncExecutorWithRetries 重写一个失败函数,直到它成功为止。 
-        /// 并证实当重试超过极限时失败。
+        /// 测试 AsyncExecutorWithRetries 会重试失败的函数直至成功，
+        /// 并验证超过最大重试次数时会失败。
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("AsynchronyPrimitives")]
         public async Task Async_AsyncExecutorWithRetriesTest_1()
@@ -142,8 +142,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// 测试成功过滤功能,在满足成功条件之前,再试继续。
-        /// 证明成功过滤器返回时执行停止。
+        /// 测试成功筛选器功能，即持续重试直至满足成功条件。
+        /// 验证成功筛选器返回 true 时停止执行。
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("AsynchronyPrimitives")]
         public async Task Async_AsyncExecutorWithRetriesTest_2()
@@ -172,8 +172,8 @@ namespace NonSilo.Tests
                 cancellationToken: TestContext.Current.CancellationToken);
             int value = await promise;
             this.output.WriteLine("Value={0} Counter={1} ExpectedRetries={2}", value, counter, expectedRetries);
-            Assert.Equal(expectedRetries, value); // “返回值”
-            Assert.Equal(counter, value); // "Counter == 回报价值"
+            Assert.Equal(expectedRetries, value); // "Returned value"
+            Assert.Equal(counter, value); // "Counter == Returned value"
 
             counter = 0;
             maxRetries = 3;
@@ -187,13 +187,13 @@ namespace NonSilo.Tests
                 cancellationToken: TestContext.Current.CancellationToken);
             value = await promise;
             this.output.WriteLine("Value={0} Counter={1} ExpectedRetries={2}", value, counter, expectedRetries);
-            Assert.Equal(expectedRetries, value); // “返回值”
-            Assert.Equal(counter, value); // "Counter == 回报价值"
+            Assert.Equal(expectedRetries, value); // "Returned value"
+            Assert.Equal(counter, value); // "Counter == Returned value"
         }
 
         /// <summary>
-        /// 测试成功执行,无任何错误,核查是否未引用错误过滤器
-        /// 当函数在第一次尝试中成功时。
+        /// 测试无错误的成功执行，验证函数首次尝试即成功时
+        /// 不会调用错误筛选器。
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("AsynchronyPrimitives")]
         public async Task Async_AsyncExecutorWithRetriesTest_4()
@@ -230,8 +230,8 @@ namespace NonSilo.Tests
         }
 
         /// <summary>
-        /// 当返回真实( retrolly)、 虚假( stop) 或丢弃例外时, 测试错误过滤行为 。
-        /// 证明执行器尊重错误过滤器关于是否继续重试的决定。
+        /// 测试错误筛选器返回 true（重试）、false（停止）或抛出异常时的行为。
+        /// 验证执行器遵循错误筛选器关于是否继续重试的决定。
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("AsynchronyPrimitives")]
         public async Task Async_AsyncExecutorWithRetriesTest_5()
@@ -280,7 +280,7 @@ namespace NonSilo.Tests
                 Exception baseExc = exc.GetBaseException();
                 Assert.Equal(typeof(ArgumentException), baseExc.GetType());
                 this.output.WriteLine("baseExc.GetType()={0} Counter={1}", baseExc.GetType(), counter);
-                Assert.Equal(3, counter); // "Counter == 回报价值"
+                Assert.Equal(3, counter); // "Counter == Returned value"
             }
         }
     }

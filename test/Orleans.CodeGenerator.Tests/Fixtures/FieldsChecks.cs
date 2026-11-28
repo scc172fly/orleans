@@ -10,7 +10,7 @@ internal static class FieldAccessChecks
     public static ServiceProvider CreateServices()
     {
         var services = new ServiceCollection().AddSerializer();
-        // 根的密闭编码器和复印机 所以这支烟雾隔离了成员进入
+        // 将闭合类型的编解码器与复制器保留为根，以便该冒烟测试单独验证生成的成员访问。
         services.AddSingleton<IFieldCodec<PrivateFields>, Codec_PrivateFields>();
         services.AddSingleton<IDeepCopier<PrivateFields>, Copier_PrivateFields>();
         services.AddSingleton<IFieldCodec<ConstrainedFields<string>>, Codec_ConstrainedFields<string>>();

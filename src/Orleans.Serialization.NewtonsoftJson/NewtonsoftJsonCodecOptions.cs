@@ -4,7 +4,7 @@ using System;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// <see cref="NewtonsoftJsonCodec"/>选项。
+/// <see cref="NewtonsoftJsonCodec"/> 的选项。
 /// </summary>
 public class NewtonsoftJsonCodecOptions
 {
@@ -14,12 +14,12 @@ public class NewtonsoftJsonCodecOptions
     public JsonSerializerSettings? SerializerSettings { get; set; }
 
     /// <summary>
-    /// 获取或设置代表用来确定某一类型是否得到 JSON 序列器的佐证,以便进行序列和消毒。
+    /// 获取或设置一个委托，用于确定 JSON 序列化器是否支持某类型的序列化和反序列化。
     /// </summary>
     public Func<Type, bool?>? IsSerializableType { get; set; }
 
     /// <summary>
-    /// 获取或设置用于确定某一类型是否得到 JSON 序列器支持的代表复制。
+    /// 获取或设置一个委托，用于确定 JSON 序列化器是否支持某类型的复制。
     /// </summary>
     public Func<Type, bool?>? IsCopyableType { get; set; }
 }

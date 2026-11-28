@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Orleans.Serialization.TypeSystem;
 
 /// <summary>
-/// 表示复合类别名为前缀树。
+/// 以一棵前缀树表示复合类型别名。
 /// </summary>
 public class CompoundTypeAliasTree
 {
@@ -21,17 +21,17 @@ public class CompoundTypeAliasTree
     }
 
     /// <summary>
-    /// 获得此节点的钥匙 。
+    /// 获取此节点的键。
     /// </summary>
     public object? Key { get; }
 
     /// <summary>
-    /// 获取此节点的值 。
+    /// 获取此节点的值。
     /// </summary>
     public Type? Value { get; private set; }
 
     /// <summary>
-    /// 创建没有密钥或值的根节点新树。
+    /// 创建一棵新树，其根节点没有键或值。
     /// </summary>
     public static CompoundTypeAliasTree Create() => new(default, default);
 
@@ -53,42 +53,42 @@ public class CompoundTypeAliasTree
     }
 
     /// <summary>
-    /// 添加树上的节点。
+    /// 向树中添加节点。
     /// </summary>
-    /// <param name="key">新节点的密钥。</param>
+    /// <param name="key">新节点的键。</param>
     public CompoundTypeAliasTree Add(Type key) => AddInternal(key);
 
     /// <summary>
-    /// 添加树上的节点。
+    /// 向树中添加节点。
     /// </summary>
-    /// <param name="key">新节点的密钥。</param>
+    /// <param name="key">新节点的键。</param>
     public CompoundTypeAliasTree Add(string key) => AddInternal(key);
 
     /// <summary>
-    /// 添加树上的节点。
+    /// 向树中添加节点。
     /// </summary>
-    /// <param name="key">新节点的密钥。</param>
+    /// <param name="key">新节点的键。</param>
     /// <param name="value">新节点的值。</param>
     public CompoundTypeAliasTree Add(string key, Type value) => AddInternal(key, value);
 
     /// <summary>
-    /// 获取或创建中间节点,同时保留其注册类型值。
+    /// 获取或创建中间节点，同时保留其已注册的类型值。
     /// </summary>
-    /// <param name="key">组件类型。</param>
-    /// <returns>现有或创建的节点。</returns>
+    /// <param name="key">组成部分的类型。</param>
+    /// <returns>已有节点或新建节点。</returns>
     public CompoundTypeAliasTree GetOrAdd(Type key) => GetChildOrDefault(key) ?? AddInternal(key);
 
     /// <summary>
-    /// 获取或创建中间节点,同时保留其注册类型值。
+    /// 获取或创建中间节点，同时保留其已注册的类型值。
     /// </summary>
-    /// <param name="key">组件名称。</param>
-    /// <returns>现有或创建的节点。</returns>
+    /// <param name="key">组成部分的名称。</param>
+    /// <returns>已有节点或新建节点。</returns>
     public CompoundTypeAliasTree GetOrAdd(string key) => GetChildOrDefault(key) ?? AddInternal(key);
 
     /// <summary>
-    /// 添加树上的节点。
+    /// 向树中添加节点。
     /// </summary>
-    /// <param name="key">新节点的密钥。</param>
+    /// <param name="key">新节点的键。</param>
     /// <param name="value">新节点的值。</param>
     public CompoundTypeAliasTree Add(Type key, Type value) => AddInternal(key, value);
 
@@ -106,13 +106,13 @@ public class CompoundTypeAliasTree
         {
             if (value is not null && existing.Value is { } type && type != value)
             {
-                // 当同一个 grain 接口在多个没有交叉引用的组件中被使用时,
-                // 代码- gen 将生成两个代码的代码, 因为它独立运作, 但是在启动时它们会合并。
+                // 当多个没有相互引用的程序集使用同一个 Grain 接口时，
+                // 代码生成会各自独立进行，因此会为各程序集生成代码，但这些代码在启动时会合并。
 
-                // 在这种情况下,如果钥匙存在,其价值与所添加的价值相同,
-                // 并且由于逻辑上是一样的,我们可以只归还现有的 CompoundTypeAliasTree。
+                // 在这种情况下，如果键已存在且其值与要添加的值相同，
+                // 由于两者在逻辑上相同，可以直接返回现有的 CompoundTypeAliasTree。
 
-                // 本案中第一个可以获胜。
+                // 在这种情况下，以第一个注册项为准。
                 return existing;
             }
 

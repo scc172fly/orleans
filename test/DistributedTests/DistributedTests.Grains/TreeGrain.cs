@@ -4,7 +4,7 @@ namespace DistributedTests.Grains;
 
 public class TreeGrain : Grain, ITreeGrain
 {
-    // 16^4 grains (~65K)
+    // 16^4 个 Grain（约 65K 个）
     public const int FanOutFactor = 16;
     public const int MaxLevel = 4;
     private readonly List<ITreeGrain> _children;
@@ -19,7 +19,7 @@ public class TreeGrain : Grain, ITreeGrain
         var childBase = (id + 1) * FanOutFactor;
         for (var i = 1; i <= numChildren; i++)
         {
-            // 此 grain 使用复数键, 因此密钥扩展名(forestName)总是存在。
+            // 此 Grain 使用复合键，因此键扩展部分（forestName）始终存在。
             var child = GrainFactory.GetGrain<ITreeGrain>(childBase + i, keyExtension: forestName!);
             _children.Add(child);
         }
@@ -34,7 +34,7 @@ public class TreeGrain : Grain, ITreeGrain
             tasks.Add(child.Ping(cancellationToken));
         }
 
-        // 等待任务完成
+        // 等待任务完成。
         foreach (var task in tasks)
         {
             await task;

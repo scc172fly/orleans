@@ -7,12 +7,12 @@ using Orleans.TestingHost;
 namespace TestExtensions;
 
 /// <summary>
-/// 订阅 Orleans grain 诊断事件并提供
-/// 确定等待特定 grain 生命周期事件的方法。
+/// 订阅 Orleans Grain 诊断事件的测试辅助工具，提供
+/// 确定性等待特定 Grain 生命周期事件的方法。
 /// </summary>
 /// <remarks>
-/// 以事件驱动的等待取代测试中的 Task.Delay/Thread.Sleep 模式,
-/// 使测试更快和更加可靠。
+/// 在测试中使用事件驱动等待替代 Task.Delay/Thread.Sleep 模式，
+/// 使测试更快且更可靠。
 /// </remarks>
 public sealed class GrainDiagnosticObserver : IDisposable, IObserver<GrainLifecycleEvents.LifecycleEvent>
 {
@@ -28,32 +28,32 @@ public sealed class GrainDiagnosticObserver : IDisposable, IObserver<GrainLifecy
     private bool _disposed;
 
     /// <summary>
-    /// 获取已订阅的 Orleans.Grains 听众人数。
+    /// 获取已订阅的 Orleans.Grains 侦听器数量。
     /// </summary>
     public int ListenerSubscriptionCount => _listenerSubscriptionCount;
 
     /// <summary>
-    /// 抓获所有被俘 grain 创建的事件 。
+    /// 获取所有捕获的 Grain 创建事件。
     /// </summary>
     public IReadOnlyCollection<GrainLifecycleEvents.Created> CreatedEvents => _createdEvents.ToArray();
 
     /// <summary>
-    /// 获取所有被俘获 grain 启动事件 。
+    /// 获取所有捕获的 Grain 激活完成事件。
     /// </summary>
     public IReadOnlyCollection<GrainLifecycleEvents.Activated> ActivatedEvents => _activatedEvents.ToArray();
 
     /// <summary>
-    /// 抓获所有被俘 grain 停止活动
+    /// 获取所有捕获的 Grain 正在停用事件。
     /// </summary>
     public IReadOnlyCollection<GrainLifecycleEvents.Deactivating> DeactivatingEvents => _deactivatingEvents.ToArray();
 
     /// <summary>
-    /// 获取所有被俘获的 grain 停止运行的事件。
+    /// 获取所有捕获的 Grain 停用完成事件。
     /// </summary>
     public IReadOnlyCollection<GrainLifecycleEvents.Deactivated> DeactivatedEvents => _deactivatedEvents.ToArray();
 
     /// <summary>
-    /// 创建观察者的新实例,并开始收听 grain 诊断事件。
+    /// 创建观察器的新实例，并开始监听 Grain 诊断事件。
     /// </summary>
     public static GrainDiagnosticObserver Create(TestCluster cluster) => Create(DiagnosticObserverSiloScope.For(cluster));
 
@@ -78,11 +78,11 @@ public sealed class GrainDiagnosticObserver : IDisposable, IObserver<GrainLifecy
     private GrainDiagnosticObserver() { }
 
     /// <summary>
-    /// 等待特定 grain 被停止使用。
+    /// 等待指定 Grain 停用完成。
     /// </summary>
-    /// <param name="grainId">等待的 grain ID。</param>
-    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
-    /// <returns>停止运行的事件有效载荷。</returns>
+    /// <param name="grainId">要等待的 Grain ID。</param>
+    /// <param name="timeout">最长等待时间，默认为 30 秒。</param>
+    /// <returns>停用完成事件的有效载荷。</returns>
     public async Task<GrainLifecycleEvents.Deactivated> WaitForGrainDeactivatedAsync(GrainId grainId, TimeSpan? timeout = null)
     {
         var result = await WaitForEventAsync(grainId, nameof(GrainLifecycleEvents.Deactivated), timeout ?? TimeSpan.FromSeconds(30));
@@ -90,11 +90,11 @@ public sealed class GrainDiagnosticObserver : IDisposable, IObserver<GrainLifecy
     }
 
     /// <summary>
-    /// 等待指定 grain 开始停止活动。
+    /// 等待指定 Grain 开始停用。
     /// </summary>
-    /// <param name="grainId">等待的 grain ID。</param>
-    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
-    /// <returns>解除活动事件有效载荷。</returns>
+    /// <param name="grainId">要等待的 Grain ID。</param>
+    /// <param name="timeout">最长等待时间，默认为 30 秒。</param>
+    /// <returns>正在停用事件的有效载荷。</returns>
     public async Task<GrainLifecycleEvents.Deactivating> WaitForGrainDeactivatingAsync(GrainId grainId, TimeSpan? timeout = null)
     {
         var result = await WaitForEventAsync(grainId, nameof(GrainLifecycleEvents.Deactivating), timeout ?? TimeSpan.FromSeconds(30));
@@ -102,11 +102,11 @@ public sealed class GrainDiagnosticObserver : IDisposable, IObserver<GrainLifecy
     }
 
     /// <summary>
-    /// 等待特定 grain 激活。
+    /// 等待指定 Grain 激活完成。
     /// </summary>
-    /// <param name="grainId">等待的 grain ID。</param>
-    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
-    /// <returns>引爆事件的有效载荷</returns>
+    /// <param name="grainId">要等待的 Grain ID。</param>
+    /// <param name="timeout">最长等待时间，默认为 30 秒。</param>
+    /// <returns>激活完成事件的有效载荷。</returns>
     public async Task<GrainLifecycleEvents.Activated> WaitForGrainActivatedAsync(GrainId grainId, TimeSpan? timeout = null)
     {
         var result = await WaitForEventAsync(grainId, nameof(GrainLifecycleEvents.Activated), timeout ?? TimeSpan.FromSeconds(30));
@@ -114,11 +114,11 @@ public sealed class GrainDiagnosticObserver : IDisposable, IObserver<GrainLifecy
     }
 
     /// <summary>
-    /// 等待创建特定 grain 。
+    /// 等待指定 Grain 创建完成。
     /// </summary>
-    /// <param name="grainId">等待的 grain ID。</param>
-    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
-    /// <returns>所创建的事件有效载荷。</returns>
+    /// <param name="grainId">要等待的 Grain ID。</param>
+    /// <param name="timeout">最长等待时间，默认为 30 秒。</param>
+    /// <returns>创建事件的有效载荷。</returns>
     public async Task<GrainLifecycleEvents.Created> WaitForGrainCreatedAsync(GrainId grainId, TimeSpan? timeout = null)
     {
         var result = await WaitForEventAsync(grainId, nameof(GrainLifecycleEvents.Created), timeout ?? TimeSpan.FromSeconds(30));
@@ -126,11 +126,11 @@ public sealed class GrainDiagnosticObserver : IDisposable, IObserver<GrainLifecy
     }
 
     /// <summary>
-    /// 等待任何符合前提的 grain 被禁用。
+    /// 等待任意符合谓词条件的 Grain 停用完成。
     /// </summary>
-    /// <param name="predicate">符合 grain的上游。</param>
-    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
-    /// <returns>停止运行的事件有效载荷。</returns>
+    /// <param name="predicate">用于匹配 Grain 的谓词。</param>
+    /// <param name="timeout">最长等待时间，默认为 30 秒。</param>
+    /// <returns>停用完成事件的有效载荷。</returns>
     public async Task<GrainLifecycleEvents.Deactivated> WaitForAnyGrainDeactivatedAsync(
         Func<GrainLifecycleEvents.Deactivated, bool> predicate,
         TimeSpan? timeout = null)
@@ -165,53 +165,53 @@ public sealed class GrainDiagnosticObserver : IDisposable, IObserver<GrainLifecy
     }
 
     /// <summary>
-    /// 检查是否指定 grain 已禁用。
+    /// 检查指定 Grain 是否已停用。
     /// </summary>
-    /// <param name="grainId">要检查的 grain ID。</param>
-    /// <returns>如果 grain 已被禁用, 则属 True。</returns>
+    /// <param name="grainId">要检查的 Grain ID。</param>
+    /// <returns>如果 Grain 已停用，则为 true。</returns>
     public bool HasGrainDeactivated(GrainId grainId)
     {
         return _deactivatedEvents.Any(e => e.GrainContext.GrainId == grainId);
     }
 
     /// <summary>
-    /// 检查是否激活了特定 grain 。
+    /// 检查指定 Grain 是否已激活。
     /// </summary>
-    /// <param name="grainId">要检查的 grain ID。</param>
-    /// <returns>如果 grain 已被激活, 则 True。</returns>
+    /// <param name="grainId">要检查的 Grain ID。</param>
+    /// <returns>如果 Grain 已激活，则为 true。</returns>
     public bool HasGrainActivated(GrainId grainId)
     {
         return _activatedEvents.Any(e => e.GrainContext.GrainId == grainId);
     }
 
     /// <summary>
-    /// 获取特定类型 grain 的已停止运行事件数 。
+    /// 获取指定 Grain 类型的停用完成事件数量。
     /// </summary>
-    /// <param name="grainTypeName">需要筛选的 grain 类型名称。</param>
-    /// <returns>停止运行事件计数。</returns>
+    /// <param name="grainTypeName">用于筛选的 Grain 类型名称。</param>
+    /// <returns>停用事件的数量。</returns>
     public int GetDeactivationCount(string grainTypeName)
     {
         return _deactivatedEvents.Count(e => GetGrainTypeName(e.GrainContext).Contains(grainTypeName, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
-    /// 获取特定类型 grain 的激活事件计数。
+    /// 获取指定 Grain 类型的激活完成事件数量。
     /// </summary>
-    /// <param name="grainTypeName">需要筛选的 grain 类型名称。</param>
-    /// <returns>启动事件的计数。</returns>
+    /// <param name="grainTypeName">用于筛选的 Grain 类型名称。</param>
+    /// <returns>激活事件的数量。</returns>
     public int GetActivationCount(string grainTypeName)
     {
         return _activatedEvents.Count(e => GetGrainTypeName(e.GrainContext).Contains(grainTypeName, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
-    /// 等待特定类型 grain 的停用计数达到或超过预期计数。
+    /// 等待指定 Grain 类型的停用次数达到或超过预期数量。
     /// </summary>
-    /// <param name="grainTypeName">需要筛选的 grain 类型名称。</param>
-    /// <param name="expectedCount">等待的最小失能次数。</param>
-    /// <param name="timeout">最大等待时间。 默认为60秒。</param>
-    /// <returns>任务在达到预期数时完成。</returns>
-    /// <exception cref="TimeoutException">如果在超时内未达到预期的计数, 则丢弃。</exception>
+    /// <param name="grainTypeName">用于筛选的 Grain 类型名称。</param>
+    /// <param name="expectedCount">等待的最少停用次数。</param>
+    /// <param name="timeout">最长等待时间，默认为 60 秒。</param>
+    /// <returns>达到预期计数时完成的任务。</returns>
+    /// <exception cref="TimeoutException">如果在超时前未达到预期数量，则抛出此异常。</exception>
     public async Task WaitForDeactivationCountAsync(string grainTypeName, int expectedCount, TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(60);
@@ -245,13 +245,13 @@ public sealed class GrainDiagnosticObserver : IDisposable, IObserver<GrainLifecy
     }
 
     /// <summary>
-    /// 等待特定类型 grain 的激活计数达到或超过预期数。
+    /// 等待指定 Grain 类型的激活次数达到或超过预期数量。
     /// </summary>
-    /// <param name="grainTypeName">需要筛选的 grain 类型名称。</param>
-    /// <param name="expectedCount">最起码的激活次数等待。</param>
-    /// <param name="timeout">最大等待时间。 默认为60秒。</param>
-    /// <returns>任务在达到预期数时完成。</returns>
-    /// <exception cref="TimeoutException">如果在超时内未达到预期的计数, 则丢弃。</exception>
+    /// <param name="grainTypeName">用于筛选的 Grain 类型名称。</param>
+    /// <param name="expectedCount">等待的最少激活次数。</param>
+    /// <param name="timeout">最长等待时间，默认为 60 秒。</param>
+    /// <returns>达到预期计数时完成的任务。</returns>
+    /// <exception cref="TimeoutException">如果在超时前未达到预期数量，则抛出此异常。</exception>
     public async Task WaitForActivationCountAsync(string grainTypeName, int expectedCount, TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(60);
@@ -285,7 +285,7 @@ public sealed class GrainDiagnosticObserver : IDisposable, IObserver<GrainLifecy
     }
 
     /// <summary>
-    /// 清除所有被俘事件
+    /// 清除所有已捕获的事件。
     /// </summary>
     public void Clear()
     {
@@ -410,7 +410,7 @@ public sealed class GrainDiagnosticObserver : IDisposable, IObserver<GrainLifecy
     void IObserver<GrainLifecycleEvents.LifecycleEvent>.OnCompleted() { }
 
     /// <summary>
-    /// 停止收听 grain 诊断事件。
+    /// 停止监听 Grain 诊断事件。
     /// </summary>
     public void Dispose()
     {
@@ -491,12 +491,12 @@ public sealed class GrainDiagnosticObserver : IDisposable, IObserver<GrainLifecy
 }
 
 /// <summary>
-/// 与 grain 参考和诊断观察员合作的推广方法。
+/// 用于 Grain 引用和诊断观察器的扩展方法。
 /// </summary>
 public static class GrainDiagnosticExtensions
 {
     /// <summary>
-    /// 等待创建 grain 。
+    /// 等待 Grain 创建完成。
     /// </summary>
     public static Task<GrainLifecycleEvents.Created> WaitForCreatedAsync(this GrainDiagnosticObserver observer, IAddressable grain, TimeSpan? timeout = null)
     {
@@ -504,7 +504,7 @@ public static class GrainDiagnosticExtensions
     }
 
     /// <summary>
-    /// 等待 grain 被停止使用。
+    /// 等待 Grain 停用完成。
     /// </summary>
     public static Task<GrainLifecycleEvents.Deactivated> WaitForDeactivatedAsync(this GrainDiagnosticObserver observer, IAddressable grain, TimeSpan? timeout = null)
     {
@@ -512,7 +512,7 @@ public static class GrainDiagnosticExtensions
     }
 
     /// <summary>
-    /// 等待启动 grain 。
+    /// 等待 Grain 激活完成。
     /// </summary>
     public static Task<GrainLifecycleEvents.Activated> WaitForActivatedAsync(this GrainDiagnosticObserver observer, IAddressable grain, TimeSpan? timeout = null)
     {

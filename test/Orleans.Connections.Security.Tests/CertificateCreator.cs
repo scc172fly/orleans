@@ -5,12 +5,12 @@ namespace Orleans.Connections.Security.Tests
 {
     internal static class TestCertificateHelper
     {
-        // 见 http://oid-info.com/get/1.3.6.1.5.5.7.3.1
+        // 参见 http://oid-info.com/get/1.3.6.1.5.5.7.3.1
         // 表示证书可用作 TLS 服务器证书
         public const string ServerAuthenticationOid = "1.3.6.1.5.5.7.3.1";
 
-        // 见 http://oid-info.com/get/1.3.6.1.5.5.7.3.2
-        // 表示证书可以用作 TLS 客户端证书
+        // 参见 http://oid-info.com/get/1.3.6.1.5.5.7.3.2
+        // 表示证书可用作 TLS 客户端证书
         public const string ClientAuthenticationOid = "1.3.6.1.5.5.7.3.2";
 
         private const X509KeyUsageFlags KeyUsageFlags = X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation | X509KeyUsageFlags.DataEncipherment | X509KeyUsageFlags.KeyEncipherment | X509KeyUsageFlags.KeyAgreement;

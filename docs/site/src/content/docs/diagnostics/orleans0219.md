@@ -1,25 +1,25 @@
 ---
-title: "ORLEANS0219:等待、合并或归还在册儿童的手柄"
-description: "了解 ORLEANS0219,报告长期任务机构从未观察到的被安排在册儿童的处理情况,并通过等待处理、合并或拆卸工作来解决这个问题。"
+title: "ORLEANS0219: 等待、组合或返回已调度子任务的句柄"
+description: 了解 ORLEANS0219，它报告持久化任务主体从未观察已调度子任务句柄的情况，并介绍通过等待句柄、组合句柄或分离任务进行修复的方法。
 ms.date: 10/19/2026
 ms.topic: reference
 ---
 
 <a id="orleans0219-await-combine-or-return-the-handles-of-scheduled-children"></a>
 
-# ORLEANS0219:等待、合并或归还在册儿童的手柄
+# ORLEANS0219: 等待、组合或返回已调度子任务的句柄
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 严重性 | 信息信息 |
-| 类别类 | 用法 |
-| 代码修正 | 无无无无 |
+| 严重性 | 信息 |
+| 类别 | 用法 |
+| 代码修复 | 无 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-长期任务机构将一名随附子女 `ScheduleAsync` 丢弃回的手柄,或将其持有在当地人手中,因为当地人的唯一用途是读取其特性,例如 `Id`:
+持久化任务主体使用 `ScheduleAsync` 调度附属子任务，却丢弃返回的句柄，或将其保存在仅用于读取属性（例如 `Id`）的局部变量中：
 
 :::code source="snippets/durable-tasks/Orleans0219.cs" id="orleans0219_violation" language="csharp":::
 
@@ -27,32 +27,32 @@ ms.topic: reference
 
 ## 规则说明
 
-在持久任务机构, `ScheduleAsync` 开始一个随身儿童,一旦儿童的宿主接受并储存了孩子,就返回其手柄。处决即为儿童所有:死刑取消到达时,并删除处决树,一旦处决结束,则取消仍在运行的儿童。儿童的结果和失败只达到手柄的代码。
+在持久化任务主体中，`ScheduleAsync` 启动附属子任务，并在子任务的宿主接受并存储它之后返回其句柄。执行实例拥有该子任务：执行实例的取消会传递到子任务；执行实例进入终止状态后，删除其执行树也会取消仍在运行的子任务。只有观察句柄的代码才能获知子任务的结果和失败。
 
-以此为例, 通知仍可运行时身体会完整。 通知若不成功, 发出命令时没有工作流量失败的记录, 而当执行树被删除时仍然在运行的通知则被取消 。
+在示例中，主体完成时通知可能仍在运行。如果通知发送失败，订单仍处于已发货状态，而工作流中没有失败记录；如果执行树被删除时通知仍在运行，该通知任务会被取消。
 
-附加启动和分离启动,见 [开始和观察任务](../grains/durable-tasks.md#starting-and-observing-tasks)。
+有关附属和分离启动，请参阅[启动和观察任务](../grains/durable-tasks.md#starting-and-observing-tasks)。
 
 <a id="how-to-fix-violations"></a>
 
-## 如何纠正违反情况
+## 如何修复违规
 
-**等待把手。** 儿童在身体继续时运行,在身体完成前观察其结果:
+**等待句柄。** 子任务在主体继续执行时运行，主体在完成前观察其结果：
 
 :::code source="snippets/durable-tasks/Orleans0219.cs" id="orleans0219_fix_await" language="csharp":::
 
-**将控点传给组合器。** `ScheduledTask.WhenAll` 等待每个控点,然后按输入顺序丢弃第一个失败:
+**将句柄传给组合器。** `ScheduledTask.WhenAll` 等待所有句柄，并按输入顺序抛出第一个失败异常：
 
 :::code source="snippets/durable-tasks/Orleans0219.cs" id="orleans0219_fix_combinator" language="csharp":::
 
-**把手还给我** 返回把手的物体将观察结果传给其呼叫者。
+**返回句柄。** 返回句柄的主体将观察结果的责任交给调用方。
 
-**完成的分解工作比执行期长** `Detached()` 开始独立根任务, 执行完成后和树被删除后继续 :
+**分离生命周期超过当前执行实例的工作。** `Detached()` 启动独立的根任务，它在当前执行实例完成及其执行树被删除后仍会继续运行：
 
 :::code source="snippets/durable-tasks/Orleans0219.cs" id="orleans0219_fix_detached" language="csharp":::
 
 <a id="when-to-suppress"></a>
 
-## 何时压缩
+## 何时抑制诊断
 
-禁止工作流量忽视结果的儿童诊断,如果删除行刑树,这些结果可能会停止,例如最佳的缓冲温度。
+如果工作流有意忽略子任务的结果，且允许它在执行树被删除时停止（例如尽力而为的缓存预热），则可抑制此诊断。

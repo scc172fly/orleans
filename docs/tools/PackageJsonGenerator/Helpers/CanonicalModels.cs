@@ -1,9 +1,9 @@
-// 根据一项或多项协定获得 .NET 基金会许可证。
-// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 namespace PackageJsonGenerator.Helpers;
 
-/// <summary>化学表示一种化学排放类型。</summary>
+/// <summary>用于输出架构的类型规范化表示。</summary>
 internal sealed class CanonicalType
 {
     public string Name { get; set; } = "";
@@ -25,11 +25,11 @@ internal sealed class CanonicalType
     public string? DelegateReturnType { get; set; }
     public List<CanonicalParameter>? DelegateParameters { get; set; }
     public List<CanonicalAttribute>? Attributes { get; set; }
-    /// <summary>此类申报的公巢类型全名。Roslyn合并部分申报,包括每个部分源文件提供的嵌套类型。</summary>
+    /// <summary>该类型声明的公开嵌套类型的完整名称。Roslyn 会合并分部声明，因此这里包含每个分部源文件贡献的嵌套类型。</summary>
     public List<string>? NestedTypes { get; set; }
-    /// <summary>相对对应的源文件路径 (e.g. "src/Orleans.Core/Foo.cs" 。</summary>
+    /// <summary>相对于仓库根目录的源文件路径（例如 "src/Orleans.Core/Foo.cs"）。</summary>
     public string? SourceFile { get; set; }
-    /// <summary>源文件( 源文件中的行区域) (e.g. "15-200").</summary>
+    /// <summary>源文件中的行号范围（例如 "15-200"）。</summary>
     public string? SourceLines { get; set; }
 
     internal static string GetTypeKind(Microsoft.CodeAnalysis.INamedTypeSymbol symbol)
@@ -49,14 +49,14 @@ internal sealed class CanonicalType
     }
 }
 
-/// <summary>克隆通用参数。</summary>
+/// <summary>规范化的泛型参数。</summary>
 internal sealed class CanonicalGenericParameter
 {
     public string Name { get; set; } = "";
     public List<string> Constraints { get; set; } = [];
 }
 
-/// <summary>堪称卡尼科成员</summary>
+/// <summary>规范化的成员。</summary>
 internal sealed class CanonicalMember
 {
     public string Name { get; set; } = "";
@@ -80,9 +80,9 @@ internal sealed class CanonicalMember
     public string Signature { get; set; } = "";
     public CanonicalDocumentation? Docs { get; set; }
     public List<CanonicalAttribute>? Attributes { get; set; }
-    /// <summary>相对对应的源文件路径 (e.g. "src/Orleans.Core/Foo.cs" 。</summary>
+    /// <summary>相对于仓库根目录的源文件路径（例如 "src/Orleans.Core/Foo.cs"）。</summary>
     public string? SourceFile { get; set; }
-    /// <summary>源文件( 源文件中的行区域) (e.g. "15-200").</summary>
+    /// <summary>源文件中的行号范围（例如 "15-200"）。</summary>
     public string? SourceLines { get; set; }
 }
 internal sealed class CanonicalParameter
@@ -96,7 +96,7 @@ internal sealed class CanonicalParameter
     public List<CanonicalAttribute>? Attributes { get; set; }
 }
 
-/// <summary>堪尼卡金库姆成员</summary>
+/// <summary>规范化的枚举成员。</summary>
 internal sealed class CanonicalEnumMember
 {
     public string Name { get; set; } = "";
@@ -104,7 +104,7 @@ internal sealed class CanonicalEnumMember
     public string? Description { get; set; }
 }
 
-/// <summary>坚固的属性</summary>
+/// <summary>规范化的特性。</summary>
 internal sealed class CanonicalAttribute
 {
     public string Name { get; set; } = "";
@@ -112,7 +112,7 @@ internal sealed class CanonicalAttribute
     public Dictionary<string, string>? Arguments { get; set; }
 }
 
-/// <summary>谷歌文件。</summary>
+/// <summary>规范化的文档。</summary>
 internal sealed class CanonicalDocumentation
 {
     public List<DocNode>? Summary { get; set; }
@@ -126,7 +126,7 @@ internal sealed class CanonicalDocumentation
     public List<string>? SeeAlso { get; set; }
 }
 
-/// <summary>成员可以提出有记录的例外。</summary>
+/// <summary>文档中记录的成员可能抛出的异常。</summary>
 internal sealed class CanonicalException
 {
     public string Type { get; set; } = "";
@@ -134,8 +134,8 @@ internal sealed class CanonicalException
 }
 
 /// <summary>
-/// 结构化文档节点, 保存 XML 文档元素语义。
-/// 用于 DocContent.astro 组件所消耗的丰富格式的地图。
+/// 保留 XML 文档元素语义的结构化文档节点。
+/// 对应 DocContent.astro 组件所使用的富文本格式。
 /// </summary>
 internal sealed class DocNode
 {
@@ -149,14 +149,14 @@ internal sealed class DocNode
     public DocListItem? Header { get; set; }
 }
 
-/// <summary>文件清单中的列表项目。</summary>
+/// <summary>文档列表中的一个列表项。</summary>
 internal sealed class DocListItem
 {
     public List<DocNode>? Term { get; set; }
     public List<DocNode>? Description { get; set; }
 }
 
-/// <summary>XML doc &lt;等&gt; 元素的结构性代码示例。</summary>
+/// <summary>从 XML 文档的 &lt;example&gt; 元素提取的结构化代码示例。</summary>
 internal sealed class DocExample
 {
     public string Code { get; set; } = "";

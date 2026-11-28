@@ -12,7 +12,7 @@ using Orleans.Reminders.AzureStorage;
 namespace Orleans.Runtime.ReminderService
 {
     /// <summary>
-    /// 仓库和回收 Orleans 使用提醒条目 Azure 桌子储存。
+    /// 使用 Azure Table Storage 存储和检索 Orleans 提醒器记录。
     /// </summary>
     public sealed partial class AzureBasedReminderTable : IReminderTable
     {
@@ -29,11 +29,11 @@ namespace Orleans.Runtime.ReminderService
         /// <summary>
         /// 初始化 <see cref="AzureBasedReminderTable"/> 类的新实例。
         /// </summary>
-        /// <param name="loggerFactory">伐木厂</param>
-        /// <param name="clusterOptions">用于范围提醒条目的群集识别选项。</param>
-        /// <param name="storageOptions">下 Azure 表格存储提醒选项。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
+        /// <param name="clusterOptions">用于限定提醒器记录范围的集群标识选项。</param>
+        /// <param name="storageOptions">Azure Table Storage 提醒器选项。</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="clusterOptions"/> 或 <paramref name="storageOptions"/> 是 <see langword="null"/>。
+        /// <paramref name="clusterOptions"/> 或 <paramref name="storageOptions"/> 为 <see langword="null"/>。
         /// </exception>
         public AzureBasedReminderTable(
             ILoggerFactory loggerFactory,
@@ -54,10 +54,10 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// 连接到 Azure 表存储,如果不存在提醒表,则创建提醒表格。
+        /// 连接 Azure Table Storage，并在提醒器表不存在时创建它。
         /// </summary>
-        /// <param name="cancellationToken">用于取消生命周期锁定获取和启动尝试之间延迟的标记。</param>
-        /// <returns>一项代表初始化操作的任务。</returns>
+        /// <param name="cancellationToken">用于取消生命周期锁获取及初始化尝试之间延迟的令牌。</param>
+        /// <returns>表示初始化操作的任务。</returns>
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             await _lifecycleLock.WaitAsync(cancellationToken);
@@ -108,10 +108,10 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// 停止提醒表格,直到它再次启动。
+        /// 停止提醒器表，直到再次启动。
         /// </summary>
-        /// <param name="cancellationToken">用于取消停止操作的标记。</param>
-        /// <returns>代表停止操作的任务。</returns>
+        /// <param name="cancellationToken">用于取消停止操作的令牌。</param>
+        /// <returns>表示停止操作的任务。</returns>
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             await _lifecycleLock.WaitAsync(cancellationToken);
@@ -143,7 +143,7 @@ namespace Orleans.Runtime.ReminderService
                 }
                 catch (Exception)
                 {
-                    // 忽略...
+                    // 忽略……
                 }
 #pragma warning restore RCS1075 // Avoid empty catch clause that catches System.Exception.
             }
@@ -218,15 +218,15 @@ namespace Orleans.Runtime.ReminderService
                 Period = remEntry.Period.ToString(),
 
                 GrainRefConsistentHash = consistentHash.ToString("X8"),
-                // 下 Azure SDK 接受默认提醒 ETag, 即使其字符串构造器不可读。
+                // 尽管 ETag 的字符串构造函数参数被标注为非可空，Azure SDK 仍接受提醒器的默认 ETag。
                 ETag = new ETag(remEntry.ETag!),
             };
         }
 
         /// <summary>
-        /// 删除当前 Orleans 服务和组群的所有提醒项。
+        /// 删除当前 Orleans 服务和集群的所有提醒器记录。
         /// </summary>
-        /// <returns>代表删除操作的任务。</returns>
+        /// <returns>表示删除操作的任务。</returns>
         public async Task TestOnlyClearTable()
         {
             await Volatile.Read(ref _initializationTask).Task;
@@ -235,10 +235,10 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// 读取与指定 grain有关的所有提醒条目。
+        /// 读取与指定 Grain 关联的所有提醒器记录。
         /// </summary>
-        /// <param name="grainId"> grain 标识符。</param>
-        /// <returns>与 <paramref name="grainId"/>.</returns>
+        /// <param name="grainId">Grain 标识符。</param>
+        /// <returns>与 <paramref name="grainId"/> 关联的提醒器记录。</returns>
         public async Task<ReminderTableData> ReadRows(GrainId grainId)
         {
             try
@@ -258,11 +258,11 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// 读取提醒条目,其 grain 散列在范围 <c>(begin, end]</c>。
+        /// 读取 Grain 哈希值位于范围 <c>(begin, end]</c> 内的提醒器记录。
         /// </summary>
-        /// <param name="begin">散列范围排他性下限</param>
-        /// <param name="end">散列范围的包容性上层。</param>
-        /// <returns>指定散列范围内的提醒条目。</returns>
+        /// <param name="begin">哈希范围的排他下界。</param>
+        /// <param name="end">哈希范围的包含上界。</param>
+        /// <returns>指定哈希范围内的提醒器记录。</returns>
         public async Task<ReminderTableData> ReadRows(uint begin, uint end)
         {
             try
@@ -282,11 +282,11 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// 读取指定 grain 和提醒名称的提醒项。
+        /// 读取指定 Grain 和提醒器名称对应的提醒器记录。
         /// </summary>
-        /// <param name="grainId"> grain 标识符。</param>
-        /// <param name="reminderName">提醒的名称。</param>
-        /// <returns>发现提醒项时;否则, <see langword="null"/>.</returns>
+        /// <param name="grainId">Grain 标识符。</param>
+        /// <param name="reminderName">提醒器名称。</param>
+        /// <returns>找到时返回提醒器记录，否则返回 <see langword="null"/>。</returns>
         public async Task<ReminderEntry?> ReadRow(GrainId grainId, string reminderName)
         {
             try
@@ -305,11 +305,11 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// 插入或替换提醒条目。
+        /// 插入或替换提醒器记录。
         /// </summary>
-        /// <param name="entry">备存提醒项。</param>
-        /// <returns>写成功时的新实体标记;否则, <see langword="null"/>。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="entry"/> 是 <see langword="null"/>.</exception>
+        /// <param name="entry">要存储的提醒器记录。</param>
+        /// <returns>写入成功时返回新的实体标记，否则返回 <see langword="null"/>。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="entry"/> 为 <see langword="null"/>。</exception>
         public async Task<string?> UpsertRow(ReminderEntry entry)
         {
             ArgumentNullException.ThrowIfNull(entry);
@@ -336,13 +336,13 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// 当实体标签与存储条目匹配时, 将删除提醒项 。
+        /// 当提醒器记录的实体标记与存储的记录匹配时，移除该记录。
         /// </summary>
-        /// <param name="grainId"> grain 标识符。</param>
-        /// <param name="reminderName">提醒的名称。</param>
-        /// <param name="eTag">用于乐观货币的实体标记。</param>
+        /// <param name="grainId">Grain 标识符。</param>
+        /// <param name="reminderName">提醒器名称。</param>
+        /// <param name="eTag">用于乐观并发控制的实体标记。</param>
         /// <returns>
-        /// 条目被删除时的<see langword="true"/> ;否则, <see langword="false"/>。
+        /// 移除记录时返回 <see langword="true"/>；否则返回 <see langword="false"/>。
         /// </returns>
         public async Task<bool> RemoveRow(GrainId grainId, string reminderName, string eTag)
         {

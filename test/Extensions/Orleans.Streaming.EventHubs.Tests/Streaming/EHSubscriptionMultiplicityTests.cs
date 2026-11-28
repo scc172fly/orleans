@@ -9,7 +9,7 @@ using Xunit;
 namespace ServiceBus.Tests.StreamingTests
 {
     /// <summary>
-    /// 测试 EventHub 订阅多重假设情景,包括平行、线性以及重新订阅行为。
+    /// 测试 Event Hub 多重订阅场景，包括并行订阅、线性订阅和重新订阅行为。
     /// </summary>
     [TestCategory("Functional")]
     [TestSuite("Functional")]

@@ -48,7 +48,7 @@ public sealed class IdealizedReminderServiceFixture : IAsyncLifetime
     }
 }
 
-/// <summary>运行可重复使用的集束级提醒服务符合性运行对着神器运行。</summary>
+/// <summary>对判定基准运行可复用的集群级提醒器服务一致性测试运行器。</summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("Reminders")]

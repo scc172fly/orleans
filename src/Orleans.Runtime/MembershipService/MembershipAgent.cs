@@ -13,7 +13,7 @@ using Orleans.Internal;
 namespace Orleans.Runtime.MembershipService
 {
     /// <summary>
-    /// 负责更新成员名单,提供有关当地 silo的详细情况。
+    /// 负责用本地 Silo 的详细信息更新成员表。
     /// </summary>
     internal partial class MembershipAgent : IHealthCheckParticipant, ILifecycleParticipant<ISiloLifecycle>, IDisposable, MembershipAgent.ITestAccessor
     {
@@ -142,7 +142,7 @@ namespace Orleans.Runtime.MembershipService
             using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.cancellation.Token);
             var ct = linkedCancellation.Token;
 
-            // 继续试图验证连接,直到有合理的超时。
+            // 继续尝试验证连通性，直至达到合理的超时期限。
             var maxAttemptTime = this.clusterMembershipOptions.MaxJoinAttemptTime;
             var retryDelay = this.clusterMembershipOptions.ProbeTimeout;
             var attemptNumber = 1;
@@ -168,7 +168,7 @@ namespace Orleans.Runtime.MembershipService
                     var failedSilos = await CheckClusterConnectivity(activeSilos.ToArray(), ct);
                     var successfulSilos = activeSilos.Where(s => !failedSilos.Contains(s)).ToList();
 
-                    // 如果没有失败, 终止循环并返回时不出错 。
+                    // 如果没有失败，则终止循环并正常返回。
                     if (failedSilos.Count == 0) break;
 
                     LogErrorFailedToGetPingResponses(failedSilos.Count, activeSilos.Count, new(successfulSilos), new(failedSilos), attemptUntil, attemptNumber);
@@ -182,7 +182,7 @@ namespace Orleans.Runtime.MembershipService
                         throw new OrleansClusterConnectivityCheckFailedException(msg);
                     }
 
-                    // 稍有延误后重新加入,并重试。
+                    // 延迟一段时间后刷新成员资格并重试。
                     await Task.Delay(retryDelay, ct);
                     await this.membershipManager.Refresh(null, ct);
                 }
@@ -227,7 +227,7 @@ namespace Orleans.Runtime.MembershipService
                 }
                 catch (Exception) when (!cancellationToken.IsCancellationRequested)
                 {
-                    // 暂时忽略例外
+                    // 暂时忽略异常。
                 }
 
                 var failed = new List<SiloAddress>();
@@ -343,7 +343,7 @@ namespace Orleans.Runtime.MembershipService
                 {
                     this.iAmAliveTimer.Dispose();
                     this.cancellation.Cancel();
-                    // 终端状态出版物拥有一个封闭式清理寿命。
+                    // 终止状态的发布负责管理有界的清理生命周期。
                     using var cleanup = new CancellationTokenSource(TimeSpan.FromMinutes(1), this.timeProvider);
                     var cleanupToken = cleanup.Token;
                     await Task.Run(() => this.BecomeDead(cleanupToken), CancellationToken.None).SuppressThrowing();
@@ -351,7 +351,7 @@ namespace Orleans.Runtime.MembershipService
 
                 lifecycle.Subscribe(
                     nameof(MembershipAgent),
-                    ServiceLifecycleStage.RuntimeInitialize + 1, // 在出外队列关闭前的流出队列
+                    ServiceLifecycleStage.RuntimeInitialize + 1, // 在出站队列关闭之前传播 Gossip 消息。
                     OnRuntimeInitializeStart,
                     OnRuntimeInitializeStop);
             }
@@ -411,7 +411,7 @@ namespace Orleans.Runtime.MembershipService
                         }
                         else
                         {
-                            // 允许有一定的最少时间 优雅地关闭。
+                            // 为优雅关闭至少留出一定时间。
                             var gracePeriod = Task.WhenAll(Task.Delay(ClusterMembershipOptions.ClusteringShutdownGracePeriod, this.timeProvider, CancellationToken.None), cancellationTask);
                             using var gracefulAttempt = CancellationTokenSource.CreateLinkedTokenSource(cleanup.Token);
                             var shuttingDown = this.BecomeShuttingDown(gracefulAttempt.Token);

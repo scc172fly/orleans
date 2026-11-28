@@ -10,7 +10,7 @@ using Orleans.Serialization.Invocation;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 向 grain提出请求。
+    /// 在 Grain 上调用请求。
     /// </summary>
     internal sealed class GrainMethodInvoker : IIncomingGrainCallContext
     {
@@ -25,12 +25,12 @@ namespace Orleans.Runtime
         /// <summary>
         /// 初始化 <see cref="GrainMethodInvoker"/> 类的新实例。
         /// </summary>
-        /// <param name="message">电文。</param>
-        /// <param name="grainContext">下 grain.</param>
+        /// <param name="message">消息。</param>
+        /// <param name="grainContext">Grain。</param>
         /// <param name="request">请求。</param>
-        /// <param name="filters">请求拦截器</param>
-        /// <param name="interfaceToImplementationMapping">执行地图。</param>
-        /// <param name="responseCopier">响应复印机。</param>
+        /// <param name="filters">调用拦截器。</param>
+        /// <param name="interfaceToImplementationMapping">实现映射。</param>
+        /// <param name="responseCopier">响应复制器。</param>
         public GrainMethodInvoker(
             Message message,
             IGrainContext grainContext,
@@ -83,17 +83,17 @@ namespace Orleans.Runtime
         {
             try
             {
-                // 执行输油管中的每个阶段,每次连续呼叫使用这种方法时,都将采用下一阶段。
-                // 未执行的阶段( 例如, 因为用户未指定拦截器) 被跳过 。
+                // 执行管道中的各个阶段。每次后续调用此方法都会执行下一个阶段。
+                // 跳过没有实现的阶段（例如用户未指定拦截器）。
                 var numFilters = filters.Count;
                 if (stage < numFilters)
                 {
-                    // 呼叫每个指定的拦截器
+                    // 调用每个指定的拦截器。
                     var systemWideFilter = this.filters[stage];
                     stage++;
                     await systemWideFilter.Invoke(this);
 
-                    // 如果回复为无效, 某些过滤器没有继续呼叫链
+                    // 如果 Response 为 null，则说明某个筛选器未继续执行调用链。
                     if (this.Response is null)
                     {
                         ThrowBrokenCallFilterChain(systemWideFilter.GetType().Name);
@@ -106,12 +106,12 @@ namespace Orleans.Runtime
                 {
                     stage++;
 
-                    // Grain- 级援引者,如果存在的话。
+                    // Grain 级调用器（如果存在）。
                     if (this.Grain is IIncomingGrainCallFilter grainClassLevelFilter)
                     {
                         await grainClassLevelFilter.Invoke(this);
 
-                        // 如果回复为无效, 某些过滤器没有继续呼叫链
+                        // 如果 Response 为 null，则说明某个筛选器未继续执行调用链。
                         if (this.Response is null)
                         {
                             ThrowBrokenCallFilterChain(this.Grain.GetType().Name);
@@ -122,17 +122,17 @@ namespace Orleans.Runtime
 
                 if (stage == numFilters + 1)
                 {
-                    // 最后打电话给根级的援引者。
+                    // 最后调用根级调用器。
                     stage++;
                     this.Response = await request.Invoke();
 
-                    // 提出其他过滤器的例外。
+                    // 将异常传播给其他筛选器。
                     if (this.Response.Exception is { } exception)
                     {
                         ExceptionDispatchInfo.Capture(exception).Throw();
                     }
 
-                    // 当地请求以参考方式通过,其答复也以参考方式通过。
+                    // 本地请求按引用传递，其响应也是如此。
                     if (!message.IsLocalOnly)
                     {
                         this.Response = this.responseCopier.Copy(this.Response);
@@ -146,7 +146,7 @@ namespace Orleans.Runtime
                 stage--;
             }
 
-            // 如果该方法被调用的次数超过预期,则无效。
+            // 调用此方法的次数超过预期次数属于无效操作。
             ThrowInvalidCall();
         }
 
@@ -167,12 +167,12 @@ namespace Orleans.Runtime
             var interfaceType = this.request.GetInterfaceType();
             var implementationType = this.request.GetTarget()!.GetType();
 
-            // 获取或创建此对象的执行映射。
+            // 获取或创建此对象的实现映射。
             var implementationMap = interfaceToImplementationMapping.GetOrCreate(
                 implementationType,
                 interfaceType);
 
-            // 获取被引用的方法的方法信息 。
+            // 获取正在调用的方法的方法元数据。
             var method = request.GetMethod();
             if (method.IsConstructedGenericMethod)
             {

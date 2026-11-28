@@ -734,11 +734,11 @@ function convertCallouts(source, sourcePath) {
     ? markdownLiteralLineRanges(source)
     : [];
   const kinds = {
-    CAUTION: ['danger', 'Caution'],
-    IMPORTANT: ['note', 'Important'],
-    NOTE: ['note', 'Note'],
-    TIP: ['tip', 'Tip'],
-    WARNING: ['caution', 'Warning'],
+    CAUTION: ['danger', '注意'],
+    IMPORTANT: ['note', '重要'],
+    NOTE: ['note', '备注'],
+    TIP: ['tip', '提示'],
+    WARNING: ['caution', '警告'],
   };
 
   for (let index = 0; index < lines.length; index += 1) {
@@ -808,7 +808,7 @@ function convertLearnBlocks(source, sourcePath) {
       }
       output.push(
         `${indent}<div class="video-embed">`,
-        `${indent}  <iframe src="${escapeHtml(videoUrl)}" title="Orleans video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />`,
+        `${indent}  <iframe src="${escapeHtml(videoUrl)}" title="Orleans 视频" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />`,
         `${indent}</div>`,
       );
       continue;
@@ -832,7 +832,7 @@ function convertLearnBlocks(source, sourcePath) {
 
     if (className === 'nextstepaction') {
       output.push(
-        `${indent}:::tip[Next step]`,
+        `${indent}:::tip[下一步]`,
         ...escapedBody.map((line) => `${indent}${line}`),
         `${indent}:::`,
       );

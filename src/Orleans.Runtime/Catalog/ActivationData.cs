@@ -22,8 +22,8 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// 保持 Orleans 内部业务所需的额外每次激活状态。
-/// 激活状态的突变在内部同步进行。
+/// 维护 Orleans 内部操作所需的每个激活实例的额外状态。
+/// 激活状态的并发修改在内部进行同步。
 /// </summary>
 [DebuggerDisplay("GrainId = {GrainId}, State = {State}, Waiting = {WaitingCount}, Executing = {IsCurrentlyExecuting}")]
 internal sealed partial class ActivationData :
@@ -54,8 +54,8 @@ internal sealed partial class ActivationData :
     private int _runningNonAlwaysInterleaveCount;
     private int _runningNonAlwaysInterleaveWritableCount;
 
-    // 专栏是否开放:只请总是中断的请求,并按科持单人的要求
-    // 链,开始。见 IGrainRequestAdmission.EnterExclusiveSectionAsync。
+    // 是否存在已开启的排他区段：只有始终允许交错执行的请求以及区段持有者调用链上的
+    // 请求可以开始执行。参见 IGrainRequestAdmission.EnterExclusiveSectionAsync。
     private bool _exclusiveSectionOpen;
     private bool _isInWorkingSet = true;
     private CoarseStopwatch _busyDuration;
@@ -63,13 +63,13 @@ internal sealed partial class ActivationData :
     private GrainReference? _selfReference;
     private IActivationCollectionRegistration? _collectionRegistration;
 
-    // 所需价值较少,而且由于物体大小的原因,不需要靠激活直接生活。
-    // 此字段中的值通常用于表示激活状态的终止或非
-    // 全部 grains使用,例如 grain 计时器。
+    // 较少使用、出于对象大小考虑不宜直接放在激活实例上的值。
+    // 此字段中的值通常表示激活实例的终止状态，或并非
+    // 所有 Grain 都使用的功能（例如 Grain 定时器）。
     private ActivationDataExtra? _extras;
 
-    // 代表此激活信息循环的任务 。
-    // 此字段被指定, 从未读取, 并且仅用于调试目的( 例如, 在存储堆放处中, 将循环任务与激活连接) 。
+    // 表示此激活实例消息循环的任务。
+    // 此字段只赋值、不读取，仅供调试使用（例如在内存转储中将循环任务与激活实例关联）。
 #pragma warning disable IDE0052 // Remove unread private members
     private Task? _messageLoopTask;
 #pragma warning restore IDE0052 // Remove unread private members
@@ -77,7 +77,7 @@ internal sealed partial class ActivationData :
     private Activity? _activationActivity;
 
     /// <summary>
-    /// 活动错误事件名称常数,激活寿命周期使用。
+    /// 激活生命周期内使用的 Activity 错误事件名称常量。
     /// </summary>
     private static class ActivityErrorEvents
     {
@@ -116,8 +116,8 @@ internal sealed partial class ActivationData :
     }
 
     /// <summary>
-    /// 如果有的话, 则获取激活活动的活动环境 。
-    /// 这使儿童活动能够在激活生命周期运作期间适当亲子关系。
+    /// 获取激活 Activity 的上下文（如果存在）。
+    /// 这使子 Activity 在激活实例生命周期操作期间能够建立正确的父子关系。
     /// </summary>
     internal ActivityContext? GetActivationActivityContext()
     {
@@ -181,12 +181,12 @@ internal sealed partial class ActivationData :
         return Interlocked.CompareExchange(ref _collectionRegistration, registration, null) ?? registration;
     }
 
-    // 目前,唯一支持的多活动 grain 是采用 StatelessWorkerPlacement 战略。
+    // 目前，仅支持使用 StatelessWorkerPlacement 策略的 Grain 拥有多个激活实例。
     internal bool IsStatelessWorker => PlacementStrategy is StatelessWorkerPlacement;
 
     /// <summary>
-    /// 返回值,以表明是否需要启动程序注册
-    /// grain 目录。
+    /// 返回一个值，指示此放置策略是否要求将激活实例注册到
+    /// Grain 目录中。
     /// </summary>
     internal bool IsUsingGrainDirectory => PlacementStrategy.IsUsingGrainDirectory;
 
@@ -220,7 +220,7 @@ internal sealed partial class ActivationData :
         {
             var waitingCount = _waitingRequests.Count;
 
-            // 开放的独家部分运行代码,例如交易, 不需要请求。
+            // 已开启的排他区段执行诸如事务之类的代码，这些代码不一定是请求。
             return (waitingCount, waitingCount == 0 && _runningRequests.Count == 0 && !_exclusiveSectionOpen);
         }
     }
@@ -257,8 +257,8 @@ internal sealed partial class ActivationData :
     }
 
     /// <summary>
-    /// 如果知道, 将获得上一个目录注册 grain。
-    /// 该目录用于更新 grain 目录,以指向激活期间的新注册。
+    /// 获取此 Grain 先前的目录注册记录（如果已知）。
+    /// 在激活期间，用它将 Grain 目录更新为指向新的注册记录。
     /// </summary>
     public GrainAddress? PreviousRegistration
     {
@@ -482,10 +482,10 @@ internal sealed partial class ActivationData :
     }
 
     /// <summary>
-    /// 检查此激活是否超载 。
-    /// 返回 LimitExceededException 如果超载,否则 <c>null</c>c>
+    /// 检查此激活实例是否过载。
+    /// 如果过载，返回 LimitExceededException；否则返回 <c>null</c>。
     /// </summary>
-    /// <returns>返回 LimitExceededException 如果超载,否则 <c>null</c>c></returns>
+    /// <returns>如果过载，返回 LimitExceededException；否则返回 <c>null</c>。</returns>
     public LimitExceededException? CheckOverloaded()
     {
         string limitName = nameof(SiloMessagingOptions.MaxEnqueuedRequestsHardLimit);
@@ -498,17 +498,17 @@ internal sealed partial class ActivationData :
             maxRequestsSoftLimit = _shared.MessagingOptions.MaxEnqueuedRequestsSoftLimit_StatelessWorker;
         }
 
-        if (maxRequestsHardLimit <= 0 && maxRequestsSoftLimit <= 0) return null; // 没有规定限制
+        if (maxRequestsHardLimit <= 0 && maxRequestsSoftLimit <= 0) return null; // 未设置任何限制。
 
         int count = GetRequestCount();
 
-        if (maxRequestsHardLimit > 0 && count > maxRequestsHardLimit) // 硬限
+        if (maxRequestsHardLimit > 0 && count > maxRequestsHardLimit) // 硬性限制。
         {
             LogRejectActivationTooManyRequests(_shared.Logger, count, this, maxRequestsHardLimit);
             return new LimitExceededException(limitName, count, maxRequestsHardLimit, ToString());
         }
 
-        if (maxRequestsSoftLimit > 0 && count > maxRequestsSoftLimit) // 软限制
+        if (maxRequestsSoftLimit > 0 && count > maxRequestsSoftLimit) // 软性限制。
         {
             LogWarnActivationTooManyRequests(_shared.Logger, count, this, maxRequestsSoftLimit);
             return null;
@@ -526,12 +526,12 @@ internal sealed partial class ActivationData :
     }
 
     /// <summary>
-    /// 返回此激活闲置了多久 。
+    /// 返回此激活实例已空闲的时长。
     /// </summary>
     public TimeSpan GetIdleness() => _idleDuration.Elapsed;
 
     /// <summary>
-    /// 返回此激活是否闲置时间已足够长, 以收集 。
+    /// 返回此激活实例的空闲时间是否已足以进行回收。
     /// </summary>
     public bool IsStale() => GetIdleness() >= _shared.CollectionAgeLimit;
 
@@ -542,14 +542,14 @@ internal sealed partial class ActivationData :
         {
             if (timespan == TimeSpan.MaxValue || timespan == Timeout.InfiniteTimeSpan)
             {
-                // 如果将这些值添加到当前时间, 将会溢出, 所以直接使用 DateTime.MaxValue 。
+                // 将这些值加到当前时间会导致溢出，因此直接使用 DateTime.MaxValue。
                 KeepAliveUntil = DateTime.MaxValue;
             }
             else if (timespan <= TimeSpan.Zero)
             {
-                // 取消上一个 DelayDeactivation , 并恢复到正常的收集行为 。
-                // 如果有一个活动保存的、重新安排时间的收藏,可以收集 grain
-                // 之后 CollectionAgeLimit 而不是等待先前预定的远期。
+                // 取消之前的 DelayDeactivation 设置，恢复正常回收行为。
+                // 如果先前有生效的保活设置，则重新安排回收，使 Grain 可以在
+                // CollectionAgeLimit 后被回收，而无需等到原先安排的遥远将来时间。
                 rescheduleCollection = KeepAliveUntil > GrainRuntime.TimeProvider.GetUtcNow().UtcDateTime;
                 KeepAliveUntil = DateTime.MinValue;
             }
@@ -580,7 +580,7 @@ internal sealed partial class ActivationData :
         {
             Debug.Assert(_extras is { KeepAliveHolds: > 0 });
 
-            // 解除活动或处置的激活不得再进入工作场景。
+            // 正在停用或已释放的激活实例不得重新进入工作集。
             if (--_extras!.KeepAliveHolds == 0 && State is ActivationState.Valid)
             {
                 MarkActive();
@@ -645,17 +645,17 @@ internal sealed partial class ActivationData :
     {
         lock (_lock)
         {
-            // 如果 grain 正在激活,请取消该操作。
+            // 如果 Grain 当前正在激活，则取消该操作。
             if (_pendingOperations is not { Count: > 0 } operations)
             {
                 return;
             }
 
             var opCount = operations.Count;
-            // 我们可以用 ArrayPool<Command> 需要把
-            // 命令型,这意味着我们需要环绕_Oput Opers
-            // 使拍摄快照的目的落空。
-            // 注: CopyTo 不使用队列的量子, 所以它的安全性可以这样抓取快照 。
+            // 此处可以使用 ArrayPool<Command>，但必须筛除
+            // 非 Command 类型，这意味着需要遍历 _pendingOperations，
+            // 从而违背获取快照的初衷。
+            // 注意：CopyTo 不使用队列的枚举器，因此可以安全地以此方式获取快照。
             var array = ArrayPool<object>.Shared.Rent(opCount);
 
             operations.CopyTo(array, 0);
@@ -701,13 +701,13 @@ internal sealed partial class ActivationData :
                 return false;
             }
 
-            // 如果尚未开始移徙,则设定一个移徙背景,以涵盖任何应当转移的国家。
-            // 向解除作用进程发出信号,即正在发生移徙,因此重要的是,在我们开始解除作用之前必须这样做。
+            // 如果迁移尚未开始，则设置迁移上下文，以捕获需要传输的状态。
+            // 这将通知停用流程正在发生迁移，因此必须在开始停用之前执行。
             DehydrationContext ??= new(_shared.SerializerSessionPool, requestContext);
 
             if (State is not ActivationState.Deactivating)
             {
-                // 开始拆除 grain ,为移民做准备。
+                // 开始停用 Grain，为迁移做准备。
                 Deactivate(new DeactivationReason(DeactivationReasonCode.Migrating, "Migrating to a new location."), cancellationToken);
             }
 
@@ -791,13 +791,13 @@ internal sealed partial class ActivationData :
         var msg = $"Activation {this} has been processing request {_blockingRequest} since {_busyDuration} and is likely stuck.";
         var reason = new DeactivationReason(DeactivationReasonCode.ActivationUnresponsive, msg);
 
-        // 将 grain 标为除去活动状态,以便转发电文而不是被援引
+        // 将 Grain 标记为正在停用，以便转发消息而非调用处理程序。
         Deactivate(reason, cancellationToken: default);
 
-        // 尝试从目录和目录中删除此激活
-        // 这使得启动程序无法进行,使目前请求的处理卡住,直到最终完成
-        // (此时可能永远不会发生这种情况,因为如果 grain 被认为卡住了,那么很可能存在某种
-        // 应用程序错误, 也许是僵局)
+        // 尝试从激活实例目录和 Grain 目录中移除此激活实例。
+        // 这会使此激活实例处于悬置状态，继续卡在当前请求的处理上，直到请求最终完成
+        // （此时很可能永远无法完成，因为 Grain 被判定为卡住通常意味着存在某种
+        // 应用程序缺陷，例如死锁）。
         UnregisterMessageTarget();
         _shared.InternalRuntime.GrainLocator.Unregister(Address, UnregistrationCause.Force).Ignore();
     }
@@ -813,7 +813,7 @@ internal sealed partial class ActivationData :
 
     void IGrainTimerRegistry.OnTimerDisposed(IGrainTimer timer)
     {
-        lock (_lock) // 需要锁定, 因为可以将处置点调用在 grain 上下文外的终局线( 不使用单线) 。
+        lock (_lock) // 必须加锁，因为 dispose 可能在 Grain 上下文之外的终结器线程上调用（并非单线程）。
         {
             if (Timers is null)
             {
@@ -833,11 +833,11 @@ internal sealed partial class ActivationData :
                 return;
             }
 
-            // 需要设置为空的计时器, 因为 OnTimerDisposed 如果定时器不是空的, 则要将定时器变换为空 。
+            // 必须将 Timers 设为 null，因为非 null 时 OnTimerDisposed 会修改定时器集合。
             var timers = Timers;
             Timers = null;
 
-            // 停止所有计时器
+            // 释放所有定时器。
             foreach (var timer in timers)
             {
                 timer.Dispose();
@@ -894,11 +894,11 @@ internal sealed partial class ActivationData :
                     continue;
                 }
 
-                // 检查他们执行多久了
+                // 检查它们已经执行了多长时间。
                 var executionTime = runDuration.Elapsed;
                 if (executionTime >= slowRunningRequestDuration)
                 {
-                    // 中断信件 X 执行已很长时间
+                    // 可交错执行的消息 X 已执行了很长时间。
                     GetStatusList(ref diagnostics);
                     var messageDiagnostics = new List<string>(diagnostics)
                     {
@@ -922,7 +922,7 @@ internal sealed partial class ActivationData :
                 var queuedTime = pair.QueuedTime.Elapsed;
                 if (queuedTime >= longQueueTimeDuration)
                 {
-                    // 信件 X 已排入 Y 的目标 grain , 目前处于要处理的队列中的位置 QueueLength 。
+                    // 消息 X 已在目标 Grain 上排队 Y 时间，目前在待处理队列中的位置为 QueueLength。
                     GetStatusList(ref diagnostics);
                     var messageDiagnostics = new List<string>(diagnostics)
                     {
@@ -978,7 +978,7 @@ internal sealed partial class ActivationData :
 
     public void Dispose()
     {
-#pragma warning disable RS0030 // IDisposable requires synchronously completing activation cleanup.
+#pragma warning disable RS0030 // IDisposable 要求同步完成激活实例清理。
         DisposeAsync().AsTask().Wait();
 #pragma warning restore RS0030
     }
@@ -1052,7 +1052,7 @@ internal sealed partial class ActivationData :
         }
         catch
         {
-            // 忽略。 忽略。
+            // 忽略。
         }
     }
 
@@ -1109,7 +1109,7 @@ internal sealed partial class ActivationData :
         {
             var inactive = IsInactive && _idleDuration.ElapsedMilliseconds > IdlenessLowerBound && _extras is not { KeepAliveHolds: > 0 };
 
-            // 如果不是尚未移除,就是如果目前仍在运行,这种情况将留在工作套件中。
+            // 如果此实例未等待移除，或当前处于活跃状态，则仍保留在工作集中。
             _isInWorkingSet = !wouldRemove || !inactive;
             return inactive;
         }
@@ -1117,14 +1117,14 @@ internal sealed partial class ActivationData :
 
     private async Task RunMessageLoop()
     {
-        // 请注意,这个环圈永远不会终止。 这看起来可能很奇怪, 但有原因:
-        // a grain 总是必须接受和处理任何接收的信息。 grain 进程
-        // 这些信息信息由 grain状态决定。如果 grain 尚未确定
-        // 已完成激活, 它会让信件继续排队直到它完成激活 。
-        // 如果 grain 无法激活,则信件将被拒绝回复。
-        // 如果 grain 终止,则信息将转发给此 grain的新实例。
-        // 当 grain 被停用且没有
-        // 扎实的引用。
+        // 注意，此循环永不终止。看起来可能很奇怪，但原因如下：
+        // Grain 必须始终接受并处理任何传入消息。如何处理
+        // 这些消息由 Grain 的状态决定。如果 Grain 尚未
+        // 完成激活，消息将持续排队，直到激活完成。
+        // 如果 Grain 激活失败，将以拒绝响应消息。
+        // 如果 Grain 已终止，消息将转发给该 Grain 的新实例。
+        // Grain 停用且不再有任何 GC 根可达的引用后，此循环最终将由
+        // 垃圾回收器回收。
         while (true)
         {
             try
@@ -1155,9 +1155,9 @@ internal sealed partial class ActivationData :
 
         void ProcessPendingRequests()
         {
-            // 启动程序将无法处理的请求被从锁的队列中移除,被拒绝或转发
-            // 可以在其他启动程序上传递信息,并满足当地请求。
-            // 激活此操作时, 请求进一步队列 。
+            // 此激活实例不会处理的请求在持锁时从队列中移除，待释放锁后再拒绝或转发，
+            // 因为这可能向其他激活实例投递消息、完成本地请求，进而
+            // 在此激活实例上排入更多请求。
             List<Message>? unprocessableRequests = null;
             var i = 0;
 
@@ -1174,8 +1174,8 @@ internal sealed partial class ActivationData :
 
                     message = _waitingRequests[i].Message;
 
-                    // 如果激活无效, 拒绝所有待处理信件, 除了本地端信件 。
-                    // 仅使用本地信息用于内部系统操作,在 grain 有效或失效时不应拒绝。
+                    // 如果激活实例无效，则拒绝所有待处理消息，唯独仅限本地的消息除外。
+                    // 仅限本地的消息用于内部系统操作，Grain 有效或正在停用时不应拒绝它们。
                     if (State != ActivationState.Valid && !(message.IsLocalOnly && State is ActivationState.Deactivating))
                     {
                         unprocessableRequests = DequeueUnprocessableRequests();
@@ -1186,7 +1186,7 @@ internal sealed partial class ActivationData :
                     {
                         if (!MayInvokeRequest(message))
                         {
-                            // 激活无法马上处理此信件, 请尝试下一条消息 。
+                            // 激活实例当前无法处理此消息，因此尝试下一条消息。
                             ++i;
 
                             if (_blockingRequest != null)
@@ -1198,7 +1198,7 @@ internal sealed partial class ActivationData :
                                 }
                                 else if (currentRequestActiveTime > _shared.MaxWarningRequestProcessingTime)
                                 {
-                                    // 考虑:处理关于再入激活的长期请求检测 -- -- 这个逻辑只适用于非再入启动
+                                    // 考虑：为可重入激活实例处理长请求检测；此逻辑只适用于不可重入激活实例。
                                     LogWarningDispatcher_ExtendedMessageProcessing(
                                         _shared.Logger,
                                         currentRequestActiveTime,
@@ -1211,14 +1211,14 @@ internal sealed partial class ActivationData :
                             continue;
                         }
 
-                        // 如果当前信息不兼容, 将停止激活并最终将信息传递给新的化身 。
+                        // 如果当前消息不兼容，则停用此激活实例，最终将消息转发给新的激活实例。
                         if (message.InterfaceVersion > 0)
                         {
                             var compatibilityDirector = _shared.InternalRuntime.CompatibilityDirectorManager.GetDirector(message.InterfaceType);
                             var currentVersion = _shared.InternalRuntime.GrainVersionManifest.GetLocalVersion(message.InterfaceType);
                             if (!compatibilityDirector.IsCompatible(message.InterfaceVersion, currentVersion))
                             {
-                                // 添加此激活到缓存失效信头 。
+                                // 将此激活实例添加到缓存失效标头中。
                                 message.AddToCacheInvalidationHeader(Address, validAddress: null);
 
                                 var reason = new DeactivationReason(
@@ -1237,7 +1237,7 @@ internal sealed partial class ActivationData :
                         rejection = exception;
                     }
 
-                    // 从队列中删除信件到任何进程或拒绝它。
+                    // 将消息移出队列，以便处理或拒绝它。
                     _waitingRequests.RemoveAt(i);
                     if (rejection is null)
                     {
@@ -1252,7 +1252,7 @@ internal sealed partial class ActivationData :
                     continue;
                 }
 
-                // 开始在锁定外引用消息
+                // 在锁外开始调用消息处理程序。
                 InvokeIncomingRequest(message);
             }
             while (true);
@@ -1278,25 +1278,25 @@ internal sealed partial class ActivationData :
 
             if (_blockingRequest != null) return;
 
-            // 这个逻辑只适用于非再生激活
-            // 考虑:处理长时间请求的重新激活探测。
+            // 此逻辑仅适用于不可重入激活实例。
+            // 考虑：为可重入激活实例处理长请求检测。
             _blockingRequest = message;
             _busyDuration = stopwatch;
         }
 
-        // 锁定了锁,一旦启动后无法处理等待请求,就取消其请求
-        // 返回无效,而它可能仍然处理它们。
+        // 在持有锁时调用。当此激活实例无法再处理等待中的请求时将其出队，
+        // 若仍可能处理这些请求，则返回 null。
         List<Message>? DequeueUnprocessableRequests()
         {
             if (State is ActivationState.Creating or ActivationState.Activating)
             {
-                // 在激活有效或无效之前不做任何动作
+                // 在激活实例成为有效或无效状态之前不执行任何操作。
                 return null;
             }
 
             if (State is ActivationState.Deactivating)
             {
-                // 确定是否宣布此激活被卡
+                // 决定是否将此激活实例宣告为卡住。
                 var deactivatingTime = GrainRuntime.TimeProvider.GetUtcNow().UtcDateTime - DeactivationStartTime!.Value;
                 if (deactivatingTime > _shared.MaxRequestProcessingTime && !IsStuckDeactivating)
                 {
@@ -1312,8 +1312,8 @@ internal sealed partial class ActivationData :
 
                 if (!IsStuckDeactivating && !IsStuckProcessingMessage)
                 {
-                    // 在 grain 仍然在停止活动且未被宣布卡住时不转发信件, 因为它们
-                    // 将转发到同一个 grain 实例。
+                    // Grain 仍在停用且尚未被判定为卡住时，不要转发消息，因为这些消息
+                    // 会被转发回同一 Grain 实例。
                     return null;
                 }
             }
@@ -1326,9 +1326,9 @@ internal sealed partial class ActivationData :
             var forwardingAddress = ForwardingAddress;
             LogWarningAbandoningStuckDeactivatingActivation(_shared.Logger, this, forwardingAddress);
 
-            // 在停止使用达到 StartMigrationAsync之前,移民目标没有得到证明。
-            // 如果之前停止失效卡住, 重新发送信件, 而不是转发给
-            // 目标可能没有有效的替换激活 。
+            // 直到停用流程到达 StartMigrationAsync，迁移目标才得到确认。
+            // 如果在此之前停用流程卡住，应重新解析消息地址，而不是将消息转发到
+            // 可能尚无有效替代激活实例的目标。
             ForwardingAddress = null;
             UnregisterMessageTarget();
             _shared.InternalRuntime.GrainLocator.Unregister(Address, UnregistrationCause.Force).Ignore();
@@ -1339,8 +1339,8 @@ internal sealed partial class ActivationData :
         {
             if (_exclusiveSectionOpen)
             {
-                // 只有在申请总是中断和请求时,才在一期间开始对部分持有人的通话链链启动
-                // 专有部分打开。
+                // 排他区段开启期间，只有始终允许交错执行的请求和区段持有者调用链上的请求才
+                // 能开始执行。
                 if (incoming.IsAlwaysInterleave)
                 {
                     return true;
@@ -1355,7 +1355,7 @@ internal sealed partial class ActivationData :
                 return true;
             }
 
-            // 否则,如果 grain 重新被批准或电文可以中断使用,则允许请求方援引
+            // 否则，若 Grain 可重入或消息允许交错执行，则允许调用请求。
             if (incoming.IsAlwaysInterleave)
             {
                 return true;
@@ -1367,7 +1367,7 @@ internal sealed partial class ActivationData :
                 return true;
             }
 
-            // 处理呼叫链中继
+            // 处理调用链可重入性。
             if (incoming.GetReentrancyId() is Guid id
                 && IsReentrantSection(id))
             {
@@ -1424,15 +1424,15 @@ internal sealed partial class ActivationData :
                 {
                     Debug.Assert(_pendingOperations is not null);
 
-                    // 删除上一个操作。
-                    // 操作在完成之前不会被移除,以便彼此见面。
-                    // 例如,解除功能请求可以看到任何正在进行的激活请求并取消。
+                    // 移除上一个操作。
+                    // 操作仅在完成后才被移除，使各操作能够感知彼此。
+                    // 例如，停用请求可以看到正在进行的激活请求并取消它。
                     if (op is not null)
                     {
                         _pendingOperations.Dequeue();
                     }
 
-                    // 尝试获得下一个操作。
+                    // 尝试获取下一个操作。
                     if (!_pendingOperations.TryPeek(out op))
                     {
                         _pendingOperations = null;
@@ -1486,7 +1486,7 @@ internal sealed partial class ActivationData :
 
             if (grainMigrationParticipant is not null)
             {
-                // 开始补水的间隔
+                // 为状态恢复（rehydration）启动一个跟踪跨度。
                 rehydrateSpan = _activationActivity is not null
                     ? ActivitySources.LifecycleGrainSource.StartActivity(ActivityNames.ActivationRehydrate,
                         ActivityKind.Internal, _activationActivity.Context)
@@ -1568,14 +1568,14 @@ internal sealed partial class ActivationData :
             Activity? dehydrateSpan = null;
             try
             {
-                // 将母活动背景从脱水环境持有者处获取(在移民启动时捕获)
+                // 从状态提取上下文持有者获取父 Activity 上下文（迁移开始时捕获）。
                 var parentContext = DehydrationContext?.MigrationActivityContext;
 
                 var grainMigrationParticipant = GrainInstance as IGrainMigrationParticipant;
 
                 if (grainMigrationParticipant is not null)
                 {
-                    // 启动脱水间隔, 与触发脱水的移民请求相匹配
+                    // 为状态提取（dehydration）启动跟踪跨度，将触发它的迁移请求作为父级。
                     dehydrateSpan = parentContext.HasValue
                         ? ActivitySources.LifecycleGrainSource.StartActivity(ActivityNames.ActivationDehydrate,
                             ActivityKind.Internal, parentContext.Value)
@@ -1594,7 +1594,7 @@ internal sealed partial class ActivationData :
                     }
                 }
 
-                // 请注意,这些电话是从体液酸盐转过来的,不是出于任何特定原因,而只是对称。
+                // 注意，这些调用的顺序与 Rehydrate 相反，没有特别的原因，只是为了对称。
                 grainMigrationParticipant?.OnDehydrate(context);
 
                 if (_lifecycle is { } lifecycle)
@@ -1621,7 +1621,7 @@ internal sealed partial class ActivationData :
 
 
     /// <summary>
-    /// 处理收到的消息和队列/ voke 合适的处理器
+    /// 处理传入消息，将相应处理程序排队或调用它。
     /// </summary>
     /// <param name="message"></param>
     private void InvokeIncomingRequest(Message message)
@@ -1632,7 +1632,7 @@ internal sealed partial class ActivationData :
         {
             var task = _shared.InternalRuntime.RuntimeClient.Invoke(this, message);
 
-            // 注:所有结果----成功或过失均由此运行,
+            // 注意：无论成功还是发生故障，此逻辑都会执行。
             if (task.IsCompleted)
             {
                 OnCompletedRequest(message);
@@ -1664,9 +1664,9 @@ internal sealed partial class ActivationData :
     }
 
     /// <summary>
-    /// 当激活完成交易并可能准备进行其他交易时,即启动程序被启动
+    /// 当激活实例完成一个事务并可能准备好处理其他事务时调用。
     /// </summary>
-    /// <param name="message">刚刚完成处理的电文。</param>
+    /// <param name="message">刚刚处理完成的消息。</param>
     private void OnCompletedRequest(Message message)
     {
         lock (_lock)
@@ -1683,14 +1683,14 @@ internal sealed partial class ActivationData :
                 Debug.Assert(_runningNonAlwaysInterleaveWritableCount >= 0);
             }
 
-            // 如果信件意在保持激活活动, 重置闲置计时器并确保激活
-            // 正在激活工作组中。
+            // 如果消息应使激活实例保持活跃，则重置空闲计时器，并确保激活实例
+            // 位于激活实例工作集中。
             if (message.IsKeepAlive)
             {
                 MarkActive();
             }
 
-            // 以下逻辑仅适用于非返回启动
+            // 下面的逻辑仅适用于不可重入激活实例。
             if (_blockingRequest is null || message.Equals(_blockingRequest))
             {
                 _blockingRequest = null;
@@ -1698,11 +1698,11 @@ internal sealed partial class ActivationData :
             }
         }
 
-        // 信号信息泵, 以查看是否有另一个请求, 现在该请求已经完成后可以处理
+        // 向消息泵发出信号：此请求已经完成，检查是否存在其他现在可以处理的请求。
         _workSignal.Signal();
     }
 
-    // 持单人的电话链在这里读取,在打电话者的流中同步。
+    // 在此处同步地在调用方的执行流中读取持有者的调用链。
     ValueTask<IDisposable> IGrainRequestAdmission.EnterExclusiveSectionAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -1737,7 +1737,7 @@ internal sealed partial class ActivationData :
 
         static async ValueTask<IDisposable> WaitAsync(ActivationData activation, ExclusiveSectionWaiter waiter, CancellationToken cancellationToken)
         {
-            // 取消服务员排队等候,下一个出口跳过它。
+            // 已取消的等待者仍留在队列中，下次退出区段时将跳过它。
             using (cancellationToken.UnsafeRegister(static (state, token) => ((ExclusiveSectionWaiter)state!).TrySetCanceled(token), waiter))
             {
                 await waiter.Task;
@@ -1747,7 +1747,7 @@ internal sealed partial class ActivationData :
         }
     }
 
-    // 关闭开放的部分,或用持单者的呼叫链将它交给下一个等待部分,保持打开。
+    // 关闭已开启的区段，或将区段连同其持有者的调用链交给下一个等待区段，从而保持区段开启。
     private void ExitExclusiveSection()
     {
         bool signal;
@@ -1762,7 +1762,7 @@ internal sealed partial class ActivationData :
 
             _exclusiveSectionOpen = next is not null;
 
-            // 等待部分的请求,或下一位持有人的电话链上的请求,现在可以开始。
+            // 等待区段的请求，或位于下一个持有者调用链上的请求，现在可以开始执行。
             signal = _waitingRequests.Count > 0 && (next is null || next.ReentrancyId != Guid.Empty);
         }
 
@@ -1772,7 +1772,7 @@ internal sealed partial class ActivationData :
         }
     }
 
-    // 返回第一个接受打开区域或无等待时为空的等候区。必须在 _lock下调用该区。
+    // 返回第一个接受已开启区段的等待区段；若无等待者则返回 null。必须在持有 _lock 时调用。
     private ExclusiveSectionWaiter? HandOffExclusiveSection()
     {
         if (_extras?.ExclusiveSectionWaiters is not { } waiters)
@@ -1796,8 +1796,8 @@ internal sealed partial class ActivationData :
         return null;
     }
 
-    // 破坏激活完成后等待停止失效的部分部分的损坏:打开部分的代码可能永远无法结束,因为
-    // 停止功能不会等待代码的出现,而代码不是请求, 而后来的部分无法打开。
+    // 激活实例完成停用后，使仍在等待的区段以故障结束：已开启区段中的代码可能永不结束，因为
+    // 停用不会等待非请求代码，而且后续区段已无法开启。
     private void CloseExclusiveSections()
     {
         lock (_lock)
@@ -1816,7 +1816,7 @@ internal sealed partial class ActivationData :
         }
     }
 
-    // 引爆的开放独家部分,它处理一次关闭。
+    // 激活实例上一个已开启的排他区段，对其调用 Dispose 只会关闭一次。
     private sealed class ExclusiveSection(ActivationData activation) : IDisposable
     {
         private ActivationData? _activation = activation;
@@ -1829,21 +1829,21 @@ internal sealed partial class ActivationData :
         }
     }
 
-    // 等待打开部分关闭的一节, 并附上要求该部分的代码的呼叫链回存标识 。
+    // 等待已开启区段关闭的区段，携带请求该区段的代码的调用链可重入性 ID。
     private sealed class ExclusiveSectionWaiter(Guid reentrancyId) : TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
     {
         public Guid ReentrancyId { get; } = reentrancyId;
     }
 
-    // 等待打开部分按请求的顺序关闭的各节。
+    // 按请求顺序保存等待已开启区段关闭的区段。
     private sealed class ExclusiveSectionWaiters : Queue<ExclusiveSectionWaiter>
     {
-        // 一旦激活完成后, 设定启动将停止活动, 之后会等待错误的部分 。
+        // 激活实例完成停用后设置；此后需要等待的区段以故障结束。
         public Exception? Closed { get; set; }
     }
 
     /// <summary>
-    /// 恢复闲置时间,并确保激活在工作组中。必须调用 <see cref="_lock"/>。
+    /// 重新开始空闲计时，并确保激活实例处于工作集中。必须在持有 <see cref="_lock"/> 时调用。
     /// </summary>
     private void MarkActive()
     {
@@ -1861,7 +1861,7 @@ internal sealed partial class ActivationData :
     {
         _shared.InternalRuntime.MessagingTrace.OnDispatcherReceiveMessage(message);
 
-        // 不要处理已经超时的消息
+        // 不处理已经超时的消息。
         if (message.IsExpired)
         {
             _shared.MessagingProcessingInstruments.OnDispatcherMessageProcessedError(message);
@@ -1874,7 +1874,7 @@ internal sealed partial class ActivationData :
         {
             ReceiveResponse(message);
         }
-        else // 请求或 OneWay
+        else // Request or OneWay
         {
             ReceiveRequest(message);
         }
@@ -1893,7 +1893,7 @@ internal sealed partial class ActivationData :
         if (state == ActivationState.Invalid)
         {
             _shared.InternalRuntime.MessagingTrace.OnDispatcherReceiveInvalidActivation(message, state);
-            // 请注意,我们总是处理反应,即使启动无效。
+            // 注意，即使激活实例无效，也始终处理响应。
         }
         else
         {
@@ -1922,7 +1922,7 @@ internal sealed partial class ActivationData :
     }
 
     /// <summary>
-    /// 拒绝请求, 而此激活程序不经处理就从队列中删除了的请求 。
+    /// 拒绝此激活实例从队列中移除但未处理的请求。
     /// </summary>
     private void RejectRequest(Message message, Exception exception)
     {
@@ -1937,9 +1937,9 @@ internal sealed partial class ActivationData :
     }
 
     /// <summary>
-    /// 删除所有队列中的请求。 调用者持有 <see cref="_lock"/>。
+    /// 移除所有已排队的请求。调用方持有 <see cref="_lock"/>。
     /// </summary>
-    /// <returns>(a) 请求,或 <see langword="null"/> 如果无。</returns>
+    /// <returns>请求集合；如果没有请求，则为 <see langword="null"/>。</returns>
     private List<Message>? TakeWaitingRequests()
     {
         if (_waitingRequests.Count == 0)
@@ -1958,7 +1958,7 @@ internal sealed partial class ActivationData :
     }
 
     /// <summary>
-    /// 移除和拒绝本地请求, 永远不要离开激活 。
+    /// 移除并拒绝永不离开此激活实例的本地请求。
     /// </summary>
     private void RejectLocalOnlyRequests(List<Message> requests)
     {
@@ -1974,11 +1974,11 @@ internal sealed partial class ActivationData :
     }
 
     /// <summary>
-    /// 拒绝或转发请求,一旦无法处理,启动后即予以取消。
+    /// 拒绝或转发此激活实例在无法继续处理请求后从队列中移出的请求。
     /// </summary>
     /// <remarks>
-    /// 如果请求是重复激活或某一时刻成功启动,则转交请求,否则被驳回。
-    /// 当地请求永远不能离开启动程序,所以被拒绝。
+    /// 如果这是重复的激活实例，或它曾成功激活，则转发请求；否则拒绝请求。
+    /// 本地请求永不离开此激活实例，因此拒绝它们。
     /// </remarks>
     private void RejectOrForwardRequests(List<Message> requests)
     {
@@ -2046,7 +2046,7 @@ internal sealed partial class ActivationData :
                 bool success;
                 Exception? registrationException;
 
-                // 启动活动孩子的启动活动启动时开始目录登记活动
+                // 启动目录注册 Activity，作为激活 Activity 的子级。
                 using (var registerSpan = _activationActivity is not null
                     ? ActivitySources.LifecycleGrainSource.StartActivity(ActivityNames.RegisterDirectoryEntry, ActivityKind.Internal, _activationActivity.Context)
                     : ActivitySources.LifecycleGrainSource.StartActivity(ActivityNames.RegisterDirectoryEntry, ActivityKind.Internal))
@@ -2071,8 +2071,8 @@ internal sealed partial class ActivationData :
                             {
                                 Address = result;
 
-                                // 如果在进行登记期间,决定指导文件的追回提前,重新登记
-                                // 激活有效前相对于已恢复的视图。
+                                // 如果提交此注册时 DGD 恢复流程已推进，则在此激活实例变为有效之前
+                                // 必须针对恢复后的视图重新注册。
                                 if (_shared.GrainDirectory is DistributedGrainDirectory distributedGrainDirectory)
                                 {
                                     var recoveryMembershipVersion = distributedGrainDirectory.RecoveryMembershipVersion;
@@ -2148,11 +2148,11 @@ internal sealed partial class ActivationData :
                 }
                 if (!success)
                 {
-                    // 取消激活取消激活的标记, 所以先捕捉目录结果 。
+                    // 停用会取消激活令牌，因此先捕获目录操作的结果。
                     activationMetrics.DirectoryRegistrationFailed(registrationException, cancellationToken.IsCancellationRequested);
                     Deactivate(new(DeactivationReasonCode.DirectoryFailure, registrationException, "Failed to register activation in grain directory."), cancellationToken);
 
-                    // 启动失败 。
+                    // 激活失败。
                     if (registrationException is not null)
                     {
                         SetActivityError(_activationActivity, registrationException, ActivityErrorEvents.ActivationCancelled);
@@ -2182,8 +2182,8 @@ internal sealed partial class ActivationData :
                     {
                         _activationActivity?.AddEvent(new ActivityEvent("lifecycle-start"));
 
-                        // 激活超时取消此标记。 运行时间等待用户代码完成, 因此激活会保持
-                        // 代码运行时, 它的注册和服务会运行。 如果该标记被取消, 激活将失败 。
+                        // 激活超时会取消此令牌。运行时等待用户代码执行完成，因此执行期间激活实例
+                        // 保留其注册和服务。如果令牌已取消，则激活失败。
                         await lifecycle.OnStart(cancellationToken);
                         cancellationToken.ThrowIfCancellationRequested();
                         _activationActivity?.AddEvent(new ActivityEvent("lifecycle-started"));
@@ -2198,7 +2198,7 @@ internal sealed partial class ActivationData :
 
                 if (GrainInstance is IGrainBase grainBase)
                 {
-                    // 开始 OnActivateAsync 执行的间隔
+                    // 为 OnActivateAsync 的执行启动一个跟踪跨度。
                     using var onActivateSpan = _activationActivity is not null
                         ? ActivitySources.LifecycleGrainSource.StartActivity(ActivityNames.OnActivate, ActivityKind.Internal, _activationActivity.Context)
                         : ActivitySources.LifecycleGrainSource.StartActivity(ActivityNames.OnActivate, ActivityKind.Internal);
@@ -2221,8 +2221,8 @@ internal sealed partial class ActivationData :
                         {
                             _shared.CatalogInstruments.OnActivationFailedToActivate(_shared.GrainTypeMetricName);
 
-                            // 用户代码观察到启动取消, 要么扔 OperationCanceledException
-                            // 或通过访问因取消而处置的物体。
+                            // 用户代码已观察到激活取消，表现为抛出 OperationCanceledException，
+                            // 或访问了因取消而释放的对象。
                             if (exception is ObjectDisposedException ode)
                             {
                                 LogActivationDisposedObjectAccessed(_shared.Logger, ode.ObjectName, this);
@@ -2327,7 +2327,7 @@ internal sealed partial class ActivationData :
     #region Deactivation
 
     /// <summary>
-    /// 完成解除作用的过程。
+    /// 完成停用流程。
     /// </summary>
     private async Task FinishDeactivating(Command.Deactivate deactivateCommand, CancellationToken cancellationToken)
     {
@@ -2343,18 +2343,18 @@ internal sealed partial class ActivationData :
             {
                 LogCompletingDeactivation(_shared.Logger, this);
 
-                // 停止计时器发射
+                // 阻止定时器触发。
                 DisposeTimers();
 
-                // 等待运行的代码不会运行在激活上 。
+                // 等待排他执行的代码不会在此激活实例上运行。
                 CloseExclusiveSections();
 
-                // 如果在解除功能启动时 grain 有效,请呼叫 OnDeactivateAsync。
+                // 如果停用开始时 Grain 处于有效状态，则调用 OnDeactivateAsync。
                 if (deactivateCommand.PreviousState == ActivationState.Valid)
                 {
                     if (GrainInstance is IGrainBase grainBase)
                     {
-                        // 开始 OnDeactivateAsync 执行的间隔
+                        // 为 OnDeactivateAsync 的执行启动一个跟踪跨度。
 
                         using var onDeactivateSpan = deactivateCommand.Activity is not null
                             ? ActivitySources.LifecycleGrainSource.StartActivity(ActivityNames.OnDeactivate, ActivityKind.Internal, parentContext: deactivateCommand.Activity.Context)
@@ -2372,8 +2372,8 @@ internal sealed partial class ActivationData :
                         {
                             LogBeforeOnDeactivateAsync(_shared.Logger, this);
 
-                            // 禁用取消超时取消此标记。 运行时间等待用户代码完成后才能取消
-                            // 解除对激活或处置其服务的登记。
+                            // 停用超时会取消此令牌。运行时会等待用户代码执行完成，然后才
+                            // 注销激活实例或释放其服务。
                             await grainBase.OnDeactivateAsync(DeactivationReason, cancellationToken);
 
                             LogAfterOnDeactivateAsync(_shared.Logger, this);
@@ -2383,7 +2383,7 @@ internal sealed partial class ActivationData :
                             LogErrorInGrainMethod(_shared.Logger, exception, nameof(IGrainBase.OnDeactivateAsync), this);
                             SetActivityError(onDeactivateSpan, exception, ActivityErrorEvents.OnDeactivateFailed);
 
-                            // 吞噬例外情形,并继续进行停止使用。
+                            // 吞掉异常，继续停用。
                             encounteredError = true;
                         }
                     }
@@ -2393,8 +2393,8 @@ internal sealed partial class ActivationData :
                 {
                     if (_lifecycle is { } lifecycle)
                     {
-                        // 停止以前开始的生命周期阶段。
-                        // 从未开始的阶段被忽略。
+                        // 停止先前已启动的生命周期阶段。
+                        // 忽略从未启动的阶段。
                         await lifecycle.OnStop(cancellationToken);
                     }
                 }
@@ -2402,12 +2402,12 @@ internal sealed partial class ActivationData :
                 {
                     LogErrorStartingLifecycle(_shared.Logger, exception, this);
 
-                    // 吞噬例外情形,并继续进行停止使用。
+                    // 吞掉异常，继续停用。
                     encounteredError = true;
                 }
 
-                // 其 silo 退休时,仍然有排队申请的启动程序随申请一起迁移。
-                // 只有完成激活的启动程序才能迁移,因为中断的启动程序可能保持部分初始化状态。
+                // 所属 Silo 退出时，仍有排队请求的激活实例将迁移，并携带这些请求。
+                // 只有已完成激活的实例才能迁移，因为被中断的激活可能持有部分初始化的状态。
                 if (!encounteredError
                     && deactivateCommand.PreviousState == ActivationState.Valid
                     && DehydrationContext is null
@@ -2425,13 +2425,13 @@ internal sealed partial class ActivationData :
                     migrating = await StartMigrationAsync(context, migrationManager, cancellationToken);
                 }
 
-                // 如果由于目录故障而撤销了这个案例,我们不应该解除登记。
+                // 如果因目录故障而停用实例，则不应注销它。
                 var isDirectoryFailure = DeactivationReason.ReasonCode is DeactivationReasonCode.DirectoryFailure;
 
                 if (!migrating && IsUsingGrainDirectory && !cancellationToken.IsCancellationRequested && !isDirectoryFailure)
                 {
-                    // 从目录中解密 。
-                    // 如果 grain 被迁移,新激活将对登记本身进行检查和设置。
+                    // 从目录注销。
+                    // 如果 Grain 已迁移，新激活实例将自行对注册记录执行检查并设置操作。
                     try
                     {
                         await _shared.InternalRuntime.GrainLocator.Unregister(Address, UnregistrationCause.Force).WaitAsync(cancellationToken);
@@ -2489,8 +2489,8 @@ internal sealed partial class ActivationData :
 
             deactivationMetrics = deactivationMetrics.Record();
 
-            // 激活现在只能留下目录,所以目录等待全部停止运行,在完成 grain 之前没有创建新的本地启动。
-            // 离开、转交排队请求和信号停止运行是同步的,转发随后即离开,以便转发的请求不再恢复到激活状态。
+            // 激活实例直到此时才离开激活实例目录，因此激活实例目录会等待它的整个停用流程完成，在完成之前不会创建该 Grain 的新本地激活实例。
+            // 离开目录、转发排队请求和发出停用信号均为同步操作，且转发发生在离开目录之后，以防转发的请求回到此激活实例。
             UnregisterMessageTarget();
             try
             {
@@ -2504,7 +2504,7 @@ internal sealed partial class ActivationData :
             {
                 try
                 {
-                    // 启动后仍拥有原始交割范围之外的请求。
+                    // 不属于初始移交批次的请求仍由此激活实例拥有。
                     List<Message>? queued;
                     lock (_lock)
                     {
@@ -2544,7 +2544,7 @@ internal sealed partial class ActivationData :
                     ForwardingAddress = selectedAddress;
                 }
 
-                // 弹出脱水环境
+                // 填充状态提取上下文。
                 if (context.RequestContext is { } requestContext)
                 {
                     RequestContextExtensions.Import(requestContext);
@@ -2552,9 +2552,9 @@ internal sealed partial class ActivationData :
 
                 OnDehydrate(context.MigrationContext);
 
-                // 将脱水背景和排队请求发送目标主机, 并通过普通的请列接收它们 。
-                // 启动程序仍保留在目录中,直到迁移完成,这样,达到此 silo 的 grain 申请就可以到达该目录。
-                // 取消取消停止未发送的迁移。 当目标响应时, 发送的取消会完成 。
+                // 将状态提取上下文和排队请求发送至目标宿主，目标通过其常规请求队列接纳这些请求。
+                // 迁移完成之前，此激活实例仍留在激活实例目录中，因此发往此 Silo 上该 Grain 的请求仍会到达它。
+                // 取消会停止尚未发送的迁移。已经发送的迁移将在目标响应时完成。
                 migration = migrationManager.StartMigration(ForwardingAddress, Address, context.MigrationContext, TakeRequestsForMigration(), cancellationToken);
                 await migration.Completion;
                 _shared.InternalRuntime.GrainLocator.UpdateCache(GrainId, ForwardingAddress);
@@ -2600,7 +2600,7 @@ internal sealed partial class ActivationData :
             return;
         }
 
-        // 仅在选择了不同的 silo 时才迁移。
+        // 仅当选中另一个 Silo 时才迁移。
         ForwardingAddress = selectedAddress;
         LogDebugMigrating(_shared.Logger, GrainId, ForwardingAddress);
         Migrate(requestContextData, cancellationToken);
@@ -2616,14 +2616,14 @@ internal sealed partial class ActivationData :
 
             if (selectedAddress is null)
             {
-                // 不适用 silo 为此选中了 grain.
+                // 没有为此 Grain 选中合适的 Silo。
                 LogDebugPlacementStrategyFailedToSelectDestination(_shared.Logger, PlacementStrategy, GrainId);
                 return null;
             }
             else if (selectedAddress.Equals(_shared.Runtime.SiloAddress))
             {
-                // 这可能是因为这是唯一的(兼容的) silo 排排 grain 是因为安置主任选择了
-                // silo 还有其他原因
+                // 可能是因为这是此 Grain 唯一（兼容）的 Silo，或是放置决策器出于其他原因选择了此
+                // Silo。
                 LogDebugPlacementStrategySelectedCurrentSilo(_shared.Logger, PlacementStrategy, GrainId);
                 return null;
             }
@@ -2701,7 +2701,7 @@ internal sealed partial class ActivationData :
         cancellationToken.ThrowIfCancellationRequested();
         if (!TryCancelRequest())
         {
-            // 正在取消的消息可能尚未到来, 所以重试几次 。
+            // 正在取消的消息可能尚未到达，因此重试几次。
             return RetryCancellationAfterDelay();
         }
 
@@ -2722,7 +2722,7 @@ internal sealed partial class ActivationData :
             var wasWaiting = false;
             lock (_lock)
             {
-                // 检查运行中的请求 。
+                // 检查正在运行的请求。
                 foreach (var candidate in _runningRequests.Keys)
                 {
                     if (candidate.Id == messageId && candidate.SendingGrain == senderGrainId)
@@ -2734,7 +2734,7 @@ internal sealed partial class ActivationData :
 
                 if (message is null)
                 {
-                    // 检查等待请求
+                    // 检查等待中的请求。
                     for (var i = 0; i < _waitingRequests.Count; i++)
                     {
                         var candidate = _waitingRequests[i].Message;
@@ -2754,7 +2754,7 @@ internal sealed partial class ActivationData :
             {
                 if (wasWaiting)
                 {
-                    // 如果请求在等待,那么我们一定设法取消了请求,所以现在就发送答复。
+                    // 如果请求此前处于等待状态，则必定已成功取消，因此现在发送响应。
                     _shared.InternalRuntime.RuntimeClient.SendResponse(message, Response.FromException(new OperationCanceledException()));
                     didCancel = true;
                 }
@@ -2790,7 +2790,7 @@ internal sealed partial class ActivationData :
     #endregion
 
     /// <summary>
-    /// 激活的大多数生命周期不需要的额外特性。
+    /// 激活实例生命周期的大部分时间中不需要的额外属性。
     /// </summary>
     private class ActivationDataExtra : Dictionary<object, object>
     {
@@ -2800,24 +2800,24 @@ internal sealed partial class ActivationData :
         private byte _flags;
 
         /// <summary>
-        /// 防止闲置收藏的 <see cref="IActivationKeepAlive"/> 持有数。
+        /// 阻止空闲回收的 <see cref="IActivationKeepAlive"/> 持有次数。
         /// </summary>
         public int KeepAliveHolds;
 
         public HashSet<IGrainTimer>? Timers { get => GetValueOrDefault<HashSet<IGrainTimer>>(nameof(Timers)); set => SetOrRemoveValue(nameof(Timers), value); }
 
         /// <summary>
-        /// 在补液过程中,这可能包含前一次(最近脱水)激活 grain的地址。
+        /// 在状态恢复期间，这可能包含此 Grain 先前（刚提取状态）的激活实例地址。
         /// </summary>
         public GrainAddress? PreviousRegistration { get => GetValueOrDefault<GrainAddress>(nameof(PreviousRegistration)); set => SetOrRemoveValue(nameof(PreviousRegistration), value); }
 
         /// <summary>
-        /// 如果国家 = 无效,此地址中可能包含接收信件的转发地址
+        /// 如果 State == Invalid，这可能包含传入消息的转发地址。
         /// </summary>
         public SiloAddress? ForwardingAddress { get => GetValueOrDefault<SiloAddress>(nameof(ForwardingAddress)); set => SetOrRemoveValue(nameof(ForwardingAddress), value); }
 
         /// <summary>
-        /// A <see cref="TaskCompletionSource{TResult}"/> 完成时, grain 已经解除了作用。
+        /// Grain 停用完成时完成的 <see cref="TaskCompletionSource{TResult}"/>。
         /// </summary>
         public TaskCompletionSource<bool>? DeactivationTask { get => GetDeactivationInfoOrDefault()?.DeactivationTask; set => EnsureDeactivationInfo().DeactivationTask = value; }
 
@@ -2828,18 +2828,18 @@ internal sealed partial class ActivationData :
         public DeactivationReason DeactivationReason { get => GetDeactivationInfoOrDefault()?.DeactivationReason ?? default; set => EnsureDeactivationInfo().DeactivationReason = value; }
 
         /// <summary>
-        /// 当迁移到另一个地点时, 包含信息以保存整个激活 。
+        /// 迁移到其他位置时，其中包含需要在激活实例之间保留的信息。
         /// </summary>
         public DehydrationContextHolder? DehydrationContext { get => GetValueOrDefault<DehydrationContextHolder>(nameof(DehydrationContext)); set => SetOrRemoveValue(nameof(DehydrationContext), value); }
 
         /// <summary>
-        /// 等待开放专栏关闭的排版部分。
+        /// 等待已开启的排他区段关闭的排他区段。
         /// </summary>
         public ExclusiveSectionWaiters? ExclusiveSectionWaiters { get => GetValueOrDefault<ExclusiveSectionWaiters>(nameof(ExclusiveSectionWaiters)); set => SetOrRemoveValue(nameof(ExclusiveSectionWaiters), value); }
 
         /// <summary>
-        /// 开放专栏独开部分持有人的呼叫链回转识别码,即无区段时 <see cref="Guid.Empty"/>
-        /// ,或者其持有者没有呼叫链。仅存储非空白的ID。
+        /// 已开启排他区段持有者的调用链可重入性 ID，无区段开启时为 <see cref="Guid.Empty"/>，
+        /// 持有者没有调用链时也是如此。仅存储非空 ID。
         /// </summary>
         public Guid ExclusiveSectionReentrancyId
         {
@@ -2926,7 +2926,7 @@ internal sealed partial class ActivationData :
             }
             catch
             {
-                // 忽略。 忽略。
+                // 忽略。
             }
 
             GC.SuppressFinalize(this);
@@ -2998,8 +2998,8 @@ internal sealed partial class ActivationData :
         public readonly Dictionary<string, object>? RequestContext = requestContext;
 
         /// <summary>
-        /// 发起移徙的 grain 呼吁的活动背景。
-        /// 用于将脱水宽度定位到移民请求跟踪时。
+        /// 发起迁移的 Grain 调用的 Activity 上下文。
+        /// 用于将状态提取的跟踪跨度关联为迁移请求跟踪的子级。
         /// </summary>
         public ActivityContext? MigrationActivityContext { get; set; } = Activity.Current?.Context;
     }

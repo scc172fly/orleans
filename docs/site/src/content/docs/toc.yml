@@ -32,15 +32,15 @@ items:
         href: grains/grain-extensions.md
       - name: Grain 服务
         href: grains/grainservices.md
-      - name: 无状态工作 Grain
+      - name: 无状态工作者 Grain
         href: grains/stateless-worker-grains.md
       - name: Grain 计时器
         href: grains/timers.md
-      - name: 提醒
+      - name: 提醒器
         items:
           - name: 概述
             href: grains/reminders.md
-          - name: Amazon DynamoDB 提醒
+          - name: Amazon DynamoDB 提醒器
             href: grains/reminders/dynamodb.md
       - name: 观察者
         href: grains/observers.md
@@ -94,13 +94,13 @@ items:
             href: grains/event-sourcing/log-consistency-providers.md
           - name: 复制实例
             href: grains/event-sourcing/replicated-instances.md
-      - name: 日志记录（实验性）
+      - name: 日志持久化（实验性）
         items:
           - name: 概述
             href: grains/journaling/index.md
-          - name: 迁移持久作业存储
+          - name: 迁移持久化作业存储
             href: grains/journaling/durable-jobs-migration.md
-          - name: 使用持久状态
+          - name: 使用持久化状态
             href: grains/journaling/durable-state.md
           - name: 观察状态和流式传输草稿
             href: grains/journaling/observe-state.md
@@ -126,7 +126,7 @@ items:
             href: grains/messaging-recipes.md
           - name: 运维与吞吐量
             href: grains/messaging-operations.md
-      - name: 持久任务
+      - name: 持久化任务
         items:
           - name: 编程模型与保证
             href: grains/durable-tasks.md
@@ -238,7 +238,7 @@ items:
     items:
       - name: 操作指南索引
         href: how-to/index.md
-      - name: 实现长时间运行的提醒
+      - name: 实现长时间运行的提醒器
         href: how-to/long-running-reminders.md
   - name: 托管与配置
     items:
@@ -290,7 +290,7 @@ items:
             href: host/configuration-guide/adonet-configuration.md
           - name: 启动任务
             href: host/configuration-guide/startup-tasks.md
-          - name: 正常关闭
+          - name: 优雅关闭
             href: host/configuration-guide/shutting-down-orleans.md
       - name: 可观测性与诊断
         items:
@@ -359,7 +359,7 @@ items:
         href: deployment/handling-failures.md
       - name: 灾难恢复
         href: deployment/disaster-recovery.md
-      - name: 正常关闭与升级
+      - name: 优雅关闭与升级
         href: deployment/upgrades.md
       - name: 排查部署问题
         href: deployment/troubleshooting-deployments.md
@@ -377,7 +377,7 @@ items:
         href: implementation/activation-lifecycle.md
       - name: Grain 目录的实现
         href: implementation/grain-directory.md
-      - name: 集群成员关系
+      - name: 集群成员资格
         href: implementation/cluster-management.md
       - name: 获取集群清单
         href: implementation/cluster-manifest-retrieval.md
@@ -393,17 +393,17 @@ items:
         href: implementation/load-balancing.md
       - name: 序列化与代码生成
         href: implementation/serialization.md
-      - name: 提醒
+      - name: 提醒器
         href: implementation/reminders.md
       - name: 事务
         href: implementation/transactions.md
       - name: 滚动升级中的版本差异
         href: implementation/rolling-version-skew.md
-      - name: 持久流
+      - name: 持久化流
         items:
           - name: 架构
             href: implementation/streams-implementation/index.md
-          - name: Azure 队列流
+          - name: Azure Queue 流
             href: implementation/streams-implementation/azure-queue-streams.md
       - name: 编写提供程序
         href: implementation/provider-authoring.md

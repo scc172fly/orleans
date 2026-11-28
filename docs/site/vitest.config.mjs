@@ -2,7 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    // 给全库的执业者和流程支持的政策检查人员一个确定性工人预算。
+    // 为全仓解析器及由进程执行的策略检查设置确定的工作线程数量上限。
     fileParallelism: false,
   },
 });

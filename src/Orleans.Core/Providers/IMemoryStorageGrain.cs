@@ -4,13 +4,13 @@ using System.Threading.Tasks;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Grain 内部内存存储界面 grain 使用用 Orleans 模拟储存供应商。
+    /// Orleans 内存存储提供程序使用的内部内存存储 Grain 接口。
     /// </summary>
     public interface IMemoryStorageGrain : IGrainWithIntegerKey
     {
-        /// <summary>用于从存储存储处检索指定 grain 状态数据的同步方法。</summary>
-        /// <param name="grainStoreKey">存储此密钥 grain。</param>
-        /// <returns>目前储存的保证价值 grain 指定状态 grain.</returns>
+        /// <summary>从内存存储中获取指定 Grain 状态数据的异步方法。</summary>
+        /// <param name="grainStoreKey">此 Grain 的存储键。</param>
+        /// <returns>表示指定 Grain 当前已存储状态的异步结果。</returns>
         [Alias("ReadStateAsync")]
         Task<IGrainState<T>?> ReadStateAsync<T>(string grainStoreKey);
 
@@ -18,10 +18,10 @@ namespace Orleans.Storage
         Task<IGrainState<T>?> ReadStateAsync<T>(string grainStoreKey, CancellationToken cancellationToken)
             => ReadStateAsync<T>(grainStoreKey);
 
-        /// <summary>将指定 grain 状态数据更新到内存存储处的同步方法。</summary>
-        /// <param name="grainStoreKey">Grain ID.</param>
-        /// <param name="grainState">为此存储新的状态数据 grain.</param>
-        /// <returns>附有新的完成承诺 eTag 用于更新存储的操作 grain 指定状态 grain.</returns>
+        /// <summary>将指定 Grain 的状态数据更新到内存存储中的异步方法。</summary>
+        /// <param name="grainStoreKey">Grain ID。</param>
+        /// <param name="grainState">要为此 Grain 存储的新状态数据。</param>
+        /// <returns>表示指定 Grain 的存储状态更新操作已完成、并返回新 ETag 的异步结果。</returns>
         [Alias("WriteStateAsync")]
         Task<string> WriteStateAsync<T>(string grainStoreKey, IGrainState<T> grainState);
 
@@ -32,9 +32,9 @@ namespace Orleans.Storage
             CancellationToken cancellationToken)
             => WriteStateAsync(grainStoreKey, grainState);
 
-        /// <param name="grainStoreKey">存储此密钥 grain。</param>
-        /// <param name="eTag">上一个已读取的标签。</param>
-        /// <returns>储存的更新作业完成承诺 grain 指定状态 grain.</returns>
+        /// <param name="grainStoreKey">此 Grain 的存储键。</param>
+        /// <param name="eTag">上一次读取的 ETag。</param>
+        /// <returns>表示指定 Grain 的存储状态更新操作完成的异步结果。</returns>
         [Alias("DeleteStateAsync")]
         Task DeleteStateAsync<T>(string grainStoreKey, string? eTag);
 

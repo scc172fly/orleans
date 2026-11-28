@@ -1,8 +1,8 @@
 namespace Tester.StorageFacet.Abstractions
 {
     /// <summary>
-    /// 初级存储功能接口。
-    ///  这是用户需要的实际功能。
+    /// 主要存储功能接口。
+    ///  这是用户实际需要的功能。
     /// </summary>
     /// <typeparam name="TState"></typeparam>
     public interface IExampleStorage<TState>
@@ -11,14 +11,14 @@ namespace Tester.StorageFacet.Abstractions
 
         Task Save();
 
-        // 测试电话 -- -- 用于核查面线的安装工作
+        // 测试调用：用于验证分面（Facet）的连接是否正确
         string Name { get; }
         string GetExtendedInfo();
     }
 
     /// <summary>
-    /// 应用层可向
-    ///  字符的每个实例(使用属性时按 grain 类型) 。
+    /// 应用层可以为该功能的每个实例（如果使用特性，则按 Grain 类型）
+    ///  提供的功能配置信息。
     /// </summary>
     public interface IExampleStorageConfig
     {
@@ -26,7 +26,7 @@ namespace Tester.StorageFacet.Abstractions
     }
 
     /// <summary>
-    /// 功能配置通用类
+    /// 功能配置实用工具类
     /// </summary>
     public class ExampleStorageConfig : IExampleStorageConfig
     {
@@ -47,7 +47,7 @@ namespace Tester.StorageFacet.Abstractions
     }
 
     /// <summary>
-    /// 根据配置创建存储功能,根据名称创建存储特性
+    /// 根据配置按名称创建存储功能
     /// </summary>
     public interface INamedExampleStorageFactory
     {

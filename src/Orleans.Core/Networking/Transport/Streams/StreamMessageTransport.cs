@@ -41,7 +41,7 @@ internal abstract partial class StreamMessageTransport : MessageTransportBase
     public virtual void Start(CancellationToken cancellationToken = default)
     {
         using var _ = new ExecutionContextSuppressor();
-        // 运行取消的启动尝试, 这样被接受的请求在处置前完成 。
+        // 执行已取消的启动尝试，使已接受的请求在释放之前完成。
         _runTask = Task.Run(() => RunAsync(cancellationToken), CancellationToken.None);
     }
 
@@ -51,18 +51,18 @@ internal abstract partial class StreamMessageTransport : MessageTransportBase
     {
         _shutdownReason ??= closeException;
 
-        // 如果关闭已提前退出
+        // 如果已关闭，则提前退出。
         if (_connectionClosedCts.IsCancellationRequested)
         {
             return;
         }
 
-        // 停止信号循环
+        // 通知各循环停止。
         await _connectionClosingCts.CancelAsync().ConfigureAwait(false);
         _readerSignal.Signal();
         _writerSignal.Signal();
 
-        // 如果没有运行任务,直接处理流
+        // 如果没有运行任务，则直接释放流。
         if (_runTask is null)
         {
             DisposeStream();
@@ -81,7 +81,7 @@ internal abstract partial class StreamMessageTransport : MessageTransportBase
     }
 
     /// <summary>
-    /// 将底流投放至下流,以强制关闭任何待决的I/O行动。
+    /// 释放底层流，以强制关闭任何待完成的 I/O 操作。
     /// </summary>
     private void DisposeStream()
     {
@@ -105,7 +105,7 @@ internal abstract partial class StreamMessageTransport : MessageTransportBase
             }
             catch
             {
-                // 处置过程中忽略错误
+                // 忽略释放期间的错误。
             }
         }
     }
@@ -119,10 +119,10 @@ internal abstract partial class StreamMessageTransport : MessageTransportBase
 
         try
         {
-            // 确保流流被处置,即使 CloseAsync 没有被调用或超时
+            // 即使未调用 CloseAsync 或调用超时，也确保流已释放。
             DisposeStream();
 
-            // 信号,我们即将关闭 如果还没有完成
+            // 如果尚未发出关闭信号，则通知正在关闭。
             await _connectionClosingCts.CancelAsync().ConfigureAwait(false);
             _readerSignal.Signal();
             _writerSignal.Signal();
@@ -293,7 +293,7 @@ gracefulTermination:
         }
         catch (Exception exception)
         {
-            // 如果我们开始关闭(流处理或要求关闭),则视为优雅
+            // 如果由我们发起关闭（流已释放或已请求关闭），则视为正常终止。
             if (_connectionClosingCts.IsCancellationRequested || _streamDisposed)
             {
                 isGracefulTermination = true;
@@ -339,7 +339,7 @@ gracefulTermination:
 
             _writerSignal.Signal();
 
-            // 只记录意外错误(而不是当我们有意处理流时)
+            // 仅记录意外错误（不包括主动释放流时发生的错误）。
             if (error is not null && !_streamDisposed)
             {
                 LogProcessReadsFailure(_logger, error);
@@ -381,7 +381,7 @@ gracefulTermination:
         }
         catch (Exception exception)
         {
-            // 启动关闭时不要误当
+            // 如果由我们发起关闭，则不视为错误。
             if (!_connectionClosingCts.IsCancellationRequested && !_streamDisposed)
             {
                 error = exception;
@@ -395,7 +395,7 @@ gracefulTermination:
             var requestError = _shutdownReason ?? new ConnectionClosedException();
             operation?.SetException(requestError);
 
-            // 只记录意外错误(而不是当我们有意处理流时)
+            // 仅记录意外错误（不包括主动释放流时发生的错误）。
             if (error is not null && !_streamDisposed)
             {
                 LogProcessWritesFailure(_logger, error);

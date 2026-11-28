@@ -1,33 +1,33 @@
 namespace Orleans.Durable.Tasks;
 
 /// <summary>
-/// 描述对持久任务代码的修改,其版本在旧任务代码开始的处决同时共存。
-/// 尚未确定: 它的名称, 以及运行代码所支持的版本 。
+/// 描述持久化任务代码的变更；在旧版代码上启动的执行实例仍处于
+/// 待处理状态期间，各版本并存；描述包括变更名称以及当前运行代码支持的版本。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 通常作为静态字段, 并阅读执行中的版本
-/// <see cref="Get"/> 代码分支在变化的任何地方:
-/// <c>static readonly DurableVersion CarrierApi = new("carrier-api", minSupported: 0, maxSupported: 1);</c>. 每一份检查
-/// 然后说明相同的范围,所以添加版本或退出的部署会编辑声明。
+/// 每项变更只声明一次，通常使用静态字段；当代码根据变更进行分支时，使用
+/// <see cref="Get"/> 读取当前执行实例的版本：
+/// <c>static readonly DurableVersion CarrierApi = new("carrier-api", minSupported: 0, maxSupported: 1);</c>。这样每次检查
+/// 都指定相同的范围，因此当部署新增或淘汰版本时，只需修改该声明。
 /// </para>
 /// <para>
-/// <see cref="Get"/> 返回所宣布名称的 <see cref="DurableTask.GetVersion(string, int, int)"/> 返回
-/// 和范围。
+/// <see cref="Get"/> 的返回结果等同于针对声明的名称与范围调用 <see cref="DurableTask.GetVersion(string, int, int)"/>
+/// 所得到的结果。
 /// </para>
 /// </remarks>
 public sealed class DurableVersion
 {
-    /// <summary>初始化更改描述 <paramref name="name"/>.</summary>
-    /// <param name="name">更改的名称, 唯一在任务检查中进行更改。 名称不包含 <c>$</c>。</param>
+    /// <summary>初始化变更 <paramref name="name"/> 的描述。</summary>
+    /// <param name="name">变更名称，在同一任务检查的各项变更中必须唯一。名称不能包含 <c>$</c>。</param>
     /// <param name="minSupported">
-    /// 代码支持的最古老版本。 版本 <c>0</c> 是更改第一个版本之前的代码 。
+    /// 代码支持的最早版本。版本 <c>0</c> 表示首次引入该变更之前的代码。
     /// </param>
-    /// <param name="maxSupported">最新版本,第一次记录中首次被检查的处决。</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> 是 <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException"><paramref name="name"/> 是空或包含 <c>$</c>.</exception>
+    /// <param name="maxSupported">最新版本；首次执行此版本检查的执行实例会记录该版本。</param>
+    /// <exception cref="ArgumentNullException"><paramref name="name"/> 为 <see langword="null"/>。</exception>
+    /// <exception cref="ArgumentException"><paramref name="name"/> 为空或包含 <c>$</c>。</exception>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="minSupported"/> 是负,或 <paramref name="maxSupported"/> 小于
+    /// <paramref name="minSupported"/> 为负值，或者 <paramref name="maxSupported"/> 小于
     /// <paramref name="minSupported"/>.
     /// </exception>
     public DurableVersion(string name, int minSupported, int maxSupported)
@@ -40,39 +40,39 @@ public sealed class DurableVersion
         MaxSupported = maxSupported;
     }
 
-    /// <summary>获取更改的名称。</summary>
+    /// <summary>获取变更名称。</summary>
     public string Name { get; }
 
-    /// <summary>获得代码支持的最古老版本。</summary>
+    /// <summary>获取代码支持的最早版本。</summary>
     public int MinSupported { get; }
 
-    /// <summary>获得最新版本,即第一次记录中首次得到检查的处决。</summary>
+    /// <summary>获取最新版本；首次执行此版本检查的执行实例会记录该版本。</summary>
     public int MaxSupported { get; }
 
-    /// <summary>返回运行中的耐久任务之后的修改版本。</summary>
-    /// <returns>从 <see cref="MinSupported"/> 到 <see cref="MaxSupported"/>的版本。</returns>
+    /// <summary>返回正在运行的持久化任务所遵循的此变更的版本。</summary>
+    /// <returns>范围从 <see cref="MinSupported"/> 到 <see cref="MaxSupported"/> 的版本。</returns>
     /// <remarks>
-    /// 执行中的第一个检查在一次执行中决定并记录版本,因为
-    /// <see cref="DurableTask.GetVersion(string, int, int)"/> 描述。在耐久任务之外,检查返回
+    /// 执行实例中的首次检查决定并记录版本，如
+    /// <see cref="DurableTask.GetVersion(string, int, int)"/> 所述。在持久化任务之外，该检查返回
     /// <see cref="MaxSupported"/>.
     /// </remarks>
     /// <exception cref="DurableTaskAttemptCanceledException">
-    /// 执行失败后主机取消了尝试, 例如因为执行过程记录了一个超出支持范围之外的版本,
-    /// 以拖住它;例外的内部例外是 <see cref="DurableTaskVersionException"/>。
+    /// 宿主取消了执行尝试，例如因为执行实例记录了支持范围之外的版本，
+    /// 导致其停滞；此时异常的内部异常为 <see cref="DurableTaskVersionException"/>。
     /// </exception>
     /// <exception cref="InvalidOperationException">
-    /// 主机无法从调用代码中记录版本, 例如在 <c>ConfigureAwait(false)</c>之后 。
+    /// 宿主无法从调用代码所在位置记录版本，例如在 <c>ConfigureAwait(false)</c> 之后。
     /// </exception>
     public int Get() => DurableTaskContext.Ambient is { } context
         ? context.DecideVersion(Name, MinSupported, MaxSupported)
         : MaxSupported;
 
-    /// <summary>返回运行中的耐久任务是否遵循了这一修改的 <paramref name="version"/> 或更新的任务。</summary>
-    /// <param name="version">引入调用者选择的行为的版本。</param>
-    /// <returns><see langword="true"/> 何时 <see cref="Get"/> 返回 <paramref name="version"/> 或以上。</returns>
+    /// <summary>返回正在运行的持久化任务是否遵循此变更的 <paramref name="version"/> 版本或更新版本。</summary>
+    /// <param name="version">引入调用方所选行为的版本。</param>
+    /// <returns><see langword="true"/> 表示 <see cref="Get"/> 返回的版本不小于 <paramref name="version"/>。</returns>
     /// <exception cref="DurableTaskAttemptCanceledException">
-    /// 执行失败后主机取消了尝试, 例如因为执行过程记录了一个超出支持范围之外的版本,
-    /// 以拖住它;例外的内部例外是 <see cref="DurableTaskVersionException"/>。
+    /// 宿主取消了执行尝试，例如因为执行实例记录了支持范围之外的版本，
+    /// 导致其停滞；此时异常的内部异常为 <see cref="DurableTaskVersionException"/>。
     /// </exception>
     public bool IsAtLeast(int version) => Get() >= version;
 

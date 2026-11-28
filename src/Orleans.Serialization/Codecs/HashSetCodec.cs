@@ -13,7 +13,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="HashSet{T}"/>的序列器。
+    /// <see cref="HashSet{T}"/> 的序列化器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
@@ -29,8 +29,8 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="HashSetCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldCodec">字段编码。</param>
-        /// <param name="comparerCodec">比较器编码器。</param>
+        /// <param name="fieldCodec">字段编解码器。</param>
+        /// <param name="comparerCodec">比较器的编解码器。</param>
         public HashSetCodec(IFieldCodec<T> fieldCodec, IFieldCodec<IEqualityComparer<T>> comparerCodec)
         {
             _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -138,8 +138,8 @@ namespace Orleans.Serialization.Codecs
 
         void IBaseCodec<HashSet<T>>.Deserialize<TInput>(ref Reader<TInput> reader, HashSet<T> value)
         {
-            // 如果该值有建筑商添加的某种值,请清除这些值。
-            // 如果这些数值在序列式有效载荷中,则将添加到下文。
+            // 如果集合中包含构造函数添加的元素，则将其清空。
+            // 如果序列化有效载荷中包含这些元素，则会在后续代码中重新添加它们。
             value.Clear();
 
             IEqualityComparer<T>? comparer = null;
@@ -162,7 +162,7 @@ namespace Orleans.Serialization.Codecs
                         var length = (int)UInt32Codec.ReadValue(ref reader, header);
                         reader.EnsureAvailable((uint)length);
 
-                        // 重新开始上课,叫建筑师
+                        // 通过调用构造函数重新初始化该类。
                         if (comparer is not null)
                         {
                             _baseConstructor.Invoke(value, [length, comparer]);
@@ -186,13 +186,13 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="HashSet{T}"/>的复印机。
+    /// <see cref="HashSet{T}"/> 的复制器。
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <remarks>
     /// 初始化 <see cref="HashSetCopier{T}"/> 类的新实例。
     /// </remarks>
-    /// <param name="valueCopier">价值复印机。</param>
+    /// <param name="valueCopier">元素复制器。</param>
     [RegisterCopier]
     public sealed class HashSetCopier<T>(IDeepCopier<T> valueCopier) : IDeepCopier<HashSet<T>>, IBaseCopier<HashSet<T>>
     {
@@ -234,8 +234,8 @@ namespace Orleans.Serialization.Codecs
             ArgumentNullExceptionPolyfill.ThrowIfNull(output);
             ArgumentNullExceptionPolyfill.ThrowIfNull(context);
 
-            // 如果该值有建筑商添加的某种值,请清除这些值。
-            // 如果这些数值在序列式有效载荷中,则将添加到下文。
+            // 如果输出集合中包含构造函数添加的元素，则将其清空。
+            // 如果序列化有效载荷中包含这些元素，则会在后续代码中重新添加它们。（译注：此处实际是深拷贝，从 input 复制元素，并不读取序列化有效载荷。）
             output.Clear();
             if (input.Comparer != EqualityComparer<T>.Default)
             {

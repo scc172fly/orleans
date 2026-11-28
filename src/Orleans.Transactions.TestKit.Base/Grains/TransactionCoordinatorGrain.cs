@@ -10,7 +10,7 @@ using Orleans.Transactions.TestKit.Correctnesss;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 协调跨交易测试 grains的交易。
+    /// 协调多个事务测试 Grain 之间的事务。
     /// </summary>
     [StatelessWorker]
     public class TransactionCoordinatorGrain : Grain, ITransactionCoordinatorGrain

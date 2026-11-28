@@ -21,17 +21,17 @@ using Orleans.TestingHost.Utils;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// 给定配置源的名称和收藏, 用于创建 silos 的工具 。
+    /// 根据名称和配置源集合创建 Silo 的实用工具。
     /// </summary>
     public class TestClusterHostFactory
     {
         /// <summary>
-        /// 创建返回新 silo。
+        /// 创建并返回新的 Silo。
         /// </summary>
-        /// <param name="hostName">如果配置中没有指定, 则名称为 silo 。</param>
+        /// <param name="hostName">配置中尚未指定 Silo 名称时使用的名称。</param>
         /// <param name="configuration">配置。</param>
-        /// <param name="postConfigureHostBuilder">一个可选的代表, 可用于在主机正在构建之前配置主机构建器。</param>
-        /// <returns>一个新的 silo。</returns>
+        /// <param name="postConfigureHostBuilder">可用于在构建宿主之前配置宿主构建器的可选委托。</param>
+        /// <returns>新的 Silo。</returns>
         public static IHost CreateSiloHost(string hostName, IConfiguration configuration, Action<IHostBuilder>? postConfigureHostBuilder = null)
         {
             string siloName = configuration["Name"] ?? hostName;
@@ -60,7 +60,7 @@ namespace Orleans.TestingHost
 
                 if (Debugger.IsAttached)
                 {
-                    // 测试正在内部调试器内运行 - 让超时 *\\ 无限
+                    // 测试在调试器中运行，将超时时间设为近似无限。
                     services.Configure<SiloMessagingOptions>(op => op.ResponseTimeout = TimeSpan.FromMilliseconds(1000000));
                 }
             });
@@ -73,12 +73,12 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// 创建分组客户端。
+        /// 创建集群客户端。
         /// </summary>
-        /// <param name="hostName">主机的名称。</param>
+        /// <param name="hostName">宿主名称。</param>
         /// <param name="configuration">配置。</param>
-        /// <param name="postConfigureHostBuilder">一个可选的代表, 可用于在主机正在构建之前配置主机构建器。</param>
-        /// <returns>群集客户端主机。</returns>
+        /// <param name="postConfigureHostBuilder">可用于在构建宿主之前配置宿主构建器的可选委托。</param>
+        /// <returns>集群客户端宿主。</returns>
         public static IHost CreateClusterClient(string hostName, IConfiguration configuration, Action<IHostBuilder>? postConfigureHostBuilder = null)
         {
             var hostBuilder = new HostBuilder();
@@ -104,10 +104,10 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// 将配置分级为字符串。
+        /// 将配置序列化为字符串。
         /// </summary>
         /// <param name="configuration">配置。</param>
-        /// <returns>序列配置。</returns>
+        /// <returns>序列化后的配置。</returns>
         public static string SerializeConfiguration(IConfiguration configuration)
         {
             var settings = new JsonSerializerSettings();
@@ -117,10 +117,10 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// 使配置字符串降序。
+        /// 反序列化配置字符串。
         /// </summary>
-        /// <param name="serializedSources">序列资料</param>
-        /// <returns>解密配置。</returns>
+        /// <param name="serializedSources">序列化后的配置源。</param>
+        /// <returns>反序列化后的配置。</returns>
         public static IConfiguration DeserializeConfiguration(string serializedSources)
         {
             var settings = new JsonSerializerSettings();

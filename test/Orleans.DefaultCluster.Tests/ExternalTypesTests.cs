@@ -5,8 +5,8 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// 测试 Orleans处理 grain 接口和执行组件以外定义的类型的能力。
-    /// 证明序列系统正确处理外部类型(如昆虫),作为参数通过至 grain 方法。
+    /// 测试 Orleans 处理 Grain 接口和实现程序集之外定义的类型的能力。
+    /// 验证序列化系统能够正确处理作为 Grain 方法参数传递的外部类型（例如枚举）。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -18,9 +18,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// grains 能够成功接收和处理外部组合中定义的昆虫类型的测试。
-        /// 以此验证 Orleans' 类型系统对未直接引用的类别进行序列/去序化的能力
-        /// 在 grain 接口组件中,这对支持共享域模型十分重要。
+        /// 测试 Grain 能否成功接收并处理外部程序集定义的枚举类型。
+        /// 这验证了 Orleans 类型系统对未在 Grain 接口程序集中直接引用的类型进行
+        /// 序列化及反序列化的能力，对于支持共享领域模型很重要。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Serialization")]
         public async Task ExternalTypesTest_GrainWithEnumExternalTypeParam()

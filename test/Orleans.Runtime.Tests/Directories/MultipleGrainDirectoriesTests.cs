@@ -8,7 +8,7 @@ using Xunit;
 namespace Tester.Directories
 {
     /// <summary>
-    /// 测试多重基准等级 grain 集集中执行目录 silos.
+    /// 用于测试集群各 Silo 上多个 Grain 目录实现的基类。
     /// </summary>
     [TestSuite("Functional")]
     [TestArea("GrainDirectory")]
@@ -25,21 +25,21 @@ namespace Tester.Directories
             var grainOnPrimary = await GetGrainOnPrimary().WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
             var grainOnSecondary = await GetGrainOnSecondary().WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-            // 设置设置设置设置
+            // 设置
             var primaryCounter = await grainOnPrimary.Ping();
             var secondaryCounter = await grainOnSecondary.Ping();
 
-            // 每个 silo 见另一个 silo上显示激活
+            // 每个 Silo 都能看到另一个 Silo 上的激活实例
             Assert.Equal(++primaryCounter, await grainOnSecondary.ProxyPing(grainOnPrimary));
             Assert.Equal(++secondaryCounter, await grainOnPrimary.ProxyPing(grainOnSecondary));
 
             await Task.Delay(5000, TestContext.Current.CancellationToken);
 
-            // 关闭二级 silo
+            // 关闭辅助 Silo
             await this.HostedCluster.StopSecondarySilosAsync(TestContext.Current.CancellationToken);
 
-            // 启动初级 silo 应仍然在现场,另外的激活应
-            // 为另一个创建的
+            // 主 Silo 上的激活实例应仍然存在；对于另一个激活实例，
+            // 应该创建新的激活实例
             Assert.Equal(++primaryCounter, await grainOnPrimary.Ping());
             Assert.Equal(1, await grainOnSecondary.Ping());
         }

@@ -6,17 +6,17 @@ using Orleans.Providers;
 namespace Orleans.Storage;
 
 /// <summary>
-/// grain 存储的实用功能。
+/// Grain 存储的实用函数。
 /// </summary>
 public static class GrainStorageHelpers
 {
     /// <summary>
-    /// 得到 <see cref="IGrainStorage"/> 与指定 grain 类型,必须从 <see cref="Grain{T}"/>.
+    /// 获取与指定 Grain 类型关联的 <see cref="IGrainStorage"/>；该 Grain 类型必须派生自 <see cref="Grain{T}"/>。
     /// </summary>
-    /// <param name="grainType"> grain 类型,必须来自 <see cref="Grain{T}"/>。</param>
-    /// <param name="services">服务供应商。</param>
+    /// <param name="grainType">Grain 类型，必须派生自 <see cref="Grain{T}"/>。</param>
+    /// <param name="services">服务提供程序。</param>
     /// <returns>
-    /// 下 <see cref="IGrainStorage"/> 与指定 grain 类型,必须从 <see cref="Grain{T}"/>.
+    /// 与指定 Grain 类型关联的 <see cref="IGrainStorage"/>；该 Grain 类型必须派生自 <see cref="Grain{T}"/>。
     /// </returns>
     public static IGrainStorage GetGrainStorage(Type grainType, IServiceProvider services)
     {

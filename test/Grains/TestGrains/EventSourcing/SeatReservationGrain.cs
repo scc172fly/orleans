@@ -5,14 +5,14 @@ using Orleans.EventSourcing;
 namespace TestGrains
 {
     /// <summary>
-    /// 记录座位预订的已出版 grain 号记录。
+    /// 记录座位预订的日志化 Grain 示例。
     /// 
-    /// 配置为每个集有一个实例 。
-    /// 配置后使用默认的存储提供者。
-    /// 配置后使用 StateStorage 一致性提供商。
+    /// 配置为每个集群一个实例。
+    /// 配置为使用默认存储提供程序。
+    /// 配置为使用 StateStorage 一致性提供程序。
     /// 
-    /// 也就是说我们坚持最新状态... 我们不是真正的“活动来源”。
-    /// 没有必要在这里坚持所有事件,因为国家已经储存了所有成功的预订。
+    /// 这意味着仅持久化最新状态……并非真正的“事件溯源”。
+    /// 这里无需持久化所有事件，因为状态已保存全部成功的预订。
     /// 
     /// </summary>
 
@@ -23,14 +23,14 @@ namespace TestGrains
 
         public async Task<bool> Reserve(int seatnumber, string userid)
         {
-            // 首, 排在请求前
+            // 首先，将请求加入队列
             RaiseEvent(new SeatReservation() { Seat = seatnumber, UserId = userid });
 
-            // 然后,等待传播请求
+            // 然后等待请求传播完成
             await ConfirmEvents();
 
-            // 我们能确定保留是否经过
-            // 重新阅读它 - 如果它不在那里, 这意味着另一个用户赢了
+            // 可以判断预订是否成功，
+            // 方法是重新读取该预订；如果不存在，则说明其他用户已抢先成功
             var success = (State.Reservations.ContainsKey(seatnumber)
                                  && State.Reservations[seatnumber].UserId == userid);
             return success;
@@ -39,7 +39,7 @@ namespace TestGrains
 
 
     /// <summary>
-    /// 保留的状况 grain
+    /// 预订 Grain 的状态
     /// </summary>
     [Serializable]
     [Orleans.GenerateSerializer]
@@ -55,16 +55,16 @@ namespace TestGrains
 
         private void Apply(SeatReservation reservation)
         {
-            // 查看此项保留是否针对一个可用的座位
-            // 否则,就当做不接
-            // (这是第一个作家赢得”冲突解决)
+            // 检查此次预订是否针对可用座位
+            // 否则将其视为无操作
+            // （这是“先写入者胜出”的冲突解决方式）
             if (!Reservations.ContainsKey(reservation.Seat))
                 Reservations.Add(reservation.Seat, reservation);
         }
     }
 
     /// <summary>
-    /// 当请求保留时定义更新操作的类别
+    /// 定义请求预订时的更新操作的类
     /// </summary>
     [Serializable]
     [Orleans.GenerateSerializer]

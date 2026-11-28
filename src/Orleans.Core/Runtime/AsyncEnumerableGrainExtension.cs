@@ -14,7 +14,7 @@ using Orleans.Timers;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// Grain- 支持返回 <see cref="IAsyncEnumerable{T}"/> 调自 grain 方法。
+/// Grain 端对 Grain 方法返回 <see cref="IAsyncEnumerable{T}"/> 的支持。
 /// </summary>
 internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGrainExtension, IAsyncDisposable, IDisposable
 {
@@ -23,16 +23,16 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
     private readonly ILogger<AsyncEnumerableGrainExtension> _logger;
     private readonly MessagingOptions _messagingOptions;
 
-    // 内部测试
+    // 内部可见，供测试使用。
     internal IGrainTimer Timer { get; }
     internal IGrainContext GrainContext { get; }
 
     /// <summary>
-    /// 初始化一个新的 <see cref="AsyncEnumerableGrainExtension"/> 实例。
+    /// 初始化新的 <see cref="AsyncEnumerableGrainExtension"/> 实例。
     /// </summary>
-    /// <param name="grainContext">下 grain 并附有这一延长。</param>
-    /// <param name="messagingOptions">发短信选项。</param>
-    /// <param name="logger">日志器。</param>
+    /// <param name="grainContext">此扩展所附加的 Grain。</param>
+    /// <param name="messagingOptions">消息传递选项。</param>
+    /// <param name="logger">日志记录器。</param>
     public AsyncEnumerableGrainExtension(
         IGrainContext grainContext,
         IOptions<MessagingOptions> messagingOptions,
@@ -87,7 +87,7 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
                     return false;
                 }
 
-                // 如果未设置国旗, 返回为真 。
+                // 如果没有设置任何标志，则返回 true。
                 return state.ClearSeen();
             }
         }
@@ -171,14 +171,14 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
                 object? result = null;
                 do
                 {
-                    // 检查点显示结果是否同步准备 。
+                    // 检查枚举器是否已有可同步获取的结果。
                     moveNextValueTask = typedEnumerator.MoveNextAsync();
                     if (moveNextValueTask.IsCompletedSuccessfully)
                     {
                         var hasValue = moveNextValueTask.Result;
                         if (hasValue)
                         {
-                            // 清点了被理赔的元素
+                            // 将刚刚产生的元素计入结果。
                             ++currentBatchSize;
                             var value = typedEnumerator.Current;
                             if (currentBatchSize == 1)
@@ -187,7 +187,7 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
                             }
                             else if (currentBatchSize == 2)
                             {
-                                // 从单元素增长到列表 。
+                                // 从单个元素扩展为列表。
                                 result = new List<T> { (T)result!, value };
                             }
                             else
@@ -197,7 +197,7 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
                         }
                         else
                         {
-                            // 已完成成功,可能有一些最后内容。
+                            // 已成功完成，可能还有一些最后的元素。
                             if (currentBatchSize == 0)
                             {
                                 return OnTerminateAsync(requestId, EnumerationResult.Completed, default);
@@ -212,13 +212,13 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
                     }
                     else
                     {
-                        // 调查员没有同步完成,所以我们需要等待结果,以获得随后的内容。
+                        // 枚举器未能同步完成，因此对于后续元素需要等待结果。
                         entry.MoveNextTask = moveNextValueTask.AsTask();
                         break;
                     }
                 } while (currentBatchSize < entry.MaxBatchSize);
 
-                // 如果有人员,现在就归还他们,而不是等待完成即将进行的行动。
+                // 如果已有元素，则立即返回它们，而不是等待挂起的操作完成。
                 if (currentBatchSize == 1)
                 {
                     return new((EnumerationResult.Element, result!));
@@ -228,10 +228,10 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
                     return new((EnumerationResult.Batch, result!));
                 }
 
-                // 没有元素,所以等待即将完成的操作。
+                // 目前没有元素，因此等待挂起的操作完成。
             }
 
-            // 防止在我们进行统计时收集该分子。
+            // 防止在枚举期间回收枚举器。
             entry.SetBusy();
             return AwaitMoveNextAsync(requestId, typedEnumerator, entry.MoveNextTask!, cancellationToken);
         }
@@ -249,14 +249,14 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
     {
         try
         {
-            // 等待 MoveNextAsync 任务完成或投票超时过后。
+            // 等待 MoveNextAsync 任务完成或轮询超时，两者任一先发生即可。
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var longPollingTimeout = _messagingOptions.ConfiguredResponseTimeout / 2;
             cts.CancelAfter(longPollingTimeout);
             await moveNextTask.WaitAsync(cts.Token).SuppressThrowing();
 
-            // 更新查点状态, 以表明我们目前没有等待 MoveNextAsync 完成 。
-            // 如果 MoveNextAsync 任务完成后,现在也明确这一点。
+            // 更新枚举器状态，表示当前不再等待 MoveNextAsync 完成。
+            // 如果 MoveNextAsync 任务已完成，现在也清除该任务。
             UpdateEnumeratorState(requestId, clearMoveNextTask: moveNextTask.IsCompleted);
             void UpdateEnumeratorState(Guid requestId, bool clearMoveNextTask)
             {
@@ -294,7 +294,7 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
             }
             else if (moveNextTask.Exception is { } moveNextException)
             {
-                // 已完成, 但未成功 。
+                // 已完成，但未成功完成。
                 var exception = moveNextException.InnerExceptions.Count == 1 ? moveNextException.InnerException! : moveNextException;
                 await RemoveEnumeratorAsync(requestId);
                 return (EnumerationResult.Error, exception);
@@ -407,10 +407,10 @@ internal sealed partial class AsyncEnumerableGrainExtension : IAsyncEnumerableGr
         internal CancellationTokenSource? CancellationTokenSource;
         public void SetSeen() => _flags |= SeenFlag;
         public void SetBusy() => _flags |= BusyFlag | SeenFlag;
-        public void ClearBusy() => _flags = SeenFlag; // 清除“ Busy” 国旗, 但设置了“ seen” 旗帜 。
+        public void ClearBusy() => _flags = SeenFlag; // 清除 Busy 标志，同时设置 Seen 标志。
         public bool ClearSeen()
         {
-            // 清除“ 可见” 的旗帜, 检查是否先前设置过任何国旗 。
+            // 清除 Seen 标志，并检查先前是否设置过任何标志。
             var isExpired = _flags == 0;
             _flags &= ~SeenFlag;
             return isExpired;

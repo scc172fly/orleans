@@ -6,7 +6,7 @@ using System.Linq;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 使用圆轮 Robin 算法选择器
+    /// 使用轮询算法的选择器。
     /// </summary>
     /// <typeparam name="T"></typeparam>
     internal sealed class RoundRobinSelector<T> : IResourceSelector<T>
@@ -17,7 +17,7 @@ namespace Orleans.Streams
             Justification = "Random ordering and the starting offset spread queue lease attempts. The lease provider establishes ownership independently of this selection order.")]
         public RoundRobinSelector(IEnumerable<T> resources)
         {
-            // 随机随机排列单读收藏
+            // 已去重、随机排序的只读集合。
             this.resources = resources.Distinct().OrderBy(_ => Random.Shared.Next()).ToList();
             this.lastSelection = Random.Shared.Next(this.resources.Count);
         }
@@ -25,7 +25,7 @@ namespace Orleans.Streams
         public int Count => this.resources.Count;
 
         /// <summary>
-        /// 尝试从资源列表中选择一定的资源计数, 与现有资源不重叠
+        /// 尝试从资源列表中选择指定数量的资源，且不与已有选择中的资源重复。
         /// </summary>
         /// <param name="newSelectionCount"></param>
         /// <param name="existingSelection"></param>

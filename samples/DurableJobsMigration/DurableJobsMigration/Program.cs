@@ -60,8 +60,8 @@ builder.UseOrleans(silo =>
         options.MaxConcurrentJobsPerSilo = 4;
         options.ConcurrencySlowStartEnabled = false;
         options.JobStatusPollInterval = TimeSpan.FromMilliseconds(100);
-        // 在排水阶段装入未来碎片, 以便保存控点可以取消
-        // 操作者等待预定启动窗口时, 将自有任务 。
+        // 在排空阶段加载未来时段的分片，使已保存的句柄可以取消
+        // 执行器仍在等待计划启动时间窗口的所属作业。
         options.ShardLoadLookaheadPeriod = phase == "prepare" ? TimeSpan.FromSeconds(5) : TimeSpan.FromMinutes(2);
         options.ShardActivationBufferPeriod = options.ShardLoadLookaheadPeriod;
         options.ShouldRetry = (context, _) => context.DequeueCount < 3 ? DateTimeOffset.UtcNow.AddSeconds(5) : null;
@@ -116,7 +116,7 @@ try
         Require(current.ShardId != manifest.Existing.ShardId && current.ShardId != manifest.Future.ShardId,
             "New work must have its own unchanged-format shard identity.");
 
-        // 等待发现/所有权,而不是工作的适当时间。
+        // 等待作业被发现并取得所有权，而非等待作业到期。
         var jobs = host.Services.GetRequiredService<ILocalDurableJobManager>();
         while (!await jobs.CancelAsync(manifest.Future, cancellationToken))
         {

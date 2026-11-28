@@ -18,7 +18,7 @@ using Xunit;
 namespace AWSUtils.Tests.MembershipTests
 {
     /// <summary>
-    /// 试验试验的试验 Orleans 使用AWS的会员表 DynamoDB - 需要外部进入 DynamoDB 储存
+    /// 测试使用 AWS DynamoDB 的 Orleans 成员资格表操作；需要访问外部 DynamoDB 存储。
     /// </summary>
     [TestCategory("Membership"), TestCategory("AWS"), TestCategory("DynamoDb")]
     [TestSuite("Functional")]
@@ -54,8 +54,8 @@ namespace AWSUtils.Tests.MembershipTests
             return new TestOwnedDynamoDBMembershipTable(this.loggerFactory, Options.Create(options), clusterOptions);
         }
 
-        // 大行跨过 DynamoDB1 MiB 查询边界,同时保持全速投影设置约束。
-        // ReadAllRetriesWhenCanonicalMutationCrossesPages 提供确定性的跨页再试的覆盖。
+        // 大数据行使查询结果跨越 DynamoDB 的 1 MiB 查询边界，同时限制完整快照的准备开销。
+        // ReadAllRetriesWhenCanonicalMutationCrossesPages 提供确定性的跨页重试覆盖。
         protected override int ConformanceConcurrencyRowCount => ConcurrentReadRowCount;
         protected override int ConformanceConcurrencyRowPadding => ConcurrentReadRowPadding;
 
@@ -110,7 +110,7 @@ namespace AWSUtils.Tests.MembershipTests
                     };
                     do
                     {
-                        // 未过滤分区查询包含 VersionRow 并跟随每个续用键。
+                        // 未筛选的分区查询包含 VersionRow，并遍历每个分页续接键。
                         var page = await probe!.QueryAsync(request, cancellationToken);
                         if (page.Count > 0)
                         {

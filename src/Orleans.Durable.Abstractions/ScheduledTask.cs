@@ -4,11 +4,11 @@ using System.Runtime.CompilerServices;
 
 namespace Orleans.Durable.Tasks;
 
-/// <summary>代表东道国排定的持久任务。</summary>
+/// <summary>表示由宿主调度的持久化任务。</summary>
 /// <remarks>
-/// 控点会缓存任务终端响应, 一旦等待、 民意调查或组合器观察它。 终端回应
-/// 永不变,所以 <see cref="IsCompleted"/>, <see cref="Status"/>,和 <see cref="Exception"/> 然后检查任务
-/// 同步, 未联系主机 。
+/// 当等待、轮询或组合器观察到任务的终态响应时，句柄会缓存该响应。终态响应
+/// 永远不会改变，因此此后 <see cref="IsCompleted"/>、<see cref="Status"/> 和 <see cref="Exception"/> 都可以
+/// 同步检查任务，而无需联系宿主。
 /// </remarks>
 public abstract partial class ScheduledTask
 {
@@ -16,95 +16,95 @@ public abstract partial class ScheduledTask
 
     internal ScheduledTask() { }
 
-    /// <summary>获得稳定、持久的任务识别符。</summary>
+    /// <summary>获取持久化任务的稳定标识符。</summary>
     /// <remarks>
-    /// 在持久执行中,识别符号标明了执行处决开始或观察到任务的行动,例如:
-    /// 记录一个分离的任务, 所以组合和重播处理它的运作。
+    /// 在持久化执行实例中，该标识符指明启动或观察任务的操作，例如
+    /// 分离任务的记录，因此组合器和重放通过该标识符寻址该操作。
     /// </remarks>
     public abstract TaskId Id { get; }
 
     /// <summary>
-    /// 获得任务主机存储此处理器所观察的任务的标识符,而其他当事人使用
-    /// 处理这项任务。
+    /// 获取任务宿主存储此句柄所观察任务时使用的标识符，其他参与方使用该标识符
+    /// 寻址任务。
     /// </summary>
     /// <remarks>
-    /// 识别符号等于 <see cref="Id"/> ,除非主机将任务存放在另一件之下:
-    /// 任务根标识符,且主机可以覆盖
-    /// 呼叫者调用另一个主机时的通话标识符。
+    /// 此标识符等于 <see cref="Id"/>，除非宿主以另一个标识符存储任务：在持久化执行实例内，
+    /// 分离任务的句柄观察该任务在目标宿主上的根标识符，宿主也可以按调用方限定
+    /// 发往其他宿主的调用标识符。
     /// </remarks>
     public virtual TaskId TargetTaskId => Id;
 
     /// <summary>
-    /// 返回任务主机描述任务时的特性 <typeparamref name="TFeature"/> ,或
-    /// <see langword="null"/> 当宿主没有给养的时候,
+    /// 返回任务宿主用来描述任务的特性 <typeparamref name="TFeature"/>；如果宿主未提供该特性，则返回
+    /// <see langword="null"/>。
     /// </summary>
-    /// <typeparam name="TFeature">特性类型, 主机定义或文档的类型。</typeparam>
-    /// <returns>特性,或 <see langword="null"/>.</returns>
+    /// <typeparam name="TFeature">特性的类型，由宿主定义或在文档中说明。</typeparam>
+    /// <returns>该特性，或 <see langword="null"/>。</returns>
     /// <remarks>
-    /// 东道主通过其他当事方联系地址等特征,暴露具体东道主的信息
-    /// 任务,而操作程序则独立于主机。
+    /// 宿主通过特性公开宿主专属信息，例如其他参与方用于访问任务的地址，
+    /// 而句柄仍然独立于宿主。
     /// </remarks>
     public virtual TFeature? GetFeature<TFeature>()
         where TFeature : class => null;
 
-    /// <summary>获取此控件是否观察到任务终端响应 。</summary>
+    /// <summary>获取此句柄是否已观察到任务的终态响应。</summary>
     /// <remarks>
-    /// 控制器在等待时观察终端反应,例如等待处理或等待
-    /// <see cref="GetResponseAsync(CancellationToken)"/>或民意测验返回它,或当组合器(例如)
-    /// <see cref="WhenAllCompleted(IReadOnlyList{ScheduledTask}, CancellationToken)"/> 返回或生成控柄。使用
-    /// 调查主机的<see cref="IsCompletedAsync"/>
+    /// 当某个等待操作（例如等待句柄或调用
+    /// <see cref="GetResponseAsync(CancellationToken)"/>）或轮询返回终态响应时，或者当某个组合器（例如
+    /// <see cref="WhenAllCompleted(IReadOnlyList{ScheduledTask}, CancellationToken)"/>）返回或产出此句柄时，句柄就观察到了终态响应。使用
+    /// <see cref="IsCompletedAsync"/> 轮询宿主。
     /// </remarks>
     public bool IsCompleted => Volatile.Read(ref _response) is not null;
 
     /// <summary>
-    /// 获得此控点所观察到的终端状态,或者 <see cref="DurableTaskStatus.Pending"/> ,直到它观察到
-    /// 终端反应
+    /// 获取此句柄已观察到的终态状态；在此前则为 <see cref="DurableTaskStatus.Pending"/>，直到
+    /// 它观察到终态响应。
     /// </summary>
-    /// <remarks>使用 <see cref="GetStatusAsync"/> 来测量主机。</remarks>
+    /// <remarks>使用 <see cref="GetStatusAsync"/> 轮询宿主。</remarks>
     public DurableTaskStatus Status => Volatile.Read(ref _response)?.Status ?? DurableTaskStatus.Pending;
 
     /// <summary>
-    /// 一旦此操作观察到它, 就会获得记录失败或取消任务失败或取消的失败或取消
-    /// 终端响应;否则 <see langword="null"/>。
+    /// 如果任务失败或被取消，并且此句柄已观察到其终态响应，则获取记录的失败或取消异常；
+    /// 否则返回 <see langword="null"/>。
     /// </summary>
     public Exception? Exception => Volatile.Read(ref _response)?.Exception;
 
-    /// <summary>得到此控点所观察到的终端响应,或 <see langword="null"/>。</summary>
+    /// <summary>获取此句柄已观察到的终态响应，或 <see langword="null"/>。</summary>
     internal DurableTaskResponse? Response => Volatile.Read(ref _response);
 
-    /// <summary>寻找等待成功完成的等待者。</summary>
+    /// <summary>获取等待任务成功完成的等待器。</summary>
     public ScheduledTaskAwaiter GetAwaiter() => new(this, CancellationToken.None);
 
-    /// <summary>填报任务是否已经达到终点状态。</summary>
+    /// <summary>轮询任务是否已达到终态。</summary>
     /// <remarks>
-    /// 民意测验观察任务运行时的状况, 所以在客户、民调等持久任务机构之外代码。 A
-    /// 长期任务机构等待任务完成,或等待任务完成,并等待持久暂停。
+    /// 轮询观察的是执行轮询时的任务状态，因此持久化任务主体之外的代码（例如客户端）可以进行轮询。
+    /// 持久化任务主体则应等待任务，或者使用持久化超时等待任务。
     /// </remarks>
-    /// <exception cref="NotSupportedException">调用代码运行在一个耐久的任务中。</exception>
+    /// <exception cref="NotSupportedException">调用代码正在持久化任务中运行。</exception>
     public async Task<bool> IsCompletedAsync(PollingOptions options = default, CancellationToken cancellationToken = default)
         => (await PollAsync(options, cancellationToken)).IsCompleted;
 
-    /// <summary>投放当前任务状态。</summary>
+    /// <summary>轮询当前任务状态。</summary>
     /// <remarks><inheritdoc cref="IsCompletedAsync" path="/remarks"/></remarks>
-    /// <exception cref="NotSupportedException">调用代码运行在一个耐久的任务中。</exception>
+    /// <exception cref="NotSupportedException">调用代码正在持久化任务中运行。</exception>
     public async Task<DurableTaskStatus> GetStatusAsync(PollingOptions options = default, CancellationToken cancellationToken = default)
         => (await PollAsync(options, cancellationToken)).Status;
 
-    /// <summary>等待并返回终端响应。</summary>
+    /// <summary>等待并返回终态响应。</summary>
     public Task<DurableTaskResponse> GetResponseAsync(CancellationToken cancellationToken = default)
         => ObserveAsync(cancellationToken).AsTask();
 
-    /// <summary>投出并返回当前回复。</summary>
+    /// <summary>轮询并返回当前响应。</summary>
     /// <remarks><inheritdoc cref="IsCompletedAsync" path="/remarks"/></remarks>
-    /// <exception cref="NotSupportedException">调用代码运行在一个耐久的任务中。</exception>
+    /// <exception cref="NotSupportedException">调用代码正在持久化任务中运行。</exception>
     public Task<DurableTaskResponse> GetResponseAsync(PollingOptions options, CancellationToken cancellationToken = default)
         => PollAsync(options, cancellationToken).AsTask();
 
-    /// <summary>等待成功完成。</summary>
+    /// <summary>等待任务成功完成。</summary>
     public async ValueTask WaitAsync(CancellationToken cancellationToken = default)
         => (await ObserveAsync(cancellationToken)).EnsureSuccessfulCompletion();
 
-    /// <summary>罐头当它是终端时 <paramref name="response"/> , 并返回它。</summary>
+    /// <summary>如果 <paramref name="response"/> 为终态响应，则缓存该响应，并返回它。</summary>
     internal DurableTaskResponse Observe(DurableTaskResponse response)
     {
         if (response.IsCompleted)
@@ -115,19 +115,19 @@ public abstract partial class ScheduledTask
         return response;
     }
 
-    /// <summary>等待终端响应并缓存。</summary>
-    /// <remarks>主机故障, 即 <see cref="WaitAsyncCore"/> 投掷同步传播同步。</remarks>
+    /// <summary>等待终态响应并将其缓存。</summary>
+    /// <remarks>如果 <see cref="WaitAsyncCore"/> 同步抛出宿主故障异常，则该异常会同步传播。</remarks>
     internal ValueTask<DurableTaskResponse> ObserveAsync(CancellationToken cancellationToken)
     {
         var wait = WaitAsyncCore(cancellationToken);
         return wait.IsCompletedSuccessfully ? new(Observe(wait.Result)) : ObserveAsync(wait);
     }
 
-    /// <summary>将任务的主机打倒,并隐藏终端响应</summary>
+    /// <summary>轮询任务宿主，并缓存终态响应。</summary>
     /// <remarks>
-    /// 在一个持久的任务机构重播一个重播 在另一个时候重新运行它的代码 当民意测验观察另一状态。
-    /// 记录没有记录,所以一个机构在它上分支的 会安排其他操作 在重放中比运行
-    /// 重播着
+    /// 持久化任务主体的重放会在另一个时刻重新执行代码，此时轮询可能观察到不同的状态。轮询
+    /// 不记录任何内容，因此根据轮询结果进行分支的任务主体在重放时可能调度不同于
+    /// 原始运行的操作。
     /// </remarks>
     private ValueTask<DurableTaskResponse> PollAsync(PollingOptions options, CancellationToken cancellationToken)
     {
@@ -147,12 +147,12 @@ public abstract partial class ScheduledTask
         => Observe(await response);
 
     /// <summary>
-    /// 等待终端响应并隐藏它,拒绝主机提供不完整的回复
+    /// 等待终态响应并缓存它；如果宿主返回尚未完成的响应，则通过异常拒绝该响应，异常类型为
     /// <see cref="InvalidOperationException"/>.
     /// </summary>
     /// <remarks>
-    /// 甄选和汇总帮助人员使用这一等待,因为他们返回了观察其终点站的任务
-    /// 。主机故障,即 <see cref="WaitAsyncCore"/> 同步投出时同步传播时同步传播。
+    /// 选择和聚合辅助方法使用此等待操作，因为它们返回的是已经观察到终态
+    /// 响应的任务。如果 <see cref="WaitAsyncCore"/> 同步抛出宿主故障异常，则该异常会同步传播。
     /// </remarks>
     internal ValueTask<DurableTaskResponse> ObserveTerminalAsync(CancellationToken cancellationToken)
     {
@@ -166,67 +166,67 @@ public abstract partial class ScheduledTask
     private async ValueTask<DurableTaskResponse> ObserveTerminalAsync(ValueTask<DurableTaskResponse> response)
         => ObserveTerminal(await response);
 
-    /// <summary>请求取消是可持久地。</summary>
+    /// <summary>以持久化方式请求取消任务。</summary>
     /// <remarks>
-    /// 操作在主机长期记录请求后完成,而不等待任务完成。
-    /// 任务机构注意请求并决定其结果:当取消时取消任务
-    /// 等待任务来观察结果。
+    /// 宿主完成取消请求的持久化记录后，此操作即完成，而不等待任务结束。
+    /// 任务主体观察该请求并决定任务结果：如果取消异常从任务主体传播到外部，任务进入取消状态；
+    /// 否则，任务以主体的结果或失败完成。等待任务以观察其结果。
     /// </remarks>
     public ValueTask CancelAsync(CancellationToken cancellationToken = default) => CancelAsyncCore(reason: null, cancellationToken);
 
-    /// <summary>可调可操作请求取消 <paramref name="reason"/>.</summary>
+    /// <summary>以持久化方式请求取消任务，并携带 <paramref name="reason"/>。</summary>
     /// <param name="reason">
-    /// 任务 <see cref="DurableTaskContext.TaskCancellationReason"/> 报告的原因,或
-    /// <see langword="null"/> 毫无理由。
+    /// 任务的 <see cref="DurableTaskContext.TaskCancellationReason"/> 所报告的原因；如果没有原因，则为
+    /// <see langword="null"/>。
     /// </param>
-    /// <param name="cancellationToken">放弃等待请求承诺的符号。</param>
+    /// <param name="cancellationToken">用于放弃等待请求提交的令牌。</param>
     /// <remarks>
-    /// 请求行为与 <see cref="CancelAsync(CancellationToken)"/>一样。第一个请求确定理由,所以
-    /// 任务正文,例如 <see langword="catch"/> 块中,可以说明为什么取消该任务。
+    /// 此请求的行为与 <see cref="CancelAsync(CancellationToken)"/> 相同。首次请求决定取消原因，因此
+    /// 任务主体（例如在 <see langword="catch"/> 代码块中）可以了解其被取消的原因。
     /// </remarks>
     public ValueTask CancelAsync(string? reason, CancellationToken cancellationToken = default)
         => CancelAsyncCore(reason, cancellationToken);
 
-    /// <summary>要求主机取消包含 <paramref name="reason"/>或没有原因的 <see langword="null"/>任务。</summary>
+    /// <summary>请求宿主取消任务，并携带 <paramref name="reason"/>；当其为 <see langword="null"/> 时不携带原因。</summary>
     protected abstract ValueTask CancelAsyncCore(string? reason, CancellationToken cancellationToken);
 
     /// <summary>
-    /// 行政上中止任务:主机将它及其附属子孙子孙子孙子因下列原因失效而终止
-    /// <see cref="DurableTaskAbortedException"/> 带有 <paramref name="reason"/>,没有运行进一步的任务代码。
+    /// 通过管理操作中止任务：宿主将该任务及其附接后代置于失败终态，使用
+    /// 携带原因的 <see cref="DurableTaskAbortedException"/>，原因为 <paramref name="reason"/>，并且不再运行任何任务代码。
     /// </summary>
-    /// <param name="reason">中止的原因,记录为例外信息。</param>
-    /// <param name="cancellationToken">放弃等待中止执行的标记。</param>
+    /// <param name="reason">作为异常消息记录的中止原因。</param>
+    /// <param name="cancellationToken">用于放弃等待中止操作提交的令牌。</param>
     /// <remarks>
-    /// 中止是操作员的终止, 例如当任务正文忽略取消取消或清理卡住时。 它不运行
-    /// 补偿:东道方取消了执行这项任务的尝试,后来其持久作业抛出,以及抛弃物
-    /// 尝试响应。 一旦主机记录了中止, 操作将完成。 中止终端任务休假
-    /// 脱钩的任务是独立的根,被分别中止。
+    /// 中止操作供运维人员使用，例如任务主体忽略取消请求或清理操作陷入停滞时。中止不会运行
+    /// 任何补偿：宿主取消运行该任务的执行尝试，随后该尝试中的持久化操作都会抛出异常，宿主并丢弃
+    /// 此次执行尝试的响应。宿主持久化记录中止后，此操作即完成。中止已处于终态的任务不会改变
+    /// 该任务。分离任务是独立的根任务，需要分别中止。
     /// </remarks>
-    /// <exception cref="ArgumentException"><paramref name="reason"/> 是 <see langword="null"/>,空或空白。</exception>
-    /// <exception cref="NotSupportedException">主机不支持中止任务。</exception>
+    /// <exception cref="ArgumentException"><paramref name="reason"/> 为 <see langword="null"/>、空字符串或纯空白字符。</exception>
+    /// <exception cref="NotSupportedException">宿主不支持中止任务。</exception>
     public ValueTask AbortAsync(string reason, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
         return AbortAsyncCore(reason, cancellationToken);
     }
 
-    /// <summary>要求主机中止一个被验证的 <paramref name="reason"/>的任务。</summary>
-    /// 支持中止的<remarks>主机推翻了默认的安装, 从而抛出 <see cref="NotSupportedException"/>。</remarks>
+    /// <summary>使用已经验证的 <paramref name="reason"/> 请求宿主中止任务。</summary>
+    /// <remarks>支持中止操作的宿主会重写此默认实现；默认实现抛出 <see cref="NotSupportedException"/>。</remarks>
     protected virtual ValueTask AbortAsyncCore(string reason, CancellationToken cancellationToken)
         => throw new NotSupportedException("The durable task host does not support aborting tasks.");
 
-    /// <summary>等待终端主机响应。</summary>
+    /// <summary>等待宿主返回终态响应。</summary>
     protected internal abstract ValueTask<DurableTaskResponse> WaitAsyncCore(CancellationToken cancellationToken);
 
-    /// <summary>投放当前主机响应。</summary>
+    /// <summary>轮询宿主的当前响应。</summary>
     protected abstract ValueTask<DurableTaskResponse> PollAsyncCore(PollingOptions options, CancellationToken cancellationToken);
 
-    /// <summary>等待每个计划任务成功完成。</summary>
+    /// <summary>等待所有已调度任务成功完成。</summary>
     /// <remarks>
-    /// 返回的任务只有在每个输入为终端之后才完成。 然后它会按输入顺序丢弃第一个失败
-    /// 当任何输入失败时; 否则它会将第一个输入 <see cref="OperationCanceledException"/> 投进
-    /// 中选择例外,因此重播放在任何
-    /// 完成命令。 发布取消等待和主机等候失败的信号 。
+    /// 只有在所有输入任务都达到终态后，返回的任务才会完成。如果有任何输入任务失败，则按输入顺序
+    /// 抛出第一个失败异常；否则，如果有任何输入任务被取消，则按输入顺序抛出第一个被取消任务的 <see cref="OperationCanceledException"/>。
+    /// 异常的选择依据输入顺序，因此无论实际完成顺序如何，重放都会观察到相同的异常。
+    /// 等待操作的取消及宿主等待故障会继续传播。
     /// </remarks>
     public static async Task WhenAll(IReadOnlyList<ScheduledTask> tasks, CancellationToken cancellationToken = default)
     {
@@ -241,15 +241,15 @@ public abstract partial class ScheduledTask
         EnsureSuccessfulCompletion(await WaitForAllAsync(tasks.ToArray<ScheduledTask>(), cancellationToken));
     }
 
-    /// <summary>等待到每个指定任务为终端,然后将任务按输入顺序返回。</summary>
-    /// <param name="tasks">任务,当调用此方法时将记录这些任务。</param>
-    /// <param name="cancellationToken">放弃等待的象征,它不会取消任务</param>
+    /// <summary>等待所有已调度任务达到终态，并按输入顺序返回这些任务。</summary>
+    /// <param name="tasks">这些任务会在调用本方法时被捕获。</param>
+    /// <param name="cancellationToken">用于放弃等待的取消令牌。它不会取消任务本身。</param>
     /// <returns>
-    /// 每个任务都观察了它的终端反应,所以 <see cref="Status"/>,
-    /// <see cref="Exception"/>和 <see cref="ScheduledTask{TResult}.TryGetResult(out TResult)"/> 检查它。
+    /// 按输入顺序返回任务。每个任务都已观察到其终态响应，因此可以使用 <see cref="Status"/>、
+    /// <see cref="Exception"/> 和 <see cref="ScheduledTask{TResult}.TryGetResult(out TResult)"/> 检查该响应。
     /// </returns>
     /// <remarks>
-    /// 任务失败或取消不会让等待失败; 等待取消和主机等待失败会传播 。
+    /// 任务本身失败或被取消不会导致等待失败；等待操作的取消及宿主等待故障会继续传播。
     /// </remarks>
     public static async Task<ScheduledTask[]> WhenAllCompleted(
         IReadOnlyList<ScheduledTask> tasks,
@@ -272,24 +272,24 @@ public abstract partial class ScheduledTask
         return candidates;
     }
 
-    /// <summary>完成单上规定,每次完成一次,在到达终点时就完成。</summary>
-    /// <param name="tasks">任务,当调用此方法时将记录这些任务。</param>
+    /// <summary>当各个已调度任务达到终态时，按完成顺序依次产出每个任务，每个任务只产出一次。</summary>
+    /// <param name="tasks">这些任务会在调用本方法时被捕获。</param>
     /// <returns>
-    /// 每项任务都观察了它的终端反应,包括故障或
-    /// 取消,它不会失败的
+    /// 按完成顺序返回任务。每个产出的任务均已观察到其终态响应，包括失败或
+    /// 取消；这些情况不会导致枚举失败。
     /// </returns>
     /// <remarks>
     /// <para>
-    /// 执行要持续进行,任务就是执行的后代,而东道主则选择下一个任务:
-    /// 剩下的任务,在东道方的持久完工令中首先完成, 所以每次重放都产生同样的效果
-    /// 包括重放,其中更多的任务已经完成。
-    /// 使用此方法生成的操作识别符号下的决定标识符记录了每个选择
-    /// 执行命令时,请按命令执行。
-    /// 答复。
+    /// 在持久化执行实例内调用时，各任务是该执行实例的子任务，宿主负责选择每个后续任务：
+    /// 即剩余任务中按宿主的持久化完成顺序最先完成的任务。因此，每次重放都会产出相同的
+    /// 顺序，即使重放时已有更多任务完成。不具有持久化完成顺序的宿主
+    /// 会记录每次选择，使用从属决策标识符；该标识符位于本方法在调用时按执行顺序生成的操作标识符
+    /// 之下。在持久化执行实例之外，任务按各自的等待操作观察到
+    /// 响应的顺序产出。
     /// </para>
     /// <para>
-    /// 取消点数取消的标记放弃等待而不取消任务, 而主机的等待失败
-    /// 传播。查点没有达到的任务 继续运行。
+    /// 枚举的取消令牌用于放弃等待，不会取消任务本身；宿主等待故障会继续
+    /// 传播。枚举尚未到达的任务仍会继续运行。
     /// </para>
     /// </remarks>
     public static IAsyncEnumerable<ScheduledTask> WhenEach(IReadOnlyList<ScheduledTask> tasks)
@@ -314,8 +314,8 @@ public abstract partial class ScheduledTask
     internal const string WhenEachOperation = "when-each";
 
     /// <summary>
-    /// 所给 <paramref name="tasks"/> 的给付,按 <paramref name="context"/> 主机选择它们的顺序排序
-    /// 完成,每个在 <paramref name="operationId"/>之下的决定识别符号下。
+    /// 按 <paramref name="tasks"/> 的完成顺序产出这些任务，该顺序由 <paramref name="context"/> 的宿主选定；
+    /// 每次选择都使用 <paramref name="operationId"/> 之下的一个决策标识符。
     /// </summary>
     internal static async IAsyncEnumerable<TTask> WhenEachSelectedAsync<TTask>(
         DurableTaskContext context,
@@ -386,10 +386,10 @@ public abstract partial class ScheduledTask
     }
 
     /// <summary>
-    /// 等待每项任务的终端响应, 将它刻在任务中, 然后按输入顺序返回回复 。
+    /// 等待每个任务的终态响应，将响应缓存在相应任务中，并按输入顺序返回响应。
     /// </summary>
     /// <remarks>
-    /// 第一次失败前完成的每段等待都按输入顺序进行传播。
+    /// 只有在所有等待操作都结束后，才按输入顺序传播第一个失败的等待操作所产生的异常。
     /// </remarks>
     private static async Task<DurableTaskResponse[]> WaitForAllAsync(ScheduledTask[] tasks, CancellationToken cancellationToken)
     {
@@ -408,13 +408,13 @@ public abstract partial class ScheduledTask
 
         return responses;
 
-        // 失败的等待同步 仅仅没有达到它自己的观察, 所以其他的等待仍然开始。
+        // 同步失败的等待操作只会使自身的观察操作失败，因此其他等待操作仍会启动。
         static async Task<DurableTaskResponse> ObserveTaskAsync(ScheduledTask task, CancellationToken cancellationToken)
             => await task.ObserveTerminalAsync(cancellationToken);
     }
 
     /// <summary>
-    /// 将第一个失败丢弃为输入顺序,或者在未回复失败时,将第一个取消丢弃为输入顺序。
+    /// 按输入顺序抛出第一个失败异常；如果所有响应均未失败，则按输入顺序抛出第一个取消异常。
     /// </summary>
     internal static void EnsureSuccessfulCompletion(DurableTaskResponse[] responses)
     {
@@ -436,20 +436,20 @@ public abstract partial class ScheduledTask
     }
 
     /// <summary>
-    /// 返回第一个已完成响应的预定任务,包括失败或取消的耐用性
-    /// 等待取消和交通故障被推广, 失去的等待被取消
-    /// 候选人在使用该方法时被俘虏。
+    /// 返回响应最先完成的已调度任务，包括失败或已取消的持久化
+    /// 响应。等待操作的取消及传输故障会继续传播；未被选中的等待操作会被取消，
+    /// 但不会取消相应的持久化任务。候选任务在调用本方法时被捕获。
     /// </summary>
     /// <remarks>
-    /// 执行要持久,任务就是执行的后代,而东道主选择的任务
-    /// 其持久完成顺序中的第一个部分首次完成,因此每次重放都返回同样的任务,包括一个重放
-    /// 已完成更多任务。
-    /// 确定决定标识符 <c>$winner</c> 执行命令中此方法生成的操作标识符
-    /// 调用时。 在持久执行之外, 方法返回等待先观察响应的任务。
-    /// 返回任务已观察其终端响应。
+    /// 在持久化执行实例内调用时，这些任务都是该执行实例的子任务，宿主选择
+    /// 按其持久化完成顺序最先完成的任务，因此每次重放都会返回同一个任务，即使重放时
+    /// 已有更多任务完成。不具有持久化完成顺序的宿主会记录该选择，使用
+    /// 决策标识符 <c>$winner</c>；它位于本方法调用时按执行顺序生成的操作标识符
+    /// 之下。在持久化执行实例之外，本方法返回其等待操作最先观察到响应的任务。
+    /// 返回的任务已经观察到其终态响应。
     /// </remarks>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="tasks"/> 是空的。</exception>
-    /// <exception cref="InvalidOperationException">所选任务的主机等待返回的回复不完整。</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="tasks"/> 不包含任何任务。</exception>
+    /// <exception cref="InvalidOperationException">宿主对选中任务的等待返回了尚未完成的响应。</exception>
     public static async Task<ScheduledTask> WhenAny(IReadOnlyList<ScheduledTask> tasks, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(tasks);
@@ -468,12 +468,12 @@ public abstract partial class ScheduledTask
     }
 
     /// <summary>
-    /// 选择第一个完成 <paramref name="tasks"/> ,或者通过当前执行的东道主,或通过观察
-    /// 等待在耐久处决之外。
+    /// 通过当前执行实例的宿主选择 <paramref name="tasks"/> 中最先完成的任务，或通过观察
+    /// 在持久化执行实例之外发起的等待操作来选择。
     /// </summary>
     /// <remarks>
-    /// 操作识别身份标识符是在第一次等待之前生成的, 所以以确定性命令开始的通话会收到
-    /// 重放时相同的识别符。
+    /// 操作标识符会在第一次 await 之前生成，因此按确定性顺序开始的调用在重放时会获得
+    /// 相同的标识符。
     /// </remarks>
     private static Task<int> SelectAnyIndexAsync<TTask>(TTask[] tasks, CancellationToken cancellationToken)
         where TTask : ScheduledTask
@@ -506,8 +506,8 @@ public abstract partial class ScheduledTask
     }
 
     /// <summary>
-    /// 返回任务中的任务索引 <paramref name="tasks"/> 所在的 <paramref name="context"/> 选择为
-    /// 第一次完成,根据决定识别符号 <c>$winner</c> 下 <paramref name="operationId"/>.
+    /// 返回 <paramref name="tasks"/> 中由 <paramref name="context"/> 的宿主选定的最先完成任务的索引，
+    /// 使用 <c>$winner</c> 作为决策标识符，它位于 <paramref name="operationId"/> 之下。
     /// </summary>
     internal static async Task<int> SelectIndexAsync(
         DurableTaskContext context,
@@ -533,8 +533,8 @@ public abstract partial class ScheduledTask
     }
 
     /// <summary>
-    /// 将调用者取消等待的取消与尝试取消标记或返回链接 <see langword="null"/> 时
-    /// 无法取消调用者的代号, 因此仅此尝试的代号即可适用 。
+    /// 将调用方的等待取消令牌与执行尝试的取消令牌关联；如果调用方的令牌无法取消，则返回 <see langword="null"/>，
+    /// 此时仅使用执行尝试的取消令牌。
     /// </summary>
     internal static CancellationTokenSource? CreateLinkedWaitCancellation(DurableTaskContext context, CancellationToken cancellationToken) =>
         cancellationToken.CanBeCanceled
@@ -598,7 +598,7 @@ public abstract partial class ScheduledTask
         }
         catch
         {
-            // 中断施工的失败优先于清理失败。
+            // 导致等待构造中断的故障优先于清理过程中发生的故障。
         }
     }
 
@@ -615,7 +615,7 @@ public abstract partial class ScheduledTask
         }
         catch
         {
-            // 取消等待观察的失败是最佳的清理。
+            // 取消未被选中的等待观察操作是尽力而为的清理。
         }
 
         await DrainLosingWaitsAsync(waits, winnerIndex);
@@ -639,38 +639,38 @@ public abstract partial class ScheduledTask
             }
             catch
             {
-                // 失去观察被取消,而且没有确定结果。
+                // 未被选中的观察操作会被取消，不参与确定结果。
             }
         }
     }
 }
 
-/// <summary>表示东道国排定的持久任务,结果产生。</summary>
+/// <summary>表示由宿主调度且具有返回结果的持久化任务。</summary>
 public abstract partial class ScheduledTask<TResult> : ScheduledTask
 {
-    /// <summary>获得返回成功结果的等待者。</summary>
+    /// <summary>获取返回成功结果的等待器。</summary>
     public new ScheduledTaskAwaiter<TResult> GetAwaiter() => new(this, CancellationToken.None);
 
-    /// <summary>配置一个输入的等待, 并配有等待取消标记。</summary>
+    /// <summary>配置带有等待取消令牌的强类型等待操作。</summary>
     public new ConfiguredScheduledTaskAwaitable<TResult> WaitAsync(CancellationToken cancellationToken = default)
         => new(this, cancellationToken);
 
     /// <summary>
-    /// 返回此处理观察到的结果,或丢弃记录失败或取消的结果,以等待任务
-    /// 确实如此。
+    /// 返回此句柄已观察到的结果，或者抛出已记录的失败或取消异常，
+    /// 行为与等待该任务相同。
     /// </summary>
     /// <returns>任务的成功结果。</returns>
-    /// <exception cref="InvalidOperationException">此把手没有观察到任务终端响应 。</exception>
+    /// <exception cref="InvalidOperationException">此句柄尚未观察到任务的终态响应。</exception>
     public TResult GetResult()
         => (Response ?? throw new InvalidOperationException(
             $"Durable task '{Id}' has no observed terminal response. Await the task, or a combinator which returns it, first."))
             .GetResult<TResult>();
 
-    /// <summary>当此手柄观察到任务成功完成时, 获取结果。</summary>
-    /// <param name="value">成功的结果,或 <see langword="default"/>.</param>
+    /// <summary>当此句柄已观察到任务成功完成时，获取其结果。</summary>
+    /// <param name="value">成功结果，或 <see langword="default"/>。</param>
     /// <returns>
-    /// 当处理时发现成功完成时<see langword="true"/> ;否则 <see langword="false"/>,a
-    /// 任务失败, 被取消, 或者谁的终端响应 此手柄没有观察到 。
+    /// 如果此句柄已观察到任务成功完成，则为 <see langword="true"/>；否则为 <see langword="false"/>，包括
+    /// 任务失败、被取消或此句柄尚未观察到终态响应的情况。
     /// </returns>
     public bool TryGetResult([MaybeNullWhen(false)] out TResult value)
     {
@@ -730,15 +730,15 @@ internal sealed class ScheduledTaskHandle<TResult>(IScheduledTaskHandle handle) 
 }
 
 /// <summary>
-/// 运行耐久执行的东道主控手柄操作,称为:
-/// <see cref="DurableTaskAttemptCanceledException"/>,包括取消努力结束的业务。
+/// 为调用宿主句柄的持久化执行实例运行相应操作：已取消执行尝试中的操作会抛出
+/// <see cref="DurableTaskAttemptCanceledException"/>，包括因执行尝试取消而结束的操作。
 /// </summary>
-/// <remarks>在持久执行之外,业务保持不变。</remarks>
+/// <remarks>在持久化执行实例之外，按原样运行这些操作。</remarks>
 internal static class HostHandleOperations
 {
     /// <remarks>
-    /// 尝试取消时等待结束, 是否主机连接了尝试取消本身, 所以
-    /// 取消尝试的等待丢弃 <see cref="DurableTaskAttemptCanceledException"/>。
+    /// 无论宿主本身是否关联执行尝试的取消令牌，执行尝试一旦取消，等待就会结束，因此
+    /// 已取消执行尝试中的等待会抛出 <see cref="DurableTaskAttemptCanceledException"/>。
     /// </remarks>
     public static ValueTask<DurableTaskResponse> WaitAsync(IScheduledTaskHandle handle, CancellationToken cancellationToken)
     {
@@ -764,7 +764,7 @@ internal static class HostHandleOperations
             }
             catch (OperationCanceledException exception) when (DurableTaskContext.IsCallerCancellation(exception, cancellationToken))
             {
-                // 取消电话的取消结束了等待 所以等待报告了打电话者的告示
+                // 调用方的取消会结束等待，因此等待操作会报告调用方的取消令牌。
                 throw new OperationCanceledException(exception.Message, exception, cancellationToken);
             }
         }
@@ -838,7 +838,7 @@ internal sealed class CompletedScheduledTask<TResult> : ScheduledTask<TResult>
     protected override ValueTask<DurableTaskResponse> PollAsyncCore(PollingOptions options, CancellationToken cancellationToken) => new(_response);
 }
 
-/// <summary>提供等待者,以完成预定的持久任务,但无结果。</summary>
+/// <summary>为不带返回结果的已调度持久化任务提供等待器。</summary>
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Awaiters are compiler protocol values whose equality is not part of their contract.")]
 public readonly struct ScheduledTaskAwaiter : ICriticalNotifyCompletion
 {
@@ -857,11 +857,11 @@ public readonly struct ScheduledTaskAwaiter : ICriticalNotifyCompletion
     /// <inheritdoc />
     public void UnsafeOnCompleted(Action continuation) => _awaiter.UnsafeOnCompleted(continuation);
 
-    /// <summary>等待成功完成。</summary>
+    /// <summary>等待任务成功完成。</summary>
     public void GetResult() => _awaiter.GetResult();
 }
 
-/// <summary>提供等待者完成预定的持久任务,并取得结果。</summary>
+/// <summary>为带有返回结果的已调度持久化任务提供等待器。</summary>
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Awaiters are compiler protocol values whose equality is not part of their contract.")]
 public readonly struct ScheduledTaskAwaiter<TResult> : ICriticalNotifyCompletion
 {
@@ -884,16 +884,16 @@ public readonly struct ScheduledTaskAwaiter<TResult> : ICriticalNotifyCompletion
     /// <inheritdoc />
     public void UnsafeOnCompleted(Action continuation) => _awaiter.UnsafeOnCompleted(continuation);
 
-    /// <summary>返回成功的结果。</summary>
+    /// <summary>返回成功结果。</summary>
     public TResult GetResult() => _task.Observe(_awaiter.GetResult()).GetResult<TResult>();
 }
 
-/// <summary>提供等待取消标记的等待批准、预定的持久任务。</summary>
+/// <summary>提供具有等待取消令牌的可等待已调度持久化任务。</summary>
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Configured awaitables are compiler protocol values whose equality is not part of their contract.")]
 public readonly struct ConfiguredScheduledTaskAwaitable<TResult>(
     ScheduledTask<TResult> task,
     CancellationToken cancellationToken)
 {
-    /// <summary>获取配置的等待者。</summary>
+    /// <summary>获取配置后的等待器。</summary>
     public ScheduledTaskAwaiter<TResult> GetAwaiter() => new(task, cancellationToken);
 }

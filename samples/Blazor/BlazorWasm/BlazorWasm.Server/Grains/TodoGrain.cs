@@ -15,26 +15,26 @@ public class TodoGrain(
 
     public async Task SetAsync(TodoItem item)
     {
-        // 确保关键键前后一致
+        // 确保键一致。
         if (item.Key != GrainKey)
         {
             throw new InvalidOperationException();
         }
 
-        // 保存项目
+        // 保存待办事项。
         state.State = state.State with { Item = item };
         await state.WriteStateAsync();
 
-        // 将物品及其所有人名单登记在登记册上
+        // 将该事项注册到所属用户的列表中。
         await GrainFactory.GetGrain<ITodoManagerGrain>(item.OwnerKey)
             .RegisterAsync(item.Key);
 
-        // 用于样本调试
+        // 用于示例调试。
         logger.LogInformation(
             "{@GrainType} {@GrainKey} now contains {@Todo}",
             GrainType, GrainKey, item);
 
-        // 通知听众 - 仅尽力
+        // 尽力通知侦听器，不作成功保证。
         var streamId = StreamId.Create(nameof(ITodoGrain), item.OwnerKey);
         this.GetStreamProvider("MemoryStreams").GetStream<TodoNotification>(streamId)
             .OnNextAsync(new TodoNotification(item.Key, item))
@@ -43,32 +43,32 @@ public class TodoGrain(
 
     public async Task ClearAsync()
     {
-        // 已经清除状态的快路径
+        // 状态已清除时的快速路径。
         if (state.State.Item is null) return;
 
-        // 抓稳钥匙
+        // 保留这些键。
         var itemKey = state.State.Item.Key;
         var ownerKey = state.State.Item.OwnerKey;
 
-        // 登记册的未登记者
+        // 从注册表中取消注册。
         await GrainFactory.GetGrain<ITodoManagerGrain>(ownerKey)
             .UnregisterAsync(itemKey);
 
-        // 清除状态
+        // 清除状态。
         await state.ClearStateAsync();
 
-        // 用于样本调试
+        // 用于示例调试。
         logger.LogInformation(
             "{@GrainType} {@GrainKey} is now cleared",
             GrainType, GrainKey);
 
-        // 通知听众 - 仅尽力
+        // 尽力通知侦听器，不作成功保证。
         var streamId = StreamId.Create(nameof(ITodoGrain), ownerKey);
         this.GetStreamProvider("MemoryStreams").GetStream<TodoNotification>(streamId)
             .OnNextAsync(new TodoNotification(itemKey, null))
             .Ignore();
 
-        // 没必要再活着了
+        // 无需再保持激活。
         DeactivateOnIdle();
     }
 

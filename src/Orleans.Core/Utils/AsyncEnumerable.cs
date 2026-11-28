@@ -198,7 +198,7 @@ namespace Orleans.Runtime.Utilities
             {
                 var tcs = new TaskCompletionSource<Element>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var disposed = new Element(AsyncEnumerable.DisposedValue, tcs);
-                // 终端元素没有下一个阅读器, 所以它的任务无过错完成 。
+                // 终止元素没有下一个读取器，因此其任务完成时不会进入故障状态。
                 tcs.SetResult(disposed);
                 return disposed;
             }
@@ -212,7 +212,7 @@ namespace Orleans.Runtime.Utilities
                     if (IsInitial) ThrowInvalidInstance();
                     ObjectDisposedException.ThrowIf(IsDisposed, this);
                     if (_value is T typedValue) return typedValue;
-                    return default!; // 无效值只有在 T 本身承认无效时才有效。
+                    return default!; // 只有 T 本身允许 null 时，null 值才有效。
                 }
             }
 

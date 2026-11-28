@@ -14,8 +14,8 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace Orleans.Analyzers;
 
 /// <summary>
-/// 将 ConfigureAwait(假) 转换为 ConfigureAwait(ride) 和
-/// 将 ContinueOnCapturedContext 添加到 ConfigureAwait(ConfigureAwaitOptions)调用。
+/// 将 ConfigureAwait(false) 转换为 ConfigureAwait(true)，并
+/// 为 ConfigureAwait(ConfigureAwaitOptions) 调用添加 ContinueOnCapturedContext 的代码修复提供程序。
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ConfigureAwaitCodeFix)), Shared]
 public class ConfigureAwaitCodeFix : CodeFixProvider
@@ -29,7 +29,7 @@ public class ConfigureAwaitCodeFix : CodeFixProvider
         var diagnostic = context.Diagnostics.First();
         var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-        // 查找诊断中发现的援引表达式
+        // 查找诊断所指向的调用表达式。
         var node = root.FindNode(diagnosticSpan);
         var invocation = node.FirstAncestorOrSelf<InvocationExpressionSyntax>();
 
@@ -38,7 +38,7 @@ public class ConfigureAwaitCodeFix : CodeFixProvider
             return;
         }
 
-        // 获取语义模型以确定要应用的固定
+        // 获取语义模型以确定应应用哪种修复。
         var semanticModel = (await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false))!;
         var symbolInfo = semanticModel.GetSymbolInfo(invocation, context.CancellationToken);
 
@@ -47,14 +47,14 @@ public class ConfigureAwaitCodeFix : CodeFixProvider
             return;
         }
 
-        // 检查参数类型以确定要应用的固定
+        // 检查参数类型以确定应应用哪种修复。
         if (methodSymbol.Parameters.Length == 1)
         {
             var parameterType = methodSymbol.Parameters[0].Type;
 
             if (parameterType.SpecialType == SpecialType.System_Boolean)
             {
-                // ConfigureAwait(bool) 的固定 - 假更改为真
+                // ConfigureAwait(bool) 修复：将 false 改为 true。
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         title: Resources.ConfigureAwaitCodeFixTitle,
@@ -64,7 +64,7 @@ public class ConfigureAwaitCodeFix : CodeFixProvider
             }
             else if (string.Equals(parameterType.ToDisplayString(), "System.Threading.Tasks.ConfigureAwaitOptions", StringComparison.Ordinal))
             {
-                // 固定 ConfigureAwait(ConfigureAwaitOptions- 加 - 加 ContinueOnCapturedContext 国旗
+                // ConfigureAwait(ConfigureAwaitOptions) 修复：添加 ContinueOnCapturedContext 标志。
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         title: Resources.ConfigureAwaitCodeFixTitle,
@@ -82,11 +82,11 @@ public class ConfigureAwaitCodeFix : CodeFixProvider
     {
         var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
 
-        // 以“ true” 而不是“ false” 创建新参数
+        // 创建以 true 替代 false 的新实参。
         var newArgument = Argument(LiteralExpression(SyntaxKind.TrueLiteralExpression));
         var newArgumentList = ArgumentList(SingletonSeparatedList(newArgument));
 
-        // 替换引号列表
+        // 替换实参列表。
         var newInvocation = invocation.WithArgumentList(newArgumentList);
         var newRoot = root.ReplaceNode(invocation, newInvocation);
 
@@ -109,13 +109,13 @@ public class ConfigureAwaitCodeFix : CodeFixProvider
 
         var existingArgument = arguments.Value[0].Expression;
 
-        // 检查现有参数是否 ConfigureAwaitOptions.None
+        // 检查现有实参是否为 ConfigureAwaitOptions.None。
         var constantValue = semanticModel.GetConstantValue(existingArgument, cancellationToken);
         ExpressionSyntax newExpression;
 
         if (constantValue.HasValue && constantValue.Value is int intValue && intValue == 0)
         {
-            // 如果为零(0),请替换为 ContinueOnCapturedContext
+            // 如果为 None（0），直接替换为 ContinueOnCapturedContext。
             newExpression = MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 IdentifierName("ConfigureAwaitOptions"),
@@ -123,7 +123,7 @@ public class ConfigureAwaitCodeFix : CodeFixProvider
         }
         else
         {
-            // 否则,加上 ContinueOnCapturedContext 使用比特 OR
+            // 否则使用按位或添加 ContinueOnCapturedContext。
             var continueOnCapturedContext = MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 IdentifierName("ConfigureAwaitOptions"),

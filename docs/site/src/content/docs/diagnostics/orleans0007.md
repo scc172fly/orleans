@@ -1,45 +1,45 @@
 ---
-title: "ORLEANS0007:使用一个 Orleans 激活构建器"
-description: "了解遗产 ORLEANS0007 建筑选择诊断"
+title: "ORLEANS0007: 使用单个 Orleans 激活构造函数"
+description: 了解旧版 ORLEANS0007 构造函数选择诊断。
 ms.date: 08/25/2026
 ms.topic: reference
 ---
 
 <a id="orleans0007-use-one-orleans-activation-constructor"></a>
 
-# ORLEANS0007:使用一个 Orleans 激活构建器
+# ORLEANS0007: 使用单个 Orleans 激活构造函数
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 类别类 | 用法 |
-| 严重性 | 错误错误 |
-| 代码修正 | 不详 |
+| 类别 | 用法 |
+| 严重性 | 错误 |
+| 代码修复 | 不可用 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-此遗留规则代表了对 Orleans- 序列型号的模糊构建器选择。当前 Orleans 激活使用,大多数是被选中用于生成激活的某个构建器。
+此旧版规则表示 Orleans 序列化类型的构造函数选择存在歧义。当前 Orleans 激活机制最多选择一个构造函数用于生成式激活。
 
 <a id="impact"></a>
 
-## 影响影响
+## 影响
 
-结构元数据不清晰, 无法激活确定性物体。 旧的 `[OrleansConstructor]` 标记已经过时, 当前 Orleans 激活时没有使用 。
+存在歧义的构造函数元数据会妨碍确定性的对象激活。旧的 `[OrleansConstructor]` 标记已过时，当前 Orleans 激活不再使用它。
 
 <a id="how-to-fix"></a>
 
-## 如何修补
+## 修复方法
 
-删除陈旧或重复的构建标记。当生成启动需要清晰的构造器时,请使用一个 `[GeneratedActivatorConstructor]`。
+移除过时或重复的构造函数标记。当生成式激活需要显式构造函数时，仅使用一个 `[GeneratedActivatorConstructor]`。
 
-如果出现这种诊断是因为建筑申报含有无效的 `[GenerateSerializer]` 属性,则删除这些构建方层面的属性。
+如果因构造函数声明带有无效的 `[GenerateSerializer]` 特性而出现此诊断，请移除这些构造函数级特性。
 
 <a id="suppress-the-diagnostic"></a>
 
 ## 抑制诊断
 
-只有在对所有建筑说明进行审查后,才禁止已知的兼容性或试验文物。
+仅在检查所有构造函数标注后，确认诊断源自已知兼容性问题或测试产物时才抑制。
 
 ```ini
 [*.cs]

@@ -11,7 +11,7 @@ using Xunit;
 namespace NonSilo.Tests.Directory;
 
 /// <summary>
-/// 环程采集作业测试,包括封闭、交叉和差异计算。
+/// 测试环形范围集合操作，包括包含关系、交集及差集计算。
 /// </summary>
 [TestCategory("BVT")]
 [TestSuite("BVT")]
@@ -367,12 +367,12 @@ public sealed class RingRangeCollectionTests
     [Fact]
     public void BoundaryValueAnalysis_SizingAndOverflow()
     {
-        // 几乎全部范围覆盖除1之外的每一点。
+        // 几乎完整的范围覆盖除 1 之外的每个点。
         var almostFull = Create(RingRange.Create(1, 0));
         Assert.Equal((ulong)uint.MaxValue, almostFull.Size);
         Assert.False(almostFull.IsFull);
 
-        // 两个不重叠的范围合计覆盖全部 2^32 个点。
+        // 这两个互不重叠的范围合起来覆盖全部 2^32 个点。
         var half1 = RingRange.Create(0, 2_147_483_647u);
         var half2 = RingRange.Create(2_147_483_647u, 0);
 
@@ -381,7 +381,7 @@ public sealed class RingRangeCollectionTests
         Assert.Equal(1UL << 32, half1.Size + half2.Size);
         Assert.Equal(1UL << 32, fullCombined.Size);
 
-        // 五点差距将涵盖点数减少五分。
+        // 相隔五个点的间隙使覆盖的点数减少五个。
         var withGap1 = RingRange.Create(0, 100);
         var withGap2 = RingRange.Create(105, 0);
         var collectionWithGap = Create(withGap1, withGap2);
@@ -419,10 +419,10 @@ public sealed class RingRangeCollectionTests
         var c1 = Create(RingRange.Create(10, 20));
         var c2 = Create(RingRange.Create(10, 20), RingRange.Create(30, 40));
 
-        // 先前幅度(0比1)较小时的差异
+        // 先前范围数量更少时的差集（0 与 1）。
         Assert.Equal(c1, c1.Difference(RingRangeCollection.Empty));
 
-        // 当当前是空与非空对前( 0 vs 1) 时的差异
+        // 当前为空而先前非空时的差集（0 与 1）。
         Assert.True(RingRangeCollection.Empty.Difference(c1).IsEmpty);
     }
 
@@ -522,17 +522,17 @@ public sealed class RingRangeCollectionTests
         Gen.Select(GenRingRangeCollection, GenRingRangeCollection, GenRingRangeCollection).Sample((c1, c2, c3) =>
         {
             var c1Same = c1;
-            // 弹性
+            // 自反性
             Assert.True(c1 == c1Same);
             Assert.True(c1.Equals(c1));
             Assert.True(c1.Equals((object)c1));
             Assert.False(c1 != c1Same);
 
-            // 对对称
+            // 对称性
             Assert.Equal(c1 == c2, c2 == c1);
             Assert.Equal(c1.Equals(c2), c2.Equals(c1));
 
-            // 转 转
+            // 传递性
             if (c1 == c2 && c2 == c3)
             {
                 Assert.True(c1 == c3);

@@ -6,7 +6,7 @@ using Orleans.Runtime;
 namespace Orleans.Metadata
 {
     /// <summary>
-    /// 负责解决 <see cref="GrainProperties"/> 值的 <see cref="GrainType"/> 。
+    /// 负责解析 <see cref="GrainProperties"/>，其对应的类型值为 <see cref="GrainType"/>。
     /// </summary>
     public class GrainPropertiesResolver
     {
@@ -16,7 +16,7 @@ namespace Orleans.Metadata
         /// 初始化 <see cref="GrainPropertiesResolver"/> 类的新实例。
         /// </summary>
         /// <param name="clusterManifestProvider">
-        /// 集束货单提供者。
+        /// 集群清单提供程序。
         /// </param>
         public GrainPropertiesResolver(IClusterManifestProvider clusterManifestProvider)
         {
@@ -24,13 +24,13 @@ namespace Orleans.Metadata
         }
 
         /// <summary>
-        /// 获取所提供类型中的 grain 属性。
+        /// 获取所提供类型的 Grain 属性。
         /// </summary>
         /// <param name="grainType">
-        /// 类型 grain 。
+        /// Grain 类型。
         /// </param>
         /// <returns>
-        /// grain 属性。
+        /// Grain 属性。
         /// </returns>
         public GrainProperties GetGrainProperties(GrainType grainType)
         {
@@ -44,16 +44,16 @@ namespace Orleans.Metadata
         }
 
         /// <summary>
-        /// 获取所提供类型中的 grain 属性。
+        /// 获取所提供类型的 Grain 属性。
         /// </summary>
         /// <param name="grainType">
-        /// 类型 grain 。
+        /// Grain 类型。
         /// </param>
         /// <param name="properties">
-        /// grain 属性。
+        /// Grain 属性。
         /// </param>
         /// <returns>
-        /// 表示是否 grain 提供的属性 grain 类型。
+        /// 指示能否找到所提供 Grain 类型对应属性的值。
         /// </returns>
         public bool TryGetGrainProperties(GrainType grainType, [NotNullWhen(true)] out GrainProperties? properties)
         {

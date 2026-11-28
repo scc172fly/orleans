@@ -28,7 +28,7 @@ function visit(node) {
       children: [
         {
           type: 'strong',
-          children: [{ type: 'text', value: 'Applies to:' }],
+          children: [{ type: 'text', value: '适用于：' }],
         },
         { type: 'text', value: ` ${versions}` },
       ],

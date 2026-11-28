@@ -62,19 +62,19 @@ public class SingleStreamTestRunner
         logger.LogInformation("\n\n************************ {TestNumber} {StreamProviderName}_{TestName} ********************************* \n\n", testNumber, streamProviderName, testName);
     }
 
-    //------------------------ One to One ----------------------//
+    //------------------------ 一对一 ----------------------//
     public async Task StreamTest_01_OneProducerGrainOneConsumerGrain(CancellationToken cancellationToken = default)
     {
         Heading("StreamTest_01_ConsumerJoinsFirstProducerLater");
         Guid streamId = Guid.NewGuid();
-        // 消费者首先加入,然后生产者加入
+        // 消费者先加入，生产者随后加入。
         this.consumer = await ConsumerProxy.NewConsumerGrainsAsync(streamId, this.streamProviderName, this.logger, this.client, cancellationToken: cancellationToken);
         this.producer = await ProducerProxy.NewProducerGrainsAsync(streamId, this.streamProviderName, null, this.logger, this.client, cancellationToken: cancellationToken);
         await BasicTestAsync(cancellationToken: cancellationToken);
         await StopProxies();
 
         streamId = Guid.NewGuid();
-        // 产品先加入,后消费
+        // 生产者先加入，消费者后加入。
         this.producer = await ProducerProxy.NewProducerGrainsAsync(streamId, this.streamProviderName, null, this.logger, this.client, cancellationToken: cancellationToken);
         this.consumer = await ConsumerProxy.NewConsumerGrainsAsync(streamId, this.streamProviderName, this.logger, this.client, cancellationToken: cancellationToken);
         await BasicTestAsync(cancellationToken: cancellationToken);
@@ -129,7 +129,7 @@ public class SingleStreamTestRunner
         await StopProxies();
     }
 
-    //和很多不同的人 grains ----------------------//
+    // ------------------------ 不同 Grain 的多对多测试 ----------------------//
 
     public async Task StreamTest_05_ManyDifferent_ManyProducerGrainsManyConsumerGrains(CancellationToken cancellationToken = default)
     {
@@ -171,7 +171,7 @@ public class SingleStreamTestRunner
         await StopProxies();
     }
 
-    //和... 和很多相同 grains ----------------------//
+    // ------------------------ 相同 Grain 的多对多测试 ----------------------//
 
     public async Task StreamTest_09_ManySame_ManyProducerGrainsManyConsumerGrains(CancellationToken cancellationToken = default)
     {
@@ -181,7 +181,7 @@ public class SingleStreamTestRunner
         Guid grain2 = Guid.NewGuid();
         Guid[] consumerGrainIds = new Guid[] { grain1, grain1, grain1 };
         Guid[] producerGrainIds = new Guid[] { grain2, grain2, grain2 };
-        // 生产者先加入,消费者晚加入
+        // 生产者先加入，消费者随后加入。
         this.producer = await ProducerProxy.NewProducerGrainsAsync(streamId, this.streamProviderName, null, this.logger, this.client, producerGrainIds, cancellationToken: cancellationToken);
         this.consumer = await ConsumerProxy.NewConsumerGrainsAsync(streamId, this.streamProviderName, this.logger, this.client, consumerGrainIds, cancellationToken: cancellationToken);
         await BasicTestAsync(cancellationToken: cancellationToken);
@@ -196,7 +196,7 @@ public class SingleStreamTestRunner
         Guid grain2 = Guid.NewGuid();
         Guid[] consumerGrainIds = new Guid[] { grain1, grain1, grain1 };
         Guid[] producerGrainIds = new Guid[] { grain2, grain2, grain2 };
-        // 消费者首先加入,然后生产者加入
+        // 消费者先加入，生产者随后加入。
         this.consumer = await ConsumerProxy.NewConsumerGrainsAsync(streamId, this.streamProviderName, this.logger, this.client, consumerGrainIds, cancellationToken: cancellationToken);
         this.producer = await ProducerProxy.NewProducerGrainsAsync(streamId, this.streamProviderName, null, this.logger, this.client, producerGrainIds, cancellationToken: cancellationToken);
         await BasicTestAsync(cancellationToken: cancellationToken);
@@ -227,7 +227,7 @@ public class SingleStreamTestRunner
         await StopProxies();
     }
 
-    //------------------------ MANY to Many producer consumer same grain ----------------------//
+    // ------------------------ 同一 Grain 中的多生产者、多消费者 ----------------------//
 
     public async Task StreamTest_13_SameGrain_ConsumerFirstProducerLater(
         bool useReentrantGrain,
@@ -237,7 +237,7 @@ public class SingleStreamTestRunner
         Guid streamId = Guid.NewGuid();
         int grain1 = Random.Shared.Next();
         int[] grainIds = new int[] { grain1 };
-        // 消费者首先加入,然后生产者加入
+        // 消费者先加入，生产者随后加入。
         this.consumer = await ConsumerProxy.NewProducerConsumerGrainsAsync(streamId, this.streamProviderName, this.logger, grainIds, useReentrantGrain, this.client, cancellationToken);
         this.producer = await ProducerProxy.NewProducerConsumerGrainsAsync(streamId, this.streamProviderName, this.logger, grainIds, useReentrantGrain, this.client, cancellationToken);
         await BasicTestAsync(cancellationToken: cancellationToken);
@@ -252,7 +252,7 @@ public class SingleStreamTestRunner
         Guid streamId = Guid.NewGuid();
         int grain1 = Random.Shared.Next();
         int[] grainIds = new int[] { grain1 };
-        // 产品先加入,后消费
+        // 生产者先加入，消费者后加入。
         this.producer = await ProducerProxy.NewProducerConsumerGrainsAsync(streamId, this.streamProviderName, this.logger, grainIds, useReentrantGrain, this.client, cancellationToken);
         this.consumer = await ConsumerProxy.NewProducerConsumerGrainsAsync(streamId, this.streamProviderName, this.logger, grainIds, useReentrantGrain, this.client, cancellationToken);
         await BasicTestAsync(cancellationToken: cancellationToken);
@@ -265,8 +265,8 @@ public class SingleStreamTestRunner
     {
         Heading("StreamTest_15_ConsumeAtProducersRequest");
         Guid streamId = Guid.NewGuid();
-        // 光环小组发现一个方案没有(结束)工作。
-        // 生产者呼叫消费者,而消费者则向该用户认购。
+        // 此测试重现 Halo 团队发现的一个无法正常运行（发生死锁）的场景，即
+        // 生产者调用消费者，而该消费者又订阅发起调用的生产者。
 
         this.producer = await ProducerProxy.NewProducerGrainsAsync(streamId, this.streamProviderName, null, this.logger, this.client, cancellationToken: cancellationToken);
         Guid consumerGrainId = await producer.AddNewConsumerGrain();
@@ -325,7 +325,7 @@ public class SingleStreamTestRunner
         Guid[] consumerGrainIds = { Guid.NewGuid() };
         Guid[] producerGrainIds = { Guid.NewGuid() };
 
-        // 消费者首先加入,然后生产者加入
+        // 消费者先加入，生产者随后加入。
         this.consumer = await ConsumerProxy.NewConsumerGrainsAsync(streamId, this.streamProviderName, this.logger, this.client, consumerGrainIds, cancellationToken: cancellationToken);
         this.producer = await ProducerProxy.NewProducerGrainsAsync(streamId, this.streamProviderName, null, this.logger, this.client, producerGrainIds, cancellationToken: cancellationToken);
         await BasicTestAsync(false, cancellationToken);
@@ -355,13 +355,13 @@ public class SingleStreamTestRunner
         await StopProxies();
     }
 
-    //公用自动同步任务 StreamTest_17_Persistence_OneProducerGrainOneConsumerGrain()
+    //public async Task StreamTest_17_Persistence_OneProducerGrainOneConsumerGrain()
     //{
     //    Heading("StreamTest_17_Persistence_OneProducerGrainOneConsumerGrain");
     //    StreamId streamId = StreamId.NewRandomStreamId();
-    //    消费者首先加入,然后生产者加入
-    //    =等待 ConsumerProxy.NewConsumerGrainsAsync(streamId、 streamProviderName、登录);
-    //    生产厂商 = 等待 ProducerProxy.NewProducerGrainsAsync(streamId, streamProviderName,登录器);
+    //    // 消费者先加入，生产者后加入。
+    //    consumer = await ConsumerProxy.NewConsumerGrainsAsync(streamId, streamProviderName, logger);
+    //    producer = await ProducerProxy.NewProducerGrainsAsync(streamId, streamProviderName, logger);
     //    await BasicTestAsync(false);
 
     //    await consumer.DeactivateOnIdle();
@@ -371,8 +371,8 @@ public class SingleStreamTestRunner
     //    await UnitTestBase.WaitUntilAsync(() => CheckGrainsDeactivated(producer, null, assertAreEqual: false), _timeout);
 
     //    logger.Info("*******************************************************************");
-    //    等待 BasicTestAsync(虚假);
-    //    等待 StopProxies();
+    //    //await BasicTestAsync(false);
+    //    //await StopProxies();
     //}
 
     public async Task StreamTest_19_ConsumerImplicitlySubscribedToProducerClient(
@@ -417,7 +417,7 @@ public class SingleStreamTestRunner
         CancellationToken cancellationToken = default)
     {
         Heading("StreamTest_21_GenericConsumerImplicitlySubscribedToProducerGrain");
-        //ToDo 在移徙中:下列消费者 grain 没有在VSO中实施,所有测试都取决于其失败。
+        //迁移待办事项：以下消费者 Grain 在 VSO 中尚未实现，所有依赖它的测试均会失败。
         string consumerTypeName = "UnitTests.Grains.Streaming_ImplicitlySubscribedGenericConsumerGrain";//typeof(Streaming_ImplicitlySubscribedGenericConsumerGrain).FullName;
         Guid streamGuid = Guid.NewGuid();
         this.producer = await ProducerProxy.NewProducerGrainsAsync(streamGuid, this.streamProviderName, "TestNamespace1", this.logger, this.client, cancellationToken: cancellationToken);
@@ -440,7 +440,7 @@ public class SingleStreamTestRunner
         IStreamingImmutabilityTestGrain itemProducer = this.client.GetGrain<IStreamingImmutabilityTestGrain>(Guid.NewGuid());
         string producerSilo = await itemProducer.GetSiloIdentifier();
 
-        // 消费者获得 silo 项的编制
+        // 获取与条目生产者位于同一个 Silo 的消费者。
         IStreamingImmutabilityTestGrain? consumerSameSilo = null;
         do
         {
@@ -451,7 +451,7 @@ public class SingleStreamTestRunner
                 consumerSameSilo = itemConsumer;
         } while (consumerSameSilo == null);
 
-        // 如果启用不可变化功能, 测试行为
+        // 测试启用不可变性时的行为。
         await consumerSameSilo.SubscribeToStream(itemProducer.GetPrimaryKey(), MEMORY_STREAM_PROVIDER_NAME);
 
         await itemProducer.SetTestObjectStringProperty("VALUE_IN_IMMUTABLE_STREAM");
@@ -459,13 +459,13 @@ public class SingleStreamTestRunner
 
         Assert.Equal("VALUE_IN_IMMUTABLE_STREAM", await consumerSameSilo.GetTestObjectStringProperty());
 
-        // 现在,通过更新消费者的财产,违反了不可改变性。
+        // 现在通过更新消费者中的属性来违反不可变性约束。
         await consumerSameSilo.SetTestObjectStringProperty("ILLEGAL_CHANGE");
         Assert.Equal("ILLEGAL_CHANGE", await itemProducer.GetTestObjectStringProperty());
 
         await consumerSameSilo.UnsubscribeFromStream();
 
-        // 如果禁用不可变性则测试行为
+        // 测试禁用不可变性时的行为。
         itemProducer = this.client.GetGrain<IStreamingImmutabilityTestGrain>(Guid.NewGuid());
 
         await consumerSameSilo.SubscribeToStream(itemProducer.GetPrimaryKey(), MEMORY_STREAM_PROVIDER_NAME_DO_NOT_OPTIMIZE_FOR_IMMUTABLE_DATA);
@@ -475,7 +475,7 @@ public class SingleStreamTestRunner
 
         Assert.Equal("VALUE_IN_MUTABLE_STREAM", await consumerSameSilo.GetTestObjectStringProperty());
 
-        // 修改项目属性并检查它没有影响
+        // 修改条目的属性，并检查该修改没有影响。
         await consumerSameSilo.SetTestObjectStringProperty("ALLOWED_CHANGE");
         Assert.Equal("ALLOWED_CHANGE", await consumerSameSilo.GetTestObjectStringProperty());
         Assert.Equal("VALUE_IN_MUTABLE_STREAM", await itemProducer.GetTestObjectStringProperty());
@@ -521,7 +521,7 @@ public class SingleStreamTestRunner
     private async Task<bool> CheckCounters(ProducerProxy producer, ConsumerProxy consumer, bool assertAreEqual = true)
     {
         var consumerCount = await consumer.ConsumerCount;
-        Assert.NotEqual(0, consumerCount);  // "没有检测到消费者"
+        Assert.NotEqual(0, consumerCount);  // 未检测到消费者。
         _ = await producer.ProducerCount;
         var numProduced = await producer.ExpectedItemsProduced;
         var expectConsumed = numProduced * consumerCount;
@@ -545,7 +545,7 @@ public class SingleStreamTestRunner
 
     private async Task AssertProducerCount(int expectedCount, string providerName, Guid streamIdGuid)
     {
-        // 目前,我们只支持检查制片人 是否在短讯会合时数 grain.
+        // 目前仅支持检查 SMS 汇合 Grain 上的生产者数量。
         if (providerName == MEMORY_STREAM_PROVIDER_NAME)
         {
             var streamId = StreamId.Create(StreamTestsConstants.DefaultStreamNamespace, streamIdGuid);
@@ -590,7 +590,7 @@ public class SingleStreamTestRunner
             expectActivationCount);
         if (assertAreEqual)
         {
-            Assert.Equal(expectActivationCount, activationCount); // String.Format("预期{0}ActivationCount ={1},{0}ActivationCount ={2}",斯特, expectActivationCount, activationCount) );
+            Assert.Equal(expectActivationCount, activationCount); // String.Format("Expected{0}ActivationCount = {1}, {0}ActivationCount = {2}", str, expectActivationCount, activationCount));
         }
         return expectActivationCount == activationCount;
     }
@@ -601,7 +601,7 @@ public class SingleStreamTestRunner
 //    logger.Info("\n\n ************************ AQ_1_ConsumerJoinsFirstProducerLater ********************************* \n\n");
 //    streamId = StreamId.NewRandomStreamId();
 //    streamProviderName = AQ_STREAM_PROVIDER_NAME;
-//    消费者首先加入,然后生产者加入
+//    // 消费者先加入，生产者后加入。
 //    var consumer = await ConsumerProxy.NewConsumerGrainsAsync(streamId, streamProviderName, logger);
 //    var producer = await ProducerProxy.NewProducerGrainsAsync(streamId, streamProviderName, logger);
 //    await BasicTestAsync(producer, consumer);
@@ -612,19 +612,19 @@ public class SingleStreamTestRunner
 //    logger.Info("\n\n ************************ AQ_2_ProducerJoinsFirstConsumerLater ********************************* \n\n");
 //    streamId = StreamId.NewRandomStreamId();
 //    streamProviderName = AQ_STREAM_PROVIDER_NAME;
-//    产品加入第一,消费者加入后
+//    // 生产者先加入，消费者后加入。
 //    var producer = await ProducerProxy.NewProducerGrainsAsync(streamId, streamProviderName, logger);
 //    var consumer = await ConsumerProxy.NewConsumerGrainsAsync(streamId, streamProviderName, logger);
 //    await BasicTestAsync(producer, consumer);
 //}
 
-//[事实, TestCategory("BVT"), TestCategory(“Streaming')]
-//公用自动同步任务 StreamTest_2_ProducerJoinsFirstConsumerLater()
+//[Fact, TestCategory("BVT"), TestCategory("Streaming")]
+//public async Task StreamTest_2_ProducerJoinsFirstConsumerLater()
 //{
 //    logger.Info("\n\n ************************ StreamTest_2_ProducerJoinsFirstConsumerLater ********************************* \n\n");
 //    streamId = Guid.NewGuid();
 //    streamProviderName = StreamTest_STREAM_PROVIDER_NAME;
-//    产品加入第一,消费者加入后
+//    // 生产者先加入，消费者后加入。
 //    var producer = await ProducerProxy.NewProducerGrainsAsync(streamId, streamProviderName, logger);
 //    var consumer = await ConsumerProxy.NewConsumerGrainsAsync(streamId, streamProviderName, logger);
 //    await BasicTestAsync(producer, consumer);
@@ -632,25 +632,25 @@ public class SingleStreamTestRunner
 
 
 
-//[事实, TestCategory("BVT"), TestCategory(“Streaming')]
-//公用自动同步任务 StreamTestProducerOnly()
+//[Fact, TestCategory("BVT"), TestCategory("Streaming")]
+//public async Task StreamTestProducerOnly()
 //{
 //    streamId = Guid.NewGuid();
 //    this.streamProviderName = StreamTest_STREAM_PROVIDER_NAME;
 //    await TestGrainProducerOnlyAsync(streamId, this.streamProviderName);
 //}
 
-//[事实, TestCategory("BVT"), TestCategory(“Streaming')]
-//公共无效 AQProducerOnly()
+//[Fact, TestCategory("BVT"), TestCategory("Streaming")]
+//public void AQProducerOnly()
 //{
 //    streamId = Guid.NewGuid();
 //    this.streamProviderName = AQ_STREAM_PROVIDER_NAME;
-//    TestGrainProducerOnlyAsync(streamId, this.streamProviderName).等待();
+//    TestGrainProducerOnlyAsync(streamId, this.streamProviderName).Wait();
 //}
 
-//私有的自动同步任务 TestGrainProducerOnlyAsync(指南 streamId,字符串 streamProvider)
+//private async Task TestGrainProducerOnlyAsync(Guid streamId, string streamProvider)
 //{
-//    没有消费者,只有一个生产者
+//    // 没有消费者，只有一个生产者。
 //    var producer = await ProducerProxy.NewProducerGrainsAsync(streamId, streamProvider, logger);
 
 //    await producer.ProduceSequentialSeries(0, ItemsPerSeries);
@@ -658,18 +658,18 @@ public class SingleStreamTestRunner
 //    logger.Info("numProduced = " + numProduced);
 //    Assert.Equal(numProduced, ItemsPerSeries);
 
-//    / 注意到连续呼叫Do...Production()的方法返回的数值是一个累计总计。
+//    // 注意：连续调用 Do...Production() 方法返回的值是累计总数。
 //    await producer.ProduceParallelSeries(ItemsPerSeries, ItemsPerSeries);
-//    numProduced =等待 producer.NumberProduced;
+//    numProduced = await producer.NumberProduced;
 //    logger.Info("numProduced = " + numProduced);
 //    Assert.Equal(numProduced, ItemsPerSeries * 2);
 //}
 
 
-////------------------------ MANY to One ----------------------//
+////------------------------ 多对一 ----------------------//
 
-//[事实, TestCategory("BVT"), TestCategory(“Streaming')]
-//公用自动同步任务 StreamTest_Many_5_ManyProducerGrainsOneConsumerGrain()
+//[Fact, TestCategory("BVT"), TestCategory("Streaming")]
+//public async Task StreamTest_Many_5_ManyProducerGrainsOneConsumerGrain()
 //{
 //    logger.Info("\n\n ************************ StreamTest_6_ManyProducerGrainsOneConsumerGrain ********************************* \n\n");
 //    streamId = Guid.NewGuid();
@@ -679,8 +679,8 @@ public class SingleStreamTestRunner
 //    await BasicTestAsync(producer, consumer);
 //}
 
-//[事实, TestCategory("BVT"), TestCategory(“Streaming')]
-//公用自动同步任务 StreamTest_Many6_OneProducerGrainManyConsumerGrains()
+//[Fact, TestCategory("BVT"), TestCategory("Streaming")]
+//public async Task StreamTest_Many6_OneProducerGrainManyConsumerGrains()
 //{
 //    logger.Info("\n\n ************************ StreamTest_7_OneProducerGrainManyConsumerGrains ********************************* \n\n");
 //    streamId = Guid.NewGuid();
@@ -690,8 +690,8 @@ public class SingleStreamTestRunner
 //    await BasicTestAsync(producer, consumer);
 //}
 
-//[事实, TestCategory("稳定" ]
-//公用自动同步任务 StreamTest_Many_8_ManyProducerGrainsOneConsumerClient()
+//[Fact, TestCategory("Streaming")]
+//public async Task StreamTest_Many_8_ManyProducerGrainsOneConsumerClient()
 //{
 //    streamId = Guid.NewGuid();
 //    this.streamProviderName = StreamTest_STREAM_PROVIDER_NAME;
@@ -700,10 +700,10 @@ public class SingleStreamTestRunner
 //    await BasicTestAsync(producer, consumer);
 //}
 
-//// 注意:由于 StreamTest 提供者的同步问题,目前这项测试间歇性失败。 
-//// 将夜间建筑从夜间建筑中移除,直到这个问题得到解决。
-//[事实, TestCategory("稳定" ]
-//公共 async 任务 _ StreamTestManY 制作器 Clients OneConsummerGrain ()
+//// 注意：此测试目前因 StreamTest 提供程序中的同步问题而间歇性失败，在解决该问题之前，
+//// 已将其从每晚构建中移除。
+//[Fact, TestCategory("Streaming")]
+//public async Task _StreamTestManyProducerClientsOneConsumerGrain()
 //{
 //    streamId = Guid.NewGuid();
 //    this.streamProviderName = StreamTest_STREAM_PROVIDER_NAME;
@@ -712,10 +712,10 @@ public class SingleStreamTestRunner
 //    await BasicTestAsync(producer, consumer);
 //}
 
-//// 注意:由于 StreamTest 提供者的同步问题,目前这项测试间歇性失败。 
-//// 将夜间建筑从夜间建筑中移除,直到这个问题得到解决。
-//[事实, TestCategory("稳定" ]
-//公共用户 Async 任务_ StreamTestMenyPunderClients One ConsumerClient ()
+//// 注意：此测试目前因 StreamTest 提供程序中的同步问题而间歇性失败，在解决该问题之前，
+//// 已将其从每晚构建中移除。
+//[Fact, TestCategory("Streaming")]
+//public async Task _StreamTestManyProducerClientsOneConsumerClient()
 //{
 //    streamId = Guid.NewGuid();
 //    this.streamProviderName = StreamTest_STREAM_PROVIDER_NAME;
@@ -724,8 +724,8 @@ public class SingleStreamTestRunner
 //    await BasicTestAsync(producer, consumer);
 //}
 
-//[事实, TestCategory("稳定" ]
-//公共辅助任务 _StreamTest 一名生产者 GrainManyConsumer Clients ()
+//[Fact, TestCategory("Streaming")]
+//public async Task _StreamTestOneProducerGrainManyConsumerClients()
 //{
 //    streamId = Guid.NewGuid();
 //    this.streamProviderName = StreamTest_STREAM_PROVIDER_NAME;
@@ -734,8 +734,8 @@ public class SingleStreamTestRunner
 //    await BasicTestAsync(producer, consumer);
 //}
 
-//[事实, TestCategory("稳定" ]
-//公共辅助工作 _StreamTesto 一名制片人 Client MnyCummerGrains ()
+//[Fact, TestCategory("Streaming")]
+//public async Task _StreamTestOneProducerClientManyConsumerGrains()
 //{
 //    streamId = Guid.NewGuid();
 //    this.streamProviderName = StreamTest_STREAM_PROVIDER_NAME;
@@ -744,8 +744,8 @@ public class SingleStreamTestRunner
 //    await BasicTestAsync(producer, consumer);
 //}
 
-//[事实, TestCategory("稳定" ]
-//公共辅助任务 _StreamTests 一名制作者 Client MnyCummerClient ()
+//[Fact, TestCategory("Streaming")]
+//public async Task _StreamTestOneProducerClientManyConsumerClients()
 //{
 //    streamId = Guid.NewGuid();
 //    this.streamProviderName = StreamTest_STREAM_PROVIDER_NAME;

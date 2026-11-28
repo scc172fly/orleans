@@ -59,7 +59,7 @@ namespace Orleans.Runtime.Messaging
         protected abstract IMessageCenter MessageCenter { get; }
 
         /// <summary>
-        /// 优雅地关闭连接的超时。
+        /// 获取优雅关闭连接的超时时长。
         /// </summary>
         protected abstract TimeSpan CloseConnectionTimeout { get; }
 
@@ -77,10 +77,10 @@ namespace Orleans.Runtime.Messaging
         internal void MarkMessageReceived() => Volatile.Write(ref _lastMessageReceivedTimestamp, CoarseStopwatch.GetTimestamp());
 
         /// <summary>
-        /// 开始处理此连接 。
+        /// 开始处理此连接。
         /// </summary>
-        /// <param name="cancellationToken">连接初始化的取消标记。</param>
-        /// <returns>A <see cref="Task"/> ,当连接终止并完成处理时完成。</returns>
+        /// <param name="cancellationToken">用于连接初始化的取消令牌。</param>
+        /// <returns>一个在连接终止且处理工作全部完成后完成的 <see cref="Task"/>。</returns>
         public async Task RunAsync(CancellationToken cancellationToken = default)
         {
             var run = Interlocked.CompareExchange(ref _runState, 1, 0) == 0;
@@ -123,10 +123,10 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// 发短信前刚打电话
+        /// 在传输消息之前立即调用。
         /// </summary>
         /// <param name="msg"></param>
-        /// <returns>是否继续发送该电文。</returns>
+        /// <returns>是否继续传输该消息。</returns>
         protected abstract bool PrepareMessageForSend(Message msg);
 
         protected abstract void RetryMessage(Message msg, Exception? ex = null);
@@ -152,7 +152,7 @@ namespace Orleans.Runtime.Messaging
 
             using var _ = new ExecutionContextSuppressor();
             var task = new Task<Task>(CloseAsync);
-#pragma warning disable CA2025 // Unwrap completes after both task layers; the ref-struct suppressor only controls execution-context capture.
+#pragma warning disable CA2025 // Unwrap 在两层任务都完成后才完成；引用结构体形式的抑制器仅控制执行上下文的捕获。
             if (Interlocked.CompareExchange(ref _closeTask, task.Unwrap(), null) is not null)
 #pragma warning restore CA2025
             {
@@ -176,7 +176,7 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// 关闭连接。 此方法只能由 <see cref="StartClosing(Exception)"/>调用 。
+        /// 关闭连接。此方法只应由 <see cref="StartClosing(Exception)"/> 调用。
         /// </summary>
         private async Task CloseAsync()
         {

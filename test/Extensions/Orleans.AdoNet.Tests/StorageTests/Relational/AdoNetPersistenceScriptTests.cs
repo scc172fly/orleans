@@ -7,7 +7,7 @@ using Xunit;
 namespace UnitTests.StorageTests.Relational;
 
 /// <summary>
-/// 证明卡尼卡持久性脚本保持状态 并更新关于可重复升级的询问
+/// 验证规范的持久化脚本在可重复执行的升级中保留状态并刷新查询。
 /// </summary>
 [TestSuite("Functional")]
 [TestArea("Persistence")]
@@ -50,7 +50,7 @@ public sealed class AdoNetPersistenceScriptTests(CommonFixture fixture) : IClass
             cancellationToken);
         var expectedQueries = await ReadQueriesAsync(database.Storage, cancellationToken);
 
-        // 原样没有改变,安装以前的加薪,以取代现有的例行活动和查询。
+        // 数据库架构（schema）未发生变化。安装原先的版本号递增逻辑，以测试现有例程和查询的替换。
         await ApplyScriptAsync(database, script.Replace(" % 2147483647", "", StringComparison.Ordinal), cancellationToken);
         var serviceId = Guid.NewGuid().ToString();
         var originalStorage = await fixture.CreateStorageProviderAsync(

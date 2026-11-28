@@ -7,16 +7,16 @@ using Xunit;
 namespace UnitTests.StreamingTests
 {
     /// <summary>
-    /// 抽样流测试,表明 Orleans 流的基本生产者-消费者模式。
+    /// 演示 Orleans Streaming 中基本生产者-消费者模式的流示例测试。
     /// 
-    /// 这些测试展示了基本流方案:
-    /// - 生产者和消费者通过流 grain 通信
-    /// - 不同的订户订购(消费者-先购者与生产者-先订)
-    /// - 消费者处理的内联与非同步
-    /// - 信息发送保障和计数
+    /// 这些测试展示基本的流场景：
+    /// - 生产者 Grain 与消费者 Grain 通过流通信
+    /// - 不同的订阅顺序（消费者优先与生产者优先）
+    /// - 内联与异步消费者处理
+    /// - 消息投递保证和计数
     /// 
-    /// 这些模式构成了更复杂的流流应用的基础
-    /// 比如实时分析 事件处理 和酒吧子系统
+    /// 这些模式是更复杂的流应用程序的基础，
+    /// 例如实时分析、事件处理和发布/订阅系统。
     /// </summary>
     public class SampleStreamingTests
     {
@@ -35,17 +35,17 @@ namespace UnitTests.StreamingTests
         }
 
         /// <summary>
-        /// 测试消费者在生产者开始之前就已订阅的设想。
-        /// 核查:
-        /// - 消费者可以选择还没有生产商的流
-        /// - 制作人一开始即发送信息
-        /// - 收手时没有丢失信息
+        /// 测试消费者在生产者启动之前订阅的场景。
+        /// 这验证了：
+        /// - 消费者可以订阅尚无生产者的流
+        /// - 生产者启动后即投递消息
+        /// - 交接过程中不会丢失消息
         /// </summary>
         public async Task StreamingTests_Consumer_Producer(
             Guid streamId,
             CancellationToken cancellationToken = default)
         {
-            // 消费者首先加入,然后生产者加入
+            // 消费者先加入，生产者随后加入。
             var consumer = this.cluster.GrainFactory!.GetGrain<ISampleStreaming_ConsumerGrain>(Guid.NewGuid());
             await consumer.BecomeConsumer(streamId, StreamNamespace, streamProvider, cancellationToken);
 
@@ -81,17 +81,17 @@ namespace UnitTests.StreamingTests
         }
 
         /// <summary>
-        /// 测试生产者在任何消费者订户之前就开始购买的设想。
-        /// 核查:
-        /// - 生产者可以向没有活跃消费者的溪流发送产品
-        /// - 晚加入的消费者接收信息(取决于提供者)
-        /// - 该系统处理动态订阅方案
+        /// 测试生产者在任何消费者订阅之前启动的场景。
+        /// 这验证了：
+        /// - 生产者可以向没有活动消费者的流发送消息
+        /// - 后加入的消费者能够收到消息（取决于提供程序）
+        /// - 系统能够处理动态订阅场景
         /// </summary>
         public async Task StreamingTests_Producer_Consumer(
             Guid streamId,
             CancellationToken cancellationToken = default)
         {
-            // 生产者先加入,消费者晚加入
+            // 生产者先加入，消费者随后加入。
             var producer = this.cluster.GrainFactory!.GetGrain<ISampleStreaming_ProducerGrain>(Guid.NewGuid());
             await producer.BecomeProducer(streamId, StreamNamespace, streamProvider, cancellationToken);
 
@@ -127,17 +127,17 @@ namespace UnitTests.StreamingTests
         }
 
         /// <summary>
-        /// 测试与内线消费者同步处理信息。
-        /// 内线消费者:
-        /// - 与交付在同一个任务背景下处理信息
-        /// - 能够提供较低的潜潜潜,但可能影响输送量
-        /// - 可用于简单、快速的信息处理
+        /// 测试使用同步处理消息的内联消费者进行流传输。
+        /// 内联消费者：
+        /// - 在与投递相同的任务上下文中处理消息
+        /// - 可以降低延迟，但可能影响吞吐量
+        /// - 适用于简单、快速的消息处理
         /// </summary>
         public async Task StreamingTests_Producer_InlineConsumer(
             Guid streamId,
             CancellationToken cancellationToken = default)
         {
-            // 生产者先加入,消费者晚加入
+            // 生产者先加入，消费者随后加入。
             var producer = this.cluster.GrainFactory!.GetGrain<ISampleStreaming_ProducerGrain>(Guid.NewGuid());
             await producer.BecomeProducer(streamId, StreamNamespace, streamProvider, cancellationToken);
 
@@ -173,11 +173,11 @@ namespace UnitTests.StreamingTests
         }
 
         /// <summary>
-        /// 证明所有生成的信息都已被消耗。
-        /// 这是流成测试的关键验证, 以确保:
-        /// - 没有丢失信息
-        /// - 没有发生重复交付
-        /// - 生产者和消费者之间保持适当同步
+        /// 验证所有已生产的消息都已被消费。
+        /// 这是流测试的一项关键验证，用于确保：
+        /// - 没有消息丢失
+        /// - 没有重复投递
+        /// - 生产者和消费者正确同步
         /// </summary>
         private async Task<bool> CheckCounters(ISampleStreaming_ProducerGrain producer, ISampleStreaming_ConsumerGrain consumer, bool assertIsTrue, CancellationToken cancellationToken)
         {

@@ -7,10 +7,10 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// 在参与生命周期期间建立 grain 观察员的测试。
-    /// 由此证实 grain 观察员可在 silo 生命周期阶段设立,
-    /// 先前因生命周期事件在 SystemTarget上执行而失败的
-    /// (grain 预防、预防、预防、 CreateObjectReference 工作时
+    /// 测试参与生命周期时创建 Grain 观察者。
+    /// 这验证了可以在 Silo 生命周期阶段创建 Grain 观察者，
+    /// 此前由于生命周期事件在 SystemTarget
+    /// （Grain 上下文）上执行，导致 CreateObjectReference 无法工作。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Lifecycle"), TestCategory("Observer")]
     [TestSuite("BVT")]
@@ -19,10 +19,10 @@ namespace DefaultCluster.Tests.General
     public class LifecycleObserverCreationTests
     {
         /// <summary>
-        /// 测试在参与生命周期期间能够建立 grain 观察员。
-        /// 这样就能验证对 CreateObjectReference 将失败问题的解决
-        /// 使用“ 无法从 grain中创建本地对象引用,” 时在
-        /// 生命周期活动,因为这些活动以前是安排在 SystemTarget上。
+        /// 测试能否在参与生命周期时创建 Grain 观察者。
+        /// 这验证了对以下问题的修复：此前在生命周期事件期间调用 CreateObjectReference 时，
+        /// 会因 "Cannot create a local object reference from a grain" 而失败，
+        /// 因为这些事件以前是在 SystemTarget 上调度的。
         /// </summary>
         [Fact]
         public async Task LifecycleParticipant_CanCreateGrainObserver()
@@ -30,7 +30,7 @@ namespace DefaultCluster.Tests.General
             var observerCreated = false;
             var grainCalled = false;
 
-            // 创建一个由生命周期参与者组成的测试组,以创建观察员
+            // 创建测试集群，其中有一个会创建观察者的生命周期参与者
             var builder = new InProcessTestClusterBuilder();
             builder.ConfigureSilo((options, siloBuilder) =>
             {
@@ -49,13 +49,13 @@ namespace DefaultCluster.Tests.General
 
             try
             {
-                // 核查观察员是在参与生命周期期间创建的
+                // 验证观察者是在参与生命周期时创建的
                 Assert.True(observerCreated, "Observer should have been created during lifecycle participation");
 
-                // 核实在参与生命周期期间成功发出 grain 呼叫
+                // 验证参与生命周期时成功发起了 Grain 调用
                 Assert.True(grainCalled, "Grain should have been called during lifecycle participation");
 
-                // 还在启动后通过调用 grain 来核实该组组是否开始运作
+                // 另外在启动后通过调用 Grain 验证集群正常运行
                 var grain = cluster.Client!.GetGrain<ISimpleGrain>(42);
                 await grain.SetA(100);
                 var value = await grain.GetA();
@@ -68,9 +68,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 生命周期参与者在活动阶段创建了一名 grain 观察员。
-        /// 这模拟了托管服务或生命周期参与者的发行情况
-        /// 需要创建 grain 观察员在 silo 启动。
+        /// 在 Active 阶段创建 Grain 观察者的生命周期参与者。
+        /// 这模拟了问题场景：托管服务或生命周期参与者
+        /// 需要在 Silo 启动期间创建 Grain 观察者。
         /// </summary>
         private class TestLifecycleParticipant : ILifecycleParticipant<ISiloLifecycle>
         {
@@ -96,16 +96,16 @@ namespace DefaultCluster.Tests.General
 
             private async Task OnStart(CancellationToken ct)
             {
-                // 这是关键测试 - 在参与生命周期期间创建 grain 观察员
-                // 现在,生命周期事件通过 Task.Run 而不是在 SystemTarget进行,因此应该工作起来
+                // 这是关键测试：现在生命周期事件通过 Task.Run 执行，
+                // 而不是在 SystemTarget 上执行，因此参与生命周期时创建 Grain 观察者应当可行
                 var observer = new TestObserver();
                 var reference = _grainFactory.CreateObjectReference<ISimpleGrainObserver>(observer);
 
-                // 测试成功创建了引用
+                // 验证引用已成功创建
                 Assert.NotNull(reference);
                 _onObserverCreated();
 
-                // 测试我们能否在参与生命周期期间发出 grain 呼叫
+                // 同时测试能否在参与生命周期时发起 Grain 调用
                 var grain = _grainFactory.GetGrain<ISimpleGrain>(123);
                 await grain.SetA(50);
                 var value = await grain.GetA();
@@ -123,13 +123,13 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试简单的观察器安装。
+        /// 用于测试的简单观察者实现。
         /// </summary>
         private class TestObserver : ISimpleGrainObserver
         {
             public void StateChanged(int a, int b)
             {
-                // 不允许试验
+                // 用于测试的空操作
             }
         }
     }

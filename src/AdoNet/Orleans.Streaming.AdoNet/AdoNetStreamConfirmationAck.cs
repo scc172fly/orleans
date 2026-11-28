@@ -1,7 +1,7 @@
 namespace Orleans.Streaming.AdoNet;
 
 /// <summary>
-/// 代表成功确认信息的模式。
+/// 表示已成功确认消息的模型。
 /// </summary>
 internal record AdoNetStreamConfirmationAck(
     string ServiceId,

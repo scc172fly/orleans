@@ -5,8 +5,8 @@ namespace OrderProcessing.Grains;
 
 public interface IPaymentGrain : IGrainWithGuidKey;
 
-// 授权支付一项订单,如 eShop的 PaymentProcessor。
-// 以千分之二结束的卡片号码被下调。
+// 与 eShop 的 PaymentProcessor 类似，为单个订单执行支付授权。
+// 尾号为 0002 的银行卡会被拒绝。
 public sealed class PaymentGrain : DurableGrain, IPaymentGrain
 {
     private readonly IOutbox _outbox;
@@ -21,8 +21,8 @@ public sealed class PaymentGrain : DurableGrain, IPaymentGrain
 
     private async ValueTask HandleAuthorizeAsync(AuthorizePayment request, IInboxHandlerContext context, CancellationToken cancellationToken)
     {
-        // 真正的网关呼叫在这里。 处理器至少运行一次, 所以将消息的 ID传送到
-        // 作为其应急密钥的端口。
+        // 在此处调用实际的支付网关。处理程序至少执行一次，因此应将消息 ID 传递给
+        // 网关作为幂等键。
         await Task.Delay(TimeSpan.FromMilliseconds(Random.Shared.Next(200, 800)), cancellationToken);
         var result = request.CardLast4 == "0002"
             ? new PaymentResult(false, "The card was declined.")

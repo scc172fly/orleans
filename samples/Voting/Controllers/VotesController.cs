@@ -17,7 +17,7 @@ public class VotesController : Controller
         _logger = logger;
     }
 
-    // 获得 api/votes
+    // GET api/votes
     [HttpGet]
     public async Task<ActionResult> Get()
     {
@@ -32,7 +32,7 @@ public class VotesController : Controller
         return Json(result);
     }
 
-    // PUT api/votes/name 助理/伏
+    // PUT api/votes/name
     [HttpPut("{name}")]
     public async Task<ActionResult> Put(string name)
     {
@@ -46,7 +46,7 @@ public class VotesController : Controller
         return Ok();
     }
 
-    // 电离/伏/命名
+    // DELETE api/votes/name
     [HttpDelete("{name}")]
     public async Task<ActionResult> Delete(string name)
     {

@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.ActivationRebalancingTests;
 
 /// <summary>
-/// 静态激活再平衡测试,在过程中不增加新的启动。
+/// 测试再均衡过程中不添加新激活实例的静态再均衡。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]

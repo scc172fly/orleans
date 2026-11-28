@@ -1,7 +1,7 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// 描述可解释/代用生成的方法参数。
+/// 描述用于生成可调用对象或代理的方法参数。
 /// </summary>
 internal readonly record struct MethodParameterModel(
     string Name,
@@ -11,7 +11,7 @@ internal readonly record struct MethodParameterModel(
     uint? ExplicitFieldId);
 
 /// <summary>
-/// 描述代用界面中可引用生成的代理界面的方法 。
+/// 描述用于生成可调用对象的代理接口方法。
 /// </summary>
 internal sealed record class MethodModel(
     string Name,
@@ -34,6 +34,6 @@ internal sealed record class MethodModel(
 }
 
 /// <summary>
-/// 描述自定义初始化器方法, 与可引用方法属性相关联。
+/// 描述与可调用方法特性关联的自定义初始化器方法。
 /// </summary>
 internal readonly record struct CustomInitializerModel(string MethodName, string ArgumentValue);

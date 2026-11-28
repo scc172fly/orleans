@@ -17,12 +17,12 @@ internal readonly struct HashRing
 
     public QueueId CalculateResponsible(uint uniformHashCode)
     {
-        // 使用时钟... membershipOracle.CalculateTargetSilo() 中的当前代码会逆时针.
+        // 使用顺时针方向……当前 membershipOracle.CalculateTargetSilo() 中的代码采用逆时针方向……
         var index = _ring.AsSpan().BinarySearch(new Searcher(uniformHashCode));
         if (index < 0)
         {
             index = ~index;
-            // 如果在跨经中找不到, 那么第一个元素应该返回( 我们在环上)
+            // 若遍历未找到，则应返回第一个元素（我们位于一个环上）。
             if (index == _ring.Length) index = 0;
         }
         return _ring[index];

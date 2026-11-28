@@ -7,25 +7,25 @@ using Orleans.Streams;
 namespace Orleans
 {
     /// <summary>
-    /// 从 <see cref="Grain"/> 或 <see cref="IGrainBase"/> 执行中访问流源提供者的扩展方法。
+    /// 从 <see cref="Grain"/> 或 <see cref="IGrainBase"/> 实现访问流提供程序的扩展方法。
     /// </summary>
     public static class GrainStreamingExtensions
     {
         /// <summary>
-        /// 获取指定的 <paramref name="name"/>的流源提供商。
+        /// 获取具有指定 <paramref name="name"/> 的流提供程序。
         /// </summary>
-        /// <param name="grain">下 grain.</param>
-        /// <param name="name">提供者名称。</param>
-        /// <returns>流源提供者。</returns>
+        /// <param name="grain">Grain。</param>
+        /// <param name="name">提供程序名称。</param>
+        /// <returns>流提供程序。</returns>
         public static IStreamProvider GetStreamProvider(this Grain grain, string name)
             => GetStreamProvider((IGrainBase)grain, name);
 
         /// <summary>
-        /// 获取指定的 <paramref name="name"/>的流源提供商。
+        /// 获取具有指定 <paramref name="name"/> 的流提供程序。
         /// </summary>
-        /// <param name="grain">下 grain.</param>
-        /// <param name="name">提供者名称。</param>
-        /// <returns>流源提供者。</returns>
+        /// <param name="grain">Grain。</param>
+        /// <param name="name">提供程序名称。</param>
+        /// <returns>流提供程序。</returns>
         public static IStreamProvider GetStreamProvider(this IGrainBase grain, string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -39,23 +39,23 @@ namespace Orleans
             }
             catch (InvalidOperationException ex)
             {
-                // 我们以前是抛 KeyNotFoundException 之前,保持这样,后向兼容性
+                // 以前会抛出 KeyNotFoundException，为保持向后兼容性，继续采用这一行为。
                 throw new KeyNotFoundException($"Stream provider '{name}' not found", ex);
             }
         }
     }
 
     /// <summary>
-    /// 用户访问流源供应商的扩展方法。
+    /// 从客户端访问流提供程序的扩展方法。
     /// </summary>
     public static class ClientStreamingExtensions
     {
         /// <summary>
-        /// 获取指定的 <paramref name="name"/>的流源提供商。
+        /// 获取具有指定 <paramref name="name"/> 的流提供程序。
         /// </summary>
-        /// <param name="client">客户。</param>
-        /// <param name="name">提供者名称。</param>
-        /// <returns>流源提供者。</returns>
+        /// <param name="client">客户端。</param>
+        /// <param name="name">提供程序名称。</param>
+        /// <returns>流提供程序。</returns>
         public static IStreamProvider GetStreamProvider(this IClusterClient client, string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -69,7 +69,7 @@ namespace Orleans
             }
             catch (InvalidOperationException ex)
             {
-                // 我们以前是抛 KeyNotFoundException 之前,保持这样,后向兼容性
+                // 以前会抛出 KeyNotFoundException，为保持向后兼容性，继续采用这一行为。
                 throw new KeyNotFoundException($"Stream provider '{name}' not found", ex);
             }
         }

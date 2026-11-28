@@ -2,27 +2,27 @@ using System.Runtime.ExceptionServices;
 
 namespace Orleans.Clustering.TestKit;
 
-/// <summary>单独组建的成员提供商及其任择资源所有者。</summary>
+/// <summary>一个单独构造的成员资格提供程序及其可选资源所有者。</summary>
 public sealed class MembershipTableTestHandle : IAsyncDisposable
 {
     private readonly Func<ValueTask>? _dispose;
     private int _disposed;
 
-    /// <summary>创建一个控件。如果有的话, 提供处置者拥有用于此控件的所有资源。</summary>
+    /// <summary>创建句柄。提供的释放器（如果有）拥有此句柄的全部资源。</summary>
     public MembershipTableTestHandle(IMembershipTable table, Func<ValueTask>? disposeAsync = null)
     {
         Table = table ?? throw new ArgumentNullException(nameof(table));
         _dispose = disposeAsync;
     }
 
-    /// <summary>获得独立建造的供应商。</summary>
+    /// <summary>获取独立构造的提供程序。</summary>
     public IMembershipTable Table { get; }
 
-    /// <summary>最多一次投放自有资源。表格本身没有暗含处理。</summary>
+    /// <summary>最多释放一次所拥有的资源。不隐式释放成员资格表本身。</summary>
     public ValueTask DisposeAsync() => Interlocked.Exchange(ref _disposed, 1) == 0 && _dispose is not null ? _dispose() : ValueTask.CompletedTask;
 }
 
-/// <summary>拥有孤立的集束范围、独立控件、初始化和被捆绑的撕裂。</summary>
+/// <summary>拥有隔离的集群作用域和独立句柄，并负责初始化及有界清理。</summary>
 public sealed class MembershipTableTestFixture : IAsyncDisposable
 {
     private readonly Func<string, string, CancellationToken, ValueTask<MembershipTableTestHandle>> _factory;
@@ -38,28 +38,28 @@ public sealed class MembershipTableTestFixture : IAsyncDisposable
     private int _disposed;
     private Task? _disposalTask;
 
-    /// <summary>创建一个同步工厂的固定装置,接受每个请求的集束编号。</summary>
+    /// <summary>根据接收每个所请求集群 ID 的同步工厂创建测试夹具。</summary>
     public MembershipTableTestFixture(string providerName, Func<string, IMembershipTable> factory,
         Func<string, CancellationToken, ValueTask<bool>> isDeletedAsync, string? serviceId = null)
         : this(providerName, Wrap(factory), isDeletedAsync, serviceId) { }
 
-    /// <summary>创建由明确拥有所有权的不同步集群意识工厂组成的固定装置。</summary>
+    /// <summary>根据感知集群且明确资源所有权的异步工厂创建测试夹具。</summary>
     public MembershipTableTestFixture(string providerName,
         Func<string, CancellationToken, ValueTask<MembershipTableTestHandle>> factory,
         Func<string, CancellationToken, ValueTask<bool>> isDeletedAsync, string? serviceId = null)
         : this(providerName, Wrap(factory), isDeletedAsync, serviceId) { }
 
-    /// <summary>创建固定符。所有控件都使用相同的服务代号及后端,但所提供的群集代号除外。</summary>
-    /// <param name="providerName">诊断中使用的非保密供应商标签。</param>
-    /// <param name="factory">创建对所请求范围当前后端的独立拥有的控件。</param>
+    /// <summary>创建测试夹具。所有句柄使用相同的服务 ID 和后端，但使用各自传入的集群 ID。</summary>
+    /// <param name="providerName">用于诊断的不含机密信息的提供程序标签。</param>
+    /// <param name="factory">基于请求作用域的当前后端创建独立拥有的句柄。</param>
     /// <param name="isDeletedAsync">
-    /// 特定集群原始支持状态的只读本地端探测。 当其成员身份时返回真实位置
-    /// 数据被删除,或其所有者已最终取消存储; 当种子数据还存在时返回错误 。
-    /// 探测器在所有人处置之前运行,必须保留后端身份,并宣传基础设施故障。
-    /// 持久性供应商可以通过独立的后端准入检查同一范围;终端供应商检查
-    /// 本地失效。套房检查探测到人口数据后再删除。
+    /// 对指定集群的原始后端状态进行只读原生探测。当其成员资格
+    /// 数据被删除或其所有者已使存储永久失效时返回 true；预置数据仍然存在时返回 false。
+    /// 探测在释放所有者前运行，必须保持后端标识不变，并且必须传播基础设施故障。
+    /// 持久化提供程序可通过独立后端访问检查同一作用域；具有终止语义的提供程序则检查
+    /// 原生失效状态。测试套件在调用删除操作之前，会针对已填充的数据验证探测结果。
     /// </param>
-    /// <param name="serviceId">共享服务身份。</param>
+    /// <param name="serviceId">共享的服务 ID。</param>
     public MembershipTableTestFixture(string providerName,
         Func<string, string, CancellationToken, ValueTask<MembershipTableTestHandle>> factory,
         Func<string, CancellationToken, ValueTask<bool>> isDeletedAsync, string? serviceId = null)
@@ -75,22 +75,22 @@ public sealed class MembershipTableTestFixture : IAsyncDisposable
         OtherClusterId = $"{ClusterId}-other";
     }
 
-    /// <summary>获取诊断提供者标签。 不要将证书放在此值中 。</summary>
+    /// <summary>获取用于诊断的提供程序标签。不要将凭据放入此值。</summary>
     public string ProviderName { get; }
-    /// <summary>获得通用服务身份</summary>
+    /// <summary>获取公共服务 ID。</summary>
     public string ServiceId { get; }
-    /// <summary>获得第一个孤立的集号ID。</summary>
+    /// <summary>获取第一个隔离集群的 ID。</summary>
     public string ClusterId { get; }
-    /// <summary>获取第二个孤立的集号ID。</summary>
+    /// <summary>获取第二个隔离集群的 ID。</summary>
     public string OtherClusterId { get; }
-    /// <summary>启动后获得第一个提供者处理。</summary>
+    /// <summary>获取初始化后的第一个提供程序句柄。</summary>
     public IMembershipTable First { get; private set; } = null!;
-    /// <summary>获得第一个组群的单独建造提供者。</summary>
+    /// <summary>获取为第一个集群单独构造的提供程序。</summary>
     public IMembershipTable Second { get; private set; } = null!;
-    /// <summary>获取第二组的提供者。</summary>
+    /// <summary>获取第二个集群的提供程序。</summary>
     public IMembershipTable OtherCluster { get; private set; } = null!;
 
-    /// <summary>构造并启动三个所需控件。部分故障清理了获得的资源。</summary>
+    /// <summary>构造并初始化三个必需句柄。部分失败时清理已获取的资源。</summary>
     public async ValueTask InitializeAsync(CancellationToken cancellationToken = default)
     {
         await _initializationGate.WaitAsync(cancellationToken);
@@ -172,7 +172,7 @@ public sealed class MembershipTableTestFixture : IAsyncDisposable
         finally { EndOperation(pending); }
     }
 
-    /// <summary>在其中的一个固定线的自有范围中获取另一个控件。 初始化是明确的。</summary>
+    /// <summary>在此测试夹具所拥有的一个作用域中获取另一个句柄。初始化需显式进行。</summary>
     public async ValueTask<MembershipTableTestHandle> CreateAdditionalHandleAsync(string clusterId, CancellationToken cancellationToken = default)
     {
         TaskCompletionSource pending;
@@ -314,7 +314,7 @@ public sealed class MembershipTableTestFixture : IAsyncDisposable
     {
         ClusteringTestKitDiagnostics.Require(!await ProbeDeletionAsync(clusterId),
             $"deletion probe reported deleted populated history: cluster={clusterId}");
-        // 请求失败后可以执行。 在本地证据证明保留之前, 将这些手柄退掉 。
+        // 失败的请求也可能已经提交。停止使用这些句柄，直至原生证据证实数据仍被保留。
         lock (_lifecycleLock) _endedClusters.Add(clusterId);
         var rejected = false;
         try
@@ -374,7 +374,7 @@ public sealed class MembershipTableTestFixture : IAsyncDisposable
         return deleted;
     }
 
-    /// <summary>运行一个完全孤立的个案,如果拆卸失败则保留其主要失败。</summary>
+    /// <summary>运行一个完整的隔离用例；若清理也失败，则保留该用例的主要失败原因。</summary>
     public async Task RunAsync(Func<MembershipTableTestFixture, CancellationToken, Task> action, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(action);
@@ -395,7 +395,7 @@ public sealed class MembershipTableTestFixture : IAsyncDisposable
         if (primary is not null) ExceptionDispatchInfo.Capture(primary).Throw();
     }
 
-    /// <summary>清理工作最多要等30秒。所有者在清理工作完成之前,仍活着。</summary>
+    /// <summary>最多等待 30 秒进行清理。所有者保持存活，直至其清理操作完成。</summary>
     public ValueTask DisposeAsync() => DisposeAsync(TimeSpan.FromSeconds(30));
 
     internal async ValueTask DisposeAsync(TimeSpan waitTimeout)
@@ -442,7 +442,7 @@ public sealed class MembershipTableTestFixture : IAsyncDisposable
         lock (_lifecycleLock) failures = [.. _operationFailures];
         foreach (var (cluster, table) in clusters)
         {
-            // 不可撤销的发送装置保留无一例外兼容供应商的实际完成时间。
+            // 对于不支持取消令牌的兼容提供程序，不可取消的派发会保留实际完成语义。
             try { await table.DeleteMembershipTableEntriesAsync(cluster, CancellationToken.None); }
             catch (Exception exception) { failures.Add(new InvalidOperationException($"cleanup cluster={cluster}", exception)); }
         }

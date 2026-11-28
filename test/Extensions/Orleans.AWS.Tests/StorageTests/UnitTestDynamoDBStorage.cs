@@ -7,7 +7,7 @@ using Orleans.AWSUtils.Tests;
 namespace AWSUtils.Tests.StorageTests
 {
     /// <summary>
-    /// DynamoDB 储存单元测试的试验数据模型。
+    /// DynamoDB 存储单元测试使用的测试数据模型。
     /// </summary>
     [Serializable]
     [Orleans.GenerateSerializer]
@@ -91,7 +91,7 @@ namespace AWSUtils.Tests.StorageTests
     }
 
     /// <summary>
-    /// 测试 DynamoDB 储存,用于单位测试 DynamoDB 操作。
+    /// 用于对 DynamoDB 操作进行单元测试的 DynamoDB 存储测试实现。
     /// </summary>
     internal class UnitTestDynamoDBStorage : DynamoDBStorage
     {

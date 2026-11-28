@@ -11,11 +11,11 @@ namespace ServiceBus.Tests
         {
             if (TestDefaultConfiguration.UseAadAuthentication)
             {
-                options.ConfigureEventHubConnection(TestDefaultConfiguration.EventHubFullyQualifiedNamespace!, eventHubName, consumerGroup, TestDefaultConfiguration.TokenCredential); // AAD 测试设置提供事件枢纽命名空间。
+                options.ConfigureEventHubConnection(TestDefaultConfiguration.EventHubFullyQualifiedNamespace!, eventHubName, consumerGroup, TestDefaultConfiguration.TokenCredential); // AAD 测试配置提供 Event Hubs 命名空间。
             }
             else
             {
-                options.ConfigureEventHubConnection(TestDefaultConfiguration.EventHubConnectionString!, eventHubName, consumerGroup); // 连接字符串测试设置提供了此值 。
+                options.ConfigureEventHubConnection(TestDefaultConfiguration.EventHubConnectionString!, eventHubName, consumerGroup); // 连接字符串测试配置提供此值。
             }
 
             return options;

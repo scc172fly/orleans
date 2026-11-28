@@ -64,7 +64,7 @@ public sealed class NamedGrainDirectoryTests
                 var directory = firstSilo.ServiceProvider.GetRequiredService<LocalGrainDirectory>();
                 var owner = directory.CalculateGrainDirectoryPartition(grainId);
 
-                // 远程注册后,先向所有人查询以使用两个目录路径。
+                // 首先远程注册，再从所有者查询，以验证两条目录访问路径。
                 firstSilo = cluster.Silos.Single(silo => !silo.SiloAddress.Equals(owner));
                 secondSilo = cluster.Silos.Single(silo => silo.SiloAddress.Equals(owner));
             }

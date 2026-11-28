@@ -13,7 +13,7 @@ using Xunit;
 namespace UnitTests.StreamingTests
 {
     /// <summary>
-    /// 测试溪流阴道/次可靠性,在储存提供者中注入错误。
+    /// 测试存储提供程序发生错误注入时流发布/订阅机制的可靠性。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -87,15 +87,15 @@ namespace UnitTests.StreamingTests
         [Fact, TestCategory("Functional"), TestCategory("Streaming"), TestCategory("PubSub")]
         public async Task PubSub_Store_ReadError()
         {
-            // 预期行为: 返回调用器时发生根本错误 StorageProviderInjectedError
+            // 预期行为：将底层错误 StorageProviderInjectedError 返回给调用方。
             //
-            // 实际行为: 相对隐秘错误 OrleansException 返回, 提及 
-            //                   导致信件文本中“ 失败 SetupActivationState” 的根问题, 
-            //                   但没有更多的细节或堆放跟踪 。
+            // 实际行为：返回一个含义较为模糊的 OrleansException，
+            //                   其消息文本提及根本问题 "Failed SetupActivationState"，
+            //                   但没有更多细节或堆栈跟踪。
 
             await SetErrorInjection(PubSubStoreProviderName, ErrorInjectionPoint.BeforeRead);
 
-            // 托托:直接期待 StorageProviderInjectedError 而不是 OrleansException
+            // TODO：预期直接收到 StorageProviderInjectedError，而非 OrleansException。
             await Assert.ThrowsAsync<StorageProviderInjectedError>(() =>
                 Test_PubSub_Stream(StreamProviderName, StreamId, TestContext.Current.CancellationToken));
         }
@@ -142,12 +142,12 @@ namespace UnitTests.StreamingTests
         {
             using var observer = StreamingDiagnosticObserver.Create(HostedCluster);
 
-            // 消费者消费者
+            // 消费者
             IStreamLifecycleConsumerGrain consumer = this.GrainFactory.GetGrain<IStreamLifecycleConsumerGrain>(Guid.NewGuid());
             cancellationToken.ThrowIfCancellationRequested();
             await consumer.BecomeConsumer(streamId, this.StreamNamespace, streamProviderName);
 
-            // 制 制 制 制 制 制 制 制 制 制
+            // 生产者
             IStreamLifecycleProducerGrain producer = this.GrainFactory.GetGrain<IStreamLifecycleProducerGrain>(Guid.NewGuid());
             cancellationToken.ThrowIfCancellationRequested();
             await producer.BecomeProducer(StreamId, this.StreamNamespace, streamProviderName);
@@ -164,21 +164,21 @@ namespace UnitTests.StreamingTests
 
             Assert.True(received1 > 1, $"Received count for consumer {consumer} is too low = {received1}");
 
-            // 取消订阅
+            // 取消订阅。
             await consumer.ClearGrain();
 
-            // 等待取消订阅后传播
+            // 等待订阅移除操作传播。
             var rxStreamId = Orleans.Runtime.StreamId.Create(this.StreamNamespace, streamId);
             using var subCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             subCts.CancelAfter(TimeSpan.FromSeconds(5));
             await observer.WaitForSubscriptionRemovedAsync(rxStreamId, streamProviderName, subCts.Token);
 
-            // 发送更多消息
+            // 再发送一条消息。
             await producer.SendItem(2);
 
             int received2 = await consumer.GetReceivedCount();
 
-            Assert.Equal(0, received2);  // "收到消费 {消费者} 的 收帐是错的 = / 收到2}"
+            Assert.Equal(0, received2);  // $"Received count for consumer {consumer} is wrong = {received2}"
 
         }
 

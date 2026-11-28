@@ -6,13 +6,13 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// 证明根任务ID再次运行, 其 grain 删除了它先前的运行, 在Message 的重复范围内
-/// 窗口中。
+/// 验证 Grain 删除根任务 ID 的先前运行后，即使仍处于消息传递的去重
+/// 窗口内，该根任务 ID 也会再次运行。
 /// </summary>
 /// <remarks>
-/// 结果保留期短于重复窗口。 根的每运行一次都有其自身的化身,
-/// 通讯传递了较后运行的 请求而不是拆卸它
-/// 前面的跑步, 和被调用者储存 后一个呼叫在另一ID下。
+/// 结果保留期短于去重窗口。根任务的每次运行都有自己的运行世代标识，
+/// 该值包含在其调用的传输标识符中，因此消息传递会传递后一次运行的调用，而不会将其与
+/// 先前运行的调用去重；被调用方使用另一个 ID 存储后一次调用。
 /// </remarks>
 public abstract class DurableTaskRerunTests : IAsyncLifetime
 {
@@ -42,19 +42,19 @@ public abstract class DurableTaskRerunTests : IAsyncLifetime
         var callId = rootId.Child(RerunCallerGrain.CallId);
         using var events = DurableTaskEventBarriers.Collect();
 
-        // 第一个运行点呼叫被调用者, 即一旦被调用者接受完成后删除任务 。
+        // 第一次运行调用被调用方，调用方接受完成消息后，被调用方删除自己的任务。
         var first = await caller.RunAsync(callee.GetPrimaryKey(), 7).WithId("rerun").ScheduleAsync(cancellationToken);
         Assert.Equal(7, (await first.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken)).GetResult<int>());
         var firstChildId = await events.WaitForCallerChildAsync(calleeId, callerId, callId);
         await events.WaitForDeletedAsync(calleeId, firstChildId);
 
-        // 第一转的留存结束, 完全在重复窗口内, 所以下一个相同的根 ID 时间表
-        // 以相同的请求删除并再次运行根。
+        // 第一次运行的保留期在去重窗口结束之前就已届满，因此再次调度同一根 ID 时，
+        // 会删除旧任务，并使用相同请求重新运行根任务。
         _fixture.JobClock.Advance(Retention + TimeSpan.FromMinutes(1));
         var second = await caller.RunAsync(callee.GetPrimaryKey(), 7).WithId("rerun").ScheduleAsync(cancellationToken);
         await events.WaitForDeletedAsync(callerId, rootId);
 
-        // 第二波的呼叫到达被召唤者 作为一项新任务,运行完成
+        // 第二次运行的调用作为新任务抵达被调用方，并且此次运行完成。
         Assert.Equal(7, (await second.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken)).GetResult<int>());
         var secondCreated = await events.WaitForEventAsync(
             nameof(global::Orleans.Durable.Tasks.Diagnostics.DurableTaskEvents.TaskCreated),
@@ -68,14 +68,14 @@ public abstract class DurableTaskRerunTests : IAsyncLifetime
     }
 }
 
-/// <summary>运行根重新运行覆盖,任务状态以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行根任务再次运行相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskRerunTests() : DurableTaskRerunTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行根重新运行覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行根任务再次运行相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

@@ -6,7 +6,7 @@ using System.Linq;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// A <see cref="IQueueFlowController"/> 并加多个其他 <see cref="IQueueFlowController"/> 值。
+    /// 一种 <see cref="IQueueFlowController"/>，用于聚合多个其他 <see cref="IQueueFlowController"/> 值。
     /// </summary>
     public class AggregatedQueueFlowController : List<IQueueFlowController>, IQueueFlowController
     {
@@ -15,7 +15,7 @@ namespace Orleans.Streams
         /// <summary>
         /// 初始化 <see cref="AggregatedQueueFlowController"/> 类的新实例。
         /// </summary>
-        /// <param name="defaultMaxAddCount">默认最大添加上限计数,见 <see cref="IQueueFlowController.GetMaxAddCount"/>.</param>
+        /// <param name="defaultMaxAddCount">默认的最大添加数量，参见 <see cref="IQueueFlowController.GetMaxAddCount"/>。</param>
         public AggregatedQueueFlowController(int defaultMaxAddCount)
         {
             this.defaultMaxAddCount = defaultMaxAddCount;

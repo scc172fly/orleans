@@ -188,7 +188,7 @@ public static class LegacyTokenRecoveryFixture
 {
     public static StreamSequenceToken LoadLegacyToken(bool v2)
     {
-        // 先前继承的工厂一直保持精确的基本标志,即使是对一个海关提供者也是如此。
+        // 早期继承而来的工厂即使针对自定义提供程序，也会持久化确切的基类令牌类型。
         const string json = """{"SequenceNumber":500,"EventIndex":2}""";
         return v2
             ? Assert.IsType<EventSequenceTokenV2>(JsonConvert.DeserializeObject<EventSequenceTokenV2>(json))
@@ -223,7 +223,7 @@ public static class LegacyTokenRecoveryFixture
         foreach (var sequence in new[] { 101L, 102L })
         {
             Add(sequence, 0);
-            // 这是真正被人们引用的 刷新路径 StartInactiveCursors 以无邪的经文盟誓,
+            // 这是每次非空读取后 StartInactiveCursors 调用的实际 Refresh 路径。
             cache.Refresh(cursor, createToken(sequence, 0));
             Assert.False(TryGetNextMessage(cache, cursor, out _));
             Assert.Empty(observer.Tokens);
@@ -254,7 +254,7 @@ public static class LegacyTokenRecoveryFixture
             Assert.Equal(acknowledged ? 3 : 2, first.SequenceToken.EventIndex);
         }
 
-        // 活动状态保持了正常状态。
+        // 活动游标刷新时保持原位置。
         cache.Refresh(cursor, createToken(700, 0));
         cache.Refresh(cursor, createToken(100, 0));
         Assert.Null(await handle.DeliverBatch(first, handshake));

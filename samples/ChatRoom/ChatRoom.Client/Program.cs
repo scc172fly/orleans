@@ -236,7 +236,7 @@ static async Task<ClientContext> JoinChannel(
                 .GetStreamProvider("chat")
                 .GetStream<ChatMsg>(streamId);
 
-        // 订阅到流中接收发至聊天室的毛皮信息
+        // 订阅流，以接收后续发送到聊天室的消息。
         await stream.SubscribeAsync(new StreamObserver(channelName));
     });
     AnsiConsole.MarkupLine("[bold aqua]Joined channel [/]{0}", context.CurrentChannel!);
@@ -265,8 +265,8 @@ static async Task<ClientContext> LeaveChannel(ClientContext context)
                 .GetStreamProvider("chat")
                 .GetStream<ChatMsg>(streamId);
 
-        // 自客户客户离开后, 不再从频道/流中订阅, 这样客户就不会
-        // 接收来自此频道/流的今后信息。
+        // 客户端离开后，取消订阅频道或流，以免客户端
+        // 继续接收来自该频道或流的消息。
         var subscriptionHandles = await stream.GetAllSubscriptionHandles();
         foreach (var handle in subscriptionHandles)
         {

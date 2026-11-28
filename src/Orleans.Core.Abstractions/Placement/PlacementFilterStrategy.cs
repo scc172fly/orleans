@@ -7,29 +7,29 @@ using Orleans.Runtime;
 namespace Orleans.Placement;
 
 /// <summary>
-/// 表示过滤 silos 的战略,可以安装一个 grain 。
+/// 表示筛选可放置 Grain 的 Silo 的策略。
 /// </summary>
 public abstract class PlacementFilterStrategy
 {
     /// <summary>
-    /// 获得这个过滤器相对于其他放置过滤器应用的顺序。
+    /// 获取此过滤器相对于其他放置过滤器的应用顺序。
     /// </summary>
     public int Order { get; private set; }
 
     /// <summary>
     /// 初始化 <see cref="PlacementFilterStrategy"/> 类的新实例。
     /// </summary>
-    /// <param name="order">相对于其他放置过滤器应用此过滤器的顺序。</param>
+    /// <param name="order">此过滤器相对于其他放置过滤器的应用顺序。</param>
     protected PlacementFilterStrategy(int order)
     {
         Order = order;
     }
 
     /// <summary>
-    /// 使用所提供的 grain 属性初始化这种类型的实例。
+    /// 使用提供的 Grain 属性初始化此类型的实例。
     /// </summary>
     /// <param name="properties">
-    /// grain 属性。
+    /// Grain 属性。
     /// </param>
     public void Initialize(GrainProperties properties)
     {
@@ -45,20 +45,20 @@ public abstract class PlacementFilterStrategy
     }
 
     /// <summary>
-    /// 使用所提供的 grain 属性,初始化特定战略状态。
+    /// 使用提供的 Grain 属性初始化策略特有的状态。
     /// </summary>
-    /// <param name="properties"> grain 属性。</param>
+    /// <param name="properties">Grain 属性。</param>
     public virtual void AdditionalInitialize(GrainProperties properties)
     {
     }
 
     /// <summary>
-    /// 弹出 grain 属性以指定首选安插策略。
+    /// 填充 Grain 属性以指定首选放置策略。
     /// </summary>
-    /// <param name="services">服务供应商。</param>
-    /// <param name="grainClass"> grain 类。</param>
-    /// <param name="grainType"> grain 类型。</param>
-    /// <param name="properties">将使用此方法调用来填充的 grain 属性。</param>
+    /// <param name="services">服务提供程序。</param>
+    /// <param name="grainClass">Grain 类。</param>
+    /// <param name="grainType">Grain 类型。</param>
+    /// <param name="properties">此方法调用将填充的 Grain 属性。</param>
     public void PopulateGrainProperties(IServiceProvider services, Type grainClass, GrainType grainType, Dictionary<string, string> properties)
     {
         var typeName = GetType().Name;
@@ -80,11 +80,11 @@ public abstract class PlacementFilterStrategy
     }
 
     /// <summary>
-    /// 获取用于此放置过滤策略的属性 。
+    /// 获取此放置过滤策略的一项属性。
     /// </summary>
-    /// <param name="key">特定财产战略关键部分。</param>
-    /// <param name="properties"> grain 属性。</param>
-    /// <returns>财产价值,或 <see langword="null"/> 如果财产不存在。</returns>
+    /// <param name="key">策略特有的属性键。</param>
+    /// <param name="properties">Grain 属性。</param>
+    /// <returns>属性值；如果属性不存在，则为 <see langword="null"/>。</returns>
     protected string? GetPlacementFilterGrainProperty(string key, GrainProperties properties)
     {
         var typeName = GetType().Name;
@@ -92,13 +92,13 @@ public abstract class PlacementFilterStrategy
     }
 
     /// <summary>
-    /// 获取战略特定 grain 属性以弹出。
+    /// 获取要填充的策略特有的 Grain 属性。
     /// </summary>
-    /// <param name="services">服务供应商。</param>
-    /// <param name="grainClass"> grain 类。</param>
-    /// <param name="grainType"> grain 类型。</param>
-    /// <param name="existingProperties">下 grain 至今人口密集的地产。</param>
-    /// <returns>具体战略 grain 属性。</returns>
+    /// <param name="services">服务提供程序。</param>
+    /// <param name="grainClass">Grain 类。</param>
+    /// <param name="grainType">Grain 类型。</param>
+    /// <param name="existingProperties">到目前为止已填充的 Grain 属性。</param>
+    /// <returns>策略特有的 Grain 属性。</returns>
     protected virtual IEnumerable<KeyValuePair<string, string>> GetAdditionalGrainProperties(IServiceProvider services, Type grainClass, GrainType grainType, IReadOnlyDictionary<string, string> existingProperties)
         => Array.Empty<KeyValuePair<string, string>>();
 }

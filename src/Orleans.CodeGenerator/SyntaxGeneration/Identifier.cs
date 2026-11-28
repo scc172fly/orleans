@@ -122,10 +122,10 @@ internal static class Identifier
         input,
         static match => match.Value switch
         {
-            // 将前导数字前缀为“ _” ,使其成为有效的标识符。
+            // 为前导数字加上 '_' 前缀，使它们成为有效标识符。
             { Length: > 0 } value when char.IsDigit(value[0]) => $"_{value}",
 
-            // 以空字符串取代其他匹配,消除所有其它匹配。
+            // 将所有其他匹配项替换为空字符串以将其移除。
             _ => ""
         });
 }

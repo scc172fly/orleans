@@ -11,7 +11,7 @@ namespace Orleans.TestingHost.UnixSocketTransport;
 public partial class UnixSocketConnectionOptions
 {
     /// <summary>
-    /// 获取或设置函数,以绘制 Unix 域套接字路径的终点。
+    /// 获取或设置将终结点映射到 Unix 域套接字路径的函数。
     /// </summary>
     public Func<EndPoint, string> ConvertEndpointToPath { get; set; } = DefaultConvertEndpointToPath;
 

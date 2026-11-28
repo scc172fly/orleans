@@ -13,7 +13,7 @@ using Orleans.Clustering.AzureStorage;
 namespace Tester.AzureUtils
 {
     /// <summary>
-    /// 试验试验的试验 Orleans SiloInstanceManager 使用 AzureStore - 需要外部进入 Azure 储存
+    /// 使用 AzureStore 测试 Orleans SiloInstanceManager 的操作，需要访问外部 Azure 存储。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Storage")]
     [TestSuite("Functional")]
@@ -61,7 +61,7 @@ namespace Tester.AzureUtils
                 .GetResult();
         }
 
-        // 每次测试运行后使用 TestCleanup 运行代码
+        // 使用 TestCleanup 在每个测试执行完毕后运行代码
         public void Dispose()
         {
             if (manager != null && SiloInstanceTableTestConstants.DeleteEntriesAfterTest)
@@ -115,14 +115,14 @@ namespace Tester.AzureUtils
         [Fact, TestCategory("Functional")]
         public async Task SiloInstanceTable_Op_CleanDeadSiloInstance()
         {
-            // 登记 a silo 条目
+            // 注册一个 Silo 条目
             await manager.TryCreateTableVersionEntryAsync(TestContext.Current.CancellationToken);
             this.generation = 0;
             await RegisterSiloInstance();
-            // 并标记它为死
+            // 并将其标记为已死亡
             await manager.UnregisterSiloInstance(myEntry);
 
-            // 创建新活动条目
+            // 创建新的活动条目
             for (int i = 1; i < 5; i++)
             {
                 this.generation = i;
@@ -183,8 +183,8 @@ namespace Tester.AzureUtils
             SiloInstanceTableEntry siloEntry = data.Entity;
             string eTag = data.ETag;
 
-            Assert.NotNull(eTag); // ETag不应无效
-            Assert.NotNull(siloEntry); // SiloInstanceTableEntry 不应无效
+            Assert.NotNull(eTag); // ETag 不应为 null
+            Assert.NotNull(siloEntry); // SiloInstanceTableEntry 不应为 null
 
             Assert.Equal(SiloInstanceTableTestConstants.INSTANCE_STATUS_CREATED, siloEntry.Status);
 
@@ -200,13 +200,13 @@ namespace Tester.AzureUtils
             await manager.ActivateSiloInstance(myEntry);
 
             var data = await FindSiloEntry(siloAddress);
-            Assert.NotNull(data.Entity); // 返回的数据不应为无效数据
+            Assert.NotNull(data.Entity); // 返回的数据不应为 null
 
             SiloInstanceTableEntry siloEntry = data.Entity;
             string eTag = data.ETag;
 
-            Assert.NotNull(eTag); // ETag不应无效
-            Assert.NotNull(siloEntry); // SiloInstanceTableEntry 不应无效
+            Assert.NotNull(eTag); // ETag 不应为 null
+            Assert.NotNull(siloEntry); // SiloInstanceTableEntry 不应为 null
 
             Assert.Equal(SiloInstanceTableTestConstants.INSTANCE_STATUS_ACTIVE, siloEntry.Status);
 
@@ -224,8 +224,8 @@ namespace Tester.AzureUtils
             SiloInstanceTableEntry siloEntry = data.Entity;
             string eTag = data.ETag;
 
-            Assert.NotNull(eTag); // ETag不应无效
-            Assert.NotNull(siloEntry); // SiloInstanceTableEntry 不应无效
+            Assert.NotNull(eTag); // ETag 不应为 null
+            Assert.NotNull(siloEntry); // SiloInstanceTableEntry 不应为 null
 
             Assert.Equal(SiloInstanceTableTestConstants.INSTANCE_STATUS_DEAD, siloEntry.Status);
 
@@ -239,16 +239,16 @@ namespace Tester.AzureUtils
             await RegisterSiloInstance();
 
             var gateways = await manager.FindAllGatewayProxyEndpoints(TestContext.Current.CancellationToken);
-            Assert.Empty(gateways);  // " Silo.Activate之前的网关数量 "
+            Assert.Empty(gateways);  // "Silo.Activate 之前的网关数量"
 
             await manager.ActivateSiloInstance(myEntry);
 
             gateways = await manager.FindAllGatewayProxyEndpoints(TestContext.Current.CancellationToken);
-            Assert.Single(gateways);  // " Silo.Activate之后的网关数量 "
+            Assert.Single(gateways);  // "Silo.Activate 之后的网关数量"
 
             Uri myGateway = gateways.First();
-            Assert.Equal(myEntry.Address, myGateway.Host.ToString());  // "地盘地址"
-            Assert.Equal(myEntry.ProxyPort, myGateway.Port.ToString(CultureInfo.InvariantCulture));  // "码头"
+            Assert.Equal(myEntry.Address, myGateway.Host.ToString());  // "网关地址"
+            Assert.Equal(myEntry.ProxyPort, myGateway.Port.ToString(CultureInfo.InvariantCulture));  // "网关端口"
         }
 
         [Fact, TestCategory("Functional")]

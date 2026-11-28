@@ -9,8 +9,8 @@ public sealed class OnboardingGrain(IEmailSender email) : DurableGrain
         await Send(customer, "Welcome").WithId("email");
         await DurableTask.Delay(TimeSpan.FromDays(7)).WithId("first-week");
 
-        // 被录为“email 2”。 在部署去除欢迎电子邮件后, 重播将此电话命名为“ email ” 。
-        // 并保留欢迎电子邮件的记录。
+        // 记录为 "email$2"。部署移除欢迎邮件后，重放将此次调用标识为 "email"，
+        // 而该标识保存的是欢迎邮件的记录。
         await Send(customer, "Tips for your first week").WithId("email");
     }
     // </orleans0208_violation>
@@ -28,8 +28,8 @@ public sealed class OnboardingGrain(IEmailSender email) : DurableGrain
     // <orleans0208_fix_loop>
     public async DurableTask SendSeriesAsync(string customer, string[] subjects)
     {
-        // 一个循环重复被命名过一次的呼叫站点:它的发生是“光”、“光2美元”等等。
-        // 从每项投入中得出的数据也确认了这一数据。
+        // 为循环反复执行的同一个调用位置命名一次：各次调用分别为 "lesson"、"lesson$2" 等。也可以使用
+        // 从每个输入派生的名称来标识对应调用。
         foreach (var subject in subjects)
         {
             await Send(customer, subject).WithId("lesson");

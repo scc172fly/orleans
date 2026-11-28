@@ -3,9 +3,9 @@ using System.Xml.Linq;
 namespace TestGrains
 {
     /// <summary>
-    /// 包含如何格式化聊天的 XML 文档( schema) 的选择。
-    /// 由于每次装入事件日志时 grain 重播该事件日志,
-    /// 有可能改变这种模式, 而不必写 XML 转换
+    /// 封装有关聊天 XML 文档格式（架构）的选择。
+    /// 由于 Grain 每次加载时都会重放事件日志，
+    /// 所以可以更改此架构，而无需编写 XML 转换逻辑
     /// </summary>
     public static class ChatFormat
     {

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Orleans Activation Rebalancing</title>
+    <title>Orleans 激活实例再均衡</title>
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link href="css/site.css" rel="stylesheet" />
     <link rel="icon" type="image/png" href="favicon.png" />
@@ -61,8 +61,8 @@
         </g>
       </svg>
     </div>
-    <button id="addGrainsButton" class="absolute-button">Add grains</button>
-    <button id="resetButton" class="absolute-button">Reset</button>
+    <button id="addGrainsButton" class="absolute-button">添加 Grain</button>
+    <button id="resetButton" class="absolute-button">重置</button>
     <script type="text/javascript">
       const state = { nodes: [], links: [], isUpdate: false };
 
@@ -161,7 +161,7 @@
           .concat(newHostLinks)
           .concat(hostToHostLinks);
 
-        // Merge new nodes and links into the existing state
+        // 将新节点和连接合并到现有状态中
         const nodeMap = new Map(state.nodes.map((d) => [d.id, d]));
         newNodes.forEach((node) => {
           if (nodeMap.has(node.id)) {
@@ -182,7 +182,7 @@
         const graphContainer = svg.select(".graph-container");
 
         var colorScheme = [...d3.schemeTableau10];
-        colorScheme.splice(2, 1); // Remove red since we use that for badness (inter-host links)
+        colorScheme.splice(2, 1); // 移除红色，因为红色用于表示不理想的情况（跨宿主连接）
         const color = d3.scaleOrdinal(colorScheme);
         const linkColor = d3
           .scaleSequential(d3.interpolateOrRd)
@@ -206,14 +206,14 @@
             (exit) => exit.remove()
           );
 
-        // Grain label
+        // Grain 标签
         nodeData
           .select(".label")
           .filter((d) => false /*d.type === 'grain'*/)
           .text((d) => (d.key.includes("hosted-") ? "client" : d.key))
           .attr("dy", -10);
 
-        // Host label
+        // 宿主标签
         nodeData
           .select(".label")
           .filter((d) => d.isHost)
@@ -221,14 +221,14 @@
           .attr("font-weight", "bold")
           .attr("dy", -5);
 
-        // Host info
+        // 宿主信息
         nodeData
           .select(".info")
           .filter((d) => d.isHost)
           .attr("dy", 15)
           .text((d) => d.activationCount);
 
-        // Circle
+        // 圆形
         nodeData
           .select("circle")
           .attr("r", (d) =>
@@ -241,7 +241,7 @@
           .attr("class", (d) => (d.isHost ? "host-circle" : ""))
           .attr("fill", (d) => (d.isHost ? color(d.index) : color(d.host)));
 
-        // Links
+        // 连接
         const linkData = graphContainer
           .select(".links")
           .selectAll("line")
@@ -286,8 +286,8 @@
               "charge",
               d3.forceManyBody().strength((d) => (d.isHost ? -150 : -50))
             )
-            .alphaDecay(0.01) // Reduce alpha decay rate for gradual settling
-            .velocityDecay(0.3) // Reduce velocity decay rate for gradual settling
+            .alphaDecay(0.01) // 降低 alpha 衰减速率，使布局逐渐稳定
+            .velocityDecay(0.3) // 降低速度衰减速率，使布局逐渐稳定
             .on("tick", ticked);
 
           svg.call(

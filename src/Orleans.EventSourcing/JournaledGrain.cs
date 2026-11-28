@@ -8,10 +8,10 @@ using Orleans.Storage;
 namespace Orleans.EventSourcing
 {
     /// <summary>
-    /// 使用标准事件承包术语的日志一致 grains 基准类别。
-    /// 所有操作都是再生安全
+    /// 使用标准事件溯源术语的日志一致性 Grain 基类。
+    /// 所有操作均具备可重入安全性。
     /// </summary>
-    /// <typeparam name="TGrainState"> grain 状态的类型, i.e。事件日志的总视图。</typeparam>
+    /// <typeparam name="TGrainState">Grain 状态的类型，即事件日志的聚合视图。</typeparam>
     public abstract class JournaledGrain<TGrainState> : JournaledGrain<TGrainState, object>
         where TGrainState : class, new()
     {
@@ -22,11 +22,11 @@ namespace Orleans.EventSourcing
     }
 
     /// <summary>
-    /// 使用标准事件承包术语的日志一致 grains 基准类别。
-    /// 所有操作都是再生安全
+    /// 使用标准事件溯源术语的日志一致性 Grain 基类。
+    /// 所有操作均具备可重入安全性。
     /// </summary>
-    /// <typeparam name="TGrainState"> grain 状态的类型, i.e。事件日志的总视图。</typeparam>
-    /// <typeparam name="TEventBase">事件的共同基数</typeparam>
+    /// <typeparam name="TGrainState">Grain 状态的类型，即事件日志的聚合视图。</typeparam>
+    /// <typeparam name="TEventBase">事件的公共基类。</typeparam>
     public abstract class JournaledGrain<TGrainState, TEventBase> :
         LogConsistentGrain<TGrainState>,
         ILogConsistencyProtocolParticipant,
@@ -40,9 +40,9 @@ namespace Orleans.EventSourcing
         protected JournaledGrain() { }
 
         /// <summary>
-        /// 升起一个事件。
+        /// 引发一个事件。
         /// </summary>
-        /// <param name="event">活动要提出。</param>
+        /// <param name="event">要引发的事件。</param>
         protected virtual void RaiseEvent<TEvent>(TEvent @event)
             where TEvent : TEventBase
         {
@@ -52,9 +52,9 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 以原子序列的形式 引发多重事件
+        /// 以原子序列的形式引发多个事件。
         /// </summary>
-        /// <param name="events">需要提出事件。</param>
+        /// <param name="events">要引发的事件。</param>
         protected virtual void RaiseEvents<TEvent>(IEnumerable<TEvent> events)
             where TEvent : TEventBase
         {
@@ -64,11 +64,11 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 有条件地提出事件。 
-        /// 只有在没有冲突的情况下,即在此期间没有提出其他事件时,才能得奖。
+        /// 有条件地引发一个事件。
+        /// 仅在没有冲突（即在此期间没有引发其他事件）时成功。
         /// </summary>
-        /// <param name="event">活动要提出。</param>
-        /// <returns><see langword="true"/> 如果成功的话 <see langword="false"/> 如果有冲突的话</returns>
+        /// <param name="event">要引发的事件。</param>
+        /// <returns><see langword="true"/> 表示成功，<see langword="false"/> 表示发生冲突。</returns>
         protected virtual Task<bool> RaiseConditionalEvent<TEvent>(TEvent @event)
             where TEvent : TEventBase
         {
@@ -78,11 +78,11 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 以原子序列为条件 提出多个事件 
-        /// 只有在没有冲突的情况下,即在此期间没有提出其他事件时,才能得奖。
+        /// 有条件地以原子序列的形式引发多个事件。
+        /// 仅在没有冲突（即在此期间没有引发其他事件）时成功。
         /// </summary>
-        /// <param name="events">提出</param>的事件
-        /// <returns><see langword="true"/> 如果成功的话 <see langword="false"/> 如果有冲突的话</returns>
+        /// <param name="events">要引发的事件。</param>
+        /// <returns><see langword="true"/> 表示成功，<see langword="false"/> 表示发生冲突。</returns>
         protected virtual Task<bool> RaiseConditionalEvents<TEvent>(IEnumerable<TEvent> events)
             where TEvent : TEventBase
         {
@@ -91,8 +91,8 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 获得当前确认状态。 
-        /// 仅包括已确认的事件。
+        /// 获取当前已确认状态。
+        /// 仅包含已确认事件。
         /// </summary>
         protected TGrainState State
         {
@@ -100,8 +100,8 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 获取当前确认状态的版本 。 
-        /// 等于经证实的事件总数。
+        /// 获取当前已确认状态的版本。
+        /// 等于已确认事件的总数。
         /// </summary>
         protected int Version
         {
@@ -109,16 +109,16 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 每当临时状态因局部或远程事件而发生变化时,都打电话。
-        /// <para>覆盖此选项以对状态变化作出反应。</para>
+        /// 每当暂定状态可能因本地或远程事件而改变时调用。
+        /// <para>重写此方法以响应状态变化。</para>
         /// </summary>
         protected virtual void OnTentativeStateChanged()
         {
         }
 
         /// <summary>
-        /// 获取当前暂定状态 。
-        /// 包括经证实和未经证实的事件。
+        /// 获取当前暂定状态。
+        /// 同时包含已确认和未确认事件。
         /// </summary>
         protected TGrainState TentativeState
         {
@@ -126,37 +126,37 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 调用时,经确认的状态可能已经改变(i.e.经确认的版本号更大)。
-        /// <para>覆盖此选项以对确认状态的更改作出反应。</para>
+        /// 当已确认状态可能发生变化（即已确认版本号变大）后调用。
+        /// <para>重写此方法以响应已确认状态的变化。</para>
         /// </summary>
         protected virtual void OnStateChanged()
         {
-            // 被想要对状态变化作出反应的日记 grains 所覆盖
+            // 希望响应状态变化的日志化 Grain 可重写此方法。
         }
 
         /// <summary>
-        /// 等到所有先前提到的事件都得到确认。 
-        /// <para>提出一个或多个事件后,等待这一结果,以确保事发之前活动持续不已,或保证强有力的一致性(线性),即使有多个此类情况 grain</para>
+        /// 等待先前引发的所有事件均得到确认。
+        /// <para>引发一个或多个事件后等待此操作，以确保事件在继续执行前已持久化，或者即使此 Grain 存在多个实例也能保证强一致性（线性一致性）。</para>
         /// </summary>
-        /// <returns>任务一旦确认事件后完成</returns>
+        /// <returns>在事件全部得到确认后完成的任务。</returns>
         protected Task ConfirmEvents()
         {
             return LogViewAdaptor.ConfirmSubmittedEntries();
         }
 
         /// <summary>
-        /// 并证实所有先前提到的事件。 
-        /// 有效地,这强制要求与全球同步。
-        /// <para>等待这一结果,然后再阅读国家,以确保强有力的一致性(线性),即使存在多种情况 grain</para>
+        /// 立即获取最新状态，并确认先前引发的所有事件。
+        /// 其实际效果是强制与全局状态同步。
+        /// <para>读取状态前等待此操作，以确保即使此 Grain 存在多个实例也具备强一致性（线性一致性）。</para>
         /// </summary>
-        /// <returns>一项任务,一旦日志刷新且事件得到确认后完成。</returns>
+        /// <returns>日志刷新完成且所有事件均得到确认后完成的任务。</returns>
         protected Task RefreshNow()
         {
             return LogViewAdaptor.Synchronize();
         }
 
         /// <summary>
-        /// 返回当前未证实事件的队列。
+        /// 返回当前未确认事件的队列。
         /// </summary>
         public IEnumerable<TEventBase> UnconfirmedEvents
         {
@@ -164,9 +164,9 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 默认情况下, 激活时日记 grain 将等待它装入最新
-        /// 子类可以推翻这种行为
-        /// 并且如果愿意,就跳过等待。
+        /// 默认情况下，日志化 Grain 激活时会等待，直到已从存储加载
+        /// 最新视图。子类可以重写此行为，
+        /// 并在需要时跳过等待。
         /// </summary>
         public override Task OnActivateAsync(CancellationToken cancellationToken)
         {
@@ -174,13 +174,13 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 获取确认的事件序列的一部分,可能从存储处获得。 
-        /// 如果事件无法读取, 则丢弃 <see cref="NotSupportedException"/> 。
-        /// 事件是否可用,时间长短如何,取决于使用什么提供者以及如何配置。
+        /// 获取已确认事件序列中的一段，可能需要从存储中读取。
+        /// 如果事件不可读取，则抛出 <see cref="NotSupportedException"/>。
+        /// 事件是否可读取以及可读取的时长，取决于使用的提供程序及其配置。
         /// </summary>
-        /// <param name="fromVersion">启动事件序列的位置</param>
-        /// <param name="toVersion">结束的事件序列的位置</param>
-        /// <returns>任务, 返回两个版本之间事件序列的序列</returns>
+        /// <param name="fromVersion">事件序列的起始位置。</param>
+        /// <param name="toVersion">事件序列的结束位置。</param>
+        /// <returns>返回两个版本之间的事件序列的任务。</returns>
         protected Task<IReadOnlyList<TEventBase>> RetrieveConfirmedEvents(int fromVersion, int toVersion)
         {
             if (fromVersion < 0)
@@ -192,8 +192,8 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 清除所有已确认事件的日志。 将状态重置到初始状态, 并丢弃所有未经证实的事件 。
-        /// 如果日志无法清除, 则丢弃 <see cref="NotSupportedException"/> 。
+        /// 清除所有已确认事件的日志，将状态重置为初始状态，并丢弃所有未确认事件。
+        /// 如果无法清除日志，则抛出 <see cref="NotSupportedException"/>。
         /// </summary>
         protected Task ClearLogAsync(CancellationToken cancellationToken = default)
         {
@@ -201,20 +201,20 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 当潜在的持久性或复制性协议 遇到某种连接问题时, 被调用 。
-        /// <para>覆盖此数据以监测对齐一致协议和/或
-        /// 将重新尝试延迟自定义。
-        /// <see cref="ILogViewAdaptorFactory"/></para>将捕获和记录任何被抛出的任何例外情形。
+        /// 底层持久化或复制协议遇到某种连接问题时调用。
+        /// <para>重写此方法以监控日志一致性协议的运行状况和/或
+        /// 自定义重试延迟。
+        /// 抛出的任何异常均由 <see cref="ILogViewAdaptorFactory"/> 捕获并记录。</para>
         /// </summary>
-        /// <returns>重试前等待的时间</returns>
+        /// <returns>重试前等待的时长。</returns>
         protected virtual void OnConnectionIssue(ConnectionIssue issue)
         {
         }
 
         /// <summary>
-        /// 当先前报告的连接问题得到解决时,即被调用。
-        /// <para>重复这一功能,以监测对齐协议的健康状况。 
-        /// <see cref="ILogViewAdaptorFactory"/></para>将捕获和记录任何被抛出的任何例外情形。
+        /// 先前报告的连接问题已解决时调用。
+        /// <para>重写此方法以监控日志一致性协议的运行状况。
+        /// 抛出的任何异常均由 <see cref="ILogViewAdaptorFactory"/> 捕获并记录。</para>
         /// </summary>
         protected virtual void OnConnectionIssueResolved(ConnectionIssue issue)
         {
@@ -239,12 +239,12 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 定义如何将事件应用到状态。除非子类中被覆盖,否则它调用
-        /// 状态上的动态“应用”函数,该事件为参数。
-        /// 日志查看提供者将记录和记录使用这种方法提出的所有例外情形。
-        /// <para>覆盖此选项可自定义如何为特定事件转换状态。</para>
+        /// 定义如何将事件应用到状态。除非子类重写此方法，否则它会
+        /// 在状态上调用动态的“Apply”函数，并将事件作为参数。
+        /// 此方法抛出的所有异常均由日志视图提供程序捕获并记录。
+        /// <para>重写此方法，以自定义给定事件导致状态转换的方式。</para>
         /// </summary>
-        /// <param name="state">国家。</param>
+        /// <param name="state">状态。</param>
         /// <param name="event">事件。</param>
         protected virtual void TransitionState(TGrainState state, TEventBase @event)
         {
@@ -254,23 +254,23 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 获取日志一致性协议的适配器,该协议由日志一致性提供商安装。
+        /// 获取由日志一致性提供程序安装的日志一致性协议适配器。
         /// </summary>
         internal ILogViewAdaptor<TGrainState, TEventBase> LogViewAdaptor { get; private set; } = null!;
 
         /// <summary>
-        /// 在 grain 构建后立即调用,安装适配器。
-        /// 日志一致性提供商含有一种工厂方法,该方法用本 grain选定类型的类型构建适配器
+        /// 在 Grain 构造完成后立即调用，以安装适配器。
+        /// 日志一致性提供程序包含一个工厂方法，使用为此 Grain 选择的类型构造适配器。
         /// </summary>
         protected override void InstallAdaptor(ILogViewAdaptorFactory factory, object initialState, string graintypename, IGrainStorage? grainStorage, ILogConsistencyProtocolServices services)
         {
-            // 调用日志一致性提供商来构建适配器,通过类型参数
+            // 调用日志一致性提供程序构造适配器，并传入类型实参。
             LogViewAdaptor = factory.MakeLogViewAdaptor<TGrainState, TEventBase>(this, (TGrainState)initialState, graintypename, grainStorage, services);
             (LogViewAdaptor as IInitializableLogViewAdaptor)?.EnsureConfirmedViewInitialized();
         }
 
         /// <summary>
-        /// 如果没有指定对齐一致性提供商,则使用默认存储提供商进行储存版本化
+        /// 如果未指定日志一致性提供程序，则使用默认存储提供程序存储带版本的状态。
         /// </summary>
         protected override ILogViewAdaptorFactory DefaultAdaptorFactory
         {
@@ -281,7 +281,7 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 被调适器调用,以在条目附加时更新视图。
+        /// 由适配器调用，以在追加条目时更新视图。
         /// </summary>
         /// <param name="view">日志视图。</param>
         /// <param name="entry">条目。</param>
@@ -291,7 +291,7 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 通知激活的日志视图适配器(在用户级别 OnActivate前称为)
+        /// 通知日志视图适配器已进入激活流程（在用户级 OnActivate 之前调用）。
         /// </summary>
         async Task ILogConsistencyProtocolParticipant.PreActivateProtocolParticipant()
         {
@@ -306,7 +306,7 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 通知激活的日志视图调整器(在用户级别 OnActivate后称为)
+        /// 通知日志视图适配器已进入激活流程（在用户级 OnActivate 之后调用）。
         /// </summary>
         async Task ILogConsistencyProtocolParticipant.PostActivateProtocolParticipant()
         {
@@ -321,7 +321,7 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 通知已停止使用的日志视图适配器
+        /// 通知日志视图适配器进行停用处理。
         /// </summary>
         Task ILogConsistencyProtocolParticipant.DeactivateProtocolParticipant()
         {
@@ -338,7 +338,7 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 被适应者召唤到国家变化。 
+        /// 状态变化时由适配器调用。
         /// </summary>
         void ILogViewAdaptorHost<TGrainState, TEventBase>.OnViewChanged(bool tentative, bool confirmed)
         {
@@ -349,7 +349,7 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 由适应器调用, 连接问题。 
+        /// 发生连接问题时由适配器调用。
         /// </summary>
         void IConnectionIssueListener.OnConnectionIssue(ConnectionIssue connectionIssue)
         {
@@ -357,7 +357,7 @@ namespace Orleans.EventSourcing
         }
 
         /// <summary>
-        /// 当连接问题得到解决时, 由适应器调用 。 
+        /// 连接问题解决时由适配器调用。
         /// </summary>
         void IConnectionIssueListener.OnConnectionIssueResolved(ConnectionIssue connectionIssue)
         {

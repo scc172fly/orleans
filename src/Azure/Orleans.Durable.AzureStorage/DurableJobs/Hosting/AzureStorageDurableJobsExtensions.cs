@@ -6,21 +6,21 @@ using Orleans.Durable.Journaling;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// 配置 Azure 储存耐久工作的扩展。
+/// 用于配置 Azure Storage 持久化作业的扩展方法。
 /// </summary>
 public static class AzureStorageDurableJobsExtensions
 {
     /// <summary>
-    /// 添加由 Azure 布洛布存储支持的耐久工作存储。
+    /// 添加以 Azure Blob Storage 为后端的持久化作业存储。
     /// </summary>
     /// <param name="builder">
-    /// 建筑工
+    /// 构建器。
     /// </param>
     /// <param name="configure">
-    /// 该代表过去负责配置耐用工作储存。
+    /// 用于配置持久化作业存储的委托。
     /// </param>
     /// <returns>
-    /// 提供的情况 <see cref="ISiloBuilder"/>用来绑链
+    /// 提供的 <see cref="ISiloBuilder"/>，用于链式调用。
     /// </returns>
     public static ISiloBuilder UseAzureBlobDurableJobs(this ISiloBuilder builder, Action<AzureBlobJournalStorageOptions> configure)
     {
@@ -31,16 +31,16 @@ public static class AzureStorageDurableJobsExtensions
     }
 
     /// <summary>
-    /// 添加由 Azure 布洛布存储支持的耐久工作存储。
+    /// 添加以 Azure Blob Storage 为后端的持久化作业存储。
     /// </summary>
     /// <param name="services">
-    /// 服务收藏
+    /// 服务集合。
     /// </param>
     /// <param name="configure">
-    /// 该代表过去负责配置耐用工作储存。
+    /// 用于配置持久化作业存储的委托。
     /// </param>
     /// <returns>
-    /// 提供的情况 <see cref="IServiceCollection"/>用来绑链
+    /// 提供的 <see cref="IServiceCollection"/>，用于链式调用。
     /// </returns>
     public static IServiceCollection UseAzureBlobDurableJobs(this IServiceCollection services, Action<AzureBlobJournalStorageOptions> configure)
     {
@@ -52,11 +52,11 @@ public static class AzureStorageDurableJobsExtensions
     }
 
     /// <summary>
-    /// 添加由 Azure 表日记存储支持的耐久性工作。
+    /// 添加以 Azure Table 日志存储为后端的持久化作业。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <param name="configure">代表用来配置日记存储。</param>
-    /// <returns>用于链条的 silo 构建器。</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <param name="configure">用于配置日志存储的委托。</param>
+    /// <returns>Silo 构建器，用于链式调用。</returns>
     public static ISiloBuilder UseAzureTableDurableJobs(this ISiloBuilder builder, Action<AzureTableJournalStorageOptions> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -66,11 +66,11 @@ public static class AzureStorageDurableJobsExtensions
     }
 
     /// <summary>
-    /// 添加由 Azure 表日记存储支持的耐久性工作。
+    /// 添加以 Azure Table 日志存储为后端的持久化作业。
     /// </summary>
-    /// <param name="services">服务收藏。</param>
-    /// <param name="configure">代表用来配置日记存储。</param>
-    /// <returns>服务收藏,用于链锁。</returns>
+    /// <param name="services">服务集合。</param>
+    /// <param name="configure">用于配置日志存储的委托。</param>
+    /// <returns>服务集合，用于链式调用。</returns>
     public static IServiceCollection UseAzureTableDurableJobs(this IServiceCollection services, Action<AzureTableJournalStorageOptions> configure)
     {
         ArgumentNullException.ThrowIfNull(services);

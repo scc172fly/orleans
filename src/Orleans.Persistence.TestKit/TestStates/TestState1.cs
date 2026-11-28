@@ -1,7 +1,7 @@
 namespace Orleans.Persistence.TestKit;
 
 /// <summary>
-/// 用于验证存储提供者功能的测试状态。
+/// 用于验证存储提供程序功能的测试状态。
 /// </summary>
 [Serializable]
 [GenerateSerializer]
@@ -14,13 +14,13 @@ public class TestState1 : IEquatable<TestState1>
     public string? A { get; set; }
 
     /// <summary>
-    /// 获取或设置一个整数属性。
+    /// 获取或设置整数属性。
     /// </summary>
     [Id(1)]
     public int B { get; set; }
 
     /// <summary>
-    /// 获取或设置一个长的财产。
+    /// 获取或设置 long 类型属性。
     /// </summary>
     [Id(2)]
     public long C { get; set; }

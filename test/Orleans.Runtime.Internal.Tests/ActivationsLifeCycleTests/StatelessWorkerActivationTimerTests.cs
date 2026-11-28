@@ -12,7 +12,7 @@ using Xunit;
 
 namespace UnitTests.ActivationsLifeCycleTests;
 
-// 使用生命周期探测器来保持同步测试收集。
+// 避免在并行测试集合中运行生命周期探测。
 [CollectionDefinition(Name, DisableParallelization = true)]
 public sealed class StatelessWorkerActivationTimerCollection
 {
@@ -28,8 +28,8 @@ public sealed class StatelessWorkerActivationTimerTests
     [Fact]
     public async Task CompletedActivationsReleaseTheirTimeoutTimers()
     {
-        // 平行采集仍然共享先前采集留下的计时器。
-        // 新的程序使得准确的库存清单与到期时间无关。
+        // 非并行集合仍会共享较早集合遗留的计时器。
+        // 使用全新进程，使准确的计时器清单不受那些计时器到期的影响。
         if (Environment.GetEnvironmentVariable(TimerInventoryChild) != "1")
         {
             await RunTimerInventoryInIsolatedProcess();
@@ -78,7 +78,7 @@ public sealed class StatelessWorkerActivationTimerTests
             RedirectStandardError = true,
             UseShellExecute = false,
         };
-        // 匹配现有的孤立热重荷测试的主机选择, 包括 Apphost 和 dotnet 的发射。
+        // 在 apphost 和 dotnet 启动方式下均与现有隔离热重载测试的主机选择保持一致。
         if (string.Equals(Path.GetFileNameWithoutExtension(startInfo.FileName), "dotnet", StringComparison.OrdinalIgnoreCase))
         {
             startInfo.ArgumentList.Insert(0, assemblyPath);
@@ -151,7 +151,7 @@ public sealed class StatelessWorkerActivationTimerTests
         protected override void ConfigureTestCluster(InProcessTestClusterBuilder builder)
         {
             builder.Options.InitialSilosCount = 1;
-            // 冻结背景时钟,因此定期维护不能改变本地定时器库存。
+            // 冻结后台时钟，避免周期性维护改变本机计时器清单。
             var clock = new FakeTimeProvider();
             builder.ConfigureSilo((_, silo) =>
             {

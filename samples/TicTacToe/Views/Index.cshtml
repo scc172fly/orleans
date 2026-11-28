@@ -13,7 +13,7 @@
         <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0/handlebars.min.js" type="text/javascript"></script>
         <script src="./app.js" type="text/javascript"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
-        <title>Tic-Tac-Toe</title>
+        <title>井字棋</title>
         <style>
             .container {
                 width: 970px;
@@ -31,7 +31,7 @@
     </head>
     <body>
         <div class="container jumbotron">
-            <h1>Tic-Tac-Toe</h1>
+            <h1>井字棋</h1>
         </div>
         <div class="container">
 
@@ -44,16 +44,16 @@
         </div>
 
         <script id="board-template" type="text/x-handlebars-template">
-            <a href="javascript:void(0);" style="margin-top:8px;margin-bottom:8px" onclick="oxo.controllers.showGames();">&larr; Back to game list</a>
+            <a href="javascript:void(0);" style="margin-top:8px;margin-bottom:8px" onclick="oxo.controllers.showGames();">&larr; 返回游戏列表</a>
             <h3>
                 {{summary.name}}
                 {{#if summary.yourMove}}
-                &nbsp;<small><label class="label label-danger">Your Move</label></small>
+                &nbsp;<small><label class="label label-danger">轮到你落子</label></small>
                 {{/if}}
             </h3>
-            <p>You are <strong>{{#if summary.gameStarter}}O{{else}}X{{/if}}</strong></p>
-            <p>Playing against <strong>{{#each summary.usernames}}{{this}}{{/each}}</strong></p>
-            <p><strong>{{summary.numMoves}}</strong> moves made</p><br />
+            <p>你执 <strong>{{#if summary.gameStarter}}O{{else}}X{{/if}}</strong></p>
+            <p>对手：<strong>{{#each summary.usernames}}{{this}}{{/each}}</strong></p>
+            <p>已落子 <strong>{{summary.numMoves}}</strong> 步</p><br />
             <table class="table-bordered">
                 <tr><td class="cell">{{{board.x0y0}}}</td><td class="cell">{{{board.x1y0}}}</td><td class="cell">{{{board.x2y0}}}</td></tr>
                 <tr><td class="cell">{{{board.x0y1}}}</td><td class="cell">{{{board.x1y1}}}</td><td class="cell">{{{board.x2y1}}}</td></tr>
@@ -62,7 +62,7 @@
         </script>
 
         <script id="games-template" type="text/x-handlebars-template">
-            <h3>Your Games</h3>
+            <h3>你的游戏</h3>
             <ul style="margin-bottom:25px">
                 {{#each currentGames}}
                     <li>
@@ -71,108 +71,108 @@
                             <h4>
                                {{name}}
                             </h4>
-                            <strong>Waiting for another player</strong><br />
-                            <a class="btn btn-default" onclick="oxo.controllers.showInvite('{{gameId}}')" href="javascript:void(0);">Invite a friend</a>
+                            <strong>正在等待另一位玩家</strong><br />
+                            <a class="btn btn-default" onclick="oxo.controllers.showInvite('{{gameId}}')" href="javascript:void(0);">邀请好友</a>
                         {{else}}
                             <h4>
                                 <a href="javascript:void(0);" onclick="oxo.controllers.play('{{gameId}}')">
                                     {{name}}
                                 </a>
                                 {{#if yourMove}}
-                                &nbsp;<small><label class="label label-danger">Your Move</label></small>
+                                &nbsp;<small><label class="label label-danger">轮到你落子</label></small>
                                 {{/if}}
                             </h4>
-                            Playing against <strong>{{#each usernames}}{{this}}{{/each}}</strong><br />
-                            <strong>{{numMoves}}</strong> moves made
+                            对手：<strong>{{#each usernames}}{{this}}{{/each}}</strong><br />
+                            已落子 <strong>{{numMoves}}</strong> 步
                         {{/if}}
 
                     </li>
                 {{else}}
-                <li><i>No games available</i></li>
+                <li><i>暂无游戏</i></li>
                 {{/each}}
 
             </ul>
 
-            <h3>Available Games</h3>
+            <h3>可加入的游戏</h3>
             <ul style="margin-bottom:25px">
                 {{#each availableGames}}
                 <li>
                     <h4>
                         {{name}}
                     </h4>
-                    <strong>Waiting for another player</strong><br />
-                    <a class="btn btn-default" onclick="oxo.controllers.joinThisGame('{{gameId}}')" href="javascript:void(0);">Join</a>
+                    <strong>正在等待另一位玩家</strong><br />
+                    <a class="btn btn-default" onclick="oxo.controllers.joinThisGame('{{gameId}}')" href="javascript:void(0);">加入</a>
                 </li>
                 {{else}}
-                    <li><i>No games available</i></li>
+                    <li><i>暂无游戏</i></li>
                 {{/each}}
 
             </ul>
 
-            <a id="startNewBtn" class="btn btn-primary" href="javascript:void(0);" onclick="oxo.controllers.createGame();">Start a new Game</a>
-            <a id="joinBtn" class="btn btn-success" href="javascript:void(0);" onclick="oxo.controllers.showJoinDialog();">Join a Game</a>
+            <a id="startNewBtn" class="btn btn-primary" href="javascript:void(0);" onclick="oxo.controllers.createGame();">开始新游戏</a>
+            <a id="joinBtn" class="btn btn-success" href="javascript:void(0);" onclick="oxo.controllers.showJoinDialog();">加入游戏</a>
         </script>
 
         <div class="modal fade" id="enter-name-modal">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Hi! Please enter your name</h4>
+                        <h4 class="modal-title">你好！请输入你的名字</h4>
                     </div>
                     <div class="modal-body">
                         <p>
-                            <label for="enter-name-input">Your name</label>
-                            <input type="text" class="form-control" id="enter-name-input" placeholder="Enter your name"/>
+                            <label for="enter-name-input">你的名字</label>
+                            <input type="text" class="form-control" id="enter-name-input" placeholder="请输入你的名字"/>
                         </p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" id="enterNameOk">OK</button>
+                        <button type="button" class="btn btn-primary" id="enterNameOk">确定</button>
                     </div>
-                </div><!-- /. 现代内容 -->
-            </div><!-- /. 现代-对口器 -->
-        </div><!-- /. 现代 -->
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
 
         <div class="modal fade" id="join-game-modal">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title">Join a game</h4>
+                        <h4 class="modal-title">加入游戏</h4>
                     </div>
                     <div class="modal-body">
                         <p>
-                            <label for="join-game-input">Game Id</label>
-                            <input type="text" class="form-control" id="join-game-input" placeholder="Enter game id">
+                            <label for="join-game-input">游戏 ID</label>
+                            <input type="text" class="form-control" id="join-game-input" placeholder="请输入游戏 ID">
                         </p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-success" id="joinConfirmButton">Join</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-success" id="joinConfirmButton">加入</button>
                     </div>
-                </div><!-- /. 现代内容 -->
-            </div><!-- /. 现代-对口器 -->
-        </div><!-- /. 现代 -->
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
 
         <div class="modal fade" id="invite-game-modal">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title">Invite a friend to a game</h4>
+                        <h4 class="modal-title">邀请好友加入游戏</h4>
                     </div>
                     <div class="modal-body">
                         <p>
-                            <label for="invite-game-id">Send this game id to a friend</label>
+                            <label for="invite-game-id">将此游戏 ID 发送给好友</label>
                             <input type="text" class="form-control" id="invite-game-id" />
-                            <label for="invite-game-link">Or given them this link</label>
+                            <label for="invite-game-link">或将此链接发送给他们</label>
                             <input type="text" class="form-control" id="invite-game-link" />
                         </p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-success" data-dismiss="modal">OK</button>
+                        <button type="button" class="btn btn-success" data-dismiss="modal">确定</button>
                     </div>
-                </div><!-- /. 现代内容 -->
-            </div><!-- /. 现代-对口器 -->
-        </div><!-- /. 现代 -->
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
     </body>
 </html>

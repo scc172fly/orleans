@@ -1,5 +1,5 @@
 <a id="streaming-pubsub-with-azure-event-hubs"></a>
 
-# 流流: Pub/Sub, 带有 Azure 事件枢纽
+# 流：使用 Azure Event Hubs 实现发布/订阅
 
-本样本展示了如何使用 Orleans 流,与 Azure 事件枢纽和隐含用户连接。
+本示例演示如何将 Orleans Streams 与 Azure Event Hubs 和隐式订阅者一起使用。

@@ -3,8 +3,8 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.SyntaxGeneration;
 
 /// <summary>
-/// 产生在成员重新排序和添加下稳定的私有字段的名称,
-/// 以便 .NET 热重新装入能够看到添加而不是重排或重命名字段。
+/// 为生成的私有字段生成名称，使成员重新排序和新增时名称仍保持稳定，
+/// 以便 .NET 热重载识别为新增字段，而不是字段类型改变或重命名。
 /// </summary>
 internal static class GeneratedFieldNames
 {
@@ -36,8 +36,8 @@ internal static class GeneratedFieldNames
         }
         catch (NotSupportedException)
         {
-            // 有些类型 (e.g. 指针) 没有有效的标识表, 所以我们返回到只使用散列的表格 。
-            // GetValidIdentifier() 扔掷 NotSupportedException 用来表示这些类型, 所以我们抓住它,然后返回无效。
+            // 某些类型（例如指针）没有有效的标识符形式，因此回退为仅使用哈希的形式。
+            // 对于这些类型，GetValidIdentifier() 会抛出 NotSupportedException，因此捕获该异常并返回 null 来表示这种情况。
             return null;
         }
     }

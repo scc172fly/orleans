@@ -9,12 +9,12 @@ using Orleans.LeaseProviders;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 配置 Azure 队列流和 Azure 布罗布租赁供应商在 <see cref="ISiloBuilder"/>上的扩展方法。
+    /// 用于在 <see cref="ISiloBuilder"/> 上配置 Azure Queue 流和 Azure Blob 租约提供程序的扩展方法。
     /// </summary>
     public static class SiloBuilderExtensions
     {
         /// <summary>
-        /// 配置 silo 使用“ 紫色” 队列持久性流。
+        /// 配置 Silo 使用 Azure Queue 持久化流。
         /// </summary>
         public static ISiloBuilder AddAzureQueueStreams(this ISiloBuilder builder, string name,
             Action<SiloAzureQueueStreamConfigurator> configure)
@@ -25,7 +25,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 silo , 使用默认设置的“ zure” 队列持久性流
+        /// 配置 Silo 使用采用默认设置的 Azure Queue 持久化流。
         /// </summary>
         public static ISiloBuilder AddAzureQueueStreams(this ISiloBuilder builder, string name, Action<OptionsBuilder<AzureQueueOptions>> configureOptions)
         {
@@ -34,13 +34,13 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 silo 使用 Azure 将 JSON 序列化的持久性流排成队列。
-        /// 这是试验性的,今后更新时会改变。
+        /// 配置 Silo 使用采用 JSON 序列化的 Azure Queue 持久化流。
+        /// 此功能处于实验阶段，未来更新中可能发生变化。
         /// </summary>
-        /// <param name="builder">下 silo 建筑商</param>
-        /// <param name="name">流体提供者名称。</param>
-        /// <param name="configure"> JSON- 启用的 Azure 队列流提供者配置代表。</param>
-        /// <returns>下 silo 方法链的建筑工。</returns>
+        /// <param name="builder">Silo 构建器。</param>
+        /// <param name="name">流提供程序名称。</param>
+        /// <param name="configure">启用 JSON 的 Azure Queue 流提供程序的配置委托。</param>
+        /// <returns>用于链式调用的 Silo 构建器。</returns>
         [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
         public static ISiloBuilder AddAzureQueueJsonStreams(this ISiloBuilder builder, string name,
             Action<SiloAzureQueueJsonStreamConfigurator> configure)
@@ -51,13 +51,13 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 silo 使用 Azure 将具有 JSON 序列化和默认设置的持久性流排队。
-        /// 这是试验性的,今后更新时会改变。
+        /// 配置 Silo 使用采用 JSON 序列化和默认设置的 Azure Queue 持久化流。
+        /// 此功能处于实验阶段，未来更新中可能发生变化。
         /// </summary>
-        /// <param name="builder">下 silo 建筑商</param>
-        /// <param name="name">流体提供者名称。</param>
-        /// <param name="configureOptions">配置代表 Azure 队列选项。</param>
-        /// <returns>下 silo 方法链的建筑工。</returns>
+        /// <param name="builder">Silo 构建器。</param>
+        /// <param name="name">流提供程序名称。</param>
+        /// <param name="configureOptions">Azure Queue 选项的配置委托。</param>
+        /// <returns>用于链式调用的 Silo 构建器。</returns>
         [Experimental("StreamingJsonSerializationExperimental", UrlFormat = "https://github.com/dotnet/orleans/pull/9618")]
         public static ISiloBuilder AddAzureQueueJsonStreams(this ISiloBuilder builder, string name, Action<OptionsBuilder<AzureQueueOptions>> configureOptions)
         {
@@ -66,7 +66,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 silo 使用 azure blob 租赁供应商
+        /// 配置 Silo 使用 Azure Blob 租约提供程序。
         /// </summary>
         public static ISiloBuilder UseAzureBlobLeaseProvider(this ISiloBuilder builder, Action<OptionsBuilder<AzureBlobLeaseProviderOptions>> configureOptions)
         {
@@ -84,9 +84,9 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 silo 使用 azure blob 租赁供应商
+        /// 配置 Silo 使用 Azure Blob 租约提供程序。
         /// </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="configurator"/> 或 <paramref name="configureOptions"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="configurator"/> 或 <paramref name="configureOptions"/> 为 <see langword="null"/>。</exception>
         public static void UseAzureBlobLeaseProvider(this ISiloPersistentStreamConfigurator configurator, Action<OptionsBuilder<AzureBlobLeaseProviderOptions>> configureOptions)
         {
             ArgumentNullException.ThrowIfNull(configurator);

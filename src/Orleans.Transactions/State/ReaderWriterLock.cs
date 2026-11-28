@@ -22,20 +22,20 @@ namespace Orleans.Transactions.State
         private readonly ILogger logger;
         private readonly CancellationToken onDeactivating;
 
-        // 链接的锁定组列表
-        // 头部是目前持有锁定的组
+        // 锁组的链表。
+        // 链表头是当前持有锁的组。
         private LockGroup? currentGroup;
 
-        // 缓存最后已知最小值的缓存, 所以我们不必重新计算
+        // 缓存最后已知的最小值，减少重复计算。
         private DateTime cachedMin = DateTime.MaxValue;
         private Guid cachedMinId;
 
-        // 集体获取/解除锁
+        // 由彼此不冲突的事务组成的组，共同获取或释放锁。
         private class LockGroup : Dictionary<Guid, TransactionRecord<TState>>
         {
             public int FillCount;
             public List<PendingOperation>? PendingOperations;
-            public LockGroup? Next; // 等待获取锁定的排队待取交易
+            public LockGroup? Next; // 正在排队等待获取锁的事务。
             public DateTime? Deadline;
             public void Reset()
             {
@@ -77,16 +77,16 @@ namespace Orleans.Transactions.State
 
             await this.queue.Ready(transactionId);
 
-            // 搜索当前交易
+            // 搜索活跃事务。
             if (Find(transactionId, isRead && !exclusiveLock, out var group, out var record))
             {
-                // 检查是否我们已经丢失了一些读或写
+                // 检查是否已丢失某些读操作或写操作。
                 if (counter.Reads > record.NumberReads || counter.Writes > record.NumberWrites)
                 {
                     throw new OrleansBrokenTransactionLockException(transactionId.ToString(), "when re-entering lock");
                 }
 
-                // 检查操作是否与该组中的其他交易冲突
+                // 检查该操作是否与组内其他事务冲突。
                 if (HasConflict(isRead && !exclusiveLock, priority, transactionId, group, out var resolvable))
                 {
                     if (!resolvable)
@@ -97,7 +97,7 @@ namespace Orleans.Transactions.State
                     }
                     else
                     {
-                        // 将所有冲突推回
+                        // 回滚所有冲突的事务。
                         var conflicts = Conflicts(transactionId, group).ToList();
 
                         if (conflicts.Count > 0)
@@ -113,7 +113,7 @@ namespace Orleans.Transactions.State
             }
             else
             {
-                // 检查是否我们本该已经锁定
+                // 检查当前事务是否本应已持有此锁。
                 if (counter.Reads + counter.Writes > 0)
                 {
                     throw new OrleansBrokenTransactionLockException(transactionId.ToString(), "when trying to re-enter lock");
@@ -122,7 +122,7 @@ namespace Orleans.Transactions.State
                 var now = DateTime.UtcNow;
                 var lockTimeout = GetEffectiveLockTimeout(transactionTimeout, this.options.LockTimeout);
 
-                // 更新锁定截止时间
+                // 更新锁的截止时间。
                 if (group == currentGroup)
                 {
                     var deadline = AddTimeout(now, lockTimeout);
@@ -133,7 +133,7 @@ namespace Orleans.Transactions.State
                     LogTraceSetLockExpiration(new(group.Deadline));
                 }
 
-                // 为此交易创建新记录
+                // 为此事务创建新记录。
                 record = new TransactionRecord<TState>()
                 {
                     TransactionId = transactionId,
@@ -168,7 +168,7 @@ namespace Orleans.Transactions.State
 
             if (group != currentGroup)
             {
-                // 组获得锁定后,任务将执行
+                // 所属组获得锁后将执行该任务。
 
                 if (group.PendingOperations == null)
                     group.PendingOperations = new List<PendingOperation>();
@@ -177,7 +177,7 @@ namespace Orleans.Transactions.State
             }
             else
             {
-                // 执行任务
+                // 立即执行任务。
                 completion();
             }
 
@@ -291,13 +291,13 @@ namespace Orleans.Transactions.State
 
         public Task Rollback(Guid guid, bool notify, TransactionDiagnosticEvents.LockBreakReason reason)
         {
-            // 如果交易从未发生或已经退缩,则不op
+            // 如果事务从未发生或已经回滚，则不执行任何操作。
             if (!TryRemove(guid, out var record))
             {
                 return Task.CompletedTask;
             }
 
-            // 通知远程听众
+            // 通知远程监听方。
             if (!notify)
             {
                 return Task.CompletedTask;
@@ -341,7 +341,7 @@ namespace Orleans.Transactions.State
 
                 if (currentGroup != null)
                 {
-                    // 检查是否有任何组合成员准备退出锁定
+                    // 检查组内是否有成员已准备释放锁。
                     if (currentGroup.Count > 0)
                     {
                         if (LockExits(out var single, out var multiple))
@@ -366,7 +366,7 @@ namespace Orleans.Transactions.State
                         {
                             if (currentGroup.Deadline.Value < now)
                             {
-                                // 锁定组超时了 。
+                                // 锁组已超时。
                                 TimeSpan late = now - currentGroup.Deadline.Value;
                                 LogTraceBreakLockTimeout(new(currentGroup.Keys), Math.Floor(late.TotalMilliseconds));
                                 foreach (var transactionId in currentGroup.Keys)
@@ -388,7 +388,7 @@ namespace Orleans.Transactions.State
                             {
                                 LogTraceRecheckLockExpiration(new(currentGroup.Deadline));
 
-                                // 当组合过期时再次检查
+                                // 在组到期时再次检查。
                                 lockWorker.Notify(currentGroup.Deadline.Value);
                             }
                         }
@@ -400,14 +400,14 @@ namespace Orleans.Transactions.State
 
                     else
                     {
-                        // 锁定为空,新组合可以输入
+                        // 当前锁无人持有，新组可以进入。
                         currentGroup = currentGroup.Next;
 
                         if (currentGroup != null)
                         {
-                            // 无法成功时的过期服务过者
-                            // 因为他们等待锁的时间比
-                            // 交易总交易总超时
+                            // 丢弃没有机会成功的、已过期的等待者，
+                            // 因为其等待锁的时间已经超过
+                            // 事务的总超时时间。
                             var expiredWaiters = currentGroup
                                 .Where(kvp => now > kvp.Value.Deadline)
                                 .Select(kvp => kvp.Key)
@@ -438,7 +438,7 @@ namespace Orleans.Transactions.State
                                     LogTraceEnterLockKey(kvp.Key);
                             }
 
-                            // 执行全部读和更新任务
+                            // 执行所有读取和更新任务。
                             if (currentGroup.PendingOperations != null)
                             {
                                 var pendingOperations = currentGroup.PendingOperations;
@@ -508,7 +508,7 @@ namespace Orleans.Transactions.State
                         return true;
                     }
 
-                    // 如果我们还没有找到地方插入这一行动,而且有空间,没有冲突,就使用这个
+                    // 如果尚未找到插入此操作的位置，且当前组有空间并且没有冲突，则使用当前组。
                     if (group == null
                         && pos.FillCount < this.options.MaxLockGroupSize
                         && !HasConflict(isRead, DateTime.MaxValue, guid, pos, out _))
@@ -516,9 +516,9 @@ namespace Orleans.Transactions.State
                         group = pos;
                     }
 
-                    if (pos.Next == null) // 我们没有发现这个tx。
+                    if (pos.Next == null) // 未找到此事务。
                     {
-                        // 添加一个新的空组以插入此 tx 。 如果我们尚未找到该 tx , 则要插入
+                        // 如果尚未找到适当的组，则添加一个空组以插入此事务。
                         if (group == null)
                         {
                             group = pos.Next = new LockGroup();
@@ -579,11 +579,11 @@ namespace Orleans.Transactions.State
             single = null;
             multiple = null;
 
-            // 单元素的快速路径
+            // 对仅有一个元素的情形使用快速路径。
             if (currentGroup!.Count == 1)
             {
                 var kvp = currentGroup.First();
-                if (kvp.Value.Role == CommitRole.NotYetDetermined) // 未收到TA公司承诺
+                if (kvp.Value.Role == CommitRole.NotYetDetermined) // 尚未收到来自 TA 的提交消息。
                 {
                     return false;
                 }
@@ -598,7 +598,7 @@ namespace Orleans.Transactions.State
             }
             else
             {
-                // 找到当前最小值, 如果我们没有有效的缓存
+                // 如果没有有效的最小值缓存，则查找当前最小值。
                 if (cachedMin == DateTime.MaxValue
                     || !currentGroup.TryGetValue(cachedMinId, out var record)
                     || record.Role != CommitRole.NotYetDetermined
@@ -607,7 +607,7 @@ namespace Orleans.Transactions.State
                     cachedMin = DateTime.MaxValue;
                     foreach (var kvp in currentGroup)
                     {
-                        if (kvp.Value.Role == CommitRole.NotYetDetermined) // 未收到TA公司承诺
+                        if (kvp.Value.Role == CommitRole.NotYetDetermined) // 尚未收到来自 TA 的提交消息。
                         {
                             if (cachedMin > kvp.Value.Timestamp)
                             {
@@ -618,10 +618,10 @@ namespace Orleans.Transactions.State
                     }
                 }
 
-                // 查找已释放条目
+                // 查找已释放的条目。
                 foreach (var kvp in currentGroup)
                 {
-                    if (kvp.Value.Role != CommitRole.NotYetDetermined) // 准备承诺
+                    if (kvp.Value.Role != CommitRole.NotYetDetermined) // 已准备好提交。
                     {
                         if (kvp.Value.Timestamp < cachedMin)
                         {
@@ -722,7 +722,7 @@ namespace Orleans.Transactions.State
         )]
         private partial void LogTraceLockGroupSize(int count, DateTimeLogRecord deadline);
 
-        // "内锁{钥匙}"
+        // "Enter-lock {Key}"
         [LoggerMessage(
             Level = LogLevel.Trace,
             Message = "Enter-lock {Key}"

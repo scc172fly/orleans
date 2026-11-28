@@ -28,7 +28,7 @@ namespace Tester.StreamingTests
             Dictionary<string, int> responsibilityMap = await leaseManager.GetResponsibilityMap(cancellationToken);
             if (lastTry)
             {
-                //应该是有 StreamQueueBalancer 百分比/ 百 silo
+                //每个 Silo 应有一个 StreamQueueBalancer。
                 Assert.Equal(siloCount, responsibilityMap.Count);
                 foreach (int responsibility in responsibilityMap.Values)
                 {

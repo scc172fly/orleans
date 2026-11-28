@@ -1,6 +1,6 @@
 ---
-title: "配置 PubSub 存储"
-description: "持久性 Orleans 使用 PubSubStore grain 储存提供者。"
+title: 配置 PubSub 存储
+description: 使用 PubSubStore Grain 存储提供程序持久化 Orleans 流的订阅元数据。
 ms.date: 08/02/2026
 ms.topic: how-to
 ---
@@ -9,37 +9,37 @@ ms.topic: how-to
 
 # 配置 PubSub 存储
 
-Orleans 流源供应商使用酒吧/分会合连接生产者和消费者。 grain 存储供应商的名称 `PubSubStore` 储存了 grain-基于酒吧/分会执行的明确的订阅元数据。
+Orleans 流提供程序通过发布/订阅会合机制连接生产者与消费者。名为 `PubSubStore` 的 Grain 存储提供程序保存基于 Grain 的发布/订阅实现所使用的显式订阅元数据。
 
-是否保持`PubSubStore` 的耐久性决定了明确订阅记录是否在群组失去记忆状态后继续存在:
+`PubSubStore` 的持久性决定了显式订阅记录能否在集群内存状态丢失后继续存在：
 
-- <xref:Orleans.Hosting.MemoryGrainStorageSiloBuilderExtensions.AddMemoryGrainStorage*> 配置时使用名称 `PubSubStore` 适合开发和测试。当集群状态丢失时,记录就会丢失。
-- 耐久 grain 存储供应商保存整个 silo 和集群重新启动的记录,但以该供应商本身的可用性和一致性为条件。
-- 暗含订阅来自 grain 元数据,而不是作为明确的订阅记录创建。
+- 调用 <xref:Orleans.Hosting.MemoryGrainStorageSiloBuilderExtensions.AddMemoryGrainStorage*> 并将名称配置为 `PubSubStore`，适用于开发和测试。集群状态丢失时，这些记录也会丢失。
+- 持久化 Grain 存储提供程序能跨 Silo 和集群重启保留记录，具体取决于该提供程序自身的可用性与一致性保证。
+- 隐式订阅从 Grain 元数据派生，而不是作为显式订阅记录创建。
 
-即便有耐久 `PubSubStore`,明确的消费者在激活后必须调用 <xref:Orleans.Streams.StreamSubscriptionHandle`1.ResumeAsync*> 附加其当前观察实例。相反,持久事件存储并不能使订阅记录具有耐久性。根据回收要求配置两个层次。
+即使使用持久化 `PubSubStore`，显式消费者仍必须在激活后调用 <xref:Orleans.Streams.StreamSubscriptionHandle`1.ResumeAsync*>，以附接当前观察者实例。反过来，事件存储具有持久性也不意味着订阅记录具有持久性。请根据恢复要求分别配置这两个层面。
 
 <a id="azure-table-storage-example"></a>
 
-## Azure 表格存储示例
+## Azure Table Storage 示例
 
-首选 <xref:Orleans.Hosting.AzureTableSiloBuilderExtensions.AddAzureTableGrainStorage*> 的被管理身份 :
+推荐使用托管标识与 <xref:Orleans.Hosting.AzureTableSiloBuilderExtensions.AddAzureTableGrainStorage*>：
 
 :::code language="csharp" source="snippets/streaming/Configuration.cs" id="pubsub_managed_identity":::
 
-也支持连接字符串:
+也支持使用连接字符串：
 
 :::code language="csharp" source="snippets/streaming/Configuration.cs" id="pubsub_connection_string":::
 
-使用稳定的 Orleans 服务代号,并在集群重新启动时使用相同的耐久存储配置。更改服务身份或删除支持表格将创建符合逻辑的新订阅登记簿。
+集群重启前后应使用稳定的 Orleans 服务 ID 以及相同的持久化存储配置。更改服务标识或删除底层表会创建一个逻辑上全新的订阅注册表。
 
 <a id="operational-guidance"></a>
 
-## 业务指导
+## 运维指南
 
-- 备份并像其它应用程序元数据一样监视 `PubSubStore` 。
-- 保持提供者名称稳定。 提供者重命名会从酒吧/ 子系统的角度更改流身份 。
-- 在不再需要时删除订阅, 以 <xref:Orleans.Streams.StreamSubscriptionHandle`1.UnsubscribeAsync*> 方式删除订阅。
-- 在替换 `PubSubStore`之前,先计划如何重新创建现有的明确订阅。
+- 像其他应用程序元数据一样备份和监控 `PubSubStore`。
+- 保持提供程序名称稳定。从发布/订阅系统的角度看，重命名提供程序会改变流标识。
+- 不再需要订阅时，请使用 <xref:Orleans.Streams.StreamSubscriptionHandle`1.UnsubscribeAsync*> 移除订阅。
+- 更换 `PubSubStore` 之前，请规划如何重新创建现有显式订阅。
 
-内部会合和拉动剂设计见 [Orleans 流执行](../implementation/streams-implementation/index.md)。
+有关内部会合机制与拉取代理的设计，请参阅 [Orleans 流的实现](../implementation/streams-implementation/index.md)。

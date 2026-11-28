@@ -85,7 +85,7 @@ internal sealed class CosmosClusteringProviderBuilder : IProviderBuilder<ISiloBu
                 }
                 else
                 {
-                    // 构造连接字符串中的连接多路驱动器。
+                    // 根据连接字符串构造连接多路复用器。（译注：此处实际配置 CosmosClient。）
                     var connectionName = configurationSection["ConnectionName"];
                     var connectionString = configurationSection["ConnectionString"];
                     if (!string.IsNullOrEmpty(connectionName) && string.IsNullOrEmpty(connectionString))

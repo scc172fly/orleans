@@ -13,9 +13,9 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// 当网关超载时, 测试负荷切换功能 。
+    /// 测试网关过载时的负载削减功能。
     /// </summary>
-    // 如果我们同时进行测试, 每一次测试都应该单独运行 
+    // 若并行执行测试，则每个测试应隔离运行。
     [TestSuite("Functional")]
     [TestProvider("None")]
     [TestArea("Placement")]
@@ -57,7 +57,7 @@ namespace UnitTests.General
                 ISimpleGrain grain = this.fixture.GrainFactory.GetGrain<ISimpleGrain>(Random.Shared.Next(), SimpleGrain.SimpleGrainNamePrefix);
                 LatchIsOverloaded(true);
 
-                // 接收信件时超载状态
+                // 过载状态下不接受消息。
                 await Assert.ThrowsAsync<GatewayTooBusyException>(() => grain.SetA(5));
             }
             finally
@@ -82,14 +82,14 @@ namespace UnitTests.General
 
                 LatchIsOverloaded(true);
 
-                // 接收信件时超载状态
+                // 过载状态下不接受消息。
                 await Assert.ThrowsAsync<GatewayTooBusyException>(() => grain.SetA(2));
 
                 this.fixture.Logger.LogInformation("Second set was shed");
 
                 LatchIsOverloaded(false);
 
-                // 超载清除后简单请求成功
+                // 过载解除后，简单请求应成功。
                 await grain.SetA(4);
                 this.fixture.Logger.LogInformation("Third set succeeded");
             }

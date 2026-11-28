@@ -12,7 +12,7 @@ using Orleans.Runtime.Utilities;
 namespace Orleans.Runtime.GrainDirectory;
 
 /// <summary>
-/// 代表分布式 grain 目录的单个毗连分割区。
+/// 表示分布式 Grain 目录中的一个连续分区。
 /// </summary>
 internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDirectoryPartition, IGrainDirectoryTestHooks
 {
@@ -41,14 +41,14 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
 
     private readonly TimeProvider _timeProvider;
 
-    // 无法使用的范围, 例如因为分割区目前正在从先前的拥有者中转移这些区域 。
-    // 这些幅度内的要求必须等待幅度的提供。
+    // 当前无法提供服务的范围，例如分区正在从原所有者转移这些范围。
+    // 属于这些范围的请求必须等待范围变为可用。
     private readonly List<(RingRange Range, MembershipVersion Version, TaskCompletionSource Completion)> _rangeLocks = [];
 
-    // 先前至少部分属于该分区的、但有待转移到新分区的区域。
+    // 之前至少部分由当前分区拥有，但正在等待移交给新分区的范围。
     private readonly List<PartitionSnapshotState> _partitionSnapshots = [];
 
-    // 仅用于诊断目的。
+    // 仅用于诊断跟踪。
     private readonly List<Task> _viewChangeTasks = [];
     private CancellationToken ShutdownToken => _owner.OnStoppedToken;
 
@@ -61,13 +61,13 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
     /// <summary>
     /// 初始化 <see cref="GrainDirectoryPartition"/> 类的新实例。
     /// </summary>
-    /// <param name="partitionIndex">此 silo上的这个分区的索引。 每个 silo 都拥有固定数量的动态大小分区。</param>
-    /// <param name="owner">拥有此分区的分布式 grain 目录。</param>
-    /// <param name="deadSiloLeaseDuration">安全租赁期限在一次背着 silo 失败。</param>
-    /// <param name="grainFactory">下 grain 用于访问远程目录分区的工厂。</param>
-    /// <param name="directoryInstruments">下 grain 电路测量仪器</param>
-    /// <param name="timeProvider">用于管理安全租赁到期时间的供应商。</param>
-    /// <param name="shared">系统目标的共享运行时间服务。</param>
+    /// <param name="partitionIndex">该分区在当前 Silo 上的索引。每个 Silo 托管固定数量、大小动态调整的分区。</param>
+    /// <param name="owner">拥有此分区的分布式 Grain 目录。</param>
+    /// <param name="deadSiloLeaseDuration">Silo 非正常故障后施加的安全租约持续时间。</param>
+    /// <param name="grainFactory">用于访问远程目录分区的 Grain 工厂。</param>
+    /// <param name="directoryInstruments">Grain 目录的遥测度量工具。</param>
+    /// <param name="timeProvider">用于管理安全租约过期的时间提供程序。</param>
+    /// <param name="shared">供系统目标使用的共享运行时服务。</param>
     public GrainDirectoryPartition(
         int partitionIndex,
         DistributedGrainDirectory owner,
@@ -88,7 +88,7 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
         shared.ActivationDirectory.RecordNewTarget(this);
     }
 
-    // 目前的目录成员快照。
+    // 当前目录成员资格快照。
     public DirectoryMembershipSnapshot CurrentView { get; private set; } = DirectoryMembershipSnapshot.Default;
 
     public async ValueTask<DirectoryMembershipSnapshot> RefreshViewAsync(MembershipVersion version, CancellationToken cancellationToken)
@@ -121,7 +121,7 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
         cancellationToken.ThrowIfCancellationRequested();
         LogTraceGetSnapshotAsync(_logger, version, rangeVersion, range);
 
-        // 等待区域被打开
+        // 等待范围解锁。
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ShutdownToken);
         await WaitForRange(range, version, linkedCts.Token);
 
@@ -135,7 +135,7 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
                 continue;
             }
 
-            // 只包括请求范围内的地址。
+            // 仅包含所请求范围内的地址。
             foreach (var address in partitionSnapshot.GrainAddresses)
             {
                 if (range.Contains(address.GrainId))
@@ -201,7 +201,7 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
 
                 LogDebugRemovingSnapshot(_logger, partitionSnapshot.DirectoryMembershipVersion, string.Join(", ", _partitionSnapshots.Select(s => s.DirectoryMembershipVersion)));
 
-                // 如果已请求关闭,且不再有未处理的快照,即信号完成。
+                // 如果已请求关闭且没有待处理的快照，则发出完成信号。
                 if (_drainSnapshotsCts.IsCancellationRequested && _partitionSnapshots.Count == 0)
                 {
                     _snapshotsDrainedTcs.TrySetResult();
@@ -322,9 +322,9 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
 
         if (ShouldCreateDeadSiloLease(change) && _deadSiloLeaseDuration > TimeSpan.Zero)
         {
-            // 我们不是删除,而是把它标记为墓碑。
-            // 这样,健康 silo 上的新激活无法登记
-            // 直到我们确定死者 silo 已经停止处理。
+            // 不直接删除，而是将其标记为墓碑记录。
+            // 这样可以防止健康 Silo 上的新激活实例进行注册，
+            // 直到确认已死亡的 Silo 确实停止处理请求。
 
             var expiration = _timeProvider.GetUtcNow().Add(_deadSiloLeaseDuration);
 
@@ -392,7 +392,7 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
                     LogWarningErrorWaitingForRangeToUnlock(_logger, exception);
                 }
 
-                // 删除指定分区前或指定版本等值之前或之前与给定分区相关的所有快照 。
+                // 移除与给定分区关联、版本早于或等于指定版本的全部快照。
                 RemoveSnapshotTransferPartner(
                     (Version: version, SiloAddress: siloAddress, PartitionIndex: partitionIndex),
                     snapshotFilter: (state, snapshot) => snapshot.DirectoryMembershipVersion <= state.Version,
@@ -423,7 +423,7 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
         var addedRange = _currentRange.Difference(previousRange).SingleOrDefault();
 
 #if DEBUG
-        Debug.Assert(addedRange.IsEmpty ^ removedRange.IsEmpty || addedRange.IsEmpty && removedRange.IsEmpty); // 要么射程扩大,要么缩小,但两者都不是。
+        Debug.Assert(addedRange.IsEmpty ^ removedRange.IsEmpty || addedRange.IsEmpty && removedRange.IsEmpty); // 范围要么扩大，要么缩小，不会同时发生这两种变化。
         Debug.Assert(previousRange.Difference(_currentRange).Count() < 2);
         Debug.Assert(_currentRange.Difference(previousRange).Count() < 2);
         Debug.Assert(_currentRange.Size == previousRange.Size + addedRange.Size - removedRange.Size);
@@ -458,12 +458,12 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
 
         try
         {
-            // 抓图删除当前范围以外的所有内容( N) 。
-            // 新业主在取得所有权时将有机会检索快照。
+            // 为当前范围之外的全部内容创建快照并将其移除。
+            // 新所有者取得所有权时，将有机会获取该快照。
             List<GrainAddress> removedAddresses = [];
             HashSet<(SiloAddress, int)> transferPartners = [];
 
-            // 等待移除区域成为有效。
+            // 等待即将移除的范围变为有效。
             await WaitForRange(removedRange, previous.Version);
 
             GrainRuntime.CheckRuntimeContext(this);
@@ -478,7 +478,7 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
                 }
             }
 
-            // 收集所有不在自有范围内的地址 。
+            // 收集所有不在当前拥有范围内的地址。
             foreach (var entry in _directory)
             {
                 if (removedRange.Contains(entry.Key))
@@ -487,7 +487,7 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
                 }
             }
 
-            // 从分区中删除这些地址 。
+            // 从分区移除这些地址。
             foreach (var address in removedAddresses)
             {
                 if (transferPartners.Count > 0)
@@ -522,8 +522,8 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
     private async Task AcquireRangeAsync(DirectoryMembershipSnapshot previous, DirectoryMembershipSnapshot current, RingRange addedRange)
     {
         GrainRuntime.CheckRuntimeContext(this);
-        // 中止先前所有者提供的射程和传输状态 。
-        // 如果前任无法进入或成员资格迅速增加,我们将宣布数据丢失并释放出射程。
+        // 暂停该范围的服务，并从原所有者转移状态。
+        // 如果前驱节点变得不可用或成员资格迅速推进，则宣告数据丢失并解锁范围。
         var (tcs, sw) = LockRange(addedRange, current.Version, GrainDirectoryEvents.AcquireOperationName);
 
         try
@@ -532,13 +532,13 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
             LogDebugAcquiringRange(_logger, addedRange);
             stopwatch = CoarseStopwatch.StartNew();
 
-            // 如果新版本的视图变化与前一个版本的相同,则该视图变化为毗连。
-            // 如果没有,我们错过了一些更新,因此我们必须宣布可能发生数据丢失事件。
+            // 如果新版本恰好比旧版本大 1，则此次视图变更是连续的。
+            // 否则说明遗漏了一些更新，因此必须宣告可能发生数据丢失的事件。
             var isContiguous = current.Version.Value == previous.Version.Value + 1;
             bool success;
             if (isContiguous)
             {
-                // 从前所有者转移子交易项 。
+                // 从原所有者转移子范围。
                 var tasks = new List<Task<bool>>();
                 foreach (var previousOwner in previous.Members)
                 {
@@ -553,8 +553,8 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
                     }
                 }
 
-                // 注意:在此点之前不应有“等待”点。
-                // 等待这一点,就会造成幅度没有同步锁定。
+                // 注意：在到达此处之前不应存在 await 点。
+                // 如果在此处之前执行 await，将导致范围无法同步加锁。
                 await Task.WhenAll(tasks).WaitAsync(ShutdownToken).SuppressThrowing();
                 if (ShutdownToken.IsCancellationRequested)
                 {
@@ -581,11 +581,11 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
                     GrainDirectoryEvents.EmitRangeLeaseHoldCreated(_id, addedRange, expiration);
                 }
 
-                // 等待打开前几个版本后再继续。
+                // 在继续之前等待旧版本解锁。
                 await WaitForRange(addedRange, previous.Version);
 
-                // 继续追回(从其他 silos中提取),
-                // 但登记电话现在会被禁闭 禁区租赁
+                // 开始恢复（从其他 Silo 获取数据），
+                // 但注册调用此时会被范围租约保留阻塞。
                 await RecoverPartitionRange(current, addedRange);
 
                 recovered = true;
@@ -657,7 +657,7 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
         var canceled = ShutdownToken.IsCancellationRequested;
         if (canceled)
         {
-            // 如果分区被停止, 则范围从未解锁, 而任务则被取消 。
+            // 如果分区停止，则不会解锁范围，而是取消任务。
             tcs.SetCanceled(ShutdownToken);
         }
         else
@@ -700,7 +700,7 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
                     LogTraceRequestingEntries(_logger, transferRange, previousOwner, previousVersion);
                 }
 
-                // 换句话说,前主人可以按下快照。这里使用拉动法是因为这样做比较简单。
+                // 另一种做法是让原所有者推送快照。这里采用拉取方式，因为它更简单。
                 var snapshot = await InvokeOnClusterMember(
                     previousOwner,
                     cancellationToken => partition.GetSnapshotAsync(
@@ -727,12 +727,12 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
 
                 if (!waitedForRange)
                 {
-                    // 等待打开前几个版本后再继续。
+                    // 在继续之前等待旧版本解锁。
                     await WaitForRange(addedRange, previousVersion);
                     waitedForRange = true;
                 }
 
-                // 将数值纳入 grain 目录。
+                // 将这些值合并到 Grain 目录中。
                 foreach (var entry in snapshot.GrainAddresses)
                 {
                     DebugAssertOwnership(current, entry.GrainId);
@@ -758,7 +758,7 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
                 LogDebugTransferredEntries(_logger, transferredEntries, previousTransferRange, previousOwner);
             }
 
-            // 承认步骤使前所有人知道,已经收到快照,以便可以继续。
+            // 确认步骤让原所有者知道快照已被接收，从而可以继续处理后续工作。
             InvokeOnClusterMember(
                 previousOwner,
                 async cancellationToken => await partition.AcknowledgeSnapshotTransferAsync(
@@ -829,10 +829,10 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
 
     internal static GrainAddress? RecoverEntry(Dictionary<GrainId, GrainAddress> directory, GrainAddress recovered)
     {
-        // 在滚动升级期间, LocalGrainDirectory 不参加 DistributedGrainDirectory的
-        // 恢复登记障碍,并可以报告被更新的会员观点取代的激活。
-        // 这是唯一预期的回收返回一个 grain不同登记的唯一情况。
-        // 最新的观点,同时保留回收的现有最后反应在相同观点中打破了联系。
+        // 滚动升级期间，LocalGrainDirectory 不参与 DistributedGrainDirectory 的
+        // 恢复注册屏障，因而可能报告在更新成员资格视图中已被替代的激活实例。
+        // 这是恢复过程针对同一 Grain 返回不同注册记录的唯一预期情况。应保留
+        // 最新视图，同时在相同视图内继续使用恢复过程原有的最后响应胜出规则。
         if (!directory.TryGetValue(recovered.GrainId, out var existing))
         {
             directory[recovered.GrainId] = recovered;
@@ -901,7 +901,7 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
 
     private async IAsyncEnumerable<List<GrainAddress>> GetRegisteredActivations(DirectoryMembershipSnapshot current, RingRange range, bool isValidation)
     {
-        // 保证成员至少与目前的观点一样是最新的。
+        // 保证成员资格视图至少与当前视图一样新。
         var clusterMembershipSnapshot = _owner.ClusterMembershipSnapshot;
         Debug.Assert(clusterMembershipSnapshot.Version >= current.Version);
 
@@ -965,8 +965,8 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
         return previousOwnerRange.Intersections(addedRange);
     }
 
-    // 目录的回收和验证可能暂时涉及非常大的范围。
-    // 将这些请求分开处理,以便退回的 GrainAddress 清单在 MaxMessageBodySize之下保持舒适。
+    // 目录恢复和验证可能临时涉及非常大的范围。
+    // 拆分这些请求，使返回的 GrainAddress 列表大小明显低于 MaxMessageBodySize。
     internal static IEnumerable<(RingRange TransferRange, RingRange QueryRange)> GetSnapshotTransferQueryRanges(RingRange previousOwnerRange, RingRange addedRange)
     {
         foreach (var transferRange in GetSnapshotTransferRanges(previousOwnerRange, addedRange))
@@ -1282,8 +1282,8 @@ internal sealed partial class GrainDirectoryPartition : SystemTarget, IGrainDire
 
                 if (expiredSilos.Count > 0)
                 {
-                    // 这些是 grains 本来我们应该已经删除 当 silo 被标记为已死,
-                    // 但他们一直留在我们身边 直到我们确定 silo 确实死了
+                    // 这些 Grain 原本应该在 Silo 被标记为死亡时移除，
+                    // 但一直保留到确认该 Silo 实际死亡为止。
 
                     var removedCount = 0;
 

@@ -24,17 +24,17 @@ internal partial class StatelessWorkerGrainContext : IGrainContext, IAsyncDispos
 
 #pragma warning disable IDE0052 // Remove unread private members
     /// <summary>
-    /// 下 <see cref="Task"/> 代表《公约》 <see cref="RunMessageLoop"/> 请求
-    /// 本文仅写此,但绝无其他查阅途径。
-    /// 调试, 当能够识别与激活相对应的电文循环任务时可以
-    /// 有用。
+    /// <see cref="Task"/> 表示对 <see cref="RunMessageLoop"/> 的调用。
+    /// 此字段仅写入一次，除此之外从不访问。保留它是为了
+    /// 调试，因为识别与某个激活实例对应的消息循环任务
+    /// 可能有用。
     /// </summary>
     private readonly Task _messageLoopTask;
 #pragma warning restore IDE0052 // Remove unread private members
 
     private bool _terminated;
 
-    // 空闲工人搬运田
+    // 用于移除空闲工作者的字段。
     [SuppressMessage("Usage", "CA2213:Disposable fields should be disposed",
         Justification = "DisposeAsyncInternal clears this field and awaits Timer.DisposeAsync before completing context disposal.")]
     private Timer? _inspectionTimer;
@@ -206,10 +206,10 @@ internal partial class StatelessWorkerGrainContext : IGrainContext, IAsyncDispos
 
     private void CollectIdleWorkers()
     {
-        // 这些参数值是使用基因算法调整的,可能进行重新校正时见:
+        // 这些参数值通过遗传算法调优得出，如需重新调优，请参阅：
         // https://github.com/ledjon-behluli/Orleans.FullyAdaptiveStatelessWorkerSimulations/blob/main/Orleans.FullyAdaptiveStatelessWorkerSimulations/Program.cs
 
-        // 更多信息见:
+        // 更多信息请参阅：
         // https://www.ledjonbehluli.com/posts/orleans_adaptive_stateless_worker/
 
         const double Kp = 0.433;
@@ -223,7 +223,7 @@ internal partial class StatelessWorkerGrainContext : IGrainContext, IAsyncDispos
         }
 
         var averageWaitingCount = _workers.Count > 0 ? (double)totalWaitingCount / _workers.Count : 0d;
-        var error = -averageWaitingCount; // 我们的目标是等待0个计数: 0 - avgWC = -avgWC
+        var error = -averageWaitingCount; // 目标等待数为 0：0 - avgWC = -avgWC
 
         _integralTerm += error;
         var derivativeTerm = error - _previousError;
@@ -273,7 +273,7 @@ internal partial class StatelessWorkerGrainContext : IGrainContext, IAsyncDispos
             return;
         }
 
-        // 根据该电话进行所有权转让,包括目的地报告失败。
+        // 此调用转移所有权，即使目标报告失败也会如此。
         destination.ReceiveMessage(message);
     }
 
@@ -307,9 +307,9 @@ internal partial class StatelessWorkerGrainContext : IGrainContext, IAsyncDispos
 
     private IGrainContext? GetReplacementContext(Message message)
     {
-        // 目录无法返回此上下文, 因为之前我们设置了(_ kdate)
-        // 解除登记,终止的背景从未重新登记。
-        // 由目录返回的替换是同一 grain id的新上下文。
+        // 激活实例目录（Catalog）无法返回此上下文，因为我们在
+        // 注销它之前设置了 _terminated，且已终止的上下文绝不会重新注册。
+        // 激活实例目录返回的替代项是具有相同 Grain 标识的新上下文。
         Debug.Assert(_terminated);
         var replacement = _shared.Shared.InternalRuntime.Catalog.GetOrCreateActivation(
             GrainId,
@@ -329,12 +329,12 @@ internal partial class StatelessWorkerGrainContext : IGrainContext, IAsyncDispos
         var address = GrainAddress.GetAddress(Address.SiloAddress, Address.GrainId, ActivationId.NewId());
         var newWorker = (ActivationData)_innerActivator.CreateContext(address, []);
 
-        // 观察激活的创建/销毁生命周期
+        // 观察激活实例的创建和销毁生命周期。
         newWorker.SetComponent<IActivationLifecycleObserver>(this);
 
-        // 如果这是一个新的工人, 且在范围上有一个信息, 尝试获取请求背景并激活该工人
+        // 如果这是新工作者且当前作用域中有消息，则尝试获取请求上下文并激活该工作者。
         var requestContext = (message as Message)?.RequestContextData ?? [];
-        // ActivationData 拥有并处置激活超时。
+        // ActivationData 拥有并负责释放激活超时资源。
         newWorker.Activate(requestContext, CancellationToken.None);
         _workers.Add(newWorker);
         StatelessWorkerEvents.EmitWorkerCreated(this, newWorker, _workers.Count);
@@ -413,12 +413,12 @@ internal partial class StatelessWorkerGrainContext : IGrainContext, IAsyncDispos
         EnqueueWorkItem(WorkItemType.OnDestroyActivation, grainContext);
 
     public void Rehydrate(IRehydrationContext context) =>
-        // 移民得不到支持,但是如果有背景情况的话,我们需要处理它。
+        // 不支持迁移，但如果提供了上下文，则需要释放它。
         (context as IDisposable)?.Dispose();
 
     public void Migrate(Dictionary<string, object>? requestContext, CancellationToken cancellationToken)
     {
-        // 移民得不到支持,什么都不要做:合同是这种方式试图移徙,但不能保证移徙会发生。
+        // 不支持迁移。不执行任何操作：契约规定此方法会尝试迁移，但不保证迁移一定发生。
     }
 
     private enum WorkItemType

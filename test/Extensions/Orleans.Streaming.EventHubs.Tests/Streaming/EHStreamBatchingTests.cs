@@ -9,7 +9,7 @@ using Xunit;
 namespace ServiceBus.Tests.Streaming
 {
     /// <summary>
-    /// 测试 EventHub 流分批功能,其中含有暗含订阅。
+    /// 测试 Event Hub 隐式订阅中的流批处理功能。
     /// </summary>
     [TestCategory("EventHub")]
     [TestSuite("Functional")]

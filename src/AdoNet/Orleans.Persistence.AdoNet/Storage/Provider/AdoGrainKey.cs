@@ -5,8 +5,8 @@ using System.Text;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// 这是一个内部辅助人员类, 收集 grain 关键信息
-    /// 这样在数据库操作期间更容易管理。
+    /// 此内部辅助类收集 Grain 键信息，
+    /// 以便在数据库操作期间更轻松地管理这些信息。
     /// </summary>
     internal class AdoGrainKey
     {

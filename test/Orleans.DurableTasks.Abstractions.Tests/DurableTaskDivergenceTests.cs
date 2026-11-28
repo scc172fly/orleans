@@ -5,8 +5,8 @@ using Xunit;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// 证明,重播其记录与纪录不符的一幕使它的努力停滞不前
-/// <see cref="DurableTaskAttemptCancellationReason.Diverged"/>以及抽象主义拥有的尝试规则
+/// 验证偏离记录的重放会使其执行尝试因
+/// <see cref="DurableTaskAttemptCancellationReason.Diverged"/> 而停滞，并验证由抽象层负责的执行尝试规则。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -31,7 +31,7 @@ public class DurableTaskDivergenceTests
                 }
                 catch (InvalidOperationException)
                 {
-                    // 分裂不是身体能处理的失败
+                    // 分歧并非任务体可以处理的普通失败。
                 }
             }),
             context);
@@ -72,8 +72,8 @@ public class DurableTaskDivergenceTests
     [Fact]
     public async Task CompletedWaitIsReadOnce()
     {
-        // 东道方可以返回一个 ValueTask ,并由一个集合源支持,该来源报告另一业务的结果或抛出;
-        // 当它被读取两次时。
+        // 宿主可能返回由池化源支持的 ValueTask；重复读取时，该源可能返回另一操作的结果，或
+        // 抛出异常。
         var context = new ScriptedContext { SingleUseResult = DurableTaskResponse.FromResult(7) };
 
         var response = await DurableTaskRuntimeHelper.RunAsync(DurableTask.Run(async _ => await DurableTask.Run(static _ => 0)), context);
@@ -90,7 +90,7 @@ public class DurableTaskDivergenceTests
             DurableTask.WhenAll([DurableTask.Run(static _ => 1), DurableTask.Run(static _ => 2), DurableTask.Run(static _ => 3)]),
             context);
 
-        // 启动的每个输入都是启动失败前的终端, 第一个输入顺序中的第一个, 无法完成组合。
+        // 在启动失败（按输入顺序的第一个失败）使组合器失败前，每个已启动的输入都已达到终态。
         Assert.Equal("start 1", Assert.IsType<InvalidOperationException>(response.Exception).Message);
         Assert.Equal(["root/$when-all-1/0", "root/$when-all-1/2"], context.Canceled.Select(static id => id.ToString()).Order(StringComparer.Ordinal));
         Assert.All(context.Handles.Values, static handle => Assert.True(handle.IsTerminal));
@@ -114,7 +114,7 @@ public class DurableTaskDivergenceTests
     [Fact]
     public async Task HandleWaitEndsWhenTheAttemptIsCanceled()
     {
-        // 抽象将取消尝试与每次等待的手柄联系起来, 所以宿主不需要将其本身连接起来。
+        // 抽象层将执行尝试的取消关联到每个句柄等待操作，因此宿主无需自行关联。
         var context = new ScriptedContext { PendingStarts = true };
 
         var running = DurableTaskRuntimeHelper.RunAsync(
@@ -134,8 +134,8 @@ public class DurableTaskDivergenceTests
     [Fact]
     public async Task ChildStartEndsWhenTheAttemptIsCanceled()
     {
-        // 抽象的将取消尝试的企图与每个孩子开始的时间联系起来,所以一个等待期儿童开始
-        // 等候时, 主机会像等待一样,尝试搁置待决的结束。
+        // 抽象层将执行尝试的取消关联到每个子任务的启动，因此即使宿主将某个被等待子任务的启动操作保持为待完成状态，
+        // 该子任务也会随执行尝试结束，正如其等待操作一样。
         var context = new ScriptedContext { HeldStarts = true };
 
         var running = DurableTaskRuntimeHelper.RunAsync(
@@ -152,7 +152,7 @@ public class DurableTaskDivergenceTests
     [Fact]
     public async Task ChildStartReportsTheCallersCancellation()
     {
-        // 启动报告在尝试继续时也具有象征意义。
+        // 调用者的令牌使待处理的启动被放弃；启动操作报告该令牌，而执行尝试继续运行。
         var context = new ScriptedContext { HeldStarts = true };
         using var caller = new CancellationTokenSource();
         OperationCanceledException? observed = null;
@@ -184,7 +184,7 @@ public class DurableTaskDivergenceTests
         Assert.True(context.AttemptCancellationToken.IsCancellationRequested);
     }
 
-    /// <summary>宿主的孩子们,选择和结果 每个测试脚本。</summary>
+    /// <summary>其子任务、选择和结果由各个测试预设的宿主。</summary>
     private sealed class ScriptedContext() : DurableTaskContext(RootId)
     {
         public TaskId? Selection { get; init; }
@@ -249,7 +249,7 @@ public class DurableTaskDivergenceTests
 
         public void OnCanceled(TaskId taskId) => Canceled.Add(taskId);
 
-        /// <summary>一直保持一个开始, 直到抽象给主机的符号被取消。</summary>
+        /// <summary>挂起启动操作，直到抽象层交给宿主的令牌被取消。</summary>
         private static async ValueTask<IScheduledTaskHandle> HoldAsync(CancellationToken cancellationToken)
         {
             await Task.Delay(Timeout.Infinite, cancellationToken);
@@ -288,7 +288,7 @@ public class DurableTaskDivergenceTests
         }
     }
 
-    /// <summary>完整的源,就像集合的源一样,可以读一次。</summary>
+    /// <summary>已完成的源，与池化源一样，只能读取一次。</summary>
     private sealed class SingleUseSource(DurableTaskResponse response) : IValueTaskSource<DurableTaskResponse>
     {
         private int _reads;

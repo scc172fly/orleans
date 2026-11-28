@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 定义无明确交易归属的 grain 调用。
+    /// 定义没有显式事务特性标注的 Grain 调用。
     /// </summary>
     public interface INoAttributionGrain : IGrainWithGuidKey
     {
@@ -14,7 +14,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 定义一个 grain 调用来抑制环境交易。
+    /// 定义抑制环境事务的 Grain 调用。
     /// </summary>
     public interface ISuppressAttributionGrain : IGrainWithGuidKey
     {
@@ -24,7 +24,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 定义加入环境交易或在没有时创建环境交易的 grain 调用。
+    /// 定义加入环境事务、在没有环境事务时创建事务的 Grain 调用。
     /// </summary>
     public interface ICreateOrJoinAttributionGrain : IGrainWithGuidKey
     {
@@ -34,7 +34,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 定义创建新交易的 grain 调用。
+    /// 定义创建新事务的 Grain 调用。
     /// </summary>
     public interface ICreateAttributionGrain : IGrainWithGuidKey
     {
@@ -44,7 +44,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 定义需要并加入环境交易的 grain 调用。
+    /// 定义要求存在环境事务并加入该事务的 Grain 调用。
     /// </summary>
     public interface IJoinAttributionGrain : IGrainWithGuidKey
     {
@@ -54,7 +54,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 定义在存在环境交易且没有环境交易时加入该交易的 grain 调用。
+    /// 定义环境事务存在时加入该事务、否则在无事务情况下运行的 Grain 调用。
     /// </summary>
     public interface ISupportedAttributionGrain : IGrainWithGuidKey
     {
@@ -64,7 +64,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 定义一个 grain 调用,该调用不交易,拒绝在其中调用。
+    /// 定义在无事务情况下运行并拒绝在事务内发起的调用的 Grain 调用。
     /// </summary>
     public interface INotAllowedAttributionGrain : IGrainWithGuidKey
     {
@@ -76,37 +76,37 @@ namespace Orleans.Transactions.TestKit
     #region wrappers
 
     /// <summary>
-    /// 提供 grain 参考文献的通用接口,其中含有不同的交易归属选项。
+    /// 为具有不同事务特性选项的 Grain 引用提供公共接口。
     /// </summary>
     public interface ITransactionAttributionGrain
     {
         /// <summary>
-        /// 记录当前分层观察到的交易识别符号,并依次引用其余的分层。
+        /// 记录当前层观测到的事务标识符，并递归调用其余各层。
         /// </summary>
-        /// <param name="tier">目前正在执行的零基级。</param>
-        /// <param name="tiers">其余的层级,每个元素包含 grains 引用在那一层。</param>
+        /// <param name="tier">当前正在执行的层的索引（从零开始）。</param>
+        /// <param name="tiers">其余各层，其中每个元素包含在该层调用的 Grain。</param>
         /// <returns>
-        /// 以包含该层级 grains 所观察到的交易识别符的层为单位的列数,按层为人口组的条目编制索引。
-        /// <see langword="null"/> 识别符号表示该呼叫没有交易。
+        /// 按层索引的数组，其中已填充的条目包含该层 Grain 观测到的事务标识符。
+        /// 标识符为 <see langword="null"/> 表示调用在无事务情况下运行。
         /// </returns>
         Task<List<string?>?[]> GetNestedTransactionIds(int tier, List<ITransactionAttributionGrain>[] tiers);
     }
 
     /// <summary>
-    /// 提供交易归属 grain 参考文件的帮助者和可连号调整器。
+    /// 为带事务特性的 Grain 引用提供辅助方法和可序列化的适配器。
     /// </summary>
     public static class TransactionAttributionGrainExtensions
     {
         /// <summary>
-        /// 为指定交易选项获取交易属性 grain 适配器。
+        /// 获取对应于指定事务选项的事务特性 Grain 适配器。
         /// </summary>
-        /// <param name="grainFactory">下 grain 用于解决 grain 参考。</param>
-        /// <param name="id"> grain 主键。</param>
+        /// <param name="grainFactory">用于解析 Grain 引用的 Grain 工厂。</param>
+        /// <param name="id">Grain 主键。</param>
         /// <param name="option">
-        /// 要应用的交易选项, 或使用 <see langword="null"/> 接口而不明确归属的 grain 交易选项。
+        /// 要应用的事务选项；指定 <see langword="null"/> 则使用没有显式事务特性标注的 Grain 接口。
         /// </param>
-        /// <returns>上方的适配器 grain 对应 <paramref name="option"/>.</returns>
-        /// <exception cref="NotSupportedException"><paramref name="option"/> 不是一个支持的交易选项。</exception>
+        /// <returns>对应于 <paramref name="option"/> 的 Grain 接口适配器。</returns>
+        /// <exception cref="NotSupportedException"><paramref name="option"/> 不是受支持的事务选项。</exception>
         public static ITransactionAttributionGrain GetTransactionAttributionGrain(this IGrainFactory grainFactory, Guid id, TransactionOption? option = null)
         {
             ArgumentNullException.ThrowIfNull(grainFactory);
@@ -135,13 +135,13 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 调整 grain 参引,无明确的交易归属。
+        /// 适配没有显式事务特性标注的 Grain 引用。
         /// </summary>
         [GenerateSerializer]
         public class NoAttributionGrain : ITransactionAttributionGrain
         {
             /// <summary>
-            /// 基本 grain 参考。
+            /// 底层 Grain 引用。
             /// </summary>
             [Id(0)]
             public INoAttributionGrain grain;
@@ -149,7 +149,7 @@ namespace Orleans.Transactions.TestKit
             /// <summary>
             /// 初始化 <see cref="NoAttributionGrain"/> 类的新实例。
             /// </summary>
-            /// <param name="grain">根本 grain 参考。</param>
+            /// <param name="grain">底层 Grain 引用。</param>
             public NoAttributionGrain(INoAttributionGrain grain)
             {
                 this.grain = grain;
@@ -163,13 +163,13 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 调整用于抑制环境交易的 grain 参考文献。
+        /// 适配抑制环境事务的 Grain 引用。
         /// </summary>
         [GenerateSerializer]
         public class SuppressAttributionGrain : ITransactionAttributionGrain
         {
             /// <summary>
-            /// 基本 grain 参考。
+            /// 底层 Grain 引用。
             /// </summary>
             [Id(0)]
             public ISuppressAttributionGrain grain;
@@ -177,7 +177,7 @@ namespace Orleans.Transactions.TestKit
             /// <summary>
             /// 初始化 <see cref="SuppressAttributionGrain"/> 类的新实例。
             /// </summary>
-            /// <param name="grain">根本 grain 参考。</param>
+            /// <param name="grain">底层 Grain 引用。</param>
             public SuppressAttributionGrain(ISuppressAttributionGrain grain)
             {
                 this.grain = grain;
@@ -191,13 +191,13 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 调整 grain 引用,该引用将加入环境交易或在不存在时创建。
+        /// 适配加入环境事务、在没有环境事务时创建事务的 Grain 引用。
         /// </summary>
         [GenerateSerializer]
         public class CreateOrJoinAttributionGrain : ITransactionAttributionGrain
         {
             /// <summary>
-            /// 基本 grain 参考。
+            /// 底层 Grain 引用。
             /// </summary>
             [Id(0)]
             public ICreateOrJoinAttributionGrain grain;
@@ -205,7 +205,7 @@ namespace Orleans.Transactions.TestKit
             /// <summary>
             /// 初始化 <see cref="CreateOrJoinAttributionGrain"/> 类的新实例。
             /// </summary>
-            /// <param name="grain">根本 grain 参考。</param>
+            /// <param name="grain">底层 Grain 引用。</param>
             public CreateOrJoinAttributionGrain(ICreateOrJoinAttributionGrain grain)
             {
                 this.grain = grain;
@@ -219,13 +219,13 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 调整创建新交易的 grain 引用。
+        /// 适配创建新事务的 Grain 引用。
         /// </summary>
         [GenerateSerializer]
         public class CreateAttributionGrain : ITransactionAttributionGrain
         {
             /// <summary>
-            /// 基本 grain 参考。
+            /// 底层 Grain 引用。
             /// </summary>
             [Id(0)]
             public ICreateAttributionGrain grain;
@@ -233,7 +233,7 @@ namespace Orleans.Transactions.TestKit
             /// <summary>
             /// 初始化 <see cref="CreateAttributionGrain"/> 类的新实例。
             /// </summary>
-            /// <param name="grain">根本 grain 参考。</param>
+            /// <param name="grain">底层 Grain 引用。</param>
             public CreateAttributionGrain(ICreateAttributionGrain grain)
             {
                 this.grain = grain;
@@ -247,13 +247,13 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 调整需要并加入环境交易的 grain 参考文献。
+        /// 适配要求存在环境事务并加入该事务的 Grain 引用。
         /// </summary>
         [GenerateSerializer]
         public class JoinAttributionGrain : ITransactionAttributionGrain
         {
             /// <summary>
-            /// 基本 grain 参考。
+            /// 底层 Grain 引用。
             /// </summary>
             [Id(0)]
             public IJoinAttributionGrain grain;
@@ -261,7 +261,7 @@ namespace Orleans.Transactions.TestKit
             /// <summary>
             /// 初始化 <see cref="JoinAttributionGrain"/> 类的新实例。
             /// </summary>
-            /// <param name="grain">根本 grain 参考。</param>
+            /// <param name="grain">底层 Grain 引用。</param>
             public JoinAttributionGrain(IJoinAttributionGrain grain)
             {
                 this.grain = grain;
@@ -275,13 +275,13 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 调整 grain 引用,当存在环境交易时支持该交易。
+        /// 适配在环境事务存在时支持该事务的 Grain 引用。
         /// </summary>
         [GenerateSerializer]
         public class SupportedAttributionGrain : ITransactionAttributionGrain
         {
             /// <summary>
-            /// 基本 grain 参考。
+            /// 底层 Grain 引用。
             /// </summary>
             [Id(0)]
             public ISupportedAttributionGrain grain;
@@ -289,7 +289,7 @@ namespace Orleans.Transactions.TestKit
             /// <summary>
             /// 初始化 <see cref="SupportedAttributionGrain"/> 类的新实例。
             /// </summary>
-            /// <param name="grain">根本 grain 参考。</param>
+            /// <param name="grain">底层 Grain 引用。</param>
             public SupportedAttributionGrain(ISupportedAttributionGrain grain)
             {
                 this.grain = grain;
@@ -303,13 +303,13 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 调整 grain 参考,以拒绝交易中发出的呼叫。
+        /// 适配 Grain 引用，该引用拒绝从事务内发起的调用。
         /// </summary>
         [GenerateSerializer]
         public class NotAllowedAttributionGrain : ITransactionAttributionGrain
         {
             /// <summary>
-            /// 基本 grain 参考。
+            /// 底层 Grain 引用。
             /// </summary>
             [Id(0)]
             public INotAllowedAttributionGrain grain;
@@ -317,7 +317,7 @@ namespace Orleans.Transactions.TestKit
             /// <summary>
             /// 初始化 <see cref="NotAllowedAttributionGrain"/> 类的新实例。
             /// </summary>
-            /// <param name="grain">根本 grain 参考。</param>
+            /// <param name="grain">底层 Grain 引用。</param>
             public NotAllowedAttributionGrain(INotAllowedAttributionGrain grain)
             {
                 this.grain = grain;

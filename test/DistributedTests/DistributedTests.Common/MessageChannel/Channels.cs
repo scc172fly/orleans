@@ -131,7 +131,7 @@ namespace DistributedTests.Common.MessageChannel
                         msg.MessageId,
                         msg.PopReceipt,
                         cancellationToken);
-                    // 刚刚解密的信息预计将被淡化为有效的T。
+                    // 刚出队的消息应能反序列化为有效的 T 类型值。
                     return JsonSerializer.Deserialize<T>(msg.MessageText)!;
                 }
 

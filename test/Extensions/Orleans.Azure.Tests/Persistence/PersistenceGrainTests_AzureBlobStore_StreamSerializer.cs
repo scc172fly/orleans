@@ -11,7 +11,7 @@ using static Tester.AzureUtils.Persistence.Base_PersistenceGrainTests_AzureStore
 namespace Tester.AzureUtils.Persistence;
 
 /// <summary>
-/// 校验 Azure blob 储存使用流序列器读写,如果有的话。
+/// 验证流式序列化器可用时，Azure Blob Storage 使用它执行读取和写入。
 /// </summary>
 [TestCategory("Persistence"), TestCategory("AzureStorage")]
 [TestSuite("Functional")]

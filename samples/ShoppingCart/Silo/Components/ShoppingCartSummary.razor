@@ -1,12 +1,12 @@
 <MudPaper Outlined="true" Class="flex-grow-1 px-4 pt-2 pb-4">
     <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-        <MudText Typo="Typo.h6">Cart Summary</MudText>
+        <MudText Typo="Typo.h6">购物车汇总</MudText>
         <MudIconButton Icon="@Icons.Material.Filled.AttachMoney" Color="Color.Default" Edge="Edge.End" />
     </MudStack>
     <MudStack Spacing="5">
     @if (Items is null or { Count: 0 })
     {
-        <MudText Class="py-16" Typo=Typo.h6 Align="Align.Center">Your cart is empty... ☹️</MudText>
+        <MudText Class="py-16" Typo=Typo.h6 Align="Align.Center">你的购物车是空的…… ☹️</MudText>
     }
     else
     {
@@ -27,13 +27,13 @@
     </MudStack>
     <MudStack Class="mt-4">
         <MudStack Row="true" Justify="Justify.SpaceBetween">
-            <MudText Typo=Typo.subtitle1><b>Pretax Total:</b></MudText>
+            <MudText Typo=Typo.subtitle1><b>税前总额：</b></MudText>
             <MudText Typo=Typo.subtitle1><b>@_totalCost</b></MudText>
         </MudStack>
         <MudButton Variant="Variant.Filled" Color="Color.Primary"
             Disabled="@(Items?.Count() == 0 ? true : false)"
             Size=@Size.Large>
-            Checkout
+            结算
         </MudButton>
     </MudStack>
 </MudPaper>

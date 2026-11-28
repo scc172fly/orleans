@@ -12,18 +12,18 @@ using Orleans.Runtime;
 namespace Orleans.Dashboard.Implementation;
 
 /// <summary>
-/// 利用反射法从
-/// <see cref="ISiloLifecycleSubject"/> ,以便仪表板能够将它们变成
-/// 依赖性图。
+/// 使用反射从
+/// <see cref="ISiloLifecycleSubject"/> 中提取已注册的生命周期观察者，以便 Dashboard 将其呈现为
+/// 依赖关系图。
 /// </summary>
 /// <remarks>
-/// 仪表板没有 <c>InternalsVisibleTo</c> 访问该天
-/// 运行时, 所以我们在 <c>SiloLifecycleSubject</c> 和私密状态行走
-/// <c>LifecycleSubject</c> 数据形状
-/// (<c>List&lt;MonitoredObserver&gt;</c> 排在《公约》 silo 主题,公开
-/// <c>Name</c>/<c>Stage</c>/<c>StageName</c> 属性和私人
-/// <c>observer</c> 字段)稳定,数据结构已经相同
-/// <c>SiloLifecycleSubject.OnStart</c>排放到日志上。
+/// Dashboard 没有通过 <c>InternalsVisibleTo</c> 获得对
+/// 运行时内部成员的访问权限，因此通过反射遍历 <c>SiloLifecycleSubject</c> 和
+/// <c>LifecycleSubject</c> 的私有状态。数据结构
+/// （Silo 生命周期主体上的 <c>List&lt;MonitoredObserver&gt;</c>，具有公开的
+/// <c>Name</c>、<c>Stage</c>、<c>StageName</c> 属性和私有的
+/// <c>observer</c> 字段）是稳定的，且与
+/// <c>SiloLifecycleSubject.OnStart</c> 已输出到日志中的数据结构相同。
 /// </remarks>
 internal static class LifecycleStageInspector
 {
@@ -38,10 +38,10 @@ internal static class LifecycleStageInspector
             return [];
         }
 
-        // silo的生命周期对象保留单独的 `observers` 字段
-        // 信息比《公约》更丰富的(清单<MonitoredObserver>)
-        // 基 `subscribers` 字段。最好这样做,但返回到基准列表
-        // 如果反射失败。
+        // Silo 的生命周期主体保留单独的 `observers` 字段
+        // （List<MonitoredObserver>），其中包含比
+        // 基类的 `subscribers` 字段更丰富的信息。优先使用前者；但如果反射失败，
+        // 则回退到基类列表。
         var monitored = TryReadField<System.Collections.IEnumerable>(lifecycle, "observers");
         if (monitored is not null)
         {
@@ -112,25 +112,25 @@ internal static class LifecycleStageInspector
             return info;
         }
 
-        // 基 LifecycleSubject 将每个注册的封以内部
-        // OrderedObserver. silo 主题包在 MonitoredObserver中再次。
-        // 如果反射返回, 解封一个额外的 MonitoredObserver 层。
+        // 基类 LifecycleSubject 使用内部的
+        // OrderedObserver 包装每次注册。Silo 生命周期主体再用 MonitoredObserver 包装它。
+        // 如果反射返回了 MonitoredObserver，则再解开一层包装。
         if (inner.GetType().Name == "MonitoredObserver")
         {
             inner = inner.GetType().GetField("observer", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(inner) ?? inner;
         }
 
-        // 尝试提取代表目标/方法。
-        // 将代表的包装在 LifecycleExtensions 中
-        // 私有 `Observer` (与 onStart/onStop 字段)或 `StartupObserver`
-        // (在 `_onStart` 字段中, OnStop 是无操作的)
+        // 尝试提取委托的目标与方法。LifecycleExtensions 中基于委托的
+        // Subscribe 重载将委托包装在
+        // 私有的 `Observer`（具有 onStart/onStop 字段）或 `StartupObserver`
+        // （具有 `_onStart` 字段，OnStop 为空操作）中。
         var innerType = inner.GetType();
         Delegate? onStart = TryReadDelegateField(inner, innerType, "onStart") ?? TryReadDelegateField(inner, innerType, "_onStart");
         Delegate? onStop = TryReadDelegateField(inner, innerType, "onStop") ?? TryReadDelegateField(inner, innerType, "_onStop");
 
         if (onStart is null && onStop is null && innerType.GetMethod("OnStart") is not null)
         {
-            // 具体 ILifecycleObserver 执行。
+            // 具体的 ILifecycleObserver 实现。
             info.ObserverType = FormatType(innerType);
             info.HasOnStart = true;
             info.HasOnStop = true;
@@ -164,16 +164,16 @@ internal static class LifecycleStageInspector
 
     private static bool IsNoOp(Delegate? d)
     {
-        // 我们处理编译器生成 `_ => Task.CompletedTask` 和
-        // 将无代表作为“不不”代表,让UI能够平暗
-        // 边缘。检测编译器关闭是最佳的尝试。
+        // 将编译器生成的 `_ => Task.CompletedTask` 和
+        // 共享的空操作委托视为“空操作”，仅为了让 UI 淡化相应的
+        // 连线。对编译器生成闭包的检测采用尽力而为的方式。
         if (d is null) return true;
         if (ReferenceEquals(d, NoOpStart) || ReferenceEquals(d, NoOpStop)) return true;
         var method = d.Method;
         if (method.DeclaringType is { } declaring && declaring.Name.Contains("<>c", StringComparison.Ordinal))
         {
-            // 兰巴达,如果不分析IL 我们无法肯定
-            // 当使用生命周期电线时,几乎总是没有机会。
+            // Lambda 表达式。不分析 IL 就无法确定，但在
+            // 生命周期注册中使用时，它几乎总是空操作。
             return true;
         }
         return false;
@@ -186,7 +186,7 @@ internal static class LifecycleStageInspector
         var declaring = method.DeclaringType;
         if (declaring is null) return CleanMethodName(method.Name);
 
-        // 关闭时,请步行到可看到的附件类型。
+        // 对于闭包，向外查找用户可见的外层类型。
         if (declaring.Name.StartsWith("<>c", StringComparison.Ordinal) && declaring.DeclaringType is not null)
         {
             declaring = declaring.DeclaringType;
@@ -202,10 +202,10 @@ internal static class LifecycleStageInspector
     }
 
     /// <summary>
-    /// 以羊羔制作的方法名称来绘制编译器生成的前缀
-    /// (<c>&lt;Outer&gt;b__N_N</c>)和局部功能
-    /// (<c>&lt;Outer&gt;g__Name|N_N</c>。本地功能保留其原始功能
-    /// 姓名; 匿名羊羔以 <c>&lt;lambda in Outer&gt;</c>.
+    /// 从 Lambda 表达式生成的方法名中去除编译器生成的前缀
+    /// （<c>&lt;Outer&gt;b__N_N</c>）以及局部函数的前缀
+    /// （<c>&lt;Outer&gt;g__Name|N_N</c>）。局部函数保留其原始
+    /// 名称；匿名 Lambda 表达式呈现为 <c>&lt;lambda in Outer&gt;</c>。
     /// </summary>
     private static string CleanMethodName(string methodName)
     {
@@ -214,8 +214,8 @@ internal static class LifecycleStageInspector
             return methodName;
         }
 
-        // 查找前导“ <” 的匹配 “% > , 计算嵌套
-        // 明确互动执行中诸如
+        // 查找与开头 '<' 匹配的 '>'，同时考虑类似下例的显式接口实现中的
+        // 嵌套尖括号。
         // `<Orleans.ILifecycleParticipant<Orleans.Runtime.ISiloLifecycle>.Participate>g__Name|N`.
         var depth = 0;
         var endOfOuter = -1;
@@ -240,9 +240,9 @@ internal static class LifecycleStageInspector
         }
 
         var outer = methodName.AsSpan(1, endOfOuter - 1).ToString();
-        // 减少明确接口执行,如
-        // `Orleans.ILifecycleParticipant<...>.Participate` 下到仅
-        // 后退方法名称( 参与) 。
+        // 将类似以下形式的显式接口实现
+        // `Orleans.ILifecycleParticipant<...>.Participate` 简化为
+        // 末尾的方法名称（Participate）。
         var lastDot = LastTopLevelDot(outer);
         if (lastDot >= 0)
         {
@@ -252,7 +252,7 @@ internal static class LifecycleStageInspector
         var suffix = methodName.AsSpan(endOfOuter + 1);
         if (suffix.Length >= 3 && suffix[0] == 'g' && suffix[1] == '_' && suffix[2] == '_')
         {
-            // <Outer>g__ 本地Name _N_N - > LocalName
+            // <Outer>g__LocalName|N_N -> LocalName
             var rest = suffix[3..];
             var pipe = rest.IndexOf('|');
             var localName = pipe >= 0 ? rest[..pipe] : rest;

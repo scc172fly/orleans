@@ -13,7 +13,7 @@ using Orleans.Serialization.Serializers;
 namespace Orleans.Serialization.TypeSystem;
 
 /// <summary>
-/// 格式和用配置的规则处理 <see cref="Type"/> 实例。
+/// 使用配置的规则格式化和解析 <see cref="Type"/> 实例。
 /// </summary>
 public class TypeConverter
 {
@@ -61,11 +61,11 @@ public class TypeConverter
     /// 初始化 <see cref="TypeConverter"/> 类的新实例。
     /// </summary>
     /// <param name="formatters">类型名称格式化器。</param>
-    /// <param name="typeNameFilters">类型名称过滤器。</param>
-    /// <param name="typeFilters">类型过滤器。</param>
+    /// <param name="typeNameFilters">类型名称筛选器。</param>
+    /// <param name="typeFilters">类型筛选器。</param>
     /// <param name="options">选项。</param>
-    /// <param name="typeResolver">类型解答器。</param>
-    /// <exception cref="ArgumentException">配置的类型别名为空, 含有引号、 白空空间、 控制字符或保留类型名称分隔符, 或者无效的通用性等字尾。</exception>
+    /// <param name="typeResolver">类型解析器。</param>
+    /// <exception cref="ArgumentException">配置的类型别名为空，包含引号、空白字符、控制字符或保留的类型名称分隔符，或者具有无效的泛型参数个数后缀。</exception>
     public TypeConverter(
         IEnumerable<ITypeConverter> formatters,
         IEnumerable<ITypeNameFilter> typeNameFilters,
@@ -299,7 +299,7 @@ public class TypeConverter
             var formatted = RuntimeTypeNameFormatter.Format(type);
             var parsed = RuntimeTypeNameParser.Parse(formatted);
 
-            // 使用类型名称重写到该类型的每个部件。
+            // 使用类型名称重写器访问类型的每个组成部分。
             var converter = this;
             _ = RuntimeTypeNameRewriter.Rewrite(parsed, AddQualifiedType, ResolveCompoundAliasType, ref converter);
             static QualifiedType AddQualifiedType(in QualifiedType type, ref TypeConverter self)
@@ -311,28 +311,28 @@ public class TypeConverter
     }
 
     /// <summary>
-    /// 格式化所提供类型。
+    /// 格式化给定类型。
     /// </summary>
     /// <param name="type">类型。</param>
     /// <param name="allowAllTypes">是否允许所有类型。</param>
-    /// <returns>格式化类型名称。</returns>
+    /// <returns>格式化后的类型名称。</returns>
     public string Format(Type type, bool allowAllTypes = false) => FormatInternal(type);
 
     /// <summary>
-    /// 格式化所提供的类型,使用所派代表重写内容。
+    /// 格式化给定类型，并使用给定委托重写其组成部分。
     /// </summary>
     /// <param name="type">类型。</param>
-    /// <param name="rewriter">一位代表曾经改写过该类型。</param>
+    /// <param name="rewriter">用于重写类型的委托。</param>
     /// <param name="allowAllTypes">是否允许所有类型。</param>
-    /// <returns>格式化类型名称。</returns>
+    /// <returns>格式化后的类型名称。</returns>
     public string Format(Type type, Func<TypeSpec, TypeSpec> rewriter, bool allowAllTypes = false) => FormatInternal(type, rewriter);
 
     /// <summary>
-    /// 分析提供的类型字符串 。
+    /// 解析给定的类型字符串。
     /// </summary>
-    /// <param name="formatted">格式化类型名称。</param>
-    /// <returns>分析型号。</returns>
-    /// <exception cref="TypeLoadException">无法装入由此生成的类型。</exception>
+    /// <param name="formatted">格式化后的类型名称。</param>
+    /// <returns>解析得到的类型。</returns>
+    /// <exception cref="TypeLoadException">无法加载解析得到的类型。</exception>
     public Type Parse(string formatted)
     {
         if (ParseInternal(formatted, out var type))
@@ -344,11 +344,11 @@ public class TypeConverter
     }
 
     /// <summary>
-    /// 分析提供的类型字符串 。
+    /// 解析给定的类型字符串。
     /// </summary>
-    /// <param name="formatted">格式化类型名称。</param>
+    /// <param name="formatted">格式化后的类型名称。</param>
     /// <param name="result">结果。</param>
-    /// <returns><see langword="true"/> 如果该类型被剖析和装入;否则; <see langword="false"/>.</returns>
+    /// <returns><see langword="true"/>，如果已解析并加载该类型；否则为 <see langword="false"/>。</returns>
     public bool TryParse(string formatted, [NotNullWhen(true)] out Type result)
     {
         return ParseInternal(formatted, out result);
@@ -650,7 +650,7 @@ public class TypeConverter
             }
         }
 
-        // 以「网络」为主,
+        // 枚举和已知类型不包含用户定义的行为，因此在没有明确筛选结论时允许这些类型。
         if (result is null && (type.IsEnum || type.FullName is { } fullName && WellKnownRuntimeTypeNames.Contains(fullName)))
         {
             result = true;

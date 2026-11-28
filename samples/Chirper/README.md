@@ -5,65 +5,65 @@ products:
 - dotnet
 - dotnet-orleans
 page_type: sample
-name: "Orleans Chirper Social Media sample app"
+name: "Orleans Chirper 社交媒体示例应用"
 urlFragment: "orleans-chirper-social-media-sample-app"
-description: "执行社交媒体平台的 Orleans 样本应用程序。"
+description: "实现社交媒体平台的 Orleans 示例应用。"
 ---
 
 <a id="orleans-chirper-social-media-sample-app"></a>
 
-# Orleans 奇伯社交媒体样本应用
+# Orleans Chirper 社交媒体示例应用
 
-![聊天客户端的截图](screenshot.png)
+![聊天客户端截图](screenshot.png)
 
-该样本展示了一个简单的社交网络酒吧/子系统,用户之间发送短信。
-出版商短发 *"点击"* (不与 *"双色"*向跟踪这些技术的任何其他用户提供。
+本示例演示简单的社交网络发布/订阅系统，用户之间发送简短的文本消息。
+发布者向关注自己的其他用户发送简短的 *"Chirp"* 消息（出于各种法律原因，请勿与 *"Tweets"* 混淆）。
 
-样本由两个应用程序组成, `Chirper.Server` 是主机 Orleans 和所有 grains, `Chirper.Client` 是主机客户端 Orleans 客户端,以及上述截图所看到的终端界面。
+示例由两个应用组成：`Chirper.Server` 托管 Orleans 和所有 Grain，`Chirper.Client` 托管 Orleans 客户端以及上图所示的终端界面。
 
-样本显示了 Orleans的下列特征:
+示例演示 Orleans 的以下功能：
 
-* Grain 持久性 - 将 grain 状态储存在数据库中
-* Reentrant grains - 允许多次通话同时互插
-* Grain 观察员 - 向客户发送推推信息的观察员
+* Grain 持久化——将 Grain 状态存储在数据库中
+* 可重入 Grain——允许多个调用并发交错执行
+* Grain 观察者——向客户端推送消息
 
-在此项目中,使用了模拟持久性(见 *Program.cs*),但可以替代您选择的持久性提供者,而不必更改 grain 代码。只有配置需要改变才能使用不同的持久性提供者。
+本项目使用内存持久化（参见 *Program.cs*），但可在不更改 Grain 代码的情况下替换为自选持久化提供程序。使用不同的持久化提供程序只需修改配置。
 
 <a id="why-orleans"></a>
 
-## 为什么 Orleans
+## 为何使用 Orleans
 
-Orleans 允许通过非常简单的C#代码描述Chirper用户网络,同时便于其扩展,以处理数量不断增加的用户和声频信息的数量。
+Orleans 使 Chirper 用户网络能够使用非常简单的 C# 代码描述，同时易于横向扩展，以应对不断增长的用户数量和 Chirp 消息量。
 
 <a id="how-is-it-modeled"></a>
 
 ## 如何建模
 
-奇珀用户以 grains模式建模。
+Chirper 用户被建模为 Grain。
 
-通过将每个用户模拟为 grain,信息负荷分布在各地,每个 grain 处理该用户生成的信息传递给跟踪这些信息的任何其他用户。
+通过将每个用户建模为一个 Grain，消息传递负载得以分布，每个 Grain 负责将该用户生成的消息转发给关注该用户的其他用户。
 
-grains 安装三个不同的 grain 接口,代表这些实体的三个职能方面—— `IChirperPublisher`、 `IChirperSubscriber` 和 `IChirperAccount`
+这些 Grain 实现三种不同的 Grain 接口，以表示实体的三个功能侧面——`IChirperPublisher`、`IChirperSubscriber` 和 `IChirperAccount`。
 
-还有一个 `IChirperViewer` 观察员界面,用于从某个特定的 Chirper 用户中订阅更改状态的应用程序,而不必成为追随者。这种观察员界面通常用于撰写客户用户 UI 应用程序,例如 `ChirperClient`。
+此外还有 `IChirperViewer` 观察者接口，应用可在不成为关注者的情况下订阅特定 Chirper 用户的状态变化。此观察者接口通常用于编写 `ChirperClient` 等客户端 UI 应用。
 
 <a id="sample-prerequisites"></a>
 
-## 抽样的前提条件
+## 示例先决条件
 
-本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
+本示例使用 C# 编写，目标框架为 .NET 10。需要 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本。
 
 <a id="building-the-sample"></a>
 
-## 建立样本
+## 构建示例
 
-下载和运行样本时,请遵循以下步骤:
+按照以下步骤下载并运行示例：
 
-1. 下载并解开样本的平面
-2. 视觉演播室(2022年或以后):
-    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
-    2. 打开解压后的示例目录，再打开其中的 C# 项目文件（`.csproj`）。
-    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 直接运行。
-3. 从命令行 :
-   1. 导航到持有未设偏移样本代码的文件夹 。
-   2. 在命令行,类型 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
+1. 下载并解压示例。
+2. 在 Visual Studio（2022 或更高版本）中：
+    1. 在菜单栏中选择 **文件** > **打开** > **项目/解决方案**。
+    2. 导航到存放已解压示例代码的文件夹，并打开 C# 项目（.csproj）文件。
+    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 在不调试的情况下运行项目。
+3. 从命令行运行：
+   1. 导航到存放已解压示例代码的文件夹。
+   2. 在命令行输入 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。

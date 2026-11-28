@@ -10,39 +10,39 @@ using Orleans.Storage;
 namespace Orleans.Persistence.TestKit;
 
 /// <summary>
-/// 配置生成的 <see cref="IGrainStorage"/> 执行模型测试。
+/// 配置针对 <see cref="IGrainStorage"/> 实现生成的基于模型的测试。
 /// </summary>
 public sealed class GrainStorageModelBasedConformanceOptions
 {
     /// <summary>
-    /// 获取或设置用于识别生成的测试数据的存储提供者名称。
+    /// 获取或设置用于标识生成测试数据的存储提供程序名称。
     /// </summary>
     public string ProviderName { get; set; } = "Storage";
 
     /// <summary>
-    /// 获取或设置已传递到存储操作的 grain 类型名称。
+    /// 获取或设置传入存储操作的 Grain 类型名称。
     /// </summary>
     public string GrainType { get; set; } = "Orleans.Persistence.TestKit.ModelBasedStorageConformanceGrain";
 
     /// <summary>
-    /// 获取或设置生成 grain 密钥的可选固定前缀。
+    /// 获取或设置生成 Grain 键时使用的可选固定前缀。
     /// </summary>
     public string? KeyPrefix { get; set; }
 
     /// <summary>
-    /// 获取或设定生成操作序列时所探索的最大深度。
+    /// 获取或设置生成操作序列时探索的最大深度。
     /// </summary>
     public int MaxDepth { get; set; } = 4;
 
     /// <summary>
-    /// 在生成的测试序列中获取或设定最大操作次数 。
+    /// 获取或设置生成测试序列中的最大操作数。
     /// </summary>
     public int MaxSequenceLength { get; set; } = 4;
 
 }
 
 /// <summary>
-/// 生成存储操作序列,并对照行为模式核查 <see cref="IGrainStorage"/> 实施情况。
+/// 生成存储操作序列，并根据行为模型验证 <see cref="IGrainStorage"/> 实现。
 /// </summary>
 public sealed class GrainStorageModelBasedTestRunner
 {
@@ -53,9 +53,9 @@ public sealed class GrainStorageModelBasedTestRunner
     /// <summary>
     /// 初始化 <see cref="GrainStorageModelBasedTestRunner"/> 类的新实例。
     /// </summary>
-    /// <param name="storage">用于测试的存储提供者。</param>
-    /// <param name="providerName">用于识别生成的测试数据的存储提供者名称。</param>
-    /// <param name="output">接收故障细节的可选回调。</param>
+    /// <param name="storage">要测试的存储提供程序。</param>
+    /// <param name="providerName">用于标识生成测试数据的存储提供程序名称。</param>
+    /// <param name="output">接收失败详细信息的可选回调。</param>
     public GrainStorageModelBasedTestRunner(IGrainStorage storage, string providerName, Action<string>? output = null)
         : this(storage, new GrainStorageModelBasedConformanceOptions { ProviderName = providerName }, output)
     {
@@ -64,9 +64,9 @@ public sealed class GrainStorageModelBasedTestRunner
     /// <summary>
     /// 初始化 <see cref="GrainStorageModelBasedTestRunner"/> 类的新实例。
     /// </summary>
-    /// <param name="storage">用于测试的存储提供者。</param>
-    /// <param name="options">生成的测试配置。</param>
-    /// <param name="output">接收故障细节的可选回调。</param>
+    /// <param name="storage">要测试的存储提供程序。</param>
+    /// <param name="options">生成式测试配置。</param>
+    /// <param name="output">接收失败详细信息的可选回调。</param>
     public GrainStorageModelBasedTestRunner(IGrainStorage storage, GrainStorageModelBasedConformanceOptions options, Action<string>? output = null)
     {
         this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
@@ -77,17 +77,17 @@ public sealed class GrainStorageModelBasedTestRunner
     /// <summary>
     /// 生成并执行存储操作序列。
     /// </summary>
-    /// <returns>代表无同步测试运行的任务。</returns>
-    /// <exception cref="InvalidOperationException">一个或多个生成的测试案例失败。</exception>
+    /// <returns>表示异步测试运行的任务。</returns>
+    /// <exception cref="InvalidOperationException">一个或多个生成的测试用例失败。</exception>
     public Task RunGeneratedConformanceTests() =>
         RunGeneratedConformanceTests(CancellationToken.None);
 
     /// <summary>
     /// 生成并执行存储操作序列。
     /// </summary>
-    /// <param name="cancellationToken">取消存储操作的符号 。</param>
-    /// <returns>代表无同步测试运行的任务。</returns>
-    /// <exception cref="InvalidOperationException">一个或多个生成的测试案例失败。</exception>
+    /// <param name="cancellationToken">用于取消存储操作的令牌。</param>
+    /// <returns>表示异步测试运行的任务。</returns>
+    /// <exception cref="InvalidOperationException">一个或多个生成的测试用例失败。</exception>
     public async Task RunGeneratedConformanceTests(CancellationToken cancellationToken)
     {
         var results = await GrainStorageModelBasedConformance.RunGeneratedTests(

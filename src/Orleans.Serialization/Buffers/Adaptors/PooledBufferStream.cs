@@ -7,7 +7,7 @@ using Microsoft.Extensions.ObjectPool;
 namespace Orleans.Serialization.Buffers.Adaptors
 {
     /// <summary>
-    /// 将另建一个缓冲作者的 <see cref="IBufferWriter{T}"/> 执行。
+    /// <see cref="IBufferWriter{T}"/> 的一种实现，用于装箱另一个缓冲区写入器。
     /// </summary>
     public sealed class PooledBufferStream : Stream
     {
@@ -27,7 +27,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
         /// <summary>
         /// 初始化 <see cref="PooledBufferStream"/> 类的新实例。
         /// </summary>
-        /// <param name="minAllocationSize">最低拨款规模。</param>
+        /// <param name="minAllocationSize">分配的最小大小。</param>
         public PooledBufferStream(int minAllocationSize = 0)
         {
             _segments = new();
@@ -36,13 +36,13 @@ namespace Orleans.Serialization.Buffers.Adaptors
         }
 
         /// <summary>
-        /// 如果有的话,从池子里获取一个对象,否则会创建一个。
+        /// 如果池中有可用对象，则从池中获取；否则创建新对象。
         /// </summary>
-        /// <returns>A <see cref="PooledBufferStream"/>.</returns>
+        /// <returns>一个 <see cref="PooledBufferStream"/>。</returns>
         public static PooledBufferStream Rent() => StreamPool.Get();
 
         /// <summary>
-        /// 返回一个对象到池。
+        /// 将对象归还到池中。
         /// </summary>
         public static void Return(PooledBufferStream stream)
         {
@@ -57,13 +57,13 @@ namespace Orleans.Serialization.Buffers.Adaptors
             StreamPool.Return(stream);
         }
 
-        /// <summary>获取已写入的长度。</summary>
+        /// <summary>获取已写入的总长度。</summary>
         public override long Length => _length;
 
         /// <summary>
-        /// 返回以数组形式写入的数据。
+        /// 以数组形式返回已写入的数据。
         /// </summary>
-        /// <returns>已经写入的数据 。</returns>
+        /// <returns>已写入的数据。</returns>
         public byte[] ToArray()
         {
             var result = new byte[_length];
@@ -80,7 +80,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
             return result;
         }
 
-        /// <summary>将此作家的内容复制到另一个作家。</summary>
+        /// <summary>将此写入器的内容复制到另一个写入器。</summary>
         public void CopyTo<TBufferWriter>(ref Writer<TBufferWriter> writer) where TBufferWriter : IBufferWriter<byte>
         {
             var remaining = _length;
@@ -93,7 +93,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
         }
 
         /// <summary>
-        /// 返回所有租用的缓冲文件, 并重置流为空状态 。
+        /// 归还所有租用的缓冲区，并将流重置为空状态。
         /// </summary>
         public void Reset()
         {
@@ -109,7 +109,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
         }
 
         /// <summary>
-        /// 返回新 <see cref="ReadOnlySequence{T}"/> 必须在使用和返回该程序之前,通过 <see cref="ReturnReadOnlySequence"/> 方法。
+        /// 返回一个新的 <see cref="ReadOnlySequence{T}"/>；必须在重置此实例之前使用该序列，并通过 <see cref="ReturnReadOnlySequence"/> 方法归还它。
         /// </summary>
         public ReadOnlySequence<byte> RentReadOnlySequence()
         {
@@ -148,7 +148,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
         }
 
         /// <summary>
-        /// 回返a <see cref="ReadOnlySequence{T}"/> 先前租给 <see cref="RentReadOnlySequence"/>;
+        /// 归还 <see cref="ReadOnlySequence{T}"/>，该序列先前由 <see cref="RentReadOnlySequence"/> 租用；
         /// </summary>
         public void ReturnReadOnlySequence(in ReadOnlySequence<byte> sequence)
         {
@@ -241,7 +241,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
         {
             if (value == Length)
             {
-                // 什么都不做
+                // 不执行任何操作。
                 return;
             }
             else if (value == 0)
@@ -252,14 +252,14 @@ namespace Orleans.Serialization.Buffers.Adaptors
             {
                 if (value < Length)
                 {
-                    // 运行/ 删除已写缓冲
+                    // 截断或移除已经写入的缓冲区。
                     var excess = Length - value;
                     while (excess > 0)
                     {
                         var lastSegment = _segments[^1];
                         if (excess >= lastSegment.Length)
                         {
-                            // 删除整个段。
+                            // 移除整个分段。
                             excess -= lastSegment.Length;
                             _segments.RemoveAt(_segments.Count - 1);
                             _capacity -= lastSegment.Length;
@@ -267,15 +267,15 @@ namespace Orleans.Serialization.Buffers.Adaptors
                         }
                         else
                         {
-                            // 部分缩短最后一部分 - 我们不需要做任何事情 
-                            // 因为我们只是缩短逻辑长度,而不是物理缓冲
+                            // 部分截断最后一个分段，无需进行实际操作，
+                            // 因为这里只是缩短逻辑长度，而不是物理缓冲区的长度。
                             break;
                         }
                     }
                 }
                 else
                 {
-                    // 添加空缓冲
+                    // 追加空缓冲区。
                     var deficit = value - Length;
                     while (deficit > 0)
                     {
@@ -320,20 +320,20 @@ namespace Orleans.Serialization.Buffers.Adaptors
                     var writeHead = _segments[segmentIndex].AsMemory(indexIntoSegment);
                     var writeLength = Math.Min(writeHead.Length, data.Length);
 
-                    // 复制数据并更新输入
+                    // 复制数据并更新输入。
                     data[..writeLength].CopyTo(writeHead);
                     data = data[writeLength..];
 
-                    // 更新光标
+                    // 更新游标。
                     Position += writeLength;
 
-                    // 预先安排下一部分会议;
+                    // 前进到下一个分段；
                     ++segmentIndex;
                     indexIntoSegment = 0;
                 }
             }
 
-            // 附加任何剩余数据。
+            // 追加剩余数据。
             Append(ref data);
         }
 
@@ -346,7 +346,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
             {
                 var currentSegment = _segments[i];
 
-                // 检查此段是否包含当前位置 。
+                // 检查当前分段是否包含当前位置。
                 if (segmentStartPos + currentSegment.Length > Position)
                 {
                     segmentIndex = i;
@@ -392,7 +392,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
             }
         }
 
-        // 内部,仅用于测试。
+        // 仅为测试而设为 internal。
         internal sealed class BufferSegment : ReadOnlySequenceSegment<byte>
         {
             public static readonly ObjectPool<BufferSegment> Pool = ObjectPool.Create(new SegmentPoolPolicy());

@@ -4,28 +4,28 @@ using Orleans.Runtime;
 namespace Orleans.Providers
 {
     /// <summary>
-    /// 接口,允许供应商回调到指定提供商-管理员中。
-    /// 这样可以进入运行时功能,例如记录。
+    /// 允许提供程序回调其所属提供程序管理器的接口。
+    /// 借此可以访问运行时功能，例如日志记录。
     /// </summary>
     public interface IProviderRuntime
     {
         /// <summary>
-        /// 获取 grains引用的工厂。
+        /// 获取用于获取 Grain 引用的工厂。
         /// </summary>
         IGrainFactory GrainFactory { get; }
 
         /// <summary>
-        /// 获得服务供应商的自援注射。
+        /// 获取用于依赖注入的服务提供程序。
         /// </summary>
         IServiceProvider ServiceProvider { get; }
 
         /// <summary>
-        /// 将扩展部分绑在可标定对象的扩展面上,如果尚未完成的话。
+        /// 如果尚未绑定，则将扩展绑定到可寻址对象。
         /// </summary>
-        /// <typeparam name="TExtension">扩展名类型(e.g. StreamConsumerExtension).</typeparam>
-        /// <typeparam name="TExtensionInterface">执行的公共接口类型。</typeparam>
-        /// <param name="newExtensionFunc">制造新扩展对象的工厂函数。</param>
-        /// <returns>象牙,包含第一个扩展名,第二个可处理的扩展名界面引用。</returns>
+        /// <typeparam name="TExtension">扩展的类型（例如 StreamConsumerExtension）。</typeparam>
+        /// <typeparam name="TExtensionInterface">实现的公共接口类型。</typeparam>
+        /// <param name="newExtensionFunc">用于创建新扩展对象的工厂函数。</param>
+        /// <returns>元组：第一项是扩展，第二项是指向该扩展接口的可寻址引用。</returns>
         (TExtension Extension, TExtensionInterface ExtensionReference) BindExtension<TExtension, TExtensionInterface>(Func<TExtension> newExtensionFunc)
             where TExtension : class, TExtensionInterface
             where TExtensionInterface : class, IGrainExtension;

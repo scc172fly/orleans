@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
-// 持麻省理工学院执照
+// Licensed under the MIT License.
 
 global using Orleans.Concurrency;
 global using Orleans.Runtime;

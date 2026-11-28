@@ -9,76 +9,76 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// 接收累积到储存批次的交易状态变化。
+    /// 接收将累积到存储批次中的事务状态变更。
     /// </summary>
-    /// <typeparam name="TState">交易状态类型。</typeparam>
+    /// <typeparam name="TState">事务状态类型。</typeparam>
     public interface ITransactionalStateStorageEvents<TState> where TState : class, new()
     {
         /// <summary>
-        /// 添加或替换已备好的国家版本。
+        /// 添加或替换一个已准备状态版本。
         /// </summary>
-        /// <param name="sequenceNumber">交易的本地序列编号 。</param>
-        /// <param name="transactionId">交易识别特征。</param>
-        /// <param name="timestamp">交易承诺时间戳。</param>
-        /// <param name="transactionManager">交易经理协调交易。</param>
-        /// <param name="state">交易产生的国家。</param>
+        /// <param name="sequenceNumber">分配给事务的本地序列号。</param>
+        /// <param name="transactionId">事务标识符。</param>
+        /// <param name="timestamp">事务提交时间戳。</param>
+        /// <param name="transactionManager">协调该事务的事务管理器。</param>
+        /// <param name="state">事务产生的状态。</param>
         void Prepare(long sequenceNumber, Guid transactionId, DateTime timestamp, ParticipantId transactionManager, TState state);
 
         /// <summary>
-        /// a 记录在指定的逻辑时间戳上读取。
+        /// 记录指定逻辑时间戳上的一次读取。
         /// </summary>
-        /// <param name="timestamp">读取的逻辑时间戳。</param>
+        /// <param name="timestamp">读取操作的逻辑时间戳。</param>
         void Read(DateTime timestamp);
 
         /// <summary>
-        /// 取消带有指定序列号的预发状态版本,并排除该版本和后来编印的版本。
+        /// 取消指定序列号对应的已准备状态版本，并将该版本以及其后的已准备版本排除在批次之外。
         /// </summary>
-        /// <param name="sequenceNumber">要取消的序列号 。</param>
+        /// <param name="sequenceNumber">要取消的序列号。</param>
         void Cancel(long sequenceNumber);
 
         /// <summary>
-        /// 确认承诺通过指定序列号表明状态。
+        /// 确认截至指定序列号的已提交状态。
         /// </summary>
-        /// <param name="sequenceNumber">确定序列号</param>
+        /// <param name="sequenceNumber">已确认的序列号。</param>
         void Confirm(long sequenceNumber);
 
         /// <summary>
-        /// 记录承诺的收回交易。
+        /// 记录已提交事务，以供恢复使用。
         /// </summary>
-        /// <param name="transactionId">交易识别特征。</param>
-        /// <param name="timestamp">交易承诺时间戳。</param>
-        /// <param name="writeResources">交易期间写作的参与者。</param>
+        /// <param name="transactionId">事务标识符。</param>
+        /// <param name="timestamp">事务提交时间戳。</param>
+        /// <param name="writeResources">在事务期间执行过写入的参与者。</param>
         void Commit(Guid transactionId, DateTime timestamp, List<ParticipantId> writeResources);
 
         /// <summary>
-        /// 删除指定交易的回收记录。
+        /// 移除指定事务的恢复记录。
         /// </summary>
-        /// <param name="transactionId">交易识别特征。</param>
+        /// <param name="transactionId">事务标识符。</param>
         void Collect(Guid transactionId);
     }
 
     /// <summary>
-    /// 积累储存事件,因为将之分批存放。
+    /// 累积存储事件，以便成批提交给存储系统。
     /// </summary>
     /// <typeparam name="TState"></typeparam>
     internal class StorageBatch<TState> : ITransactionalStateStorageEvents<TState>
         where TState : class, new()
     {
-        // 用于承诺、准备、中止的水印
+        // 提交、准备和中止的水位标记。
         private long confirmUpTo;
         private long cancelAbove;
         private readonly long cancelAboveStart;
 
-        // 编制记录
+        // 准备记录。
         private readonly SortedDictionary<long, PendingTransactionState<TState>> prepares;
         private readonly List<Guid> committedTransactionIds;
 
-        // 后续行动,待这批货物完成后执行
+        // 在此批次完成后执行的后续操作。
         private readonly List<Action<bool>> followUpActions;
         private readonly List<Func<Task<bool>>> storeConditions;
         private int completionInvoked;
 
-        // 每种事件类型的反对数
+        // 各类事件的计数器。
         private int total = 0;
         private int prepare = 0;
         private int read = 0;
@@ -201,7 +201,7 @@ namespace Orleans.Transactions
 
             confirmUpTo = sequenceNumber;
 
-            // 删除所有多余的备案记录, 以后确认状态取代
+            // 移除已被之后的确认状态取代的所有冗余准备记录。
             while (true)
             {
                 long? first = this.prepares.Values.FirstOrDefault()?.SequenceId;

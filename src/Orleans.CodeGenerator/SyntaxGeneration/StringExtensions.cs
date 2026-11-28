@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Orleans.CodeGenerator.SyntaxGeneration;
 
 /// <summary>
-/// 扩展至 <see cref="string"/> 类,以支持代码生成。
+/// 对 <see cref="string"/> 类进行扩展以支持代码生成。
 /// </summary>
 internal static class StringExtensions
 {

@@ -1,8 +1,7 @@
 <Project>
   <!--
-    注: Microsoft.Orleans.*。没有向 NuGet 尚未, 所以这个样本
-    目前仅从 Orleans 储存库内建造,其中 Samples.slnx 成套用品包
-    创建于当前来源。 下面的版本插针在此, 一旦它们发运, 它就会正常运行 。
+    注意：Microsoft.Orleans.*.Firestore 包尚未发布到 NuGet，因此目前只能在 Orleans 仓库内构建此示例，Samples.slnx 提供从当前源码构建的包。
+    下面固定的包版本使这些包正式发布后无需修改即可工作。
   -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>

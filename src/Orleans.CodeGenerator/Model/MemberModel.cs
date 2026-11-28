@@ -1,7 +1,7 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// 描述一个可以连号的成员的类型。
+/// 描述可序列化成员的种类。
 /// </summary>
 internal enum MemberKind : byte
 {
@@ -10,38 +10,38 @@ internal enum MemberKind : byte
 }
 
 /// <summary>
-/// 描述在序列过程中获取/确定成员价值的无障碍战略。
+/// 描述序列化期间获取或设置成员值的访问策略。
 /// </summary>
 internal enum AccessStrategy : byte
 {
     /// <summary>
-    /// 成员可以直接进入(公共领域或有无障碍取用/改进的地产)。
+    /// 可直接访问成员（公共字段，或具有可访问 getter/setter 的属性）。
     /// </summary>
     Direct,
 
     /// <summary>
-    /// 成员要求生成一个以代表为基础的访问(FieldAccessor 有用)功能。
+    /// 成员需要生成的基于委托的访问器（FieldAccessor 实用工具）。
     /// </summary>
     GeneratedAccessor,
 
     /// <summary>
-    /// 成员需要 UnsafeAccessor-基于存取器。
+    /// 成员需要基于 UnsafeAccessor 的访问器。
     /// </summary>
     UnsafeAccessor
 }
 
 /// <summary>
-/// 描述在脱序过程中构建一个可连号类型的例子的战略。
+/// 描述反序列化期间构造可序列化类型实例的策略。
 /// </summary>
 internal enum ObjectCreationStrategy : byte
 {
     /// <summary>
-    /// 使用 <c>default(T)</c> 来计算数值类型 。
+    /// 对值类型使用 <c>default(T)</c>。
     /// </summary>
     Default,
 
     /// <summary>
-    /// 使用 <c>new T()</c> ——类型有一个无障碍无参数构建器。
+    /// 使用 <c>new T()</c>：类型具有可访问的无参构造函数。
     /// </summary>
     NewExpression,
 
@@ -52,8 +52,8 @@ internal enum ObjectCreationStrategy : byte
 }
 
 /// <summary>
-/// 描述 <see cref="SerializableTypeModel"/>中可连号作业场或财产成员。
-/// 包含序列器、复印机和活性器生成所需的全部数据,不持有 <c>ISymbol</c> 参考文献。
+/// 描述 <see cref="SerializableTypeModel"/> 中的可序列化字段或属性成员。
+/// 包含生成序列化器、复制器及激活器所需的全部数据，不持有 <c>ISymbol</c> 引用。
 /// </summary>
 internal sealed record class MemberModel
 {

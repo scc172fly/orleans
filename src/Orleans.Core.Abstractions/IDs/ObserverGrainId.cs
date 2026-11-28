@@ -3,12 +3,12 @@ using System;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 指定一个客户端观察员对象。
+    /// 标识客户端观察者对象。
     /// </summary>
     internal readonly struct ObserverGrainId : IEquatable<ObserverGrainId>, IComparable<ObserverGrainId>, ISpanFormattable
     {
         /// <summary>
-        /// 观察员身份的客户代号部分与客户范围的观察员代号部分之间的分隔。
+        /// 观察者 ID 中客户端 ID 部分与客户端范围内的观察者 ID 部分之间的分隔符。
         /// </summary>
         internal const char SegmentSeparator = '+';
 
@@ -21,57 +21,57 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取底部 <see cref="GrainId"/>。
+        /// 获取底层 <see cref="GrainId"/>。
         /// </summary>
         public readonly GrainId GrainId;
 
         /// <summary>
-        /// 返回所提供客户名 ID 的新随机 <see cref="ObserverGrainId"/> 例。
+        /// 返回用于指定客户端 ID 的新随机 <see cref="ObserverGrainId"/> 实例。
         /// </summary>
         /// <param name="clientId">
-        /// 客户身份
+        /// 客户端 ID。
         /// </param>
         /// <returns>
-        /// 提供给客户端 ID 的一个新的随机 <see cref="ObserverGrainId"/> 例。
+        /// 用于指定客户端 ID 的新随机 <see cref="ObserverGrainId"/> 实例。
         /// </returns>
         public static ObserverGrainId Create(ClientGrainId clientId) => Create(clientId, GrainIdKeyExtensions.CreateGuidKey(Guid.NewGuid()));
 
         /// <summary>
-        /// 返回所提供客户名 ID 的新 <see cref="ObserverGrainId"/> 例。
+        /// 返回用于指定客户端 ID 的新 <see cref="ObserverGrainId"/> 实例。
         /// </summary>
         /// <param name="clientId">
-        /// 客户身份
+        /// 客户端 ID。
         /// </param>
         /// <param name="scopedId">
-        /// 客户范围观察员身份。
+        /// 客户端范围内的观察者 ID。
         /// </param>
         /// <returns>
-        /// 所提供客户名id的新 <see cref="ObserverGrainId"/> 例。
+        /// 用于指定客户端 ID 的新 <see cref="ObserverGrainId"/> 实例。
         /// </returns>
         public static ObserverGrainId Create(ClientGrainId clientId, IdSpan scopedId) => new ObserverGrainId(ConstructGrainId(clientId, scopedId));
 
         /// <summary>
-        /// 如果所提供的实例代表观察员,则返回 <see langword="true"/> ;如果不是的话,返回 <see langword="false"/> 。
+        /// 如果提供的实例表示观察者，则返回 <see langword="true"/>，否则返回 <see langword="false"/>。
         /// </summary>
         /// <param name="grainId">
-        /// 下 grain id. 数据。
+        /// Grain ID。
         /// </param>
         /// <returns>
-        /// <see langword="true"/> 如果已提供 grain id是观察员id,否则 <see langword="false"/>.
+        /// 如果提供的 Grain ID 是观察者 ID，则返回 <see langword="true"/>，否则返回 <see langword="false"/>。
         /// </returns>
         public static bool IsObserverGrainId(GrainId grainId) => grainId.IsClient() && grainId.Key.AsSpan().IndexOf((byte)SegmentSeparator) >= 0;
 
         /// <summary>
-        /// 将提供的 <see cref="GrainId"/> 转换为 <see cref="ObserverGrainId"/>。返回值表示操作是否成功。
+        /// 将提供的 <see cref="GrainId"/> 转换为 <see cref="ObserverGrainId"/>。返回值指示操作是否成功。
         /// </summary>
         /// <param name="grainId">
-        /// 下 grain id. 数据。
+        /// Grain ID。
         /// </param>
         /// <param name="observerId">
-        /// 相应的观察员id。
+        /// 对应的观察者 ID。
         /// </param>
         /// <returns>
-        /// <see langword="true"/> 如果已提供 grain id是观察员id,否则 <see langword="false"/>.
+        /// 如果提供的 Grain ID 是观察者 ID，则返回 <see langword="true"/>，否则返回 <see langword="false"/>。
         /// </returns>
         public static bool TryParse(GrainId grainId, out ObserverGrainId observerId)
         {

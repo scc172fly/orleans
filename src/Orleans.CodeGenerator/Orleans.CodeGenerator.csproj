@@ -7,7 +7,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <!-- 分析资产在lib/ref以外包装,不是包件验证 API 表面。 -->
+    <!-- 分析器资产打包在 lib/ref 之外，不属于包验证的 API 公开接口。 -->
     <EnablePackageValidation>false</EnablePackageValidation>
     <DevelopmentDependency>true</DevelopmentDependency>
     <IsOrleansFrameworkPart>false</IsOrleansFrameworkPart>

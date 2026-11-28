@@ -448,7 +448,7 @@ public class LocalDurableJobManagerTests
         {
             await WaitForSweepAsync(sweeps, token);
 
-            // 前业主通过所有权检查,然后在日记附件到达储存地点之前进行摊位。
+            // 原所有者通过所有权检查后，在日志追加操作到达存储之前停滞。
             var pending = original.TryScheduleJobAsync(CreateScheduleRequest(start.AddSeconds(40), "in-flight"), token);
             await gate.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5), token);
             Assert.False(pending.IsCompleted);
@@ -736,9 +736,9 @@ public class LocalDurableJobManagerTests
         discoveredShard.Id.Returns(shard.Id);
         discoveredShard.StartTime.Returns(_ =>
         {
-            // 所生成的碎片已经通过取消检查,但尚未激活。
+            // yield 返回的分片已通过取消检查，但尚未激活。
             stop ??= observer.OnStop(cancellationToken);
-            // OnStop 返回任务, 这样此项检查可以在关闭等待循环时完成 。
+            // OnStop 返回其任务，因此在关闭过程等待循环退出时，此检查仍可完成。
             return shard.StartTime;
         });
         discoveredShard.EndTime.Returns(shard.EndTime);
@@ -755,13 +755,13 @@ public class LocalDurableJobManagerTests
             try
             {
                 yield return discoveredShard;
-                // 交货时取消,使迭代机暂停,迫使清理工作通过 DisposeAsync完成。
+                // 投递时发生取消，使迭代器处于挂起状态，迫使其通过 DisposeAsync 清理。
                 yield return undeliveredShard;
             }
             finally
             {
                 Interlocked.Increment(ref disposalCount);
-                // 准备状态检查完成后, 才能观察关闭的启动门 。
+                // 在观察到激活门已关闭前，让就绪检查完成。
                 discoveryDisposed.SetResult(manager.QueueTask(() =>
                 {
                     Assert.False(accessor.TryGetRunningShardTask(shard.Id, out _));
@@ -883,7 +883,7 @@ public class LocalDurableJobManagerTests
         };
 
         Assert.False(accessor.TryGetRunningShardTask(shard.Id, out _));
-        // 没有 OnStart,就没有等待的循环任务: OnStop 到达最后的碎片,同时等待。
+        // 未调用 OnStart 时，没有需要等待的循环任务：OnStop 同步执行到最后一次分片等待。
         var stop = observer.OnStop(cancellationToken);
         try
         {
@@ -994,7 +994,7 @@ public class LocalDurableJobManagerTests
         {
             if (Interlocked.Increment(ref readinessChecks) == 1)
             {
-                // 两次尝试都经过了最初的运行硬检查,然后才公布任务。
+                // 两次尝试都通过初始运行中分片检查，然后才有任一次尝试发布其任务。
                 accessor.TryActivateShard(discoveredShard);
             }
 
@@ -1272,7 +1272,7 @@ public class LocalDurableJobManagerTests
             Assert.Equal(retried.ShardId, replacement!.Id);
             Assert.True(accessor.HasCachedShard(replacement.Id));
 
-            // 发现者仍然可以产生排水的罐头事件 而它的跑者拥有清理。
+            // 当运行器负责清理时，发现过程仍可能 yield 返回正在排空的规范实例。
             trackingManager.AssignedShards.Add(tracked);
             await accessor.ProcessShardCheckCycleAsync(token);
             Assert.False(accessor.HasCachedShard(original.Id));
@@ -2014,7 +2014,7 @@ public class LocalDurableJobManagerTests
         {
             Assert.False(queued.IsCompleted);
             Assert.Equal(1, shardManager.CreateShardCallCount);
-            // 没有背景循环: 关闭必须具体等待被接纳的日程安排电话 。
+            // 没有后台循环：关闭过程必须专门等待已获准进入的调度调用。
             stop = observer.OnStop(cancellationToken);
             Assert.True(creationToken.IsCancellationRequested);
             Assert.False(stop.IsCompleted);
@@ -2022,7 +2022,7 @@ public class LocalDurableJobManagerTests
             Assert.False(scheduling.IsCompleted);
             Assert.False(shard.DisposeStarted.Task.IsCompleted);
 
-            // 尽管取消,但供应商仍能顺利完成;归还的资源仍然是我们的。
+            // 即使发生取消，提供程序仍可能成功完成；其返回的资源仍由我们负责。
             creation.SetResult(shard);
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => scheduling.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken));
             await shard.DisposeStarted.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
@@ -3137,7 +3137,7 @@ public class LocalDurableJobManagerTests
         var routingManager = CreateManager(lookup, time, options, grainFactory);
         try
         {
-            // 排程遇到回收的封闭碎片,但必须在B中创建可写成的碎片。
+            // 调度时遇到已恢复的关闭分片，但必须在 B 中创建可写分片。
             var newHandle = await receiver.ScheduleJobAsync(CreateScheduleRequest(future, "after-cutover"), token);
             Assert.NotEqual(handle.ShardId, newHandle.ShardId);
             var newId = JobShardId.Parse(newHandle.ShardId).ToJournalId();
@@ -5106,8 +5106,8 @@ public class LocalDurableJobManagerTests
     }
 
     /// <summary>
-    /// 应用持续日记提供者执行的有条件内容写作:
-    /// 只有在日记内容自上次阅读或写作以来没有变化时。
+    /// 应用持久化日志提供程序强制执行的有条件内容写入：只有当日志内容自该存储实例上次读取或写入以来
+    /// 未发生变化时，该实例才执行写入。
     /// </summary>
     private sealed class ContentFencingJournalStorageProvider(VolatileJournalStorageProvider storage) : IJournalStorageProvider
     {

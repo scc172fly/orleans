@@ -29,8 +29,8 @@ internal static class JsonTypeInfoHelpers
         throw CreateMissingMetadataException<T>();
     }
 
-    // 当剪裁和土著AOT出版功能失效时 System.Text.Json 反射, JsonSerializerOptions.Default 使用 a
-    // 空类型信息解析器, 所以缺少元数据表面为 NotSupportedException 和上面的配置错误 。
+    // 裁剪及 Native AOT 发布禁用 System.Text.Json 反射时，JsonSerializerOptions.Default 使用
+    // 空类型信息解析器，因此元数据缺失表现为 NotSupportedException，并产生上述配置错误。
     [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "JsonSerializerOptions.Default resolves no reflection-based metadata when System.Text.Json reflection is disabled.")]
     [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "JsonSerializerOptions.Default resolves no reflection-based metadata when System.Text.Json reflection is disabled.")]
     private static JsonSerializerOptions GetDefaultOptions() => JsonSerializerOptions.Default;

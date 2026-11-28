@@ -10,7 +10,7 @@ using Tester.AzureUtils;
 namespace UnitTests.RemindersTest
 {
     /// <summary>
-    /// 试验试验的试验 Orleans 使用提醒表格 Azure
+    /// 使用 Azure 测试 Orleans 提醒器表的操作。
     /// </summary>
     [TestCategory("Reminders"), TestCategory("AzureStorage")]
     [TestSuite("Functional")]
@@ -34,7 +34,7 @@ namespace UnitTests.RemindersTest
 
         public override ValueTask DisposeAsync()
         {
-            // 测试后重置内嵌超时
+            // 测试结束后重置初始化超时
             return base.DisposeAsync();
         }
 

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography.X509Certificates;
 
-// 确保存在自签名证书( 如果缺少的话, 创建一个)
+// 确保证书存储中存在自签名证书（缺少时创建）。
 CertificateHelper.EnsureCertificateExists();
 
 await new HostBuilder()
@@ -22,13 +22,13 @@ await new HostBuilder()
                 CertificateHelper.StoreLocation,
                 options =>
                 {
-                    // 在此样本中只有一个 silo,但如果有多个 silos ,则必须设定 TargetHost
-                    // 启动的每个连接。
+                    // 此示例中只有一个 Silo，但如果存在多个 Silo，则必须为发起的每个连接
+                    // 设置 TargetHost。
                     options.OnAuthenticateAsClient = (connection, sslOptions) => sslOptions.TargetHost = CertificateHelper.CertificateSubject;
 
                     if (isDevelopment)
                     {
-                        // 注:在生产环境中不这样做
+                        // 注意：不要在生产环境中这样做。
                         options.AllowAnyRemoteCertificate();
                     }
                 });

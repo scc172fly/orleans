@@ -1,75 +1,75 @@
 ---
-title: "客户和 grain- 调用安全"
-description: "在可信赖的边界线上验证呼叫者,并强制执行 Orleans grain 通话的申请授权。"
+title: 客户端与 Grain 调用安全
+description: 在可信边界验证调用方身份，并对 Orleans Grain 调用实施应用级授权。
 ms.date: 08/17/2026
 ms.topic: concept-article
 ---
 
 <a id="client-and-grain-call-security"></a>
 
-# 客户和 grain- 调用安全
+# 客户端与 Grain 调用安全
 
-连接到网关后, Orleans 连接到 grain 申请应确定最终用户身份,创建任何 <xref:System.Security.Claims.ClaimsPrincipal> 政策使用,强制获取业务和资源。
+连接网关会建立用于 Grain 调用的 Orleans 传输连接。应用负责确定最终用户身份、构造策略所需的 <xref:System.Security.Claims.ClaimsPrincipal>，并控制对操作和资源的访问。
 
 <a id="keep-untrusted-callers-outside-the-orleans-boundary"></a>
 
-## 将不信任的呼叫者留在 Orleans 边界之外
+## 将不可信调用方隔离在 Orleans 边界之外
 
-优先选择此请求路径 :
+优先采用以下请求路径：
 
-1. HTTP, gRPC,发文或其他应用程序端点认证调用者。
-1. 端点验证输入并授权请求的应用操作。
-1. 信任的主机代码调用所需的 grains 通过共同主持或通过外部 Orleans 客户端。
-1. Grain 代码重复资源级检查,这种检查取决于 grain拥有的国家。
+1. HTTP、gRPC、消息传递或其他应用终结点验证调用方身份。
+1. 终结点验证输入，并对请求的应用操作进行授权。
+1. 可信宿主代码通过共同托管的或外部的 Orleans 客户端调用所需的 Grain。
+1. Grain 代码再次执行依赖于该 Grain 所拥有状态的资源级检查。
 
-这一设计暴露了目的设计应用程序合同,并保留 Orleans 协议,并在工作量范围内引用 grain 接口。 使用网络政策,这样核准的应用工作量就可以到达网关港口。
+此设计对外公开专门设计的应用契约，将 Orleans 协议及所引用的 Grain 接口限制在工作负载边界之内。使用网络策略，仅允许获准的应用工作负载访问网关端口。
 
-对于信任程度较低的 Orleans 客户,请深入使用防御:限制其网络路径、用 [相互 TLS](../host/transport-layer-security.md#configure-mutual-tls)验证工作量、携带抗篡改应用程序证书并在每次受保护作业之前确认授权。界定认证的TLS工作身份图如何向 grain-调用身份和政策。
+对于部署在较低信任层的 Orleans 客户端，采用纵深防御：限制其网络路径，使用[双向 TLS](../host/transport-layer-security.md#configure-mutual-tls) 验证工作负载身份，携带防篡改的应用凭据，并在每项受保护操作之前验证授权。明确经过 TLS 验证的工作负载身份如何映射到 Grain 调用身份及策略。
 
 <a id="carry-identity-deliberately"></a>
 
-## 故意携带身份
+## 有意识地传递身份信息
 
-<xref:Orleans.Runtime.RequestContext> propagates serializable application metadata with a call and with downstream grain calls. Any Orleans client can set its values, so treat a user ID, role, tenant ID, or `"isAdmin"` flag as a caller-provided claim that requires validation.
+<xref:Orleans.Runtime.RequestContext> 随调用及后续 Grain 调用传播可序列化的应用元数据。任何 Orleans 客户端都可以设置其中的值，因此应将用户 ID、角色、租户 ID 或 `"isAdmin"` 标志视为调用方提供的、需要验证的声明。
 
-安全模式包括:
+安全做法包括：
 
-- 在一个信任的应用边界验证, 并已经建立可信赖的代码为立即呼叫构建最小的身份背景 。
-- a 携带在可信赖 silo 基础设施中签名、短期的证书并验证其签字、签发人、受众、寿命和具体业务索赔。
-- 使用经认证的标的识别符号,确定来自可信赖商店的授权数据。
+- 在可信应用边界完成身份验证，由可信代码为当前调用构造最小化的身份上下文。
+- 携带已签名、短期有效的凭据，并在可信 Silo 基础设施中验证其签名、颁发者、受众、有效期及操作专用声明。
+- 使用已验证身份的主体标识符，从可信存储中获取授权数据。
 
-将原始密码和供应商证书保留在其秘密管理系统中。 携带最起码的、寿命短的身份元数据,并有明确的计划,在不相关的工作在同一同步流动之前清楚或取代请求背景。
+将原始密码和提供程序凭据保存在各自的机密管理系统中。只传递具有明确架构的最少短期身份元数据，并在同一异步执行流开始无关工作之前清除或替换请求上下文。
 
-请求的背景是临时传播,并带有上游呼叫者提供的数值。当呼叫跨越另一个应用信托边界时,更新身份,并通过中间 grains维护经验证的身份和租户价值。
+请求上下文具有传递性，其中的值来自上游调用方。当调用跨越另一个应用信任边界时，重新验证身份；经过中间 Grain 时保留已验证的身份及租户值。
 
 <a id="enforce-authorization"></a>
 
-## 强制授权
+## 实施授权
 
-使用 <xref:Orleans.IIncomingGrainCallFilter> 来执行在 grain 或 grain-扩展方法之前必须运行的政策。一个 silo-- 全局过滤器可以强制执行共同基准;一个 grain 类可以实施与该 grain相关的政策接口。当授权失败时,过滤器拒绝拨号并在下一阶段前终止管道。
+对于必须在 Grain 或 Grain 扩展方法之前执行的策略，使用 <xref:Orleans.IIncomingGrainCallFilter>。Silo 级筛选器可以实施通用基线策略；Grain 类可以实现该接口，以执行该 Grain 专有的策略。授权失败时，筛选器拒绝调用，并在进入下一阶段之前终止管道。
 
-[grain 调用过滤器指导](../grains/interceptors.md#authorization-with-method-attributes) 显示政策属性和应用程序提供的身份访问器。在信任的基础设施之后,以该访问器为附件,验证了打电话者的证书。
+[Grain 调用筛选器指南](../grains/interceptors.md#authorization-with-method-attributes) 演示了策略特性及由应用提供的身份访问器。在可信基础设施验证调用方凭据后，填充该访问器。
 
-授权应考虑业务和目标资源:
+授权应同时考虑操作及目标资源：
 
-- 对照信任的 grain 状态检查租户或账户所有权,并使用 grain 键作为资源定位器。
-- 将政策适用于能够到达受保护国的每一个接口或方法,包括 grain 扩展和行政方法。
-- 当身份、租户、政策或要求的国家不存在时,即默认为拒绝。
-- 保持政策评价的界限和可观察性。 silo-全局过滤器在其范围内的每一个调用上运行。
-- 测试直接 grain 呼叫、下游 grain 呼叫、重试、其他 silos的呼叫以及公共端点。
+- 根据可信 Grain 状态检查租户或帐户归属关系，并将 Grain 键用作资源定位符。
+- 对能够访问受保护状态的每个接口或方法实施策略，包括 Grain 扩展和管理方法。
+- 缺少身份、租户、策略或所需状态时，默认拒绝。
+- 限制策略评估的资源开销，并使其可观测。Silo 级筛选器会对其作用范围内的每次调用执行。
+- 测试直接 Grain 调用、下游 Grain 调用、重试、来自其他 Silo 的调用以及公共终结点。
 
-`IGrainCallContext.SourceId` 将 Orleans 调用器识别为 grain 或客户实例。使用单独验证的应用身份来授权最终用户或工作量。 Grain 类型名称、 grain 键、 `ServiceId`和 `ClusterId` 确定路由和部署资源。
+`IGrainCallContext.SourceId` 将 Orleans 调用方标识为 Grain 或客户端实例。应使用另外验证过的应用身份来授权最终用户或工作负载。Grain 类型名称、Grain 键、`ServiceId` 和 `ClusterId` 用于标识路由和部署资源。
 
 <a id="separate-transport-identity-from-application-authorization"></a>
 
-## 申请授权时的单独运输身份
+## 将传输身份与应用授权分离
 
-[TLS 电信](../host/transport-layer-security.md) 保护中转中的字节。服务器认证的 TLS为客户设定了 silo 身份,而相互确定 TLS 确定了两个工作量身份。应用程序政策绘制了这些身份图,允许使用 grain 方法、授权用户和租户资源。
+[TLS](../host/transport-layer-security.md) 保护传输中的字节。仅验证服务器身份的 TLS 向客户端确认 Silo 的身份，而双向 TLS 确认双方工作负载的身份。应用策略将这些身份映射到获准的 Grain 方法、委托用户和租户资源。
 
-当网络路径需要时使用两个层 :
+在网络路径需要时，同时使用这两个层次：
 
-- 网络政策和TLS决定哪些工作量可以建立 Orleans 连接。
-- 应用程序认证可建立调用者或服务身份。
-- Grain- 呼叫过滤器和 grain 逻辑授权操作和资源。
+- 网络策略与 TLS 决定哪些工作负载能够建立 Orleans 连接。
+- 应用身份验证确定调用方或服务的身份。
+- Grain 调用筛选器与 Grain 逻辑对操作和资源进行授权。
 
-更广泛的边界模式见 [Orleans 安全](index.md)。
+有关更完整的边界模型，请参阅 [Orleans 安全](index.md)。

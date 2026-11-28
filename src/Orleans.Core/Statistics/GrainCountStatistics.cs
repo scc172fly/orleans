@@ -7,7 +7,7 @@ using System.Threading;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// 每grain- 类型启动计数的集中统计数据。
+/// 针对各 Grain 类型激活实例数量的集中统计信息。
 /// </summary>
 internal class GrainCountStatistics(CatalogInstruments instruments)
 {

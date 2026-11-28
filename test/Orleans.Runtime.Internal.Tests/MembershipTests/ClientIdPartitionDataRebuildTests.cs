@@ -10,7 +10,7 @@ using Xunit;
 namespace UnitTests.MembershipTests
 {
     /// <summary>
-    /// 客户目录分区重建在 silo 失败后测试。
+    /// 测试 Silo 故障后的客户端目录分区重建。
     /// </summary>
     public class ClientIdPartitionDataRebuildTests : IDisposable
     {
@@ -45,45 +45,45 @@ namespace UnitTests.MembershipTests
         }
 
         [Fact(Skip = "Not reliable in PR build, skipping for now")]
-        //[形式(SiloUnavailableException), TestCategory(“功能”)
+        //[Fact(typeof(SiloUnavailableException)), TestCategory("Functional")]
         public async Task ReconstructClientIdPartitionTest_Observer()
         {
             var cancellationToken = TestContext.Current.CancellationToken;
-            // 确保客户端在 SIL2 分区上的用户条目并获得 grain 生活在西里岛3号
+            // 确保客户端条目位于 Silo2 的分区上，并获取位于 Silo3 的 Grain。
             var grain = await SetupTestAndPickGrain<ISimpleObserverableGrain>(g => g.GetRuntimeInstanceId(), cancellationToken);
             var observer = new Observer();
             var reference = this.hostedCluster.GrainFactory!.CreateObjectReference<ISimpleGrainObserver>(observer);
 
             await grain.Subscribe(reference);
 
-            // 试验第一次通知
+            // 测试第一次通知。
             await grain.SetA(10);
             await observer.WaitForNotification(10, 0, TimeSpan.FromSeconds(10), cancellationToken);
 
-            // 杀死持有目录客户端条目的 silo
+            // 终止持有客户端目录条目的 Silo。
             await this.hostedCluster.SecondarySilos[0].StopSiloAsync(stopGracefully: false, cancellationToken);
             await Task.Delay(5000, cancellationToken);
 
-            // 第二次通知应有效,因为目录在下列时间“重建”了:
-            // silos 组群中检测到已死亡的
+            // 第二次通知应正常工作，因为目录已在
+            // 集群中的 Silo 检测到死亡 Silo 时重建。
             await grain.SetB(20);
             await observer.WaitForNotification(10, 20, TimeSpan.FromSeconds(10), cancellationToken);
         }
 
         [Fact(Skip = "Not reliable in PR build, skipping for now")]
-        //[形式(SiloUnavailableException), TestCategory(“功能”)
+        //[Fact(typeof(SiloUnavailableException)), TestCategory("Functional")]
         public async Task ReconstructClientIdPartitionTest_Request()
         {
             var cancellationToken = TestContext.Current.CancellationToken;
-            // 确保客户端在 SIL2 分区上的用户条目并获得 grain 生活在西里瓦2号上
+            // 确保客户端条目位于 Silo2 的分区上，并获取位于 Silo2 的 Grain。
             var grain = await SetupTestAndPickGrain<ITestGrain>(g => g.GetRuntimeInstanceId(), cancellationToken);
 
-            // 启动长任务并杀死持有目录客户端条目的 silo
+            // 启动长时间运行的任务，并终止持有客户端目录条目的 Silo。
             var promise = grain.DoLongAction(TimeSpan.FromSeconds(10), "LongAction");
             await this.hostedCluster.SecondarySilos[0].StopSiloAsync(stopGracefully: false, cancellationToken);
 
-            // 因为它应该工作,因为目录是"重建"
-            // silos 组群中检测到已死亡的
+            // 此操作应正常工作，因为目录已在
+            // 集群中的 Silo 检测到死亡 Silo 时重建。
             await promise.WaitAsync(cancellationToken);
         }
 
@@ -91,7 +91,7 @@ namespace UnitTests.MembershipTests
             Func<T, Task<string>> getRuntimeInstanceId,
             CancellationToken cancellationToken) where T : class, IGrainWithIntegerKey
         {
-            // 确保客户端在 SILO2 分区上的条目
+            // 确保客户端条目位于 Silo2 的分区上。
             GrainId clientId = default;
             CreateAndDeployTestCluster();
             for (var i = 0; i < 100; i++)
@@ -114,7 +114,7 @@ namespace UnitTests.MembershipTests
             }
             Assert.False(clientId.IsDefault);
 
-            // 确保在硅3上启动 grain
+            // 确保 Grain 在 Silo3 上激活。
             T? grain = null;
             for (var i = 0; i < 100; i++)
             {

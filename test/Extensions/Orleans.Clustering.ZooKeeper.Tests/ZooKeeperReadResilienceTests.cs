@@ -43,7 +43,7 @@ public sealed class ZooKeeperReadResilienceTests : IAsyncLifetime
     {
         try
         {
-            // 固定装置拆解和取消的电话等候 在本地人关闭之前可以返回
+            // 测试夹具的清理和已取消的调用方等待操作可能在原生连接关闭前返回。
             await Task.WhenAll(_fixtures.Select(fixture => DrainFixtureAsync(fixture.DisposeAsync))
                 .Concat(_sessions.Select(session => session.Completion))
                 .Concat(_legacyOperations)
@@ -124,7 +124,7 @@ public sealed class ZooKeeperReadResilienceTests : IAsyncLifetime
         }
         catch (Exception exception)
         {
-            // 保持调用器堆在拆卸再观测前 保留操作故障
+            // 在清理阶段再次观察保留的操作失败之前，保留调用方的堆栈。
             record(exception.ToString());
             throw;
         }

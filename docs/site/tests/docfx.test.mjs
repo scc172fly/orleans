@@ -139,7 +139,7 @@ describe('DocFX conversion', () => {
       uidMap: new Map([['Orleans.Overview', '/orleans/docs/overview/']]),
     });
 
-    expect(converted).toContain(':::tip[Tip]');
+    expect(converted).toContain(':::tip[提示]');
     expect(converted).toContain('![Included image](./includes/media/included.png)');
     expect(converted).toContain('[Literal link example](literal.png)');
     expect(converted).not.toContain('[Literal link example](./includes/literal.png)');
@@ -171,7 +171,7 @@ describe('DocFX conversion', () => {
     expect(converted).toContain(
       'src="https://aka.ms/docs/player?show=reactor&amp;ep=orleans"',
     );
-    expect(converted).toContain(':::tip[Next step]\n[Continue learning](/orleans/docs/next/)');
+    expect(converted).toContain(':::tip[下一步]\n[Continue learning](/orleans/docs/next/)');
     expect(converted).toContain('- First task\n- Second task');
     expect(converted).not.toContain('[!VIDEO');
     expect(converted).not.toContain('[!div');
@@ -464,12 +464,12 @@ describe('DocFX conversion', () => {
         sourceRoot: directory,
       });
 
-      expect(converted).toContain(':::note[Note]\n&#91;!INCLUDE');
+      expect(converted).toContain(':::note[备注]\n&#91;!INCLUDE');
       expect(converted).toContain('````markdown\n> [!NOTE]\n> Literal callout example.\n````');
       expect(converted).toContain(
         '<pre>\n> [!div class="checklist"]\n> Literal Learn block example.\n</pre>',
       );
-      expect(converted).toContain(':::tip[Tip]\nLiteral directives:\n&#91;!INCLUDE');
+      expect(converted).toContain(':::tip[提示]\nLiteral directives:\n&#91;!INCLUDE');
       expect(converted).toContain('&#58;&#58;&#58;code language="csharp" source="Missing.cs":::');
       expect(converted).toContain('````text\n```text\n[!INCLUDE [missing](missing.md)]');
       expect(converted).toContain('Active include.');
@@ -492,7 +492,7 @@ describe('DocFX conversion', () => {
       sourceRoot: directory,
     });
 
-    expect(converted).toContain(':::note[Note]\n   lazy body\n   :::');
+    expect(converted).toContain(':::note[备注]\n   lazy body\n   :::');
     expect(converted).not.toContain('\n    lazy body');
   });
 
@@ -714,7 +714,7 @@ describe('DocFX conversion', () => {
     });
 
     expect(converted).toContain(
-      ':::note[Note]\n:::zone target="docs" pivot="orleans-9-0"\n:::zone-end\n:::',
+      ':::note[备注]\n:::zone target="docs" pivot="orleans-9-0"\n:::zone-end\n:::',
     );
     expect(converted).toContain(
       ':::zone target="docs" pivot="orleans-8-0"\n:::zone-end',
@@ -1060,7 +1060,7 @@ describe('DocFX conversion', () => {
     }).sort((left, right) => left - right);
 
     expect(collectMarkdownLinks(longInput)).toEqual([]);
-    // 投入总和相等应需可比时间;二次增长将接近8x比率。
+    // 总输入量相同，耗时应相近；若呈二次增长，耗时比将接近 8 倍。
     expect(ratios[4]).toBeLessThan(2.5);
   });
 

@@ -33,11 +33,11 @@ public sealed class AdventureGame
     {
         var rand = Random.Shared;
 
-        // 阅读游戏文件的内容并将其解密
+        // 读取游戏文件内容并反序列化。
         var jsonData = await File.ReadAllTextAsync(filename);
         var data = JsonConvert.DeserializeObject<MapInfo>(jsonData)!;
 
-        // 使用游戏数据初始化游戏世界
+        // 使用游戏数据初始化游戏世界。
         var rooms = new List<IRoomGrain>();
         foreach (var room in data.Rooms)
         {

@@ -5,7 +5,7 @@ using Orleans.Runtime.MembershipService;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// 校验 <see cref="AdoNetClusteringSiloOptions"/> 配置。
+    /// 验证 <see cref="AdoNetClusteringSiloOptions"/> 配置。
     /// </summary>
     public class AdoNetClusteringSiloOptionsValidator : IConfigurationValidator
     {
@@ -14,7 +14,7 @@ namespace Orleans.Configuration
         /// <summary>
         /// 初始化 <see cref="AdoNetClusteringSiloOptionsValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="options">验证的选项。</param>
+        /// <param name="options">要验证的选项。</param>
         public AdoNetClusteringSiloOptionsValidator(IOptions<AdoNetClusteringSiloOptions> options)
         {
             this.options = options.Value;

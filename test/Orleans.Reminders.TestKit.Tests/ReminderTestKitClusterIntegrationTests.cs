@@ -9,8 +9,8 @@ using Xunit;
 namespace Orleans.Reminders.TestKit.Tests;
 
 /// <summary>
-/// 证明理想先知之神能被安装在 silo 排排排排 <see cref="InProcessTestCluster"/>
-/// 并且揭露那份催问函究竟持续了些什么。
+/// 验证理想化的判定基准能否安装到 <see cref="InProcessTestCluster"/> 的每个 Silo 中，
+/// 并且准确公开提醒器服务所持久化的内容。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

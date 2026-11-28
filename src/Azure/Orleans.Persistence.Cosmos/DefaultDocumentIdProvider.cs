@@ -3,7 +3,7 @@ using static Orleans.Persistence.Cosmos.CosmosIdSanitizer;
 namespace Orleans.Persistence.Cosmos;
 
 /// <summary>
-/// <see cref="IDocumentIdProvider"/>的默认执行。
+/// <see cref="IDocumentIdProvider"/> 的默认实现。
 /// </summary>
 public sealed class DefaultDocumentIdProvider : IDocumentIdProvider
 {
@@ -17,9 +17,9 @@ public sealed class DefaultDocumentIdProvider : IDocumentIdProvider
     /// <summary>
     /// 初始化 <see cref="DefaultDocumentIdProvider"/> 类的新实例。
     /// </summary>
-    /// <param name="options">组合组合选项。</param>
+    /// <param name="options">集群选项。</param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="options"/> 是 <see langword="null"/>。
+    /// <paramref name="options"/> 为 <see langword="null"/>。
     /// </exception>
     public DefaultDocumentIdProvider(IOptions<ClusterOptions> options)
     {
@@ -49,21 +49,21 @@ public sealed class DefaultDocumentIdProvider : IDocumentIdProvider
     }
 
     /// <summary>
-    /// 获取指定 grain 文档的代号。
+    /// 获取指定 Grain 文档的 ID。
     /// </summary>
-    /// <param name="grainType"> grain 类型。</param>
-    /// <param name="grainId">下 grain id. 数据。</param>
-    /// <returns>文档id。</returns>
+    /// <param name="grainType">Grain 类型名称。</param>
+    /// <param name="grainId">Grain ID。</param>
+    /// <returns>文档 ID。</returns>
     public string GetId(string grainType, GrainId grainId) => $"{Sanitize(_options.ServiceId)}{KEY_STRING_SEPARATOR}{Sanitize(grainId.Type.ToString()!)}{SeparatorChar}{Sanitize(grainId.Key.ToString()!)}";
 
     /// <summary>
-    /// 获取指定 grain 文档的宇宙 DB 分区密钥。
+    /// 获取指定 Grain 文档的 Cosmos DB 分区键。
     /// </summary>
-    /// <param name="grainType"> grain 类型。</param>
-    /// <param name="grainId">下 grain id. 数据。</param>
-    /// <returns>文档分区密钥。</returns>
+    /// <param name="grainType">Grain 类型名称。</param>
+    /// <param name="grainId">Grain ID。</param>
+    /// <returns>文档分区键。</returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="grainType"/> 是 <see langword="null"/>。
+    /// <paramref name="grainType"/> 为 <see langword="null"/>。
     /// </exception>
     public string GetPartitionKey(string grainType, GrainId grainId)
     {

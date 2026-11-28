@@ -6,7 +6,7 @@ using Orleans.Runtime;
 namespace Tester.EventSourcingTests
 {
     /// <summary>
-    /// 事件源计数器测试 grain 功能包括同时加薪和国家管理。
+    /// 测试事件溯源计数器 Grain 的功能，包括并发递增和状态管理。
     /// </summary>
     [TestProvider("None")]
     [TestArea("EventSourcing")]
@@ -32,10 +32,10 @@ namespace Tester.EventSourcingTests
             await grain.Add("Alice", 1, false);
             await grain.Add("Alice", 1, false);
 
-            // 所有三个更新应在暂定清点中显示(即使尚未确认)
+            // 即使尚未确认，暂定计数也应反映全部三次更新
             Assert.Equal(3, await grain.GetTentativeCount("Alice"));
 
-            // 将全部对数重置为零,等待确认
+            // 将所有计数器重置为零，并等待确认
             await grain.Reset(true);
 
             Assert.Empty((await grain.GetTentativeState()));
@@ -54,20 +54,20 @@ namespace Tester.EventSourcingTests
 
         private static async Task ConcurrentIncrementsRunner(ICountersGrain grain, int count, bool wait_for_confirmation_on_each)
         {
-            // 随机键同时
+            // 在随机键上并发执行 count 次递增
             var tasks = new List<Task>();
             for (int i = 0; i < count; i++)
                 tasks.Add(grain.Add(RandomKey(), 1, wait_for_confirmation_on_each));
             await Task.WhenAll(tasks);
 
-            // 检查是否临时状态显示所有加量
+            // 检查暂定状态是否反映全部递增
             Assert.Equal(count, (await grain.GetTentativeState()).Aggregate(0, (c, kvp) => c + kvp.Value));
 
-            // 如果我们不等待每一事件的确认,那末,你们等待吧!
+            // 如果此前没有等待每个事件的确认，现在等待确认
             if (!wait_for_confirmation_on_each)
                 await grain.ConfirmAllPreviouslyRaisedEvents();
 
-            // 检查是否确认状态显示所有加量
+            // 检查已确认状态是否反映全部递增
             Assert.Equal(count, (await grain.GetConfirmedState()).Aggregate(0, (c, kvp) => c + kvp.Value));
 
             // 重置所有计数器

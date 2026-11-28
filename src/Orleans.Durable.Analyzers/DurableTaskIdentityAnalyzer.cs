@@ -9,17 +9,17 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Orleans.Durable.Analyzers;
 
-/// <summary>报告未命名的持久行动,其产生的识别资料可在运行和部署之间转移。</summary>
+/// <summary>报告未命名的持久化操作，这些操作的自动生成标识可能在各次运行及部署之间发生变化。</summary>
 /// <remarks>
-/// 持久任务机构无名操作,则采用处决后下一个身份识别特征:儿童、效果或
-/// 独立启动时使用 <c>$child-n</c>,等待的组合器使用操作识别符,例如
-/// <c>$when-all-n</c>。每个单位都计及其面前的无名型号操作,因此一个循环或一个循环中操作
-/// 条件,或是在另一种未命名的此类操作之后,可再获得另一个识别特征。
+/// 持久化任务体的未命名操作使用执行实例的下一个生成标识符：子任务、效果或
+/// 分离启动使用 <c>$child-n</c>，而被等待的组合器使用诸如
+/// <c>$when-all-n</c> 的操作标识。每种标识都统计在此之前执行的同类未命名操作，因此位于循环、
+/// 条件中或位于另一个同类未命名操作之后的操作，可能获得不同的标识。
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DurableTaskIdentityAnalyzer : DiagnosticAnalyzer
 {
-    /// <summary>诊断特性是指 <c>WithId</c> 缩略语</summary>
+    /// <summary>标记可通过 <c>WithId</c> 命名的操作的诊断属性。</summary>
     internal const string WithIdProperty = "WithId";
 
     private static readonly ImmutableDictionary<string, string?> WithIdProperties =
@@ -45,10 +45,10 @@ public sealed class DurableTaskIdentityAnalyzer : DiagnosticAnalyzer
 
     private enum Counter
     {
-        /// <summary>儿童、影响和分离的开始, <c>$child-n</c>.</summary>
+        /// <summary>子任务、效果和分离启动使用 <c>$child-n</c>。</summary>
         Child,
 
-        /// <summary>等待的组合集集机,它们使用诸如 <c>$when-all-n</c>.</summary>
+        /// <summary>被等待的组合器，使用诸如 <c>$when-all-n</c> 的操作标识。</summary>
         Operation,
     }
 
@@ -85,8 +85,8 @@ public sealed class DurableTaskIdentityAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// 返回一个操作开始的未命名操作:等待、计划或已张贴定义,不包含
-    /// <c>WithId</c>,诊断标记或未命名 <c>DurableTask.RunInline</c> 效应。
+    /// 返回某个操作启动的未命名操作：等待、调度或投递的、未使用
+    /// <c>WithId</c> 的定义（诊断会标记该定义），或未命名的 <c>DurableTask.RunInline</c> 效果。
     /// </summary>
     private static (Counter Counter, SyntaxNode Node, bool Nameable)? GetUnnamedOperation(IOperation operation, DurableTaskSymbols symbols)
     {
@@ -124,8 +124,8 @@ public sealed class DurableTaskIdentityAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// 返回指定操作标识符的持久任务机构,以及两者之间是否代码,例如
-    /// imbda , 查询运行或本地函数, 可以不止一次运行此操作 。
+    /// 返回为操作分配标识的持久化任务体，并指示二者之间的代码（例如查询所执行的
+    /// Lambda 表达式或局部函数）是否可能多次运行该操作。
     /// </summary>
     private static (SyntaxNode Node, bool Repeated)? GetScope(IOperation operation, ISymbol owningSymbol, DurableTaskSymbols symbols)
     {
@@ -164,7 +164,7 @@ public sealed class DurableTaskIdentityAnalyzer : DiagnosticAnalyzer
         return null;
     }
 
-    /// <summary>返回一个节点是循环运行的,还是其体内的条件。</summary>
+    /// <summary>返回节点是否在其所属任务体的循环或条件中运行。</summary>
     private static bool IsConditionalOrRepeated(SyntaxNode node, SyntaxNode scope)
     {
         for (var child = node; child.Parent is { } parent && child != scope; child = parent)

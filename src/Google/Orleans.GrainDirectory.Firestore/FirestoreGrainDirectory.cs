@@ -13,7 +13,7 @@ using Orleans.Configuration;
 namespace Orleans.GrainDirectory.Firestore;
 
 /// <summary>
-/// 提供谷歌云火炉支持的 grain 目录。
+/// 提供由 Google Cloud Firestore 支持的 Grain 目录。
 /// </summary>
 public partial class FirestoreGrainDirectory : IGrainDirectory, ILifecycleParticipant<ISiloLifecycle>
 {
@@ -26,9 +26,9 @@ public partial class FirestoreGrainDirectory : IGrainDirectory, ILifecyclePartic
     /// <summary>
     /// 初始化 <see cref="FirestoreGrainDirectory"/> 类的新实例。
     /// </summary>
-    /// <param name="clusterOptions">组合组合选项。</param>
-    /// <param name="firestoreOptions">谷歌云烟火商店选项。</param>
-    /// <param name="loggerFactory">伐木厂</param>
+    /// <param name="clusterOptions">集群选项。</param>
+    /// <param name="firestoreOptions">Google Cloud Firestore 选项。</param>
+    /// <param name="loggerFactory">日志记录器工厂。</param>
     public FirestoreGrainDirectory(
         IOptions<ClusterOptions> clusterOptions,
         IOptions<FirestoreOptions> firestoreOptions,
@@ -49,10 +49,10 @@ public partial class FirestoreGrainDirectory : IGrainDirectory, ILifecyclePartic
     }
 
     /// <summary>
-    /// 查看一个 grain的登记激活。
+    /// 查找指定 Grain 已注册的激活实例。
     /// </summary>
-    /// <param name="grainId"> grain 标识符。</param>
-    /// <returns>登记 grain 地址,或 <see langword="null"/> 不存在登记。</returns>
+    /// <param name="grainId">Grain 标识符。</param>
+    /// <returns>已注册的 Grain 地址；如果没有注册，则为 <see langword="null"/>。</returns>
     public Task<GrainAddress?> Lookup(GrainId grainId) => Lookup(grainId, CancellationToken.None);
 
     Task<GrainAddress?> IGrainDirectory.Lookup(GrainId grainId, CancellationToken cancellationToken) =>
@@ -76,10 +76,10 @@ public partial class FirestoreGrainDirectory : IGrainDirectory, ILifecyclePartic
     }
 
     /// <summary>
-    /// 登记a grain 如果没有注册的激活 grain.
+    /// 如果指定 Grain 尚无注册记录，则注册其激活实例。
     /// </summary>
-    /// <param name="address">下 grain 注册地址。</param>
-    /// <returns>注册在目录中的 grain 地址。</returns>
+    /// <param name="address">要注册的 Grain 地址。</param>
+    /// <returns>在目录中注册的 Grain 地址。</returns>
     public Task<GrainAddress?> Register(GrainAddress address) =>
         Register(address, previousAddress: null, cancellationToken: CancellationToken.None);
 
@@ -126,10 +126,10 @@ public partial class FirestoreGrainDirectory : IGrainDirectory, ILifecyclePartic
     }
 
     /// <summary>
-    /// 当存储的激活标识符与所提供地址匹配时,删除一个 grain 激活。
+    /// 当存储中的激活实例标识与给定地址匹配时，移除该 Grain 激活实例的注册。
     /// </summary>
-    /// <param name="address">要删除的 grain 地址。</param>
-    /// <returns>代表操作的任务。</returns>
+    /// <param name="address">要移除的 Grain 地址。</param>
+    /// <returns>表示该操作的任务。</returns>
     public Task Unregister(GrainAddress address) => Unregister(address, CancellationToken.None);
 
     Task IGrainDirectory.Unregister(GrainAddress address, CancellationToken cancellationToken) =>
@@ -162,10 +162,10 @@ public partial class FirestoreGrainDirectory : IGrainDirectory, ILifecyclePartic
     }
 
     /// <summary>
-    /// 全部删除 grain 注册到指定 silos.
+    /// 移除注册到指定 Silo 的所有 Grain 激活实例的注册。
     /// </summary>
-    /// <param name="siloAddresses">下 silo 登记被删除的地址。</param>
-    /// <returns>代表操作的任务。</returns>
+    /// <param name="siloAddresses">要移除其注册记录的 Silo 地址。</param>
+    /// <returns>表示该操作的任务。</returns>
     public Task UnregisterSilos(List<SiloAddress> siloAddresses) =>
         UnregisterSilos(siloAddresses, CancellationToken.None);
 
@@ -236,9 +236,9 @@ public partial class FirestoreGrainDirectory : IGrainDirectory, ILifecyclePartic
     }
 
     /// <summary>
-    /// 将 grain 目录订阅到 silo 生命周期。
+    /// 将 Grain 目录订阅到 Silo 生命周期。
     /// </summary>
-    /// <param name="lifecycle">下 silo 生命周期。</param>
+    /// <param name="lifecycle">Silo 生命周期。</param>
     public void Participate(ISiloLifecycle lifecycle) =>
         lifecycle.Subscribe(nameof(FirestoreGrainDirectory), ServiceLifecycleStage.RuntimeInitialize, Init);
 

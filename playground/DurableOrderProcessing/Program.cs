@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<OrderingOptions>(builder.Configuration.GetSection("Ordering"));
 builder.Services.AddOrderProcessingApi();
 
-// 订单工作流程称为模拟付款网关,该应用程序在/门道下使用,高于HTTP。
+// 订单工作流通过 HTTP 调用模拟支付网关，该网关由此应用在 /gateway 下提供。
 builder.UseOrleans(silo => silo
     .UseLocalhostClustering()
     .AddOrderProcessing(payments => payments.ConfigureHttpClient(client =>

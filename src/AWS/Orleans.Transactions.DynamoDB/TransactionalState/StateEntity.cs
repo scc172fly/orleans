@@ -12,7 +12,7 @@ namespace Orleans.Transactions.DynamoDB.TransactionalState;
 
 internal class StateEntity
 {
-    // 列密钥范围从状态_0000000000000001 到状态_7ffffffffffffffffffffffffffffffffffff
+    // 行键范围为 state_0000000000000001 至 state_7fffffffffffffff。
     public const string ROW_KEY_PREFIX = "state_";
     public const string ROW_KEY_MIN = ROW_KEY_PREFIX;
     public const string ROW_KEY_MAX = ROW_KEY_PREFIX + "~";

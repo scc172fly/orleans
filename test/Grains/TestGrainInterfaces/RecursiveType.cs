@@ -6,8 +6,8 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// 这些类组构成 https://github.com/dotnet/orleans/issues/5473的复正方程式,结果产生
-    /// 代码生成时StackOverflowException
+    /// 这些类用于复现 https://github.com/dotnet/orleans/issues/5473 的问题，
+    /// 该问题会在代码生成期间引发 StackOverflowException。
     /// </summary>
     [Serializable]
     [GenerateSerializer]

@@ -1,16 +1,16 @@
-; EditorConfig to support per-solution formatting.
-; Use the EditorConfig VS add-in to make this work.
+; 用于支持各解决方案格式设置的 EditorConfig。
+; 使用 EditorConfig 的 VS 插件使这些设置生效。
 ; http://editorconfig.org/
 ;
-; Here are some resources for what's supported for .NET/C#
+; 以下资源介绍 .NET/C# 支持的设置：
 ; https://kent-boogaart.com/blog/editorconfig-reference-for-c-developers
 ; https://learn.microsoft.com/visualstudio/ide/editorconfig-code-style-settings-reference
 ;
-; Be **careful** editing this because some of the rules don't support adding a severity level
-; For instance if you change to `dotnet_sort_system_directives_first = true:suggestion` (adding `:warning`)
-; then the rule will be silently ignored.
+; 编辑时务必**小心**，因为有些规则不支持添加严重级别。
+; 例如，如果改为 `dotnet_sort_system_directives_first = true:suggestion`（添加 `:warning`），
+; 则该规则会被静默忽略。
 
-; This is the default for the codeline.
+; 这是此代码库的默认设置。
 root = true
 
 [*]
@@ -20,7 +20,7 @@ trim_trailing_whitespace = true
 insert_final_newline = true
 spelling_exclusion_path = spelling.dic
 
-# Verify settings
+# Verify 的设置
 [*.{received,verified}.{cs}]
 charset = "utf-8-bom"
 end_of_line = lf
@@ -34,25 +34,25 @@ trim_trailing_whitespace = false
 indent_size = 4
 dotnet_sort_system_directives_first = true
 
-# Don't use this. qualifier
+# 不使用 this. 限定符
 dotnet_style_qualification_for_field = false:suggestion
 dotnet_style_qualification_for_property = false:suggestion
 
-# use int x = .. over Int32
+# 使用 int x = ..，而非 Int32
 dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
 
-# use int.MaxValue over Int32.MaxValue
+# 使用 int.MaxValue，而非 Int32.MaxValue
 dotnet_style_predefined_type_for_member_access = true:suggestion
 
-# Require var all the time.
+# 始终要求使用 var。
 csharp_style_var_for_built_in_types = true:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
 csharp_style_var_elsewhere = true:suggestion
 
-# Prefer throw expressions.
+# 优先使用 throw 表达式。
 csharp_style_throw_expression = true:suggestion
 
-# Newline settings
+# 换行设置
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true
 csharp_new_line_before_catch = true
@@ -60,10 +60,10 @@ csharp_new_line_before_finally = true
 csharp_new_line_before_members_in_object_initializers = true
 csharp_new_line_before_members_in_anonymous_types = true
 
-# Namespace settings
+# 命名空间设置
 csharp_style_namespace_declarations = file_scoped
 
-# Brace settings
+# 大括号设置
 csharp_prefer_braces = true:suggestion
 
 dotnet_style_coalesce_expression = true : suggestion
@@ -86,107 +86,107 @@ dotnet_style_qualification_for_event =false:suggestion
 dotnet_style_qualification_for_method =false:suggestion
 dotnet_style_require_accessibility_modifiers = always : suggestion
 
-# Naming Symbols
-# constant_fields - Define constant fields
+# 命名符号
+# constant_fields - 定义常量字段
 dotnet_naming_symbols.constant_fields.applicable_kinds = field
 dotnet_naming_symbols.constant_fields.required_modifiers = const
-# non_private_readonly_fields - Define public, internal and protected readonly fields
+# non_private_readonly_fields - 定义 public、internal 和 protected 的 readonly 字段
 dotnet_naming_symbols.non_private_readonly_fields.applicable_accessibilities = public, internal, protected
 dotnet_naming_symbols.non_private_readonly_fields.applicable_kinds = field
 dotnet_naming_symbols.non_private_readonly_fields.required_modifiers = readonly
-# static_readonly_fields - Define static and readonly fields
+# static_readonly_fields - 定义同时具有 static 和 readonly 修饰符的字段
 dotnet_naming_symbols.static_readonly_fields.applicable_kinds = field
 dotnet_naming_symbols.static_readonly_fields.required_modifiers = static, readonly
-# private_readonly_fields - Define private readonly fields
+# private_readonly_fields - 定义 private readonly 字段
 dotnet_naming_symbols.private_readonly_fields.applicable_accessibilities = private
 dotnet_naming_symbols.private_readonly_fields.applicable_kinds = field
 dotnet_naming_symbols.private_readonly_fields.required_modifiers = readonly
-# public_internal_fields - Define public and internal fields
+# public_internal_fields - 定义 public 和 internal 字段
 dotnet_naming_symbols.public_internal_fields.applicable_accessibilities = public, internal
 dotnet_naming_symbols.public_internal_fields.applicable_kinds = field
-# private_protected_fields - Define private and protected fields
+# private_protected_fields - 定义 private 和 protected 字段
 dotnet_naming_symbols.private_protected_fields.applicable_accessibilities = private, protected
 dotnet_naming_symbols.private_protected_fields.applicable_kinds = field
-# public_symbols - Define any public symbol
+# public_symbols - 定义任何公共符号
 dotnet_naming_symbols.public_symbols.applicable_accessibilities = public, internal, protected, protected_internal
 dotnet_naming_symbols.public_symbols.applicable_kinds = method, property, event, delegate
-# parameters - Defines any parameter
+# parameters - 定义任意参数
 dotnet_naming_symbols.parameters.applicable_kinds = parameter
-# non_interface_types - Defines class, struct, enum and delegate types
+# non_interface_types - 定义 class、struct、enum 和 delegate 类型
 dotnet_naming_symbols.non_interface_types.applicable_kinds = class, struct, enum, delegate
-# interface_types - Defines interfaces
+# interface_types - 定义接口
 dotnet_naming_symbols.interface_types.applicable_kinds = interface
-# private_fields - Defines private fields
+# private_fields - 定义私有字段
 dotnet_naming_symbols.private_fields.applicable_kinds = field
 dotnet_naming_symbols.private_fields.applicable_accessibilities = private
 
-# Naming Styles
-# camel_case - Define the camelCase style
+# 命名样式
+# camel_case - 定义 camelCase 样式
 dotnet_naming_style.camel_case.capitalization = camel_case
-# pascal_case - Define the Pascal_case style
+# pascal_case - 定义 Pascal_case 样式
 dotnet_naming_style.pascal_case.capitalization = pascal_case
-# first_upper - The first character must start with an upper-case character
+# first_upper - 首字符必须为大写字符
 dotnet_naming_style.first_upper.capitalization = first_word_upper
-# prefix_interface_interface_with_i - Interfaces must be PascalCase and the first character of an interface must be an 'I'
+# prefix_interface_interface_with_i - 接口必须采用 PascalCase，且接口名称的首字符必须为 'I'
 dotnet_naming_style.prefix_interface_interface_with_i.capitalization = pascal_case
 dotnet_naming_style.prefix_interface_interface_with_i.required_prefix = I
-# prefix_underscore_camel_case - Private fields must be prefixed with an '_'
+# prefix_underscore_camel_case - 私有字段必须以 '_' 为前缀
 dotnet_naming_style.prefix_underscore_camel_case.capitalization = camel_case
 dotnet_naming_style.prefix_underscore_camel_case.required_prefix = _
 
-# Naming Rules
-# Constant fields must be PascalCase
+# 命名规则
+# 常量字段必须采用 PascalCase
 dotnet_naming_rule.constant_fields_must_be_pascal_case.severity = suggestion
 dotnet_naming_rule.constant_fields_must_be_pascal_case.symbols = constant_fields
 dotnet_naming_rule.constant_fields_must_be_pascal_case.style = pascal_case
-# Public, internal and protected readonly fields must be PascalCase
+# public、internal 和 protected 的 readonly 字段必须采用 PascalCase
 dotnet_naming_rule.non_private_readonly_fields_must_be_pascal_case.severity = suggestion
 dotnet_naming_rule.non_private_readonly_fields_must_be_pascal_case.symbols = non_private_readonly_fields
 dotnet_naming_rule.non_private_readonly_fields_must_be_pascal_case.style = pascal_case
-# Static readonly fields must be PascalCase
+# static readonly 字段必须采用 PascalCase
 dotnet_naming_rule.static_readonly_fields_must_be_pascal_case.severity = suggestion
 dotnet_naming_rule.static_readonly_fields_must_be_pascal_case.symbols = static_readonly_fields
 dotnet_naming_rule.static_readonly_fields_must_be_pascal_case.style = pascal_case
-# Private readonly fields must be camelCase
+# private readonly 字段必须采用 camelCase
 dotnet_naming_rule.private_readonly_fields_must_be_camel_case.severity = suggestion
 dotnet_naming_rule.private_readonly_fields_must_be_camel_case.symbols = private_readonly_fields
 dotnet_naming_rule.private_readonly_fields_must_be_camel_case.style = prefix_underscore_camel_case
-# Public and internal fields must be PascalCase
+# public 和 internal 字段必须采用 PascalCase
 dotnet_naming_rule.public_internal_fields_must_be_pascal_case.severity = suggestion
 dotnet_naming_rule.public_internal_fields_must_be_pascal_case.symbols = public_internal_fields
 dotnet_naming_rule.public_internal_fields_must_be_pascal_case.style = pascal_case
-# Private and protected fields must be camelCase
+# private 和 protected 字段必须采用 camelCase
 dotnet_naming_rule.private_protected_fields_must_be_camel_case.severity = suggestion
 dotnet_naming_rule.private_protected_fields_must_be_camel_case.symbols = private_protected_fields
 dotnet_naming_rule.private_protected_fields_must_be_camel_case.style = camel_case
-# Public members must be capitalized
+# 公共成员必须以大写字母开头
 dotnet_naming_rule.public_members_must_be_capitalized.severity = suggestion
 dotnet_naming_rule.public_members_must_be_capitalized.symbols = public_symbols
 dotnet_naming_rule.public_members_must_be_capitalized.style = first_upper
-# Parameters must be camelCase
+# 参数必须采用 camelCase
 dotnet_naming_rule.parameters_must_be_camel_case.severity = suggestion
 dotnet_naming_rule.parameters_must_be_camel_case.symbols = parameters
 dotnet_naming_rule.parameters_must_be_camel_case.style = camel_case
-# Class, struct, enum and delegates must be PascalCase
+# 类、结构、枚举及委托必须采用 PascalCase
 dotnet_naming_rule.non_interface_types_must_be_pascal_case.severity = suggestion
 dotnet_naming_rule.non_interface_types_must_be_pascal_case.symbols = non_interface_types
 dotnet_naming_rule.non_interface_types_must_be_pascal_case.style = pascal_case
-# Interfaces must be PascalCase and start with an 'I'
+# 接口必须采用 PascalCase，并以 'I' 开头
 dotnet_naming_rule.interface_types_must_be_prefixed_with_i.severity = suggestion
 dotnet_naming_rule.interface_types_must_be_prefixed_with_i.symbols = interface_types
 dotnet_naming_rule.interface_types_must_be_prefixed_with_i.style = prefix_interface_interface_with_i
-# Private fields must begin with an '_'
+# 私有字段必须以 '_' 开头
 dotnet_naming_rule.private_members_with_underscore.symbols = private_fields
 dotnet_naming_rule.private_members_with_underscore.style = prefix_underscore_camel_case
 dotnet_naming_rule.private_members_with_underscore.severity = suggestion
 
-# Indentation Options
+# 缩进选项
 csharp_indent_block_contents = true
 csharp_indent_braces = false
 csharp_indent_case_contents = true
 csharp_indent_labels = flush_left
 csharp_indent_switch_labels = true
-# Style Options
+# 样式选项
 csharp_style_conditional_delegate_call = true : suggestion
 csharp_style_deconstructed_variable_declaration = true : suggestion
 csharp_style_expression_bodied_accessors = true : suggestion
@@ -201,9 +201,9 @@ csharp_style_inlined_variable_declaration = true : suggestion
 csharp_style_pattern_local_over_anonymous_function = true : suggestion
 csharp_style_pattern_matching_over_as_with_null_check = true : suggestion
 csharp_style_pattern_matching_over_is_with_cast_check = true : suggestion
-# New Line Options
+# 换行选项
 csharp_new_line_between_query_expression_clauses = true
-# Spacing Options
+# 空格选项
 csharp_space_after_cast = false
 csharp_space_after_colon_in_inheritance_clause = true
 csharp_space_after_comma = true
@@ -226,16 +226,16 @@ csharp_space_between_method_declaration_name_and_open_parenthesis = false
 csharp_space_between_method_declaration_parameter_list_parentheses = false
 csharp_space_between_parentheses = false
 csharp_space_between_square_brackets = false
-# Wrapping Options
+# 换行布局选项
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
-# Expressions
+# 表达式
 csharp_prefer_simple_default_expression = true:suggestion
 
 [*.{xml,config,*proj,nuspec,props,resx,targets,yml,tasks}]
 indent_size = 2
 
-# Xml config files
+# XML 配置文件
 [*.{props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct}]
 indent_size = 2
 
@@ -254,14 +254,14 @@ charset = utf-8-bom
 
 [*.{cs,vb}]
 
-# Parameter documentation completeness remains advisory for this baseline.
+# 在此基准中，参数文档完整性诊断仍仅作为建议。
 dotnet_diagnostic.CS1573.severity = suggestion
 
-# Existing public API documentation and sealed-type compatibility warnings remain advisory.
+# 现有公共 API 文档和密封类型兼容性警告仍仅作为建议。
 dotnet_diagnostic.CS0628.severity = suggestion
 dotnet_diagnostic.CS1591.severity = suggestion
 
-# Multiple-entry-point compatibility remains advisory.
+# 多入口点兼容性诊断仍仅作为建议。
 dotnet_diagnostic.CS8892.severity = suggestion
 
 # SYSLIB1054: Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
@@ -688,7 +688,7 @@ dotnet_diagnostic.CA2213.severity = warning
 dotnet_diagnostic.CA1001.severity = warning
 dotnet_diagnostic.CA2213.severity = warning
 
-# Generic dependency-injection registrations preserve public constructors through trimming.
+# 泛型依赖注入注册在裁剪时保留公共构造函数。
 [src/{Orleans.Core,Orleans.Runtime}/**.cs]
 dotnet_analyzer_diagnostic.category-Trimming.severity = suggestion
 dotnet_diagnostic.IL2087.severity = warning
@@ -761,8 +761,8 @@ dotnet_diagnostic.CA2219.severity = warning
 [src/Orleans.Transactions.TestKit.Base/**.cs]
 dotnet_diagnostic.CA2025.severity = warning
 
-# Production source enforces the correctness baseline. Tests, samples, documentation,
-# playgrounds, templates, and tools retain advisory diagnostics during this rollout.
+# 生产源码强制执行正确性基准。在本次推广过程中，测试、示例、文档、
+# 试验项目、模板和工具的诊断仍仅作为建议。
 [src/**/*.{cs,vb}]
 dotnet_diagnostic.CA1856.severity = warning
 dotnet_diagnostic.CA2002.severity = warning
@@ -777,38 +777,38 @@ dotnet_diagnostic.CA2246.severity = warning
 dotnet_diagnostic.IDE0035.severity = warning
 dotnet_diagnostic.IDE0043.severity = warning
 
-# Dashboard grain-state serialization reuses one serializer configuration.
+# 仪表板的 Grain 状态序列化复用同一套序列化器配置。
 [src/Dashboard/Orleans.Dashboard/**.cs]
 dotnet_diagnostic.CA1869.severity = warning
 
-# Dashboard text handling explicitly distinguishes deterministic identifiers from localized display text.
+# 仪表板的文本处理明确区分确定性标识符和本地化显示文本。
 [src/Dashboard/Orleans.Dashboard/**/*.cs]
 dotnet_diagnostic.CA1305.severity = warning
 dotnet_diagnostic.CA1307.severity = warning
 
-# Provider-specific globalization enforcement is centralized here.
+# 提供程序特定的全球化规则在此集中执行。
 [src/{AWS/Orleans.Clustering.DynamoDB,Azure/Orleans.Clustering.AzureStorage}/**.cs]
 dotnet_diagnostic.CA1305.severity = warning
 dotnet_diagnostic.CA1307.severity = warning
 
-# Journal identifiers, metadata, and provider storage keys retain their exact persisted representation.
+# 日志标识符、元数据及提供程序存储键均保持其精确的持久化表示形式。
 [src/{Orleans.Durable/Journaling,Azure/Orleans.Durable.AzureStorage/Journaling,Redis/Orleans.Durable.Redis,AWS/Orleans.Durable.S3}/**.cs]
 dotnet_diagnostic.CA1305.severity = warning
 dotnet_diagnostic.CA1307.severity = warning
 
-# Azure Table sources are linked into multiple provider projects, so they share one enforcement policy.
+# Azure Table 源文件链接到多个提供程序项目，因此共享同一套规则执行策略。
 [src/Azure/Shared/{Storage/{AzureStorageOperationOptions.cs,AzureStoragePolicyOptions.cs,AzureTableDataManager.cs,AzureTableUtils.cs},Utilities/ErrorCode.cs}]
 dotnet_diagnostic.CA1305.severity = warning
 dotnet_diagnostic.CA1307.severity = warning
 
-# ActivationData's shared monitor migration is tracked by #10068.
+# ActivationData 的共享监视器迁移由 #10068 跟踪。
 [src/Orleans.Runtime/Catalog/ActivationData.cs]
 dotnet_diagnostic.CA2002.severity = suggestion
 
-# DynamoDB persistence and transactional state use stable wire representations.
+# DynamoDB 持久化和事务状态使用稳定的传输表示形式。
 [src/AWS/{Orleans.Persistence.DynamoDB,Orleans.Transactions.DynamoDB}/**.cs]
 dotnet_diagnostic.CA1305.severity = warning
 
-# Shared linked sources are separately owned and remain advisory for this rollout.
+# 共享链接源文件由其他组件负责维护，在本次推广中仍仅提供建议级别诊断。
 [src/AWS/Shared/{AWSUtils.cs,Storage/DynamoDBStorage.cs}]
 dotnet_diagnostic.CA1305.severity = suggestion

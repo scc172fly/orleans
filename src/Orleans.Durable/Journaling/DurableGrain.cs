@@ -3,15 +3,15 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 为管理日记耐用状态的 grains 提供方便方法。
+/// 为管理日志持久化状态的 Grain 提供便捷方法。
 /// </summary>
 public abstract class DurableGrain : Grain, IGrainBase
 {
     /// <summary>
-    /// 初始化了 <see cref="DurableGrain"/> 级的新实例,解决了国家经理的问题。
+    /// 初始化 <see cref="DurableGrain"/> 类的新实例，并解析其状态管理器。
     /// </summary>
     /// <remarks>
-    /// 国家标准管理人员注册 grain 使用期间 grain- 开工
+    /// 标准状态管理器在绑定 Grain 的构造期间加入 Grain 生命周期。
     /// </remarks>
     protected DurableGrain()
     {
@@ -19,14 +19,14 @@ public abstract class DurableGrain : Grain, IGrainBase
     }
 
     /// <summary>
-    /// 获取用于此 grain 激活的日记状态管理器 。
+    /// 获取此 Grain 激活实例的日志状态管理器。
     /// </summary>
     protected IDurableStateManager StateManager { get; }
 
     /// <summary>
-    /// 写下注册日记状态。
+    /// 写入已注册的日志状态。
     /// </summary>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>A <see cref="ValueTask"/> 代表写作操作。</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>表示写入操作的 <see cref="ValueTask"/>。</returns>
     protected ValueTask WriteStateAsync(CancellationToken cancellationToken = default) => StateManager.WriteStateAsync(cancellationToken);
 }

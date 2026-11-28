@@ -8,84 +8,84 @@ using Orleans.Services;
 namespace Orleans.Timers
 {
     /// <summary>
-    /// 管理催复通知的职能。
+    /// 提供管理提醒器的功能。
     /// </summary>
     public interface IReminderRegistry : IGrainServiceClient<IReminderService>
     {
         /// <summary>
-        /// 登记或更新当前活动的 grain的提醒通知,并注明指定的名称。
+        /// 为当前激活的 Grain 注册或更新具有指定名称的提醒器。
         /// </summary>
-        /// <param name="callingGrainId">当前执行的 grain</param>的代号
-        /// <param name="reminderName">提醒的名称。</param>
-        /// <param name="dueTime">最初援引提醒前要延迟的时间。 <see cref="TimeSpan.Zero"/> 值意味着第一个秒被立即排期;负值、无限值或超过剩余 <see cref="DateTime"/> 范围的数值被否决。</param>
-        /// <param name="period">提醒的引用间隔。 值必须至少为 <see cref="Orleans.Hosting.ReminderOptions.MinimumReminderPeriod"/>; 小数值和 <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> 被否决。</param>
-        /// 提醒<returns>。</returns>
+        /// <param name="callingGrainId">当前正在执行的 Grain 的 ID。</param>
+        /// <param name="reminderName">提醒器名称。</param>
+        /// <param name="dueTime">提醒器首次调用前的等待时间。<see cref="TimeSpan.Zero"/> 表示立即调度首次触发；负值、无限值或超出 <see cref="DateTime"/> 剩余范围的值均会被拒绝。</param>
+        /// <param name="period">提醒器两次调用之间的时间间隔。该值必须至少为 <see cref="Orleans.Hosting.ReminderOptions.MinimumReminderPeriod"/>；更小的值和 <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> 均会被拒绝。</param>
+        /// <returns>提醒器。</returns>
         /// <remarks>
-        /// <paramref name="period"/>没有特殊的一次性提醒值。 要排入一次回调, 请登记一个有效的正时段并在第一次回调火灾后取消提醒 。
+        /// <paramref name="period"/> 没有用于单次提醒的特殊值。若要仅调度一次回调，请注册有效的正数周期，并在首次回调触发后注销提醒器。
         /// </remarks>
         Task<IGrainReminder> RegisterOrUpdateReminder(GrainId callingGrainId, string reminderName, TimeSpan dueTime, TimeSpan period);
 
         /// <summary>
-        /// 登记或更新关于指定 grain的提醒通知。
+        /// 为指定 Grain 注册或更新提醒器。
         /// </summary>
-        /// <param name="callingGrainId">当前执行的 grain的代号。</param>
-        /// <param name="reminderName">提醒的名称。</param>
-        /// <param name="dueTime">最初援引催复通知之前的延迟时间。</param>
-        /// <param name="period">提醒的援引间隔时间。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// 提醒<returns>。</returns>
+        /// <param name="callingGrainId">当前正在执行的 Grain 的 ID。</param>
+        /// <param name="reminderName">提醒器名称。</param>
+        /// <param name="dueTime">提醒器首次调用前的等待时间。</param>
+        /// <param name="period">两次提醒器调用之间的时间间隔。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>提醒器。</returns>
         Task<IGrainReminder> RegisterOrUpdateReminder(GrainId callingGrainId, string reminderName, TimeSpan dueTime, TimeSpan period, CancellationToken cancellationToken)
             => RegisterOrUpdateReminder(callingGrainId, reminderName, dueTime, period);
 
         /// <summary>
-        /// 向当前活动者发出提醒 grain.
+        /// 注销当前激活的 Grain 的提醒器。
         /// </summary>
-        /// <param name="callingGrainId">当前执行的 grain</param>的代号
-        /// <param name="reminder">提醒要不登记</param>
-        /// <returns>A <see cref="Task"/> 代表操作。</returns>
+        /// <param name="callingGrainId">当前正在执行的 Grain 的 ID。</param>
+        /// <param name="reminder">要注销的提醒器。</param>
+        /// <returns>表示该操作的 <see cref="Task"/>。</returns>
         Task UnregisterReminder(GrainId callingGrainId, IGrainReminder reminder);
 
         /// <summary>
-        /// 将指定的 grain中的提醒通知不登记。
+        /// 注销指定 Grain 的提醒器。
         /// </summary>
-        /// <param name="callingGrainId">当前执行的 grain的代号。</param>
-        /// <param name="reminder">提醒要不登记</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>A <see cref="Task"/> 代表操作。</returns>
+        /// <param name="callingGrainId">当前正在执行的 Grain 的 ID。</param>
+        /// <param name="reminder">要注销的提醒器。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>表示该操作的 <see cref="Task"/>。</returns>
         Task UnregisterReminder(GrainId callingGrainId, IGrainReminder reminder, CancellationToken cancellationToken)
             => UnregisterReminder(callingGrainId, reminder);
 
         /// <summary>
-        /// 获取提醒,使其使用当前活动 grain注册的指定名称。
+        /// 获取当前激活的 Grain 注册的具有指定名称的提醒器。
         /// </summary>
-        /// <param name="callingGrainId">当前执行的 grain</param>的代号
-        /// <param name="reminderName">提醒的名称。</param>
-        /// 提醒<returns>。</returns>
+        /// <param name="callingGrainId">当前正在执行的 Grain 的 ID。</param>
+        /// <param name="reminderName">提醒器名称。</param>
+        /// <returns>提醒器。</returns>
         Task<IGrainReminder?> GetReminder(GrainId callingGrainId, string reminderName);
 
         /// <summary>
-        /// 获取已注册到指定 grain的提醒 。
+        /// 获取指定 Grain 注册的提醒器。
         /// </summary>
-        /// <param name="callingGrainId">当前执行的 grain的代号。</param>
-        /// <param name="reminderName">提醒的名称。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>或 <see langword="null"/> 如果找不到的话</returns>
+        /// <param name="callingGrainId">当前正在执行的 Grain 的 ID。</param>
+        /// <param name="reminderName">提醒器名称。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>提醒器；如果未找到，则为 <see langword="null"/>。</returns>
         Task<IGrainReminder?> GetReminder(GrainId callingGrainId, string reminderName, CancellationToken cancellationToken)
             => GetReminder(callingGrainId, reminderName);
 
         /// <summary>
-        /// 获取当前注册到活动 grain的所有提醒 。
+        /// 获取当前激活的 Grain 已注册的所有提醒器。
         /// </summary>
-        /// <param name="callingGrainId">当前执行的 grain</param>的代号
-        /// <returns>所有当前登记到活动 grain.</returns>
+        /// <param name="callingGrainId">当前正在执行的 Grain 的 ID。</param>
+        /// <returns>当前激活的 Grain 已注册的所有提醒器。</returns>
         Task<List<IGrainReminder>> GetReminders(GrainId callingGrainId);
 
         /// <summary>
-        /// 将所有提醒通知登记到指定的 grain。
+        /// 获取指定 Grain 已注册的所有提醒器。
         /// </summary>
-        /// <param name="callingGrainId">当前执行的 grain的代号。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>向指定 grain登记的所有提醒通知。</returns>
+        /// <param name="callingGrainId">当前正在执行的 Grain 的 ID。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>指定 Grain 已注册的所有提醒器。</returns>
         Task<List<IGrainReminder>> GetReminders(GrainId callingGrainId, CancellationToken cancellationToken)
             => GetReminders(callingGrainId);
     }

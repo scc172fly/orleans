@@ -1,31 +1,31 @@
 ---
-title: "Orleans 流出的API"
-description: "与 Orleans中流特性、生产者、消费者和明示或默示订阅者合作。"
+title: Orleans 流处理 API
+description: 在 Orleans 中使用流标识、生产者、消费者以及显式或隐式订阅。
 ms.date: 08/24/2026
 ms.topic: concept-article
 ---
 
 <a id="orleans-streaming-apis"></a>
 
-# Orleans 流出的API
+# Orleans 流处理 API
 
 <a id="stream-identity"></a>
 
-## 流流身份
+## 流标识
 
 <a id="async-stream"></a>
 
-三个应用级别选择选择了 Orleans 流:
+选择一个 Orleans 流需要三个应用层要素：
 
-- **提供者名称** 选择已配置的 <xref:Orleans.Streams.IStreamProvider>。
-- **流命名空间** 组相关流,并参与隐含订阅匹配。
-- **流键** 识别命名空间内的一条流,可以是字符串、图形用户界面D或整数。
+- **提供程序名称**选择已配置的 <xref:Orleans.Streams.IStreamProvider>。
+- **流命名空间**对相关流进行分组，并参与隐式订阅匹配。
+- **流键**标识命名空间中的一个流，可以是字符串、GUID 或整数。
 
-名称空间和密钥窗体 <xref:Orleans.Runtime.StreamId>。将身份构建保留在共享代码中:
+命名空间和键共同组成 <xref:Orleans.Runtime.StreamId>。在共享代码中构造流标识：
 
 :::code language="csharp" source="snippets/streaming/BasicStreaming.cs" id="stream_identity":::
 
-<xref:Orleans.Streams.IStreamProvider.GetStream*> 返回一个已输入的 <xref:Orleans.Streams.IAsyncStream`1>。获取提供者和流控器是本地的,不会创建中介实体。生产者和消费者必须就 `T`达成一致; Orleans 序列化规则适用于有效载荷。
+<xref:Orleans.Streams.IStreamProvider.GetStream*> 返回强类型的 <xref:Orleans.Streams.IAsyncStream`1>。获取提供程序和流句柄是在本地执行的，不会创建消息中间件实体。生产者和消费者必须就 `T` 达成一致；有效载荷遵循 Orleans 序列化规则。
 
 <a id="producers"></a>
 
@@ -33,115 +33,115 @@ ms.topic: concept-article
 
 <a id="producing-and-consuming"></a>
 
-任何 grain 或配置的 Orleans 客户端都可以发布。 一个流可以有多个制片人:
+任何 Grain 或已配置的 Orleans 客户端都可以发布消息。一个流可以有多个生产者：
 
 :::code language="csharp" source="snippets/streaming/BasicStreaming.cs" id="stream_producer":::
 
-发布订单时,请等待每次 <xref:Orleans.Streams.IAsyncObserver`1.OnNextAsync*> 呼叫。返回的任务报告供应商接受服务,而不是端对端消费者完成。提供方失败和含糊的超时要求针对申请重新研究和重复决定。
+当发布顺序很重要时，应等待每次 <xref:Orleans.Streams.IAsyncObserver`1.OnNextAsync*> 调用完成。返回的任务表示提供程序已接受数据，而非端到端的消费已完成。提供程序故障以及结果不确定的超时需要应用程序自行决定重试和去重策略。
 
 <a id="consumers"></a>
 
-## 消费者消费者
+## 消费者
 
 <a id="multiplicity"></a>
 
-消费者附加 <xref:Orleans.Streams.IAsyncObserver`1> 执行或回调代表。 `OnNextAsync` 接收物品时,如果提供者供应物品,则a <xref:Orleans.Streams.StreamSequenceToken>.
+消费者附加 <xref:Orleans.Streams.IAsyncObserver`1> 实现或回调委托。`OnNextAsync` 接收数据项，并在提供程序提供令牌时接收 <xref:Orleans.Streams.StreamSequenceToken>。
 
-持续供应商使用完成该设备提前交付或失败后重新尝试。避免堵住线条;非同步的消费者工作自然会对该订阅施加回压。
+只有在应用程序接管该数据项的处理责任后，才完成消费者任务。持久化流提供程序根据任务完成情况推进投递，或在故障后重试。避免阻塞线程；消费者的异步工作自然会向该订阅施加背压。
 
-串流是多播的。 每个订阅都接收每个项目, 一个 grain 可以为同一串流创建多个明确的订阅。 每个订阅都有自己的 <xref:Orleans.Streams.StreamSubscriptionHandle`1>。
+流采用多播模式。每个订阅都会接收每个数据项，单个 Grain 可以为同一个流创建多个显式订阅。每个订阅具有自己的 <xref:Orleans.Streams.StreamSubscriptionHandle`1>。
 
 <a id="explicit-and-implicit-subscriptions"></a>
 
-## 明确和默示订阅
+## 显式订阅和隐式订阅
 
-供货商的 <xref:Orleans.Streams.StreamPubSubType> 控制有订阅模式:
+提供程序的 <xref:Orleans.Streams.StreamPubSubType> 控制可用的订阅模式：
 
-| 价值值值 | 选择此值 | 权衡平衡 |
+| 值 | 适用场景 | 权衡 |
 |---|---|---|
-| `ExplicitGrainBasedAndImplicit` (违约) | 应用程序使用两种模式,或期望其订阅要求会发生变化。 | 生产者登记检查以 grain为基础的会合和隐含 grain 元数据,而明确部分要求有一个 [`PubSubStore`](pubsub-storage.md)。 |
-| `ExplicitGrainBasedOnly` | 每个消费者都使用实时创建的订阅,包括客户消费者。 | 订阅和生产者更改使用会合 grains 和 `PubSubStore`,应用程序管理订阅处理和回收。 |
-| `ImplicitOnly` | 每个消费者都是 grain 申报的 <xref:Orleans.ImplicitStreamSubscriptionAttribute>。 | 集束使用 grain 元数据是其订阅目录,零会合-grain 呼叫次数和零 `PubSubStore` 操作。这使它成为公用/次控下飞机管理费最低的,并且无论在哪个元数据定义的地方都具有吸引力 grain 运行时间创建、个人可移动和客户可订阅使用明确能力模式。 |
+| `ExplicitGrainBasedAndImplicit`（默认） | 应用程序同时使用两种模式，或预计订阅需求将不断演进。 | 灵活性最高。生产者注册会检查基于 Grain 的会合点和隐式 Grain 元数据；显式订阅部分需要 [`PubSubStore`](pubsub-storage.md)。 |
+| `ExplicitGrainBasedOnly` | 所有消费者都使用运行时创建的订阅，包括客户端消费者。 | 专注于发现显式订阅。订阅及生产者的变化使用会合 Grain 和 `PubSubStore`，由应用程序管理订阅句柄及恢复。 |
+| `ImplicitOnly` | 每个消费者都是通过 <xref:Orleans.ImplicitStreamSubscriptionAttribute> 声明的 Grain。 | 使用集群 Grain 元数据作为订阅目录，无需调用会合 Grain，也无需执行 `PubSubStore` 操作，因此发布/订阅控制平面开销最低，适合元数据定义的 Grain 订阅能够满足需求的场景。运行时创建的、可单独移除的订阅及客户端订阅使用支持显式订阅的模式。 |
 
-模式决定订阅的发现、协调和储存工作。 事件运输和交付遵循选定的流提供者。 专门模式可以减少控制机管理费; 根据所需订阅语义选择一种模式, 并衡量应用程序工作量的影响 。
+此模式决定订阅的发现、协调和存储工作。事件传输和投递遵循所选择的流提供程序的语义。专用模式可以降低控制平面开销；根据所需订阅语义选择模式，并在应用程序的实际工作负载下测量其效果。
 
 <a id="change-the-configured-mode"></a>
 
-### 更改配置模式
+### 更改已配置的模式
 
-应用一个酒吧/子类型更改, 更新 <xref:Orleans.Hosting.PersistentStreamConfiguratorExtensions.ConfigureStreamPubSub*> 并重新启动每个 silo 和客户端, 用户使用指定提供者。 重新启用它们作为协调部署, 这样每个主机都使用相同的值, 计算同样的订阅集 。
+通过更新 <xref:Orleans.Hosting.PersistentStreamConfiguratorExtensions.ConfigureStreamPubSub*> 并重启使用该具名提供程序的每个 Silo 和客户端来应用发布/订阅类型的更改。以协调部署的方式重启，使所有宿主使用相同值并计算相同的订阅集合。
 
-每一订阅模式都保留了自己的生命周期,
+更改模式时，每种订阅模式仍保留自身的生命周期：
 
-- 隐含订阅来自 grain 元数据。 `ExplicitGrainBasedOnly` 选择明确的记录,而两种隐含功能模式都采用对应的元数据。
-- 明确的订阅记录遵循配置的 `PubSubStore` 耐久性。 `ImplicitOnly` 选择元数据生成订阅,并在存储处保留明确记录。在改变模式之前将这些记录记账。以相同的服务编号、供应商名称和耐用 `PubSubStore` 重新授权明确支持,再次提供留存记录;每个活跃消费者然后恢复处理。
+- 隐式订阅来自 Grain 元数据。`ExplicitGrainBasedOnly` 选择显式记录，而两种支持隐式订阅的模式均应用匹配的元数据。
+- 显式订阅记录遵循配置的 `PubSubStore` 的持久性。`ImplicitOnly` 选择由元数据派生的订阅，并将已保留的显式记录留在存储中。更改模式之前，请考虑这些记录。使用相同的服务 ID、提供程序名称和持久化 `PubSubStore` 重新启用显式订阅支持后，保留的记录将重新可用；随后每个激活的消费者恢复其句柄。
 
-当订阅要求预期会发生变化,而且对这两种模式的持续支持超过额外的公用/子控制机的工作时,使用默认组合模式。
+当预计订阅需求将演进，并且持续支持两种模式的收益大于额外的发布/订阅控制平面开销时，请使用默认的组合模式。
 
 <a id="explicit-subscriptions"></a>
 
-### 明确订阅次数
+### 显式订阅
 
 <a id="recovering-from-failures"></a>
 <a id="writing-subscription-logic"></a>
 <a id="fully-managed-and-reliable-streaming-pub-sub"></a>
 
-当应用程序行为决定是否以及何时订阅 grain 或客户端时,使用明确的订阅。 <xref:Orleans.Streams.IAsyncObservable`1.SubscribeAsync*> 每次创建新的订阅,因此激活代码必须恢复现有的控件而不是再次订阅:
+当应用程序行为决定 Grain 或客户端是否以及何时订阅时，使用显式订阅。每次调用 <xref:Orleans.Streams.IAsyncObservable`1.SubscribeAsync*> 都会创建新订阅，因此激活代码必须恢复现有句柄，而不是再次订阅：
 
 :::code language="csharp" source="snippets/streaming/ExplicitSubscriptions.cs" id="explicit_subscription_grain":::
 
-订阅属于 grain 身份, 而不是一个激活。 在禁用后, 稍后的激活呼叫 <xref:Orleans.Streams.IAsyncStream`1.GetAllSubscriptionHandles*> 和 <xref:Orleans.Streams.StreamSubscriptionHandle`1.ResumeAsync*> 附加其新的观察实例。 请打电话 <xref:Orleans.Streams.StreamSubscriptionHandle`1.UnsubscribeAsync*> 删除订阅 。
+订阅属于 Grain 标识，而不属于单个激活实例。停用后，后续激活实例调用 <xref:Orleans.Streams.IAsyncStream`1.GetAllSubscriptionHandles*> 和 <xref:Orleans.Streams.StreamSubscriptionHandle`1.ResumeAsync*> 以附加新的观察者实例。调用 <xref:Orleans.Streams.StreamSubscriptionHandle`1.UnsubscribeAsync*> 移除订阅。
 
-只有配置 [`PubSubStore` 是耐久性](pubsub-storage.md)时,才在整个集组中保持这一生命周期。只有该集组状态仍然可用时,内存 `PubSubStore` 才能保存记录。
+只有当配置的 [`PubSubStore` 具有持久性](pubsub-storage.md) 时，此生命周期才能跨集群重启保留。内存型 `PubSubStore` 只在集群状态仍可用时保留记录。
 
-对于可倒放的持久性提供者, [选择订阅启动位置](subscription-start-positions.md) 将开始使用新信件或重放拖拉机本地队列缓存中保留的匹配信件。
+对于可回溯的持久化流提供程序，[选择订阅起始位置](subscription-start-positions.md)，以便从新消息开始，或重放拉取代理本地队列缓存中保留的匹配消息。
 
 <a id="end-an-explicit-subscription"></a>
 
-#### 终止明确订阅
+#### 结束显式订阅
 
-结束订阅时等待每个控点的 <xref:Orleans.Streams.StreamSubscriptionHandle`1.UnsubscribeAsync*> 。流序运行时间将从酒吧/子存储处删除每次订阅,并在操作完成前通知活跃的制作人。示例中的 `UnsubscribeAsync` 方法遵循此顺序。
+通过等待每个句柄的 <xref:Orleans.Streams.StreamSubscriptionHandle`1.UnsubscribeAsync*> 完成来结束订阅。流运行时会从发布/订阅存储中移除每个订阅，并在操作完成之前通知活动生产者。示例的 `UnsubscribeAsync` 方法遵循此顺序。
 
 <a id="implicit-subscriptions"></a>
 
-### 暗隐订阅
+### 隐式订阅
 
-当流项目激活由流特性确定的 grain 时使用默认订阅:
+当流数据项应激活由流标识确定的 Grain 时，使用隐式订阅：
 
 :::code language="csharp" source="snippets/streaming/ImplicitSubscriptions.cs" id="implicit_subscription_grain":::
 
-<xref:Orleans.ImplicitStreamSubscriptionAttribute> selects stream namespaces. For each matching grain type, Orleans maps the stream key to the grain key. Implementing <xref:Orleans.Streams.Core.IStreamSubscriptionObserver> lets Orleans supply the implicit handle; call `ResumeAsync` once to attach processing logic.
+<xref:Orleans.ImplicitStreamSubscriptionAttribute> 选择流命名空间。对于每个匹配的 Grain 类型，Orleans 将流键映射为 Grain 键。实现 <xref:Orleans.Streams.Core.IStreamSubscriptionObserver> 使 Orleans 提供隐式订阅句柄；调用一次 `ResumeAsync` 以附加处理逻辑。
 
-默认订阅在观察员随行时单调提前。在发送通知成功完成后, `ResumeAsync` 接受 `null` 替换观察员并拒绝将重新定位实际订阅的序列符号。新激活的 grain 可以使用持续恢复标记附加其新提供的处理器。如果应用逻辑故意重新定位交付或重播先前确认的事件,则使用明确的订阅。
+隐式订阅在观察者保持附加期间单调向前推进。投递调用成功完成后，`ResumeAsync` 接受 `null` 来替换观察者，并拒绝会重新定位此活动订阅的序列令牌。新激活的 Grain 可以使用持久化的恢复令牌附加新提供的句柄。当应用程序逻辑有意重新定位投递位置或重放此前已确认的事件时，应使用显式订阅。
 
-隐含订阅在 grain 元数据中声明。 它们不是通过 <xref:Orleans.Streams.IAsyncObservable`1.SubscribeAsync*>创建的, 无法在运行时单独删除, 并且不支持同一 grain 绑定的多个订阅 。
+隐式订阅在 Grain 元数据中声明。它们不是通过 <xref:Orleans.Streams.IAsyncObservable`1.SubscribeAsync*> 创建的，无法在运行时单独移除，也不支持对同一个 Grain 绑定创建多个订阅。
 
 <a id="clients"></a>
 
-## 客户客户
+## 客户端
 
 <a id="grains-and-orleans-clients"></a>
 <a id="configuration"></a>
 
-客户可在供应商配置在 <xref:Orleans.Hosting.IClientBuilder>后生产和明确消耗流。客户订阅与相关客户程序挂钩,必须在重新连接或重新启动后重新建立。隐性订阅目标 grains,而不是客户。
+在 <xref:Orleans.Hosting.IClientBuilder> 上配置提供程序后，客户端可以生产流并进行显式消费。客户端订阅与已连接的客户端进程绑定，重新连接或重启后必须重新建立。隐式订阅以 Grain 为目标，而不是客户端。
 
 <a id="stateless-worker-grains"></a>
 
-## 无国籍工人 grains
+## 无状态工作者 Grain
 
-Grains 标记为 <xref:Orleans.Concurrency.StatelessWorkerAttribute> 无国籍工人流消费者工具 <xref:Orleans.Streams.Core.IStreamSubscriptionObserver>. Orleans 安装单独的串流消费者扩展程序, 每次激活时都安装一个。 发送时使用当前启动的观察员来订阅。 如果没有连接到任何观察者, Orleans 调来电话 `OnSubscribed`和 grain 调来电话 `ResumeAsync` 从调回到附件 。
+标记了 <xref:Orleans.Concurrency.StatelessWorkerAttribute> 的 Grain 可以发布和消费流。无状态工作者流消费者实现 <xref:Orleans.Streams.Core.IStreamSubscriptionObserver>。Orleans 为每个激活实例安装单独的流消费者扩展。投递使用该激活实例中此订阅现有的观察者。如果未附加观察者，则 Orleans 调用 `OnSubscribed`，而 Grain 在该回调中调用 `ResumeAsync` 来附加观察者。
 
-订费属于无国籍工人 grain 对于持久性流,对于持久性流,每个拉动剂都从其 silo,正常的无国籍工人安置为每次运送尝试选择一个本地启动。因此同时同时拉动剂可以处理不同激活和操作的项目。 silos每次运送尝试都进行一次启动,为诸如解码、验证、浓缩、过滤和转发等无国籍变换提供相互竞争的消费者执行。
+订阅属于无状态工作者 Grain 标识。对于持久化流，每个拉取代理从其所在 Silo 通过该标识投递，普通无状态工作者放置策略为每次投递尝试选择一个本地激活实例。因此，并发拉取代理可以在不同激活实例和 Silo 上处理数据项。每次投递尝试都在一个激活实例上运行，为解码、验证、丰富数据、筛选和转发等无状态转换提供竞争消费者式执行。
 
-隐含订阅建立了 grain- 来自 grain 元数据的级别订阅。 明确的 `SubscribeAsync` 调用在运行时建立 grain- 级别订阅并附加拨号激活的观察员。 稍后的启用会将当地观察员从交货首次到达时通过 `OnSubscribed` 连接到当地, `UnsubscribeAsync` 取消 grain- 级别订阅。
+隐式订阅根据 Grain 元数据建立 Grain 级订阅。显式 `SubscribeAsync` 调用在运行时建立 Grain 级订阅，并附加调用方激活实例的观察者。后续激活实例在首次收到投递时通过 `OnSubscribed` 附加其本地观察者，而 `UnsubscribeAsync` 则移除 Grain 级订阅。
 
-订单的范围扩大到选定的激活和提供方交付路径。同时交付可以按不同启动的顺序完成。供应商可选择不同的激活,因此处理者使用无国籍或无能力处理并遵循提供者的交付保证。未执行 <xref:Orleans.Streams.Core.IStreamSubscriptionObserver> 就订阅的无国籍工人可获得 <xref:System.InvalidOperationException>。
+顺序保证的范围是所选激活实例及提供程序投递路径。不同激活实例上的并发投递可以按任意顺序完成。提供程序重试时可能选择其他激活实例，因此处理程序应采用无状态或幂等处理方式，并遵循提供程序的投递保证。未实现 <xref:Orleans.Streams.Core.IStreamSubscriptionObserver> 而订阅的无状态工作者会收到 <xref:System.InvalidOperationException>。
 
-无国籍工人观察家附加无效序列符号。 当发货在激活之间移动时,拖动代理拥有实时订阅的进展。 将非null序列符号传递给 `SubscribeAsync` 或 `ResumeAsync` 产生一个 <xref:System.InvalidOperationException>。 在需要恢复应用管理回转或检查站时使用常规的 grain 消费者。
+无状态工作者观察者使用 null 序列令牌进行附加。当投递在激活实例之间移动时，拉取代理负责活动订阅的进度。向 `SubscribeAsync` 或 `ResumeAsync` 传入非 null 序列令牌会产生 <xref:System.InvalidOperationException>。需要由应用程序管理回溯或从检查点恢复时，请使用普通 Grain 消费者。
 
 <a id="stream-order-and-sequence-tokens"></a>
 <a id="rewindable-streams"></a>
 
-对于失败行为和序列符号, 继续到 [交付、订购、重播和复原](delivery-semantics.md)。
+有关故障行为和序列令牌，继续阅读[投递、排序、重放与恢复](delivery-semantics.md)。
 
-较大的汇编示例,见 [`SampleStreamingGrain.cs`](https://github.com/dotnet/orleans/blob/main/test/Grains/TestGrains/SampleStreamingGrain.cs) 中在 Orleans 测试套房。
+如需更完整的、经过编译的示例，参见 Orleans 测试套件中的 [`SampleStreamingGrain.cs`](https://github.com/dotnet/orleans/blob/main/test/Grains/TestGrains/SampleStreamingGrain.cs)。

@@ -1,16 +1,16 @@
 <Project>
-  <!-- 10.2.2 支块项目中央集建的 Orleans 10.2.2 -->
+  <!-- Orleans 10.2.2 文档代码片段项目的集中构建属性。 -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <!-- 禁用 git 工作树兼容性 SourceLink -->
+    <!-- 禁用 SourceLink，以兼容 Git worktree。 -->
     <EnableSourceLink>false</EnableSourceLink>
     <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
   </PropertyGroup>
   
-  <!-- Orleans 10.2.2 中央包件版本 -->
+  <!-- Orleans 10.2.2 的集中包版本配置。 -->
   <ItemGroup>
     <PackageReference Update="Microsoft.Orleans.Sdk" Version="10.2.2" />
     <PackageReference Update="Microsoft.Orleans.Server" Version="10.2.2" />

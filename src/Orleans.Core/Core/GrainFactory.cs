@@ -7,14 +7,14 @@ using Orleans.Runtime;
 namespace Orleans
 {
     /// <summary>
-    /// 进入 grains工厂。
+    /// 用于访问 Grain 的工厂。
     /// </summary>
     internal class GrainFactory : IInternalGrainFactory
     {
         private GrainReferenceRuntime? grainReferenceRuntime;
 
         /// <summary>
-        /// 输入系统目标参考文件的缓存 。
+        /// 强类型系统目标引用的缓存。
         /// </summary>
         private readonly Dictionary<(GrainId, Type), ISystemTarget> typedSystemTargetReferenceCache = new Dictionary<(GrainId, Type), ISystemTarget>();
 
@@ -194,16 +194,16 @@ namespace Orleans
         public IAddressable GetGrain(Type interfaceType, IdSpan grainKey) => GetGrain(interfaceType, grainKey, null);
 
         /// <summary>
-        /// 获取一个 grain 引用,该引用可执行指定的 grain 接口类型并具有指定的 grain 密钥,而没有直接指定 grain 类型。
+        /// 获取实现指定 Grain 接口类型、具有指定 Grain 键的引用，而无需直接指定 Grain 类型。
         /// </summary>
         /// <remarks>
-        /// 这种方法推断出最适当的方法 <see cref="GrainId.Type"/> 以 <paramref name="interfaceType"/> 和可选 <paramref name="grainClassNamePrefix"/> 参数。
-        /// <see cref="GrainInterfaceTypeToGrainTypeResolver"/> 类型负责确定最适当的 grain 类型。
+        /// 此方法推断最合适的 <see cref="GrainId.Type"/> 值，依据为 <paramref name="interfaceType"/> 参数以及可选的 <paramref name="grainClassNamePrefix"/> 参数。
+        /// <see cref="GrainInterfaceTypeToGrainTypeResolver"/> 类型负责确定最合适的 Grain 类型。
         /// </remarks>
-        /// <param name="interfaceType">返回的界面类型 grain 将执行参考文献。</param>
-        /// <param name="grainKey">下 <see cref="GrainId.Key"/> 部分的 grain id. 数据。</param>
-        /// <param name="grainClassNamePrefix">类名前缀的可选 grain 类名</param>
-        /// <returns>A grain 执行所提供接口的引用。</returns>
+        /// <param name="interfaceType">返回的 Grain 引用将实现的接口类型。</param>
+        /// <param name="grainKey">Grain ID 的 <see cref="GrainId.Key"/> 部分。</param>
+        /// <param name="grainClassNamePrefix">可选的 Grain 类名前缀。</param>
+        /// <returns>实现所提供接口的 Grain 引用。</returns>
         public IAddressable GetGrain(Type interfaceType, IdSpan grainKey, string? grainClassNamePrefix = null)
         {
             ArgumentNullException.ThrowIfNull(interfaceType);
@@ -226,11 +226,11 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 创建 grain 引用。
+        /// 创建 Grain 引用。
         /// </summary>
-        /// <param name="interfaceType">引用必须执行的接口类型。</param>
-        /// <param name="grainId">下 grain 参考目标。</param>
-        /// <returns>A grain 参考。</returns>
+        /// <param name="interfaceType">该引用必须实现的接口类型。</param>
+        /// <param name="grainId">该引用指向的 Grain ID。</param>
+        /// <returns>Grain 引用。</returns>
         private object CreateGrainReference(Type interfaceType, GrainId grainId)
         {
             var grainInterfaceType = this.interfaceTypeResolver.GetGrainInterfaceType(interfaceType);
@@ -238,10 +238,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 创建对象引用,指向所提供的对象。
+        /// 创建指向所提供对象的对象引用。
         /// </summary>
-        /// <param name="interfaceType">引用必须执行的接口类型。</param>
-        /// <param name="obj">可处理对象执行。</param>
+        /// <param name="interfaceType">该引用必须实现的接口类型。</param>
+        /// <param name="obj">可寻址对象的实现。</param>
         /// <returns>对象引用。</returns>
         private object CreateObjectReference(Type interfaceType, IAddressable obj)
         {
@@ -260,11 +260,11 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 校验所提供的 grain 密钥扩展名。
+        /// 验证所提供的 Grain 扩展键。
         /// </summary>
-        /// <param name="keyExt"> grain 密钥扩展名。</param>
-        /// <exception cref="ArgumentNullException">密钥是 <see langword="null"/>。</exception>
-        /// <exception cref="ArgumentException">密钥为空或仅包含白空间。</exception>
+        /// <param name="keyExt">Grain 扩展键。</param>
+        /// <exception cref="ArgumentNullException">键为 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentException">键为空或仅包含空白字符。</exception>
         private static void ValidateGrainKeyExtension(string keyExt)
         {
             if (!string.IsNullOrWhiteSpace(keyExt)) return;

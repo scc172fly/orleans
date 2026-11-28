@@ -12,94 +12,94 @@ namespace Microsoft.Orleans.DurableTasks.IntegrationTests.FaultInjection;
 
 /// <summary>测试注入的基础设施故障。</summary>
 /// <remarks>
-/// 其信件以 <see cref="MessagePrefix"/>开头, 因此测试可以断言没有注入的失败会到达应用程序
-/// 或任务记录的结果。
+/// 其消息以 <see cref="MessagePrefix"/> 开头，因此测试可以断言任何注入的故障都不会到达应用程序
+/// 代码或任务记录的结果。
 /// </remarks>
 public sealed class InjectedFaultException(string message) : Exception(MessagePrefix + message)
 {
     public const string MessagePrefix = "Injected fault: ";
 }
 
-/// <summary>注射过错的地方。</summary>
+/// <summary>故障注入的位置。</summary>
 public enum FaultPoint
 {
-    /// <summary>日记在到达存储前写失败。</summary>
+    /// <summary>日志写入在到达存储之前失败。</summary>
     JournalWriteBeforeDurable,
 
-    /// <summary>日记写到存储处,</summary>
+    /// <summary>日志写入到达存储，但其确认丢失：提交结果不确定。</summary>
     JournalWriteAfterDurable,
 
-    /// <summary>日记读失败, 无法启动读取它。</summary>
+    /// <summary>日志读取失败，导致执行读取的激活失败。</summary>
     JournalRead,
 
-    /// <summary>发箱送货通知在到达接收器之前失败了</summary>
+    /// <summary>发件箱投递调用在到达接收方之前失败。</summary>
     DeliveryThrows,
 
-    /// <summary>发箱发送电话到达接收者,由接收者处理,其响应丢失。</summary>
+    /// <summary>发件箱投递调用到达接收方，接收方处理该调用，但响应丢失。</summary>
     DeliveryResponseLost,
 
-    /// <summary>发箱送货电话在测试释放之前不会回复 然后重复</summary>
+    /// <summary>发件箱投递调用一直不返回，直到测试释放该调用，随后调用超时。</summary>
     DeliveryHangs,
 
-    /// <summary>在一个持久任务汇之前登记的水槽在信箱发出信息时会投下。</summary>
+    /// <summary>注册在持久化任务接收处理器之前的接收处理器，在收件箱向其提供消息时抛出异常。</summary>
     InboxSinkThrows,
 
-    /// <summary>在一个持久任务处理器前登记的操作员会将信箱发送的信息丢在一个信息上。</summary>
+    /// <summary>注册在持久化任务消息处理器之前的消息处理器，在处理收件箱分派的消息时抛出异常。</summary>
     InboxHandlerThrows,
 
-    /// <summary>信息泵在到达之前就失败了, grain.</summary>
+    /// <summary>Durable Jobs 对消息传递泵的唤醒在到达 Grain 之前失败。</summary>
     JobWakeupFails,
 
-    /// <summary>发件箱发送电话返回或失败;仅计算,以观察发送尝试。</summary>
+    /// <summary>发件箱投递调用返回或失败；仅计数，用于观察投递尝试。</summary>
     DeliveryCompleted,
 
     /// <summary>
-    /// 接收器承认有送货电话,并在收件箱看到信息之前持有它,直到测试释放。
+    /// 接收方接纳投递调用，并在收件箱看到消息之前将其挂起，直至测试释放它。
     /// </summary>
     DeliveryHeldAtReceiver,
 
     /// <summary>
-    /// 发箱送货电话到达接收机,网络保存一份副本,测试再次发出
-    /// 后附 <see cref="InjectedFault.Duplicate"/>。
+    /// 发件箱投递调用到达接收方，网络保留一份副本，测试稍后通过
+    /// <see cref="InjectedFault.Duplicate"/> 再次投递该副本。
     /// </summary>
     DeliveryDuplicated,
 
     /// <summary>
-    /// 启动程序本身要求解除其自有的功能,因为它承认了一个耐用的任务段,因此在启动程序开始之前停止。
-    /// 代码运行。
+    /// 激活实例在接纳持久化任务执行片段时请求自身停用，因此会在该执行片段的
+    /// 代码运行期间停止。
     /// </summary>
     /// <remarks>
-    /// 点点段数计算相同的操作,目标 grain 启动时所接受的区段,因此
-    /// 每个区域都出现索引相同段的名称。
+    /// 执行片段故障点对相同的操作计数，即目标 Grain 的各次激活所接纳的执行片段，因此
+    /// 同一个出现索引在所有这些故障点上都指向同一个执行片段。
     /// </remarks>
     SegmentStartDeactivates,
 
     /// <summary>
-    /// 一旦一个持久任务段结束,启动程序要求它自己停止运行,因此在该段结束时停止运行。
-    /// 尝试在段间或尝试结束后停放。
+    /// 持久化任务执行片段结束后，激活请求自身停用，因此激活在该执行片段对应的
+    /// 执行尝试挂起于两个执行片段之间时，或在执行尝试结束后停止。
     /// </summary>
     SegmentEndDeactivates,
 
     /// <summary>
-    /// 下 silo 激活启动之前, 当启动允许一个持久任务段时, 即启动启动崩溃时主机所在的点 。
-    /// 代码运行。
+    /// 托管激活的 Silo 在激活接纳持久化任务执行片段时崩溃，发生在执行片段的
+    /// 代码运行之前。
     /// </summary>
     SegmentStartCrashesSilo,
 
     /// <summary>
-    /// 一旦耐久任务段结束, 启动允许另一个任务段之前的启动崩溃时主机的 silo
-    /// 中不包括该段的请求。
+    /// 托管激活的 Silo 在持久化任务执行片段结束后崩溃，发生在激活接纳另一个
+    /// 与该执行片段互斥的请求之前。
     /// </summary>
     SegmentEndCrashesSilo,
 
     /// <summary>
-    /// 任务 grain 接受一项调查,以回应任务的反应,并坚持这项调查,在试验释放前未予答复,作为
-    /// 投票等待时撞车的silo
+    /// 任务所在的 Grain 接纳对任务响应的轮询，并将其挂起而不予响应，直至测试释放该调用，模拟
+    /// Silo 在轮询等待期间崩溃时留下的状态。
     /// </summary>
     PollHeldAtReceiver,
 }
 
-/// <summary>一次武装过错: <see cref="Occurrence"/>与它匹配的操作 从零开始计数</summary>
+/// <summary>一个已预置的故障：它在第 <see cref="Occurrence"/> 次匹配操作时触发，从零开始计数。</summary>
 public sealed class InjectedFault
 {
     private readonly TaskCompletionSource _fired = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -118,19 +118,19 @@ public sealed class InjectedFault
 
     public FaultPoint Point { get; }
 
-    /// <summary>获取日记、收件箱或提醒故障目标的 grain ;交付时,获取接收器。</summary>
+    /// <summary>获取故障所针对的日志、收件箱或唤醒操作所属的 Grain；对于投递则为接收方。</summary>
     public GrainId Target { get; }
 
-    /// <summary>获取错误匹配的电文主题,或每个电文的 <see langword="null"/> 。</summary>
+    /// <summary>获取故障所匹配的消息主题，若匹配所有消息则为 <see langword="null"/>。</summary>
     public string? Subject { get; }
 
-    /// <summary>获得发生故障或 <see cref="Every"/>时的匹配操作。</summary>
+    /// <summary>获取触发故障的匹配操作序号，或 <see cref="Every"/>。</summary>
     public int Occurrence { get; }
 
-    /// <summary>每次匹配操作发生火灾的错误。</summary>
+    /// <summary>在每次匹配操作时都触发的故障所使用的出现序号。</summary>
     public const int Every = -1;
 
-    /// <summary>获得迄今为止与错误相符的行动数量,包括发射行动。</summary>
+    /// <summary>获取迄今匹配此故障的操作数量，包括触发故障的那一次。</summary>
     public int Matches
     {
         get
@@ -146,23 +146,23 @@ public sealed class InjectedFault
 
     public Task Fired => _fired.Task;
 
-    /// <summary>获取目标的 grain 身份字符串, 也就是它的日记 ID。</summary>
+    /// <summary>获取目标的 Grain ID 字符串，该字符串也是其日志 ID。</summary>
     internal string TargetKey { get; }
 
     internal Task Released => _released.Task;
 
-    /// <summary>释放出一个 <see cref="FaultPoint.DeliveryHangs"/> 错误的调用,然后断开。</summary>
+    /// <summary>释放 <see cref="FaultPoint.DeliveryHangs"/> 故障所挂起的调用，随后该调用超时。</summary>
     public void Release() => _released.TrySetResult();
 
     /// <summary>
-    /// 获取发送的信件副本,该信件因 <see cref="FaultPoint.DeliveryDuplicated"/> 错误而保存
-    /// <see cref="Target"/>,一旦 故障解雇。
+    /// 获取 <see cref="FaultPoint.DeliveryDuplicated"/> 故障触发后，为其
+    /// <see cref="Target"/> 保留的已投递消息副本。
     /// </summary>
     public InboxMessage? Duplicate { get; private set; }
 
     internal void KeepDuplicate(InboxMessage message) => Duplicate = message;
 
-    /// <summary>返回一个任务,该任务一旦 <paramref name="count"/> 操作与错误匹配即完成。</summary>
+    /// <summary>返回一个任务，当有 <paramref name="count"/> 次操作匹配此故障时完成。</summary>
     public Task WaitForMatchesAsync(int count)
     {
         lock (_matchWaiters)
@@ -178,7 +178,7 @@ public sealed class InjectedFault
         }
     }
 
-    /// <summary>计数匹配操作并返回是否发生故障。</summary>
+    /// <summary>对一次匹配操作计数，并返回该操作是否触发故障。</summary>
     internal bool OnMatch()
     {
         int matches;
@@ -205,28 +205,28 @@ public sealed class InjectedFault
 }
 
 /// <summary>
-/// 将基础设施的缺陷注入期刊储存、发箱交付、收箱汇和处理器、持久工作提醒、
-/// 以及试验目标 grains 的耐久任务部分。
+/// 向测试所针对的 Grain 的日志存储、发件箱投递、收件箱接收处理器和消息处理器、Durable Jobs 唤醒操作
+/// 及持久化任务执行片段注入基础设施故障。
 /// </summary>
 /// <remarks>
-/// 每个故障一次起火一次, 以其计算操作的功率, 所以试验会列出一个由它们运行的错误点
-/// 发生索引。计数器是一个从未火灾的错误。日记设计师将 silo日记存储、
-/// 发送 grain 调用过滤器拦截发箱发送和消息提醒, 即将到来的 grain 呼叫过滤器
-/// 截截交付和进行持久任务尝试的段段请求, grains 登记
-/// <see cref="FaultInjectingInboxParticipant"/> 时间轴的下水道和操作器
+/// 每个故障在计数达到指定操作时触发一次，因此测试通过出现
+/// 索引枚举一次运行中的故障点。计数器是一种永不触发的故障。日志装饰器包装 Silo 的日志存储；
+/// 传出 Grain 调用筛选器拦截发件箱投递和消息传递唤醒；传入 Grain 调用筛选器
+/// 拦截投递以及运行持久化任务执行尝试的执行片段请求；Grain 则会在
+/// 持久化任务运行时的接收处理器和消息处理器之前注册 <see cref="FaultInjectingInboxParticipant"/>。
 /// </remarks>
 public sealed class DurableTaskFaultInjector
 {
     private readonly List<InjectedFault> _faults = [];
 
     /// <summary>
-    /// 获取或设置 silo 地址的崩溃,该地址是 silo调度器和
-    /// 等不及了
+    /// 获取或设置指定地址处 Silo 的崩溃操作；执行片段崩溃故障在该 Silo 的调度器上启动此操作，
+    /// 但不等待其完成。
     /// </summary>
     public Action<SiloAddress>? CrashSilo { get; set; }
 
-    /// <summary>注册喷射器日记存储设计师 grain 调用过滤器,以及 A silo.</summary>
-    /// <remarks>在 silo日记存储提供者注册后调用。</remarks>
+    /// <summary>在 Silo 上注册注入器的日志存储装饰器、Grain 调用筛选器和服务。</summary>
+    /// <remarks>在注册 Silo 的日志存储提供程序之后调用。</remarks>
     public void Configure(ISiloBuilder siloBuilder)
     {
         siloBuilder.Services.AddSingleton(this);
@@ -240,18 +240,18 @@ public sealed class DurableTaskFaultInjector
         siloBuilder.AddIncomingGrainCallFilter(new FaultInjectingReceiverFilter(this));
     }
 
-    /// <summary>武器有错,在 <paramref name="occurrence"/>第匹配操作上开火,从零计。</summary>
+    /// <summary>预置一个故障，使其在第 <paramref name="occurrence"/> 次匹配操作时触发，从零开始计数。</summary>
     public InjectedFault Arm(FaultPoint point, GrainId target, int occurrence, string? subject = null)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(occurrence, InjectedFault.Every);
         return Add(new(point, target, subject, occurrence));
     }
 
-    /// <summary>计算一个错误点对 a grain,没有失败 他们中的任何一个。</summary>
+    /// <summary>对 Grain 上某个故障点的操作计数，而不使任何操作失败。</summary>
     public InjectedFault Count(FaultPoint point, GrainId target, string? subject = null) =>
         Add(new(point, target, subject, int.MaxValue));
 
-    /// <summary>清除所有武装过失和反弹,并发布挂号电话。</summary>
+    /// <summary>移除所有预置故障和计数器，并释放挂起的调用。</summary>
     public void Reset()
     {
         lock (_faults)
@@ -265,7 +265,7 @@ public sealed class DurableTaskFaultInjector
         }
     }
 
-    /// <summary>计数 <paramref name="targetKey"/> 的操作,并返回为之开火的过错。</summary>
+    /// <summary>对 <paramref name="targetKey"/> 上的一次操作计数，并返回针对此操作触发的故障（如果有）。</summary>
     internal InjectedFault? OnOperation(FaultPoint point, string targetKey, string? subject = null)
     {
         InjectedFault? firing = null;
@@ -348,7 +348,7 @@ public sealed class DurableTaskFaultInjector
             ReadOnlySequence<byte> value,
             CancellationToken cancellationToken)
         {
-            // 两种写错都计算相同的操作, 所以发生时索引以任一模式命名相同写入 。
+            // 两种写入故障对相同的操作计数，因此同一个出现索引在任一模式下均指向同一次写入。
             var before = injector.OnOperation(FaultPoint.JournalWriteBeforeDurable, journalKey);
             var after = injector.OnOperation(FaultPoint.JournalWriteAfterDurable, journalKey);
             if (before is not null)
@@ -424,12 +424,12 @@ public sealed class DurableTaskFaultInjector
 }
 
 /// <summary>
-/// 控制接收器接住接收器的接送电话和民意测验,在启动或结束时停止使用或碰撞激活
-/// 长期任务部分。
+/// 在接收方挂起已接纳的投递调用和轮询调用，并在持久化任务执行片段开始或结束时
+/// 使激活停用或崩溃。
 /// </summary>
 /// <remarks>
-/// 片段是本地请求,其界面为 <see cref="IDurableTaskSegment"/>,因此激活的呼叫
-/// 过滤器在观察时会加以观察 grain 电话响了,故障不需要在运行时接合
+/// 执行片段是接口为 <see cref="IDurableTaskSegment"/> 的本地请求，因此激活的传入调用
+/// 筛选器可以像观察 Grain 调用一样观察它们，故障注入无需在运行时设置专用注入点。
 /// </remarks>
 internal sealed class FaultInjectingReceiverFilter(DurableTaskFaultInjector injector) : IIncomingGrainCallFilter
 {
@@ -460,7 +460,7 @@ internal sealed class FaultInjectingReceiverFilter(DurableTaskFaultInjector inje
 
     private async Task InvokeSegmentAsync(IIncomingGrainCallContext context)
     {
-        // 每个段点数每个段数, 所以发生时索引在每段点上都标出相同的段数 。
+        // 所有执行片段故障点都对每个执行片段计数，因此同一个出现索引在所有故障点上均指向同一个执行片段。
         var target = context.TargetId.ToString();
         var activation = context.TargetContext;
         var crashAtStart = injector.OnOperation(FaultPoint.SegmentStartCrashesSilo, target);
@@ -474,8 +474,8 @@ internal sealed class FaultInjectingReceiverFilter(DurableTaskFaultInjector inje
 
         if (deactivateAtStart is not null)
         {
-            // 一旦启动程序请求即停止, 包括此段的激活结束。 它的关闭取消
-            // 选择一个部分的尝试,其代码运行到它看到取消。
+            // 激活在其正在运行的请求（包括此执行片段）结束后停止。关闭过程会取消
+            // 执行片段对应的执行尝试，其代码会继续运行，直至观察到取消。
             activation.Deactivate(new(DeactivationReasonCode.ApplicationRequested, InjectedFaultException.MessagePrefix + deactivateAtStart));
         }
 
@@ -491,7 +491,7 @@ internal sealed class FaultInjectingReceiverFilter(DurableTaskFaultInjector inje
         }
     }
 
-    /// <summary>崩溃激活的 silo, 并保留部分的请求, 请求从未完成 。</summary>
+    /// <summary>使托管激活的 Silo 崩溃，并挂起执行片段请求，该请求永远不会在此 Silo 上完成。</summary>
     private async Task CrashAsync(IGrainContext activation, InjectedFault fault)
     {
         var crash = injector.CrashSilo ?? throw new InvalidOperationException($"The harness doesn't crash silos ({fault}).");
@@ -502,10 +502,10 @@ internal sealed class FaultInjectingReceiverFilter(DurableTaskFaultInjector inje
 }
 
 /// <summary>
-/// i grain 在持久任务运行时间之前登记的一个水槽和处理器,以便输入器能使收件箱失效
-/// 发出或发件电文;否则,两者均拒绝。
+/// Grain 在持久化任务运行时对应的处理器之前注册的接收处理器和消息处理器，使注入器能够使收件箱的
+/// 消息提供或分派失败；否则两者均不接收该消息。
 /// </summary>
-/// <remarks>收件箱呼叫 <see cref="CanHandle"/> 每一次,在被选的处理者面前。</remarks>
+/// <remarks>对于每次分派，收件箱在调用选定的消息处理器之前立即调用一次 <see cref="CanHandle"/>。</remarks>
 public sealed class FaultInjectingInboxParticipant(DurableTaskFaultInjector injector, IGrainContext grainContext)
     : IInboxMessageSink, IInboxHandler
 {

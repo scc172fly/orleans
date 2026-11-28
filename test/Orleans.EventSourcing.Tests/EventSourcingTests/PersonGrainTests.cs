@@ -5,7 +5,7 @@ using Assert = Xunit.Assert;
 namespace Tester.EventSourcingTests
 {
     /// <summary>
-    /// 进行包括出生登记、婚姻事件和州过渡在内的经周记的人 grain 功能测试。
+    /// 测试基于日志的人员 Grain 功能，包括出生登记、结婚事件及状态转换。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -62,8 +62,8 @@ namespace Tester.EventSourcingTests
         {
             var leia = this.fixture.GrainFactory.GetGrain<IPersonGrain>(Guid.NewGuid());
 
-            // 整个测试必须运行在 grain内,否则 
-            // 单步不是决定性的
+            // 整个测试必须在 Grain 内运行，否则
+            // 各个步骤之间的交错执行将是不确定的。
             await leia.RunTentativeConfirmedStateTest();
         }
     }

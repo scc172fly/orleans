@@ -1,43 +1,43 @@
 ---
-title: "ORLEANS0008: Grain 接口无法包含属性"
-description: "理解和决心 ORLEANS0008 时 Orleans 远程界面声明实例属性 。"
+title: "ORLEANS0008: Grain 接口不能包含属性"
+description: 了解并解决 Orleans 远程接口声明实例属性时出现的 ORLEANS0008。
 ms.date: 08/25/2026
 ms.topic: reference
 ---
 
 <a id="orleans0008-grain-interfaces-cannot-contain-properties"></a>
 
-# ORLEANS0008: Grain 接口无法包含属性
+# ORLEANS0008: Grain 接口不能包含属性
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 类别类 | 用法 |
-| 严重性 | 错误错误 |
-| 代码修正 | 不详 |
+| 类别 | 用法 |
+| 严重性 | 错误 |
+| 代码修复 | 不可用 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-用于 Orleans 远程合同的界面声明实例属性。
+用作 Orleans 远程契约的接口声明了实例属性。
 
 <a id="impact"></a>
 
-## 影响影响
+## 影响
 
-属性不定义支持的直线 Orleans RPC 操作,并模糊非同步远程呼叫边界。
+属性不能定义受支持的显式 Orleans RPC 操作，并会掩盖异步远程调用的边界。
 
 <a id="how-to-fix"></a>
 
-## 如何修补
+## 修复方法
 
-将属性替换为使用支持的 grain-调用返回类型时的获取或设定方法。
+将属性替换为使用受支持 Grain 调用返回类型的异步获取或设置方法。
 
 <a id="suppress-the-diagnostic"></a>
 
 ## 抑制诊断
 
-只有当接口继承 Orleans 可地址时, 才能禁止使用该界面, 但事实证明它永远无法被远程覆盖 。
+仅当接口继承了 Orleans 可寻址性契约，但已证实从不会用于远程调用时抑制诊断。
 
 ```ini
 [*.cs]

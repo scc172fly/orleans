@@ -10,24 +10,24 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Http;
 
 /// <summary>
-/// 添加一个 <c>Idempotency-Key</c> 标题,为每次要求一项耐久任务的请求指定运行中的持久任务
-/// 发送, 所以任务每次尝试和重播都会发出相同的密钥 。
+/// 为持久化任务发送的每个请求添加标识正在运行的持久化任务的 <c>Idempotency-Key</c> 请求头，
+/// 因此每次尝试和重放都发送相同的键。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 关键是服务的散列、执行任务的 grain 、任务识别符号及其
-/// <see cref="DurableTaskContext.Incarnation"/>:43个URL安全基数64字符,每件尝试和
-/// 重放一个运行的任务, 并区分为其它任务, 包括后一个运行的相同任务标识符,
-/// 服务器可能仍然可以持有其先前的密钥。 发送一个请求的一步,
-/// 诸如 <c>DurableTask.Run(ct =&gt; client.PostAsJsonAsync(...))</c>因此,在
-/// 服务器,该服务器将尊重信头的服务器,包括失败或停止功能后步骤的重试。
-/// 不同行动的若干次请求,每个步骤都有自己的步骤,例如:
-/// <see cref="DurableTaskExtensions.WithId{TResult}(DurableTask{TResult}, string)"/>,或设置他们的键本身。
+/// 该键是对服务、运行任务的 Grain、任务标识符及任务的
+/// <see cref="DurableTaskContext.Incarnation"/> 计算的哈希值：由 43 个 URL 安全的 Base64 字符组成，在任务同一次运行中的每次尝试和
+/// 重放中相同，而与其他任务不同，包括使用同一任务标识符的后续运行（服务器可能仍保留
+/// 较早的键）。因此，发送单个请求的步骤（例如
+/// <c>DurableTask.Run(ct =&gt; client.PostAsJsonAsync(...))</c>）可使该请求在
+/// 支持此请求头的服务器上具有幂等性，包括失败或停用后重试该步骤的情况。若要发送
+/// 多个指向不同操作的请求，应为每个请求安排独立的步骤，例如使用
+/// <see cref="DurableTaskExtensions.WithId{TResult}(DurableTask{TResult}, string)"/>，或自行设置各自的键。
 /// </para>
 /// <para>
-/// 带有安全方法的请求,如 <c>GET</c>、已经随信头发出的请求和要求编码
-/// 一项持久任务外发送的,无变化。
-/// 处理器在重新输入请求的处理器前, 其重试时会携带密钥 。
+/// 使用安全方法（如 <c>GET</c>）、已携带此请求头，或者由持久化任务之外的代码
+/// 发送的请求保持不变。应在
+/// 重试请求的处理程序之前注册此处理程序，使重试也携带幂等键。
 /// </para>
 /// </remarks>
 public sealed class DurableIdempotencyKeyHandler(IGrainContextAccessor grainContextAccessor, IOptions<ClusterOptions> clusterOptions)
@@ -51,7 +51,7 @@ public sealed class DurableIdempotencyKeyHandler(IGrainContextAccessor grainCont
 
     private void AddKey(HttpRequestMessage request)
     {
-        // 安全方法顾名思义是无能的,因此其请求没有钥匙。
+        // 按定义安全方法具有幂等性，因此这些请求不携带幂等键。
         if (request.Method == HttpMethod.Get || request.Method == HttpMethod.Head || request.Method == HttpMethod.Options || request.Method == HttpMethod.Trace
             || request.Headers.Contains(DurableHttpHeaders.IdempotencyKey)
             || !DurableTaskContext.TryGetCurrent(out var task))
@@ -59,7 +59,7 @@ public sealed class DurableIdempotencyKeyHandler(IGrainContextAccessor grainCont
             return;
         }
 
-        // 任务识别符在 grain中是独一无二的,因此键包含执行任务的 grain 。
+        // 任务标识符在其所属 Grain 中唯一，因此该键也涵盖运行任务的 Grain。
         var grainId = grainContextAccessor.GrainContext.GrainId;
         if (grainId.IsClient())
         {

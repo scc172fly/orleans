@@ -8,45 +8,45 @@ using Orleans.Runtime;
 namespace Microsoft.Extensions.Hosting
 {
     /// <summary>
-    /// <see cref="IHostBuilder"/>的推广方法。
+    /// <see cref="IHostBuilder"/> 的扩展方法。
     /// </summary>
     public static class OrleansSiloGenericHostExtensions
     {
         private static readonly Type MarkerType = typeof(OrleansBuilderMarker);
 
         /// <summary>
-        /// 配置主机应用程序构建器以主机 Orleans silo。
+        /// 配置宿主应用构建器以承载 Orleans Silo。
         /// </summary>
-        /// <param name="hostAppBuilder">主机应用程序构建器。</param>
-        /// <returns>主机建造者。</returns>
+        /// <param name="hostAppBuilder">宿主应用程序构建器。</param>
+        /// <returns>宿主构建器。</returns>
         /// <remarks>
-        /// 在同一 <see cref="IHostApplicationBuilder"/> 实例中多次调用此方法, 将配置一个 silo 。
+        /// 对同一 <see cref="IHostApplicationBuilder"/> 实例多次调用此方法，最终只配置一个 Silo。
         /// </remarks>
         public static IHostApplicationBuilder UseOrleans(
             this IHostApplicationBuilder hostAppBuilder)
             => hostAppBuilder.UseOrleans(_ => { });
 
         /// <summary>
-        /// 配置主机应用程序构建器以主机 Orleans silo。
+        /// 配置宿主应用构建器以承载 Orleans Silo。
         /// </summary>
-        /// <param name="hostAppBuilder">主机应用程序构建器。</param>
-        /// <returns>主机建造者。</returns>
+        /// <param name="hostAppBuilder">宿主应用程序构建器。</param>
+        /// <returns>宿主构建器。</returns>
         /// <remarks>
-        /// 在同一 <see cref="HostApplicationBuilder"/> 实例中多次调用此方法, 将配置一个 silo 。
+        /// 对同一 <see cref="HostApplicationBuilder"/> 实例多次调用此方法，最终只配置一个 Silo。
         /// </remarks>
         public static HostApplicationBuilder UseOrleans(
             this HostApplicationBuilder hostAppBuilder)
             => hostAppBuilder.UseOrleans(_ => { });
 
         /// <summary>
-        /// 配置主机构建器以主机 Orleans silo。
+        /// 将宿主构建器配置为承载 Orleans Silo。
         /// </summary>
-        /// <param name="hostAppBuilder">主机应用程序构建器。</param>
-        /// <param name="configureDelegate">用于配置 silo的代表。</param>
-        /// <returns>主机建造者。</returns>
+        /// <param name="hostAppBuilder">宿主应用程序构建器。</param>
+        /// <param name="configureDelegate">用于配置 Silo 的委托。</param>
+        /// <returns>宿主构建器。</returns>
         /// <remarks>
-        /// 在同一 <see cref="IHostApplicationBuilder"/> 实例中多次调用此方法, 将配置一个 silo 。
-        /// 然而, <paramref name="configureDelegate"/> 效应将适用于每次通话一次。
+        /// 对同一 <see cref="IHostApplicationBuilder"/> 实例多次调用此方法，最终只配置一个 Silo。
+        /// 不过，<paramref name="configureDelegate"/> 的效果会在每次调用时应用一次。
         /// </remarks>
         public static IHostApplicationBuilder UseOrleans(
             this IHostApplicationBuilder hostAppBuilder,
@@ -61,14 +61,14 @@ namespace Microsoft.Extensions.Hosting
         }
 
         /// <summary>
-        /// 配置主机构建器以主机 Orleans silo。
+        /// 将宿主构建器配置为承载 Orleans Silo。
         /// </summary>
-        /// <param name="hostAppBuilder">主机应用程序构建器。</param>
-        /// <param name="configureDelegate">用于配置 silo的代表。</param>
-        /// <returns>主机建造者。</returns>
+        /// <param name="hostAppBuilder">宿主应用程序构建器。</param>
+        /// <param name="configureDelegate">用于配置 Silo 的委托。</param>
+        /// <returns>宿主构建器。</returns>
         /// <remarks>
-        /// 在同一 <see cref="HostApplicationBuilder"/> 实例中多次调用此方法, 将配置一个 silo 。
-        /// 然而, <paramref name="configureDelegate"/> 效应将适用于每次通话一次。
+        /// 对同一 <see cref="HostApplicationBuilder"/> 实例多次调用此方法，最终只配置一个 Silo。
+        /// 不过，<paramref name="configureDelegate"/> 的效果会在每次调用时应用一次。
         /// </remarks>
         public static HostApplicationBuilder UseOrleans(
             this HostApplicationBuilder hostAppBuilder,
@@ -83,28 +83,28 @@ namespace Microsoft.Extensions.Hosting
         }
 
         /// <summary>
-        /// 配置主机构建器以主机 Orleans silo。
+        /// 将宿主构建器配置为承载 Orleans Silo。
         /// </summary>
-        /// <param name="hostBuilder">主机建造者。</param>
-        /// <param name="configureDelegate">用于配置 silo的代表。</param>
-        /// <returns>主机建造者。</returns>
+        /// <param name="hostBuilder">宿主构建器。</param>
+        /// <param name="configureDelegate">用于配置 Silo 的委托。</param>
+        /// <returns>宿主构建器。</returns>
         /// <remarks>
-        /// 在同一 <see cref="IHostBuilder"/> 实例中多次调用此方法, 将配置一个 silo 。
-        /// 然而, <paramref name="configureDelegate"/> 效应将适用于每次通话一次。
+        /// 对同一 <see cref="IHostBuilder"/> 实例多次调用此方法，最终只配置一个 Silo。
+        /// 不过，<paramref name="configureDelegate"/> 的效果会在每次调用时应用一次。
         /// </remarks>
         public static IHostBuilder UseOrleans(
             this IHostBuilder hostBuilder,
             Action<ISiloBuilder> configureDelegate) => hostBuilder.UseOrleans((_, siloBuilder) => configureDelegate(siloBuilder));
 
         /// <summary>
-        /// 配置主机构建器以主机 Orleans silo。
+        /// 将宿主构建器配置为承载 Orleans Silo。
         /// </summary>
-        /// <param name="hostBuilder">主机建造者。</param>
-        /// <param name="configureDelegate">用于配置 silo的代表。</param>
-        /// <returns>主机建造者。</returns>
+        /// <param name="hostBuilder">宿主构建器。</param>
+        /// <param name="configureDelegate">用于配置 Silo 的委托。</param>
+        /// <returns>宿主构建器。</returns>
         /// <remarks>
-        /// 在同一 <see cref="IHostBuilder"/> 实例中多次调用此方法, 将配置一个 silo 。
-        /// 然而, <paramref name="configureDelegate"/> 效应将适用于每次通话一次。
+        /// 对同一 <see cref="IHostBuilder"/> 实例多次调用此方法，最终只配置一个 Silo。
+        /// 不过，<paramref name="configureDelegate"/> 的效果会在每次调用时应用一次。
         /// </remarks>
         public static IHostBuilder UseOrleans(
             this IHostBuilder hostBuilder,
@@ -124,14 +124,14 @@ namespace Microsoft.Extensions.Hosting
         }
 
         /// <summary>
-        /// 配置服务收藏以主机 Orleans silo。
+        /// 配置服务集合以承载 Orleans Silo。
         /// </summary>
-        /// <param name="services">服务收藏。</param>
-        /// <param name="configureDelegate">用于配置 silo的代表。</param>
-        /// <returns>服务收藏。</returns>
+        /// <param name="services">服务集合。</param>
+        /// <param name="configureDelegate">用于配置 Silo 的委托。</param>
+        /// <returns>服务集合。</returns>
         /// <remarks>
-        /// 在同一 <see cref="IHostBuilder"/> 实例中多次调用此方法, 将配置一个 silo 。
-        /// 然而, <paramref name="configureDelegate"/> 效应将适用于每次通话一次。
+        /// 对同一 <see cref="IHostBuilder"/> 实例多次调用此方法，最终只配置一个 Silo。
+        /// 不过，<paramref name="configureDelegate"/> 的效果会在每次调用时应用一次。
         /// </remarks>
         public static IServiceCollection AddOrleans(
             this IServiceCollection services,

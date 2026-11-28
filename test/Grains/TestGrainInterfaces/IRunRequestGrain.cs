@@ -58,7 +58,7 @@ public interface IReentrantRunRequestGrain : IRunRequestGrain
 }
 
 /// <summary>
-/// A grain 尚未进入 grain 调用过滤器,其本地请求没有调用过滤器链。
+/// 没有入站 Grain 调用筛选器的 Grain，其本地请求不经过调用筛选器链。
 /// </summary>
 public interface IUnfilteredRunRequestGrain : IGrainWithGuidKey
 {
@@ -66,25 +66,25 @@ public interface IUnfilteredRunRequestGrain : IGrainWithGuidKey
 }
 
 /// <summary>
-/// 非进口 grain ,其 <c>[MayInterleave]</c> 上游接受当地自定请求。
+/// 非可重入 Grain，其 <c>[MayInterleave]</c> 谓词允许自定义本地请求交错执行。
 /// </summary>
 public interface IMayInterleaveRunRequestGrain : IRunRequestGrain
 {
     /// <summary>
-    /// 将自定义请求排队, 并一运行就返回结果, 这需要与阻塞请求进行连接 。
+    /// 将自定义请求排队并在执行后返回结果，这需要与正在阻塞的请求交错执行。
     /// </summary>
     [AlwaysInterleave]
     Task<string?> RunCustomRequestDuringBlockingRequest();
 
     /// <summary>
-    /// 由激活程序一起拒绝的两个请求,第一个请求从完成后就被否决。
+    /// 将两个请求排队，激活实例会一并拒绝它们，其中第一个请求的完成处理会抛出异常。
     /// </summary>
     [AlwaysInterleave]
     Task<string> RejectRequestsWithThrowingCompletion();
 }
 
 /// <summary>
-/// grain的调用过滤器如何处理被 <c>RunRequestAsync</c>排队的请求。
+/// Grain 的调用筛选器如何处理由 <c>RunRequestAsync</c> 排队的请求。
 /// </summary>
 [GenerateSerializer]
 public enum RequestFilterMode

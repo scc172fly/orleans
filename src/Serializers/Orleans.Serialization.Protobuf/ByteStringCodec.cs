@@ -8,7 +8,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// <see cref="ByteString"/>的序列器。
+/// <see cref="ByteString"/> 的序列化器。
 /// </summary>
 [RegisterSerializer]
 public sealed class ByteStringCodec : IFieldCodec<ByteString>

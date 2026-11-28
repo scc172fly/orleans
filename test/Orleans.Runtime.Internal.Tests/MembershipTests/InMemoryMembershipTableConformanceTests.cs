@@ -115,7 +115,7 @@ public partial class InMemoryMembershipTableTests
         var entry = CreateConformanceEntry(1);
         Assert.True(table.Insert(entry, table.ReadTableVersion().Next()));
         var before = table.ReadAll();
-        // 拥有的 silo 可同时报告或按时钟调整。
+        // 拥有该条目的 Silo 可以报告相同时间或经时钟调整的时间。
         var heartbeat = new MembershipEntry
         {
             SiloAddress = entry.SiloAddress,
@@ -236,7 +236,7 @@ public partial class InMemoryMembershipTableTests
         foreach (var entry in entries)
         {
             var current = table.ReadTableVersion();
-            // 种子版本限制在边界处直接进行非转换清理。
+            // 直接设置版本上限，以测试边界处不改变版本的清理操作。
             var candidate = atVersionLimit && entry == entries[^1]
                 ? new TableVersion(int.MaxValue, current.VersionEtag)
                 : current.Next();

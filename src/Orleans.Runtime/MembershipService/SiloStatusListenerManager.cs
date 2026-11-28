@@ -92,7 +92,7 @@ internal sealed partial class SiloStatusListenerManager : ILifecycleParticipant<
         }
         catch (OperationCanceledException) when (_cancellation.IsCancellationRequested)
         {
-            // 忽略并继续关闭
+            // 忽略并继续关闭。
         }
         catch (Exception exception) when (_fatalErrorHandler.IsUnexpected(exception))
         {

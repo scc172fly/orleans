@@ -17,12 +17,12 @@ using Xunit;
 public class CommonFixture : TestEnvironmentFixture
 {
     /// <summary>
-    /// 用于多种用途的电池 DefaultProviderRuntime 。
+    /// 缓存 DefaultProviderRuntime 以供重复使用。
     /// </summary>
     private IProviderRuntime DefaultProviderRuntime { get; }
 
     /// <summary>
-    /// 构造器
+    /// 构造函数。
     /// </summary>
     public CommonFixture()
     {
@@ -34,10 +34,10 @@ public class CommonFixture : TestEnvironmentFixture
     }
 
     /// <summary>
-    /// 根据环境变量返回对持久性提供者的正确执行。
+    /// 根据环境变量返回适当的持久化提供程序实现。
     /// </summary>
-    /// <remarks>如果环境变量未能维持储存提供者的创建,
-    /// a <em>无效</em> 将提供数值。</remarks>
+    /// <remarks>如果创建存储提供程序时未满足环境不变条件，
+    /// 则返回 <em>null</em> 值。</remarks>
     public async Task<IGrainStorage> CreateRedisGrainStorage(
         bool useOrleansSerializer = false,
         bool deleteStateOnClear = false,

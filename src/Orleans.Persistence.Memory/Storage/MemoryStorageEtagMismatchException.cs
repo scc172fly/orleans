@@ -3,24 +3,24 @@ using System.Runtime.Serialization;
 
 namespace Orleans.Storage.Internal
 {
-    /// <summary>用于与存储供应商沟通的例外,以便将其例外交给其调用者。</summary>
+    /// <summary>用于与存储提供程序通信的异常，使存储提供程序向其调用方抛出该异常。</summary>
     [Serializable]
     [GenerateSerializer]
     internal sealed class MemoryStorageEtagMismatchException : Exception
     {
-        /// <summary>获取当前持续存储中的静态值 。</summary>
+        /// <summary>获取当前保存在持久化存储中的 ETag 值。</summary>
         [Id(0)]
         public string? StoredEtag { get; private set; }
 
-        /// <summary>获取当前在记忆中帮助存储的静态值,并试图更新。</summary>
+        /// <summary>获取当前保存在内存中并尝试更新的 ETag 值。</summary>
         [Id(1)]
         public string? ReceivedEtag { get; private set; }
 
         /// <summary>
         /// 初始化 <see cref="MemoryStorageEtagMismatchException"/> 类的新实例。
         /// </summary>
-        /// <param name="storedEtag">存储的etag。</param>
-        /// <param name="receivedEtag">接收的目录。</param>
+        /// <param name="storedEtag">已存储的 ETag。</param>
+        /// <param name="receivedEtag">接收到的 ETag。</param>
         public MemoryStorageEtagMismatchException(string storedEtag, string? receivedEtag)
         {
             StoredEtag = storedEtag;
@@ -30,8 +30,8 @@ namespace Orleans.Storage.Internal
         /// <summary>
         /// 初始化 <see cref="MemoryStorageEtagMismatchException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
-        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
+        /// <param name="info">包含所抛出异常的序列化对象数据的 <see cref="T:System.Runtime.Serialization.SerializationInfo" />。</param>
+        /// <param name="context">包含源或目标上下文信息的 <see cref="T:System.Runtime.Serialization.StreamingContext" />。</param>
         [Obsolete]
         private MemoryStorageEtagMismatchException(SerializationInfo info, StreamingContext context)
             : base(info, context)
@@ -54,7 +54,7 @@ namespace Orleans.Storage.Internal
         /// <summary>
         /// 将此实例转换为 <see cref="InconsistentStateException"/>。
         /// </summary>
-        /// <returns>一个新的 <see cref="InconsistentStateException"/>。</returns>
+        /// <returns>新的 <see cref="InconsistentStateException"/>。</returns>
         public InconsistentStateException AsInconsistentStateException()
         {
             var message = $"e-Tag mismatch in Memory Storage. Stored = {StoredEtag ?? "null"} Received = {ReceivedEtag}";

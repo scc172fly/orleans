@@ -1,16 +1,16 @@
 //*********************************************************
 //    Copyright (c) Microsoft. All rights reserved.
 //    
-//    Apache 2. 0 许可证
+//    Apache 2.0 License
 //    
-//    持有许可的芬兰公民可前往移民局申请居留许可。
+//    You may obtain a copy of the License at
 //    http://www.apache.org/licenses/LICENSE-2.0
 //    
-//    除非适用法要求或书面约定,软件 
-//    许可证下发放的,在“ASIS”BASISS上分发。 
-//    没有任何战争或任何种类的战争或条件,无论是明示的还是 
-//    意指的语种,请见有关 
-//    许可证规定的许可和限制。
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+//    implied. See the License for the specific language governing
+//    permissions and limitations under the License.
 //
 //*********************************************************
 
@@ -21,32 +21,32 @@ using Orleans.Storage;
 namespace Samples.StorageProviders
 {
     /// <summary>
-    /// JSON- 基础 grain 存储提供者的基准类别。
+    /// 基于 JSON 的 Grain 存储提供程序的基类。
     /// </summary>
     public abstract class BaseJSONStorageProvider : IGrainStorage
     {
         /// <summary>
-        /// 存储供应商名称
+        /// 存储提供程序名称
         /// </summary>
         public string? Name { get; protected set; }
 
         /// <summary>
-        /// 数据管理员实例
+        /// 数据管理器实例
         /// </summary>
-        /// <remarks>数据管理器负责读写 JSON 字符串。</remarks>
+        /// <remarks>数据管理器负责读取和写入 JSON 字符串。</remarks>
         protected IJSONStateDataManager? DataManager { get; set; }
 
         /// <summary>
-        /// 构造建构器
+        /// 构造函数。
         /// </summary>
         protected BaseJSONStorageProvider()
         {
         }
 
         /// <summary>
-        /// 在 silo 关闭期间关闭存储提供者。
+        /// 在 Silo 关闭期间关闭存储提供程序。
         /// </summary>
-        /// <returns>这一行动的完成承诺。</returns>
+        /// <returns>表示此操作完成情况的异步任务。</returns>
         public Task Close()
         {
             if (DataManager != null)
@@ -56,13 +56,13 @@ namespace Samples.StorageProviders
         }
 
         /// <summary>
-        /// 背书店的读取状态持续, 并解除其向目标的序列
-        /// grain 状态对象。
+        /// 从后备存储读取持久化状态，并将其反序列化至目标
+        /// Grain 状态对象。
         /// </summary>
-        /// <param name="grainType">字符串,内挂着 grain 类.</param>
-        /// <param name="grainReference">代表长期身份 grain.</param>
-        /// <param name="grainState">提及维持《公约》持续状态的物体 grain.</param>
-        /// <returns>这一行动的完成承诺。</returns>
+        /// <param name="grainType">包含 Grain 类名称的字符串。</param>
+        /// <param name="grainReference">表示 Grain 的长期有效标识。（译注：原注释使用 grainReference，当前方法的对应参数为 grainId。）</param>
+        /// <param name="grainState">对用于保存 Grain 持久化状态的对象的引用。</param>
+        /// <returns>表示此操作完成情况的异步任务。</returns>
         public async Task ReadStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
         {
             if (DataManager == null) throw new ArgumentException("DataManager property not initialized");
@@ -75,12 +75,12 @@ namespace Samples.StorageProviders
         }
 
         /// <summary>
-        /// 将持续状态从一个 grain 状态对象写入其备份仓库。
+        /// 将 Grain 状态对象中的持久化状态写入其后备存储。
         /// </summary>
-        /// <param name="grainType">字符串,内挂着 grain 类.</param>
-        /// <param name="grainReference">代表长期身份 grain.</param>
-        /// <param name="grainState">提及维持《公约》持续状态的物体 grain.</param>
-        /// <returns>这一行动的完成承诺。</returns>
+        /// <param name="grainType">包含 Grain 类名称的字符串。</param>
+        /// <param name="grainReference">表示 Grain 的长期有效标识。（译注：原注释使用 grainReference，当前方法的对应参数为 grainId。）</param>
+        /// <param name="grainState">对持有 Grain 持久化状态的对象的引用。</param>
+        /// <returns>表示此操作完成情况的异步任务。</returns>
         public Task WriteStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
         {
             if (DataManager == null) throw new ArgumentException("DataManager property not initialized");
@@ -90,11 +90,11 @@ namespace Samples.StorageProviders
         }
 
         /// <summary>
-        /// 如果找到的话, 从备份存储中删除 grain 状态 。
+        /// 如果存在 Grain 状态，则将其从后备存储移除。
         /// </summary>
-        /// <param name="grainType">字符串,内挂着 grain 类.</param>
-        /// <param name="grainReference">代表长期身份 grain.</param>
-        /// <param name="grainState">保持该天体状态的物体 grain.</param>
+        /// <param name="grainType">包含 Grain 类名称的字符串。</param>
+        /// <param name="grainReference">表示 Grain 的长期有效标识。（译注：原注释使用 grainReference，当前方法的对应参数为 grainId。）</param>
+        /// <param name="grainState">持有 Grain 持久化状态的对象。</param>
         /// <returns></returns>
         public Task ClearStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
         {
@@ -105,13 +105,13 @@ namespace Samples.StorageProviders
         }
 
         /// <summary>
-        /// 从 grain 实例到 JSON 文档的序列。
+        /// 将 Grain 实例序列化为 JSON 文档。
         /// </summary>
-        /// <param name="grainState">Grain 状态将转换成 JSON 储存格式。</param>
+        /// <param name="grainState">要转换为 JSON 存储格式的 Grain 状态。</param>
         /// <remarks>
-        /// 见:
+        /// 参见：
         /// http://msdn.microsoft.com/en-us/library/system.web.script.serialization.javascriptserializer.aspx
-        /// 更多 JSON 连环器
+        /// 以了解有关 JSON 序列化器的更多信息。
         /// </remarks>
         protected static string ConvertToStorageFormat<T>(IGrainState<T> grainState)
         {
@@ -119,10 +119,10 @@ namespace Samples.StorageProviders
         }
 
         /// <summary>
-        /// 构造 a grain 状态,通过解除 JSON 文件。
+        /// 通过反序列化 JSON 文档构造 Grain 状态实例。
         /// </summary>
-        /// <param name="grainState">Grain 状态将被封存。</param>
-        /// <param name="entityData">JSON 用于在 grain 状态。</param>
+        /// <param name="grainState">需要填充以供存储的 Grain 状态。</param>
+        /// <param name="entityData">Grain 状态的 JSON 存储格式表示。</param>
         protected static void ConvertFromStorageFormat<T>(IGrainState<T> grainState, string entityData)
         {
             var data = JsonConvert.DeserializeObject<T>(entityData);

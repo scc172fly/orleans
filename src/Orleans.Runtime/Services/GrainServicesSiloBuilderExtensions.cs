@@ -8,16 +8,16 @@ using Orleans.Services;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 登记 grain 服务推广方法。
+    /// 用于注册 Grain 服务的扩展方法。
     /// </summary>
     public static class GrainServicesSiloBuilderExtensions
     {
         /// <summary>
-        /// 登记申请 grain 服务,该服务将从 silo开始。
+        /// 注册随 Silo 一起启动的应用程序 Grain 服务。
         /// </summary>
-        /// <typeparam name="T">下 grain 服务执行类型。</typeparam>
-        /// <param name="builder">建筑工。</param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <typeparam name="T">Grain 服务的实现类型。</typeparam>
+        /// <param name="builder">构建器。</param>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder AddGrainService<T>(this ISiloBuilder builder)
             where T : GrainService
         {
@@ -39,22 +39,22 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 登记申请 grain 服务,该服务将从 silo开始。
+        /// 注册随 Silo 一起启动的应用程序 Grain 服务。
         /// </summary>
-        /// <typeparam name="T">下 grain 服务执行类型。</typeparam>
-        /// <param name="services">服务收藏。</param>
-        /// <returns>服务收藏。</returns>
+        /// <typeparam name="T">Grain 服务的实现类型。</typeparam>
+        /// <param name="services">服务集合。</param>
+        /// <returns>服务集合。</returns>
         public static IServiceCollection AddGrainService<T>(this IServiceCollection services)
         {
             return services.AddGrainService(typeof(T));
         }
 
         /// <summary>
-        /// 登记申请 grain 服务,该服务将从 silo开始。
+        /// 注册随 Silo 一起启动的应用程序 Grain 服务。
         /// </summary>
-        /// <param name="services">服务收藏。</param>
-        /// <param name="grainServiceType">下 grain 服务执行类型。</param>
-        /// <returns>服务收藏。</returns>
+        /// <param name="services">服务集合。</param>
+        /// <param name="grainServiceType">Grain 服务的实现类型。</param>
+        /// <returns>服务集合。</returns>
         public static IServiceCollection AddGrainService(this IServiceCollection services, Type grainServiceType)
         {
             return services.AddSingleton<IGrainService>(sp => GrainServiceFactory(grainServiceType, sp));

@@ -73,7 +73,7 @@ internal static class SourceGeneratorOptionsParser
             {
                 result.SupportsUnsafeAccessors = version.Major >= 8;
                 result.SupportsGenericUnsafeAccessors = version.Major >= 9;
-                // 年龄较大的目标可以运行于 .NET 9.0.0,其字段匹配拒绝变化不定的修改。
+                // 较旧的目标可能运行在 .NET 9.0.0 上，其字段匹配不接受 volatile 修饰符。
                 result.SupportsVolatileUnsafeAccessors = version.Major >= 10;
             }
         }
@@ -90,7 +90,7 @@ internal struct SourceGeneratorOptions : IEquatable<SourceGeneratorOptions>
     public bool AttachDebugger { get; set; }
 
     /// <summary>
-    /// 启用热再装安全代码生成
+    /// 启用热重载安全的代码生成。
     /// </summary>
     public bool? HotReload { get; set; }
     public bool SupportsUnsafeAccessors { get; set; }

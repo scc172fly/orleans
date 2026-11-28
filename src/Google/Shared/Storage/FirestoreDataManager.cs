@@ -18,7 +18,7 @@ namespace Orleans.Reminders.Firestore;
 #elif ORLEANS_DIRECTORY
 namespace Orleans.GrainDirectory.Firestore;
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 
 internal partial class FirestoreDataManager
@@ -48,7 +48,7 @@ internal partial class FirestoreDataManager
     }
 
     /// <summary>
-    /// 初始化数据管理器 。
+    /// 初始化数据管理器。
     /// </summary>
     public async Task Initialize(CancellationToken cancellationToken = default)
     {
@@ -62,7 +62,7 @@ internal partial class FirestoreDataManager
 
             if (!snapshot.Exists)
             {
-                // 创建页眉文档,以确保子收藏可以在以后创建
+                // 创建头部文档，以确保随后可以创建子集合。
                 await ExecuteWithCancellation(
                     group.CreateAsync(new { StorageGroup = this._group }, cancellationToken),
                     cancellationToken);
@@ -83,7 +83,7 @@ internal partial class FirestoreDataManager
     }
 
     /// <summary>
-    /// 清除收藏。
+    /// 清空集合。
     /// </summary>
     public async Task<int> ClearCollection(CancellationToken cancellationToken = default)
     {
@@ -108,11 +108,11 @@ internal partial class FirestoreDataManager
     }
 
     /// <summary>
-    /// 如果一个实体不存在, 创建它的实体, 否则它会扔
+    /// 如果实体不存在则创建它，否则抛出异常。
     /// </summary>
-    /// <param name="entity">实体</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>实体的 eTag</returns>
+    /// <param name="entity">实体。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>实体的 ETag。</returns>
     public async Task<string> CreateEntity<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : FirestoreEntity, new()
     {
         var collection = this.GetCollection();
@@ -161,9 +161,9 @@ internal partial class FirestoreDataManager
     /// <summary>
     /// 更新实体。
     /// </summary>
-    /// <param name="entity">实体</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>实体的 eTag</returns>
+    /// <param name="entity">实体。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>实体的 ETag。</returns>
     public async Task<string> Update<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : FirestoreEntity, new()
     {
         var collection = this.GetCollection();
@@ -188,11 +188,11 @@ internal partial class FirestoreDataManager
     }
 
     /// <summary>
-    /// 更新现有实体,而不检查其目前的ETag。
+    /// 更新现有实体，不检查其当前 ETag。
     /// </summary>
     /// <param name="entity">实体。</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>实体的新ETag。</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>实体的新 ETag。</returns>
     public async Task<string> UpdateUnconditionally<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : FirestoreEntity, new()
     {
         var collection = this.GetCollection();
@@ -216,12 +216,12 @@ internal partial class FirestoreDataManager
     }
 
     /// <summary>
-    /// 删除一个实体。
+    /// 删除实体。
     /// </summary>
-    /// <param name="id">实体的识别号</param>
-    /// <param name="eTag">实体的 eTag</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>删除是否成功完成 。</returns>
+    /// <param name="id">实体标识。</param>
+    /// <param name="eTag">实体的 ETag。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>删除是否成功完成。</returns>
     public async Task<bool> DeleteEntity(string id, string? eTag = null, CancellationToken cancellationToken = default)
     {
         var collection = this.GetCollection();
@@ -261,11 +261,11 @@ internal partial class FirestoreDataManager
     }
 
     /// <summary>
-    /// 阅读实体。
+    /// 读取实体。
     /// </summary>
-    /// <param name="id">实体的识别号</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>实体或不存在的无效</returns>
+    /// <param name="id">实体标识。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>实体；不存在时为 null。</returns>
     public async Task<TEntity?> ReadEntity<TEntity>(string id, CancellationToken cancellationToken = default) where TEntity : FirestoreEntity, new()
     {
         var collection = this.GetCollection();
@@ -296,9 +296,9 @@ internal partial class FirestoreDataManager
     }
 
     /// <summary>
-    /// 阅读所有实体。
+    /// 读取所有实体。
     /// </summary>
-    /// <returns>实体</returns>
+    /// <returns>实体集合。</returns>
     public async Task<TEntity[]> ReadAllEntities<TEntity>(CancellationToken cancellationToken = default) where TEntity : FirestoreEntity, new()
     {
         var collection = this.GetCollection();
@@ -325,11 +325,11 @@ internal partial class FirestoreDataManager
     }
 
     /// <summary>
-    /// 删除分区中的实体 。
+    /// 删除分区中的实体。
     /// </summary>
-    /// <param name="entities">实体待删除</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>代表操作的任务。</returns>
+    /// <param name="entities">待删除的实体。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>表示该操作的任务。</returns>
     public async Task DeleteEntities<TEntity>(TEntity[] entities, CancellationToken cancellationToken = default) where TEntity : FirestoreEntity, new()
     {
         var collection = this.GetCollection();
@@ -366,9 +366,9 @@ internal partial class FirestoreDataManager
     /// <summary>
     /// 查询实体。
     /// </summary>
-    /// <param name="query">查询过滤器</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>实体阵列</returns>
+    /// <param name="query">查询筛选条件。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>实体数组。</returns>
     public async Task<TEntity[]> QueryEntities<TEntity>(
         Func<CollectionReference, Query> query,
         CancellationToken cancellationToken = default) where TEntity : FirestoreEntity, new()

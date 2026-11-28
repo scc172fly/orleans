@@ -112,7 +112,7 @@ public sealed class AzureTableGrainStorageCancellationTests
         var original = Assert.IsType<Dictionary<string, int>>(state.State);
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
-        // 没有配置 SDK 操作: 即使一个带有正确牌的电话也出乎意料。
+        // 未配置任何 SDK 操作：即使携带正确令牌的调用也不符合预期。
 
         var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(
             () => Invoke(fixture.Storage, branch, state, cancellation.Token));
@@ -141,8 +141,8 @@ public sealed class AzureTableGrainStorageCancellationTests
         var operation = Invoke(fixture.Storage, branch, state, cancellation.Token);
         try
         {
-            // 与操作赛道的进入屏障赛跑, 导致SDK电话中断/ 断开失败
-            // 而不是等待永远的屏障,而屏障永不到。
+            // 让进入屏障与该操作竞争完成，使错误或缺失的 SDK 调用能够
+            // 立即导致测试失败，而不是永远等待不可能到达的屏障。
             Assert.Same(fixture.Table.Entered.Task, await Task.WhenAny(fixture.Table.Entered.Task, operation));
             await fixture.Table.Entered.Task;
             Assert.False(operation.IsCompleted);
@@ -160,7 +160,7 @@ public sealed class AzureTableGrainStorageCancellationTests
             Assert.Equal(IsWrite(branch) ? 1 : 0, fixture.Serializer.SerializeCalls);
             Assert.Equal(0, fixture.Serializer.DeserializeCalls);
             Assert.Equal(0, fixture.Activators.Calls);
-            // 启用了测井,同一伐木者观察供应商和经理的日志。
+            // 已启用日志记录，同一个记录器同时观察提供程序和管理器的日志。
             Assert.Empty(fixture.Logger.StorageErrors);
         }
         finally
@@ -328,7 +328,7 @@ public sealed class AzureTableGrainStorageCancellationTests
                 DeleteStateOnClear = branch == Branch.ClearDelete,
                 GrainStorageSerializer = fixture.Serializer,
             };
-            // 缓慢获得诊断与取消无关,即使是暂停/调试运行。
+            // 慢访问诊断与取消无关，即使运行过程被暂停或调试也是如此。
             options.StoragePolicyOptions.OperationTimeout = TimeSpan.MaxValue;
             var storage = new AzureTableGrainStorage(
                 "CancellationStorage",
@@ -349,7 +349,7 @@ public sealed class AzureTableGrainStorageCancellationTests
         }
     }
 
-    // 严格自制的手写SDK模型:没有真正的客户管道、额外的包件或反射。
+    // 手工编写的严格 SDK 模拟对象：不使用实际客户端管道、额外软件包或反射。
     private sealed class StrictTableServiceClient(StrictTableClient table) : TableServiceClient
     {
         public int GetTableCalls { get; private set; }

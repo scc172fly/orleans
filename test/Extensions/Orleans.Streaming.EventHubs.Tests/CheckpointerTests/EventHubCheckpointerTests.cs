@@ -13,7 +13,7 @@ using Xunit;
 namespace ServiceBus.Tests.CheckpointerTests;
 
 /// <summary>
-/// 通过拉动剂推进快照进行 EventHub 交付检查站测试。
+/// 测试通过拉取代理进度快照实现的 Event Hub 基于投递进度的检查点功能。
 /// </summary>
 [TestProvider("EventHub")]
 [TestArea("Streaming")]
@@ -21,7 +21,7 @@ namespace ServiceBus.Tests.CheckpointerTests;
 public class EventHubCheckpointerTests
 {
     /// <summary>
-    /// 记录所有更新的测试检查站
+    /// 记录所有更新以供验证的测试检查点记录器。
     /// </summary>
     private class TestCheckpointer : IStreamQueueCheckpointer<string>
     {
@@ -152,7 +152,7 @@ public class EventHubCheckpointerTests
         IEventHubQueueCache cache = provider;
         var streamId = StreamId.Create("namespace", Guid.NewGuid());
 
-#pragma warning disable CS0618 // Verify compatibility of the obsolete wrapper.
+#pragma warning disable CS0618 // 验证已过时包装器的兼容性。
         Assert.Same(provider.Cursor, cache.GetCursor(streamId, null));
 
         var innerException = new InvalidOperationException("inner");
@@ -289,7 +289,7 @@ public class EventHubCheckpointerTests
         public Task<IEnumerable<EventData>> ReceiveAsync(int maxCount, TimeSpan waitTime)
         {
             ReceiveCount++;
-            // 在返回值被附加非无效值前编译的接收器二进制模拟。
+            // 模拟在返回值被标注为非 null 之前编译的接收器二进制文件。
             return Task.FromResult<IEnumerable<EventData>>(null!);
         }
 
@@ -490,7 +490,7 @@ public class EventHubCheckpointerTests
         var receiver = await CreateReceiver(new TestCheckpointer(), cache);
         var streamId = StreamId.Create("namespace", Guid.NewGuid());
 
-#pragma warning disable CS0618 // Verify compatibility of the obsolete cursor APIs.
+#pragma warning disable CS0618 // 验证已过时游标 API 的兼容性。
         var actualAcquisitionException = Assert.Throws<QueueCacheMissException>(
             () => ((IQueueCache)receiver).GetCacheCursor(streamId, MakeToken(1)));
 #pragma warning restore CS0618
@@ -501,7 +501,7 @@ public class EventHubCheckpointerTests
         var movementInnerException = new InvalidOperationException("movement inner");
         var movementException = new QueueCacheMissException("movement", movementInnerException);
         cache.MoveNextException = movementException;
-#pragma warning disable CS0618 // Verify compatibility of the obsolete cursor APIs.
+#pragma warning disable CS0618 // 验证已过时游标 API 的兼容性。
         var cursor = ((IQueueCache)receiver).GetCacheCursor(streamId, MakeToken(1));
         var actualMovementException = Assert.Throws<QueueCacheMissException>(() => cursor.MoveNext());
 #pragma warning restore CS0618
@@ -665,7 +665,7 @@ public class EventHubCheckpointerTests
         var checkpointer = new TestCheckpointer();
         var receiver = await CreateReceiver(checkpointer);
 
-        // 单订,有已知处理过的冲销。
+        // 单个订阅，其已处理偏移量已知。
         UpdateDeliveryProgress(receiver, MakeToken(100));
 
         Assert.Equal("100", checkpointer.LastOffset);
@@ -695,7 +695,7 @@ public class EventHubCheckpointerTests
         var checkpointer = new TestCheckpointer();
         var receiver = await CreateReceiver(checkpointer);
 
-        // 拖车代理商通过最低订费的分数,即水印。
+        // 拉取代理将订阅的最低偏移量作为水位线传递。
         UpdateDeliveryProgress(receiver, MakeToken(95));
 
         Assert.Equal("95", checkpointer.LastOffset);
@@ -708,11 +708,11 @@ public class EventHubCheckpointerTests
         var checkpointer = new TestCheckpointer();
         var receiver = await CreateReceiver(checkpointer);
 
-        // 两个订书,一个慢点
+        // 两个订阅，其中一个较慢。
         UpdateDeliveryProgress(receiver, MakeToken(50));
         Assert.Equal("50", checkpointer.LastOffset);
 
-        // 取消缓慢的订阅后,水印会向前推进。
+        // 移除较慢的订阅后，水位线向前推进。
         UpdateDeliveryProgress(receiver, MakeToken(200));
         Assert.Equal("200", checkpointer.LastOffset);
     }
@@ -724,15 +724,15 @@ public class EventHubCheckpointerTests
         var checkpointer = new TestCheckpointer();
         var receiver = await CreateReceiver(checkpointer);
 
-        // 三个用户在不同的位置订阅:拉动器通过最低标记。
+        // 三个订阅处于不同位置：拉取代理传递最小的令牌。
         UpdateDeliveryProgress(receiver, MakeToken(50));
         Assert.Equal("50", checkpointer.LastOffset);
 
-        // 慢速赶上。
+        // 最慢的订阅追赶上来。
         UpdateDeliveryProgress(receiver, MakeToken(80));
         Assert.Equal("80", checkpointer.LastOffset);
 
-        // 全体集合
+        // 所有订阅的进度趋于一致。
         UpdateDeliveryProgress(receiver, MakeToken(120));
         Assert.Equal("120", checkpointer.LastOffset);
     }
@@ -747,8 +747,8 @@ public class EventHubCheckpointerTests
         UpdateDeliveryProgress(receiver, MakeToken(200));
         Assert.Equal("200", checkpointer.LastOffset);
 
-        // 新注册的订阅者可以要求重播旧牌,
-        // 但检查站只向前推进,不能倒退。
+        // 新注册的订阅者可请求从较旧的令牌开始重放，
+        // 但检查点只能前进，不得后退。
         UpdateDeliveryProgress(receiver, MakeToken(50));
         Assert.Equal("200", checkpointer.LastOffset);
     }
@@ -771,7 +771,7 @@ public class EventHubCheckpointerTests
         var checkpointer = new TestCheckpointer();
         var receiver = await CreateReceiver(checkpointer);
 
-        // 无法取得订阅进度;缓冲清除检查站由缓冲直接处理。
+        // 没有可用的订阅进度；缓存清理时的检查点记录直接由缓存处理。
         UpdateDeliveryProgressWithNoSubscriptions(receiver);
 
         Assert.Null(checkpointer.LastOffset);

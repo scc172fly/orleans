@@ -20,7 +20,7 @@ public sealed class FutureSentAtTests : MessagingBehaviorTestBase
     private readonly IndependentJobClockFixture _cluster;
     private static CancellationToken Token => TestContext.Current.CancellationToken;
 
-    // 沉淀物拒绝的答案是其理由和代码;否则接收者回答预期的情况。
+    // 消息接收器拒绝时答复其原因和代码；否则接收方答复预期的结果分支。
     private static DeliveryResult ExpectedAnswer(bool rejected, DeliveryResult otherwise) =>
         rejected ? new DeliveryResult.DeadLettered(SourceSinkGrain.Rejection, SourceSinkGrain.RejectionCode) : otherwise;
 
@@ -91,7 +91,7 @@ public sealed class FutureSentAtTests : MessagingBehaviorTestBase
             _cluster.SourceSinkProbe.For(receiver).Mode = SinkMode.Accept;
         }
         var before = await CaptureAsync(receiver);
-        // 其记录中答复了跟踪身份,从而保留了发送时间。
+        // 已跟踪的标识根据其记录答复，该记录保留接受时的发送时间。
         var newer = original with { SentAt = clock.GetUtcNow() + Window(receiver) + TimeSpan.FromTicks(1) };
         var answer = await DeliverAsync(receiver, newer);
         DeliveryResultAssert.Equal(ExpectedAnswer(rejected, DeliveryResult.Duplicate.Instance), answer);
@@ -466,7 +466,7 @@ public sealed class FutureSentAtTests : MessagingBehaviorTestBase
 
     private async Task AssertRejectedAsync(IAddressable receiver, InboxMessage message)
     {
-        // 在外部客户的串联性例外使元数据正常化之前,先检查实际的警卫例外。
+        // 在外部客户端的异常序列化将其元数据规范化之前，检查实际的防护异常。
         var direct = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () =>
         {
             var delivery = await _cluster.OnGrainAsync(receiver, () => Inbox(receiver).DeliverAsync(message, Token).AsTask());

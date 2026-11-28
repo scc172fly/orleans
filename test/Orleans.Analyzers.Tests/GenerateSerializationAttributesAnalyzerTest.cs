@@ -6,10 +6,10 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// 用于确保GenerateSerializer标有适当字段属性的类别具有适当字段属性的分析器测试。
-/// 在 Orleans 序号中,每个可序列字段必须用[id]属性标记,以确保
-/// 版本可容度和高效序列化。 此分析器帮助开发者识别缺失
-/// 可能导致序列化问题的字段属性。
+/// 测试确保标记了 [GenerateSerializer] 的类型具有正确字段特性的分析器。
+/// 在 Orleans 序列化中，每个可序列化字段都必须标记 [Id] 特性，以确保
+/// 版本容错和高效序列化。此分析器帮助开发者识别缺少字段特性、
+/// 可能引发序列化问题的情况。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 [TestSuite("BVT")]
@@ -30,47 +30,47 @@ public class GenerateSerializationAttributesAnalyzerTest : DiagnosticAnalyzerTes
     }
 
     /// <summary>
-    /// 证明分析器检测到一个[质GenerateSerializer类的某一类别时
-    /// 字段中含有没有[ID]属性的字段,这是适当序列化 Orleans 所需的属性。
+    /// 验证分析器能否检测带 [GenerateSerializer] 的类中
+    /// 缺少 [Id] 特性的字段；这些特性是 Orleans 正确序列化所必需的。
     /// </summary>
     [Fact]
     public Task SerializableClass()
         => VerifyGeneratedDiagnostic(@"[GenerateSerializer] public class D { public int f; }");
 
     /// <summary>
-    /// 证明分析器在与GenerateSerializer的断裂中检测到
-    /// 字段中含有没有[ID]属性的字段,这是适当序列化 Orleans 所需的属性。
+    /// 验证分析器能否检测带 [GenerateSerializer] 的结构体中
+    /// 缺少 [Id] 特性的字段；这些特性是 Orleans 正确序列化所必需的。
     /// </summary>
     [Fact]
     public Task SerializableStruct()
         => VerifyGeneratedDiagnostic(@"[GenerateSerializer] public struct D { public int f; }");
 
     /// <summary>
-    /// 证明分析者能检测到记录时的状态GenerateSerializer]
-    /// 字段中含有没有[ID]属性的字段,这是适当序列化 Orleans 所需的属性。
+    /// 验证分析器能否检测带 [GenerateSerializer] 的记录类型中
+    /// 缺少 [Id] 特性的字段；这些特性是 Orleans 正确序列化所必需的。
     /// </summary>
     [Fact]
     public Task SerializableRecord()
         => VerifyGeneratedDiagnostic(@"[GenerateSerializer] public record D { public int f; }");
 
     /// <summary>
-    /// 证明分析器检测到[质GenerateSerializer记录级时
-    /// 字段中含有没有[ID]属性的字段,这是适当序列化 Orleans 所需的属性。
+    /// 验证分析器能否检测带 [GenerateSerializer] 的记录类中
+    /// 缺少 [Id] 特性的字段；这些特性是 Orleans 正确序列化所必需的。
     /// </summary>
     [Fact]
     public Task SerializableRecordClass()
         => VerifyGeneratedDiagnostic(@"[GenerateSerializer] public record class D { public int f; }");
 
     /// <summary>
-    /// 证明分析器检测到记录在GenerateSerializer中发生支架时
-    /// 字段中含有没有[ID]属性的字段,这是适当序列化 Orleans 所需的属性。
+    /// 验证分析器能否检测带 [GenerateSerializer] 的记录结构体中
+    /// 缺少 [Id] 特性的字段；这些特性是 Orleans 正确序列化所必需的。
     /// </summary>
     [Fact]
     public Task SerializableRecordStruct()
         => VerifyGeneratedDiagnostic(@"[GenerateSerializer] public record struct D { public int f; }");
 
     /// <summary>
-    /// 证明生成代码中申报的类型没有报告,因为无法报告诊断。
+    /// 验证不会报告生成代码中声明的类型，因为无法在其中报告诊断。
     /// </summary>
     [Fact]
     public async Task SerializableClassInGeneratedCode_ShouldNotTriggerDiagnostic()
@@ -146,7 +146,7 @@ public class GenerateSerializationAttributesAnalyzerTest : DiagnosticAnalyzerTes
     [InlineData("GenerateSerializer", "(GenerateFieldIds = Options.Automatic)")]
     public async Task FieldIdOptionSyntax_ShouldPreserveDiagnosticAttributeLocation(string attributeName, string arguments)
     {
-        // 维护目前只对进口的昆虫成员和常数进行语法解释。
+        // 保留对导入的枚举成员和常量的现有纯语法解释方式。
         var attribute = attributeName + arguments;
         var source = $$"""
             using Orleans;

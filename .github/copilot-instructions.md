@@ -1,49 +1,49 @@
 <a id="implementation-and-code-review"></a>
 
-## 实施和守则审查
+## Implementation and code review
 
-遵循root `AGENTS.md` 和可适用的实施原则和存储库工作流程目录指示。
+Follow root `AGENTS.md` and applicable directory instructions for implementation principles and repository workflow.
 
-代码审查时使用 `.github/skills/code-review/SKILL.md`。
+For code review, use `.github/skills/code-review/SKILL.md`.
 
 <a id="build-test-and-style-commands"></a>
 
-## 构建、测试和样式命令
+## Build, test, and style commands
 
-* 与 .NET SDK 调自 `global.json` (`11.0.100`,滚转 `major`编辑 `global.json` 除非明确要求。
-* 以 `dotnet build Orleans.slnx -bl`构建解决方案。 CI 使用此窗体并上传了 binlog 。
-* 在 Windows 上, `.\Build.cmd` 运行 `build.ps1`, 恢复、 建造和包装 `Orleans.slnx`, 撰写 `Artifacts\<Configuration>`下的修复/ 建设/ 包装箱和产出包。 设置 `BuildConfiguration=Release` 以构建释放的文物。
-* 使用 `dotnet test --solution Orleans.slnx --framework net11.0 --minimum-expected-tests 1 --max-parallel-test-modules 1`运行测试。 CI 也运行 `net10.0`; 源项目默认为 `net10.0;net11.0`。
-* 运行类别 `dotnet test --solution Orleans.slnx --framework net10.0 --filter-trait "Category=BVT" --minimum-expected-tests 1 --max-parallel-test-modules 1`共同类别 `BVT`, `SlowBVT`, `Functional`和提供商特定类别,如 `Redis`, `Cassandra`, `SqlServer`, `Azure`, `AWS`,和 `Streaming`.
-* 使用 `dotnet test --project test\Orleans.Core.Tests\Orleans.Core.Tests.csproj --framework net10.0 --filter-class "*MyTestClass*" --filter-method "*MyTestMethod*" --minimum-expected-tests 1`运行一个测试。
-* `.\Test.cmd` 使用默认的 xUnit 查询过滤器 `/[(Category=BVT)|(Category=SlowBVT)]`运行脚本 Windows 测试子集。 `.\TestAll.cmd` 添加了 `Functional` 类别。
-* 供应商测试往往需要外部服务、连接字符串环境变量或秘密。 所需的设置匹配 `.github\workflows\ci.yml` 和 `test\TestInfrastructure\TestExtensions\TestDefaultConfiguration.cs` 。
-* 样式由 `dotnet build` 强制执行,因为 `Directory.Build.props` 设置了 `EnforceCodeStyleInBuild=true` 和 `TreatWarningsAsErrors=true`。
+* The repo builds with the .NET SDK from `global.json` (`11.0.100`, roll-forward `major`). Do not edit `global.json` unless explicitly asked.
+* Build the solution with `dotnet build Orleans.slnx -bl`. CI uses this form and uploads the binlog.
+* On Windows, `.\Build.cmd` runs `build.ps1`, which restores, builds, and packs `Orleans.slnx`, writes restore/build/pack binlogs, and outputs packages under `Artifacts\<Configuration>`. Set `BuildConfiguration=Release` to build release artifacts.
+* Run tests with `dotnet test --solution Orleans.slnx --framework net11.0 --minimum-expected-tests 1 --max-parallel-test-modules 1`. CI also runs `net10.0`; source projects default to `net10.0;net11.0`.
+* Run a category with `dotnet test --solution Orleans.slnx --framework net10.0 --filter-trait "Category=BVT" --minimum-expected-tests 1 --max-parallel-test-modules 1`. Common categories are `BVT`, `SlowBVT`, `Functional`, and provider-specific categories such as `Redis`, `Cassandra`, `SqlServer`, `Azure`, `AWS`, and `Streaming`.
+* Run one test with `dotnet test --project test\Orleans.Core.Tests\Orleans.Core.Tests.csproj --framework net10.0 --filter-class "*MyTestClass*" --filter-method "*MyTestMethod*" --minimum-expected-tests 1`.
+* `.\Test.cmd` runs the scripted Windows test subset using the default xUnit query filter `/[(Category=BVT)|(Category=SlowBVT)]`. `.\TestAll.cmd` adds the `Functional` category.
+* Provider tests often need external services, connection-string environment variables, or secrets. Match `.github\workflows\ci.yml` and `test\TestInfrastructure\TestExtensions\TestDefaultConfiguration.cs` for the required setup.
+* Style is enforced by `dotnet build` because `Directory.Build.props` sets `EnforceCodeStyleInBuild=true` and `TreatWarningsAsErrors=true`.
 
 <a id="high-level-architecture"></a>
 
-## 高级别架构
+## High-level architecture
 
-* Orleans 是一个虚拟行为者框架。用户代码定义 grain 界面(`IGrainWithStringKey`, `IGrainWithGuidKey`等)和 grain 课级;运行时间启动、地点、停止使用、持续和通话路线 grains 横 silos.
-* `src\Orleans.Core.Abstractions` 包含公共方案编制模式: grain 接口、 grain 参考文献、属性和客户和 silos所使用的共享抽象数据。
-* `src\Orleans.Serialization.Abstractions` 和 `src\Orleans.Serialization` 提供耐版本的连续序列器、连序特性、运行时间连续序列服务以及源源生成器集成。 `src\Orleans.Serialization.*` 和 `src\Serializers`.
-* `src\Orleans.Core` 包含共享客户/服务器运行时间基础设施,如信息、主机集成、配置和序列整合。
-* `src\Orleans.Runtime` 是 silo 执行:激活生命周期、安置、集群成员、提醒、运行时服务以及 grain 执行。
-* `src\Orleans.Sdk`、 `src\Orleans.Client`和 `src\Orleans.Server` 是包装/元包项目。SDK带来核心包件加上分析器/代码生成;客户/服务器包件组成SDK,与客户或 silo 依赖方组成。
-* 供应商包在 `src\Azure`、 `src\AWS`、 `src\AdoNet`、 `src\Cassandra`、 `src\Redis`和相关的最高级供应商目录下,有意按后端和能力分割。通常暴露在 `Orleans.Hosting` 中的建筑商扩展和 `Orleans.Configuration`中的选项。
-* 测试镜像运行时间区域在 `test\`下。共享的集束定着位于 `test\TestInfrastructure\TestExtensions`;共享特性位于精干 `test\TestInfrastructure\TestUtilities` 库中。测试 grains 和 grain 接口位于 `test\Grains`之下,而 `Orleans.TestingHost`/`TestClusterBuilder` 是主要的整合测试工具。
-* `src\api` 包含生成的公开 API 表面。跟随根 `AGENTS.md`中的再生和包件兼容命令。
+* Orleans is a virtual actor framework. User code defines grain interfaces (`IGrainWithStringKey`, `IGrainWithGuidKey`, etc.) and grain classes; the runtime activates, places, deactivates, persists, and routes calls to grains across silos.
+* `src\Orleans.Core.Abstractions` contains the public programming model: grain interfaces, grain references, attributes, and shared abstractions used by both clients and silos.
+* `src\Orleans.Serialization.Abstractions` and `src\Orleans.Serialization` provide the version-tolerant serializer, serialization attributes, runtime serialization services, and source-generator integration. Additional serializer packages live under `src\Orleans.Serialization.*` and `src\Serializers`.
+* `src\Orleans.Core` contains shared client/server runtime infrastructure such as messaging, hosting integration, configuration, and serialization integration.
+* `src\Orleans.Runtime` is the silo implementation: activation lifecycle, placement, cluster membership, reminders, runtime services, and grain execution.
+* `src\Orleans.Sdk`, `src\Orleans.Client`, and `src\Orleans.Server` are packaging/metapackage projects. The SDK brings in core packages plus analyzers/code generation; the client/server packages compose the SDK with client or silo dependencies.
+* Provider packages are intentionally split by backend and capability under `src\Azure`, `src\AWS`, `src\AdoNet`, `src\Cassandra`, `src\Redis`, and related top-level provider directories. They usually expose builder extensions in `Orleans.Hosting` and options in `Orleans.Configuration`.
+* Tests mirror runtime areas under `test\`. Shared cluster fixtures are in `test\TestInfrastructure\TestExtensions`; shared traits are in the lean `test\TestInfrastructure\TestUtilities` library. Test grains and grain interfaces are under `test\Grains`, and `Orleans.TestingHost`/`TestClusterBuilder` are the primary integration-test harnesses.
+* `src\api` contains generated public API surfaces. Follow the regeneration and package compatibility commands in root `AGENTS.md`.
 
 <a id="key-conventions"></a>
 
-## 主要公约
+## Key conventions
 
-* `Directory.Packages.props`中启用中央软件包管理;在那里添加或更新软件包版本,而不是在单个项目中安装版本。
-* 使用项目参考符作为回波内部依赖性。 `CONTRIBUTING.md` 明确劝阻 DLL 引用和不必要的 `Private=True` 元数据。
-* `src\Directory.Build.props` 使源项目默认可以包装; `test\Directory.Build.props` 使测试工程不可包装,并配置 MTP 测试应用程序。根 `Directory.Build.targets` 在每个测试组装名称下复制 `test\testconfig.json` 。
-* 建筑时间代码生成由 `OrleansBuildTimeCodeGen=true`进口 Orleans 代码生成器和分析器作为框架项目的建筑分析器。
-* 串列 Orleans 类型 grain 通常需要电话、存储或流 `[GenerateSerializer]` 加上稳定 `[Id(n)]` 成员。不重新编号现有的序列化身份证。
-* 试验使用 xUnit 与习惯 `[TestCategory("...")]` 属性来源 `test\TestInfrastructure\TestUtilities\TestCategory.cs`; 将此绘图类别 xUnit 特性 `dotnet test --filter-trait "Category=..."`.
-* 集束试验通常来自或组成 `test\TestInfrastructure\TestExtensions` 配置和配置 silos 中 `TestClusterBuilder`, `ISiloConfigurator`,或 `ISiloBuilder`默认集束固定值在记忆提醒、耐久性工作以及 grain 储存。
-* 后续 `.editorconfig`C# 使用文件范围的名称空间, 系统指令首先, `var` 新的线条上的括号 `_camelCase` 私域字段和预览语言特性。源项目启用了可读性,测试项目禁用了此功能。
-* 尽管 CS1591 目前被抑制,但为新的或已改变的公共 API添加 XML docs;软件包项目生成文档文件。
+* Central package management is enabled in `Directory.Packages.props`; add or update package versions there instead of putting versions in individual projects.
+* Use project references for repo-internal dependencies. `CONTRIBUTING.md` explicitly discourages DLL references and unnecessary `Private=True` metadata.
+* `src\Directory.Build.props` makes source projects packable by default; `test\Directory.Build.props` makes test projects non-packable and configures MTP test applications. The root `Directory.Build.targets` copies `test\testconfig.json` under each test assembly name.
+* Build-time code generation is controlled by `OrleansBuildTimeCodeGen=true`, which imports the Orleans code generator and analyzers as build analyzers for framework projects.
+* Serializable Orleans types that cross grain calls, storage, or streams generally need `[GenerateSerializer]` plus stable `[Id(n)]` members. Do not renumber existing serialization IDs.
+* Tests use xUnit with the custom `[TestCategory("...")]` attribute from `test\TestInfrastructure\TestUtilities\TestCategory.cs`; this maps categories to xUnit traits for `dotnet test --filter-trait "Category=..."`.
+* Cluster tests usually derive from or compose fixtures in `test\TestInfrastructure\TestExtensions` and configure silos through `TestClusterBuilder`, `ISiloConfigurator`, or `ISiloBuilder`. The default cluster fixture uses in-memory reminders, durable jobs, and grain storage.
+* Follow `.editorconfig`: C# uses file-scoped namespaces, system directives first, `var` preferences, braces on new lines, `_camelCase` private fields, and preview language features. Nullable is enabled for source projects and disabled for test projects.
+* Add XML docs for new or changed public APIs even though CS1591 is currently suppressed; package projects generate documentation files.

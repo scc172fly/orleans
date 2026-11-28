@@ -5,29 +5,29 @@ using System.Text;
 namespace Orleans.Serialization.WireProtocol
 {
     /// <summary>
-    /// 代表外地信头。
+    /// 表示字段头。
     /// </summary>
     public struct Field
     {
         /// <summary>
-        /// 标签字节
+        /// 标记字节。
         /// </summary>
         public Tag Tag;
 
         /// <summary>
-        /// 原始字段识别符 三角形 。
+        /// 原始字段 ID 差值。
         /// </summary>
         public uint FieldIdDeltaRaw;
 
         /// <summary>
-        /// 原始田地类型。
+        /// 原始字段类型。
         /// </summary>
         public Type? FieldTypeRaw;
 
         /// <summary>
         /// 初始化 <see cref="Field"/> 结构的新实例。
         /// </summary>
-        /// <param name="tag">标签。</param>
+        /// <param name="tag">标记。</param>
         public Field(Tag tag)
         {
             Tag = tag;
@@ -38,8 +38,8 @@ namespace Orleans.Serialization.WireProtocol
         /// <summary>
         /// 初始化 <see cref="Field"/> 结构的新实例。
         /// </summary>
-        /// <param name="tag">标签。</param>
-        /// <param name="extendedFieldIdDelta">扩展的字段识别符号三角形。</param>
+        /// <param name="tag">标记。</param>
+        /// <param name="extendedFieldIdDelta">扩展字段 ID 差值。</param>
         /// <param name="type">类型。</param>
         public Field(Tag tag, uint extendedFieldIdDelta, Type type)
         {
@@ -49,13 +49,13 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// 获取或设置字段识别符三角形。
+        /// 获取或设置字段 ID 差值。
         /// </summary>
-        /// <value>字段识别符号三角形。</value>
+        /// <value>字段 ID 差值。</value>
         public uint FieldIdDelta
         {
-            // 如果嵌入字段 id 三角洲有效, 请返回它, 否则则返回扩展字段 id 三角洲 。
-            // 如果扩展字段有扩展线型, 则扩展域代号可能无效 。
+            // 如果内嵌字段 ID 差值有效，则返回该值；否则返回扩展字段 ID 差值。
+            // 如果此字段的传输格式类型为 Extended，则扩展字段 ID 可能无效。
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get
             {
@@ -68,7 +68,7 @@ namespace Orleans.Serialization.WireProtocol
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                // 如果字段 id 三角洲可以融入标记, 嵌入标签中, 否则将嵌入的字段 id 三角洲无效, 并设置整个字段 id 三角洲 。
+                // 如果字段 ID 差值能容纳在标记中，则将它嵌入标记；否则将内嵌字段 ID 差值标记为无效，并设置完整字段 ID 差值。
                 if (value <= Tag.MaxEmbeddedFieldIdDelta)
                 {
                     Tag.FieldIdDelta = value;
@@ -82,9 +82,9 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// 获取或设置字段的类型。
+        /// 获取或设置字段类型。
         /// </summary>
-        /// <value>字段的类型。</value>
+        /// <value>字段类型。</value>
         public Type? FieldType
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -113,9 +113,9 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// 获得一个值,以显示此实例是否有字段标识符。
+        /// 获取一个值，指示此实例是否具有字段标识符。
         /// </summary>
-        /// <value><see langword="true" /> ,如果此实例中有一个字段标识符;否则, <see langword="false" />。</value>
+        /// <value><see langword="true" />，如果此实例具有字段标识符；否则为 <see langword="false" />。</value>
         public readonly bool HasFieldId
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -123,9 +123,9 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// 获得一个值,以显示此实例是否有扩展字段标识符。
+        /// 获取一个值，指示此实例是否具有扩展字段标识符。
         /// </summary>
-        /// <value><see langword="true" /> 如果此实例有扩展字段标识符;否则, <see langword="false" />。</value>
+        /// <value><see langword="true" />，如果此实例具有扩展字段标识符；否则为 <see langword="false" />。</value>
         public readonly bool HasExtendedFieldId
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -133,9 +133,9 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// 接线或设置电线型号
+        /// 获取或设置传输格式类型。
         /// </summary>
-        /// <value>电线型号。</value>
+        /// <value>传输格式类型。</value>
         public WireType WireType
         {
             readonly get => Tag.WireType;
@@ -143,9 +143,9 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// 设置或设置模式类型。
+        /// 获取或设置架构类型。
         /// </summary>
-        /// <value>型号。</value>
+        /// <value>架构类型。</value>
         public SchemaType SchemaType
         {
             readonly get
@@ -164,9 +164,9 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// 获取或设置扩展的线型。
+        /// 获取或设置扩展传输格式类型。
         /// </summary>
-        /// <value>长线型</value>
+        /// <value>扩展传输格式类型。</value>
         public ExtendedWireType ExtendedWireType
         {
             readonly get
@@ -183,33 +183,33 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// 获得一个值,以显示此实例是否具有有效的 schema 类型。
+        /// 获取一个值，指示此实例的架构类型是否有效。
         /// </summary>
-        /// <value><see langword="true" /> 如果这一案例有有效的计划,否则 <see langword="false" />.</value>
+        /// <value><see langword="true" />，如果此实例的架构有效；否则为 <see langword="false" />。</value>
         public readonly bool IsSchemaTypeValid => Tag.IsSchemaTypeValid;
 
         /// <summary>
-        /// 获得一个值, 显示此实例是否有扩展的 schema 类型 。
+        /// 获取一个值，指示此实例是否具有扩展架构类型。
         /// </summary>
-        /// <value><see langword="true" /> ,如果这种情况具有扩展的方形类型;否则, <see langword="false" />。</value>
+        /// <value><see langword="true" />，如果此实例具有扩展架构类型；否则为 <see langword="false" />。</value>
         public readonly bool HasExtendedSchemaType => Tag.IsSchemaTypeValid && Tag.SchemaType != SchemaType.Expected;
 
         /// <summary>
-        /// 获得一个值, 显示此实例是否代表标签限制结构中基字段的结束。
+        /// 获取一个值，指示此实例是否表示标记分隔结构中基类型字段的结束位置。
         /// </summary>
-        /// <value><see langword="true" /> 如果此实例代表了标签上限定结构中基字段的结束;否则, <see langword="false" />。</value>
+        /// <value><see langword="true" />，如果此实例表示标记分隔结构中基类型字段的结束位置；否则为 <see langword="false" />。</value>
         public readonly bool IsEndBaseFields => Tag.IsEndBaseFields;
 
         /// <summary>
-        /// 获得一个值, 显示此实例是否代表标签限制结构的结束 。
+        /// 获取一个值，指示此实例是否表示标记分隔结构的结束位置。
         /// </summary>
-        /// <value><see langword="true" /> 如果此实例代表了标签限定结构的结束; 否则, <see langword="false" />。</value>
+        /// <value><see langword="true" />，如果此实例表示标记分隔结构的结束位置；否则为 <see langword="false" />。</value>
         public readonly bool IsEndObject => Tag.IsEndObject;
 
         /// <summary>
-        /// 获得一个值, 显示此实例是代表标签限制结构的结尾还是标记限制结构中基字段的终点。
+        /// 获取一个值，指示此实例是否表示标记分隔结构的结束位置或该结构中基类型字段的结束位置。
         /// </summary>
-        /// <value><see langword="true" /> 如果此实例代表标签上的限制结构的结束或标记上的限制结构中基字段的结束; 否则, <see langword="false" />。</value>
+        /// <value><see langword="true" />，如果此实例表示标记分隔结构的结束位置或其中基类型字段的结束位置；否则为 <see langword="false" />。</value>
         public readonly bool IsEndBaseOrEndObject
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -217,12 +217,12 @@ namespace Orleans.Serialization.WireProtocol
         }
 
         /// <summary>
-        /// 获得一个值,以显示此实例是否有 <see cref="WireType.Reference"/>的线型。
+        /// 获取一个值，指示此实例的传输格式类型是否为 <see cref="WireType.Reference"/>。
         /// </summary>
         public readonly bool IsReference => Tag.WireType == WireType.Reference;
 
         /// <summary>
-        /// 确保电线型号为 <see cref="WireType.TagDelimited"/>。
+        /// 确保传输格式类型为 <see cref="WireType.TagDelimited"/>。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnsureWireTypeTagDelimited()
@@ -234,7 +234,7 @@ namespace Orleans.Serialization.WireProtocol
         private void UnsupportedWireType() => throw new UnsupportedWireTypeException($"A WireType value of {nameof(WireType.TagDelimited)} is expected by this codec. {this}");
 
         /// <summary>
-        /// 确保支持电线型号。
+        /// 确保支持该传输格式类型。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnsureWireType(WireType expectedType)

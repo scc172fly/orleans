@@ -9,7 +9,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: "0 8 * * 2" # 周二世界协调时8点,
+    - cron: "0 8 * * 2" # 每周二 UTC 08:00 运行预览版审计。
 
 permissions:
   actions: read

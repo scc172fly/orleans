@@ -9,7 +9,7 @@ using Orleans.Configuration.Overrides;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 创建 Azure 表列队列列检查站。
+    /// 创建 Azure Table 流队列检查点管理器。
     /// </summary>
     public class AzureTableStreamQueueCheckpointerFactory : IStreamQueueCheckpointerFactory
     {
@@ -19,7 +19,7 @@ namespace Orleans.Streams
         private readonly ILoggerFactory _loggerFactory;
 
         /// <summary>
-        /// 初始化一个新实例 。
+        /// 初始化新实例。
         /// </summary>
         public AzureTableStreamQueueCheckpointerFactory(
             string providerName,
@@ -34,7 +34,7 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 由服务供应商创建工厂。
+        /// 从服务提供程序创建工厂。
         /// </summary>
         public static IStreamQueueCheckpointerFactory CreateFactory(IServiceProvider services, string providerName)
         {

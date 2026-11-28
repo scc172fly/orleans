@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 namespace Tester.AdoNet.Fakes;
 
 /// <summary>
-/// 单位测试使用假 <see cref="IHostApplicationLifetime"/> 。
+/// 用于单元测试的 <see cref="IHostApplicationLifetime"/> 替身实现。
 /// </summary>
 internal sealed class FakeHostApplicationLifetime : IHostApplicationLifetime
 {

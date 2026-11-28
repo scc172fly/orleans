@@ -171,7 +171,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 指示电文是否没有变换应用程序状态,因此是否可以与其他只读信件互连。
+        /// 指示消息是否不会修改应用程序状态，因而是否可以与其他只读消息交错执行。
         /// </summary>
         /// <remarks>
         /// 默认为 <see langword="false"/>。
@@ -195,7 +195,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 是否允许将信件发送到目标的另一次激活 grain。
+        /// 消息是否允许被发送到目标 Grain 的另一个激活实例。
         /// </summary>
         /// <remarks>
         /// 默认为 <see langword="false"/>。
@@ -207,7 +207,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 是否允许信件激活 grain 和/或延长其寿命。
+        /// 消息是否允许激活 Grain 和/或延长其激活实例的生命周期。
         /// </summary>
         /// <remarks>
         /// 默认为 <see langword="true"/>。
@@ -353,7 +353,7 @@ namespace Orleans.Runtime
             GrainId id = TargetGrain;
             if (id.IsDefault) return false;
 
-            // 不要设置一个方式的过期, 系统目标 和系统 grain 消息 。
+            // 不为单向消息、系统目标消息和系统 Grain 消息设置过期时间。
             return Direction != Directions.OneWay && !id.IsSystemTarget();
         }
 
@@ -366,7 +366,7 @@ namespace Orleans.Runtime
                 var newList = new List<GrainAddressCacheUpdate> { grainAddressCacheUpdate };
                 if (Interlocked.CompareExchange(ref _cacheInvalidationHeader, newList, null) is { } existingCacheInvalidationHeader)
                 {
-                    // 另一条线索首发于现有列表中
+                    // 另一个线程已将其初始化，添加到现有列表。
                     lock (existingCacheInvalidationHeader)
                     {
                         AddCacheInvalidationHeaderEntry(existingCacheInvalidationHeader, grainAddressCacheUpdate);
@@ -421,7 +421,7 @@ namespace Orleans.Runtime
             if (IsReadOnly && !Append(ref dst, "ReadOnly ")) goto grow;
             if (IsAlwaysInterleave && !Append(ref dst, "IsAlwaysInterleave ")) goto grow;
 
-            // 诊断可进行运输序列或完成,只有尸体所有人才能解码或释放缓冲。
+            // 诊断操作可能与传输序列化或完成操作发生竞争。只有消息体的所有者可以解码或释放其缓冲区。
             var bodyObject = _bodyObject switch { MessageReadRequest => "<serialized>", var value => value };
             if (Direction == Directions.Response)
             {
@@ -493,13 +493,13 @@ grow:
             HasCacheInvalidationHeader = 1 << 7,
             HasTimeToLive = 1 << 8,
 
-            // 无法将信件转发到其它激活 。
+            // 消息不能转发到另一个激活实例。
             IsLocalOnly = 1 << 9,
 
-            // 信件不得触发 grain 激活或延长激活的寿命。
+            // 消息不得触发 Grain 激活或延长激活实例的生命周期。
             SuppressKeepAlive = 1 << 10,
 
-            // 保留了最重要的部分,可能用于显示更多数据。
+            // 保留最高有效位，可能用于指示后面还有更多数据。
             Reserved = 1 << 15,
         }
 
@@ -515,11 +515,11 @@ grow:
             public static implicit operator PackedHeaders(uint fields) => new() { _fields = fields };
             public static implicit operator uint(PackedHeaders value) => value._fields;
 
-            // 32 位: HHH_HHH HH RRR_DDD FF_FFFFFFFFFFFFF
-            // F: MessageFlags16位数
-            // D: 方向的 4 位元
-            // R: ResponseType的 4位数
-            // H: ForwardCount (速数) 8 位元
+            // 32 bits: HHHH_HHHH RRRR_DDDD FFFF_FFFF FFFF_FFFF
+            // F：MessageFlags 占 16 位。
+            // D：Direction 占 4 位。
+            // R：ResponseType 占 4 位。
+            // H：ForwardCount（转发跳数）占 8 位。
             private uint _fields;
 
             public int ForwardCount

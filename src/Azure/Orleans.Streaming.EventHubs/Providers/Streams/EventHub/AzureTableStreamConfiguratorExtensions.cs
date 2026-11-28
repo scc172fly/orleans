@@ -8,15 +8,15 @@ using Orleans.Streams;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 配置 Azure 表流检查器的扩展方法。
+    /// 用于配置 Azure Table 流检查点管理器的扩展方法。
     /// </summary>
     public static class AzureTableStreamConfiguratorExtensions
     {
         /// <summary>
-        /// 配置流提供方到使用 Azure 表存储的持久性检查站。
+        /// 配置流提供程序使用 Azure Table Storage 持久化检查点。
         /// </summary>
         /// <param name="configurator">配置构建器。</param>
-        /// <param name="configureOptions"> Azure 表检查器配置。</param>
+        /// <param name="configureOptions">Azure Table 检查点管理器配置。</param>
         public static void UseAzureTableCheckpointer(
             this ISiloPersistentStreamConfigurator configurator,
             Action<OptionsBuilder<AzureTableStreamCheckpointerOptions>> configureOptions)

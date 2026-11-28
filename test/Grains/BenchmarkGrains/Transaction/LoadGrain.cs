@@ -92,7 +92,7 @@ namespace BenchmarkGrains.Transaction
             }
             catch (OrleansStartTransactionFailedException)
             {
-                // 重新尝试前支付
+                // 重试前先延迟
                 await Task.Delay(TimeSpan.FromSeconds(1));
                 throw;
             }

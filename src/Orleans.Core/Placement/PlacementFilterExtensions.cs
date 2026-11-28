@@ -4,18 +4,18 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Placement;
 
 /// <summary>
-/// 提供登记安置过滤器的推广方法。
+/// 提供用于注册放置筛选器的扩展方法。
 /// </summary>
 public static class PlacementFilterExtensions
 {
     /// <summary>
-    /// 登记职位安排筛选战略及其负责筛选候选人 grain 职位安排的主任。
+    /// 注册放置筛选策略及其决策器，以筛选 Grain 放置候选项。
     /// </summary>
-    /// <typeparam name="TFilter">安置过滤战略类型,包括用于依赖注射的公共建筑师。</typeparam>
-    /// <typeparam name="TDirector">适用 <typeparamref name="TFilter"/>包括用于依赖注射的公共建筑师。</typeparam>
-    /// <param name="services">服务收藏。</param>
-    /// <param name="strategyLifetime">安置过滤策略的服务寿命。</param>
-    /// <returns>提供的服务收藏。</returns>
+    /// <typeparam name="TFilter">放置筛选策略类型，包含用于依赖注入的公共构造函数。</typeparam>
+    /// <typeparam name="TDirector">应用 <typeparamref name="TFilter"/> 的决策器，包含用于依赖注入的公共构造函数。</typeparam>
+    /// <param name="services">服务集合。</param>
+    /// <param name="strategyLifetime">放置筛选策略的服务生命周期。</param>
+    /// <returns>所提供的服务集合。</returns>
     public static IServiceCollection AddPlacementFilter<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TFilter,
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TDirector>(

@@ -26,7 +26,7 @@ public sealed class ZooKeeperReadRetryTests
         var harness = await Harness.CreateAsync();
         var address = harness.Entries[0].SiloAddress;
         const string guidance = "Use ReadAllAsync and MembershipTableData.TryGet instead.";
-#pragma warning disable CS0618 // Verify both retired entrypoints and cancellation precedence.
+#pragma warning disable CS0618 // 验证两个已退役的入口点以及取消请求的优先级。
         var legacy = harness.Table.ReadRow(address);
         var current = harness.Table.ReadRowAsync(address, TestContext.Current.CancellationToken);
         Assert.True(legacy.IsFaulted);

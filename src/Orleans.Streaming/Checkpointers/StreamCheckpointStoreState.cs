@@ -3,15 +3,15 @@ using System;
 namespace Orleans.Streams;
 
 /// <summary>
-/// 代表一个持续流检查站及其后端版本。
+/// 表示已持久化的流检查点及其后端版本。
 /// </summary>
 public readonly struct StreamCheckpointStoreState : IEquatable<StreamCheckpointStoreState>
 {
     /// <summary>
     /// 初始化 <see cref="StreamCheckpointStoreState"/> 结构的新实例。
     /// </summary>
-    /// <param name="checkpoint">检查站值。</param>
-    /// <param name="version">后端版本或实体标记。</param>
+    /// <param name="checkpoint">检查点值。</param>
+    /// <param name="version">后端版本或实体标记（ETag）。</param>
     public StreamCheckpointStoreState(string checkpoint, string version)
     {
         ArgumentNullException.ThrowIfNull(checkpoint);
@@ -21,12 +21,12 @@ public readonly struct StreamCheckpointStoreState : IEquatable<StreamCheckpointS
     }
 
     /// <summary>
-    /// 获得检查站值 。
+    /// 获取检查点值。
     /// </summary>
     public string Checkpoint { get; }
 
     /// <summary>
-    /// 获取后端版本或实体标签。
+    /// 获取后端版本或实体标记（ETag）。
     /// </summary>
     public string Version { get; }
 

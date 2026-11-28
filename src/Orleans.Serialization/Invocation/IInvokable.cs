@@ -6,91 +6,91 @@ using System.Threading.Tasks;
 namespace Orleans.Serialization.Invocation
 {
     /// <summary>
-    /// 表示可非同步引用的对象。
+    /// 表示可异步调用的对象。
     /// </summary>
     public interface IInvokable : IDisposable
     {
         /// <summary>
-        /// 获得召回目标。
+        /// 获取调用目标。
         /// </summary>
-        /// <returns>呼叫目标。</returns>
+        /// <returns>调用目标。</returns>
         object? GetTarget();
 
         /// <summary>
-        /// 设置从 <see cref="ITargetHolder"/>实例中选择的调用目标。
+        /// 从 <see cref="ITargetHolder"/> 实例设置调用目标。
         /// </summary>
-        /// <param name="holder">呼叫目标。</param>
+        /// <param name="holder">调用目标。</param>
         void SetTarget(ITargetHolder holder);
 
         /// <summary>
-        /// 启动对象 。
+        /// 调用此对象。
         /// </summary>
         ValueTask<Response> Invoke();
 
         /// <summary>
-        /// 获得参数数 。
+        /// 获取实参数量。
         /// </summary>
         int GetArgumentCount();
 
         /// <summary>
-        /// 获取指定索引的参数。
+        /// 获取指定索引处的实参。
         /// </summary>
-        /// <param name="index">引证索引。</param>
-        /// <returns>指定索引的参数。</returns>
+        /// <param name="index">实参索引。</param>
+        /// <returns>指定索引处的实参。</returns>
         object? GetArgument(int index);
 
         /// <summary>
-        /// 将参数设置在指定的索引上。
+        /// 设置指定索引处的实参。
         /// </summary>
-        /// <param name="index">引证索引。</param>
-        /// <param name="value">参数值</param>
+        /// <param name="index">实参索引。</param>
+        /// <param name="value">实参值。</param>
         void SetArgument(int index, object value);
 
         /// <summary>
-        /// 获得方法名称 。
+        /// 获取方法名称。
         /// </summary>
         string GetMethodName();
 
         /// <summary>
-        /// 获得完整的界面名称。
+        /// 获取接口的完整名称。
         /// </summary>
         string GetInterfaceName();
 
         /// <summary>
-        /// 获取活动名称,即介面名称和方法名称。
+        /// 获取 Activity 名称，该名称包含接口名和方法名。
         /// </summary>
         string GetActivityName();
 
         /// <summary>
-        /// 获取方法信息对象,该对象可以是 <see langword="null"/>。
+        /// 获取方法信息对象，其值可能为 <see langword="null"/>。
         /// </summary>
         MethodInfo GetMethod();
 
         /// <summary>
-        /// 获得接口类型。
+        /// 获取接口类型。
         /// </summary>
         Type GetInterfaceType();
 
         /// <summary>
-        /// 获得默认反应超时 。
+        /// 获取默认响应超时时间。
         /// </summary>
         TimeSpan? GetDefaultResponseTimeout() => default;
 
         /// <summary>
-        /// 获取此请求的取消符。 如果请求不接受取消符, 则该标记为 <see cref="CancellationToken.None"/>。
+        /// 获取此请求的取消令牌。如果请求不接受取消令牌，则为 <see cref="CancellationToken.None"/>。
         /// </summary>
-        /// <returns>此请求的取消标记 。</returns>
+        /// <returns>此请求的取消令牌。</returns>
         CancellationToken GetCancellationToken() => default;
 
         /// <summary>
-        /// 尝试取消该援引。
+        /// 尝试取消调用。
         /// </summary>
-        /// <remarks>只有在 <see cref="SetTarget(ITargetHolder)"/> 请求被发出,只对支持取消的请求产生影响。</remarks>
-        /// <returns><see langword="true"/> 如果请求取消,否则 <see langword="false"/>。</returns>
+        /// <remarks>仅在调用 <see cref="SetTarget(ITargetHolder)"/> 之后才有效，并且只对支持取消的请求产生作用。</remarks>
+        /// <returns><see langword="true"/>，如果已请求取消；否则为 <see langword="false"/>。</returns>
         bool TryCancel() => false;
 
         /// <summary>
-        /// <see langword="true"/> ,如果该请求支持取消; <see langword="false"/> ,则另行处理。
+        /// <see langword="true"/>，如果此请求支持取消；否则为 <see langword="false"/>。
         /// </summary>
         bool IsCancellable => false;
     }

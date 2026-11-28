@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace ServiceBus.Tests.MonitorTests
 {
     /// <summary>
-    /// EventHub 统计监测测试,包括接收器、缓存和对象库监测柜台。
+    /// 测试 Event Hub 统计监视功能，包括接收器、缓存和对象池的监视计数器。
     /// </summary>
     [TestCategory("EventHub"), TestCategory("Streaming")]
     [TestSuite("Functional")]
@@ -78,7 +78,7 @@ namespace ServiceBus.Tests.MonitorTests
         public async Task EHStatistics_MonitorCalledAccordingly()
         {
             var streamId = new FullStreamIdentity(Guid.NewGuid(), StreamNamespace, StreamProviderName);
-            //设置30个健康消费者 grain ,以显示我们多么喜欢慢消费消费者 
+            //设置 30 个正常的消费者 Grain，以展示对慢速消费者的倾斜程度
             int healthyConsumerCount = 30;
             _ = await EHSlowConsumingTests.SetUpHealthyConsumerGrain(
                 this.fixture.GrainFactory,
@@ -88,7 +88,7 @@ namespace ServiceBus.Tests.MonitorTests
                 healthyConsumerCount,
                 TestContext.Current.CancellationToken);
 
-            //配置数据生成器,用于流并开始制作
+            //配置流的数据生成器并开始生产数据
             var mgmtGrain = this.fixture.GrainFactory.GetGrain<IManagementGrain>(0);
             await TestingUtils.WaitUntilAsync(
                 (lastTry, cancellationToken) => CheckReceiversInitialized(mgmtGrain, lastTry, cancellationToken),

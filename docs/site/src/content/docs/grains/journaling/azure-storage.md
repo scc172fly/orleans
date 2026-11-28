@@ -1,105 +1,105 @@
 ---
-title: "Azure 供日报的存储供应商"
-description: "配置 Azure 布罗布存储或 Azure 表格存储,用于实验 Orleans 日志。"
+title: Journaling 的 Azure Storage 提供程序
+description: 为实验性 Orleans Journaling 配置 Azure Blob Storage 或 Azure Table Storage。
 ms.date: 10/19/2026
 ms.topic: how-to
 ---
 
 <a id="azure-storage-providers-for-journaling"></a>
 
-# Azure 供日报的存储供应商
+# Journaling 的 Azure Storage 提供程序
 
-释放前 `Microsoft.Orleans.Durable.AzureStorage` 软件包提供 Azure 布洛布存储和 Azure 表格存储实施。
+预发布的 `Microsoft.Orleans.Durable.AzureStorage` 包提供 Azure Blob Storage 和 Azure Table Storage 实现。
 
-使用 Microsoft 将工作量识别内容包含在托管环境中,并给予 silo 仅指定选定容器或表格所需的数据飞机权限。
+在托管环境中使用 Microsoft Entra 工作负载标识，并且仅向 Silo 标识授予所选容器或表所需的数据平面权限。
 
 <a id="named-storage-namespaces"></a>
 
-## 命名存储名域
+## 命名存储命名空间
 
-两种 Azure 登记方法都接受备选代表的名字。
-独立注册的Blob客户/集装箱或表格客户/表
-不同的名称,可以配置同一后端的多个提供方。
-选项、存储、目录和国营管理工厂都具有同样的约束力。
-未知超载配置默认 grain 日记; 命名注册
-使该默认独立。
+两种 Azure 注册方法均接受一个名称及其后的选项配置委托。
+使用不同名称注册独立的 Blob 客户端与容器，或 Table 客户端与表，
+可以配置同一后端的多个提供程序。命名选项、存储、目录及状态管理器工厂
+共享同一个绑定。
+不带名称的重载配置默认的 Grain 日志持久化；命名注册
+不会影响该默认配置。
 
-对于账户、集装箱、表格或后端切切换,保留旧命名空间
-以及根据原装订的地图绘制,而新的持久工作则使用碎片
-在排水过程中,旧账户仍然需要列出
-有条件的所有权更新、日记突变和删除权限。
-只给予只读访问权限, 无法成功排水 。
-[移徙持久就业储存](durable-jobs-migration.md) 以便他们被投入火刑,
-完整库存和退休标准。
+切换账户、容器、表或存储后端时，应在原有绑定下保留旧命名空间
+及其映射，并让新的 Durable Jobs 分片使用
+第二个绑定。在排空期间，旧账户仍需具备列举、
+条件性所有权更新、日志变更和删除权限。
+仅授予读取权限会使排空无法成功。请参阅
+[迁移 Durable Jobs 存储](durable-jobs-migration.md)，了解分阶段发布、
+完整清单以及退役条件。
 
 <a id="azure-blob-storage"></a>
 
-## Azure 布线存储
+## Azure Blob Storage
 
-配置 <xref:Orleans.Durable.Journaling.AzureBlobStorageHostingExtensions.AddAzureBlobJournalStorage*> ,并有经认证的 <xref:Azure.Storage.Blobs.BlobServiceClient>:
+使用已通过身份验证的 Blob 客户端进行配置：调用 <xref:Orleans.Durable.Journaling.AzureBlobStorageHostingExtensions.AddAzureBlobJournalStorage*>，传入 <xref:Azure.Storage.Blobs.BlobServiceClient>。
 
 :::code language="csharp" source="./snippets/journaling/JournalingConfiguration.cs" id="configure_azure_blob":::
 
-每期期刊使用:
+每份日志使用：
 
-- 默认情况下在 `wal/<journalId>` 的附加布质。
-- `checkpoints/<journalId>/<snapshotId>`检查站的无法变换的布。
-- 确定当前检查站、日记格式和乐观货币状态的WAL元数据。
+- 默认位于 `wal/<journalId>` 的追加 Blob。
+- 位于 `checkpoints/<journalId>/<snapshotId>` 的不可变检查点 Blob。
+- WAL 元数据，用于标识当前检查点、日志格式及乐观并发状态。
 
-回收读取已公布的检查站,然后是WAL尾巴。替换者上传新的检查站,然后通过WAL元数据原子发布。供应商在 <xref:Orleans.Durable.Journaling.AzureBlobJournalStorageOptions.DeleteOldCheckpoints> 是 `true`(默认)时公布后,对过时的检查站进行最佳清理。
+恢复时先读取已发布的检查点，再读取 WAL 尾部。替换操作先上传新检查点，然后通过 WAL 元数据原子发布它。当 <xref:Orleans.Durable.Journaling.AzureBlobJournalStorageOptions.DeleteOldCheckpoints> 为 `true`（默认值）时，提供程序在发布后尽力清理过时的检查点。
 
-自定义 <xref:Orleans.Durable.Journaling.AzureBlobJournalStorageOptions.GetWalBlobName> 和 <xref:Orleans.Durable.Journaling.AzureBlobJournalStorageOptions.GetCheckpointBlobName> 以应用租户或应用程序前缀。保持绘图稳定,或者将每个引用的浮标及其元数据一起迁移。
+自定义 <xref:Orleans.Durable.Journaling.AzureBlobJournalStorageOptions.GetWalBlobName> 和 <xref:Orleans.Durable.Journaling.AzureBlobJournalStorageOptions.GetCheckpointBlobName> 以应用租户或应用程序前缀。保持映射稳定，或者将每个被引用的 Blob 与其元数据一起迁移。
 
-每个附件都是一个附加块, 所以 Azure 将整批或全部承诺。 Azure 附加 blobs 限制附加区块大小和块号。 供应商接受一个编码的附加组, 最多100 MiB , 在发送任何请求前拒绝更大的分批。 它要求在49 000个指定区块之后进行压缩, 在50 000个区块服务限制之前保留额外的头部。
+每次追加操作对应一个追加块，因此 Azure 要么提交整个批次，要么完全不提交。Azure 追加 Blob 限制追加块大小和块数。提供程序接受最多 100 MiB 的已编码追加批次，并在发送任何请求之前拒绝较大的批次。提交 49,000 个块后请求压实，并在 50,000 个块的服务上限前预留额外空间。
 
-日记目录选择配置容器 `wal/` 命名空间中的附加页眉。 参加目录发现活动的自定义指定代表为每个日志制作 `wal/<journalId>` 。 单独的检查站名称空间将检查点排除在列表页面之外。 Raw journal- id 前缀和保守的 ASCII 将缩小单位和等级名空间账户本地列名的范围。
+日志目录在配置的容器的 `wal/` 命名空间内选择追加 Blob。参与目录发现的自定义命名委托为每份日志生成 `wal/<journalId>`。独立的检查点命名空间使检查点不出现在列举结果页中。原始日志 ID 前缀及保守的 ASCII 边界可在平面命名空间和分层命名空间（HNS）账户上缩小原生列举范围。
 
-HNS 递归列表排序 `/` 比其它字符先于其他字符。目录保存了每个约束区共享的列表前缀, 当标点或目录分隔符影响订单时会扩大剩余后缀。 例如, 从 `a!` 到 `a/0` 的包容性范围从 `wal/a` 开始, 在交叉 `wal/a0`之后完成。 每个返回的候选人都要对照原始正序区域检查。 共享的前缀可以保持时间戳扫描的窄度; 宽度可以转移更多候选人。 两个账户类型使用相同的列表算法并配置 Blob 客户端 。
+HNS 递归列举将 `/` 排在其他字符之前。当标点符号或目录分隔符影响排序时，目录保留每个边界的共有列举前缀并扩大剩余后缀的范围。例如，从 `a!` 到 `a/0` 的包含端点的范围，从 `wal/a` 开始，在跨过 `wal/a0` 后结束。每个返回的候选项都要按照原始序数比较范围进行检查。共有前缀使时间戳扫描保持较窄的范围；更宽的边界可能传输额外的候选项。两种账户类型都使用相同的列举算法及配置的 Blob 客户端。
 
-列表呼叫器可以要求每个身份的元数据快照。 Blob 列表列表在列表回复中预测 WAL 格式、 Etag 和调用者拥有的元数据。 该快照可以取代读取的单独元数据;有条件更新使用其 ETag 检测同时发生的变化。
+目录调用方可以请求每个标识对应的元数据快照。Blob 列举结果会在响应中投影 WAL 的格式、ETag 及调用方拥有的元数据。快照可以代替单独的元数据读取；条件更新使用其 ETag 检测并发变更。
 
 <a id="azure-table-storage"></a>
 
-## Azure 表格储存
+## Azure Table Storage
 
-配置 <xref:Orleans.Durable.Journaling.AzureTableStorageHostingExtensions.AddAzureTableJournalStorage*> ,并有经认证的 <xref:Azure.Data.Tables.TableServiceClient>:
+使用已通过身份验证的 Table 客户端进行配置：调用 <xref:Orleans.Durable.Journaling.AzureTableStorageHostingExtensions.AddAzureTableJournalStorage*>，传入 <xref:Azure.Data.Tables.TableServiceClient>。
 
 :::code language="csharp" source="./snippets/journaling/JournalingConfiguration.cs" id="configure_azure_table":::
 
-每期日记都有一个表格分区:
+每份日志占用一个表分区：
 
-- 头列存储日记清单、格式、生成和货币交易目录。
-- 有序的数据行存储已公布的生成版本的编码日记字节。
-- 附加操作在一个实体组交易中进行新行和页眉更新。
-- 替换后写下新一代, 原子上修改标题以发布它。 当 <xref:Orleans.Durable.Journaling.AzureTableJournalStorageOptions.DeleteOldGenerations> 是 `true`时, 提供者会完成前一代最努力的清理 。
+- 头部记录行保存日志清单、格式、世代及并发控制 ETag。
+- 有序的数据记录行保存已发布世代对应的编码日志字节。
+- 追加操作在同一个实体组事务中提交新记录行和头部更新。
+- 替换操作写入新世代，并原子更新头部以发布该世代。当 <xref:Orleans.Durable.Journaling.AzureTableJournalStorageOptions.DeleteOldGenerations> 为 `true` 时，提供程序尽力清理上一世代。
 
-单个附件批次限为 2 MiB, 它将行和页眉更新保留在一个实体集团交易中, 最多100个实体和4个 MiB。 供应商在发送任何请求之前拒绝较大批次。 光速替换可能超过此大小, 因为行可以在信头发布一代之前写成, 而读者只看到已出版的几代人 。
+单个追加批次限制为 2 MiB，使其记录行及头部更新保持在最多 100 个实体、4 MiB 的单个实体组事务内。提供程序在发送任何请求之前拒绝较大的批次。快照替换可以超过此大小，因为数据行在头部发布世代之前写入，而读取方仅能看到已发布世代。
 
-发布尝试失败后, 预设行会保留, 这样延迟的页眉更新仍然可以公布整整一代。 删除日记可回收分区保留的行 。
+发布尝试失败之后，暂存的数据行仍保留，以使延迟到达的头部更新仍然能够发布完整世代。删除日志会回收该分区中保留的所有数据行。
 
-请求压缩的时间为 <xref:Orleans.Durable.Journaling.AzureTableJournalStorageOptions.CompactionRowCountThreshold> (默认情况下为10,000行)或 <xref:Orleans.Durable.Journaling.AzureTableJournalStorageOptions.CompactionSizeThreshold> (默认情况下为32 MiB )。
+达到 <xref:Orleans.Durable.Journaling.AzureTableJournalStorageOptions.CompactionRowCountThreshold>（默认 10,000 行）或 <xref:Orleans.Durable.Journaling.AzureTableJournalStorageOptions.CompactionSizeThreshold>（默认 32 MiB）任一阈值时，都会请求压实。
 
-默认分区映射可接受可打印的 ASCII 日记 id (`0x20` 至 `0x7E`) , 并将每个字节编码为两个大写十六进制数字。 它保存索引化目录查询的顺序和前缀, 支持最多512个字符的日记 id。 在访问 Azure之前存储创建程序验证该代号。 此限制是默认表格映射所特有的 。
+默认分区映射接受可打印 ASCII 日志 ID（`0x20` 至 `0x7E`），并将每个字节编码为两个大写十六进制数字。它保留序数排序及前缀，以支持基于索引的目录查询，并支持最多 512 个字符的日志 ID。创建存储时会在访问 Azure 之前验证 ID。此限制仅适用于默认 Table 映射。
 
-当需要不同的分区布局时自定义 <xref:Orleans.Durable.Journaling.AzureTableJournalStorageOptions.GetPartitionKey> 。 自定义映射支持其它日记代字母, 保持每个日记的独特性, 并满足 Azure 表格配对键限制。 他们目录查询过滤了 Canonical 日记代号属性, 可能需要扫描表 。
+需要不同的分区布局时，可以自定义 <xref:Orleans.Durable.Journaling.AzureTableJournalStorageOptions.GetPartitionKey>。自定义映射支持其他日志 ID 字符集，对每份日志保持唯一，并满足 Azure Table 分区键约束。其目录查询会筛选规范的日志 ID 属性，可能需要扫描整个表。
 
-以元数据为基础的目录查询选择头页格式和来电者拥有的元数据及其ETag。 只使用身份的查询保留了较小的预测。 每一个返回的元数据快照都具有与直接读取的元数据相同的含义,在列出后可以变得陈旧。
+启用元数据的目录查询会选取头部的格式及调用方拥有的元数据，同时选取其 ETag。仅查询标识的操作保留较小的投影。返回的每个元数据快照与直接读取元数据的含义相同，并且在列举完成之后可能变得陈旧。
 
 <a id="optimistic-concurrency"></a>
 
-## 乐观的通货货币
+## 乐观并发
 
-两种提供者都附加、 替换和删除了最后观察到的 Etag 上的操作。 一个存储实例, 恢复了一个不存在日记, 只在它仍然不在时创建它, 所以同时创建者会让写作失败。 只处理元数据的冲突会收到一个封闭的更新和重试。 日记- 内容冲突会提出 <xref:Orleans.Storage.InconsistentStateException>, 它永久地围住国家管理员并请求取消 grain 。 重新激活该可持久的日记可以播放新版本 。
+两种提供程序均使用最后观察到的 ETag 作为追加、替换和删除操作的前置条件。恢复时发现日志不存在的存储实例仅在该日志仍不存在时才创建它，因此并发创建者会导致写入失败。仅涉及元数据的冲突会进行有界的原地刷新与重试。日志内容冲突会引发 <xref:Orleans.Storage.InconsistentStateException>，永久隔离 Journaling 状态管理器，并请求停用 Grain。新的激活实例会重放持久化日志。
 
-配置仅重试元数据上限和后退的元数据,并配置相应的 `MaxMetadataOnlyConflictRetries`、 `MetadataOnlyConflictInitialBackoff`和 `MetadataOnlyConflictMaxBackoff` 选项。
+使用相应的 `MaxMetadataOnlyConflictRetries`、`MetadataOnlyConflictInitialBackoff` 和 `MetadataOnlyConflictMaxBackoff` 选项配置仅涉及元数据冲突时的重试上限及退避策略。
 
 <a id="backup-and-restore"></a>
 
-## 备份和恢复
+## 备份与恢复
 
-获取一个一致的供应商级备份 :
+创建一致的提供程序级备份：
 
-- 对于Blob存储, 保存WAL、以WAL元数据命名的检查站以及解释这些元数据所需的所有元数据。
-- 用于表格存储,保存分区页眉和每行的出版版本。
+- 对于 Blob Storage，保留 WAL、WAL 元数据指定的检查点以及解释它们所需的全部元数据。
+- 对于 Table Storage，保留分区头部以及已发布世代的所有数据行。
 
-在允许 silos 激活 grain之前恢复完整设置。验证具有代表性的日记重播和随后在一个孤立环境中进行压缩。
+在允许 Silo 激活 Grain 之前恢复完整的数据集合。在隔离环境中验证代表性日志的重放及随后的压实操作。

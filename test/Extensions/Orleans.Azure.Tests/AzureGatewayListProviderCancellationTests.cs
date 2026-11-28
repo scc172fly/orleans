@@ -24,7 +24,7 @@ public class AzureGatewayListProviderCancellationTests
     {
         var clientCalls = 0;
         var options = new AzureStorageGatewayOptions();
-#pragma warning disable CS0618 // A legacy client factory makes pre-cancellation's no-work guarantee observable.
+#pragma warning disable CS0618 // 旧版客户端工厂使预先取消时不执行任何工作的保证可被观察验证。
         options.ConfigureTableServiceClient(() =>
         {
             clientCalls++;
@@ -131,7 +131,7 @@ public class AzureGatewayListProviderCancellationTests
 
     private static SdkTableClient InitializedTable() => new();
 
-    // 手写SDK接缝避免了内部表实体类型的动态代理。
+    // 手工编写的 SDK 测试接入点避免对内部表实体类型使用动态代理。
     private sealed class SdkTableClient : TableClient
     {
         public int CreateCalls { get; private set; }

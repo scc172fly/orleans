@@ -6,26 +6,26 @@ using System.Threading.Tasks;
 namespace Orleans
 {
     /// <summary>
-    /// 回调接口 grains 必须安装,以便能够登记和接收提醒通知。
+    /// Grain 必须实现此回调接口，才能注册和接收提醒。
     /// </summary>
     public interface IRemindable : IGrain
     {
         /// <summary>
-        /// 接受新的提醒。
+        /// 接收一次新的提醒。
         /// </summary>
-        /// <param name="reminderName">此提醒器的名称</param>
-        /// <param name="status">此提醒的状态 计数</param>
-        /// <returns>完成承诺的 grain 将在其处理完成此提醒项后解决。</returns>
+        /// <param name="reminderName">此提醒器的名称。</param>
+        /// <param name="status">此次提醒器触发的状态。</param>
+        /// <returns>表示处理完成的异步操作，Grain 在处理完此次提醒器触发后使其完成。</returns>
         [Alias("ReceiveReminder")]
         Task ReceiveReminder(string reminderName, Runtime.TickStatus status);
 
         /// <summary>
-        /// 接受新的提醒。
+        /// 接收一次新的提醒。
         /// </summary>
-        /// <param name="reminderName">此提醒器的名称</param>
-        /// <param name="status">此提醒的状态 计数</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>完成承诺的 grain 将在其处理完成此提醒项后解决。</returns>
+        /// <param name="reminderName">此提醒器的名称。</param>
+        /// <param name="status">此次提醒器触发的状态。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>表示处理完成的异步操作，Grain 在处理完此次提醒器触发后使其完成。</returns>
         [Alias("6461BF2F")]
         Task ReceiveReminder(string reminderName, Runtime.TickStatus status, CancellationToken cancellationToken)
             => ReceiveReminder(reminderName, status);
@@ -34,41 +34,41 @@ namespace Orleans
     namespace Runtime
     {
         /// <summary>
-        /// 你们应当为教诲而专心致志。
+        /// 持久化提醒器的句柄。
         /// </summary>
         public interface IGrainReminder
         {
             /// <summary>
-            /// 获取提醒的名称 。
+            /// 获取此提醒器的名称。
             /// </summary>
             string ReminderName { get; }
         }
 
         /// <summary>
-        /// 当将滴答交付登记官时滴答状态 grain。
-        /// 如果失败, 可能会发生没有按时交付一个滴子。 应用程序可以注意到以下的这种误切滴子 。
-        /// 收到一个滴子后,该应用程序可以计算提醒开始后的字数: 
-        /// curCount = (现在 - FirstTickTime)/期
-        /// 应用程序可以将它记录为“ 计数 ” 。 收到一个滴答后, 误选的勾数 = curCount - 计数 - 1
-        /// 此后,应用程序可以设定数 curCount
+        /// 提醒器触发事件投递到注册提醒器的 Grain 时的状态。
+        /// 如果出现故障，触发事件可能无法按时投递。应用程序可按以下方法发现遗漏的触发事件。
+        /// 收到一次触发事件时，应用程序可以按以下公式计算自提醒器启动以来理论上的触发次数：
+        /// curCount = (Now - FirstTickTime) / Period
+        /// 应用程序可用 count 记录此前的次数。收到一次触发事件时，遗漏次数 = curCount - count - 1。
+        /// 随后应用程序可设置 count = curCount。
         /// </summary>
         [Serializable, GenerateSerializer, Immutable]
         public readonly struct TickStatus : IEquatable<TickStatus>
         {
             /// <summary>
-            /// 获取提醒的第一个提示到期或被触发的时间 。
+            /// 获取此提醒器首次触发的预定时间或实际触发时间。
             /// </summary>
             [Id(0)]
             public DateTime FirstTickTime { get; }
 
             /// <summary>
-            /// 得到的时期提醒。
+            /// 获取提醒器的触发周期。
             /// </summary>
             [Id(1)]
             public TimeSpan Period { get; }
 
             /// <summary>
-            /// 时间在运行时 silo 时 silo 启动此选项的交付 。
+            /// 获取运行时 Silo 开始投递此次触发事件时该 Silo 上的时间。
             /// </summary>
             [Id(2)]
             public DateTime CurrentTickTime { get; }
@@ -76,9 +76,9 @@ namespace Orleans
             /// <summary>
             /// 创建新的 <see cref="TickStatus"/> 实例。
             /// </summary>
-            /// <param name="firstTickTime">提醒的第一个秒应发时间。</param>
-            /// <param name="period">即教诲的时候。</param>
-            /// <param name="timeStamp">启动当前滴答的交付时间。</param>
+            /// <param name="firstTickTime">提醒器首次触发的预定时间。</param>
+            /// <param name="period">提醒器的触发周期。</param>
+            /// <param name="timeStamp">开始投递此次触发事件的时间。</param>
             /// <returns></returns>
             public TickStatus(DateTime firstTickTime, TimeSpan period, DateTime timeStamp)
             {
@@ -100,12 +100,12 @@ namespace Orleans
             public override int GetHashCode() => HashCode.Combine(FirstTickTime, Period, CurrentTickTime);
 
             /// <summary>
-            /// 确定两个提醒勾状态是否相等。
+            /// 确定两个提醒器触发状态是否相等。
             /// </summary>
             public static bool operator ==(TickStatus left, TickStatus right) => left.Equals(right);
 
             /// <summary>
-            /// 确定两个提醒勾选状态是否不平等。
+            /// 确定两个提醒器触发状态是否不相等。
             /// </summary>
             public static bool operator !=(TickStatus left, TickStatus right) => !left.Equals(right);
 
@@ -114,7 +114,7 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 与 Orleans 提醒功能或提醒服务有关的例外。
+        /// 与 Orleans 提醒器功能或提醒器服务有关的异常。
         /// </summary>
         [Serializable, GenerateSerializer]
         public sealed class ReminderException : OrleansException
@@ -122,13 +122,13 @@ namespace Orleans
             /// <summary>
             /// 初始化 <see cref="ReminderException"/> 类的新实例。
             /// </summary>
-            /// <param name="message">电文。</param>
+            /// <param name="message">消息。</param>
             public ReminderException(string message) : base(message) { }
 
             /// <summary>
             /// 初始化 <see cref="ReminderException"/> 类的新实例。
             /// </summary>
-            /// <param name="info">序列号信息。</param>
+            /// <param name="info">序列化信息。</param>
             /// <param name="context">上下文。</param>
             [Obsolete]
             public ReminderException(SerializationInfo info, StreamingContext context)

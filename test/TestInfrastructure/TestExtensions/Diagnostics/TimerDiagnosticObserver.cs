@@ -6,12 +6,12 @@ using Orleans.TestingHost;
 namespace TestExtensions;
 
 /// <summary>
-/// 订阅 Orleans 定时器诊断事件并提供
-/// 等待定时器时间线的确定性计数方法。
+/// 订阅 Orleans 定时器诊断事件的测试辅助工具，提供
+/// 确定性等待定时器触发的方法。
 /// </summary>
 /// <remarks>
-/// 以事件驱动的等待取代测试中的 Task.Delay/Thread.Sleep 模式,
-/// 使测试在等待时更快和更加可靠 grain 时针回调
+/// 在测试中使用事件驱动等待替代 Task.Delay/Thread.Sleep 模式，
+/// 使等待 Grain 定时器回调的测试更快且更可靠。
 /// </remarks>
 public sealed class TimerDiagnosticObserver : IDisposable, IObserver<GrainTimerEvents.TimerEvent>
 {
@@ -24,27 +24,27 @@ public sealed class TimerDiagnosticObserver : IDisposable, IObserver<GrainTimerE
     private IDisposable? _subscription;
 
     /// <summary>
-    /// 获得所有被俘的计时器创建的事件。
+    /// 获取所有捕获的定时器创建事件。
     /// </summary>
     public IReadOnlyCollection<GrainTimerEvents.Created> CreatedEvents => _createdEvents.ToArray();
 
     /// <summary>
-    /// 获取所有抓取的计时器计时启动事件 。
+    /// 获取所有捕获的定时器触发开始事件。
     /// </summary>
     public IReadOnlyCollection<GrainTimerEvents.TickStart> TickStartEvents => _tickStartEvents.ToArray();
 
     /// <summary>
-    /// 获得所有捕获的定时器滴答停止事件。
+    /// 获取所有捕获的定时器触发结束事件。
     /// </summary>
     public IReadOnlyCollection<GrainTimerEvents.TickStop> TickStopEvents => _tickStopEvents.ToArray();
 
     /// <summary>
-    /// 把所有被俘的定时器处理事件都处理掉
+    /// 获取所有捕获的定时器释放事件。
     /// </summary>
     public IReadOnlyCollection<GrainTimerEvents.Disposed> DisposedEvents => _disposedEvents.ToArray();
 
     /// <summary>
-    /// 创建观察者的新实例, 并开始监听计时器诊断事件 。
+    /// 创建观察器的新实例，并开始监听定时器诊断事件。
     /// </summary>
     public static TimerDiagnosticObserver Create(TestCluster cluster) => Create(DiagnosticObserverSiloScope.For(cluster));
 
@@ -70,11 +70,11 @@ public sealed class TimerDiagnosticObserver : IDisposable, IObserver<GrainTimerE
     }
 
     /// <summary>
-    /// 等待在特定 grain上创建计时器。
+    /// 等待在指定 Grain 上创建定时器。
     /// </summary>
-    /// <param name="grainId">等待的 grain ID。</param>
-    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
-    /// <returns>定时器创造了事件有效载荷。</returns>
+    /// <param name="grainId">要等待的 Grain ID。</param>
+    /// <param name="timeout">最长等待时间，默认为 30 秒。</param>
+    /// <returns>定时器创建事件的有效载荷。</returns>
     public async Task<GrainTimerEvents.Created> WaitForTimerCreatedAsync(GrainId grainId, TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(30);
@@ -108,11 +108,11 @@ public sealed class TimerDiagnosticObserver : IDisposable, IObserver<GrainTimerE
     }
 
     /// <summary>
-    /// 等待特定 grain上的计时器标记完成。
+    /// 等待指定 Grain 上的一次定时器触发完成。
     /// </summary>
-    /// <param name="grainId">等待的 grain ID。</param>
-    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
-    /// <returns>滴答停止事件有效载荷。</returns>
+    /// <param name="grainId">要等待的 Grain ID。</param>
+    /// <param name="timeout">最长等待时间，默认为 30 秒。</param>
+    /// <returns>触发结束事件的有效载荷。</returns>
     public async Task<GrainTimerEvents.TickStop> WaitForTimerTickAsync(GrainId grainId, TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(30);
@@ -146,11 +146,11 @@ public sealed class TimerDiagnosticObserver : IDisposable, IObserver<GrainTimerE
     }
 
     /// <summary>
-    /// 等待一个计时器的选中时间来完成 grain 匹配 grain 类型。
+    /// 等待任意匹配 Grain 类型的 Grain 上的一次定时器触发完成。
     /// </summary>
-    /// <param name="grainTypeName">匹配的 grain 类型名称(部分匹配支持)。</param>
-    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
-    /// <returns>滴答停止事件有效载荷。</returns>
+    /// <param name="grainTypeName">要匹配的 Grain 类型名称（支持部分匹配）。</param>
+    /// <param name="timeout">最长等待时间，默认为 30 秒。</param>
+    /// <returns>触发结束事件的有效载荷。</returns>
     public async Task<GrainTimerEvents.TickStop> WaitForTimerTickByGrainTypeAsync(string grainTypeName, TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(30);
@@ -184,11 +184,11 @@ public sealed class TimerDiagnosticObserver : IDisposable, IObserver<GrainTimerE
     }
 
     /// <summary>
-    /// 等待在特定 grain上处置定时器。
+    /// 等待指定 Grain 上的定时器释放。
     /// </summary>
-    /// <param name="grainId">等待的 grain ID。</param>
-    /// <param name="timeout">最大等待时间。 默认为30秒。</param>
-    /// <returns>定时器处理事件有效载荷。</returns>
+    /// <param name="grainId">要等待的 Grain ID。</param>
+    /// <param name="timeout">最长等待时间，默认为 30 秒。</param>
+    /// <returns>定时器释放事件的有效载荷。</returns>
     public async Task<GrainTimerEvents.Disposed> WaitForTimerDisposedAsync(GrainId grainId, TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(30);
@@ -222,13 +222,13 @@ public sealed class TimerDiagnosticObserver : IDisposable, IObserver<GrainTimerE
     }
 
     /// <summary>
-    /// 等待在 grain上完成特定数的计时器计时器。
+    /// 等待 Grain 上指定次数的定时器触发完成。
     /// </summary>
-    /// <param name="grainId">等待的 grain ID。</param>
-    /// <param name="expectedCount">等待的最小秒数。</param>
-    /// <param name="timeout">最大等待时间。 默认为60秒。</param>
-    /// <returns>任务在达到预期数时完成。</returns>
-    /// <exception cref="TimeoutException">如果在超时内未达到预期的计数, 则丢弃。</exception>
+    /// <param name="grainId">要等待的 Grain ID。</param>
+    /// <param name="expectedCount">等待的最少触发次数。</param>
+    /// <param name="timeout">最长等待时间，默认为 60 秒。</param>
+    /// <returns>达到预期计数时完成的任务。</returns>
+    /// <exception cref="TimeoutException">如果在超时前未达到预期数量，则抛出此异常。</exception>
     public async Task WaitForTickCountAsync(GrainId grainId, int expectedCount, TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(60);
@@ -268,13 +268,13 @@ public sealed class TimerDiagnosticObserver : IDisposable, IObserver<GrainTimerE
     }
 
     /// <summary>
-    /// 等待从 grain开始的定时器计数。
+    /// 等待 Grain 上指定次数的定时器触发开始。
     /// </summary>
-    /// <param name="grainId">等待的 grain ID。</param>
-    /// <param name="expectedCount">开始等待的滴数最小值。</param>
-    /// <param name="timeout">最大等待时间。 默认为60秒。</param>
-    /// <returns>任务在达到预期数时完成。</returns>
-    /// <exception cref="TimeoutException">如果在超时内未达到预期的计数, 则丢弃。</exception>
+    /// <param name="grainId">要等待的 Grain ID。</param>
+    /// <param name="expectedCount">等待的最少触发开始次数。</param>
+    /// <param name="timeout">最长等待时间，默认为 60 秒。</param>
+    /// <returns>达到预期计数时完成的任务。</returns>
+    /// <exception cref="TimeoutException">如果在超时前未达到预期数量，则抛出此异常。</exception>
     public async Task WaitForTickStartCountAsync(GrainId grainId, int expectedCount, TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(60);
@@ -314,13 +314,13 @@ public sealed class TimerDiagnosticObserver : IDisposable, IObserver<GrainTimerE
     }
 
     /// <summary>
-    /// 等待指定类型中任何 grain 的某个特定数个计时器秒来完成。
+    /// 等待指定类型的任意 Grain 上指定次数的定时器触发完成。
     /// </summary>
-    /// <param name="grainTypeName">匹配的 grain 类型名称(部分匹配支持)。</param>
-    /// <param name="expectedCount">等待的最小秒数。</param>
-    /// <param name="timeout">最大等待时间。 默认为60秒。</param>
-    /// <returns>任务在达到预期数时完成。</returns>
-    /// <exception cref="TimeoutException">如果在超时内未达到预期的计数, 则丢弃。</exception>
+    /// <param name="grainTypeName">要匹配的 Grain 类型名称（支持部分匹配）。</param>
+    /// <param name="expectedCount">等待的最少触发次数。</param>
+    /// <param name="timeout">最长等待时间，默认为 60 秒。</param>
+    /// <returns>达到预期计数时完成的任务。</returns>
+    /// <exception cref="TimeoutException">如果在超时前未达到预期数量，则抛出此异常。</exception>
     public async Task WaitForTickCountByGrainTypeAsync(string grainTypeName, int expectedCount, TimeSpan? timeout = null)
     {
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(60);
@@ -360,47 +360,47 @@ public sealed class TimerDiagnosticObserver : IDisposable, IObserver<GrainTimerE
     }
 
     /// <summary>
-    /// 获取特定 grain的计时器计数。
+    /// 获取指定 Grain 的定时器触发次数。
     /// </summary>
-    /// <param name="grainId">需要过滤的 grain ID。</param>
-    /// <returns>计时器滴记事件。</returns>
+    /// <param name="grainId">用于筛选的 Grain ID。</param>
+    /// <returns>定时器触发事件的数量。</returns>
     public int GetTickCount(GrainId grainId)
     {
         return _tickStopEvents.Count(e => e.GrainContext.GrainId == grainId);
     }
 
     /// <summary>
-    /// 获取特定 grain的计时器刻数。
+    /// 获取指定 Grain 的定时器触发开始次数。
     /// </summary>
-    /// <param name="grainId">需要过滤的 grain ID。</param>
-    /// <returns>计时器计时开始事件。</returns>
+    /// <param name="grainId">用于筛选的 Grain ID。</param>
+    /// <returns>定时器触发开始事件的数量。</returns>
     public int GetTickStartCount(GrainId grainId)
     {
         return _tickStartEvents.Count(e => e.GrainContext.GrainId == grainId);
     }
 
     /// <summary>
-    /// 获取特定 grain 类型的时间计数。
+    /// 获取指定 Grain 类型的定时器触发次数。
     /// </summary>
-    /// <param name="grainTypeName">需要过滤的 grain 类型名称(部分匹配支持) 。</param>
-    /// <returns>计时器滴记事件。</returns>
+    /// <param name="grainTypeName">用于筛选的 Grain 类型名称（支持部分匹配）。</param>
+    /// <returns>定时器触发事件的数量。</returns>
     public int GetTickCountByGrainType(string grainTypeName)
     {
         return _tickStopEvents.Count(e => GetGrainTypeName(e.GrainContext).Contains(grainTypeName, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
-    /// 检查是否在特定 grain上选中了定时器。
+    /// 检查指定 Grain 上的定时器是否已触发。
     /// </summary>
-    /// <param name="grainId">要检查的 grain ID。</param>
-    /// <returns>如果至少发生了一个计时器, 则 True。</returns>
+    /// <param name="grainId">要检查的 Grain ID。</param>
+    /// <returns>如果至少发生过一次定时器触发，则为 true。</returns>
     public bool HasTimerTicked(GrainId grainId)
     {
         return _tickStopEvents.Any(e => e.GrainContext.GrainId == grainId);
     }
 
     /// <summary>
-    /// 清除所有被俘事件
+    /// 清除所有已捕获的事件。
     /// </summary>
     public void Clear()
     {
@@ -463,12 +463,12 @@ public sealed class TimerDiagnosticObserver : IDisposable, IObserver<GrainTimerE
 }
 
 /// <summary>
-/// 与 grain 参考和定时器诊断观察员合作的推广方法。
+/// 用于 Grain 引用和定时器诊断观察器的扩展方法。
 /// </summary>
 public static class TimerDiagnosticExtensions
 {
     /// <summary>
-    /// 等待在 grain上创建定时器。
+    /// 等待 Grain 上的定时器创建。
     /// </summary>
     public static Task<GrainTimerEvents.Created> WaitForTimerCreatedAsync(this TimerDiagnosticObserver observer, IAddressable grain, TimeSpan? timeout = null)
     {
@@ -476,7 +476,7 @@ public static class TimerDiagnosticExtensions
     }
 
     /// <summary>
-    /// 等待 grain上的计时器计时。
+    /// 等待 Grain 上的定时器触发。
     /// </summary>
     public static Task<GrainTimerEvents.TickStop> WaitForTimerTickAsync(this TimerDiagnosticObserver observer, IAddressable grain, TimeSpan? timeout = null)
     {
@@ -484,7 +484,7 @@ public static class TimerDiagnosticExtensions
     }
 
     /// <summary>
-    /// 等待 grain上的定时器计数。
+    /// 等待 Grain 上指定次数的定时器触发。
     /// </summary>
     public static Task WaitForTickCountAsync(this TimerDiagnosticObserver observer, IAddressable grain, int expectedCount, TimeSpan? timeout = null)
     {
@@ -492,7 +492,7 @@ public static class TimerDiagnosticExtensions
     }
 
     /// <summary>
-    /// 等待从 grain开始的定时器计数。
+    /// 等待 Grain 上指定次数的定时器触发开始。
     /// </summary>
     public static Task WaitForTickStartCountAsync(this TimerDiagnosticObserver observer, IAddressable grain, int expectedCount, TimeSpan? timeout = null)
     {
@@ -500,7 +500,7 @@ public static class TimerDiagnosticExtensions
     }
 
     /// <summary>
-    /// 等待时间器在 grain上处理。
+    /// 等待 Grain 上的定时器释放。
     /// </summary>
     public static Task<GrainTimerEvents.Disposed> WaitForTimerDisposedAsync(this TimerDiagnosticObserver observer, IAddressable grain, TimeSpan? timeout = null)
     {

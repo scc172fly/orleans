@@ -6,17 +6,17 @@ using Orleans.CodeGenerator.SyntaxGeneration;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// 工会类型或封闭型等级的情况,在线上 <see cref="Id"/>标明。
+/// 联合类型或封闭类型层次结构的分支，在传输格式中由 <see cref="Id"/> 标识。
 /// </summary>
-/// <param name="Id">案件识别符号,即联盟字段内案例值的实地识别符号。</param>
-/// <param name="CaseType">案例类型,以工会类型参数表示。</param>
-/// <param name="ValueType">案件值类型 : <paramref name="CaseType"/>,或其基本类型为无效值的类型。</param>
+/// <param name="Id">分支标识符，即联合字段中分支值的字段标识符。</param>
+/// <param name="CaseType">分支类型，以联合类型的类型参数表示。</param>
+/// <param name="ValueType">分支值的类型：<paramref name="CaseType"/>，如果它是可空值类型，则为其底层类型。</param>
 internal sealed record UnionCaseDescription(uint Id, ITypeSymbol CaseType, ITypeSymbol ValueType);
 
 internal static class UnionCaseResolver
 {
     /// <summary>
-    /// 获得工会类型的情况按申报顺序排列,或 <see langword="null"/> 如果 <paramref name="type"/> 不属于工会类型。
+    /// 按声明顺序获取联合类型的分支，或返回 <see langword="null"/>（当 <paramref name="type"/> 不是联合类型时）。
     /// </summary>
     public static List<UnionCaseDescription>? GetUnionTypeCases(INamedTypeSymbol type, Compilation compilation, LibraryTypes libraryTypes)
     {
@@ -67,8 +67,8 @@ internal static class UnionCaseResolver
     }
 
     /// <summary>
-    /// 获取按案件标识符或 <see langword="null"/> (如果 <paramref name="type"/> 不是封闭类型)订购的封闭型号
-    /// 或如果其直接子类型都没有声明案件识别符号。
+    /// 按分支标识符顺序获取封闭类型的分支，或返回 <see langword="null"/>（当 <paramref name="type"/> 不是封闭类型
+    /// 或其直接子类型均未声明分支标识符时）。
     /// </summary>
     public static List<UnionCaseDescription>? GetClosedTypeCases(INamedTypeSymbol type, Compilation compilation, LibraryTypes libraryTypes)
     {
@@ -111,12 +111,12 @@ internal static class UnionCaseResolver
     }
 
     /// <summary>
-    /// 表示封闭型直接的子类型,即封闭型参数。
+    /// 以封闭类型的类型参数表示其直接子类型。
     /// </summary>
     /// <remarks>
-    /// 通用封闭型案件必须是每种这类的即时推理,因此其基本类型的每一类辩论都必须是不同的
-    /// 案件类型参数,如“圆环&lt;T&gt; :形状&lt;T&gt;' 。一个即时的子类型,例如`IntSquare :形状&lt;int&gt;' ,被否决。
-    /// 测绘支持封闭型和宣布不属于通用含汞类型的案件。
+    /// 泛型封闭类型的分支必须是该类型每种实例化的分支，因此其基类型的各类型实参必须是分支类型中不同的
+    /// 类型参数，如 'Circle&lt;T&gt; : Shape&lt;T&gt;'。拒绝单个实例化的子类型，如 'IntSquare : Shape&lt;int&gt;'。
+    /// 该映射支持未嵌套在泛型类型中的封闭类型及其分支。
     /// </remarks>
     private static INamedTypeSymbol GetClosedCaseType(INamedTypeSymbol subtype, INamedTypeSymbol closedType, Compilation compilation)
     {
@@ -149,7 +149,7 @@ internal static class UnionCaseResolver
             throw new OrleansGeneratorDiagnosticAnalysisException(InvalidUnionCaseDiagnostic.CreateUnsupportedGenericCaseDiagnostic(subtype, closedType));
         }
 
-        // 使用封闭类型类型参数为每个案件生成的封闭型名编码器,这些参数必须符合该案件的制约。
+        // 封闭类型的生成编解码器使用封闭类型的类型参数引用每个分支的名称，因此这些参数必须满足分支的约束。
         if (!AreCaseConstraintsSatisfied(subtype, subtypeArguments, compilation))
         {
             throw new OrleansGeneratorDiagnosticAnalysisException(InvalidUnionCaseDiagnostic.CreateUnsupportedConstrainedCaseDiagnostic(subtype, closedType));
@@ -159,10 +159,10 @@ internal static class UnionCaseResolver
     }
 
     /// <summary>
-    /// 如果封闭型号的类型参数被子类型参数所替代, 满足子类型的所有限制, 返回 <see langword="true"/> 。
+    /// 如果用封闭类型的类型参数替换子类型的类型参数后，满足子类型的所有约束，则返回 <see langword="true"/>。
     /// </summary>
     /// <remarks>
-    /// 必须在相应的封闭型参数上宣布每项限制。仅含的制约,如通过等级约束执行的界面,将被否决。
+    /// 每项约束都必须在对应的封闭类型参数上声明。拒绝仅隐含的约束，例如类约束所实现的接口。
     /// </remarks>
     private static bool AreCaseConstraintsSatisfied(INamedTypeSymbol subtype, ITypeSymbol[] subtypeArguments, Compilation compilation)
     {
@@ -201,7 +201,7 @@ internal static class UnionCaseResolver
 
     private static INamedTypeSymbol SubstituteNamedType(INamedTypeSymbol type, INamedTypeSymbol subtype, ITypeSymbol[] subtypeArguments, Compilation compilation)
     {
-        // 嵌套型的自有类型参数排除了含有类型的参数, 所以在构建嵌套型之前先用包含的类型替换 。
+        // 嵌套类型自身的类型实参不包含所在类型的实参，因此在构造嵌套类型前先替换所在类型。
         var definition = type.ContainingType is { } containing
             ? ((INamedTypeSymbol)Substitute(containing, subtype, subtypeArguments, compilation)).GetTypeMembers(type.Name, type.Arity).Single()
             : type.OriginalDefinition;

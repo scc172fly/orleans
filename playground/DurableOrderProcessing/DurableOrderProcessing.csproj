@@ -20,7 +20,7 @@
     <ProjectReference Include="..\..\src\Orleans.Durable.Http\Orleans.Durable.Http.csproj" />
     <ProjectReference Include="..\..\src\Dashboard\Orleans.Dashboard\Orleans.Dashboard.csproj" />
 
-    <!-- 抽象包载有重播安全分析器;这个样本直接引用项目。 -->
+    <!-- 抽象包包含重放安全分析器；此示例直接引用该项目。 -->
     <ProjectReference Include="..\..\src\Orleans.Durable.Analyzers\Orleans.Durable.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 

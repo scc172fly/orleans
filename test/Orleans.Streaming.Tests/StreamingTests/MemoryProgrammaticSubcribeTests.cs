@@ -8,7 +8,7 @@ using Xunit;
 namespace UnitTests.StreamingTests
 {
     /// <summary>
-    /// 使用多个流源供应商的内存流测试程序流订阅。
+    /// 测试使用多个内存流提供程序进行编程式流订阅。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -28,7 +28,7 @@ namespace UnitTests.StreamingTests
             {
                 public void Configure(ISiloBuilder hostBuilder)
                 {
-                    // 在此测试中使用 "PubSubStore"
+                    // 此测试务必使用 "PubSubStore"。
 
                     hostBuilder.AddMemoryStreams<DefaultMemoryMessageBodySerializer>(StreamProviderName);
                     hostBuilder.AddMemoryGrainStorage(StreamProviderName);

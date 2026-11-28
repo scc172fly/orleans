@@ -10,7 +10,7 @@ using Orleans.Configuration;
 namespace Tester.CustomPlacementTests
 {
     /// <summary>
-    /// 测试习惯 grain 安置策略,包括固定 silo 安置、基于排斥的安置和散列安置。
+    /// 测试自定义 Grain 放置策略，包括固定 Silo 放置、基于排除条件的放置及基于哈希的放置。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -50,7 +50,7 @@ namespace Tester.CustomPlacementTests
         {
             this.fixture = fixture;
 
-            // 将 silo ID 输入到数组
+            // 将 Silo ID 排序并存入数组
             this.silos = fixture.HostedCluster.GetActiveSilos().OrderBy(s => s.SiloAddress).Select(h => h.SiloAddress.ToString()).ToArray();
             this.siloAddresses = fixture.HostedCluster.GetActiveSilos().Select(h => h.SiloAddress).OrderBy(s => s).ToArray();
         }
@@ -105,7 +105,7 @@ namespace Tester.CustomPlacementTests
         public async Task CustomPlacement_RequestContextBased()
         {
             const int nGrains = 100;
-            var targetSilo = silos.Length - 1; // 总是瞄准最后一个目标
+            var targetSilo = silos.Length - 1; // 始终将最后一个作为目标
 
             Task<string>[] tasks = new Task<string>[nGrains];
             for (int i = 0; i < nGrains; i++)

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DurableJobs + Journaling Playground</title>
+  <title>DurableJobs + 日志持久化演示</title>
   <style>
     :root { color-scheme: dark; font-family: "Segoe UI", system-ui, sans-serif; background: #10131a; color: #eef2ff; }
     body { margin: 0; padding: 24px; }
@@ -24,60 +24,60 @@
   </style>
 </head>
 <body>
-  <h1>DurableJobs + Journaling Playground</h1>
-  <div class="subtitle">Azure Blob-backed DurableJobs and journaled grains under controlled workflow load.</div>
+  <h1>DurableJobs + 日志持久化演示</h1>
+  <div class="subtitle">在可控工作流负载下运行由 Azure Blob 支持的 DurableJobs 和采用日志持久化的 Grain。</div>
 
   <div class="grid">
     <section class="card">
-      <h2>Load controls</h2>
-      <label>Target concurrency <input id="concurrency" type="number" min="0" value="16"></label>
-      <label>Target starts/sec (0 = unlimited) <input id="throughput" type="number" min="0" step="0.1" value="8"></label>
-      <button onclick="saveSettings()">Apply</button>
-      <button onclick="startLoad()">Start</button>
-      <button class="secondary" onclick="post('/api/load/stop')">Stop</button>
-      <button class="secondary" onclick="post('/api/load/drain')">Drain</button>
-      <button class="danger" onclick="post('/api/load/reset')">Reset</button>
-      <button class="danger" onclick="post('/api/chaos/silo/kill')">Kill silo membership</button>
+      <h2>负载控制</h2>
+      <label>目标并发数 <input id="concurrency" type="number" min="0" value="16"></label>
+      <label>每秒目标启动数（0 = 不限） <input id="throughput" type="number" min="0" step="0.1" value="8"></label>
+      <button onclick="saveSettings()">应用</button>
+      <button onclick="startLoad()">启动</button>
+      <button class="secondary" onclick="post('/api/load/stop')">停止</button>
+      <button class="secondary" onclick="post('/api/load/drain')">排空</button>
+      <button class="danger" onclick="post('/api/load/reset')">重置</button>
+      <button class="danger" onclick="post('/api/chaos/silo/kill')">将 Silo 成员标记为死亡</button>
     </section>
 
     <section class="card">
-      <h2>Throughput</h2>
-      <div>In-flight</div><div id="inflight" class="metric">0</div>
-      <div>Starts/sec</div><div id="starts" class="metric">0</div>
-      <div>Completions/sec</div><div id="completions" class="metric">0</div>
-      <div>Failures/sec</div><div id="failures" class="metric">0</div>
+      <h2>吞吐量</h2>
+      <div>进行中</div><div id="inflight" class="metric">0</div>
+      <div>每秒启动数</div><div id="starts" class="metric">0</div>
+      <div>每秒完成数</div><div id="completions" class="metric">0</div>
+      <div>每秒失败数</div><div id="failures" class="metric">0</div>
     </section>
 
     <section class="card">
-      <h2>Latency</h2>
-      <div>End-to-end p50 / p95 / p99</div><div id="e2e" class="metric">0 / 0 / 0</div>
-      <div>Schedule-to-start p95 (legacy)</div><div id="schedule" class="metric">0</div>
-      <div>Stage execution p95</div><div id="execution" class="metric">0</div>
-      <div>Reschedule gap p95</div><div id="gap" class="metric">0</div>
+      <h2>延迟</h2>
+      <div>端到端 p50 / p95 / p99</div><div id="e2e" class="metric">0 / 0 / 0</div>
+      <div>调度至开始的延迟 p95（旧指标）</div><div id="schedule" class="metric">0</div>
+      <div>阶段执行 p95</div><div id="execution" class="metric">0</div>
+      <div>重新调度间隔 p95</div><div id="gap" class="metric">0</div>
     </section>
 
     <section class="card">
-      <h2>Chaos</h2>
-      <pre id="chaos">No chaos action requested.</pre>
+      <h2>混沌</h2>
+      <pre id="chaos">尚未请求混沌操作。</pre>
     </section>
   </div>
 
   <section class="card" style="margin-top:16px">
-    <h2>Stages</h2>
+    <h2>阶段</h2>
     <table>
       <thead>
         <tr>
-          <th>Stage</th>
-          <th>Completed</th>
-          <th>Failed</th>
-          <th>Queue p95 / p99</th>
-          <th>Execution p95 / p99</th>
-          <th>Handoff p95</th>
-          <th>State write p95</th>
-          <th>Schedule call p95</th>
-          <th>Stage total p99</th>
-          <th>Workflow elapsed p99</th>
-          <th>Unaccounted p99</th>
+          <th>阶段</th>
+          <th>已完成</th>
+          <th>已失败</th>
+          <th>排队 p95 / p99</th>
+          <th>执行 p95 / p99</th>
+          <th>交接 p95</th>
+          <th>状态写入 p95</th>
+          <th>调度调用 p95</th>
+          <th>阶段总耗时 p99</th>
+          <th>工作流已用时间 p99</th>
+          <th>未归因耗时 p99</th>
         </tr>
       </thead>
       <tbody id="stages"></tbody>
@@ -85,8 +85,8 @@
   </section>
 
   <section class="card" style="margin-top:16px">
-    <h2>Recent workflows</h2>
-    <table><thead><tr><th>Workflow</th><th>Status</th><th>Latency ms</th><th>Retries</th><th>Failures</th><th>Error</th></tr></thead><tbody id="recent"></tbody></table>
+    <h2>最近的工作流</h2>
+    <table><thead><tr><th>工作流</th><th>状态</th><th>延迟（毫秒）</th><th>重试次数</th><th>失败次数</th><th>错误</th></tr></thead><tbody id="recent"></tbody></table>
   </section>
 
   <script>

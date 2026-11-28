@@ -38,7 +38,7 @@ public sealed partial class CassandraClusteringTableTests
             lock (_lock)
             {
                 ObjectDisposedException.ThrowIf(_disposed, this);
-                // 工厂在等待停工后也拥有备用储备,包括第一个连接。
+                // 尚未完成的工厂操作也会预留所有权，包括在超时后才建立的首次连接。
                 _handleCount++;
                 creation = _session ??= CreateSessionAsync(cancellationToken);
             }
@@ -108,7 +108,7 @@ public sealed partial class CassandraClusteringTableTests
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                // 仅使用静态转换行仍然表示原始分区尚未删除 。
+                // 仅包含静态版本信息的行也表明原分区尚未被删除。
                 if (rows.GetAvailableWithoutFetching() > 0)
                 {
                     return false;

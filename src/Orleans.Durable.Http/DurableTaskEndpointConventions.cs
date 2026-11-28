@@ -8,17 +8,17 @@ using Orleans.Durable.Tasks;
 
 namespace Orleans.Durable.Http;
 
-/// <summary>配置处理者返回持久工作的终点,端点以操作开始。</summary>
+/// <summary>配置处理程序返回持久化工作的端点，由端点将该工作作为操作启动。</summary>
 internal static class DurableTaskEndpointConventions
 {
     private static readonly string[] JsonContentTypes = ["application/json"];
     private static readonly string[] ProblemContentTypes = ["application/problem+json"];
 
     /// <summary>
-    /// 替换耐久启动源处理器处理器计算响应元数据,因为端点是
-    /// 行动的反应是持久工作,而不是持久工作。
+    /// 用操作的响应元数据替换持久化启动处理程序推断出的响应元数据，因为端点返回的是
+    /// 操作而不是持久化工作本身。
     /// </summary>
-    /// <exception cref="InvalidOperationException">启动回答只安全,例如 <c>GET</c>。</exception>
+    /// <exception cref="InvalidOperationException">启动端点仅响应安全方法，例如 <c>GET</c>。</exception>
     public static void DescribeStart(EndpointBuilder endpoint)
     {
         if (endpoint.Metadata.OfType<MethodInfo>().LastOrDefault() is not { } method || GetResultType(method) is not { } resultType)
@@ -26,7 +26,7 @@ internal static class DurableTaskEndpointConventions
             return;
         }
 
-        // 开始创造一种操作, 安全的方法, 客户和缓存可以自由重复, 而不是。
+        // 启动会创建操作，而安全方法不会执行此类操作，其请求可由客户端及缓存自由重复发送。
         if (endpoint.Metadata.OfType<IHttpMethodMetadata>().LastOrDefault() is { HttpMethods: { Count: > 0 } methods }
             && methods.All(static method => HttpMethods.IsGet(method) || HttpMethods.IsHead(method) || HttpMethods.IsOptions(method) || HttpMethods.IsTrace(method)))
         {
@@ -54,8 +54,8 @@ internal static class DurableTaskEndpointConventions
     }
 
     /// <summary>
-    /// 返回一个处理器的结果类型,该处理器将返回耐久工作, <see cref="void"/> 工作无结果,或
-    /// <see langword="null"/> 处理者不会回来的持久工作。
+    /// 返回处理程序所返回的持久化工作的结果类型；无结果的工作返回 <see cref="void"/>，而
+    /// 不返回持久化工作的处理程序返回 <see langword="null"/>。
     /// </summary>
     public static Type? GetResultType(MethodInfo handler)
     {
@@ -77,7 +77,7 @@ internal static class DurableTaskEndpointConventions
         return typeof(DurableTask).IsAssignableFrom(returnType) ? typeof(void) : null;
     }
 
-    /// <summary>丢弃时, <paramref name="name"/>即是一个 URL 路径段的名称,其字符除 URL - 无保留的字符外,还有其他字符。</summary>
+    /// <summary>当 <paramref name="name"/>（URL 路径段名称）包含 URL 非保留字符以外的字符时抛出异常。</summary>
     public static void ThrowIfInvalidName(string name, string? parameter)
     {
         ArgumentException.ThrowIfNullOrEmpty(name, parameter);

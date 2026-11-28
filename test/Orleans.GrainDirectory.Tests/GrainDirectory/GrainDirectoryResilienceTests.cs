@@ -35,7 +35,7 @@ public sealed class GrainDirectoryResilienceTests
     private static readonly TimeSpan DirectoryMigrationTimeout = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// 集束混乱测试:测试目录功能和完整性,同时经常启动/停止/提供 silos 。
+    /// 集群混沌测试：在频繁启动、停止及终止 Silo 时测试目录功能与完整性。
     /// </summary>
     /// <returns></returns>
     [Fact]
@@ -54,7 +54,7 @@ public sealed class GrainDirectoryResilienceTests
         cts.CancelAfter(TimeSpan.FromMinutes(5));
         var reconfigurationTimer = CoarseStopwatch.StartNew();
         var upperLimit = 10;
-        var lowerLimit = 1; // 会员资格保留在初级, 所以我们不能低于1
+        var lowerLimit = 1; // 成员资格数据保存在主 Silo 上，因此 Silo 数量不能少于 1
         var target = upperLimit;
         var idBase = 0L;
         var client = ((InProcessSiloHandle)testCluster.Primary!).SiloHost.Services.GetRequiredService<IGrainFactory>();
@@ -114,7 +114,7 @@ public sealed class GrainDirectoryResilienceTests
 
                             if (currentCount > target)
                             {
-                                // 停止或杀死随机 silo, 但并非主控( 因为主机组群集会)
+                                // 随机停止或终止一个 Silo，但不选择主 Silo（因为它承载集群成员资格数据）
                                 var victim = testCluster.SecondarySilos[Random.Shared.Next(testCluster.SecondarySilos.Count)];
                                 if (currentCount % 2 == 0)
                                 {

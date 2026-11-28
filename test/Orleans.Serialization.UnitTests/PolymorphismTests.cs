@@ -27,25 +27,25 @@ namespace Orleans.Serialization.UnitTests
     }
 
     /// <summary>
-    /// Orleans' 多形态序列能力测试。
+    /// Orleans 多态序列化能力测试。
     /// 
-    /// Orleans 完全支持多形态类型,允许:
-    /// - 包含衍生类别的基本等级参考文献的逐步化
-    /// - 跨越序列边界的适当类型保护
-    /// - 接口和抽象分类序列化
-    /// - 继承的特例
+    /// Orleans 全面支持多态类型，允许：
+    /// - 序列化指向派生类型对象的基类引用
+    /// - 跨越序列化边界时正确保留类型
+    /// - 序列化接口和抽象类
+    /// - 支持具有继承关系的自定义异常类型
     /// 
-    /// 测试的关键特征:
-    /// - 高效型号编码的型号表类型
-    /// - 常见类型众所周知的识别号
-    /// - 遗产等级保护
-    /// - 与类型演变的交叉转换兼容性
+    /// 测试的主要功能：
+    /// - 用于高效类型编码的类型清单
+    /// - 常用类型的已知类型 ID
+    /// - 保留继承层次结构
+    /// - 类型演进时保持跨版本兼容性
     /// 
-    /// 这对于:
-    /// - 以目标为导向的继承设计
-    /// - 带有动态类型装入的插件结构
-    /// - 跨越 grain 边界的例外传播
-    /// - 具有界面参数的灵活 API 设计
+    /// 这对于以下场景至关重要：
+    /// - 采用继承的面向对象设计
+    /// - 支持动态加载类型的插件架构
+    /// - 跨 Grain 边界传播异常
+    /// - 采用接口参数的灵活 API 设计
     /// </summary>
     [Trait("Suite", "BVT")]
     [Trait("Provider", "None")]
@@ -116,7 +116,7 @@ namespace Orleans.Serialization.UnitTests
 
             var result = RoundTripToExpectedType<Exception, InvalidOperationException>(ioEx);
             Assert.Equal(ioEx.Message, result.Message);
-            // 上面的例外有人口密集的堆叠痕迹
+            // 上面捕获的异常已包含堆栈跟踪。
             Assert.Contains(ioEx.StackTrace!, result.StackTrace);
             Assert.Equal(ioEx.InnerException, result.InnerException);
             Assert.NotNull(result.Data);
@@ -126,7 +126,7 @@ namespace Orleans.Serialization.UnitTests
 
             var exCopy = DeepCopy(ioEx);
             Assert.Equal(ioEx.Message, exCopy.Message);
-            // 上面的例外有人口密集的堆叠痕迹
+            // 上面捕获的异常已包含堆栈跟踪。
             Assert.Contains(ioEx.StackTrace!, exCopy.StackTrace);
             Assert.Equal(ioEx.InnerException, exCopy.InnerException);
             Assert.NotNull(exCopy.Data);
@@ -136,7 +136,7 @@ namespace Orleans.Serialization.UnitTests
 
             var baseExResult = RoundTripToExpectedType<Exception, Exception>(baseEx);
             Assert.Equal(baseEx.Message, baseExResult.Message);
-            // 上面的例外有人口密集的堆叠痕迹
+            // 上面捕获的异常已包含堆栈跟踪。
             Assert.Contains(baseEx.StackTrace!, baseExResult.StackTrace);
             Assert.Equal(baseEx.InnerException, baseExResult.InnerException);
             Assert.NotNull(baseExResult.Data);
@@ -146,7 +146,7 @@ namespace Orleans.Serialization.UnitTests
 
             var baseExCopy = DeepCopy(baseEx);
             Assert.Equal(baseEx.Message, baseExCopy.Message);
-            // 上面的例外有人口密集的堆叠痕迹
+            // 上面捕获的异常已包含堆栈跟踪。
             Assert.Contains(baseEx.StackTrace!, baseExCopy.StackTrace);
             Assert.Equal(baseEx.InnerException, baseExCopy.InnerException);
             Assert.NotNull(baseExCopy.Data);
@@ -156,27 +156,27 @@ namespace Orleans.Serialization.UnitTests
 
             var agResult = RoundTripToExpectedType<Exception, AggregateException>(aggregateException);
             Assert.Equal(aggregateException.Message, agResult.Message);
-            // 上面的例外有人口密集的堆叠痕迹
+            // 上面捕获的异常已包含堆栈跟踪。
             Assert.Contains(aggregateException.StackTrace!, agResult.StackTrace);
             var inner = Assert.IsType<InvalidOperationException>(agResult.InnerException);
             Assert.Equal(ioEx.Message, inner.Message);
 
             var agCopy = DeepCopy(aggregateException);
             Assert.Equal(aggregateException.Message, agCopy.Message);
-            // 上面的例外有人口密集的堆叠痕迹
+            // 上面捕获的异常已包含堆栈跟踪。
             Assert.Contains(aggregateException.StackTrace!, agCopy.StackTrace);
             var agInner = Assert.IsType<InvalidOperationException>(agCopy.InnerException);
             Assert.Equal(ioEx.Message, agInner.Message);
 
             var ceResult = RoundTripToExpectedType<Exception, CustomException>(customException);
             Assert.Equal(customException.Message, ceResult.Message);
-            // 上面的例外有人口密集的堆叠痕迹
+            // 上面捕获的异常已包含堆栈跟踪。
             Assert.Contains(customException.StackTrace!, ceResult.StackTrace);
             Assert.Equal(customException.CustomInt, ceResult.CustomInt);
 
             var ceCopy = DeepCopy(customException);
             Assert.Equal(customException.Message, ceCopy.Message);
-            // 上面的例外有人口密集的堆叠痕迹
+            // 上面捕获的异常已包含堆栈跟踪。
             Assert.Contains(customException.StackTrace!, ceCopy.StackTrace);
             Assert.Equal(customException.CustomInt, ceCopy.CustomInt);
         }
@@ -273,7 +273,7 @@ namespace Orleans.Serialization.UnitTests
         private TActual RoundTripToExpectedType<TBase, TActual>(TActual original)
             where TActual : TBase
         {
-            // AddSerializer 保证已登记了闭合的序列器。
+            // AddSerializer 保证已注册封闭构造类型序列化器。
             var serializer = _serviceProvider.GetService<Serializer<TBase>>()!;
             var array = serializer.SerializeToArray(original);
 
@@ -283,13 +283,13 @@ namespace Orleans.Serialization.UnitTests
                 formatted = BitStreamFormatter.Format(array, session);
             }
 
-            // 使用匹配的闭合序列器来圆截断非核原体。
+            // 非 null 的原始对象通过与之匹配的封闭构造类型序列化器进行序列化往返。
             return (TActual)serializer.Deserialize(array)!;
         }
 
         private T DeepCopy<T>(T original)
         {
-            // AddSerializer 保证封闭式复印机得到登记。
+            // AddSerializer 保证已注册封闭构造类型复制器。
             var deepCopier = _serviceProvider.GetService<DeepCopier<T>>()!;
             return deepCopier.Copy(original)!;
         }

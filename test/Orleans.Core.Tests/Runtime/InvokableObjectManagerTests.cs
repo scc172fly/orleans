@@ -117,7 +117,7 @@ public class InvokableObjectManagerTests
         a.Release.TrySetResult();
         await fixture.WaitForResponseAsync(normal);
         fixture.AssertSuccess(normal, a, "normal");
-        // A的入院释放前的反应观察;只有实际停止才进入排水沟。
+        // 观察到响应先于 A 释放准入资格；只有实际停止操作才会等待排空完成。
         var checkpoint = fixture.StopAsync();
         fixture.AssertPending(stop, "12: independent interleaved body held");
         fixture.AssertPending(checkpoint, "12: fresh stop with interleaved body held");
@@ -138,8 +138,8 @@ public class InvokableObjectManagerTests
         fixture.Manager.Dispatch(message);
         await fixture.WaitAsync(body.Entered.Task, "11: only interleaved body entered");
 
-        // 任何正常的援引都不能掩盖缺失的跨异人所有权。
-        // 数字未计算,两个大门同步关闭, StopAsync 已经完成。
+        // 没有普通调用能够掩盖缺失的交错执行所有权。如果此次准入
+        // 未被计数，两个准入门会同步关闭，StopAsync 已经完成。
         var stop = fixture.StopAsync();
         fixture.AssertPending(stop, "11: only interleaved admission held");
         Assert.False(body.Exited.Task.IsCompleted);
@@ -159,8 +159,8 @@ public class InvokableObjectManagerTests
         fixture.Manager.Dispatch(message);
         await fixture.WaitAsync(control.CancellationSent.Task, "91: control entered with no application work");
 
-        // 应用程序大门为空: 它的无同步释放无法掩盖丢失
-        // 这样做补充了申请排水过程中所接受的取消。
+        // 应用程序准入门为空：其异步释放无法掩盖缺失的
+        // 控制请求排空。这补充了应用程序排空期间获准执行取消请求的测试。
         var stop = fixture.StopAsync();
         fixture.AssertPending(stop, "91: only cancellation-control admission held");
         Assert.False(control.Exited.Task.IsCompleted);
@@ -284,7 +284,7 @@ public class InvokableObjectManagerTests
         var checkpoint = fixture.StopAsync();
         if (holdControlAfterCancellation)
         {
-            // 这是一个控制性检查站,不是私人申请-门释放证据。
+            // 这是控制请求仍被阻塞的检查点，而非私有应用程序准入门已释放的证据。
             Assert.Equal(1, control.InvocationCount);
             Assert.False(control.Exited.Task.IsCompleted);
             fixture.AssertPending(checkpoint, "91: control held after 11 canceled and responded");
@@ -364,8 +364,8 @@ public class InvokableObjectManagerTests
         a.Release.TrySetResult();
         await fixture.WaitAsync(c.Entered.Task, "13: Entered after 11 released its queue admission");
 
-        // 连续泵在 A ProcessMessageAsync 处理其牌子之前不能输入 C 。
-        // 新的停止检测发现B的双释放,即使旧的散装包装纸没有恢复。
+        // 在 A 的 ProcessMessageAsync 释放其令牌之前，顺序消息泵无法进入 C。
+        // 即使较早的异步包装器尚未恢复，新的停止操作也能检测到 B 的重复释放。
         var checkpoint = fixture.StopAsync();
         fixture.AssertPending(checkpoint, "13 held, canceled 12 owns no admission");
         fixture.AssertPending(stop, "13 held after direct queued cancellation");
@@ -521,8 +521,8 @@ public class InvokableObjectManagerTests
                 throw new InvalidOperationException($"Unexpected response id {request.Id}, expected {message.Id}.");
             }
 
-            // SendResponse 是同步的, 但这个回调运行 经理的工人,
-            // 实际工人寿命与经理的下水道相伴
+            // SendResponse 是同步的，但此回调在管理器的工作线程上运行，
+            // 绝不会在编排器上运行。管理器排空会等待实际工作线程生命周期结束。
             responseEntered.TrySetResult();
             try
             {
@@ -558,7 +558,7 @@ public class InvokableObjectManagerTests
         finally
         {
             responseRelease.TrySetResult();
-            // 等待使用的最后时间最后是处理DI之前的每一个实际排水沟。
+            // 下方 await using 的 finally 会在释放 DI 之前等待每个实际排空操作完成。
         }
     }
 
@@ -647,7 +647,7 @@ public class InvokableObjectManagerTests
 
         internal Task StopAsync()
         {
-            // 有意直接援引:申请入境在返回之前终止。
+            // 故意直接调用：此操作返回之前关闭应用程序准入。
             var stop = Manager.StopAsync();
             _stops.Add(stop);
             return stop;
@@ -730,7 +730,7 @@ public class InvokableObjectManagerTests
 
         async ValueTask IAsyncDisposable.DisposeAsync()
         {
-            // 每一次测试都等待物资的利用。 运行器无法绕过清理 。
+            // await using 为每个测试提供 finally。运行器取消无法绕过清理。
             foreach (var request in _requests.Values)
             {
                 request.ReleaseForCleanup();
@@ -751,7 +751,7 @@ public class InvokableObjectManagerTests
             }
 
             await _services.DisposeAsync();
-            // 标记通过排水保持;没有强迫收集或GC-timping主张。
+            // 在整个排空过程中保留标记；不强制回收，也不对 GC 时机作断言。
             GC.KeepAlive(Observer);
         }
 

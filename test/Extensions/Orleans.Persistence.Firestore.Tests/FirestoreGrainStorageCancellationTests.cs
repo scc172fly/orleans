@@ -71,7 +71,7 @@ public sealed class FirestoreGrainStorageCancellationTests
         var state = CreateState(etag);
         var original = state.State;
 
-#pragma warning disable xUnit1051 // Exercise the legacy overloads which use CancellationToken.None.
+#pragma warning disable xUnit1051 // 测试使用 CancellationToken.None 的旧版重载。
         await Invoke(fixture.Storage, operation, state);
 #pragma warning restore xUnit1051
 
@@ -245,7 +245,7 @@ public sealed class FirestoreGrainStorageCancellationTests
         var original = state.State;
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
 
-#pragma warning disable xUnit1051 // Verify diagnostics for both legacy None and cancellation-aware calls.
+#pragma warning disable xUnit1051 // 验证旧版 None 调用与支持取消的调用的诊断信息。
         var exception = await Assert.ThrowsAsync<OperationCanceledException>(
             () => legacy
                 ? Invoke(fixture.Storage, operation, state)
@@ -376,7 +376,7 @@ public sealed class FirestoreGrainStorageCancellationTests
             if (initialized)
             {
                 var manager = new FirestoreDataManager("Persistence", "test", options, this);
-                // 使用本地SDK,与消防局会员资格测试一样,进行运输接缝。
+                // 使用原生 SDK，采用与 Firestore 成员资格测试相同的传输层测试接入点。
                 typeof(FirestoreDataManager).GetField("_db", BindingFlags.Instance | BindingFlags.NonPublic)!
                     .SetValue(manager, FirestoreDb.Create(options.ProjectId, Client));
                 typeof(FirestoreGrainStorage).GetField("_dataManager", BindingFlags.Instance | BindingFlags.NonPublic)!

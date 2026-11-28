@@ -1,12 +1,12 @@
 <a id="orleans-dashboard-app"></a>
 
-# Orleans 仪表板
+# Orleans Dashboard 前端应用
 
-本目录包含用于 Orleans Dashboard的前端网络应用程序, 与 React and Vite 一起建造。 生产构建是在 `dist/`下进行, 并且将 Orleans.Dashboard C# 项目作为资源嵌入每个文件 `dist/` 。 .NET 建设不需要 Node.js 或 npm 。
+此目录包含使用 React 和 Vite 构建的 Orleans Dashboard 前端 Web 应用程序。生产构建产物提交在 `dist/` 下，构建 Orleans.Dashboard C# 项目时，会将 `dist/` 中的每个文件作为资源嵌入。.NET 构建不需要 Node.js 或 npm。
 
 <a id="structure"></a>
 
-## 结构结构结构
+## 目录结构
 
 ```
 Orleans.Dashboard.App/
@@ -24,52 +24,52 @@ Orleans.Dashboard.App/
 
 <a id="development"></a>
 
-## 发展
+## 开发
 
-使用 Node.js 版本中的 `.node-version` 版本,使用 `package.json`中的 npm 版本。 从此目录中:
+请使用 `.node-version` 中指定的 Node.js 版本及 `package.json` 中指定的 npm 版本。在此目录中执行：
 
 ```shell
 npm run restore
 npm run dev
 ```
 
-`npm run restore` 运行 `npm ci` 并重新启动清洁安装,最多三次尝试,当 npm 报告下载软件包时连接重置。 其他故障则立即报告。
+`npm run restore` 执行 `npm ci`；当 npm 在下载包时报告连接重置，该命令会重新开始全新安装，最多尝试三次。其他失败会立即报告。
 
-开发服务器在 `http://localhost:5173`提供热舱替换。
+开发服务器在 `http://localhost:5173` 提供热模块替换功能。
 
 <a id="updating-the-committed-build"></a>
 
-## 更新承诺建设
+## 更新已提交的构建产物
 
-在改变前端或其依赖性、重建和承诺 `dist/` 与源变化:
+修改前端或其依赖项后，请重新构建，并将 `dist/` 与源码变更一起提交：
 
 ```shell
 npm run restore
 npm run build
 ```
 
-构建书写了维特从捆绑的依附关系许可证中生成的包、源地图、字体、图像和 `THIRD-PARTY-NOTICES.md`。 NuGet 软件包还将通知作为独立文件列入。
+构建会生成打包产物、源码映射、字体、图片和 `THIRD-PARTY-NOTICES.md`；其中声明文件由 Vite 根据打包依赖项的许可证生成。NuGet 包还会将该声明作为独立文件包含在内。
 
-当拉动请求或按下修改此目录时, `Dashboard` 工作流程会运行。它会运行相同的命令,如果输出与承诺的 `dist/`不同,就会失败。前端源在每个平台上使用LF线结尾,因此以 Windows、 Linux 和 macOS 为基础,生成相同文件。
+当拉取请求或推送修改此目录时，会运行 `Dashboard` 工作流。它执行相同命令，在产物与已提交的 `dist/` 不一致时失败，并运行导航测试。前端源码在所有平台上都使用 LF 换行符，因此 Windows、Linux 和 macOS 上的构建会生成相同文件。
 
 <a id="lifecycle-diagrams"></a>
 
 ## 生命周期图
 
-生命周期视图使定购的 HTML 级卡与 CSS 箭头连接。
-启动后是不断增长的阶段秩序;关闭后倒转。
-以文字和图纸滚动方式提供大生命周期和
-长标签。卡使用选定的光或暗主题。
+生命周期视图呈现按顺序排列的 HTML 阶段卡片，并使用 CSS 箭头连接。
+启动按阶段顺序递增执行；关闭顺序相反。观察者名称及
+方法均以文本呈现；对于较长的生命周期及
+较长的标签，图表支持滚动。卡片采用所选的浅色或深色主题。
 
 <a id="navigation-tests"></a>
 
 ## 导航测试
 
-浏览器测试练习生命周期图、反刷新、慢要求、路线改变、窄屏导航、键盘解禁和桌面断点:
+浏览器测试覆盖生命周期图、计数器刷新、慢请求、路由变更、窄屏导航、键盘关闭及桌面布局断点：
 
 ```shell
 npx playwright install chromium
 npm run test:ui
 ```
 
-`npm run preview` 在当地为生产结构提供服务。
+`npm run preview` 在本地提供生产构建产物的预览服务。

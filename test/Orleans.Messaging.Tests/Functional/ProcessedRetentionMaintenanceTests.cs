@@ -47,8 +47,8 @@ public sealed class ProcessedRetentionMaintenanceTests : MessagingBehaviorTestBa
     [Fact]
     public async Task SnapshotCompaction_RemovesExpiredRecordsInterleavedWithRetainedOnesInOnePass()
     {
-        // 压缩清除处理的记录,同时进行清点,在框架上予以词典支持
-        // 完成命令首先存放过期记录,然后保存在保留的记录之间。
+        // 压缩清理在枚举已处理记录时移除记录，Dictionary 在相应框架上支持此操作，
+        // 这些框架正是 Messaging 的目标框架。完成顺序使过期记录排在保留记录之前及之间。
         var receiver = NewGrain();
         var first = CreateEnvelope(receiver, NewMessage(140, "first-expired"));
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, first));
@@ -114,8 +114,8 @@ public sealed class MaximumDeduplicationWindowTests() : MessagingBehaviorTestBas
     [Fact]
     public async Task MaximumWindow_ClampsTheAdmissionFloorThroughDeliveryAndSnapshotCompaction()
     {
-        // 校验接受任何正窗口, 所以最大一个是有效的配置: 下层计算
-        // 以时钟和夹子为单位,在最短的时间内将其减掉,而不是溢出。
+        // 验证接受任何正值窗口，因此最大值也是有效配置：下限计算
+        // 从当前时钟减去该窗口，并限制在最小时间值，而不发生溢出。
         var receiver = NewGrain();
         var message = CreateEnvelope(receiver, NewMessage(160, "maximum-window"));
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, message));

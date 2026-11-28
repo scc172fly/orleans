@@ -7,8 +7,8 @@ using static Orleans.CodeGenerator.SerializerGenerator;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// 描述建筑时使用的是代码和复印机排放的相同订购服务领域。
-/// 阵列请求保留其定义的类别参数,因此封闭的环境保留了具体服务选择。
+/// 使用与编解码器和复制器生成相同的有序服务字段描述构造过程。
+/// 数组请求保留其定义的类型参数，使封闭上下文保持具体的服务选择。
 /// </summary>
 internal sealed class GeneratedTypeConstruction
 {

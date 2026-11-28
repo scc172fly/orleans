@@ -15,7 +15,7 @@ namespace BenchmarkGrainInterfaces.MapReduce
 
         Task SendAsync(TInput t);
 
-#pragma warning disable CS0618 // Preserve the legacy token benchmark contract.
+#pragma warning disable CS0618 // 保留旧版令牌的基准测试契约。
         Task SendAsync(TInput t, GrainCancellationToken gct);
 #pragma warning restore CS0618
     }

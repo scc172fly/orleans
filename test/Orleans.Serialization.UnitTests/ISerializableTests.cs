@@ -17,22 +17,22 @@ using Xunit;
 namespace Orleans.Serialization.UnitTests
 {
     /// <summary>
-    /// Orleans支持 .NET 可连载界面的测试。
+    /// Orleans 对 .NET ISerializable 接口的支持测试。
     /// 
-    /// Orleans 与可按海关顺序排列的可采用易变号的类型兼容,
-    /// 这一点对于下列各方面十分重要:
-    /// - 与遗留 .NET 类型相结合
-    /// - 需要定制序列逻辑的辅助类型
-    /// - 保持与现有序列化模式的兼容性
+    /// Orleans 兼容实现 ISerializable 以执行自定义序列化的类型，
+    /// 这对于以下场景非常重要：
+    /// - 集成旧版 .NET 类型
+    /// - 支持需要自定义序列化逻辑的类型
+    /// - 与现有序列化模式保持兼容
     /// 
-    /// DotNetSerializableCodec 处理可采用下列方式的可实现序列类型:
-    /// - 尊重连序回调(OnSerializing、 OnSerialized等)
-    /// - 支持流流环境
-    /// - 处理序列化构造器
-    /// - 为没有 Orleans类型 -- -- 特定序列器的系列器提供后备序列序列化
+    /// DotNetSerializableCodec 通过以下方式处理 ISerializable 类型：
+    /// - 遵循序列化回调（OnSerializing、OnSerialized 等）
+    /// - 支持流式上下文（StreamingContext）
+    /// - 处理序列化构造函数
+    /// - 为缺少 Orleans 专用序列化器的类型提供后备序列化方式
     /// 
-    /// 注:虽然支持兼容性,但倾向于 Orleans的本地序列化
-    /// 提高业绩和接受度。
+    /// 注意：虽然为了兼容性而提供支持，但仍优先使用 Orleans 原生序列化，
+    /// 以获得更好的性能和版本容错能力。
     /// </summary>
     [Trait("Category", "BVT"), Trait("Category", "ISerializable")]
     [Trait("Suite", "BVT")]
@@ -54,7 +54,7 @@ namespace Orleans.Serialization.UnitTests
             services.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
 
             _serviceProvider = services.BuildServiceProvider();
-            // AddSerializer 保证会场集合已经登记。
+            // AddSerializer 保证已注册会话池。
             _sessionPool = _serviceProvider.GetService<SerializerSessionPool>()!;
             _serializer = _serviceProvider.GetRequiredService<Serializer<object>>();
             _log = log;
@@ -93,7 +93,7 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// 测试 <see cref="DotNetSerializableCodec"/> 能够正确序列化对象。
+        /// 测试 <see cref="DotNetSerializableCodec"/> 能否正确序列化对象。
         /// </summary>
         [Fact]
         public void ISerializableObjectWithCallbacks()
@@ -103,7 +103,7 @@ namespace Orleans.Serialization.UnitTests
                 Payload = "pyjamas"
             };
 
-            // 核实我们的行为符合预期行为
+            // 验证实际行为是否符合预期。
             var result = (SimpleISerializableObject)SerializationLoop(input);
             Assert.Equal(
                 new[]
@@ -129,7 +129,7 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// 测试 <see cref="DotNetSerializableCodec"/> 能够正确序列结构。
+        /// 测试 <see cref="DotNetSerializableCodec"/> 能否正确序列化结构体。
         /// </summary>
         [Fact]
         public void ISerializableStructWithCallbacks()
@@ -139,7 +139,7 @@ namespace Orleans.Serialization.UnitTests
                 Payload = "pyjamas"
             };
 
-            // 核实我们的行为符合预期行为
+            // 验证实际行为是否符合预期。
             var result = (SimpleISerializableStruct)SerializationLoop(input);
             Assert.Equal(
                 new[]
@@ -262,7 +262,7 @@ namespace Orleans.Serialization.UnitTests
                 }
             }
 
-            // 这个测试解决者有意扩大遗留的被封杀类型不可停用的合同。
+            // 此测试解析器针对被阻止的类型，刻意放宽旧版不可空契约。
 #pragma warning disable CS8764
             [return: MaybeNull]
             public override Type ResolveType(string name)
@@ -277,7 +277,7 @@ namespace Orleans.Serialization.UnitTests
             }
 #pragma warning restore CS8764
 
-            // 这个测试解决者有意扩大遗留的无法避免的失败合同。
+            // 此测试解析器在失败时刻意放宽旧版不可空 out 参数契约。
 #pragma warning disable CS8765
             public override bool TryResolveType(string name, [MaybeNullWhen(false)] out Type type)
             {
@@ -304,7 +304,7 @@ namespace Orleans.Serialization.UnitTests
 
             var serializer = _serviceProvider.GetRequiredService<Serializer>();
 
-            // 丢出例外, 这样可以让堆叠追踪被显示
+            // 抛出异常，以便填充堆栈跟踪信息。
             Exception source = Assert.Throws<UnserializableNonConformingException>((Action)(() =>
             {
                 throw new UnserializableNonConformingException(message);
@@ -316,14 +316,14 @@ namespace Orleans.Serialization.UnitTests
 
             object deserialized = serializer.Deserialize<Exception>(serialized)!;
 
-            // 无法序列的例外在往返旅行后类型错误
+            // 不可序列化的异常经过序列化往返后，类型不正确。
             var result = Assert.IsAssignableFrom<UnavailableExceptionFallbackException>(deserialized);
 
-            // 无法序列的例外情形经过往返后,例外电文正确无误
+            // 不可序列化的异常经过序列化往返后，异常消息正确。
             Assert.Contains(message, result.Message);
             Assert.Equal(RuntimeTypeNameFormatter.Format(source.GetType()), result.ExceptionType);
 
-            // 丢出例外, 这样可以让堆叠追踪被显示
+            // 抛出异常，以便填充堆栈跟踪信息。
             source = Assert.Throws<UnserializableConformingException>((Action)(() =>
             {
                 Exception inner;
@@ -345,10 +345,10 @@ namespace Orleans.Serialization.UnitTests
             }));
             deserialized = serializer.Deserialize<Exception>(serializer.SerializeToArray(source))!;
 
-            // 无法序列的例外在往返旅行后类型错误
+            // 不可序列化的异常经过序列化往返后，类型不正确。
             result = Assert.IsAssignableFrom<UnavailableExceptionFallbackException>(deserialized);
 
-            // 无法序列的例外情形经过往返后,例外电文正确无误
+            // 不可序列化的异常经过序列化往返后，异常消息正确。
             Assert.Contains(message, result.Message);
             Assert.Equal(RuntimeTypeNameFormatter.Format(source.GetType()), result.ExceptionType);
 

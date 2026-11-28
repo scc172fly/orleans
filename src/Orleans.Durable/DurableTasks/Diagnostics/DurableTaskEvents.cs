@@ -8,27 +8,27 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Tasks.Diagnostics;
 
 /// <summary>
-/// 提供 grains的持久任务运行时间诊断听筒和事件有效载荷类型。
+/// 提供 Grain 持久化任务运行时的诊断侦听器及事件有效载荷类型。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 这些类型是公开的,但可能在不同版本之间发生变化。
-/// 模拟测试和诊断。
+/// 这些类型是公开的，但可能在次要版本之间发生变化。它们适用于
+/// 模拟测试和诊断等高级场景。
 /// </para>
 /// <para>
-/// 启动时运行时间导致过渡的激活,当启动阶段
-/// 转换承诺于 grain的下一期日记
-/// 写作。观察者提出的例外,是宣传引起事件运行的运行时间操作。
+/// 每个事件在运行时暂存状态转换时，由发生该转换的激活实例同步写入，
+/// 因此观察者能够看到运行时在该时刻的状态；该变更随 Grain 的下一次日志
+/// 写入提交。观察者抛出的异常会传播到引发该事件的运行时操作。
 /// </para>
 /// </remarks>
 public static class DurableTaskEvents
 {
-    /// <summary>耐久任务运行时间事件诊断倾听器的名称。</summary>
+    /// <summary>持久化任务运行时事件的诊断侦听器名称。</summary>
     public const string ListenerName = "Orleans.DurableTasks";
 
     private static readonly DiagnosticListener Listener = new(ListenerName);
 
-    /// <summary>获得所有持久任务运行时间事件的可观察序列。</summary>
+    /// <summary>获取包含所有持久化任务运行时事件的可观察序列。</summary>
     public static IObservable<DurableTaskEvent> AllEvents { get; } = new Observable();
 
     internal static bool IsTaskCreatedEnabled => Listener.IsEnabled(nameof(TaskCreated));
@@ -38,143 +38,143 @@ public static class DurableTaskEvents
         where TEvent : DurableTaskEvent
         => Listener.Write(name, payload);
 
-    /// <summary>用于耐久任务运行时间诊断事件的基准类。</summary>
-    /// <param name="grainContext">启动时间的运行时间引发了事件。</param>
-    /// <param name="taskId">事件描述的任务。</param>
+    /// <summary>持久化任务运行时诊断事件的基类。</summary>
+    /// <param name="grainContext">其运行时引发该事件的激活实例。</param>
+    /// <param name="taskId">事件所描述的任务。</param>
     public abstract class DurableTaskEvent(IGrainContext grainContext, TaskId taskId)
     {
-        /// <summary>启动时间的运行时间引发了事件。</summary>
+        /// <summary>其运行时引发该事件的激活实例。</summary>
         public readonly IGrainContext GrainContext = grainContext;
 
-        /// <summary>事件描述的任务。</summary>
+        /// <summary>事件所描述的任务。</summary>
         public readonly TaskId TaskId = taskId;
     }
 
-    /// <summary>一项任务,即运行时间已经确定的任务:援引的任务或执行的操作,其事件有效载荷。</summary>
-    /// <param name="grainContext">启动时间的运行时间引发了事件。</param>
-    /// <param name="taskId">创建的任务。</param>
+    /// <summary>运行时暂存其状态的任务的事件有效载荷：该任务可以是被调用的任务，也可以是执行过程中的操作。</summary>
+    /// <param name="grainContext">其运行时引发该事件的激活实例。</param>
+    /// <param name="taskId">已创建的任务。</param>
     public sealed class TaskCreated(IGrainContext grainContext, TaskId taskId) : DurableTaskEvent(grainContext, taskId)
     {
     }
 
-    /// <summary>任务最终结果为运行时间已定的运行时,该任务的事件有效载荷。</summary>
-    /// <param name="grainContext">启动时间的运行时间引发了事件。</param>
-    /// <param name="taskId">完成的任务。</param>
-    /// <param name="response">任务终端结果。</param>
+    /// <summary>运行时暂存任务终态结果时的事件有效载荷。</summary>
+    /// <param name="grainContext">其运行时引发该事件的激活实例。</param>
+    /// <param name="taskId">已完成的任务。</param>
+    /// <param name="response">任务的终态结果。</param>
     public sealed class TaskCompleted(IGrainContext grainContext, TaskId taskId, DurableTaskResponse response)
         : DurableTaskEvent(grainContext, taskId)
     {
-        /// <summary>任务终端结果。</summary>
+        /// <summary>任务的终态结果。</summary>
         public readonly DurableTaskResponse Response = response;
     }
 
     /// <summary>
-    /// 用于一项任务,即删除运行时间已逐步确定、带有执行树或保留结束的任务的事件发生有效载荷。
+    /// 运行时暂存任务删除时的事件有效载荷：任务随其执行树删除，或在保留期结束时删除。
     /// </summary>
-    /// <param name="grainContext">启动时间的运行时间引发了事件。</param>
-    /// <param name="taskId">删除的任务。</param>
+    /// <param name="grainContext">其运行时引发该事件的激活实例。</param>
+    /// <param name="taskId">已删除的任务。</param>
     public sealed class TaskDeleted(IGrainContext grainContext, TaskId taskId) : DurableTaskEvent(grainContext, taskId)
     {
     }
 
-    /// <summary>任务体尝试时的事件有效载荷,启动时运行时间即开始。</summary>
-    /// <param name="grainContext">启动时间的运行时间引发了事件。</param>
-    /// <param name="taskId">其正文运行的任务。</param>
+    /// <summary>运行时在激活实例上启动任务主体的一次执行尝试时的事件有效载荷。</summary>
+    /// <param name="grainContext">其运行时引发该事件的激活实例。</param>
+    /// <param name="taskId">正在运行其主体的任务。</param>
     public sealed class ExecutionStarted(IGrainContext grainContext, TaskId taskId) : DurableTaskEvent(grainContext, taskId)
     {
     }
 
     /// <summary>
-    /// 任务体在激活时结束的尝试中的事件有效载荷:完成身体或运行时间
-    /// 放弃尝试,例如因为中止或删除终止了任务。
+    /// 任务主体在激活实例上的一次执行尝试结束时的事件有效载荷：任务主体已完成，或运行时
+    /// 放弃了此次尝试，例如任务因中止或删除而结束。
     /// </summary>
-    /// <param name="grainContext">启动时间的运行时间引发了事件。</param>
-    /// <param name="taskId">机构运行的任务。</param>
+    /// <param name="grainContext">其运行时引发该事件的激活实例。</param>
+    /// <param name="taskId">已运行其主体的任务。</param>
     public sealed class ExecutionStopped(IGrainContext grainContext, TaskId taskId) : DurableTaskEvent(grainContext, taskId)
     {
     }
 
-    /// <summary>执行中开始等待尚未到达的信号的事件有效载荷。</summary>
-    /// <param name="grainContext">启动时间的运行时间引发了事件。</param>
+    /// <summary>执行开始等待尚未到达的信号时的事件有效载荷。</summary>
+    /// <param name="grainContext">其运行时引发该事件的激活实例。</param>
     /// <param name="taskId">接收信号值的记录。</param>
     public sealed class SignalWaitStarted(IGrainContext grainContext, TaskId taskId) : DurableTaskEvent(grainContext, taskId)
     {
     }
 
     /// <summary>
-    /// 执行执行时等待结束的信号的事件有效载荷: 承诺执行的信号值, 或者等待
-    /// 已取消 。
+    /// 执行结束信号等待时的事件有效载荷：信号值已提交，或者等待已
+    /// 取消。
     /// </summary>
-    /// <param name="grainContext">启动时间的运行时间引发了事件。</param>
+    /// <param name="grainContext">其运行时引发该事件的激活实例。</param>
     /// <param name="taskId">接收信号值的记录。</param>
     public sealed class SignalWaitEnded(IGrainContext grainContext, TaskId taskId) : DurableTaskEvent(grainContext, taskId)
     {
     }
 
     /// <summary>
-    /// 选择要完成的第一个任务, 例如 <c>DurableTask.WhenAny</c>的, 发现没有
-    /// 候选人完成,等待一位。
+    /// 选择最先完成的任务（例如 <c>DurableTask.WhenAny</c>）时的事件有效载荷，此时尚无
+    /// 已完成的候选任务，因而需要等待其中一个完成。
     /// </summary>
-    /// <param name="grainContext">启动时间的运行时间引发了事件。</param>
-    /// <param name="taskId">选择中选的决定记录了胜者。</param>
+    /// <param name="grainContext">其运行时引发该事件的激活实例。</param>
+    /// <param name="taskId">选择操作的决策记录，其中记录了胜出的任务。</param>
     public sealed class SelectionWaitStarted(IGrainContext grainContext, TaskId taskId) : DurableTaskEvent(grainContext, taskId)
     {
     }
 
     /// <summary>
-    /// 重播先前所记录操作的重播任务机构尝试中的 事件有效载荷
-    /// 开始一项操作,但先前没有记录任何尝试: <c>DurableTaskContext.IsReplaying</c> 报告
-    /// 从此<see langword="false"/> 。
+    /// 任务主体的一次尝试已重放先前各次尝试记录的操作，并
+    /// 开始执行此前未记录的操作时的事件有效载荷：从此时起，<c>DurableTaskContext.IsReplaying</c> 返回
+    /// <see langword="false"/>。
     /// </summary>
-    /// <param name="grainContext">启动时间的运行时间引发了事件。</param>
-    /// <param name="taskId">其正文运行的任务。</param>
+    /// <param name="grainContext">其运行时引发该事件的激活实例。</param>
+    /// <param name="taskId">正在运行其主体的任务。</param>
     public sealed class ReplayEnded(IGrainContext grainContext, TaskId taskId) : DurableTaskEvent(grainContext, taskId)
     {
     }
 
     /// <summary>
-    /// 执行记录到的版本决定事件有效载荷:
-    /// 随后, <c>DurableTask.GetVersion</c> 返回到它及其步骤。
+    /// 执行记录版本决策时的事件有效载荷：该决策记录此执行从此采用的变更
+    /// 版本，<c>DurableTask.GetVersion</c> 会向此执行及其步骤返回该版本。
     /// </summary>
-    /// <param name="grainContext">启动时间的运行时间引发了事件。</param>
-    /// <param name="taskId">执行决定的记录。</param>
-    /// <param name="name">更改的名称。</param>
+    /// <param name="grainContext">其运行时引发该事件的激活实例。</param>
+    /// <param name="taskId">记录该决策的执行。</param>
+    /// <param name="name">变更名称。</param>
     /// <param name="version">
-    /// 录音版本:呼叫代码的最新版本 执行的,第一个到达了通话,或者
-    /// 先前部署的弹药经过时,其<c>0</c> 。
+    /// 记录的版本：首次到达该调用的执行采用调用代码的最新版本；若某次执行在更早的部署中已经越过该调用，
+    /// 则为 <c>0</c>。
     /// </param>
     public sealed class VersionRecorded(IGrainContext grainContext, TaskId taskId, string name, int version)
         : DurableTaskEvent(grainContext, taskId)
     {
-        /// <summary>更改的名称。</summary>
+        /// <summary>变更的名称。</summary>
         public readonly string Name = name;
 
-        /// <summary>录音版本。</summary>
+        /// <summary>记录的版本。</summary>
         public readonly int Version = version;
     }
 
     /// <summary>
-    /// 运行代码无法重弹执行, 导致事件有效载荷停止:
-    /// 记录了代码不支持的版本, 或者代码与所记录的执行有差异。 运行时间
-    /// 放弃尝试的结果, 并保持任务待定, 并且稍后激活重播它。
+    /// 执行尝试因当前运行代码无法重放该执行而停滞时的事件有效载荷：执行
+    /// 记录了代码不支持的版本，或者代码与已记录的执行发生分歧。运行时
+    /// 丢弃此次尝试的结果，使任务保持待处理状态，并由之后的激活实例重放。
     /// </summary>
-    /// <param name="grainContext">启动时间的运行时间引发了事件。</param>
-    /// <param name="taskId">死刑的停顿</param>
+    /// <param name="grainContext">其运行时引发该事件的激活实例。</param>
+    /// <param name="taskId">停滞的执行实例。</param>
     /// <param name="reason">
-    /// 为何企图停滞不前: <see cref="DurableTaskAttemptCancellationReason.UnsupportedVersion"/> 或
+    /// 尝试停滞的原因：<see cref="DurableTaskAttemptCancellationReason.UnsupportedVersion"/> 或
     /// <see cref="DurableTaskAttemptCancellationReason.Diverged"/>.
     /// </param>
     /// <param name="exception">
-    /// 描述档段的例外:一个不支持版本的 <see cref="DurableTaskVersionException"/> ,或
-    /// a <see cref="InvalidOperationException"/> ,其中说明差异。
+    /// 描述停滞原因的异常：对于不支持的版本为 <see cref="DurableTaskVersionException"/>，或者
+    /// 为描述重放分歧的 <see cref="InvalidOperationException"/>。
     /// </param>
     public sealed class ExecutionStalled(IGrainContext grainContext, TaskId taskId, DurableTaskAttemptCancellationReason reason, Exception exception)
         : DurableTaskEvent(grainContext, taskId)
     {
-        /// <summary>为什么尝试停滞了</summary>
+        /// <summary>尝试停滞的原因。</summary>
         public readonly DurableTaskAttemptCancellationReason Reason = reason;
 
-        /// <summary>描述摊位的例外。</summary>
+        /// <summary>描述停滞原因的异常。</summary>
         public readonly Exception Exception = exception;
     }
 

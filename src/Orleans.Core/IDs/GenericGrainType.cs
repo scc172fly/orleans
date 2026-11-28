@@ -7,7 +7,7 @@ using Orleans.Utilities;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 表示使用类型参数参数参数参数参数的 <see cref="GrainType"/> 。
+    /// 表示使用类型参数进行参数化的 <see cref="GrainType"/>。
     /// </summary>
     [Immutable]
     public readonly struct GenericGrainType : IEquatable<GenericGrainType>
@@ -15,8 +15,8 @@ namespace Orleans.Runtime
         /// <summary>
         /// 初始化 <see cref="GenericGrainType"/> 结构的新实例。
         /// </summary>
-        /// <param name="grainType">根本 grain 类型。</param>
-        /// <param name="arity">普遍平等的普遍性 grain 类型。</param>
+        /// <param name="grainType">底层 Grain 类型。</param>
+        /// <param name="arity">Grain 类型的泛型参数数量。</param>
         private GenericGrainType(GrainType grainType, int arity)
         {
             GrainType = grainType;
@@ -24,22 +24,22 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 底部 grain 类型。
+        /// 底层 Grain 类型。
         /// </summary>
         public GrainType GrainType { get; }
 
         /// <summary>
-        /// grain 类型的一般对等性。
+        /// Grain 类型的泛型参数数量。
         /// </summary>
         public int Arity { get; }
 
         /// <summary>
-        /// 如果此实例包含具体类型参数, 返回 <see langword="true" /> 。
+        /// 如果此实例包含具体类型参数，则返回 <see langword="true" />。
         /// </summary>
         public bool IsConstructed => TypeConverterExtensions.IsConstructed(this.GrainType.Value);
 
         /// <summary>
-        /// 返回与所提供的值相对应的通用 grain 类型。
+        /// 返回与所提供值对应的泛型 Grain 类型。
         /// </summary>
         public static bool TryParse(GrainType grainType, out GenericGrainType result)
         {
@@ -55,7 +55,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 返回此实例的非构建版本。
+        /// 返回此实例的未构造版本。
         /// </summary>
         public GenericGrainType GetUnconstructedGrainType()
         {
@@ -64,7 +64,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 返回此实例的构建版本。
+        /// 返回此实例的已构造版本。
         /// </summary>
         public GenericGrainType Construct(TypeConverter formatter, params Type[] typeArguments)
         {
@@ -81,10 +81,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 使用所提供的类型转换器获取类型参数。
+        /// 使用所提供的类型转换器获取类型实参。
         /// </summary>
-        /// <param name="converter">型转换器</param>
-        /// <returns>类型参数。</returns>
+        /// <param name="converter">类型转换器。</param>
+        /// <returns>类型实参。</returns>
         public Type[] GetArguments(TypeConverter converter)
         {
             ArgumentNullException.ThrowIfNull(converter);

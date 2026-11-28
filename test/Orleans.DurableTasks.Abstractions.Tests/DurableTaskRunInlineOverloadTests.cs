@@ -8,8 +8,8 @@ using Xunit;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// 测试 <c>DurableTask.RunInline</c> 是否接受同步效应,在汇编时拒绝非同步和耐久效果
-/// 时间,它无法记录。
+/// 测试 <c>DurableTask.RunInline</c> 接受同步效果，并在编译
+/// 时拒绝它无法记录的异步及持久化效果。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -42,16 +42,16 @@ public class DurableTaskRunInlineOverloadTests
         "DurableTask.RunInline(Mark);",
         "DurableTask.RunInline(() => Mark());",
 
-        // 其表达式的值转换为 Action 和 Func<T>的羊排;效果返回值。
+        // 表达式具有返回值的 Lambda 可以转换为 Action 或 Func<T>；效果返回该值。
         "int counter = 0; int value = DurableTask.RunInline(() => counter++);",
         "int value = DurableTask.RunInline(() => Compute());",
         "_ = DurableTask.RunInline(() => 1);",
 
-        // 仅抛出一个只转换成 Func<Task>的羊羔,拒绝超载需要它; 投出选择动作。
+        // 仅抛出异常的 Lambda 也可以转换为 Func<Task>，并匹配拒绝此委托的重载；显式转换为 Action 可选择相应重载。
         "DurableTask.RunInline((Action)(() => throw new InvalidOperationException()));",
         "DurableTask.RunInline(\"a\", (Action)(() => { throw new InvalidOperationException(); }));",
 
-        // 明确的类型参数选择同步超载,其结果类型检查在运行时拒绝效果。
+        // 显式类型实参选择同步重载，其结果类型检查会在效果运行时拒绝该效果。
         "_ = DurableTask.RunInline<Task<int>>(() => Task.FromResult(1));",
     };
 
@@ -81,10 +81,10 @@ public class DurableTaskRunInlineOverloadTests
         { "DurableTask.RunInline(() => ValueTask.CompletedTask);", UseRun },
         { "DurableTask.RunInline(\"a\", MarkValueAsync);", UseRun },
 
-        // 一种无结果的无序羊羔也转化为行动,将像灰烬一样无效。
+        // 无返回结果的异步 Lambda 也可转换为 Action，此时将以 async void 运行。
         { "DurableTask.RunInline(\"a\", async () => { await Task.Yield(); });", UseRun },
 
-        // 仅丢弃的羊羔也转换成 Func<Task>;投到“行动”记录例外。
+        // 仅抛出异常的 Lambda 也可转换为 Func<Task>；将其显式转换为 Action 可记录该异常。
         { "DurableTask.RunInline(() => throw new InvalidOperationException());", UseRun },
         { "DurableTask.RunInline(\"a\", () => { throw new InvalidOperationException(); });", UseRun },
     };

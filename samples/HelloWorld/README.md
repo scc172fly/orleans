@@ -5,27 +5,27 @@ products:
 - dotnet
 - dotnet-orleans
 page_type: sample
-name: "Orleans Hello World sample app"
+name: "Orleans Hello World 示例应用"
 urlFragment: "orleans-hello-world-sample-app"
-description: "展示简单哈罗世界应用程序的 Orleans 样本。"
+description: "演示简单 Hello World 应用的 Orleans 示例。"
 ---
 
 <a id="orleans-hello-world-sample-application"></a>
 
-# Orleans 你好世界样本应用
+# Orleans Hello World 示例应用
 
-*你好 世界!* 申请是程序员的通过仪式,这是我们 *你好 世界!* 样本 Orleans.
-样本由单一工程组成,该项目启动 Orleans- 基于应用程序、向 grain发送信息、打印回复和当用户按键时终止。
+*Hello, World!* 应用是程序员的入门仪式，这是 Orleans 的 *Hello, World!* 示例。
+示例由一个项目组成：启动基于 Orleans 的应用，向 Grain 发送消息，输出响应，并在用户按键后退出。
 
 <a id="demonstrates"></a>
 
-## 演示
+## 演示内容
 
-* 如何启动 Orleans
-* 如何定义和实施 grain 接口
-* 如何获取 grain 的引用并调用 grain
+* 如何开始使用 Orleans
+* 如何定义和实现 Grain 接口
+* 如何获取 Grain 引用并调用 Grain
 
-要开始我们浏览应用程序, 请打开 [`IHelloGrain.cs`](./IHelloGrain.cs) , 您将会找到以下接口声明 :
+要开始了解此应用，请打开 [`IHelloGrain.cs`](./IHelloGrain.cs)，其中包含以下接口声明：
 
 ```csharp
 public interface IHelloGrain : IGrainWithStringKey
@@ -34,13 +34,13 @@ public interface IHelloGrain : IGrainWithStringKey
 }
 ```
 
-定义 `IHelloGrain` grain 接口。 我们知道这是一个 grain 接口, 因为它执行 `IGrainWithStringKey`。 这意味着当我们想要用字符串值来查询一个 grain 执行的 `IHelloGrain`时, 我们将会使用字符串值来识别 grain 实例。 在我们的案例中, 正如您在 [*Program.cs*](./Program.cs)中稍后看到的那样, 我们将使用字符串 `"friend"` 来识别我们希望与它进行联系的 grain , 但这可能是任何字符串:
+这里定义了 `IHelloGrain` Grain 接口。它实现了 `IGrainWithStringKey`，因此可知它是一个 Grain 接口。这意味着，要获取实现 `IHelloGrain` 的 Grain 引用，需要使用字符串值标识 Grain 实例。在本例中，稍后在 [*Program.cs*](./Program.cs) 中可看到，我们使用字符串 `"friend"` 标识要与之通信的 Grain，但也可以使用任何其他字符串：
 
 ```csharp
 var friend = grainFactory.GetGrain<IHelloGrain>("friend");
 ```
 
-现在打开 [*HelloGrain.cs*](./HelloGrain.cs) ,我们将看到我们的 `IHelloGrain` 接口的实施:
+现在打开 [*HelloGrain.cs*](./HelloGrain.cs)，其中包含 `IHelloGrain` 接口的实现：
 
 ```csharp
 public class HelloGrain : Grain, IHelloGrain
@@ -50,12 +50,12 @@ public class HelloGrain : Grain, IHelloGrain
 }
 ```
 
-我们知道, `HelloGrain` 是一种 grain 实施,因为它继承了 `Grain` 基准类型。
-该类型用于识别应用程序中的 grain 类。
+`HelloGrain` 继承了 `Grain` 基类型，因此可知它是一个 Grain 实现。
+该类型用于标识应用中的 Grain 类。
 
-`HelloGrain` 返回一个简单的字符串来执行 `IHelloGrain` : `$"Hello, {greeting}"`。
+`HelloGrain` 通过返回一个简单字符串 `$"Hello, {greeting}"` 来实现 `IHelloGrain`。
 
-打开 [*Program.cs*](./Program.cs) 以查看 Orleans 配置方式 :
+打开 [*Program.cs*](./Program.cs)，查看 Orleans 的配置方式：
 
 ```csharp
 using var host = new HostBuilder()
@@ -84,39 +84,39 @@ Console.WriteLine("Orleans is stopping...");
 await host.StopAsync();
 ```
 
-此程序创建一个新的 [`HostBuilder`](https://docs.microsoft.com/dotnet/core/extensions/generic-host) 并加 Orleans 呼唤它, `UseOrleans` 扩展方法。
-在该呼叫中,它配置 Orleans 来使用本地主机群集,用于开发和测试设想方案。
-程序然后启动主机并从服务供应商那里检索 `IGrainFactory` 实例。
-使用 `IGrainFactory`,我们可以得到 *参考* 到 grain。
-在这种情况下,我们希望提及 `HelloGrain` 命名实例 `"friend"`,我们因此呼吁 `grainFactory.GetGrain<IHelloGrain>("friend")`.
-一旦我们找到参考, 我们可以把它用到 并拨打 `friend.SayHello("Good morning!")`, 将结果打印到控制台。
+此程序创建新的 [`HostBuilder`](https://docs.microsoft.com/dotnet/core/extensions/generic-host)，并调用 `UseOrleans` 扩展方法将 Orleans 添加到其中。
+在该调用内，程序配置 Orleans 使用本地主机集群，以用于开发和测试场景。
+然后程序启动宿主，并从其服务提供程序中获取 `IGrainFactory` 实例。
+使用 `IGrainFactory` 可以获取 Grain 的*引用*。
+本例需要名为 `"friend"` 的 `HelloGrain` 实例引用，因此调用 `grainFactory.GetGrain<IHelloGrain>("friend")`。
+获取引用后即可使用它，调用 `friend.SayHello("Good morning!")` 并将结果输出到控制台。
 
 <a id="sample-prerequisites"></a>
 
-## 抽样的前提条件
+## 示例先决条件
 
-本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
+本示例使用 C# 编写，目标框架为 .NET 10。需要 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本。
 
 <a id="building-the-sample"></a>
 
-## 建立样本
+## 构建示例
 
-下载和运行样本时,请遵循以下步骤:
+按照以下步骤下载并运行示例：
 
-1. 下载并解开样本的平面
-2. 视觉演播室(2022年或以后):
-    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
-    2. 打开解压后的示例目录，再打开其中的 C# 项目文件（`.csproj`）。
-    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 直接运行。
-3. 从命令行 :
-   1. 导航到持有未设偏移样本代码的文件夹 。
-   2. 在命令行,类型 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
+1. 下载并解压示例。
+2. 在 Visual Studio（2022 或更高版本）中：
+    1. 在菜单栏中选择 **文件** > **打开** > **项目/解决方案**。
+    2. 导航到存放已解压示例代码的文件夹，并打开 C# 项目（.csproj）文件。
+    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 在不调试的情况下运行项目。
+3. 从命令行运行：
+   1. 导航到存放已解压示例代码的文件夹。
+   2. 在命令行输入 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
 
 ```dotnetcli
 dotnet run
 ```
 
-您应该看到 `Hello, Good morning!!` 打印在控制台上。
+应能在控制台中看到 `Hello, Good morning!!`。
 
-Orleans 断裂 `"friend"` 实例 `HelloGrain` 当我们初次喊叫的时候,我们立刻就召唤它。`friend.SayHello(...)`).
-作为开发者,我们不需要管理这些 grains: Orleans 视需要激活它们的寿命,当它们闲置时,它会停止使用。
+我们首次调用 `HelloGrain` 的 `"friend"` 实例时（`friend.SayHello(...)`），Orleans 自动为我们创建了该实例。
+开发者无需管理这些 Grain 的生命周期：Orleans 会按需激活它们，并在它们空闲时停用。

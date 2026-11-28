@@ -5,9 +5,9 @@ using Orleans.Runtime.Internal;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 方便便利 API 与 System.Threading.Timer 以某种方式
-    /// 无法捕捉 ExecutionContext。我们应该使用这个(或同等的)
-    /// 各地我们使用计时器避免根植存储在 AsyncLocals中的任何值。
+    /// 便于使用 System.Threading.Timer 的 API，
+    /// 且不会捕获 ExecutionContext。我们应在所有使用定时器的地方采用此 API（或等效方式），
+    /// 以免使存储在 AsyncLocal 中的任何值因根引用而无法被回收。
     /// </summary>
     /// <see href="https://github.com/dotnet/extensions/blob/a1389576a3bbc85a48bdcadce4f16bcf7cdfa088/src/Shared/src/NonCapturingTimer/NonCapturingTimer.cs"/>
     internal static class NonCapturingTimer
@@ -19,7 +19,7 @@ namespace Orleans.Runtime
                 throw new ArgumentNullException(nameof(callback));
             }
 
-            // 不要将当前 ExecutionContext 及其 AsyncLocals 记录在计时器上
+            // 不要将当前 ExecutionContext 及其 AsyncLocal 捕获到定时器中。
             using var suppressExecutionContext = new ExecutionContextSuppressor();
 
             return new Timer(callback, state, dueTime, period);

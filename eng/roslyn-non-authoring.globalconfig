@@ -1,7 +1,7 @@
 is_global = true
 
-# 登记-行动检查适用于Roslyn分析师的作者项目。
-# 检查 RegisterActionAnalyzer 的所有规则 让Roslyn跳过回调
+# 注册操作检查适用于编写 Roslyn 分析器的项目。
+# 限定 RegisterActionAnalyzer 的全部规则的作用域，使 Roslyn 能跳过其回调。
 dotnet_diagnostic.RS1002.severity = none
 dotnet_diagnostic.RS1003.severity = none
 dotnet_diagnostic.RS1006.severity = none

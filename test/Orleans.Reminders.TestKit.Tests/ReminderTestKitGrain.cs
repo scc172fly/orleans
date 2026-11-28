@@ -3,17 +3,17 @@ using Orleans.Runtime;
 namespace Orleans.Reminders.TestKit.Tests;
 
 /// <summary>
-/// 最小提醒 grain 所用指南使用 TestKit 集束集束体集成试验。
+/// TestKit 集群集成测试使用的最简可接收提醒的 Grain。
 /// </summary>
 public interface IReminderTestKitGrain : IGrainWithGuidKey
 {
-    /// <summary>登记或更新提醒通知并归还其姓名。</summary>
+    /// <summary>注册或更新提醒器并返回其名称。</summary>
     Task<string> RegisterReminderAsync(string reminderName, TimeSpan dueTime, TimeSpan period);
 
-    /// <summary>提醒和报告是否找到</summary>
+    /// <summary>注销提醒器并报告是否找到该提醒器。</summary>
     Task<bool> UnregisterReminderAsync(string reminderName);
 
-    /// <summary>返回当前登记为此 grain的提醒通知的名称。</summary>
+    /// <summary>返回当前为此 Grain 注册的提醒器名称。</summary>
     Task<List<string>> GetReminderNamesAsync();
 }
 

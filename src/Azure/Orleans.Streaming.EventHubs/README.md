@@ -1,16 +1,16 @@
 <a id="microsoft-orleans-stream-provider-for-azure-event-hubs"></a>
 
-# Microsoft Orleans 流流供应者 Azure 活动中心
+# Microsoft Orleans 的 Azure Event Hubs 流提供程序
 
 <a id="introduction"></a>
 
 ## 简介
-Microsoft Orleans 事件枢纽的流提供方 Azure 活动枢纽使 Orleans 应用程序能够利用 Azure 事件枢纽进行可靠、可缩放的事件处理。该提供者允许您使用“事件枢纽”作为您 Orleans 应用的流干柱,用于生产和消费事件流。
+Microsoft Orleans 的 Azure Event Hubs 流提供程序使 Orleans 应用程序能够利用 Azure Event Hubs 进行可靠、可扩展的事件处理。借助此提供程序，可以使用 Event Hubs 作为 Orleans 应用程序的流式传输基础设施，以生产和消费事件流。
 
 <a id="getting-started"></a>
 
 ## 入门
-要使用此软件包, 请通过 NuGet安装 :
+通过 NuGet 安装此包：
 
 ```shell
 dotnet add package Microsoft.Orleans.Streaming.EventHubs
@@ -18,7 +18,7 @@ dotnet add package Microsoft.Orleans.Streaming.EventHubs
 
 <a id="example---configuring-event-hubs-stream-provider"></a>
 
-## 示例 - 配置事件枢纽流提供方
+## 示例：配置 Event Hubs 流提供程序
 
 ```csharp
 using Microsoft.Extensions.Hosting;
@@ -57,9 +57,9 @@ await builder.RunAsync();
 
 <a id="using-orleans-grain-storage-for-checkpoints"></a>
 
-### 使用 Orleans grain 储存检查站
+### 使用 Orleans Grain 存储保存检查点
 
-Azure 表格储存库仍然是与现有部署兼容的默认检查站仓库。 Orleans grains 和配置 `PubSubStore` grain 存储提供者:
+为兼容现有部署，Azure Table Storage 仍是默认检查点存储。也可以选择使用 Orleans Grain 和已配置的 `PubSubStore` Grain 存储提供程序来存储检查点：
 
 ```csharp
 siloBuilder
@@ -79,14 +79,14 @@ siloBuilder
     });
 ```
 
-grain 检查站对事件枢纽的偏移应用数字顺序,这样旧的偏移无法覆盖更新的检查站。配置生产中的耐用 `PubSubStore` 供应商;模拟 grain 储存不会在整个集群重新启动时保持检查站。切换检查站并不迁移现有偏移,并可能导致事件重现。
-设置 `GrainStreamQueueCheckpointerOptions.StorageProviderName` 使用另一个已注册的 grain 存储提供者。
+基于 Grain 的检查点记录器按数值顺序比较 Event Hubs 偏移量，确保较旧的偏移量无法覆盖较新的检查点。在生产环境中应配置持久化的 `PubSubStore` 提供程序；内存 Grain 存储无法在集群重启后保留检查点。切换检查点存储不会迁移现有偏移量，并可能导致事件被重放。
+设置 `GrainStreamQueueCheckpointerOptions.StorageProviderName` 可使用另一个已注册的 Grain 存储提供程序。
 
-`UseGrainCheckpointer` 和 `UseAzureTableCheckpointer` 扩展 `ISiloPersistentStreamConfigurator`,因此它们也可以用于其他持久性流提供者。事件枢纽配置数字检查站默认命令;其他提供者可以为其检查格式设定相应的 `CheckpointComparer` 选项。
+`UseGrainCheckpointer` 和 `UseAzureTableCheckpointer` 都是 `ISiloPersistentStreamConfigurator` 的扩展方法，因此也可与其他持久化流提供程序一起使用。Event Hubs 默认配置数值型检查点排序；其他提供程序可根据自己的检查点格式设置相应的 `CheckpointComparer` 选项。
 
 <a id="example---using-event-hub-streams-in-a-grain"></a>
 
-## 示例 - 在 Grain中使用事件枢纽流
+## 示例：在 Grain 中使用 Event Hubs 流
 
 ```csharp
 // Grain interface
@@ -142,17 +142,17 @@ public class MyEvent
 
 <a id="documentation"></a>
 
-## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
-关于更全面的文件,请参见:
+## 文档
+有关更详细的文档，请参阅：
 - [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
 - [Orleans 流](https://dotnet.github.io/orleans/docs/streaming/)
-- [活动枢纽整合](https://dotnet.github.io/orleans/docs/implementation/streams-implementation/)
+- [Event Hubs 集成](https://dotnet.github.io/orleans/docs/implementation/streams-implementation/)
 
 <a id="feedback--contributing"></a>
 
-## 反馈和贡献
-- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
-- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
-- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
-- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证
+## 反馈与贡献
+- 如果遇到问题或希望提供反馈，请[在 GitHub 上提交 Issue](https://github.com/dotnet/orleans/issues)。
+- 欢迎加入我们的 [Discord](https://aka.ms/orleans-discord) 社区。
+- 关注 Twitter 账号 [@msftorleans](https://twitter.com/msftorleans)，获取 Orleans 公告。
+- 欢迎参与贡献！请先阅读[贡献指南](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)。
+- 本项目采用 [MIT 许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)。

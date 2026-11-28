@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// 将 grain 构建参数指定为交易承诺方面板。
+    /// 将 Grain 构造函数参数标识为事务提交器组件（facet）。
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter)]
     public class TransactionCommitterAttribute : Attribute, IFacetMetadata, ITransactionCommitterConfiguration
@@ -17,8 +17,8 @@ namespace Orleans.Transactions.Abstractions
         /// <summary>
         /// 初始化 <see cref="TransactionCommitterAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="serviceName">接受已承诺行动的机构的名称。</param>
-        /// <param name="storageName">交易承诺方使用的存储提供者的名称。</param>
+        /// <param name="serviceName">接收已提交操作的服务名称。</param>
+        /// <param name="storageName">事务提交器使用的存储提供程序名称。</param>
         public TransactionCommitterAttribute(string serviceName, string? storageName = null)
         {
             this.ServiceName = serviceName;

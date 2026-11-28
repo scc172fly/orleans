@@ -7,18 +7,18 @@ using Orleans.Runtime;
 namespace Orleans.Configuration.Overrides
 {
     /// <summary>
-    /// 使用指定选项,回归到默认(未命名)值后,可支配性在多个选项上居于首位。
+    /// 使用命名选项覆盖配置的功能，未指定时回退到默认（未命名）值。
     /// </summary>
     public static class OptionsOverrides
     {
         /// <summary>
-        /// 获得每个提供者可能已经推翻的 <see cref="ClusterOptions"/> 。
-        /// 注:此表用于移徙目的,作为处理供应商使用 ServiceId 和 ClusterId的方式以往不一致行为的一种手段。
+        /// 获取可能已针对各个提供程序进行覆盖的 <see cref="ClusterOptions"/>。
+        /// 注意：此功能用于迁移，以处理此前各提供程序在使用 ServiceId 和 ClusterId 时存在的不一致行为。
         /// </summary>
         public static IOptions<ClusterOptions> GetProviderClusterOptions(this IServiceProvider services, string providerName) => services.GetOverridableOption<ClusterOptions>(providerName);
 
         /// <summary>
-        /// 获得可被指定服务推翻的选项 。
+        /// 获取可由命名服务覆盖的选项。
         /// </summary>
         private static IOptions<TOptions> GetOverridableOption<TOptions>(this IServiceProvider services, string key)
             where TOptions : class, new()

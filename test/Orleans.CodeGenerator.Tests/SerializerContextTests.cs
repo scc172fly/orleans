@@ -387,7 +387,7 @@ public sealed class SerializerContextTests(ITestOutputHelper output)
     {
         var models = string.Join(Environment.NewLine, Enumerable.Range(0, 9)
             .Select(static index => $"[Orleans.GenerateSerializer] public sealed class Payload{index} {{ }}"));
-        // 八个由127个阵列及其元素类型组成的不连锁系统, 恰恰是1024个登记和元数据类型。
+        // 八条互不相交、各包含 127 个数组及其元素类型的链恰好贡献 1024 个注册项和元数据类型。
         var arrays = string.Concat(Enumerable.Repeat("[]", 127));
         var roots = Enumerable.Range(0, 8).Select(index => $"Payload{index}{arrays}").ToList();
         if (exceedsLimit) roots.Add("Payload8");

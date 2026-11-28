@@ -30,7 +30,7 @@ namespace UnitTests.GrainInterfaces
         Task<Dictionary<string, ReminderState>> GetReminderStates();
     }
 
-    // 用于测试不同类型 grain 的提醒通知
+    // 用于测试不同 Grain 类型的提醒器
     public interface IReminderTestCopyGrain : IGrainWithGuidKey
     {
         Task<IGrainReminder> StartReminder(string reminderName, TimeSpan? period = null, bool validate = false);
@@ -41,8 +41,8 @@ namespace UnitTests.GrainInterfaces
     }
 
     public interface IReminderGrainWrong : IGrainWithIntegerKey
-    // 由于 grain 不执行 IRemind , 我们运行时应该有一个错误
-    // 需要一种方法,让用户在编译时间知道 IRemindable 是否执行并尝试登记提醒
+    // 由于此 Grain 未实现 IRemindable，应在运行时收到错误
+    // 需要一种方法，在未实现 IRemindable 却尝试注册提醒器时于编译期告知用户
     {
         Task<bool> StartReminder(string reminderName);
     }

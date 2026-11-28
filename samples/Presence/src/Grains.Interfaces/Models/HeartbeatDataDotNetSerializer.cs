@@ -3,10 +3,10 @@ using MsgPack.Serialization;
 namespace Presence.Grains.Models;
 
 /// <summary>
-/// 本类封装 HeartbeatData的序列/分离。
-/// 它仅用于模拟数据来自二进制设备的实际生活情景。
-/// 如果将 HeartbeatData 实例作为理由转至 grain 呼叫,则不需要这种序列器
-/// 因为 Orleans 对所有参数类型自动生成高效的序列器。
+/// 此类封装 HeartbeatData 的序列化和反序列化。
+/// 仅用于模拟实际场景中设备以二进制形式传入数据的情况。
+/// 如果直接将 HeartbeatData 实例作为 Grain 调用参数传递，则不需要此序列化器，
+/// 因为 Orleans 会为所有参数类型自动生成高效的序列化器。
 /// </summary>
 public static class HeartbeatDataDotNetSerializer
 {

@@ -1,22 +1,22 @@
 namespace Orleans.Storage
 {
     /// <summary>
-    /// 当前所有散列操作的界面 Orleans 储存作业。
+    /// Orleans 存储操作当前使用的所有哈希操作的接口。
     /// </summary>
-    /// <remarks>执行此功能,为数据库中带有具体属性的密钥提供支流。
-    /// 举例说:对失控身份证提供者的碰撞抗力。</remarks>
+    /// <remarks>实现此接口可提供具有特定属性的数据库键哈希算法。
+    /// 例如，应能抵抗不受控制的 ID 提供程序产生的哈希碰撞。</remarks>
     public interface IHasher
     {
         /// <summary>
-        /// 描述散列功能。
+        /// 哈希功能说明。
         /// </summary>
         string Description { get; }
 
         /// <summary>
-        /// 大麻烟
+        /// 哈希值。
         /// </summary>
-        /// <param name="data">类组数据。</param>
-        /// <returns>给定的字节散列。</returns>
+        /// <param name="data">要计算哈希的数据。</param>
+        /// <returns>给定字节的哈希值。</returns>
         int Hash(byte[] data);
     }
 }

@@ -1,26 +1,26 @@
 namespace Orleans.EventSourcing.Common
 {
     /// <summary>
-    /// 提供用于用作写矢量的一套紧凑、字符串编码的复制识别符操作。
+    /// 提供对写入向量的操作；该向量是以紧凑字符串编码的副本标识符集合。
     /// </summary>
     public static class StringEncodedWriteVector
     {
 
-        // BitVector 复制件作为一套在字符串中编码的复制字符串
-        // 位向量表示为一组其位数为 1 的复制ids
-        // 此集以字符串形式写入, 包含复制的代码, 之前先有一个逗号
+        // 副本的位向量通过编码到单个字符串中的副本标识符集合实现。
+        // 位向量表示为对应位为 1 的副本 ID 的集合。
+        // 将此集合写成一个字符串，其中每个副本 ID 前均有一个逗号。
         //
-        // 假设我们的复制品 命名A,B,BB,然后
-        // 代表 代表 代表 000 
-        // “ A” 表示 {A} 代表 100 
-        // “A,B”表示 {A,B} 代表 110 
-        // “,BB,A,B”代表 {A,B,B,BB}代表 111 
+        // 假设副本命名为 A、B 和 BB，则：
+        // ""     represents    {}        represents 000
+        // ",A"   represents    {A}       represents 100
+        // ",A,B" represents    {A,B}     represents 110
+        // ",BB,A,B" represents {A,B,BB}  represents 111
 
         /// <summary>
-        /// 在 writeVector中获取一个位数
+        /// 获取 writeVector 中的某一位。
         /// </summary>
-        /// <param name="writeVector">我们要从</param>获得位数的刻录矢量
-        /// <param name="Replica">我们希望查找位数的复制件</param>
+        /// <param name="writeVector">要从中获取位的写入向量。</param>
+        /// <param name="Replica">要查询其对应位的副本。</param>
         /// <returns></returns>
         public static bool GetBit(string writeVector, string Replica)
         {
@@ -29,11 +29,11 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <summary>
-        /// 切换 writeVector 中的比特之一并返回新值。
+        /// 翻转 writeVector 中的某一位，并返回新值。
         /// </summary>
-        /// <param name="writeVector">刻录矢量, 我们要翻转位</param>
-        /// <param name="Replica">复制我们想要翻转位</param>
-        /// <returns>翻转时位数的状态</returns>
+        /// <param name="writeVector">要在其中翻转位的写入向量。</param>
+        /// <param name="Replica">要翻转其对应位的副本。</param>
+        /// <returns>翻转后该位的状态。</returns>
         public static bool FlipBit(ref string writeVector, string Replica)
         {
             var pos = writeVector.IndexOf(Replica, StringComparison.Ordinal);

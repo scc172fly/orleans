@@ -9,12 +9,12 @@ using Orleans.Storage;
 namespace Orleans.Persistence.FileStorage;
 
 /// <summary>
-/// 存储器 grain 状态为配置目录中的文件 。
+/// 在已配置目录中以文件形式存储 Grain 状态。
 /// </summary>
-/// <param name="storageName">存储提供者的名称。</param>
-/// <param name="options">供应商选项。</param>
-/// <param name="clusterOptions">组合组合选项。</param>
-/// <param name="activatorProvider">下 grain 状态活性器提供者。</param>
+/// <param name="storageName">存储提供程序名称。</param>
+/// <param name="options">提供程序选项。</param>
+/// <param name="clusterOptions">集群选项。</param>
+/// <param name="activatorProvider">Grain 状态激活器提供程序。</param>
 public sealed class FileGrainStorage(
     string storageName,
     FileGrainStorageOptions options,
@@ -27,7 +27,7 @@ public sealed class FileGrainStorage(
     private readonly string _rootDirectory = Path.GetFullPath(options.RootDirectory);
 
     /// <inheritdoc />
-    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 无效。</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 为 null。</exception>
     public Task ClearStateAsync<T>(
         string stateName,
         GrainId grainId,
@@ -62,7 +62,7 @@ public sealed class FileGrainStorage(
     }
 
     /// <inheritdoc />
-    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 无效。</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 为 null。</exception>
     public Task ReadStateAsync<T>(
         string stateName,
         GrainId grainId,
@@ -100,7 +100,7 @@ public sealed class FileGrainStorage(
     }
 
     /// <inheritdoc />
-    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 无效。</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="grainState"/> 为 null。</exception>
     public Task WriteStateAsync<T>(
         string stateName,
         GrainId grainId,
@@ -137,7 +137,7 @@ public sealed class FileGrainStorage(
         cancellationToken.ThrowIfCancellationRequested();
         var payload = options.GrainStorageSerializer.Serialize(grainState.State).ToArray();
         cancellationToken.ThrowIfCancellationRequested();
-        // 写作开始后完成,所以取消不能留下部分记录。
+        // 写入开始后应将其完成，避免取消导致只写入部分记录。
         await File.WriteAllBytesAsync(
             path,
             CreateRecord(etag, payload),

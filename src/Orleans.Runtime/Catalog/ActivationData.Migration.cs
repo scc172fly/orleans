@@ -6,16 +6,16 @@ using Orleans.Runtime.Placement;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// 将排队的启动请求与启动一起迁移到该启动。
+/// 将此激活实例中排队的请求与激活实例一起迁移。
 /// </summary>
 internal sealed partial class ActivationData
 {
     /// <summary>
-    /// 是否因为它 silo 关闭。
+    /// 获取此激活实例是否因所在 Silo 正在关闭而迁移。
     /// </summary>
     /// <remarks>
-    /// 下 silo 使用以下 <see cref="DeactivationReasonCode.ShuttingDown"/> 当它关闭的时候,
-    /// 一项由于任何其他原因正在解除活动的激活,将它的请求发回或拒绝。
+    /// Silo 在关闭时使用 <see cref="DeactivationReasonCode.ShuttingDown"/> 停用其激活实例。
+    /// 因其他任何原因停用的激活实例会转发或拒绝其请求。
     /// </remarks>
     private bool MigratesOnRetirement()
         => DeactivationReason.ReasonCode is DeactivationReasonCode.ShuttingDown
@@ -24,9 +24,9 @@ internal sealed partial class ActivationData
             && checker.IsMigratable(GrainId.Type, ImmovableKind.Any);
 
     /// <summary>
-    /// 删除此激活后可以迁移的队列请求 。
+    /// 移除可随此激活实例一起迁移的排队请求。
     /// </summary>
-    /// <returns>(a) 请求,或 <see langword="null"/> 如果无。</returns>
+    /// <returns>请求集合；如果没有请求，则为 <see langword="null"/>。</returns>
     private List<Message>? TakeRequestsForMigration()
     {
         var maxForwardCount = _shared.MessagingOptions.MaxForwardCount;
@@ -36,14 +36,14 @@ internal sealed partial class ActivationData
         {
             _waitingRequests.RemoveAll(entry =>
             {
-                // 仅允许本地信息无法逃避激活 。
-                // 移徙算作向前推进,因此已用尽前方请求仍排队等待并被拒绝。
+                // 仅限本地的消息不得离开此激活实例。
+                // 迁移计为一次转发，因此已耗尽转发次数的请求仍留在队列中，并被拒绝。
                 if (entry.Message.IsLocalOnly || entry.Message.ForwardCount >= maxForwardCount)
                 {
                     return false;
                 }
 
-                // 过期请求被撤销,因为收到时已经失效。
+                // 与接收时的处理相同，丢弃已过期的请求，因为其调用方已经超时。
                 if (entry.Message.IsExpired)
                 {
                     (expired ??= []).Add(entry.Message);

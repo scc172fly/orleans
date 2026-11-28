@@ -4,47 +4,47 @@ using System.Threading.Tasks;
 namespace Orleans;
 
 /// <summary>
-/// 使用 Orleans 交易语义执行代表。
+/// 按照 Orleans 事务语义执行委托。
 /// </summary>
 public interface ITransactionClient
 {
     /// <summary>
-    /// 使用指定的交易选项执行代表。 新创建的交易在代表成功完成后进行; 合并的交易记录该参与者的承付票 。
+    /// 使用指定的事务选项执行委托。委托成功完成时，新创建的事务将提交；如果加入现有事务，则记录该参与者的提交投票。
     /// </summary>
-    /// <param name="transactionOption">交易的创造、加入或抑制行为</param>
-    /// <param name="transactionDelegate">执行代表。</param>
-    /// <returns>A <see cref="Task"/> 代表交易业务。</returns>
+    /// <param name="transactionOption">事务的创建、加入或抑制行为。</param>
+    /// <param name="transactionDelegate">要执行的委托。</param>
+    /// <returns>表示事务操作的 <see cref="Task"/>。</returns>
     Task RunTransaction(TransactionOption transactionOption, Func<Task> transactionDelegate);
 
     /// <summary>
-    /// 使用指定的交易选项执行代表。
+    /// 使用指定的事务选项执行委托。
     /// </summary>
-    /// <param name="transactionOption">交易的创造、加入或抑制行为</param>
+    /// <param name="transactionOption">事务的创建、加入或抑制行为。</param>
     /// <param name="transactionDelegate">
-    /// 执行代表。 其结果显示交易是否应该进行。
+    /// 要执行的委托。其结果指示事务是否应提交。
     /// </param>
-    /// <returns>A <see cref="Task"/> 代表交易业务。</returns>
+    /// <returns>表示事务操作的 <see cref="Task"/>。</returns>
     Task RunTransaction(TransactionOption transactionOption, Func<Task<bool>> transactionDelegate);
 
     /// <summary>
-    /// 使用指定的交易选项执行代表。 新创建的交易在代表成功完成后进行; 合并的交易记录该参与者的承付票 。
+    /// 使用指定的事务选项执行委托。委托成功完成时，新创建的事务将提交；如果加入现有事务，则记录该参与者的提交投票。
     /// </summary>
-    /// <param name="transactionOption">交易的创造、加入或抑制行为</param>
-    /// <param name="transactionDelegate">执行代表。</param>
-    /// <param name="useExclusiveLock"> <see langword="true"/>时,交易期间访问的所有交易状态
-    /// 即使在读操作中,将获得独家锁,防止在争议激烈的情况下发生锁定升级冲突。</param>
-    /// <returns>A <see cref="Task"/> 代表交易业务。</returns>
+    /// <param name="transactionOption">事务的创建、加入或抑制行为。</param>
+    /// <param name="transactionDelegate">要执行的委托。</param>
+    /// <param name="useExclusiveLock">当值为 <see langword="true"/> 时，此事务访问的所有事务状态
+    /// 即使在读取时也会获取排他锁，以避免高争用情况下的锁升级冲突。</param>
+    /// <returns>表示事务操作的 <see cref="Task"/>。</returns>
     Task RunTransaction(TransactionOption transactionOption, Func<Task> transactionDelegate, bool useExclusiveLock);
 
     /// <summary>
-    /// 使用指定的交易选项执行代表。
+    /// 使用指定的事务选项执行委托。
     /// </summary>
-    /// <param name="transactionOption">交易的创造、加入或抑制行为</param>
+    /// <param name="transactionOption">事务的创建、加入或抑制行为。</param>
     /// <param name="transactionDelegate">
-    /// 执行代表。 其结果显示交易是否应该进行。
+    /// 要执行的委托。其结果指示事务是否应提交。
     /// </param>
-    /// <param name="useExclusiveLock"> <see langword="true"/>时,交易期间访问的所有交易状态
-    /// 即使在读操作中,将获得独家锁,防止在争议激烈的情况下发生锁定升级冲突。</param>
-    /// <returns>A <see cref="Task"/> 代表交易业务。</returns>
+    /// <param name="useExclusiveLock">当值为 <see langword="true"/> 时，此事务访问的所有事务状态
+    /// 即使在读取时也会获取排他锁，以避免高争用情况下的锁升级冲突。</param>
+    /// <returns>表示事务操作的 <see cref="Task"/>。</returns>
     Task RunTransaction(TransactionOption transactionOption, Func<Task<bool>> transactionDelegate, bool useExclusiveLock);
 }

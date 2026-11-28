@@ -6,31 +6,31 @@ using Orleans.Streams;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// 配置 grain- 基于流队列检查。
+    /// 配置基于 Grain 的流队列检查点机制。
     /// </summary>
     public sealed class GrainStreamQueueCheckpointerOptions
     {
         /// <summary>
-        /// 获取或设定检查站之间的最小间隔。
+        /// 获取或设置检查点写入之间的最短时间间隔。
         /// </summary>
         public TimeSpan PersistInterval { get; set; } = TimeSpan.FromMinutes(1);
 
         /// <summary>
-        /// 获取或设置用于长期检查站的 grain 存储供应商的名称。
+        /// 获取或设置用于持久化检查点的 Grain 存储提供程序名称。
         /// </summary>
         /// <remarks>
-        /// 供应商必须登记为名存贮供应商 grain 。
-        /// 选项由流源提供商范围界定,因此每个流源提供商可以选择不同的 grain 存储提供者。
+        /// 必须将该提供程序注册为命名的 Grain 存储提供程序。
+        /// 选项以流提供程序为作用域，因此每个流提供程序可以选择不同的 Grain 存储提供程序。
         /// </remarks>
         public string StorageProviderName { get; set; } = ProviderConstants.DEFAULT_PUBSUB_PROVIDER_NAME;
 
         /// <summary>
-        /// 获取或设置用来防止检查站向后移动的比较器。
+        /// 获取或设置用于防止检查点向后移动的比较器。
         /// </summary>
         /// <remarks>
-        /// 候选人检查站与最新的检查站比较,只有在比较大的检查站接受。
-        /// 当该财产 <see langword="null"/>时,假定检查站会越来越频繁地抵达。
-        /// 使用 <see cref="StreamCheckpointComparers.Numeric"/> 来计算任意大小的数值。
+        /// 将候选检查点与最新检查点进行比较，仅当候选值较大时才接受。
+        /// 当此属性为 <see langword="null"/> 时，假定检查点按递增顺序到达。
+        /// 对于任意大小的数值检查点，使用 <see cref="StreamCheckpointComparers.Numeric"/>。
         /// </remarks>
         public IComparer<string>? CheckpointComparer { get; set; }
     }

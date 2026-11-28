@@ -8,15 +8,15 @@ using Orleans.Streams;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 配置 Orleans silo上的亚马逊 Kinesis数据流支持的持久性流提供者。
+    /// 在 Orleans Silo 上配置由 Amazon Kinesis Data Streams 支持的持久化流提供程序。
     /// </summary>
     public class SiloKinesisStreamConfigurator : SiloPersistentStreamConfigurator
     {
         /// <summary>
         /// 初始化 <see cref="SiloKinesisStreamConfigurator"/> 类的新实例。
         /// </summary>
-        /// <param name="name">流体提供者的名称。</param>
-        /// <param name="configureServicesDelegate">代表用于配置 silo 服务。</param>
+        /// <param name="name">流提供程序名称。</param>
+        /// <param name="configureServicesDelegate">用于配置 Silo 服务的委托。</param>
         public SiloKinesisStreamConfigurator(string name, Action<Action<IServiceCollection>> configureServicesDelegate)
             : base(name, configureServicesDelegate, KinesisAdapterFactory.Create)
         {
@@ -31,12 +31,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置流提供方的 Kinesis 选项 。
+        /// 为流提供程序配置 Kinesis 选项。
         /// </summary>
         /// <param name="configureOptions">
-        /// 用于配置命名 <see cref="KinesisStreamOptions"/>的代表。
+        /// 用于配置具名 <see cref="KinesisStreamOptions"/> 的委托。
         /// </param>
-        /// <returns>流体提供者配置器。</returns>
+        /// <returns>流提供程序配置器。</returns>
         public SiloKinesisStreamConfigurator ConfigureKinesis(Action<OptionsBuilder<KinesisStreamOptions>> configureOptions)
         {
             this.Configure(configureOptions);
@@ -44,10 +44,10 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置流提供方的 Kinesis 选项 。
+        /// 为流提供程序配置 Kinesis 选项。
         /// </summary>
-        /// <param name="configureOptions">代表用于配置 Kinesis 选项。</param>
-        /// <returns>流体提供者配置器。</returns>
+        /// <param name="configureOptions">用于配置 Kinesis 选项的委托。</param>
+        /// <returns>流提供程序配置器。</returns>
         public SiloKinesisStreamConfigurator ConfigureKinesis(Action<KinesisStreamOptions> configureOptions)
         {
             this.ConfigureKinesis(ob => ob.Configure(configureOptions));
@@ -55,14 +55,14 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置用于维持每个硬流检查站的组件。
+        /// 配置用于持久化各分片流检查点的组件。
         /// </summary>
-        /// <typeparam name="TOptions">检查站使用的选项类型。</typeparam>
+        /// <typeparam name="TOptions">检查点记录器使用的选项类型。</typeparam>
         /// <param name="checkpointerFactoryBuilder">
-        /// 工厂与服务提供商和溪流供应商名称一起援引创建检查站厂。
+        /// 使用服务提供程序和流提供程序名称调用的工厂，用于创建检查点记录器工厂。
         /// </param>
-        /// <param name="configureOptions">代表用来配置命名的检查站选项。</param>
-        /// <returns>流体提供者配置器。</returns>
+        /// <param name="configureOptions">用于配置具名检查点记录器选项的委托。</param>
+        /// <returns>流提供程序配置器。</returns>
         public SiloKinesisStreamConfigurator ConfigureCheckpointer<TOptions>(
             Func<IServiceProvider, string, IStreamQueueCheckpointerFactory> checkpointerFactoryBuilder,
              Action<OptionsBuilder<TOptions>> configureOptions)
@@ -73,21 +73,21 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置流提供方到 DynamoDB的持久性检查站。
+        /// 配置流提供程序将检查点持久化到 DynamoDB。
         /// </summary>
-        /// <param name="configureOptions">代表用于配置 DynamoDB 检查站选项。</param>
-        /// <returns>流体提供者配置器。</returns>
+        /// <param name="configureOptions">用于配置 DynamoDB 检查点记录器选项的委托。</param>
+        /// <returns>流提供程序配置器。</returns>
         public SiloKinesisStreamConfigurator UseDynamoDBCheckpointer(
             Action<DynamoDBStreamQueueCheckpointerOptions> configureOptions)
             => UseDynamoDBCheckpointer(options => options.Configure(configureOptions));
 
         /// <summary>
-        /// 配置流提供方到 DynamoDB的持久性检查站。
+        /// 配置流提供程序将检查点持久化到 DynamoDB。
         /// </summary>
         /// <param name="configureOptions">
-        /// 用于配置命名 DynamoDB 检查器选项的可选代表。
+        /// 用于配置具名 DynamoDB 检查点记录器选项的可选委托。
         /// </param>
-        /// <returns>流体提供者配置器。</returns>
+        /// <returns>流提供程序配置器。</returns>
         public SiloKinesisStreamConfigurator UseDynamoDBCheckpointer(
             Action<OptionsBuilder<DynamoDBStreamQueueCheckpointerOptions>>? configureOptions = null)
         {

@@ -13,7 +13,7 @@ using Xunit;
 namespace Tester.AzureUtils.Streaming
 {
     /// <summary>
-    /// Azure 排队流客户功能测试,包括生产者和消费者对被丢客户的行为。
+    /// 测试 Azure Queue 流客户端功能，包括客户端断开时生产者和消费者的行为。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("AzureStorage")]
@@ -87,14 +87,14 @@ namespace Tester.AzureUtils.Streaming
             try
             {
                 TestUtils.CheckForAzureStorage();
-                var serviceId = this.HostedCluster.Client!.ServiceProvider.GetRequiredService<IOptions<ClusterOptions>>().Value.ServiceId; // 固定装置会部署客户
+                var serviceId = this.HostedCluster.Client!.ServiceProvider.GetRequiredService<IOptions<ClusterOptions>>().Value.ServiceId; // 测试夹具部署客户端。
                 await AzureQueueStreamProviderUtils.DeleteAllUsedAzureQueues(NullLoggerFactory.Instance, AzureQueueStreamProviderUtils.GenerateDefaultAzureQueueNames(serviceId, AQStreamProviderName),
                     new AzureQueueOptions().ConfigureTestDefaults());
                 await TestAzureTableStorageStreamFailureHandler.DeleteAll();
             }
             catch (Xunit.Sdk.SkipException)
             {
-                // 忽略忽略
+                // 忽略。
             }
         }
 

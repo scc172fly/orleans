@@ -6,13 +6,13 @@ using Orleans.Serialization.Session;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 使用每个值的孤立序列器会话读写 Orleans 二进制命令值。
+/// 使用每个值独立的序列化会话读取及写入 Orleans 二进制命令值。
 /// </summary>
 internal static class OrleansBinaryCommandCodecHelpers
 {
     public static void WriteHeader(IBufferWriter<byte> output, params ReadOnlySpan<uint> values)
     {
-#pragma warning disable CA2000 // The active entry lends its destination; disposing this writer would dispose the owning JournalBufferWriter.
+#pragma warning disable CA2000 // 活动条目借出其目标；释放此写入器会释放拥有它的 JournalBufferWriter。
         var writer = Writer.Create(output, session: null!);
 #pragma warning restore CA2000
         foreach (var value in values)
@@ -25,7 +25,7 @@ internal static class OrleansBinaryCommandCodecHelpers
 
     public static void WriteVersion(IBufferWriter<byte> output, ulong version)
     {
-#pragma warning disable CA2000 // The active entry lends its destination; the JournalBufferWriter owns disposal.
+#pragma warning disable CA2000 // 活动条目借出其目标；JournalBufferWriter 负责释放。
         var writer = Writer.Create(output, session: null!);
 #pragma warning restore CA2000
         writer.WriteVarUInt64(version);

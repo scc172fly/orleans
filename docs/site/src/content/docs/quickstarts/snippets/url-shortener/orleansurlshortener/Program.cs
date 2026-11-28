@@ -22,7 +22,7 @@ app.MapGet("/shorten",
     {
         var host = $"{request.Scheme}://{request.Host.Value}";
 
-        // 校验 URL 查询字符串 。
+        // 验证 URL 查询字符串。
         if (string.IsNullOrWhiteSpace(url) ||
             Uri.IsWellFormedUriString(url, UriKind.Absolute) is false)
         {
@@ -32,16 +32,16 @@ app.MapGet("/shorten",
                 """);
         }
 
-        // 创建一个唯一的短的ID
+        // 创建唯一的短 ID。
         var shortenedRouteSegment = Guid.NewGuid().GetHashCode().ToString("X");
 
-        // 创建并维持一个 grain ,使用缩短的ID和完整的 URL
+        // 使用缩短后的 ID 和完整 URL 创建并持久化一个 Grain。
         var shortenerGrain =
             grains.GetGrain<IUrlShortenerGrain>(shortenedRouteSegment);
 
         await shortenerGrain.SetUrl(url);
 
-        // 返回缩短的 URL,供日后使用
+        // 返回缩短后的 URL，以供后续使用。
         var resultBuilder = new UriBuilder(host)
         {
             Path = $"/go/{shortenedRouteSegment}"
@@ -53,13 +53,13 @@ app.MapGet("/shorten",
 app.MapGet("/go/{shortenedRouteSegment:required}",
     static async (IGrainFactory grains, string shortenedRouteSegment) =>
     {
-        // 使用缩写的身份识别和URL获取 grain 到原始 URL
+        // 使用短 ID 获取 Grain，并重定向至原始 URL。
         var shortenerGrain =
             grains.GetGrain<IUrlShortenerGrain>(shortenedRouteSegment);
 
         var url = await shortenerGrain.GetUrl();
 
-        // 处理缺失的方案,默认为 "http://"。
+        // 处理缺少协议的情况，默认使用 "http://"。
         var redirectBuilder = new UriBuilder(url);
 
         return Results.Redirect(redirectBuilder.Uri.ToString());

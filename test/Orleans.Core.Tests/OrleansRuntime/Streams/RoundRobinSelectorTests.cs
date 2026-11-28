@@ -5,7 +5,7 @@ using System.Data;
 namespace UnitTests.OrleansRuntime.Streams
 {
     /// <summary>
-    /// 圆柱资源选择器测试,包括筛选分布和重复处理。
+    /// 轮询资源选择器的测试，包括选择结果的分布及重复项处理。
     /// </summary>
     [TestCategory("BVT")]
     [TestSuite("BVT")]

@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
-/// <summary>排在向其他人通话的 grains:取消损失的投入,并在中途恢复。</summary>
+/// <summary>对其他 Grain 的调用进行竞速和超时处理：取消未胜出的输入，并在等待过程中恢复。</summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
     private const string RaceLostReason = "Another task won the race.";
@@ -31,7 +31,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await manager.WriteStateAsync(cancellationToken);
         await canceling.WaitAsync(CancellationTestTimeout, cancellationToken);
 
-        // 被调用者收到超时原因,工作流程等待通话结果。
+        // 被调用方收到超时原因，工作流等待调用的结果。
         Assert.Equal(PaymentTimeoutReason, Assert.Single(transport.CancellationReasons));
         Assert.Equal(PaymentTimeoutReason, storage.Get(callId).CancellationReason);
         Assert.Null(storage.Get(rootId).Result);
@@ -55,7 +55,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await transport.ResumeSent.WaitAsync(CancellationTestTimeout, cancellationToken);
         var resume = Assert.Single(transport.Resumes);
 
-        // 启动停止时工作流程等待, 而下一个在三分钟后重播工作流程。
+        // 激活实例在工作流等待期间停止，下一个激活实例在三分钟后重放工作流。
         await runtime.StopAsync(cancellationToken).WaitAsync(CancellationTestTimeout, cancellationToken);
         clock.Advance(TimeSpan.FromMinutes(3));
         var (replacement, _, _, replacementTransport) = CreateRuntime(storage, manager, timeProvider: clock);
@@ -96,7 +96,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Equal([quoteIds[0], quoteIds[2]], transport.Cancellations.Select(static cancellation => GetNodeId(cancellation.TaskId)).OrderBy(static id => id.ToString(), StringComparer.Ordinal));
         Assert.Equal([RaceLostReason, RaceLostReason], transport.CancellationReasons);
 
-        // 比赛等到其他所有电话都解决了为止:一个结局取消,另一个结局也结束。
+        // 竞速操作等待其他所有调用进入终态：一个以取消结束，另一个仍然正常完成。
         runtime.AcceptResponseFromInbox(quoteIds[0], DurableTaskResponse.Canceled, RemoteTarget);
         await manager.WriteStateAsync(cancellationToken);
         Assert.Null(storage.Get(rootId).Result);
@@ -178,7 +178,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         return sent.Task;
     }
 
-    /// <summary>返回此值的节点 grain线条识别符所在的行刑树 <paramref name="wireId"/> 姓名。</summary>
+    /// <summary>返回传输标识符 <paramref name="wireId"/> 所指定的此 Grain 执行树节点。</summary>
     private static TaskId GetNodeId(TaskId wireId)
     {
         Assert.True(global::Orleans.Durable.Tasks.Runtime.CallerScope.TryParseWireId(wireId, out _, out var nodeId));

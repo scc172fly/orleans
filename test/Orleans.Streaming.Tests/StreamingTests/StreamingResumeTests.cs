@@ -44,7 +44,7 @@ public abstract class StreamingResumeTests : TestClusterPerTest
             StreamProviderName,
             (int)PersistentStreamProviderCommand.StartAgents);
 
-        // 警卫队将防止随后的加入通知,以对抗连续式 StartAgents 指挥的赛跑。
+        // 防止后续成员资格通知与串行化执行的 StartAgents 命令发生竞态。
         var consecutiveReadyObservations = 0;
         const int requiredReadyObservations = 3;
         await TestingUtils.WaitUntilAsync(
@@ -124,7 +124,7 @@ public abstract class StreamingResumeTests : TestClusterPerTest
                 await otherStream.OnNextAsync(interestingData);
             }
 
-            // 等待最后一条其他溪流停止运行, 确保缓存冲
+            // 等待最后一个其他流变为非活动状态，确保缓存被清空。
             var lastOtherStreamId = StreamId.Create(nameof(IImplicitSubscriptionCounterGrain), lastOtherKey);
             await WaitForStreamInactiveAsync(observer, lastOtherStreamId);
 

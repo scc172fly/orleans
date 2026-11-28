@@ -8,7 +8,7 @@ using System.Threading;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// GeneratorStreamprovider 和 MemoryStreamProvider中作为默认选项使用的缓存监视器
+    /// GeneratorStreamProvider 和 MemoryStreamProvider 默认使用的缓存监视器。
     /// </summary>
     public class DefaultCacheMonitor : ICacheMonitor
     {
@@ -37,8 +37,8 @@ namespace Orleans.Providers.Streams.Common
         /// <summary>
         /// 初始化 <see cref="DefaultCacheMonitor"/> 类的新实例。
         /// </summary>
-        /// <param name="dimensions">缓存量度。</param>
-        /// <param name="instruments">下 Orleans 运行工具。</param>
+        /// <param name="dimensions">缓存指标维度。</param>
+        /// <param name="instruments">Orleans 运行时度量工具。</param>
         public DefaultCacheMonitor(CacheMonitorDimensions dimensions, OrleansInstruments instruments)
             : this(CreateDimensions(dimensions), GetMeter(instruments))
         {
@@ -47,8 +47,8 @@ namespace Orleans.Providers.Streams.Common
         /// <summary>
         /// 初始化 <see cref="DefaultCacheMonitor"/> 类的新实例。
         /// </summary>
-        /// <param name="dimensions">该监测仪报告的计量尺度的尺寸。</param>
-        /// <param name="instruments">下 Orleans 运行工具。</param>
+        /// <param name="dimensions">附加到此监视器报告的指标上的维度。</param>
+        /// <param name="instruments">Orleans 运行时度量工具。</param>
         protected DefaultCacheMonitor(KeyValuePair<string, object>[] dimensions, OrleansInstruments instruments)
             : this(dimensions, GetMeter(instruments))
         {
@@ -68,9 +68,9 @@ namespace Orleans.Providers.Streams.Common
 
         private DefaultCacheMonitor(KeyValuePair<string, object>[] dimensions, Meter meter)
         {
-            // 标记值从不在这里实际无效; 投影只会扩大数组元素的无效性注释
-            // 满足以下(可附加说明的) System.Diagnostics.Metrics API的,自下
-            // CLR 阵列类型相同,不管元素的无效注解。
+            // 此处的标记值实际上从不为 null；此转换仅放宽数组元素
+            // 类型的可空性注解，以满足下面带可空性注解的 System.Diagnostics.Metrics API 的要求。
+            // 这是安全的，因为无论元素的可空性注解如何，底层 CLR 数组类型都相同。
             _dimensions = (KeyValuePair<string, object?>[])(object)dimensions;
             _queueCacheSizeCounter = meter.CreateObservableCounter<long>(InstrumentNames.STREAMS_QUEUE_CACHE_SIZE, () => new(_totalCacheSize, _dimensions), unit: "bytes");
             _queueCacheMessageCountCounter = meter.CreateObservableCounter<long>(InstrumentNames.STREAMS_QUEUE_CACHE_LENGTH, () => new(_messageCount, _dimensions), unit: "messages");

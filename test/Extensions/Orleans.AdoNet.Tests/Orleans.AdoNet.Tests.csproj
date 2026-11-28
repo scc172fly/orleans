@@ -17,7 +17,7 @@
     <PackageReference Include="Npgsql" />
     <PackageReference Include="MySql.Data" />
     <PackageReference Include="NSubstitute" />
-    <PackageReference Include="System.Drawing.Common" /> <!-- 出于某种原因,它是 MySql.Data的附属关系。我们想强制它到一个特定的版本 -->
+    <PackageReference Include="System.Drawing.Common" /> <!-- 出于某种原因，这是 MySql.Data 的依赖项。我们希望强制使用特定版本。 -->
     <PackageReference Include="System.Diagnostics.PerformanceCounter" />
   </ItemGroup>
 

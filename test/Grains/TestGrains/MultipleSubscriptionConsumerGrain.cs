@@ -57,11 +57,11 @@ namespace UnitTests.Grains
         {
             logger.LogInformation("BecomeConsumer");
 
-            // 订阅此项的新柜台
+            // 为此订阅创建新计数器
             var count = new Counter();
             var error = new Counter();
 
-            // 流到溪流
+            // 获取流
             IStreamProvider streamProvider = this.GetStreamProvider(providerToUse);
             var stream = streamProvider.GetStream<int>(streamNamespace, streamId);
 
@@ -72,11 +72,11 @@ namespace UnitTests.Grains
                 (items) => OnNext(items, countCapture, count),
                 e => OnError(e, countCapture, error));
 
-            // 轨道计数台
+            // 跟踪计数器
             consumedMessageCounts.Add(handle, Tuple.Create(count, error));
             NotifyObservers();
 
-            // 返回处理
+            // 返回句柄
             return handle;
         }
 
@@ -86,7 +86,7 @@ namespace UnitTests.Grains
             if (handle == null)
                 throw new ArgumentNullException(nameof(handle));
 
-            // 订阅此项的新柜台
+            // 为此订阅创建新计数器
             Tuple<Counter, Counter>? counters;
             if (!consumedMessageCounts.TryGetValue(handle, out counters))
             {
@@ -100,11 +100,11 @@ namespace UnitTests.Grains
                 (items) => OnNext(items, countCapture, counters.Item1),
                 e => OnError(e, countCapture, counters.Item2));
 
-            // 轨道计数台
+            // 跟踪计数器
             consumedMessageCounts[newhandle] = counters;
             NotifyObservers();
 
-            // 返回处理
+            // 返回句柄
             return newhandle;
 
         }
@@ -115,7 +115,7 @@ namespace UnitTests.Grains
             // 取消订阅
             await handle.UnsubscribeAsync();
 
-            // 流的停止跟踪事件计数
+            // 停止跟踪此流的事件数量
             consumedMessageCounts.Remove(handle);
             countObservers.RemoveAll(observer => observer.HandleId == handle.HandleId);
         }
@@ -124,11 +124,11 @@ namespace UnitTests.Grains
         {
             logger.LogInformation("GetAllSubscriptionHandles");
 
-            // 流到溪流
+            // 获取流
             IStreamProvider streamProvider = this.GetStreamProvider(providerToUse);
             var stream = streamProvider.GetStream<int>(streamNamespace, streamId);
 
-            // 获取此流的所有活动订阅控点 。
+            // 获取此流的全部活动订阅句柄。
             return stream.GetAllSubscriptionHandles();
         }
 

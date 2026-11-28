@@ -11,7 +11,7 @@ using UnitTests.GrainInterfaces;
 namespace Orleans.Streaming.Kinesis.Tests
 {
     /// <summary>
-    /// 测试Kinesis流供应商在 grains 和客户之间不同的生产者/消费者配置。
+    /// 测试 Kinesis 流提供程序在 Grain 和客户端之间的各种生产者与消费者配置。
     /// </summary>
     [TestSuite("Functional")]
     [TestArea("Streaming")]
@@ -139,7 +139,7 @@ namespace Orleans.Streaming.Kinesis.Tests
             }
         }
 
-        ////------------------------ One to One ----------------------//
+        //// ------------------------ 一对一 ----------------------//
 
         [Fact]
         public async Task Kinesis_01_OneProducerGrainOneConsumerGrain()
@@ -165,7 +165,7 @@ namespace Orleans.Streaming.Kinesis.Tests
             await runner.StreamTest_04_OneProducerClientOneConsumerClient(TestContext.Current.CancellationToken);
         }
 
-        //和很多不同的人 grains ----------------------//
+        //------------------------- 多对多：不同 Grain ----------------------//
 
         [Fact]
         public async Task Kinesis_05_ManyDifferent_ManyProducerGrainsManyConsumerGrains()
@@ -191,7 +191,7 @@ namespace Orleans.Streaming.Kinesis.Tests
             await runner.StreamTest_08_ManyDifferent_ManyProducerClientsManyConsumerClients(TestContext.Current.CancellationToken);
         }
 
-        //和很多相同 grains ----------------------//
+        //------------------------- 多对多：相同 Grain ----------------------//
         [Fact]
         public async Task Kinesis_09_ManySame_ManyProducerGrainsManyConsumerGrains()
         {
@@ -216,7 +216,7 @@ namespace Orleans.Streaming.Kinesis.Tests
             await runner.StreamTest_12_ManySame_ManyProducerClientsManyConsumerGrains(TestContext.Current.CancellationToken);
         }
 
-        //------------------------ MANY to Many producer consumer same grain ----------------------//
+        // ------------------------ 同一 Grain 中的多生产者、多消费者 ----------------------//
 
         [Fact]
         public async Task Kinesis_13_SameGrain_ConsumerFirstProducerLater()

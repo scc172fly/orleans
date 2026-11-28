@@ -3,22 +3,22 @@ using System.Collections.Generic;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 代表目前与该网关连接的客户集。
+    /// 表示当前连接到此网关的客户端集合。
     /// </summary>
     internal interface IConnectedClientCollection
     {
         /// <summary>
-        /// 单质增加的收藏版本,可用于更改通知。
+        /// 集合的单调递增版本，可用于变更通知。
         /// </summary>
         long Version { get; }
 
         /// <summary>
-        /// 获得收藏中的客户数。
+        /// 获取集合中的客户端数量。
         /// </summary>
         int Count { get; }
 
         /// <summary>
-        /// 收集相关客户的识别码。
+        /// 获取已连接客户端的标识集合。
         /// </summary>
         List<GrainId> GetConnectedClientIds();
     }

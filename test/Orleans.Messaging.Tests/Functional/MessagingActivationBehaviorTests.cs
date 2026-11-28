@@ -26,7 +26,7 @@ public sealed class MessagingActivationBehaviorTests : MessagingBehaviorTestBase
         var services = Fixture.GetGrainContext(grain).ActivationServices;
         var manager = services.GetRequiredService<IJournaledStateManager>();
 
-        // 测试 grain 登记了一个名为“ 信箱” 的申请状态, 信息状态的未预设名称 。
+        // 测试 Grain 注册名称为 "inbox" 的应用程序状态，即消息传递状态不带前缀的名称。
         Assert.True(manager.TryGetStateMachine("inbox", out var applicationState));
         Assert.IsAssignableFrom<IDurableValue<string>>(applicationState);
         Assert.True(manager.TryGetStateMachine(MessagingStateNames.Inbox, out var inboxState));

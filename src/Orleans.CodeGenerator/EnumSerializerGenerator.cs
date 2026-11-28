@@ -30,8 +30,8 @@ internal static class EnumSerializerGenerator
         string assemblyName,
         TypeMetadataIdentity metadataIdentity)
     {
-        // 普通非通用电子元有一个编码字段,没有复印机或活动器。
-        // 更一般的形状继续通过编译-认知序列式连载器管道进行。
+        // 普通非泛型枚举包含一个编解码器字段，不包含复制器或激活器。
+        // 更一般的类型形式继续通过感知编译上下文的序列化器管道处理。
         if (!type.IsEnumType || type.IsGenericType || type.Members.Count > 0
             || type.SerializationHooks.Count > 0 || type.UseActivator)
         {

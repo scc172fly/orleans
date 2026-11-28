@@ -26,7 +26,7 @@ namespace UnitTests.Grains
     }
 
     /// <summary>
-    /// Grain 测试应用 IAsyncEnumerable 活动追踪。
+    /// 用于测试 IAsyncEnumerable 活动跟踪的 Grain 实现。
     /// </summary>
     public class AsyncEnumerableActivityGrain : Grain, IAsyncEnumerableActivityGrain
     {
@@ -48,7 +48,7 @@ namespace UnitTests.Grains
 
                 yield return data;
 
-                // 进行小规模拖延,以便适当开展宣传活动
+                // 短暂延迟，以便活动上下文正确传播
                 await Task.Yield();
             }
         }

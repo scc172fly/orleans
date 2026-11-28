@@ -5,44 +5,44 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// 映射 grains 在其他 grains 上援引的、其目标储存这些识别符号的任务,以及
-/// 将 grain的处决树与其它 grains 地址的线条识别符相连接。
+/// 将 Grain 在其他 Grain 上调用的任务映射为目标存储这些任务时使用的标识符，并
+/// 将 Grain 执行树中的节点映射为其他 Grain 用于寻址的传输标识符。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 根任务标识符在删除早期运行后每次 grain 保存其引用时都指定新运行,并且
-/// 每个运行的每个运行都有自己的化身, 是一个非。 一条信息, 命名执行树节点, 比如呼叫
-/// 另外一个 grain 或订阅,用其有线识别码命名, <c>{incarnation:N}/{nodeId}</c>: the incarnation of
-/// 结点树,以32十六进制数字格式格式,作为根段根段,然后是节点本身的段,例如
-/// <c>9f3c…e1/place-order/reserve</c>。因此,每个运行者都发送自己的信息,而通信的重复则保持了这些信息
-/// 除了前运行点之外, 命名前运行节点的回复会被确认为已老化。 线标识符
-/// 是运行和节点的纯函数, 在一个运行中进行重播和再放映, 以达到相同的任务。
+/// 每当 Grain 删除先前的一次运行后重新存储同一根任务的调用时，根任务标识符都会标识一次新的运行，而且
+/// 每次运行都有独立的运行世代标识，即一次性标识。标识执行树节点的消息，例如对
+/// 其他 Grain 的调用或订阅，以其传输标识符 <c>{incarnation:N}/{nodeId}</c> 标识节点：其中
+/// 运行世代标识作为根段，格式为 32 个十六进制数字，之后跟随节点本身的各段，例如
+/// <c>9f3c…e1/place-order/reserve</c>。因此，每次运行发送各自的消息，Messaging 的去重机制将它们与
+/// 先前运行的消息区分开来，指定先前运行节点的回复则被识别为过时消息。传输标识符
+/// 是运行和节点的纯函数，因此同一次运行中的重放与重新投递会访问同一个任务。
 /// </para>
 /// <para>
-/// A grain 援引了另一个 grain的任务,即作为自己处决的儿童。根识别码是按 grain测算的,
-/// 目标商店
-/// 呼叫者的范围 <c>$caller/{callerGrainId}/{wireId}</c>,所以两个来电人, 两个跑的打一个, 从来没有分享
-/// 状态,并绘制在边界的调用者识别特征地图:调用者使用的援引、取消和中止
-/// 目标发送的完成时 将线识别号命名为
-/// 用户。 由独立启动发送的根标识符本身会处理目标的根任务 。
+/// Grain 将其他 Grain 的任务作为自身某一执行实例的子任务调用。根标识按 Grain 划分作用域，
+/// 因此两个调用方可以在同一目标上调用具有相同标识的子任务。目标将各子任务存储在其
+/// 调用方作用域 <c>$caller/{callerGrainId}/{wireId}</c> 下，因此两个调用方或同一调用方的两次运行绝不共享
+/// 状态。目标在边界处映射调用方标识：调用方发送的调用、取消及中止消息
+/// 使用子任务的传输标识寻址，目标发送的完成消息以该传输标识作为
+/// 订阅者标识。分离启动发送的根标识直接寻址目标的根任务。
 /// </para>
 /// <para>
-/// 范围根 <see cref="Root"/>被保留:只有从其它 grains 中引用来创建任务, 所以没有
-/// 与范围任务共享一个标识符。
-/// 每项执行操作都保留其识别资料。
+/// 作用域的根 <see cref="Root"/> 是保留名称：只有来自其他 Grain 的调用才能在其下创建任务，因此
+/// 其他任务不会与作用域内的任务使用相同的标识符。由客户端和分离启动创建的根任务，以及
+/// 每个执行实例的操作均保留自身的标识符。
 /// </para>
 /// </remarks>
 internal static class CallerScope
 {
-    // 化身的“ N” 格式: 32 个十六进制数字 。
+    // 运行世代标识的 "N" 格式：32 个十六进制数字。
     private const int IncarnationLength = 32;
 
-    /// <summary>a 用于 grain 保存其他任务 grains 援引。</summary>
+    /// <summary>Grain 用于存储其他 Grain 所调用任务的保留根。</summary>
     public static TaskId Root { get; } = TaskId.CreateRoot("$caller");
 
     /// <summary>
-    /// 返回运行的行树的节点 <paramref name="nodeId"/> 的线条识别符
-    /// <paramref name="incarnation"/>: <c>{incarnation:N}/{nodeId}</c>.
+    /// 返回执行树的节点 <paramref name="nodeId"/> 的传输标识符，该执行树的运行世代标识为
+    /// <paramref name="incarnation"/>：<c>{incarnation:N}/{nodeId}</c>。
     /// </summary>
     public static TaskId GetWireId(Guid incarnation, TaskId nodeId)
     {
@@ -52,9 +52,9 @@ internal static class CallerScope
     }
 
     /// <summary>
-    /// 分割一个 <see cref="GetWireId"/> 格式化成其运行的化身和节点的线条识别符。
+    /// 将 <see cref="GetWireId"/> 格式化的传输标识符解析为其运行世代标识和节点。
     /// </summary>
-    /// <returns><see langword="false"/> 何时 <paramref name="wireId"/> 并不是一个线条识别器。</returns>
+    /// <returns><see langword="false"/> 表示 <paramref name="wireId"/> 不是传输标识符。</returns>
     public static bool TryParseWireId(TaskId wireId, out Guid incarnation, out TaskId nodeId)
     {
         incarnation = default;
@@ -67,16 +67,16 @@ internal static class CallerScope
     }
 
     /// <summary>
-    /// 返回任务 <paramref name="taskId"/> 的目标标识符,该任务是来自
-    /// <paramref name="caller"/> 地址:目标的根任务本身,或打电话者的孩子,其线路识别码
-    /// <paramref name="taskId"/> 属于呼叫者的范围。
+    /// 返回任务 <paramref name="taskId"/> 在目标上的标识符，该任务由
+    /// <paramref name="caller"/> 发出的消息寻址：可能是目标自身的根任务，也可能是调用方的子任务，后者的传输标识符为
+    /// <paramref name="taskId"/>，并位于调用方的作用域下。
     /// </summary>
     public static TaskId Resolve(GrainId caller, TaskId taskId) =>
         taskId.Parent().IsDefault ? taskId : GetTaskId(caller, taskId);
 
     /// <summary>
-    /// 返回一个目标存储孩子的识别符,该目标存储的孩子被 <paramref name="caller"/> 引用,其电线
-    /// 身份识别符号是 <paramref name="callerTaskId"/>。
+    /// 返回目标用于存储 <paramref name="caller"/> 所调用子任务的标识符，该子任务的传输
+    /// 标识符为 <paramref name="callerTaskId"/>。
     /// </summary>
     public static TaskId GetTaskId(GrainId caller, TaskId callerTaskId)
     {
@@ -86,9 +86,9 @@ internal static class CallerScope
     }
 
     /// <summary>
-    /// 返回哪个身份识别符 <paramref name="caller"/> 任务所在地址 <paramref name="taskId"/> 中,该列所
-    /// 儿童被援引:儿童的电线识别特征,或 <paramref name="taskId"/> 何时 <paramref name="caller"/> 并没有援引它
-    /// 范围范围内的。
+    /// 返回 <paramref name="caller"/> 寻址其已调用的任务 <paramref name="taskId"/> 时使用的标识符：
+    /// 即其子任务的传输标识符；如果 <paramref name="taskId"/> 并非由 <paramref name="caller"/> 在
+    /// 其作用域下调用的任务，则使用任务自身的标识符。
     /// </summary>
     public static TaskId GetCallerTaskId(GrainId caller, TaskId taskId)
     {
@@ -103,8 +103,8 @@ internal static class CallerScope
     }
 
     /// <summary>
-    /// 当 <paramref name="taskId"/> 是调用者范围或下方的预留根时投出,而该根仅是
-    /// 其它 grains 创建的引用 。
+    /// 如果 <paramref name="taskId"/> 是调用方作用域的保留根或位于其下，则抛出异常；这些任务只能由
+    /// 来自其他 Grain 的调用创建。
     /// </summary>
     public static void ThrowIfReserved(TaskId taskId)
     {

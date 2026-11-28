@@ -178,7 +178,7 @@ namespace UnitTests.Serialization
             var serialized = serializer.SerializeToArray(data);
             var subSequence = Encoding.UTF8.GetBytes("crazy_name");
 
-            // 序列数据应该有我们自定义的 [JsonProperty]名称“crazy_name ” 。
+            // 序列化数据应包含我们的自定义 [JsonProperty] 名称 'crazy_name'。
             Assert.Contains(ToString(subSequence), ToString(serialized));
 
             var deserialized = serializer.Deserialize<JsonPoco>(serialized);
@@ -200,7 +200,7 @@ namespace UnitTests.Serialization
         }
 
         /// <summary>
-        /// 使用自定义属性来区分类型,这些类型应该使用 JSON 编码进行序列化。
+        /// 使用自定义特性区分应由 JSON 编解码器序列化的类型。
         /// </summary>
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
         internal class JsonTypeAttribute : Attribute

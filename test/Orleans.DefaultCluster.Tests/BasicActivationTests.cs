@@ -8,14 +8,14 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// 基本测试 grain 活动和生命周期行为 Orleans.
-    /// 这些测试核查核心功能,包括:
-    /// - Grain 启动和身份管理
-    /// - 整个活性引爆的持久性国家
-    /// - 激活时处理错误
-    /// - 支持不同关键类型(长、高、乌隆)
-    /// - 请求进行背景传播
-    /// Orleans 使用激活模型,即 grains 点火启动,闲置时可以停止使用。
+    /// 测试 Orleans 中基本的 Grain 激活及生命周期行为。
+    /// 这些测试验证以下核心功能：
+    /// - Grain 激活及标识管理
+    /// - 跨激活实例的状态持久化
+    /// - 激活过程中的错误处理
+    /// - 支持不同键类型（long、Guid、ulong）
+    /// - 请求上下文传播
+    /// Orleans 采用按需激活模型，Grain 在需要时激活，并可在空闲时停用。
     /// </summary>
     [TestArea("Runtime")]
     public class BasicActivationTests : HostedTestClusterEnsureDefaultStarted
@@ -28,12 +28,12 @@ namespace DefaultCluster.Tests.General
         private void SetResponseTimeout(TimeSpan value) => this.Client.ServiceProvider.GetRequiredService<OutsideRuntimeClient>().SetResponseTimeout(value);
 
         /// <summary>
-        /// 测试基本 grain 激活,有长键和状态更新。
-        /// 证明:
-        /// - Grains 被调用时适当激活
-        /// - 在同一激活中,国家的变化持续存在
-        /// - 同一身份的多个 grain 引用同一个身份共享相同的激活
-        /// 这显示了 Orleans的虚拟行为者模型,即即使未激活也存在逻辑上的 grains 。
+        /// 测试使用 long 键的基本 Grain 激活及状态更新。
+        /// 验证以下情况：
+        /// - 访问 Grain 时会正确激活它
+        /// - 状态变化在同一激活实例内得以保留
+        /// - 指向同一标识的多个 Grain 引用共享同一激活实例
+        /// 这展示了 Orleans 的虚拟 Actor 模型：即使未激活，Grain 在逻辑上仍存在。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -59,9 +59,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 使用“ 指南” 键而不是长键来激活 grain 测试。
-        /// 证明 grain 系统妥善处理基于《指导原则》的 grain 身份。
-        /// 当没有自然数字识别符号时, grain 键通常使用图形用户界面D。
+        /// 测试使用 Guid 键而非 long 键的 Grain 激活。
+        /// 验证 Grain 系统能正确处理基于 Guid 的 Grain 标识。
+        /// 不存在自然数字标识符时，通常使用 GUID 作为 Grain 键。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -88,9 +88,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 启动 grain 时因无效参数而失败, 测试错误处理时会发生错误 。
-        /// 证明 grains 可在激活期间强制实施限制(e.g.,拒绝某些关键值)。
-        /// 这证明 Orleans在 grain 变异物被违反时能够快速失灵。
+        /// 测试因无效参数导致 Grain 激活失败时的错误处理。
+        /// 验证 Grain 可以在激活期间强制执行约束（例如拒绝某些键值）。
+        /// 这展示了 Orleans 在违反 Grain 不变量时快速失败的能力。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -101,7 +101,7 @@ namespace DefaultCluster.Tests.General
             long key = 0;
             try
             {
-                // 不允许 - 2 的键值
+                // 此处不允许键值为 -2
                 ITestGrain fail = this.GrainFactory.GetGrain<ITestGrain>(-2);
                 key = await fail.GetKey();
                 failed = false;
@@ -115,9 +115,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 当多个同时请求在激活 grain 期间失败时测试错误处理 。
-        /// 证明 Orleans 在没有资源泄漏或僵局的情况下妥善处理突发故障。
-        /// 所有同时提出的请求都应收到相同的启动失败。
+        /// 测试 Grain 激活期间多个并发请求失败时的错误处理。
+        /// 验证 Orleans 能正确处理突发失败，而不造成资源泄漏或死锁。
+        /// 所有并发请求都应收到同一个激活失败结果。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -129,7 +129,7 @@ namespace DefaultCluster.Tests.General
             var tasks = new List<Task>();
             try
             {
-                // 不允许 - 2 的键值
+                // 此处不允许键值为 -2
                 var fail = this.GrainFactory.GetGrain<ITestGrainLongOnActivateAsync>(-2);
                 for (int i = 0; i < 10000; i++)
                 {
@@ -151,9 +151,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grain 激活,并投放 ulong.MaxValue 到长(结果在 - 1)
-        /// 以数字 grain 键对边缘案例进行适当处理。
-        /// 这样确保 grain 系统正确处理所有长值。
+        /// 测试将 ulong.MaxValue 转换为 long（结果为 -1）后用作 Grain 键的激活。
+        /// 验证数字 Grain 键边界情况的正确处理。
+        /// 这确保 Grain 系统能正确处理 long 值的完整范围。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -179,16 +179,16 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 试验 grain 激活,且 ulong.MinValue (0)投放长。
-        /// 验证对零的正确处理为 grain 键。
-        /// 零是一个有效的 grain 密钥,应该与其他数字标识符一样工作。
+        /// 测试将 ulong.MinValue（0）转换为 long 后用作 Grain 键的激活。
+        /// 验证零作为 Grain 键时的正确处理。
+        /// 零是有效的 Grain 键，应与其他数字标识符一样正常工作。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
         [Fact, TestCategory("ActivateDeactivate"), TestCategory("GetGrain")]
         public async Task BasicActivation_ULong_MinValue()
         {
-            ulong key1AsUlong = ulong.MinValue; // =零 =
+            ulong key1AsUlong = ulong.MinValue; // == zero
             long key1 = (long)key1AsUlong;
 
             ITestGrain g1 = this.GrainFactory.GetGrain<ITestGrain>(key1);
@@ -208,9 +208,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grain 激活, int.MaxValue 作为 grain 键。
-        /// 验证大正 grain 键的正确处理。
-        /// 这不会确保有大量数字识别特征的溢出或精确问题。
+        /// 测试使用 int.MaxValue 作为 Grain 键的激活。
+        /// 验证正确处理较大的正数 Grain 键。
+        /// 这确保较大的数字标识符不会引发溢出或精度问题。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -236,9 +236,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grain 激活, long.MinValue 作为 grain 键。
-        /// 验证对最负 grain 密钥的适当处理。
-        /// 这样确保 grain 系统处理所有签名长值。
+        /// 测试使用 long.MinValue 作为 Grain 键的激活。
+        /// 验证正确处理最小的负数 Grain 键。
+        /// 这确保 Grain 系统能处理有符号 long 值的完整范围。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -264,9 +264,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grain 当激活 grains 执行多个接口。
-        /// 证明 grains 可通过各种收集类型返回其他 grains 的参考文献。
-        /// 这显示了 Orleans对复杂 grain 接口等级的支持。
+        /// 测试 Grain 实现多个接口时的激活。
+        /// 验证 Grain 可以通过不同集合类型返回对其他 Grain 的引用。
+        /// 这展示了 Orleans 对复杂 Grain 接口层次结构的支持。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -284,12 +284,12 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 在重新输入时信件超时后进行恢复测试 grains。
-        /// 证明:
-        /// - Grains 可以从队列中的过期邮件中恢复
-        /// - 事后有效请求在超时后成功
-        /// - 系统适当清理过期信息
-        /// 测试 Orleans' 抗瞬时故障和超时条件的复原力。
+        /// 测试可重入 Grain 在消息超时后的恢复。
+        /// 验证以下情况：
+        /// - Grain 可以从队列中的过期消息恢复
+        /// - 超时之后的有效请求能够成功完成
+        /// - 系统正确清理过期消息
+        /// 此测试验证 Orleans 应对瞬时故障和超时情况的能力。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -301,7 +301,7 @@ namespace DefaultCluster.Tests.General
             TimeSpan prevTimeout = this.GetResponseTimeout();
             try
             {
-                // 设定短响应时间, 并要求做长操作, 在 silo 队列中触发过期 msg 。
+                // 设置较短的响应时限，并请求执行长时间操作，以使 Silo 队列中的消息过期。
                 TimeSpan shortTimeout = TimeSpan.FromMilliseconds(1000);
                 this.SetResponseTimeout(shortTimeout);
 
@@ -323,10 +323,10 @@ namespace DefaultCluster.Tests.General
                     this.Logger.LogInformation("Done with stress iteration.");
                 }
 
-                // 稍候一小段,以确保 silo 中的过期 msgs 被三排处理。
+                // 稍等片刻，确保触发 Silo 中的消息过期。
                 Thread.Sleep(TimeSpan.FromSeconds(10));
 
-                // 设定常规响应时间回到时, 希望 msgs ot 成功 。
+                // 恢复正常响应时限，预期消息能够成功处理。
                 this.SetResponseTimeout(prevTimeout);
 
                 this.Logger.LogInformation("About to send a next legit request that should succeed.");
@@ -335,16 +335,16 @@ namespace DefaultCluster.Tests.General
             }
             finally
             {
-                // 设定常规响应时间回到时, 希望 msgs ot 成功 。
+                // 恢复正常响应时限，预期消息能够成功处理。
                 this.SetResponseTimeout(prevTimeout);
             }
         }
 
         /// <summary>
-        /// 测试请求将上下文从客户端传播到 grain。
-        /// 证明 Orleans 正确流环境环境环境(如跟踪身份或用户环境)
-        /// 从客户到 grain 方法处决。
-        /// 请求的背景对于分布式追踪和多租期设想方案至关重要。
+        /// 测试请求上下文从客户端传播到 Grain。
+        /// 验证 Orleans 正确传递环境上下文（例如跟踪 ID 或用户上下文）
+        /// 从客户端一直到 Grain 方法的执行。
+        /// 请求上下文对于分布式跟踪和多租户场景至关重要。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]

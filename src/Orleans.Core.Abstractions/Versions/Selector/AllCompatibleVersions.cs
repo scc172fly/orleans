@@ -3,13 +3,13 @@ using System;
 namespace Orleans.Versions.Selector
 {
     /// <summary>
-    /// Grain 界面版本选择器,可以选择任何兼容的版本。
+    /// 允许选择任何兼容版本的 Grain 接口版本选择器。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable, SuppressReferenceTracking]
     public sealed class AllCompatibleVersions : VersionSelectorStrategy
     {
         /// <summary>
-        /// 获得单吨的例子 这个类。
+        /// 获取此类的单例实例。
         /// </summary>
         public static AllCompatibleVersions Singleton { get; } = new AllCompatibleVersions();
     }

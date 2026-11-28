@@ -132,11 +132,11 @@ namespace DefaultCluster.Tests
                                 throw new InvalidOperationException($"Expected an Active membership version greater than one, encountered {update.Version}.");
                             }
 
-                            // 将目录保留在淡定的合并视图中,直到它明确刷新到活动视图。
+                            // 在目录显式刷新至 Active 视图之前，让其继续使用过时的 Joining 视图。
                             var joiningMembers = update.Members.ToImmutableDictionary(
                                 static member => member.Key,
                                 static member => new ClusterMember(member.Key, SiloStatus.Joining, member.Value.Name));
-                            // 更新前公布延迟视图元数据,然后才能发布。
+                            // 在 Refresh 能够释放延迟视图之前，先发布该视图的元数据。
                             Volatile.Write(ref this.staleDirectoryVersion, staleVersion);
                             Volatile.Write(ref this.activeDirectoryVersion, update.Version.Value);
                             yield return new ClusterMembershipSnapshot(joiningMembers, new(staleVersion));
@@ -173,7 +173,7 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 确保启动任务可以调用 grains。
+        /// 确保启动任务能够调用 Grain。
         /// </summary>
         [Fact]
         public async Task StartupTaskCanCallGrains()

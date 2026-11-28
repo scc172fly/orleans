@@ -3,12 +3,12 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.Diagnostics;
 
 /// <summary>
-/// 定义源产生失败且未处理例外时报告的诊断。
+/// 定义源代码生成因未处理异常而失败时报告的诊断。
 /// </summary>
 public static class UnhandledCodeGenerationExceptionDiagnostic
 {
     /// <summary>
-    /// 诊断识别器
+    /// 诊断标识符。
     /// </summary>
     public const string RuleId = DiagnosticRuleId.UnhandledCodeGenerationException;
     private const string Category = "Usage";

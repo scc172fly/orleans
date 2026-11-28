@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime.Messaging;
 
 /// <summary>
-/// 表示在发送信件或接收信件时,一个消息框无效。
+/// 指示发送或接收消息时消息帧无效。
 /// </summary>
 [GenerateSerializer]
 public sealed class InvalidMessageFrameException : OrleansException
@@ -20,7 +20,7 @@ public sealed class InvalidMessageFrameException : OrleansException
     /// <summary>
     /// 初始化 <see cref="InvalidMessageFrameException"/> 类的新实例。
     /// </summary>
-    /// <param name="message">描述错误的电文。</param>
+    /// <param name="message">描述错误的消息。</param>
     public InvalidMessageFrameException(string message) : base(message)
     {
     }
@@ -28,8 +28,8 @@ public sealed class InvalidMessageFrameException : OrleansException
     /// <summary>
     /// 初始化 <see cref="InvalidMessageFrameException"/> 类的新实例。
     /// </summary>
-    /// <param name="message">描述错误的电文。</param>
-    /// <param name="innerException">例外是造成当前例外的原因。</param>
+    /// <param name="message">描述错误的消息。</param>
+    /// <param name="innerException">导致当前异常的内部异常。</param>
     public InvalidMessageFrameException(string message, Exception innerException) : base(message, innerException)
     {
     }

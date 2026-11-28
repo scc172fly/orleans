@@ -7,18 +7,18 @@ using Orleans.Hosting;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// <see cref="ISiloBuilder"/>的推广方法。
+    /// <see cref="ISiloBuilder"/> 的扩展方法。
     /// </summary>
     public static class SiloBuilderExtensions
     {
         /// <summary>
-        /// 配置 silo 使用 <see cref="FaultInjectionGrainStorage" />.
+        /// 将 Silo 配置为使用 <see cref="FaultInjectionGrainStorage" />。
         /// </summary>
-        /// <param name="builder">建筑工。</param>
-        /// <param name="name">存储提供者的名称。</param>
-        /// <param name="configureOptions">内存存储配置代表。</param>
-        /// <param name="configureFaultInjectionOptions">注射故障供应商配置代表。</param>
-        /// <returns> silo 建筑工</returns>
+        /// <param name="builder">构建器。</param>
+        /// <param name="name">存储提供程序名称。</param>
+        /// <param name="configureOptions">内存存储配置委托。</param>
+        /// <param name="configureFaultInjectionOptions">故障注入提供程序的配置委托。</param>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder AddFaultInjectionMemoryStorage(
             this ISiloBuilder builder,
             string name,
@@ -30,13 +30,13 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// 配置 silo 使用 <see cref="FaultInjectionGrainStorage" />.
+        /// 将 Silo 配置为使用 <see cref="FaultInjectionGrainStorage" />。
         /// </summary>
-        /// <param name="builder">建筑工。</param>
-        /// <param name="name">存储提供者的名称。</param>
-        /// <param name="configureOptions">内存存储配置代表。</param>
-        /// <param name="configureFaultInjectionOptions">注射故障供应商配置代表。</param>
-        /// <returns> silo 建筑工</returns>
+        /// <param name="builder">构建器。</param>
+        /// <param name="name">存储提供程序名称。</param>
+        /// <param name="configureOptions">内存存储配置委托。</param>
+        /// <param name="configureFaultInjectionOptions">故障注入提供程序的配置委托。</param>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder AddFaultInjectionMemoryStorage(
             this ISiloBuilder builder,
             string name,

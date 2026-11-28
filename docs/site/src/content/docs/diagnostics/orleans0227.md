@@ -1,25 +1,25 @@
 ---
-title: "ORLEANS0227:在 DurableTask.RunInline 效果之外运行耐久操作"
-description: "理解 ORLEANS0227, 其中报告任务开始和版本检查在 DurableTask.RunInline 效果中, 投放效果, 并通过运行身体操作来修正它们 。"
+title: "ORLEANS0227: 在 DurableTask.RunInline 效果之外运行持久化操作"
+description: 了解 ORLEANS0227，它报告在 DurableTask.RunInline 效果内部启动任务或检查版本的行为，这些行为会引发异常。应通过在任务主体中运行这些操作进行修复。
 ms.date: 10/19/2026
 ms.topic: reference
 ---
 
 <a id="orleans0227-run-durable-operations-outside-durabletaskruninline-effects"></a>
 
-# ORLEANS0227:在 DurableTask.RunInline 效果之外运行耐久操作
+# ORLEANS0227: 在 DurableTask.RunInline 效果之外运行持久化操作
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 严重性 | 错误错误 |
-| 类别类 | 用法 |
-| 代码修正 | 无无无无 |
+| 严重性 | 错误 |
+| 类别 | 用法 |
+| 代码修复 | 无 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-代表大会 `DurableTask.RunInline` 效果开始一个耐久任务, `ScheduleAsync` 或 `Post`,或检查版本 `DurableTask.GetVersion`, `DurableVersion.Get`,或 `DurableVersion.IsAtLeast`:
+`DurableTask.RunInline` 效果的委托通过 `ScheduleAsync` 或 `Post` 启动持久化任务，或者通过 `DurableTask.GetVersion`、`DurableVersion.Get` 或 `DurableVersion.IsAtLeast` 检查版本：
 
 :::code source="snippets/durable-tasks/Orleans0227.cs" id="orleans0227_violation" language="csharp":::
 
@@ -27,24 +27,24 @@ ms.topic: reference
 
 ## 规则说明
 
-重放返回效果记录的结果, 但没有运行效果。 效果的持久操作只在第一时间运行: 重播会错过它, 而身体后来操作的识别器也会转移。
+重放返回效果已记录的结果，而不运行效果本身。效果中的持久化操作只会在首次运行时执行：重放将跳过该操作，主体后续操作的标识符也会发生偏移。
 
-运行时将持续操作的 `InvalidOperationException` 投入效果内,效果记录为例外结果。在抛出之前的效果变化有记录的例外。例如,版本检查在座位数递增后丢弃,加薪和身体的每一次运行,包括每次重播,都从 `DurableTask.RunInline`中获取记录下的例外。
+对于效果内部的持久化操作，运行时会抛出 `InvalidOperationException`，效果会将该异常记录为自身的结果。效果在抛出异常之前所做的变更与已记录的异常一起提交。在示例中，座位数量递增后版本检查抛出异常，该递增操作仍会提交；主体的每次运行（包括每次重放）都会从 `DurableTask.RunInline` 收到已记录的异常。
 
-内接 `DurableTask.RunInline` 效应作为附加效果的一部分,其结果作为附件结果的一部分。
+效果内部的 `DurableTask.RunInline` 调用作为外层效果的一部分运行，其结果也属于外层效果结果的一部分。
 
-效果见 [效果和步骤](../grains/durable-tasks.md#effects-and-steps)。
+有关效果，请参阅[效果与步骤](../grains/durable-tasks.md#effects-and-steps)。
 
 <a id="how-to-fix-violations"></a>
 
-## 如何纠正违反情况
+## 如何修复违规
 
-**运行在正文中的操作。** 检查版本,并在效果前后启动任务。通过关闭将值传递到效果中,并从中返回数值:
+**在主体中运行操作。** 在效果之前或之后检查版本并启动任务。通过效果的闭包传入值，并从效果返回值：
 
 :::code source="snippets/durable-tasks/Orleans0227.cs" id="orleans0227_fix" language="csharp":::
 
 <a id="when-to-suppress"></a>
 
-## 何时压缩
+## 何时抑制诊断
 
-保持诊断功能:一个持久的操作效果会产生 `InvalidOperationException`,结果记录为结果。
+请保持此诊断启用：效果内部的持久化操作会抛出 `InvalidOperationException`，效果会将其记录为自身的结果。

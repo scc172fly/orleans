@@ -5,44 +5,44 @@ using System.Threading.Tasks;
 namespace Orleans.Connections.Transport;
 
 /// <summary>
-/// 代表信息传输听众,提供主动信息传输。
+/// 表示消息传输侦听器，它提供活动的消息传输层。
 /// </summary>
 public abstract class MessageTransportListener : IAsyncDisposable
 {
     /// <summary>
-    /// 获得一个值,以显示此实例是否有效并应当使用。
+    /// 获取一个值，指示此实例是否有效且应使用。
     /// </summary>
     public abstract bool IsValid { get; }
 
     /// <summary>
-    /// 取出听众的名字
+    /// 获取侦听器名称。
     /// </summary>
     public abstract string ListenerName { get; }
 
     /// <summary>
-    /// 收集听众的特写。
+    /// 获取侦听器上可用的功能集合。
     /// </summary>
     public abstract IFeatureCollection Features { get; }
 
     /// <summary>
-    /// 绑在配置的终点上,开始监听连接。
+    /// 绑定到配置的终结点，并开始侦听传入连接。
     /// </summary>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>A <see cref="ValueTask"/> ,一旦听众受约束即完成。</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>一个在侦听器绑定完成后完成的 <see cref="ValueTask"/>。</returns>
     public abstract ValueTask BindAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 接受连接。
+    /// 接受一个传入连接。
     /// </summary>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>电文传输,或 <see langword="null"/> 如果听众已被阻止,</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>消息传输层；如果侦听器已停止，则为 <see langword="null"/>。</returns>
     public abstract ValueTask<MessageTransport?> AcceptAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 从配置的终点卸载 。
+    /// 解除与配置终结点的绑定。
     /// </summary>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>A <see cref="ValueTask"/> 代表操作。</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>表示该操作的 <see cref="ValueTask"/>。</returns>
     public abstract ValueTask UnbindAsync(CancellationToken cancellationToken = default);
 
     /// <inheritdoc/>

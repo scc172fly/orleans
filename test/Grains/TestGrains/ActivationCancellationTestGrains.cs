@@ -5,7 +5,7 @@ using UnitTests.GrainInterfaces;
 namespace UnitTests.Grains;
 
 /// <summary>
-/// 启动取消测试的基础等级 grains。
+/// 激活取消测试 Grain 的基类。
 /// </summary>
 public abstract class ActivationCancellationTestGrainBase : Grain
 {
@@ -21,7 +21,7 @@ public abstract class ActivationCancellationTestGrainBase : Grain
     }
 
     /// <summary>
-    /// 得到 TimeProvider 从 grain 运行时间。
+    /// 从 Grain 运行时获取 TimeProvider。
     /// </summary>
     protected TimeProvider TimeProvider => _grainRuntime.TimeProvider;
 
@@ -31,8 +31,8 @@ public abstract class ActivationCancellationTestGrainBase : Grain
 }
 
 /// <summary>
-/// Grain 投 OperationCanceledException 期间 OnActivateAsync 当取消标记被触发时 。
-/// 此模拟代码, 通过将取消符号转成自动同步方法来正确观察此标记 。
+/// 在 OnActivateAsync 中，取消令牌触发时抛出 OperationCanceledException 的 Grain。
+/// 模拟通过将取消令牌传递给异步方法来正确响应取消的代码。
 /// </summary>
 public class ActivationCancellation_ThrowsOperationCancelledGrain
     : ActivationCancellationTestGrainBase, IActivationCancellation_ThrowsOperationCancelledGrain
@@ -46,7 +46,7 @@ public class ActivationCancellation_ThrowsOperationCancelledGrain
     {
         Logger.LogDebug("OnActivateAsync starting for {GrainType}", GetType().Name);
 
-        // 检查是否我们应该模拟导致取消的延迟
+        // 检查是否应该模拟会导致取消的延迟
         if (RequestContext.Get("delay_activation_ms") is int delayMs && delayMs > 0)
         {
             Logger.LogDebug("Delaying activation by {DelayMs}ms", delayMs);
@@ -60,9 +60,9 @@ public class ActivationCancellation_ThrowsOperationCancelledGrain
 }
 
 /// <summary>
-/// Grain 投 ObjectDisposedException 期间 OnActivateAsync.
-/// 此模拟代码, 无法观察取消的标记, 但试图访问服务
-/// 注销后已处理的。
+/// 在 OnActivateAsync 中抛出 ObjectDisposedException 的 Grain。
+/// 模拟不响应取消令牌却尝试访问服务的代码，
+/// 而这些服务在取消后已被释放。
 /// </summary>
 public class ActivationCancellation_ThrowsObjectDisposedGrain
     : ActivationCancellationTestGrainBase, IActivationCancellation_ThrowsObjectDisposedGrain
@@ -84,7 +84,7 @@ public class ActivationCancellation_ThrowsObjectDisposedGrain
 
             var tcs = new TaskCompletionSource<bool>();
 
-            // 请求取消时重回注册以丢弃 ObjectDisposedException
+            // 注册回调，在请求取消时抛出 ObjectDisposedException
             await using var registration = cancellationToken.Register(() =>
             {
                 Logger.LogDebug("Cancellation was requested, throwing ObjectDisposedException");
@@ -103,7 +103,7 @@ public class ActivationCancellation_ThrowsObjectDisposedGrain
 }
 
 /// <summary>
-/// Grain 中丢弃通用例外 OnActivateAsync (与取消无关)。
+/// 在 OnActivateAsync 中抛出一般异常（与取消无关）的 Grain。
 /// </summary>
 public class ActivationCancellation_ThrowsGenericExceptionGrain
     : ActivationCancellationTestGrainBase, IActivationCancellation_ThrowsGenericExceptionGrain
@@ -117,7 +117,7 @@ public class ActivationCancellation_ThrowsGenericExceptionGrain
     {
         Logger.LogDebug("OnActivateAsync starting for {GrainType}", GetType().Name);
 
-        // 检查是否应该破例
+        // 检查是否应该抛出异常
         if (RequestContext.Get("throw_exception") is bool shouldThrow && shouldThrow)
         {
             Logger.LogDebug("Throwing generic exception as requested");
@@ -131,7 +131,7 @@ public class ActivationCancellation_ThrowsGenericExceptionGrain
 }
 
 /// <summary>
-/// 顺利启动的Grain , 没有问题 。
+/// 顺利完成激活的 Grain。
 /// </summary>
 public class ActivationCancellation_SuccessfulActivationGrain
     : ActivationCancellationTestGrainBase, IActivationCancellation_SuccessfulActivationGrain
@@ -151,8 +151,8 @@ public class ActivationCancellation_SuccessfulActivationGrain
 }
 
 /// <summary>
-/// Grain 投 TaskCanceledException 期间 OnActivateAsync.
-/// TaskCanceledException 继承的 OperationCanceledException 并且应该以同样的方式处理
+/// 在 OnActivateAsync 中抛出 TaskCanceledException 的 Grain。
+/// TaskCanceledException 继承自 OperationCanceledException，应采用相同的处理方式。
 /// </summary>
 public class ActivationCancellation_ThrowsTaskCancelledGrain
     : ActivationCancellationTestGrainBase, IActivationCancellation_ThrowsTaskCancelledGrain
@@ -172,20 +172,20 @@ public class ActivationCancellation_ThrowsTaskCancelledGrain
 
             var tcs = new TaskCompletionSource<bool>();
 
-            // 请求取消时重回注册以丢弃 TaskCanceledException
-            /*等待使用 var 登记= cancellationToken.Register(() * ______________________________________________________________________________________
+            // 注册回调，在请求取消时抛出 TaskCanceledException
+            /*await using var registration = cancellationToken.Register(() =>
             {
                 Logger.LogDebug("Cancellation was requested, throwing TaskCanceledException");
-                tcs.TrySetException(新的 TaskCanceledException("启动被取消"...无效, cancellationToken));
+                tcs.TrySetException(new TaskCanceledException("Activation was cancelled", null, cancellationToken));
             });*/
 
-            // 开始延迟任务( 没有取消标记)
+            // 启动延迟任务（不使用取消令牌）
             var delayTask = Task.Delay(TimeSpan.FromMilliseconds(delayMs), TimeProvider, CancellationToken.None);
 
-            // 等待完成延误或取消以触发例外
+            // 等待延迟完成，或等待取消触发异常
             var completedTask = await Task.WhenAny(delayTask, tcs.Task);
 
-            // 如果技术服务处的任务完成,它有一个例外,等待其推广
+            // 如果 TCS 对应的任务已完成，则其中包含异常；对其执行 await 以传播异常
             if (completedTask == tcs.Task)
             {
                 await tcs.Task;
@@ -199,8 +199,8 @@ public class ActivationCancellation_ThrowsTaskCancelledGrain
 }
 
 /// <summary>
-/// Grain 投 ObjectDisposedException (不是由于取消)
-/// 出于其他原因投掷的 ObjectDisposedException 试验不被视为取消。
+/// 无条件抛出 ObjectDisposedException（并非由于取消）的 Grain。
+/// 用于测试因其他原因抛出的 ObjectDisposedException 不会被视为取消。
 /// </summary>
 public class ActivationCancellation_ThrowsObjectDisposedUnconditionallyGrain
     : ActivationCancellationTestGrainBase, IActivationCancellation_ThrowsObjectDisposedUnconditionallyGrain
@@ -216,12 +216,12 @@ public class ActivationCancellation_ThrowsObjectDisposedUnconditionallyGrain
     {
         Logger.LogDebug("OnActivateAsync starting for {GrainType}", GetType().Name);
 
-        // 检查我们是否应该排除例外( 不请求取消)
+        // 检查是否应该抛出异常（未请求取消）
         if (RequestContext.Get("throw_object_disposed") is bool shouldThrow && shouldThrow)
         {
             Logger.LogDebug("Throwing ObjectDisposedException unconditionally (cancellation NOT requested)");
-            // 此模拟错误, 模拟 ObjectDisposedException 被扔出理由
-            // 与取消无关的注销 - 不应被视为 ActivationCancelledException
+            // 模拟由于与取消无关的原因抛出 ObjectDisposedException 的错误，
+            // 不应将这种情况视为 ActivationCancelledException
             throw new ObjectDisposedException("SomeObject", "This object was disposed for reasons unrelated to cancellation.");
         }
 
@@ -232,8 +232,8 @@ public class ActivationCancellation_ThrowsObjectDisposedUnconditionallyGrain
 }
 
 /// <summary>
-/// Grain 投 OperationCanceledException (不是因为取消象征性的取消而无条件取消)
-/// 出于其他原因投掷的 OperationCanceledException 试验不作为 ActivationCancelledException处理。
+/// 无条件抛出 OperationCanceledException（并非由于取消令牌被取消）的 Grain。
+/// 测试因其他原因抛出的 OperationCanceledException 不会被视为 ActivationCancelledException。
 /// </summary>
 public class ActivationCancellation_ThrowsOperationCancelledUnconditionallyGrain
     : ActivationCancellationTestGrainBase, IActivationCancellation_ThrowsOperationCancelledUnconditionallyGrain
@@ -249,13 +249,13 @@ public class ActivationCancellation_ThrowsOperationCancelledUnconditionallyGrain
     {
         Logger.LogDebug("OnActivateAsync starting for {GrainType}", GetType().Name);
 
-        // 检查我们是否应该排除例外( 不请求取消)
+        // 检查是否应该抛出异常（未请求取消）
         if (RequestContext.Get("throw_operation_cancelled") is bool shouldThrow && shouldThrow)
         {
             Logger.LogDebug("Throwing OperationCanceledException unconditionally (cancellation NOT requested on the passed token)");
-            // 模拟假想 OperationCanceledException 被扔出理由
-            // 取消标记
-            // 代码应该检查 cancellationToken.IsCancellationRequested 转换为 ActivationCancelledException
+            // 模拟由于与激活实例的取消令牌被取消无关的原因
+            // 而抛出 OperationCanceledException 的场景
+            // 代码应先检查 cancellationToken.IsCancellationRequested，再将异常转换为 ActivationCancelledException
             throw new OperationCanceledException("Operation was cancelled for reasons unrelated to activation cancellation.");
         }
 

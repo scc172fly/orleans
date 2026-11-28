@@ -1,54 +1,48 @@
 ---
-title: "逻辑一致性提供者"
-description: "比较内置 Orleans 事件自动递增日志一致性提供者。"
+title: 日志一致性提供程序
+description: 对比 Orleans 事件溯源内置的日志一致性提供程序。
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
 <a id="log-consistency-providers"></a>
+# 日志一致性提供程序
 
-# 逻辑一致性提供者
+`Microsoft.Orleans.EventSourcing` 包含三种提供程序：
 
-`Microsoft.Orleans.EventSourcing` 包括三个提供者:
-
-| 提供商 | 长期代表制 | <xref:Orleans.EventSourcing.JournaledGrain`2.RetrieveConfirmedEvents*> | 比额表审议 |
+| 提供程序 | 持久化表示 | <xref:Orleans.EventSourcing.JournaledGrain`2.RetrieveConfirmedEvents*> | 可扩展性考虑因素 |
 |---|---|---|---|
-| 国家储存 | 当前状态快照、 版本、 元数据 | 无 | 读写完整的国家记录 |
-| 日账储存 | 完整事件序列和元数据记录 | 是 是 | 读取和写入完整事件序列 |
-| 自定义存储 | Application-defined | 否, 通过 <xref:Orleans.EventSourcing.JournaledGrain`2> | 由执行决定 |
+| 状态存储 | 当前状态快照、版本、元数据 | 不支持 | 读写完整的状态记录 |
+| 日志存储 | 存放在一条记录中的完整事件序列及元数据 | 支持 | 读写完整的事件序列 |
+| 自定义存储 | 由应用程序定义 | 不支持通过 <xref:Orleans.EventSourcing.JournaledGrain`2> 检索 | 取决于具体实现 |
 
 <a id="state-storage"></a>
+## 状态存储
 
-## 国家储存
+<xref:Orleans.EventSourcing.StateStorage.LogConsistencyProvider> 使用配置的 <xref:Orleans.Storage.IGrainStorage> 持久化快照。它保存状态、已确认版本，以及用于避免故障后重复追加的元数据。
 
-<xref:Orleans.EventSourcing.StateStorage.LogConsistencyProvider> persists a snapshot using a configured <xref:Orleans.Storage.IGrainStorage>. It stores the state, confirmed version, and metadata used to avoid duplication after failures.
-
-当当前状态是持久性要求时使用它, 并且完全的事件历史也不需要。 因为每次更新都写了完整的快照, 大州会增加序列化、转移和存储成本。 事件检索无法提供是因为事件没有保留 。
+当持久化要求仅涉及当前状态而不需要完整事件历史时，使用此提供程序。由于每次更新都会写入完整快照，较大的状态会增加序列化、传输及存储成本。由于事件不会被保留，因此无法检索事件。
 
 <a id="log-storage"></a>
+## 日志存储
 
-## 日账储存
+<xref:Orleans.EventSourcing.LogStorage.LogConsistencyProvider> 使用 <xref:Orleans.Storage.IGrainStorage> 将完整事件序列作为一个对象持久化。它在内存中保留完整序列，并在更新时写入完整序列。
 
-<xref:Orleans.EventSourcing.LogStorage.LogConsistencyProvider> persists the complete event sequence as one object using <xref:Orleans.Storage.IGrainStorage>. It keeps the complete sequence in memory and writes the complete sequence on updates.
-
-它支持 <xref:Orleans.EventSourcing.JournaledGrain`2.RetrieveConfirmedEvents*>, 但其成本随整个历史而增加。 用于样本、 测试或绑定的日志。 它不是一个附加优化的生产事件仓库, 不适合无限制的事件序列 。
+它支持 <xref:Orleans.EventSourcing.JournaledGrain`2.RetrieveConfirmedEvents*>，但其成本会随完整历史的增长而增加。可将其用于示例、测试或大小有限的日志。它不是针对追加操作优化的生产级事件存储，不适合无界事件序列。
 
 <a id="custom-storage"></a>
-
 ## 自定义存储
 
-<xref:Orleans.EventSourcing.CustomStorage.LogConsistencyProvider> calls the real
-<xref:Orleans.EventSourcing.CustomStorage.ICustomStorageInterface`2> 方法
-由 grain执行:
+<xref:Orleans.EventSourcing.CustomStorage.LogConsistencyProvider> 调用由 Grain 实现的实际
+<xref:Orleans.EventSourcing.CustomStorage.ICustomStorageInterface`2> 方法：
 
 :::code language="csharp" source="../../snippets/compiled/EventSourcing/EventSourcingSnippets.cs" id="custom_storage_operations":::
 
-<xref:Orleans.EventSourcing.CustomStorage.ICustomStorageInterface`2.ReadStateFromStorage*> 返回已确认版本和状态。 <xref:Orleans.EventSourcing.CustomStorage.ICustomStorageInterface`2.ApplyUpdatesToStorage*> 必须从原子角度比较 `expectedVersion` 并附加/应用所提供序列。 在版本冲突时返回 `false`
+<xref:Orleans.EventSourcing.CustomStorage.ICustomStorageInterface`2.ReadStateFromStorage*> 返回已确认版本及状态。<xref:Orleans.EventSourcing.CustomStorage.ICustomStorageInterface`2.ApplyUpdatesToStorage*> 必须以原子方式比较 `expectedVersion` 并追加或应用传入的序列。版本冲突时返回 `false`。
 
-<xref:Orleans.EventSourcing.CustomStorage.ICustomStorageInterface`2.ClearStoredState*>
-当供应商支持破坏性日志时,当应用程序拥有状态被清除
-清除。
+当提供程序支持破坏性的日志清除操作时，<xref:Orleans.EventSourcing.CustomStorage.ICustomStorageInterface`2.ClearStoredState*>
+清除由应用程序管理的状态。
 
-提供商在例外情况下重新进行重试。 如果已承诺存储但回复丢失, 同样的更新可以再次提交。 执行时必须使回溯功能成为无能或检测到重复提交。 在更新持久之前恢复成功违反了语义学 <xref:Orleans.EventSourcing.JournaledGrain`2.ConfirmEvents*> 。
+提供程序在发生异常后会重试。如果存储已经提交但响应丢失，则可能再次提交同一更新。实现必须保证重试的幂等性，或检测重复提交。在更新实现持久化之前返回成功会违反 <xref:Orleans.EventSourcing.JournaledGrain`2.ConfirmEvents*> 的语义。
 
-使用自定义存储将附加事件存储、快照加事件、保留或特定应用程序迁移整合到一个优化的事件存储处。 执行过程拥有耐久性、同值货币、事件检索、压缩和系统演变。
+使用自定义存储可集成针对追加操作优化的事件存储、快照与事件结合的方案、数据保留策略或应用程序特定的迁移机制。具体实现负责持久性、并发控制、事件检索、压实以及架构演进。

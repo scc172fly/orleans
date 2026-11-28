@@ -5,9 +5,9 @@ using Xunit;
 namespace DependencyInjection.Tests.DefaultServiceProvider
 {
     /// <summary>
-    /// 使用默认 Microsoft 识别数据基础设施容器测试依赖性注射功能。
-    /// 从 DependencyInjectionGrainTestRunner 中继承所有测试案例,以核实
-    /// 默认 ServiceProvider 执行与 Orleans正确有效。
+    /// 测试使用默认 Microsoft DI 容器时的依赖注入功能。
+    /// 继承 DependencyInjectionGrainTestRunner 的所有测试用例，以验证
+    /// 默认 ServiceProvider 实现是否与 Orleans 正常协作。
     /// </summary>
     [TestCategory("DI"), TestCategory("Functional")]
     [TestSuite("Functional")]
@@ -16,7 +16,7 @@ namespace DependencyInjection.Tests.DefaultServiceProvider
     public class DependencyInjectionGrainTestsUsingDefaultServiceProvider : DependencyInjectionGrainTestRunner, IClassFixture<DependencyInjectionGrainTestsUsingDefaultServiceProvider.Fixture>
     {
         /// <summary>
-        /// 用于配置单 -silo 集的测试固定装置,并配置默认的 DI 容器。
+        /// 使用默认 DI 容器配置单 Silo 集群的测试夹具。
         /// </summary>
         public class Fixture : BaseTestClusterFixture
         {

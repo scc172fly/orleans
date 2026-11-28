@@ -14,7 +14,7 @@ using Xunit;
 
 namespace UnitTests.ActivationRepartitioningTests;
 
-// 可见以下图示: https://github.com/dotnet/orleans/pull/8877
+// 场景示意图见：https://github.com/dotnet/orleans/pull/8877
 [TestSuite("Functional")]
 [TestProvider("None")]
 [TestArea("Placement")]
@@ -73,22 +73,22 @@ public class CustomToleranceTests(CustomToleranceTests.Fixture fixture, ITestOut
         Assert.Equal(Silo2, f2_host);
         Assert.Equal(Silo2, f3_host);
 
-        Assert.Equal(Silo2, await x.GetAddress()); // X 留在 silo 2
+        Assert.Equal(Silo2, await x.GetAddress()); // X 仍位于 Silo 2。
 
         await TriggerExchangeRequestAfterFlushingBuffers(Silo1Repartitioner, cancellationToken);
 
-        // 此时,布局如下:
+        // 此时的分布如下：
 
-        // S1:E1-F1, E3-F3, sys.svc.clustering.dev休息(默认启动,同时存在于 silos中)
-        // S2:E2-F2,X,休息(默认启动,同时存在于 silos中)
+        // S1：E1-F1、E3-F3、sys.svc.clustering.dev、其余激活实例（两个 Silo 均有的默认激活实例）。
+        // S2：E2-F2、X、其余激活实例（两个 Silo 均有的默认激活实例）。
 
-        // 容忍2,如果我们一次忽略违约, sys.svc.clustering.dev和X(用来抵消平衡 sys.svc.clustering.dev)
-        // 最终我们总共4个启动在1号发射井1,2号发射 silo 2号发射,这意味着容忍得到尊重,所有远程电话都受到尊重
-        // 改为当地电话。
+        // 容差 <= 2；若忽略一份默认激活实例、sys.svc.clustering.dev 及用于抵消该实例的 X，
+        // 则 Silo 1 共计 4 个激活实例，Silo 2 共计 2 个，符合容差要求，且所有远程调用
+        // 均已转换为本地调用。
 
         await Test().WaitAsync(cancellationToken);
 
-        // 保证我们再次触发“ s1_ reconfreancer” , 不再向迁徙者屈服。
+        // 为确认结果，再次触发 's1_rebalancer'，此时应不再发生迁移。
         i = 0;
         while (i < 3)
         {
@@ -104,7 +104,7 @@ public class CustomToleranceTests(CustomToleranceTests.Fixture fixture, ITestOut
         await TriggerExchangeRequestAfterFlushingBuffers(Silo1Repartitioner, cancellationToken);
         await Test().WaitAsync(cancellationToken);
 
-        // 更确切地说,我们现在触发“s2_reconfulr”, 而这应该不再让位于任何迁徙。
+        // 为进一步确认，现在触发 's2_rebalancer'，同样应不再发生迁移。
         i = 0;
         while (i < 3)
         {
@@ -129,7 +129,7 @@ public class CustomToleranceTests(CustomToleranceTests.Fixture fixture, ITestOut
             f2_host = await f2.GetAddress();
             f3_host = await f3.GetAddress();
 
-            // 检查每个 grain 都与对同地合用同一地点
+            // 检查每个 Grain 是否与其配对 Grain 位于同一 Silo。
             Assert.Equal(f1_host, e1_host);
             Assert.Equal(f2_host, e2_host);
             Assert.Equal(f3_host, e3_host);
@@ -138,7 +138,7 @@ public class CustomToleranceTests(CustomToleranceTests.Fixture fixture, ITestOut
             Assert.False(locations.All(h => h.Equals(Silo1)), "Grains should not all be located on silo 1.");
             Assert.False(locations.All(h => h.Equals(Silo2)), "Grains should not all be located on silo 2.");
 
-            Assert.Equal(Silo2, await x.GetAddress()); // X 留在 silo 2
+            Assert.Equal(Silo2, await x.GetAddress()); // X 仍位于 Silo 2。
         }
     }
 
@@ -216,8 +216,8 @@ public class CustomToleranceTests(CustomToleranceTests.Fixture fixture, ITestOut
     }
 
     /// <summary>
-    /// 这样做只是为了在2 silos之间达成初步平衡,因为默认情况下初级
-    /// 激活时间比第二发多1次。sys.svc.clustering.dev'
+    /// 此举仅用于使两个 Silo 的初始负载均衡，因为默认情况下主 Silo
+    /// 比辅助 Silo 多一个激活实例，即 'sys.svc.clustering.dev'。
     /// </summary>
     [Immovable(ImmovableKind.Repartitioner)]
     public class X : Grain, IX
@@ -258,13 +258,13 @@ public class CustomToleranceTests(CustomToleranceTests.Fixture fixture, ITestOut
                     })
                     .Configure<ActivationRepartitionerOptions>(o =>
                     {
-                        // 使计时器实际上不开火!我们将手动援引协议。
+                        // 设置为让定时器实际上几乎不会触发！测试将手动调用协议。
                         o.MinRoundPeriod = TimeSpan.FromSeconds(299);
                         o.MaxRoundPeriod = TimeSpan.FromSeconds(300);
-                        // 做这个零,这样我们就可以不止一次援引议定书,而不必拖延试验。 
+                        // 将此值设为零，以便测试中无需延迟即可多次调用协议。
                         o.RecoveryPeriod = TimeSpan.Zero;
 
-                        // 消除试验中概率过滤造成的假阳性的可能性。
+                        // 排除测试中概率过滤可能导致误报的微小概率。
                         o.AnchoringFilterEnabled = false;
                     })
                     .AddActivationRepartitioner<HardLimitRule>()

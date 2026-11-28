@@ -2,11 +2,11 @@ using System;
 
 namespace Orleans.Storage
 {
-    // 以 http://home.comcast.net/~bretm/hash/7.html中的版本为基础,该版本基于
-    // http://burtleburtle.net/bob/hash/evahash.html中。
-    // Note that we only use the version that takes three ulongs, which was written by the Orleans 团队。
-    // 恢复执行的自 Orleans v3.7.2: https://github.com/dotnet/orleans/blob/b24e446abfd883f0e4ed614f5267eaa3331548dc/src/Orleans.Core.Abstractions/IDs/JenkinsHash.cs,
-    // 修剪和略微优化
+    // 基于 http://home.comcast.net/~bretm/hash/7.html 中的版本，而该版本又基于
+    // http://burtleburtle.net/bob/hash/evahash.html 中的版本。
+    // 注意，我们只使用 Orleans 团队编写的、接受三个 ulong 参数的版本。
+    // 从 Orleans v3.7.2 恢复的实现：https://github.com/dotnet/orleans/blob/b24e446abfd883f0e4ed614f5267eaa3331548dc/src/Orleans.Core.Abstractions/IDs/JenkinsHash.cs，
+    // 经过精简及少量优化。
     internal static class JenkinsHash
     {
         private static void Mix(ref uint aa, ref uint bb, ref uint cc)
@@ -30,7 +30,7 @@ namespace Orleans.Storage
             cc = c;
         }
 
-        // 这是詹金斯大麻的参考实施。
+        // 这是 Jenkins 哈希的参考实现。
         public static uint ComputeHash(ReadOnlySpan<byte> data)
         {
             int len = data.Length;

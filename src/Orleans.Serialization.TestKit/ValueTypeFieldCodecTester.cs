@@ -8,16 +8,16 @@ using Orleans.Serialization.Serializers;
 namespace Orleans.Serialization.TestKit
 {
     /// <summary>
-    /// 提供实地编码测试,将价值类型序列化。
+    /// 提供序列化值类型的字段编解码器的测试。
     /// </summary>
-    /// <typeparam name="TField">正在序列化的价值类型 。</typeparam>
-    /// <typeparam name="TCodec">字段编码类型。</typeparam>
+    /// <typeparam name="TField">正在序列化的值类型。</typeparam>
+    /// <typeparam name="TCodec">字段编解码器类型。</typeparam>
     public abstract class ValueTypeFieldCodecTester<TField, TCodec> : FieldCodecTester<TField, TCodec> where TField : struct where TCodec : class, IFieldCodec<TField>
     {
         /// <summary>
         /// 初始化 <see cref="ValueTypeFieldCodecTester{TField, TCodec}"/> 类的新实例。
         /// </summary>
-        /// <param name="output">测试输出助手。</param>
+        /// <param name="output">测试输出辅助工具。</param>
         protected ValueTypeFieldCodecTester(ITestOutputHelper output) : base(output)
         {
         }
@@ -25,14 +25,14 @@ namespace Orleans.Serialization.TestKit
         /// <summary>
         /// 初始化 <see cref="ValueTypeFieldCodecTester{TField, TCodec}"/> 类的新实例。
         /// </summary>
-        /// <param name="output">测试输出助手。</param>
-        /// <param name="fixture">提供共享序列器服务提供商的固定装置。</param>
+        /// <param name="output">测试输出辅助工具。</param>
+        /// <param name="fixture">提供共享序列化器服务提供程序的测试夹具。</param>
         protected ValueTypeFieldCodecTester(ITestOutputHelper output, SerializationTesterFixture fixture) : base(output, fixture)
         {
         }
 
         /// <summary>
-        /// 证明每个测试值都可使用注册的序列值转换器进行四舍五入。
+        /// 验证每个测试值都可以使用已注册的值序列化器完成往返转换。
         /// </summary>
         [Fact]
         public void ValueSerializerRoundTrip()
@@ -49,7 +49,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// 证明每种测试值都可以使用价值序列器供应商进行四舍五入。
+        /// 验证每个测试值都可以使用值序列化器提供程序完成往返转换。
         /// </summary>
         [Fact]
         public void DirectAccessValueSerializerRoundTrip()

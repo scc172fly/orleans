@@ -5,12 +5,12 @@ namespace Orleans.Runtime.Messaging;
 
 internal static class CorrelationIdGenerator
 {
-    // Base32 编码 - 以 Ascii 排序顺序排列, 容易基于文本的排序
+    // Base32 编码：采用 ASCII 排序顺序，以便按文本排序。
     private static readonly char[] s_encode32Chars = "0123456789ABCDEFGHIJKLMNOPQRSTUV".ToCharArray();
 
-    // 此应用程序例的种子 最后一字符连接 Id
-    // 12时00分午夜后,1月1日,001分
-    // 恢复的复数大约增加(_L)
+    // 使用自公元 0001 年 1 月 1 日午夜 12:00 起经过的时间，
+    // 以 100 纳秒为单位的间隔数量，为此应用程序实例的 _lastConnectionId 提供初始值，
+    // 使重启后的 _lastId 大致递增。
     private static long _lastId = DateTime.UtcNow.Ticks;
 
     public static string GetNextId() => GenerateId(Interlocked.Increment(ref _lastId));

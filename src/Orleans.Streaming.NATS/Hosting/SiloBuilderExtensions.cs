@@ -4,17 +4,17 @@ using Orleans.Hosting;
 namespace Orleans.Streaming.NATS.Hosting;
 
 /// <summary>
-/// 提供配置NATS 的扩展 JetStream 提供方在 Orleans silo.
+/// 提供用于在 Orleans Silo 上配置 NATS JetStream 提供程序的扩展方法。
 /// </summary>
 public static class SiloBuilderExtensions
 {
     /// <summary>
-    /// 配置 silo 使用 NATS 来使用NATS JetStream 提供商。
+    /// 配置 Silo 使用 NATS JetStream 提供程序。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <param name="name">流体提供者名称。</param>
-    /// <param name="configureOptions">用于配置提供者的代表。</param>
-    /// <returns>相同 <paramref name="builder"/> 实例。</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <param name="name">流提供程序名称。</param>
+    /// <param name="configureOptions">用于配置提供程序的委托。</param>
+    /// <returns>同一个 <paramref name="builder"/> 实例。</returns>
     public static ISiloBuilder AddNatsStreams(this ISiloBuilder builder, string name,
         Action<NatsOptions> configureOptions)
     {
@@ -24,15 +24,15 @@ public static class SiloBuilderExtensions
     }
 
     /// <summary>
-    /// 配置 silo 使用 NATS 来使用NATS JetStream 提供商。
+    /// 配置 Silo 使用 NATS JetStream 提供程序。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <param name="name">流体提供者名称。</param>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <param name="name">流提供程序名称。</param>
     /// <param name="configure">
-    /// 用于配置提供者的代表,或用于删除内嵌配置的 <see langword="null"/> 代表。
-    /// 包括 <see cref="NatsOptions.StreamName"/>在内的所需选项必须单独配置。
+    /// 用于配置提供程序的委托；传入 <see langword="null"/> 则省略内联配置。
+    /// 必须另行配置必需选项（包括 <see cref="NatsOptions.StreamName"/>）。
     /// </param>
-    /// <returns>相同 <paramref name="builder"/> 实例。</returns>
+    /// <returns>同一个 <paramref name="builder"/> 实例。</returns>
     public static ISiloBuilder AddNatsStreams(this ISiloBuilder builder, string name,
         Action<SiloNatsStreamConfigurator>? configure)
     {

@@ -6,19 +6,19 @@ param baseName string = 'orleansaca'
 
 param location string = resourceGroup().location
 
-@description('Immutable ACR image reference using an sha256 digest.')
+@description('使用 sha256 摘要的不可变 ACR 镜像引用。')
 param siloImage string
 
-@description('Immutable ACR image reference using an sha256 digest.')
+@description('使用 sha256 摘要的不可变 ACR 镜像引用。')
 param dashboardImage string
 
-@description('Immutable ACR image reference using an sha256 digest.')
+@description('使用 sha256 摘要的不可变 ACR 镜像引用。')
 param minimalApiClientImage string
 
-@description('Immutable ACR image reference using an sha256 digest.')
+@description('使用 sha256 摘要的不可变 ACR 镜像引用。')
 param workerServiceClientImage string
 
-@description('Immutable ACR image reference using an sha256 digest.')
+@description('使用 sha256 摘要的不可变 ACR 镜像引用。')
 param scalerImage string
 
 var clusterId = '${baseName}-cluster'

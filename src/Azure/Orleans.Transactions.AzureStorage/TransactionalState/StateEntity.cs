@@ -12,8 +12,8 @@ namespace Orleans.Transactions.AzureStorage
 {
     internal readonly struct StateEntity
     {
-        // 每个财产可以拥有64KB的数据,每个实体可以总共取1MB,因此15个全部财产可以取
-        // * 64=960 KB 离开房间,以获取主键、时间戳等
+        // 每个属性可容纳 64 KB 数据，每个实体总共可容纳 1 MB，因此 15 个写满的属性占用
+        // 15 * 64 = 960 KB，为主键、时间戳等预留空间。
         private const int MAX_DATA_CHUNK_SIZE = 64 * 1024;
         private const int MAX_STRING_PROPERTY_LENGTH = 32 * 1024;
         private const int MAX_DATA_CHUNKS_COUNT = 15;
@@ -37,7 +37,7 @@ namespace Orleans.Transactions.AzureStorage
 
         public long SequenceId => long.Parse(this.RowKey[RK_PREFIX.Length..], NumberStyles.AllowHexSpecifier);
 
-        // 行键范围从0000000000001到 s7fffffffffffffffffffffffffffff
+        // 行键范围为 s0000000000000001 至 s7fffffffffffffff。
         public const string RK_PREFIX = "s_";
         public const string RK_MIN = RK_PREFIX;
         public const string RK_MAX = RK_PREFIX + "~";

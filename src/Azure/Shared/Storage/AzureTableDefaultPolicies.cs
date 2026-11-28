@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Microsoft.Azure.Cosmos.Table;
 
 //
-// #ifs 数量可以减少(或删除), 一旦我们按照特性/区域分开测试项目, 否则我们会最终出现大错特错。
+// 一旦按功能或领域拆分测试项目，就可以减少甚至移除 #if；否则会产生类型歧义及生成错误。
 //
 
 #if ORLEANS_CLUSTERING
@@ -23,14 +23,14 @@ namespace Orleans.Transactions.AzureStorage
 #elif ORLEANS_DIRECTORY
 namespace Orleans.GrainDirectory.AzureStorage
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 {
     /// <summary>
-    /// 默认重试/超时设置的 Azure 存储工具类。
+    /// Azure Storage 默认重试及超时设置的实用类。
     /// </summary>
     /// <remarks>
-    /// 这些功能主要用于 Orleans 运行时的内部使用,但由于某些装配包装方面的限制,这类功能需要具有公众可见度。
+    /// 这些函数主要供 Orleans 运行时内部使用，但由于某些程序集打包限制，此类必须具有公共可见性。
     /// </remarks>
     public static class AzureTableDefaultPolicies
     {
@@ -69,12 +69,12 @@ namespace Orleans.GrainDirectory.AzureStorage
                 : TimeSpan.FromSeconds(5);
 
             TableCreationRetryPolicy = new LinearRetry(PauseBetweenTableCreationRetries, MaxTableCreationRetries); // 60 x 1s
-            TableCreationTimeout = TimeSpan.FromMilliseconds(PauseBetweenTableCreationRetries.TotalMilliseconds * MaxTableCreationRetries * 3);    // 3分钟 3分钟
+            TableCreationTimeout = TimeSpan.FromMilliseconds(PauseBetweenTableCreationRetries.TotalMilliseconds * MaxTableCreationRetries * 3);    // 3 分钟。
 
-            TableOperationRetryPolicy = new LinearRetry(PauseBetweenTableOperationRetries, MaxTableOperationRetries); // 5 x 100米s
-            TableOperationTimeout = TimeSpan.FromMilliseconds(PauseBetweenTableOperationRetries.TotalMilliseconds * MaxTableOperationRetries *6);    // 3秒3秒
+            TableOperationRetryPolicy = new LinearRetry(PauseBetweenTableOperationRetries, MaxTableOperationRetries); // 5 × 100 ms。
+            TableOperationTimeout = TimeSpan.FromMilliseconds(PauseBetweenTableOperationRetries.TotalMilliseconds * MaxTableOperationRetries *6);    // 3 秒。
 
-            BusyRetriesTimeout = TimeSpan.FromMilliseconds(PauseBetweenBusyRetries.TotalMilliseconds * MaxBusyRetries);  // 1分钟1分
+            BusyRetriesTimeout = TimeSpan.FromMilliseconds(PauseBetweenBusyRetries.TotalMilliseconds * MaxBusyRetries);  // 1 分钟。
         }
     }
 }

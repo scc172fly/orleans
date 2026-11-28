@@ -9,7 +9,7 @@ using Xunit;
 namespace Tester.StreamingTests
 {
     /// <summary>
-    /// 当客户从集中删除时, 测试存储流提供者的行为, 并分批发送信息 。
+    /// 测试客户端被从集群中移除时，使用批量消息的内存流提供程序的行为。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

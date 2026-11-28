@@ -7,7 +7,7 @@ using Xunit;
 namespace UnitTests.PlacementFilterTests;
 
 /// <summary>
-/// grain 放置过滤器登记、订购和执行测试。
+/// 测试 Grain 放置过滤器的注册、排序和执行。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]

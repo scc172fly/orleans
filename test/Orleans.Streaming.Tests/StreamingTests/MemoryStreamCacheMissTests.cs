@@ -6,7 +6,7 @@ using Xunit;
 namespace Tester.StreamingTests
 {
     /// <summary>
-    /// 测试自定义缓冲驱逐设置和流过滤器的内存流缓存误差情形。
+    /// 测试采用自定义缓存逐出设置及流筛选器时的内存流缓存未命中场景。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

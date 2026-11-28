@@ -22,8 +22,8 @@ internal sealed partial class DurableTaskGrainRuntime
         public TaskId TaskId { get; } = taskId;
         public GrainId RemoteTarget => _remoteTarget;
 
-        // 如果这是假的, 任务已经从存储中补水, 但还没有开始运行 。
-        // 如果任务无法连载, 就会发生这种情况, 就像当地的方法引用。
+        // 如果此值为 false，则任务已从存储恢复，但尚未开始运行。
+        // 如果任务不可序列化（例如本地方法调用），就会出现这种情况。
         public bool IsRunning { get; set; }
 
         public async ValueTask CancelAsync(string? reason, CancellationToken cancellationToken)
@@ -77,8 +77,8 @@ internal sealed partial class DurableTaskGrainRuntime
 
         public bool TrySetResponse(DurableTaskResponse response) => _responseTcs.TrySetResult(response);
 
-        /// <summary>使接柄服务员无法工作,因为激活停止,而任务在下一次激活时继续。</summary>
-        /// <remarks>处理器可能没有服务员,所以可以观察到故障。</remarks>
+        /// <summary>因激活实例停止而使句柄的等待者失败，而任务在下一激活实例中继续。</summary>
+        /// <remarks>句柄可能没有等待者，因此将该失败标记为已观察。</remarks>
         public void SetStopping(DurableTaskAttemptCanceledException exception)
         {
             if (_responseTcs.TrySetException(exception))

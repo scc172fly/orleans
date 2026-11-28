@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 namespace Orleans.Serialization.Session
 {
     /// <summary>
-    /// 引用的 <see cref="Type"/> 实例集。
+    /// 被引用的 <see cref="Type"/> 实例集合。
     /// </summary>
     public sealed class ReferencedTypeCollection
     {
@@ -16,10 +16,10 @@ namespace Orleans.Serialization.Session
         private uint _currentReferenceId;
 
         /// <summary>
-        /// 获取指定引用代号的类型。
+        /// 获取具有指定引用 ID 的类型。
         /// </summary>
-        /// <param name="reference">参考代号。</param>
-        /// <returns>引用类型。</returns>
+        /// <param name="reference">引用 ID。</param>
+        /// <returns>被引用的类型。</returns>
         public Type? GetReferencedType(uint reference)
         {
             if (!_referencedTypes.TryGetValue(reference, out var type))
@@ -30,24 +30,24 @@ namespace Orleans.Serialization.Session
         private static void ThrowUnknownReferencedType(uint id) => throw new UnknownReferencedTypeException(id);
 
         /// <summary>
-        /// 获取指定引用代号的类型。
+        /// 获取具有指定引用 ID 的类型。
         /// </summary>
-        /// <param name="reference">参考代号。</param>
-        /// <param name="type">引用类型。</param>
-        /// <returns><see langword="true" /> 如果找到参考类型,则以其他方式 <see langword="false" /> 。</returns>
+        /// <param name="reference">引用 ID。</param>
+        /// <param name="type">被引用的类型。</param>
+        /// <returns><see langword="true" />，如果找到被引用的类型；否则为 <see langword="false" />。</returns>
         public bool TryGetReferencedType(uint reference, out Type? type) => _referencedTypes.TryGetValue(reference, out type);
 
         /// <summary>
-        /// 记录带有指定标识符的类型。
+        /// 记录具有指定标识符的类型。
         /// </summary>
         public void RecordReferencedType(Type? type) => _referencedTypes.Add(++_currentReferenceId, type);
 
         /// <summary>
-        /// 获取指定类型的身份识别符。
+        /// 获取指定类型的标识符。
         /// </summary>
         /// <param name="type">类型。</param>
-        /// <param name="reference">参考。</param>
-        /// <returns><see langword="true" /> 如果该类型被指为先天性, <see langword="false" /> 否则。</returns>
+        /// <param name="reference">引用。</param>
+        /// <returns><see langword="true" />，如果该类型此前已被引用；否则为 <see langword="false" />。</returns>
         public bool TryGetTypeReference(Type type, out uint reference) => _referencedTypeToIdMap.TryGetValue(type, out reference);
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace Orleans.Serialization.Session
         }
 
         /// <summary>
-        /// 重设此实例 。
+        /// 重置此实例。
         /// </summary>
         public void Reset()
         {

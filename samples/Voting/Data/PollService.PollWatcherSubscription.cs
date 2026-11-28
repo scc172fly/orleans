@@ -27,9 +27,9 @@ public sealed partial class PollService
             await _pollGrain.StartWatching(_watcherReference);
             while (await timer.WaitForNextTickAsync(_cancellation.Token))
             {
-                // 当客户端断开时, .NET 垃圾收集器可以清理监视对象。
-                // 当发生这种情况时,我们将停止观察。
-                // 在此之前,定期进行投票 grain 让它知道我们仍在监视
+                // 客户端断开连接后，.NET 垃圾回收器可以回收观察者对象。
+                // 发生这种情况时，将停止观察。
+                // 在此之前，定期向投票 Grain 发送心跳，以告知它我们仍在观察。
                 if (_watcher.IsAlive)
                 {
                     try
@@ -38,17 +38,17 @@ public sealed partial class PollService
                     }
                     catch
                     {
-                        // 忽略例外,我们应该记录下来
+                        // 忽略异常。应当记录此异常的日志。
                     }
                 }
                 else
                 {
-                    // 投票观察对象已被清理干净, 所以不要更新其订阅内容 。
+                    // 投票观察者对象已被回收，因此停止刷新其订阅。
                     break;
                 }
             }
 
-            // 通知民意调查 grain ,我们不再感兴趣
+            // 通知投票 Grain，我们不再关注其更新。
             _pollGrain.StopWatching(_watcherReference).Ignore();
         }
 
@@ -61,7 +61,7 @@ public sealed partial class PollService
             }
             catch
             {
-                // TOD: 日志
+                // TODO：记录日志。
             }
 
             _cancellation.Dispose();

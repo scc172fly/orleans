@@ -7,7 +7,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Metadata
 {
     /// <summary>
-    /// <see cref="GrainType"/> 与执行 <see cref="Type"/>之间的绘图。
+    /// <see cref="GrainType"/> 与实现它的 <see cref="Type"/> 之间的映射。
     /// </summary>
     public class GrainClassMap
     {
@@ -19,7 +19,7 @@ namespace Orleans.Metadata
         /// </summary>
         /// <param name="typeConverter">类型转换器。</param>
         /// <param name="classes">
-        /// 保留公共建筑工材的 grain 类,登记为:
+        /// 保留了公共构造函数的 Grain 类，注册方法为
         /// <see cref="Configuration.GrainTypeOptions.AddClass(Type)"/> 或
         /// <see cref="Serialization.Configuration.TypeManifestOptions.AddInterfaceImplementation(Type)"/>.
         /// </param>
@@ -38,11 +38,11 @@ namespace Orleans.Metadata
             => new(typeConverter, classes);
 
         /// <summary>
-        /// 返回 grain 与所提供 grain 类型。
+        /// 返回与提供的 Grain 类型对应的 Grain 类类型。
         /// </summary>
-        /// <param name="grainType">类型 grain.</param>
-        /// <param name="grainClass">下 grain 其公共建筑机舱为用于激活而保留。</param>
-        /// <returns><see langword="true"/> 如果找到相应的 grain 类,则 <see langword="false"/> 。</returns>
+        /// <param name="grainType">Grain 的类型。</param>
+        /// <param name="grainClass">保留公共构造函数以供激活使用的 Grain 类。</param>
+        /// <returns>如果找到对应的 Grain 类，则为 <see langword="true"/>，否则为 <see langword="false"/>。</returns>
         public bool TryGetGrainClass(
             GrainType grainType,
             [NotNullWhen(true), DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] out Type? grainClass)

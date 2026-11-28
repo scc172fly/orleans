@@ -1,90 +1,90 @@
 ---
-title: "优优优停机和升级"
-description: "使用优雅、滚动或蓝绿色战略,在 Orleans 应用程序中进行规模调整并部署应用。"
+title: 优雅关闭与升级
+description: 使用优雅关闭、滚动升级或蓝绿部署策略缩减 Orleans 应用程序的规模及进行部署。
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
 <a id="graceful-shutdown-and-upgrades"></a>
 
-# 优优优停机和升级
+# 优雅关闭与升级
 
-Orleans 容忍突然的流程损失,但优雅的关闭会减少失败电话和避免不必要的恢复工作。 正确性决不能依赖优雅的关闭,因为一个进程、主机或网络可以毫无警告地失败。
+Orleans 能够容忍进程突然退出，但优雅关闭可以减少调用失败并避免不必要的恢复工作。系统的正确性绝不能依赖优雅关闭，因为进程、主机或网络可能毫无预警地发生故障。
 
 <a id="graceful-shutdown-and-scale-in"></a>
 
-## 优优异关闭和规模化
+## 优雅关闭与缩容
 
-对于被删除的每个实例:
+对于每个将被移除的实例：
 
-1. 停止接受新的应用程序流量, 报告尚未准备好 。
-1. 停止接受新项目, 以接受与应用程序相关的特定背景工作 。
-1. 问 .NET 等待等待 <xref:Microsoft.Extensions.Hosting.IHost.StopAsync*?displayProperty=nameWithType> 或正常的主机终止。
-1. 允许 Orleans 离开集群成员,停止使用或转移运行时间责任。
-1. 只有在关闭期限到期后终止该程序。
+1. 停止接收新的应用程序流量，并报告实例未就绪。
+1. 停止应用程序专用的后台工作接收新的工作项。
+1. 请求 .NET 主机停止，并等待 <xref:Microsoft.Extensions.Hosting.IHost.StopAsync*?displayProperty=nameWithType> 完成或主机正常终止。
+1. 允许 Orleans 退出集群成员资格，并停用激活实例或转移运行时职责。
+1. 仅在关闭期限到期后才终止进程。
 
-管弦乐队终止的宽限期必须超过主机关闭超时 .NET 。 测量负载和供养人延迟休假的间隔下的实际时间长度。
+编排器的终止宽限期必须长于 .NET 主机的关闭超时时间。在负载下测量实际关闭耗时，并为提供程序的延迟留出余量。
 
-逐步缩放。 一次删除一个失败域, 等到会籍稳定、 继续 silos 吸收激活和延迟恢复正常。 不要将组群降低到测试的冗余或容量底线以下 。
+逐步缩容。每次移除一个故障域，等待成员资格稳定、剩余 Silo 接纳激活实例且延迟恢复正常后，再继续操作。不要将集群缩减到低于经过测试的冗余度或容量下限。
 
-有关主机API,见 [关闭 Orleans](../host/configuration-guide/shutting-down-orleans.md) 。
+有关主机 API，请参阅[关闭 Orleans](../host/configuration-guide/shutting-down-orleans.md)。
 
 <a id="rolling-upgrades"></a>
 
-## 滚式升级
+## 滚动升级
 
-使用滚动升级, 当新旧版本能够安全共享时:
+当新旧版本可以安全地共享以下内容时，使用滚动升级：
 
-- Grain 接口和序列式有效载荷。
-- 状态 grain
-- 提醒,流,和提供者的计划。
-- 外部副作用和重复记录。
-- 集群配置和运输环境。
+- Grain 接口及序列化后的有效载荷。
+- 已持久化的 Grain 状态。
+- 提醒器、流和提供程序的架构（schema）。
+- 外部副作用及去重记录。
+- 集群配置及传输设置。
 
-推出前:
+在推出新版本之前：
 
-1. 升级客户端和 silos ,顺序与两个版本一致。
-1. 首先使用添加剂合同更改; 不重复使用或重新编号序列器字段ID。
-1. 使储存迁移与后向兼容,独立可逆。
-1. 检查最低准备状态silo 计算和快速部署能力。
-1. 测试回滚,同时两种版本和两种状态格式都存在。
+1. 按新旧版本都兼容的顺序升级客户端和 Silo。
+1. 优先采用仅添加内容的契约变更；不要重用或重新编号序列化器字段 ID。
+1. 确保存储迁移向后兼容，并且可以独立回退。
+1. 验证就绪 Silo 数量的下限和升级期间的额外容量。
+1. 在新旧版本及两种状态格式同时存在的情况下测试回滚。
 
-一次替换 silos 的捆绑数。 当错误率、 延迟度、 会籍量、 依赖性负载或启动失败超过推出门槛时暂停 。
+每次只替换有限数量的 Silo。当错误率、延迟、成员资格频繁变动、依赖项负载或激活失败超过发布阈值时，暂停升级。
 
-Orleans grain 版本可以在兼容的 grain 执行之间调用电话,但不能任意应用或储存更改。见 [部署 grains新版本](../grains/grain-versioning/deploying-new-versions-of-grains.md) 和 [后向兼容准则](../grains/grain-versioning/backward-compatibility-guidelines.md)。
+Orleans 的 Grain 版本管理功能可以在兼容的 Grain 实现之间路由调用，但并不能使任意应用程序变更或存储变更都具备兼容性。请参阅[部署新版 Grain](../grains/grain-versioning/deploying-new-versions-of-grains.md)及[向后兼容性指南](../grains/grain-versioning/backward-compatibility-guidelines.md)。
 
 <a id="release-specific-migration-guidance"></a>
 
-### 特定排放的移徙指南
+### 特定版本的迁移指南
 
 <a id="uniform-silo-hash-api-compatibility"></a>
 <a id="distributed-directory-upgrade-compatibility"></a>
 
-遵循遗留的切换指令程序 [Grain 目录迁移](../migration/grain-directory.md#legacy-to-distributed-directory-upgrade) 、分区兼容性 [现有分配式指令升级](../migration/grain-directory.md#upgrade-existing-distributed-directory-clusters) 和受影响呼叫者的 [统一 API 适应](../migration/grain-directory.md#uniform-silo-hash-api-compatibility) 。
+按照 [Grain 目录迁移](../migration/grain-directory.md#legacy-to-distributed-directory-upgrade)中的步骤从旧版目录切换；参阅[升级现有分布式目录集群](../migration/grain-directory.md#upgrade-existing-distributed-directory-clusters)以确保分区兼容性；受影响的调用方应参照[均匀哈希 API 适配](../migration/grain-directory.md#uniform-silo-hash-api-compatibility)进行调整。
 
 <a id="blue-green-upgrades"></a>
 
-## 蓝绿色升级改造
+## 蓝绿升级
 
-当版本无法在一个 Orleans 组中安全共存时使用蓝色绿色部署。
+当不同版本无法在同一个 Orleans 集群内安全共存时，使用蓝绿部署。
 
-- 给以蓝色和绿色的 `ClusterId` 不同值。
-- 决定它们是否可以共享 grain 存储。 共享只有在两个版本都能读写相同的记录而没有同时的所有权或不相容的副作用时才安全。
-- 应用系统反向外部交通路线,而不是在 silo 端点前设置负载平衡器。
-- 保持以前的环境,直到各州兼容性和倒退限制允许迁离为止。
+- 为蓝色和绿色环境分配不同的 `ClusterId` 值。
+- 确定两者能否共享 Grain 存储。只有当两个版本都能读写同一批记录且不会同时拥有同一状态，也不会产生不兼容的副作用时，共享存储才是安全的。
+- 在应用程序入口路由外部流量，而不是在 Silo 终结点前部署负载均衡器。
+- 保留原环境，直至状态兼容性及回滚约束允许将其移除。
 
-对于有名的截断,请使用其中一项明确战略:
+对于有状态的切换，明确采用下列策略之一：
 
-- Quiesce写道,移民状态,验证,然后交换通量。
-- 通过申请所有移民协议和和解双面写字。
-- 使用单独的国营仓库,进行离线转移。
+- 暂停写入、迁移状态、验证，然后切换流量。
+- 使用由应用程序管理的迁移协议进行双写，并对数据进行协调核对。
+- 使用独立的状态存储并执行离线数据迁移。
 
-从未在相同的变异 grain 状态发现两个互不兼容的活跃组群, 并假定 Orleans 成员将协调它们。 成员资格范围由集束标识决定; 它不会提供跨集群所有权 。
+切勿将两个互不兼容的活动集群指向同一份可变的 Grain 状态，并假定 Orleans 成员资格机制会协调它们。成员资格以集群 ID 为作用域，并不提供跨集群的所有权管理。
 
 <a id="rollback"></a>
 
-## 返回回滚
+## 回滚
 
-滚回计划必须包含代码、配置、系统图、证书和持续状态。 如果新版本已经写入数据,旧版本无法读取,只返回图像不是倒退。
+回滚计划必须涵盖代码、配置、架构（schema）、凭据及已持久化状态。如果新版本已经写入旧版本无法读取的数据，那么仅还原容器镜像并不构成完整的回滚。
 
-当安全阈值超过时停止推出。 保存失败事件的日志和跟踪, 恢复已知兼容版本的能力, 避免重复自动重试加入该成员。
+当超出安全阈值时，停止推出新版本。保留故障实例的日志和跟踪信息，使用已知兼容的版本恢复容量，并避免反复自动重试而造成成员资格频繁变动。

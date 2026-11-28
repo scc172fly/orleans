@@ -1,97 +1,97 @@
 ---
-title: "Grain 计时器"
-description: "将 Orleans grain 转动时的周期工作排入启动范围。"
+title: Grain 定时器
+description: 以 Orleans Grain 执行轮次的方式调度激活实例范围内的周期性工作。
 ms.date: 10/15/2026
 ms.topic: concept-article
 ---
 
 <a id="grain-timers"></a>
 
-# Grain 计时器
+# Grain 定时器
 
-A grain 定期工作 grain 激活。 每个回调执行时, 以 A grain 启动并随后 Orleans 请求安排、跟踪和 grain 运行时拥有激活寿命的定时器, 当启动失效时丢弃它 。
+Grain 定时器为一个 Grain 激活实例调度周期性工作。每次回调都作为该激活实例上的一个 Grain 执行轮次执行，并遵循 Orleans 的请求调度、跟踪和 Grain 调用筛选器行为。运行时在整个激活实例生存期内管理定时器，并在该实例停用时丢弃它。
 
-使用 a grain 使用一个 [提醒提醒](reminders.md) 当附表属于逻辑 grain 并且必须活下来活化或集群生命周期变化。
+对于生存期和状态都属于当前激活实例的频繁工作，请使用 Grain 定时器。如果调度计划属于逻辑 Grain，并且必须在激活实例或集群生命周期变化后继续存在，请使用 [提醒器](reminders.md)。
 
-要作为 grain 请求再运行一次回调,请使用 <xref:Orleans.GrainBaseExtensions.RunRequestAsync*>。见 [请求安排](request-scheduling.md#run-background-work-as-a-grain-request)。
+如需将回调作为一次 Grain 请求执行，请使用 <xref:Orleans.GrainBaseExtensions.RunRequestAsync*>。参阅 [请求调度](request-scheduling.md#run-background-work-as-a-grain-request)。
 
 <a id="register-a-grain-timer"></a>
 
-## 注册 grain 计时器
+## 注册 Grain 定时器
 
-登记计时器 <xref:Orleans.GrainBaseExtensions.RegisterGrainTimer*>. <xref:Orleans.Grain.RegisterTimer*> 已经过时。
+使用 <xref:Orleans.GrainBaseExtensions.RegisterGrainTimer*> 注册定时器。<xref:Orleans.Grain.RegisterTimer*> 已过时。
 
 :::code language="csharp" source="../snippets/compiled/Grains/WorkersAndTimersSnippets.cs" id="grain_timer":::
 
-<xref:Orleans.GrainBaseExtensions.RegisterGrainTimer*> 返回 <xref:Orleans.Runtime.IGrainTimer>。当激活需要更改或停止计划时, 保留控点 。
+<xref:Orleans.GrainBaseExtensions.RegisterGrainTimer*> 返回 <xref:Orleans.Runtime.IGrainTimer>。如果激活实例需要修改或停止调度计划，请保留该句柄。
 
 <a id="timer-behavior"></a>
 
-## 计时器行为
+## 定时器行为
 
-<xref:Orleans.Runtime.GrainTimerCreationOptions> controls the initial schedule and callback behavior:
+<xref:Orleans.Runtime.GrainTimerCreationOptions> 控制初始调度计划和回调行为：
 
-| 财产 | 默认默认 | 运行时行为 |
+| 属性 | 默认值 | 运行时行为 |
 |---|---:|---|
-| <xref:Orleans.Runtime.GrainTimerCreationOptions.DueTime> | 需要 | 延迟第一次调回。 <xref:System.TimeSpan.Zero> 立即安排时间, <xref:System.Threading.Timeout.InfiniteTimeSpan> 使计时器暂停。 |
-| <xref:Orleans.Runtime.GrainTimerCreationOptions.Period> | 需要 | 在当前回调完成后延迟下次回调。 <xref:System.Threading.Timeout.InfiniteTimeSpan> 创建一个单列的回调 。 |
-| <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave> | `false` | 应用 grain的正常恢复规则。 `true` 允许回调与其他 grain 电话和计时器交叉接驳。 |
-| <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive> | `false` | 控制每个回调是否延长激活的闲置寿命。 |
+| <xref:Orleans.Runtime.GrainTimerCreationOptions.DueTime> | 必填 | 延迟首次回调。<xref:System.TimeSpan.Zero> 立即调度回调，<xref:System.Threading.Timeout.InfiniteTimeSpan> 使定时器保持暂停。 |
+| <xref:Orleans.Runtime.GrainTimerCreationOptions.Period> | 必填 | 当前回调完成后，延迟下一次回调。<xref:System.Threading.Timeout.InfiniteTimeSpan> 只调度一次回调。 |
+| <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave> | `false` | 遵循 Grain 的正常可重入规则。`true` 允许回调与其他 Grain 调用和定时器交错执行。 |
+| <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive> | `false` | 控制每次回调是否延长激活实例的空闲生存期。 |
 
 <a id="callback-scheduling"></a>
 
-### 召回日程安排
+### 回调调度
 
-计时回调从不重叠。 Orleans 等待回调任务完成,然后在排好下次回调之前测量时间段。 因此回调时间会增加回调开始之间的间隔 。
+同一个定时器的回调绝不会与自身重叠。Orleans 等待回调任务完成，再计算一个周期的等待时间，然后调度下一次回调。因此，回调本身的执行耗时也会计入相邻两次回调开始之间的间隔。
 
-时间回调是仅针对本地的信号, 用于激活它们。 他们参加正常的转班日程安排, 并保留注册的激活时间 。
+定时器回调是发送给其激活实例的本地消息，参与正常的执行轮次调度，始终在注册该定时器的激活实例上执行。
 
 <a id="interleaving"></a>
 
-### 间隔
+### 交错执行
 
-与 <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave> 设置至 `false`,回调后 grain的再生配置 grain 方法呼叫。 grain 进程调回时,不与其他请求连接。重新输入 grain 可根据日程安排规则中断回调。
+当 <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave> 设置为 `false` 时，回调像 Grain 方法调用一样遵循 Grain 的可重入配置。非可重入 Grain 执行回调时不会与其他请求交错；可重入 Grain 可以根据其调度规则与其他请求交错执行。
 
-设定 <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave> 至 `true` 当召唤能安全地观察的时候, grain 状态在等待时发生变化, 而其他旋转执行 。
+如果回调可以安全地处理其他执行轮次在各个 await 点之间导致的 Grain 状态变化，可以将 <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave> 设置为 `true`。
 
 <a id="activation-lifetime"></a>
 
-### 启动寿命
+### 激活实例生存期
 
-计时回调使激活的闲置寿命不变。 Orleans 能够收集其它闲置的激活, 从而结束激活的所有定时器 。
+默认情况下，定时器回调不会改变激活实例的空闲生存期。Orleans 可以回收除此之外处于空闲状态的激活实例，这会终止该实例拥有的所有定时器。
 
-设置 <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive> 到 `true`, 每次回调都会延长激活寿命。 比配置的闲置收集期短的一段时间会通过连续回调来保持激活活动。 反复回调仍然允许在选中之间进行收藏 。
+当 <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive> 设置为 `true` 时，每次回调都会延长激活实例的生存期。若定时器周期短于配置的空闲回收周期，连续回调会使该激活实例保持活动。回调不够频繁时，仍可能在两次触发之间回收实例。
 
 <a id="change-or-stop-a-timer"></a>
 
-## 更改或停止定时器
+## 修改或停止定时器
 
-调用 <xref:Orleans.Runtime.IGrainTimer.Change*> 以替换到期时间和期间。新的到期时间安排下一个回调,新时期则在回调完成后适用。在回调结束后,在回调中作出的更改生效。
+调用 <xref:Orleans.Runtime.IGrainTimer.Change*> 替换首次触发等待时间和周期。新的等待时间用于调度下一次回调，新的周期在该次回调完成后生效。如果在正在执行的回调内部修改，则在当前回调完成后生效。
 
-丢弃 <xref:Orleans.Runtime.IGrainTimer> 以取消调回牌并停止未来的调回。 Orleans 也取消调回牌,并在激活开始停用时处置计时器。
+释放 <xref:Orleans.Runtime.IGrainTimer>，以取消其回调令牌并停止后续回调。当激活实例开始停用时，Orleans 也会取消该令牌并释放定时器。
 
 <a id="handle-callback-failures"></a>
 
-## 处理回调失败
+## 处理回调故障
 
-Orleans 记录例外被计时器回调返回, 并计划在配置的期间后下次回调。 在允许例外逃跑之前保持应用程序状态一致, 当恢复必须跨越激活失败时使用 grain 状态或其他耐久存储 。
+Orleans 会记录定时器回调产生的异常，并在配置的周期之后调度下一次回调。允许异常传播之前，应保持应用状态一致。如果恢复必须跨越激活实例故障，请使用 Grain 状态或其他持久化存储。
 
-调回 <xref:System.Threading.CancellationToken> 信号计时器处理和启动关闭。 在非同步工作中观察它, 这样解除功能就能迅速完成 。
+回调的 <xref:System.Threading.CancellationToken> 表示定时器被释放或激活实例正在关闭。异步工作应响应此令牌，以便及时完成停用。
 
 <a id="poco-grains"></a>
 
-## 波哥 grains
+## POCO Grain
 
-Grains 执行中 <xref:Orleans.IGrainBase> 直接使用 <xref:Orleans.GrainBaseExtensions.RegisterGrainTimer*>注射 <xref:Orleans.Timers.ITimerRegistry> 基础设施法规需要低级别登记时, <xref:Orleans.Runtime.IGrainContext>.
+直接实现 <xref:Orleans.IGrainBase> 的 Grain 可以使用 <xref:Orleans.GrainBaseExtensions.RegisterGrainTimer*>。如果基础设施代码需要通过当前 <xref:Orleans.Runtime.IGrainContext> 执行更底层的注册，请注入 <xref:Orleans.Timers.ITimerRegistry>。
 
 <a id="troubleshoot-grain-timers"></a>
 
-## 排除故障计时器 grain
+## Grain 定时器故障排查
 
-| 观察行为 | 运行时行为和行动 |
+| 观察到的现象 | 运行时行为及处理方式 |
 |---|---|
-| 定时器在激活收藏或 silo 故障后结束。 | 定时器属于激活。 在启动设置过程中注册, 或者使用 [提醒提醒](reminders.md) 来保存激活的更改 。 |
-| 回召开始漂移 时间间隔超过墙时段 。 | Orleans 测量回调完成后的时期。缩短回调时间,调整时间或按长效应用状态的墙上时钟表模式。 |
-| 其他 grain 呼叫在等待回拨时执行。 | grain 是重新输入, 或定时器启用 <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave>。 保护等待点之间的异位数或使用非间断时间排程 。 |
-| 闲置激活活动仍然在运行。 | <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive> 延长每次回调的寿命。 当收藏应该遵循正常闲置超时后, 请将其设为 `false` 。 |
-| 重复回调的例外情况屡次出现。 | Orleans 记录例外情形并继续执行时间表。让回调从耐久状态中趋同,然后解决潜在的故障。 |
+| 激活实例回收或 Silo 故障后，定时器终止。 | 定时器属于该激活实例。在激活初始化期间注册，或者使用 [提醒器](reminders.md) 来保存能够跨越激活实例变化的调度计划。 |
+| 回调开始时间相对于实际时钟间隔越来越晚。 | Orleans 从回调完成之后开始计算周期。缩短回调耗时、调整周期，或者使用持久化应用状态对实际时钟调度建模。 |
+| 回调等待期间执行了其他 Grain 调用。 | Grain 可重入，或者定时器启用了 <xref:Orleans.Runtime.GrainTimerCreationOptions.Interleave>。应在 await 点之间保护状态不变量，或者采用非交错调度。 |
+| 空闲激活实例仍保持活动。 | <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive> 在每次回调时延长生存期。如果应按正常空闲超时进行回收，将它设置为 `false`。 |
+| 回调异常反复出现。 | Orleans 记录异常并继续调度。让回调基于持久化状态收敛到正确结果，然后解决底层故障。 |

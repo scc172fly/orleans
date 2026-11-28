@@ -12,7 +12,7 @@ namespace Orleans.Transactions
         public Factory<IGrainContext, object> GetFactory(ParameterInfo parameter, TransactionCommitterAttribute attribute)
         {
             TransactionCommitterAttribute config = attribute;
-            // 使用通用类型参数定义收藏类型。
+            // 使用泛型类型参数定义集合类型。
             MethodInfo genericCreate = create.MakeGenericMethod(parameter.ParameterType.GetGenericArguments());
             object[] args = new object[] { config };
             return context => Create(context, genericCreate, args);

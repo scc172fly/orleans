@@ -25,11 +25,11 @@ public sealed class AsyncEnumerableGrainCallTestCollectionDefinition : ICollecti
 }
 
 /// <summary>
-/// 测试支持 grain 返回返回的方法 <see cref="IAsyncEnumerable{T}"/>.
-/// 这些测试核实 Orleans处理 grain 方法流出结果的能力,
-/// 包括批量、处理错误、注销和适当资源清理。
-/// Orleans 使用 grain 扩展机制管理同步点算器的生命周期
-/// 分布在分布式系统各处。
+/// 测试对返回 <see cref="IAsyncEnumerable{T}"/> 的 Grain 方法的支持。
+/// 这些测试验证 Orleans 处理 Grain 方法流式结果的能力，
+/// 包括批处理、错误处理、取消和正确的资源清理。
+/// Orleans 使用 Grain 扩展机制，在分布式系统中管理
+/// 异步枚举器的生命周期。
 /// </summary>
 [Collection(AsyncEnumerableGrainCallTestCollection.Name)]
 public class AsyncEnumerableGrainCallTests
@@ -46,9 +46,9 @@ public class AsyncEnumerableGrainCallTests
     private ILogger Logger => _fixture.Logger;
 
     /// <summary>
-    /// 测试一个 grain 产生客户消费值的可计算功能的基本同步功能。
-    /// 证明数值的传输正确,使用之后对数字进行妥善处理。
-    /// 这显示了 Orleans对从 grains 流出的数据的支持,而没有将所有数据保留在内存中。
+    /// 测试基本异步枚举功能，其中 Grain 生成由客户端消费的值。
+    /// 验证值能够正确传输，并且枚举器使用完毕后得到正确释放。
+    /// 这展示了 Orleans 支持从 Grain 流式传输数据，而无需将全部数据保留在内存中。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -78,16 +78,16 @@ public class AsyncEnumerableGrainCallTests
 
         Assert.Equal(5, values.Count);
 
-        // 请检查是否对分子进行了处理
+        // 检查枚举器是否已释放。
         var grainCalls = await grain.GetIncomingCalls();
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// 在产生任何值之前先先行取消同声流的测试。
-    /// 证明在计数开始产生值之前取消一个 CancellationToken 时,
-    /// 正确丢弃 OperationCanceledException ,且不返回任何数值。
-    /// 此测试确保 Orleans 在分布式流景中优雅地处理早期取消。
+    /// 测试异步枚举流在产生任何值之前的提前取消。
+    /// 验证当 CancellationToken 在枚举开始产生值之前被取消时，
+    /// 操作会正确引发 OperationCanceledException，且不返回任何值。
+    /// 此测试确保 Orleans 能妥善处理分布式流式传输场景中的提前取消。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -97,22 +97,22 @@ public class AsyncEnumerableGrainCallTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var grain = GrainFactory.GetGrain<IObservableGrain>(Guid.NewGuid());
 
-        // 设置取消标记牌 - 一个用于测试超时,一个用于 grain 调用
+        // 设置取消令牌，一个用于测试超时，另一个用于 Grain 调用
         using var testCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         testCts.CancelAfter(TimeSpan.FromSeconds(35));
         using var callCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var callId = Guid.NewGuid();
 
-        // 任务, 以取消开始后但在产生前的点数
+        // 用于在枚举开始之后、产生值之前取消枚举的任务
         var enumerationStartedTask = Task.Run(async () =>
         {
-            await grain.WaitForCall(callId); // 等待开始点数
-            callCts.Cancel(); // 在任何值被产生之前取消
+            await grain.WaitForCall(callId); // 等待枚举开始
+            callCts.Cancel(); // 在产生任何值之前取消
         }, cancellationToken);
 
         try
         {
-            // 以慢速 grain 方法和未取消的牌照开始计数
+            // 使用运行缓慢的 Grain 方法及未取消的令牌开始枚举
             await foreach (var entry in grain.SleepyEnumerable(callId, TimeSpan.FromSeconds(25), callCts.Token))
             {
                 Assert.Fail("Should have thrown due to cancellation before yielding any values.");
@@ -124,13 +124,13 @@ public class AsyncEnumerableGrainCallTests
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // 校验取消的代号已确实被注销
+            // 验证取消令牌确实已取消
             Assert.True(callCts.Token.IsCancellationRequested);
         }
 
         await enumerationStartedTask;
 
-        // 等待 grain 记录取消
+        // 等待 Grain 记录取消操作
         while (true)
         {
             var canceledCalls = await grain.GetCanceledCalls();
@@ -149,10 +149,10 @@ public class AsyncEnumerableGrainCallTests
     }
 
     /// <summary>
-    /// 当在点查时出现例外时, 测试会处理同步可数流中的错误 。
-    /// 证明例外情况已适当地向客户宣传,资源也得到清理。
-    /// errorIndex 参数确定出错发生的时间,同时测试即时和延迟错误。
-    /// waitAfterYield 参数测试错误处理,在产生值后有和没有同步延迟。
+    /// 测试异步枚举流在枚举期间引发异常时的错误处理。
+    /// 验证异常正确传播至客户端，并清理资源。
+    /// errorIndex 参数决定错误发生的时机，涵盖立即发生和延迟发生的错误。
+    /// waitAfterYield 参数测试产生值后存在或不存在异步延迟时的错误处理。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -189,15 +189,15 @@ public class AsyncEnumerableGrainCallTests
 
         Assert.Equal(errorIndex, values.Count);
 
-        // 请检查是否对分子进行了处理
+        // 检查枚举器是否已释放。
         var grainCalls = await grain.GetIncomingCalls();
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// 当 grain 取消计数时, 在同步可列流中测试注销处理 。
-    /// 证明 OperationCanceledException 的传播得当,资源被清理干净。
-    /// 测试 Orleans处理分布式流景情景中合作取消的能力。
+    /// 测试 Grain 取消枚举时异步枚举流的取消处理。
+    /// 验证 OperationCanceledException 正确传播，并清理资源。
+    /// 此测试验证 Orleans 在分布式流式传输场景中处理协作式取消的能力。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -215,8 +215,8 @@ public class AsyncEnumerableGrainCallTests
     public async Task ObservableGrain_AsyncEnumerable_Cancellation(int errorIndex, bool waitAfterYield)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        // 此特殊错误消息被解释为表示取消
-        // 应在达到指数时进行。
+        // 此特殊错误消息被解释为指示：
+        // 在到达该索引时应取消操作。
         const string ErrorMessage = "cancel";
         var grain = GrainFactory.GetGrain<IObservableGrain>(Guid.NewGuid());
 
@@ -238,17 +238,17 @@ public class AsyncEnumerableGrainCallTests
 
         Assert.Equal(errorIndex, values.Count);
 
-        // 请检查是否对分子进行了处理
+        // 检查枚举器是否已释放。
         var grainCalls = await grain.GetIncomingCalls();
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// 使用 CancellationToken测试客户端取消可同步的可数流。
-    /// 证明客户提出的取消申请得到妥善处理,包括:
-    /// - 提前取消(在计数开始之前)
-    /// - 中途取消(在列举期间)
-    /// - 适当清理和处置服务器端资源
+    /// 测试使用 CancellationToken 在客户端取消异步枚举流。
+    /// 验证客户端发出的取消请求得到正确处理，包括：
+    /// - 提前取消（枚举开始之前）
+    /// - 流式传输中途取消（枚举期间）
+    /// - 正确清理并释放服务器端资源
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -300,14 +300,14 @@ public class AsyncEnumerableGrainCallTests
 
         if (errorIndex == 0)
         {
-            // 检查该查点员是否由于事先取消而没有处理,因此本不应打电话。
+            // 检查枚举器未被释放，因为它被提前取消，因此本不应发出任何调用。
             var grainCalls = await grain.GetIncomingCalls();
             Assert.DoesNotContain(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.StartEnumeration)));
             Assert.DoesNotContain(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.DisposeAsync)));
         }
         if (errorIndex > 0)
         {
-            // 检查是否对分子进行了处置,但前提是它不是先发制人地被注销。
+            // 检查枚举器是否已释放，但仅适用于未提前取消的情况。
             var grainCalls = await grain.GetIncomingCalls();
             Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.StartEnumeration)));
             Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.DisposeAsync)));
@@ -315,9 +315,9 @@ public class AsyncEnumerableGrainCallTests
     }
 
     /// <summary>
-    /// 使用 WithCancellation 扩展方法测试客户端取消。
-    /// 与 CancellationToken 测试类似,但使用扩展方法取消。
-    /// 证明 WithCancellation 扩展名与 Orleans的“合成数列支持”相融合适当。
+    /// 测试使用 WithCancellation 扩展方法在客户端取消。
+    /// 与 CancellationToken 测试类似，但采用扩展方法取消。
+    /// 验证 WithCancellation 扩展能正确集成 Orleans 的异步枚举支持。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -369,14 +369,14 @@ public class AsyncEnumerableGrainCallTests
 
         if (errorIndex == 0)
         {
-            // 检查该查点员是否由于事先取消而没有处理,因此本不应打电话。
+            // 检查枚举器未被释放，因为它被提前取消，因此本不应发出任何调用。
             var grainCalls = await grain.GetIncomingCalls();
             Assert.DoesNotContain(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.StartEnumeration)));
             Assert.DoesNotContain(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.DisposeAsync)));
         }
         if (errorIndex > 0)
         {
-            // 检查是否对分子进行了处置,但前提是它不是先发制人地被注销。
+            // 检查枚举器是否已释放，但仅适用于未提前取消的情况。
             var grainCalls = await grain.GetIncomingCalls();
             Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.StartEnumeration)));
             Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.DisposeAsync)));
@@ -384,9 +384,9 @@ public class AsyncEnumerableGrainCallTests
     }
 
     /// <summary>
-    /// 测试对同步可数流的批量优化。
-    /// 证明 Orleans 自动分批多个值以减少网络圆程。
-    /// 这种优化对于在流出许多小值时的绩效至关重要。
+    /// 测试异步枚举流的批处理优化。
+    /// 验证 Orleans 能够自动将多个值合并为批次，减少网络往返次数。
+    /// 流式传输大量小值时，这项优化对性能至关重要。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -418,14 +418,14 @@ public class AsyncEnumerableGrainCallTests
             && (element.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.MoveNext)) || element.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.StartEnumeration))));
         Assert.True(moveNextCallCount < values.Count);
 
-        // 请检查是否对分子进行了处理
+        // 检查枚举器是否已释放。
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// 测试对同步可数流的批量大小配置自定义 。
-    /// 证明 WithBatchSize 扩展方法正确控制了每批物品的数量。
-    /// 这使客户能够调整延缓和吞吐之间的权衡。
+    /// 测试异步枚举流的自定义批次大小配置。
+    /// 验证 WithBatchSize 扩展方法能正确控制每批的项数。
+    /// 客户端可以借此调整延迟与吞吐量之间的权衡。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -457,14 +457,14 @@ public class AsyncEnumerableGrainCallTests
             && (element.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.MoveNext)) || element.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.StartEnumeration))));
         Assert.True(moveNextCallCount < values.Count);
 
-        // 请检查是否对分子进行了处理
+        // 检查枚举器是否已释放。
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// 将批量大小设定为 1 的测试使分批处理失效。
-    /// 证明在批量被禁用时,每个值都产生单独的网络呼叫。
-    /// 这一模式为流出情景提供了最低的潜伏,但最高的管理费用。
+    /// 测试将批次大小设置为 1 以禁用批处理。
+    /// 验证禁用批处理时，每个值都会产生一次独立的网络调用。
+    /// 此模式提供最低延迟，但在流式传输场景中开销最大。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -495,17 +495,17 @@ public class AsyncEnumerableGrainCallTests
             element.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension))
             && (element.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.MoveNext)) || element.MethodName.Contains(nameof(IAsyncEnumerableGrainExtension.StartEnumeration))));
 
-        // 一次要求每个价值,最后一次要求完成点数
+        // 每个值对应一次调用，最后再调用一次以完成枚举
         Assert.Equal(values.Count + 1, moveNextCallCount);
 
-        // 请检查是否对分子进行了处理
+        // 检查枚举器是否已释放。
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// 主动点名时取消测试。
-    /// 证明取消中流,适当停止查点和清理资源。
-    /// 这模拟了现实世界的情景 客户需要及早停止消费数据
+    /// 测试在枚举进行期间取消操作。
+    /// 验证流式传输中途取消能正确停止枚举并清理资源。
+    /// 这模拟客户端需要提前停止消费数据的实际场景。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -546,20 +546,20 @@ public class AsyncEnumerableGrainCallTests
         catch (OperationCanceledException)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // 预期预期预计预计预计预计预计预计的预期预计预计预计预计的预期预计预计预计的
+            // 符合预期
         }
 
         Assert.Equal(3, values.Count);
 
-        // 请检查是否对分子进行了处理
+        // 检查枚举器是否已释放。
         var grainCalls = await grain.GetIncomingCalls();
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// 测试慢产 grain的可数行为。
-    /// 证明客户可在产生所有价值之前停止消费。
-    /// 测试 Orleans处理后压和在流态情景中提前终止的能力。
+    /// 测试 Grain 缓慢生成数据时的异步枚举行为。
+    /// 验证客户端可以在所有值生成之前停止消费。
+    /// 此测试验证 Orleans 在流式传输场景中处理背压及提前终止的能力。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -594,15 +594,15 @@ public class AsyncEnumerableGrainCallTests
 
         Assert.Equal(2, values.Count);
 
-        // 请检查是否对分子进行了处理
+        // 检查枚举器是否已释放。
         var grainCalls = await grain.GetIncomingCalls();
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// 测试与消费缓慢的客户群一起发生的无数行为。
-    /// 证明当客户消费缓慢时,该调查员不会过早地清理干净。
-    /// 使用诊断性听众来监测清理计时器的行为。
+    /// 测试客户端缓慢消费数据时的异步枚举行为。
+    /// 验证客户端缓慢消费时，枚举器不会被过早清理。
+    /// 使用诊断侦听器监视清理定时器的行为。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -635,16 +635,16 @@ public class AsyncEnumerableGrainCallTests
 
         Assert.Equal(3, values.Count);
 
-        // 请检查是否对分子进行了处理
+        // 检查枚举器是否已释放。
         var grainCalls = await grain.GetIncomingCalls();
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// 当客户消费过慢时,测试人口统计员驱逐。
-    /// 证明 Orleans 在超时后适当清理废弃的计数员。
-    /// 这防止了客户未能完成查点时资源漏出。
-    /// 测试确保了驱逐后继续处理错误时能够正确处理。
+    /// 测试客户端消费速度过慢时的枚举器逐出。
+    /// 验证 Orleans 在超过超时时长后能正确清理被遗弃的枚举器。
+    /// 这可防止客户端未完成枚举时发生资源泄漏。
+    /// 测试确保在枚举器逐出后尝试继续时能够正确处理错误。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -691,15 +691,15 @@ public class AsyncEnumerableGrainCallTests
 
         Assert.Equal(3, values.Count);
 
-        // 请检查是否对分子进行了处理
+        // 检查枚举器是否已释放。
         var grainCalls = await grain.GetIncomingCalls();
         Assert.Contains(grainCalls, c => c.InterfaceName.Contains(nameof(IAsyncEnumerableGrainExtension)) && c.MethodName.Contains(nameof(IAsyncDisposable.DisposeAsync)));
     }
 
     /// <summary>
-    /// 当 grain 在查点时被停用时,测试可数行为。
-    /// 证明 grain 解除[失效]适当终止了有适当误差的主动计数。
-    /// 这确保了干净的关闭,防止在 grains 被停用时吊死客户。
+    /// 测试枚举期间 Grain 被停用时的异步枚举行为。
+    /// 验证 Grain 停用会通过适当的错误正确终止正在进行的枚举。
+    /// 这可确保干净地关闭，并防止 Grain 停用时客户端挂起。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -759,12 +759,12 @@ public class AsyncEnumerableGrainCallTests
         await _fixture.AdvanceTimeByResponseTimeoutAsync().WaitAsync(cancellationToken);
         await listener.WaitForCleanupCountAsync(cleanupCount, cancellationToken);
 
-        // 清理报告来自回调内部 在一发计时器重开前
+        // 在回调内部报告清理操作，且发生在一次性定时器重新启用之前。
         await _fixture.WaitForTimerChangeAsync(timer, timerChangeCount + 1, cancellationToken);
     }
 
     /// <summary>
-    /// 使用假 silo 时间提供者的测试固定装置,以便清理定时器能够以确定的方式先进。
+    /// 使用模拟 Silo 时间提供程序的测试夹具，使清理定时器可以确定性地推进。
     /// </summary>
     public sealed class Fixture : BaseInProcessTestClusterFixture
     {
@@ -795,9 +795,9 @@ public class AsyncEnumerableGrainCallTests
     }
 
     /// <summary>
-    /// 检测期间监测 AsyncEnumerableGrainExtension 行为的诊断倾听器。
-    /// 这个辅助人员班可以进行测试,观察内部清理作业和核查
-    /// 计算员应根据其生命周期要求得到适当管理。
+    /// 用于在测试期间监视 AsyncEnumerableGrainExtension 行为的诊断侦听器。
+    /// 此辅助类允许测试观察内部清理操作，并验证
+    /// 枚举器是否按其生命周期要求得到正确管理。
     /// </summary>
     private sealed class AsyncEnumerableGrainExtensionListener : IObserver<KeyValuePair<string, object?>>, IObserver<DiagnosticListener>, IDisposable
     {

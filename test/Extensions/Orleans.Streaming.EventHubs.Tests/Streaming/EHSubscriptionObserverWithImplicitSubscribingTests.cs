@@ -8,7 +8,7 @@ using Xunit;
 namespace ServiceBus.Tests.StreamingTests
 {
     /// <summary>
-    /// 测试 EventHub 订阅观察员的行为,并测试多个流源供应商的暗含订阅。
+    /// 测试跨多个流提供程序进行隐式订阅时 Event Hub 订阅观察者的行为。
     /// </summary>
     [TestCategory("EventHub"), TestCategory("Streaming"), TestCategory("Functional")]
     [TestSuite("Functional")]

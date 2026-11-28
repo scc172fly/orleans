@@ -1,4 +1,4 @@
-//以美 日 称 :
+//#define USE_SQL_SERVER
 using System.Net;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -12,21 +12,21 @@ using Xunit;
 namespace UnitTests.MessageCenterTests
 {
     /// <summary>
-    /// 测试 Orleans 网关选择和负载平衡机制。
+    /// 测试 Orleans 网关选择与负载均衡机制。
     /// 
-    /// 网关是客户连接到 Orleans 组群的切入点。
-    /// 每个 silo 可以作为网关,客户需要:
-    /// - 发现可用的网关(通过 IGatewayListProvider)
-    /// - 选择连接到哪个网关
-    /// - 通过转换到另一个网关处理网关失败
+    /// 网关是客户端连接到 Orleans 集群的入口。
+    /// 每个 Silo 都可以充当网关，客户端需要：
+    /// - 发现可用网关（通过 IGatewayListProvider）。
+    /// - 选择要连接的网关。
+    /// - 通过切换到其他网关处理网关故障。
     /// 
-    /// GatewayManager 实施圆环选择战略,以分发
-    /// 在所有可用网关上均匀连接客户端。 这对以下各点至关重要:
-    /// - 装入平衡客户端连接
-    /// - 避免网关超负荷
-    /// - 向客户提供大量方便的便利
+    /// GatewayManager 实现轮询选择策略，将客户端连接
+    /// 均匀分配至可用网关。这对于以下方面至关重要：
+    /// - 客户端连接的负载均衡。
+    /// - 避免网关过载。
+    /// - 为客户端访问提供高可用性。
     /// 
-    /// 这些测试证实网关选择分布平均。
+    /// 这些测试验证网关选择能够均匀分配负载。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -49,9 +49,9 @@ namespace UnitTests.MessageCenterTests
         }
 
         /// <summary>
-        /// 测试网关管理器正确分配连接的测试
-        /// 使用圆环选择的跨可用网关。
-        /// 验证四个测试网关的均衡分布。
+        /// 测试网关管理器能否使用轮询选择策略，
+        /// 将连接正确分配至可用网关。
+        /// 验证在 4 个测试网关之间均匀分配。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Gateway")]
         public async Task GatewaySelection()
@@ -78,8 +78,8 @@ namespace UnitTests.MessageCenterTests
         }
 
         /// <summary>
-        /// 网关选择分布的核心测试逻辑。
-        /// 模拟2300项网关选择,并核实其分布均匀。
+        /// 网关选择分布测试的核心逻辑。
+        /// 模拟 2300 次网关选择，并验证其均匀分布。
         /// </summary>
         protected async Task Test_GatewaySelection(IGatewayListProvider listProvider)
         {
@@ -91,29 +91,29 @@ namespace UnitTests.MessageCenterTests
                 return new IPEndPoint(IPAddress.Parse(uri.Host), uri.Port);
             }).ToList();
 
-            // 以测试网关列表创建并启动网关管理器
+            // 使用测试网关列表创建并启动网关管理器。
             var gatewayManager = new GatewayManager(Options.Create(new GatewayOptions()), listProvider, NullLoggerFactory.Instance, null!, TimeProvider.System);
             await gatewayManager.StartAsync(CancellationToken.None);
 
-            var counts = new int[4];  // 每个网关的音轨选择
+            var counts = new int[4];  // 记录每个网关的选择次数。
 
-            // 模拟 2300 网关选择, 测试分布
+            // 模拟 2300 次网关选择以测试分布情况。
             for (int i = 0; i < 2300; i++)
             {
                 var ip = gatewayManager.GetLiveGateway();
                 Assert.NotNull(ip);
                 var addr = ip.Endpoint.Address;
-                Assert.Equal(IPAddress.Loopback, addr);  // “ 返回网关时错误的 IP 地址”
+                Assert.Equal(IPAddress.Loopback, addr);  // "Incorrect IP address returned for gateway"
                 Assert.True((0 < ip.Endpoint.Port) && (ip.Endpoint.Port < 5), "Incorrect IP port returned for gateway");
-                counts[ip.Endpoint.Port - 1]++;  // 每个网关的计数选择
+                counts[ip.Endpoint.Port - 1]++;  // 统计每个网关的选择次数。
             }
 
-            // 历史注释: 用于随机选择按负荷计算的网关管理器,
-            // 但现在使用圆柱体来进行更可预测的分配。
-            // 评论中的说法表明了旧的预期分配模式。
+            // 历史说明：网关管理器过去根据负载随机选择网关，
+            // 现在使用轮询，以获得更可预测的分布。
+            // 被注释掉的断言展示旧的预期分布模式。
 
-            // 有了圆环选择,我们预计分配的准确性会达到均衡
-            // 2300个甄选/4个网关=每个网关575
+            // 使用轮询选择时，预期分布完全均匀。
+            // 2300 次选择 / 4 个网关 = 每个网关 575 次。
             int low = 2300 / 4;
             int up = 2300 / 4;
             Assert.True((low <= counts[0]) && (counts[0] <= up), "Gateway selection is incorrectly skewed. " + counts[0]);
@@ -148,9 +148,9 @@ namespace UnitTests.MessageCenterTests
         }
 
         /// <summary>
-        /// 测试 IGatewayListProvider 是否运行, 返回固定网关列表 。
-        /// 生产过程中,由成员供应商实施这一接口
-        /// (Azure 表格, SQL、 ZooKeeper等)动态发现可用网关。
+        /// 返回固定网关列表的 IGatewayListProvider 测试实现。
+        /// 在生产环境中，成员资格提供程序
+        /// （Azure Table、SQL、ZooKeeper 等）实现此接口，以动态发现可用网关。
         /// </summary>
         private class TestListProvider : IGatewayListProvider
         {

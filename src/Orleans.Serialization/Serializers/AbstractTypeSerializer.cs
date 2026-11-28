@@ -8,7 +8,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Serializers
 {
     /// <summary>
-    /// 用于抽象类型,因此无法即时自我转换的序列器,如抽象类别和界面类型。
+    /// 用于抽象类型（如抽象类和接口类型）的序列化器，这些类型本身无法实例化。
     /// </summary>
     /// <typeparam name="TField">字段类型。</typeparam>
     public class AbstractTypeSerializer<TField> : AbstractTypeSerializer, IFieldCodec<TField>, IBaseCodec<TField> where TField : class
@@ -33,7 +33,7 @@ namespace Orleans.Serialization.Serializers
         public virtual void Deserialize<TReaderInput>(ref Reader<TReaderInput> reader, TField instance) => reader.ConsumeEndBaseOrEndObject();
     }
 
-    // 类别类型限制
+    // 不带 class 类型约束。
     internal sealed class AbstractTypeSerializerWrapper<TField> : AbstractTypeSerializer, IFieldCodec<TField>
     {
         public AbstractTypeSerializerWrapper() : base(typeof(TField)) { }
@@ -46,7 +46,7 @@ namespace Orleans.Serialization.Serializers
     }
 
     /// <summary>
-    /// 将申报类型无法直接即时的数值,如抽象类别和界面等分层排列为序列。
+    /// 序列化声明类型无法直接实例化的值，例如声明为抽象类或接口的值。
     /// </summary>
     public class AbstractTypeSerializer : IFieldCodec
     {
@@ -55,7 +55,7 @@ namespace Orleans.Serialization.Serializers
         /// <summary>
         /// 初始化 <see cref="AbstractTypeSerializer"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldType">申报字段类型。</param>
+        /// <param name="fieldType">声明的字段类型。</param>
         protected internal AbstractTypeSerializer(Type fieldType) => _fieldType = fieldType;
 
         /// <inheritdoc/>

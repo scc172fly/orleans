@@ -13,7 +13,7 @@ namespace UnitTests.Grains
 
         public Task TakeSerializedData(object data)
         {
-            // 无事可做
+            // 无需执行任何操作
             return Task.CompletedTask;
         }
     }

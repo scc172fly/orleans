@@ -9,8 +9,8 @@ using Xunit;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// 测试 <c>DurableTask.Run</c> 每位代表的形状都与恢复持久任务的代表结合,且代表返回可持久的任务
-/// 无法在使用指导的汇编时间完成 。
+/// 测试每种委托形式绑定到哪个 <c>DurableTask.Run</c> 重载，以及返回持久化任务的委托
+/// 在编译时失败并提供指导信息。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -56,7 +56,7 @@ public class DurableTaskRunOverloadTests
         { "var step = DurableTask.Run(ct => 1);", "System.Func<System.Threading.CancellationToken, TResult>" },
         { "var step = DurableTask.Run(_ => { });", "System.Action<System.Threading.CancellationToken>" },
 
-        // 以动作<CancellationToken> 的亚星空格打成一个小羊羔, 以自动失效的方式运行, 所以当代表第一次产生时该步骤就会完成。
+        // 类型为 Action<CancellationToken> 的异步 Lambda 以 async void 运行，因此步骤在该委托首次让出执行权时完成。
         { "Action<CancellationToken> a = async ct => await Task.Delay(1, ct); var step = DurableTask.Run(a);", "System.Action<System.Threading.CancellationToken>" },
     };
 

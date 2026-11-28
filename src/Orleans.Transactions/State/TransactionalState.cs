@@ -15,9 +15,9 @@ using Orleans.Timers.Internal;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// 提供参与 Orleans 交易的有声张的面孔。
+    /// 提供参与 Orleans 事务的有状态组件（facet）。
     /// </summary>
-    /// <typeparam name="TState">交易状态类型。</typeparam>
+    /// <typeparam name="TState">事务状态类型。</typeparam>
     public partial class TransactionalState<TState> : ITransactionalState<TState>, ILifecycleParticipant<IGrainLifecycle>
         where TState : class, new()
     {
@@ -31,7 +31,7 @@ namespace Orleans.Transactions
         private TransactionQueue<TState> queue = null!;
 
         /// <summary>
-        /// 获取当前交易的识别符号。
+        /// 获取当前事务的标识符。
         /// </summary>
         public string CurrentTransactionId => TransactionContext.GetRequiredTransactionInfo().Id;
 
@@ -40,11 +40,11 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="TransactionalState{TState}"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionalStateConfiguration">交易状态配置。</param>
-        /// <param name="contextAccessor">当前 grain 上下文的存取器。</param>
-        /// <param name="copier">用于分离交易状态版本的复印机。</param>
-        /// <param name="grainRuntime">运行时间 grain 。</param>
-        /// <param name="logger">日志器。</param>
+        /// <param name="transactionalStateConfiguration">事务状态配置。</param>
+        /// <param name="contextAccessor">当前 Grain 上下文的访问器。</param>
+        /// <param name="copier">用于隔离各事务状态版本的复制器。</param>
+        /// <param name="grainRuntime">Grain 运行时。</param>
+        /// <param name="logger">日志记录器。</param>
         public TransactionalState(
             TransactionalStateConfiguration transactionalStateConfiguration,
             IGrainContextAccessor contextAccessor,
@@ -62,7 +62,7 @@ namespace Orleans.Transactions
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="operation"/> 无效。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="operation"/> 为 null。</exception>
         public Task<TResult> PerformRead<TResult>(Func<TState, TResult> operation)
         {
             ArgumentNullException.ThrowIfNull(operation);
@@ -76,17 +76,17 @@ namespace Orleans.Transactions
 
             info.Participants.TryGetValue(this.participantId, out var recordedaccesses);
 
-            // 可在锁定下读取访问
+            // 调度读取访问，使其在持有锁时进行。
             return this.queue.RWLock.EnterLock<TResult>(info.TransactionId, info.Priority, info.Timeout, recordedaccesses, true, info.UseExclusiveLock,
                 () =>
                 {
-                    // 检查我们的记录是否因为我们等待时过期而丢失
+                    // 检查事务是否因等待期间过期而丢失了对应记录。
                     if (!this.queue.RWLock.TryGetRecord(info.TransactionId, out TransactionRecord<TState>? record))
                     {
                         throw new OrleansCascadingAbortException(info.TransactionId.ToString());
                     }
 
-                    // 将当前时钟合并到交易时间戳
+                    // 将当前时钟合并到事务时间戳中。
                     record.Timestamp = this.queue.Clock.MergeUtcNow(info.TimeStamp);
 
                     if (record.State == null)
@@ -96,10 +96,10 @@ namespace Orleans.Transactions
 
                     LogDebugUpdateLockRead(record.SequenceNumber, record.TransactionId, new(record.Timestamp));
 
-                    // 记录此信息在交易信息数据结构中读取
+                    // 在事务信息数据结构中记录此次读取。
                     info.RecordRead(this.participantId, record.Timestamp);
 
-                    // 执行读作
+                    // 执行读取。
                     TResult result = default!;
                     try
                     {
@@ -118,7 +118,7 @@ namespace Orleans.Transactions
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="operation"/> 无效。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="operation"/> 为 null。</exception>
         public Task<TResult> PerformRead<TResult>(Func<TState, TResult> operation, ReadIsolation isolation)
         {
             return isolation switch
@@ -137,7 +137,7 @@ namespace Orleans.Transactions
                 throw new LockRecursionException("Cannot perform a read operation from within another operation");
             }
 
-            // 强制的快照在环境交易锁外 所以它会打破连环性
+            // 已提交快照处于环境事务所持有的锁之外，因此会破坏可串行化保证。
             if (TransactionContext.GetTransactionInfo() is { } info)
             {
                 throw new OrleansTransactionException($"A read-committed read cannot be performed inside transaction {info.Id}.");
@@ -182,22 +182,22 @@ namespace Orleans.Transactions
             return this.queue.RWLock.EnterLock<TResult>(info.TransactionId, info.Priority, info.Timeout, recordedaccesses, false, info.UseExclusiveLock,
                 () =>
                 {
-                    // 检查等待时是否过期
+                    // 检查事务是否在等待期间过期。
                     if (!this.queue.RWLock.TryGetRecord(info.TransactionId, out TransactionRecord<TState>? record))
                     {
                         throw new OrleansCascadingAbortException(info.TransactionId.ToString());
                     }
 
-                    // 将当前时钟合并到交易时间戳
+                    // 将当前时钟合并到事务时间戳中。
                     record.Timestamp = this.queue.Clock.MergeUtcNow(info.TimeStamp);
 
-                    // 与最新状态的链接
+                    // 链接到最新状态。
                     if (record.State == null)
                     {
                         this.queue.GetMostRecentState(out record.State, out record.SequenceNumber);
                     }
 
-                    // 如果这是首篇写作, 请填写一份深度的状态副本
+                    // 如果这是第一次写入，则创建状态的深拷贝。
                     if (!record.HasCopiedState)
                     {
                         record.State = this.copier.DeepCopy(record.State);
@@ -207,10 +207,10 @@ namespace Orleans.Transactions
 
                     LogDebugUpdateLockWrite(record.SequenceNumber, record.TransactionId, new(record.Timestamp));
 
-                    // 记录此交易信息数据结构中的写入
+                    // 在事务信息数据结构中记录此次写入。
                     info.RecordWrite(this.participantId, record.Timestamp);
 
-                    // 执行写作
+                    // 执行写入。
                     try
                     {
                         detectReentrancy = true;
@@ -235,15 +235,15 @@ namespace Orleans.Transactions
             lifecycle.Subscribe<TransactionalState<TState>>(GrainLifecycleStage.Last, static _ => Task.CompletedTask, OnStop);
         }
 
-        // 创建队列前设置可能失败 。
+        // 初始化可能在创建队列之前失败。
         private Task OnStop(CancellationToken ct) => this.queue?.StopAsync(ct) ?? Task.CompletedTask;
 
         private static void SetupResourceFactory(IGrainContext context, string stateName, TransactionQueue<TState> queue)
         {
-            // 将资源工厂添加到 grain 上下文
+            // 将资源工厂添加到 Grain 上下文中。
             context.RegisterResourceFactory<ITransactionalResource>(stateName, () => new TransactionalResource<TState>(queue));
 
-            // grain 上下文添加 tm 工厂
+            // 将 TM 工厂添加到 Grain 上下文中。
             context.RegisterResourceFactory<ITransactionManager>(stateName, () => new TransactionManager<TState>(queue));
         }
 
@@ -256,7 +256,7 @@ namespace Orleans.Transactions
             var storageFactory = this.context.ActivationServices.GetRequiredService<INamedTransactionalStateStorageFactory>();
             ITransactionalStateStorage<TState> storage = storageFactory.Create<TState>(this.config.StorageName, this.config.StateName);
 
-            // 设置交易处理管道
+            // 初始化事务处理管道。
             void deactivate() => grainRuntime.DeactivateOnIdle(context);
             var options = this.context.ActivationServices.GetRequiredService<IOptions<TransactionalStateOptions>>();
             var clock = this.context.ActivationServices.GetRequiredService<IClock>();
@@ -276,7 +276,7 @@ namespace Orleans.Transactions
 
             setupResourceFactory(this.context, this.config.StateName, queue);
 
-            // 恢复状态
+            // 恢复状态。
             await this.queue.NotifyOfRestore();
         }
 

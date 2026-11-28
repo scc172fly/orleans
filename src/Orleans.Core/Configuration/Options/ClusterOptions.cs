@@ -4,43 +4,43 @@ using Orleans.Runtime;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// 配置 Orleans 组。
+    /// 配置 Orleans 集群。
     /// </summary>
     public class ClusterOptions
     {
         /// <summary>
-        /// 默认值 <see cref="ClusterId"/>。
+        /// <see cref="ClusterId"/> 的默认值。
         /// </summary>
         public const string DefaultClusterId = "default";
 
         /// <summary>
-        /// 默认值 <see cref="ServiceId"/>。
+        /// <see cref="ServiceId"/> 的默认值。
         /// </summary>
         public const string DefaultServiceId = "default";
 
         /// <summary>
-        /// 开发组的默认群集 ID。
+        /// 开发集群的默认集群 ID。
         /// </summary>
         internal const string DevelopmentClusterId = "dev";
 
         /// <summary>
-        /// 开发组群的默认服务 ID 。
+        /// 开发集群的默认服务 ID。
         /// </summary>
         internal const string DevelopmentServiceId = "dev";
 
         /// <summary>
-        /// 获取或设置集集身份。这曾经被称为 DeploymentId 之前 Orleans 2.0 名。
+        /// 获取或设置集群标识。Orleans 2.0 之前称为 DeploymentId。
         /// </summary>
         public string ClusterId { get; set; } = DefaultClusterId;
 
         /// <summary>
-        /// 获取或设置此项服务的独特标识符,在 <see cref="ClusterId"/> 可能无法提供的情况下,该标识符应能在部署和重新部署后幸存。
+        /// 获取或设置此服务的唯一标识符；它应在部署与重新部署之间保持不变，而 <see cref="ClusterId"/> 则可能变化。
         /// </summary>
         public string ServiceId { get; set; } = DefaultServiceId;
     }
 
     /// <summary>
-    /// <see cref="ClusterOptions"/>的校验符
+    /// <see cref="ClusterOptions"/> 的验证器。
     /// </summary>
     public class ClusterOptionsValidator : IConfigurationValidator
     {

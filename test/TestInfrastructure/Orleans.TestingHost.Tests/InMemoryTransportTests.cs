@@ -19,7 +19,7 @@ public class InMemoryTransportTests
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         timeout.CancelAfter(TimeSpan.FromSeconds(10));
-        // 不受约束:枢纽登记会增加取消回召,并掩盖不回退倒退。
+        // 不要绑定：Hub 注册会添加取消回调，从而掩盖无回调情况下的回归问题。
         await using var listener = new InMemoryTransportListener(
             "test", new IPEndPoint(IPAddress.Loopback, 12349).ToString(), new InMemoryTransportConnectionHub());
         var token = listener.OnDisposed;

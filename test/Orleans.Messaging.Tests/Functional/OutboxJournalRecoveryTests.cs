@@ -32,8 +32,8 @@ public sealed class OutboxJournalRecoveryTests : MessagingBehaviorTestBase
             NewMessage(52, "durable-wakeup"));
         await receiverWrite.WaitUntilEnteredAsync();
 
-        // 停止活动取消飞行尝试,而不是等待接收器,所以发送者日记和
-        // 持久地唤醒它,就传递着这个信息。
+        // 停用取消正在进行的尝试，而不是等待接收方，因此发送方的日志和
+        // 持久化唤醒会保留该消息。
         Assert.NotEmpty(Fixture.JobManagerProbe.GetScheduledJobs(MessagingPump.JobName, sender.GetGrainId()));
 
         receiverWrite.Release();

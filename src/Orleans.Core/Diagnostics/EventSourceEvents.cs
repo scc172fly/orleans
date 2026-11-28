@@ -3,7 +3,7 @@ using System.Diagnostics.Tracing;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// <see cref="CallbackData"/>事件源。
+    /// <see cref="CallbackData"/> 的事件源。
     /// </summary>
     [EventSource(Name = "Microsoft-Orleans-CallBackData")]
     internal sealed class OrleansCallBackDataEvent : EventSource
@@ -11,9 +11,9 @@ namespace Orleans.Runtime
         public static readonly OrleansCallBackDataEvent Instance = new OrleansCallBackDataEvent();
 
         /// <summary>
-        /// 表示请求暂停执行。
+        /// 表示发生请求超时。
         /// </summary>
-        /// <param name="message">电文。</param>
+        /// <param name="message">消息。</param>
         [NonEvent]
         public void OnTimeout(Message message)
         {
@@ -24,15 +24,15 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 表示请求暂停执行。
+        /// 表示发生请求超时。
         /// </summary>
         [Event(1, Level = EventLevel.Warning)]
         private void OnTimeout() => this.WriteEvent(1);
 
         /// <summary>
-        /// 表示目标 silo 失败。
+        /// 表示目标 Silo 发生故障。
         /// </summary>
-        /// <param name="message">向目标发出的信息 silo.</param>
+        /// <param name="message">发往目标 Silo 的消息。</param>
         [NonEvent]
         public void OnTargetSiloFail(Message message)
         {
@@ -43,13 +43,13 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 表示目标 silo 失败。
+        /// 表示目标 Silo 发生故障。
         /// </summary>
         [Event(2, Level = EventLevel.Warning)]
         private void OnTargetSiloFail() => this.WriteEvent(2);
 
         /// <summary>
-        /// 表示已完成请求。
+        /// 表示请求已完成。
         /// </summary>
         [NonEvent]
         public void DoCallback(Message message)
@@ -61,13 +61,13 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 表示已完成请求。
+        /// 表示请求已完成。
         /// </summary>
         [Event(3, Level = EventLevel.Verbose)]
         private void DoCallback() => this.WriteEvent(3);
 
         /// <summary>
-        /// 表示请求被取消
+        /// 表示请求已取消。
         /// </summary>
         [NonEvent]
         public void OnCanceled(Message message)
@@ -79,7 +79,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 表示请求被取消
+        /// 表示请求已取消。
         /// </summary>
         [Event(4, Level = EventLevel.Verbose)]
         private void OnCanceled() => this.WriteEvent(4);

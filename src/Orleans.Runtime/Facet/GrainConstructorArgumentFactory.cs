@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 构造使用建筑师依赖性注射的 grain 类实例。
+    /// 使用构造函数依赖注入创建 Grain 类实例。
     /// </summary>
     public class GrainConstructorArgumentFactory
     {
@@ -17,35 +17,35 @@ namespace Orleans.Runtime
         private readonly List<Factory<IGrainContext, object>> _argumentFactories;
 
         /// <summary>
-        /// 初始化一个新的 <see cref="GrainConstructorArgumentFactory"/> 实例。
+        /// 初始化新的 <see cref="GrainConstructorArgumentFactory"/> 实例。
         /// </summary>
-        /// <param name="serviceProvider">服务供应商。</param>
-        /// <param name="grainType">下 grain 类型中保留公共建筑师,以查找论据。</param>
+        /// <param name="serviceProvider">服务提供程序。</param>
+        /// <param name="grainType">保留公共构造函数以供参数发现使用的 Grain 类型。</param>
         public GrainConstructorArgumentFactory(
             IServiceProvider serviceProvider,
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type grainType)
         {
             _argumentFactories = new List<Factory<IGrainContext, object>>();
 
-            // 寻找建筑师 - 只支持单一的公共建筑师。
+            // 查找构造函数，仅支持一个公共构造函数。
             var parameters = grainType.GetConstructors().FirstOrDefault()?.GetParameters() ?? Enumerable.Empty<ParameterInfo>();
             var types = new List<Type>();
             foreach (var parameter in parameters)
             {
-                // 使用一个 egt 标记界面查找属性 - 只支持单向的字符
+                // 查找实现 facet 标记接口的特性，仅支持一个 facet 特性。
                 var attribute = parameter.GetCustomAttributes()
                                          .FirstOrDefault(static attribute => FacetMarkerInterfaceType.IsInstanceOfType(attribute));
 
                 if (attribute is null) continue;
 
-                // 由于 IAttributeToFactoryMapper 是特性专业化所特有的,我们创建了通用方法,提供属性独立调用模式。
+                // 由于 IAttributeToFactoryMapper 针对特定特性类型进行专门化，因此创建泛型方法，以提供与特性类型无关的调用方式。
                 var getFactory = GetFactoryMethod.MakeGenericMethod(attribute.GetType());
                 var argumentFactory = (Factory<IGrainContext, object>)getFactory.Invoke(this, [serviceProvider, parameter, attribute, grainType])!;
 
-                // 记录辩论厂
+                // 记录参数工厂。
                 _argumentFactories.Add(argumentFactory);
 
-                // 记录参数类型
+                // 记录参数类型。
                 types.Add(parameter.ParameterType);
             }
 
@@ -53,15 +53,15 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获得构建参数的参数类型 。
+        /// 获取构造函数参数类型。
         /// </summary>
         public Type[] ArgumentTypes { get; }
 
         /// <summary>
-        /// 创建 grain 构建器的参数。
+        /// 创建 Grain 构造函数的参数。
         /// </summary>
-        /// <param name="grainContext"> grain 上下文。</param>
-        /// <returns>建筑师的争论</returns>
+        /// <param name="grainContext">Grain 上下文。</param>
+        /// <returns>构造函数参数。</returns>
         public object[] CreateArguments(IGrainContext grainContext)
         {
             var i = 0;

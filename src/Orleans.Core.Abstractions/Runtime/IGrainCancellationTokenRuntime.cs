@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// <see cref="GrainCancellationToken"/> 和 <see cref="GrainCancellationTokenSource"/>要求的功能性。
+    /// <see cref="GrainCancellationToken"/> 和 <see cref="GrainCancellationTokenSource"/> 所需的功能。
     /// </summary>
     internal interface IGrainCancellationTokenRuntime
     {
         /// <summary>
-        /// 以所提供的代号取消 <see cref="GrainCancellationToken"/> 。
+        /// 取消指定 ID 的 <see cref="GrainCancellationToken"/>。
         /// </summary>
-        /// <param name="id">下 grain 取消代号 ID 。</param>
-        /// <param name="tokenSource">取消的 grain 符号源已被取消。</param>
-        /// <param name="grainReferences">正在观察取消符号的 grain 引用。</param>
-        /// <returns>A <see cref="Task"/> 代表操作。</returns>
+        /// <param name="id">Grain 取消令牌 ID。</param>
+        /// <param name="tokenSource">正在取消的 Grain 取消令牌源。</param>
+        /// <param name="grainReferences">正在观察取消令牌的 Grain 引用。</param>
+        /// <returns>表示该操作的 <see cref="Task"/>。</returns>
         Task Cancel(Guid id, CancellationTokenSource tokenSource, ConcurrentDictionary<GrainId, GrainReference> grainReferences);
     }
 }

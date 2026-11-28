@@ -1,13 +1,13 @@
--- 运行此迁移以更新 PostgreSQL 持久性表和3.6.0之前创建的部署常规。
+-- 运行此迁移脚本，为 3.6.0 之前创建的部署升级 PostgreSQL 持久化表和例程。
 
 BEGIN;
 
--- 更改日期类型
+-- 更改日期时间类型。
 
 ALTER TABLE OrleansStorage
 ALTER COLUMN modifiedon TYPE TIMESTAMPTZ USING modifiedon AT TIME ZONE 'UTC';
 
--- 重建常规
+-- 重新创建例程。
 
 CREATE OR REPLACE FUNCTION writetostorage(
     _grainidhash integer,
@@ -28,24 +28,24 @@ AS $function$
 
     BEGIN
 
-    -- Grain 状态并非无效, 因此该国必须已经读过之前存储处的文字 。
-    -- 让我们试着更新它。
+    -- Grain 状态不为 null，因此必定已从存储中读取过该状态。
+    -- 尝试更新该状态。
     --
-    -- 当 Orleans 在正常状态下运行时,如果该状态不分裂,将
-    -- 只有一个 grain ,只有给定的ID和类型组合。此
-    -- grain 如果 Orleans 保证得到坚持,则主要以序列形式保存国家。
-    -- 如果不是,由于版本号,更新应正确工作。
+    -- 当 Orleans 正常运行且未发生脑裂时，
+    -- 给定 ID 和类型组合仅对应一个 Grain。
+    -- 若 Orleans 的保证成立，该 Grain 基本上会串行保存状态。即使
+    -- 不满足这一点，版本号也能确保更新正确执行。
     --
-    -- 在分裂的大脑情况下,可能出现两种或两种以上的情况
-    -- 与给定的ID和类型组合grains 。当他们尝试 INSERT 时
-    -- 同时,表格需要以悲观的方式锁在
-    -- grains 得到 @GrainStateVersion = 1 回报,而另一个 grains 将失败
-    -- 以更新存储。以下安排是为了减少正常操作中的锁定。
+    -- 发生脑裂时，可能会出现两个或更多具有相同 ID 和类型组合的
+    -- Grain。当它们尝试并发执行 INSERT 时，
+    -- 必须先对表采用悲观锁，以确保其中一个
+    -- Grain 收到返回值 @GrainStateVersion = 1，而其他 Grain 无法
+    -- 更新存储。以下设计旨在减少正常运行时的锁定。
     --
-    -- 如果明确返回的版本号仍然相同, Orleans 解释其内容,更新没有成功
-    -- 抛下一箭, InconsistentStateException.
+    -- 如果显式返回的版本号仍未改变，Orleans 将其解释为更新失败，
+    -- 并抛出 InconsistentStateException。
     --
-    -- 见 https://learn.microsoft.com/dotnet/orleans/grains/grain-persistence中的进一步资料。
+    -- 更多信息见 https://learn.microsoft.com/dotnet/orleans/grains/grain-persistence。
     IF _GrainStateVersion IS NOT NULL
     THEN
         UPDATE OrleansStorage
@@ -71,8 +71,8 @@ AS $function$
         END IF;
     END IF;
 
-    -- grain 状态尚未读取。 以下锁的锁定相当悲观
-    -- 确保只有一次国家清单专家审评组成功。
+    -- 尚未读取 Grain 状态。以下操作采用较严格的悲观锁策略，
+    -- 以确保只有一个 INSERT 成功。
     IF _GrainStateVersion IS NULL
     THEN
         INSERT INTO OrleansStorage
@@ -101,7 +101,7 @@ AS $function$
             1
         WHERE NOT EXISTS
          (
-            -- 不应有任何版本的 grain 状态。
+            -- 此 Grain 状态不应已有任何版本。
             SELECT 1
             FROM OrleansStorage
             WHERE

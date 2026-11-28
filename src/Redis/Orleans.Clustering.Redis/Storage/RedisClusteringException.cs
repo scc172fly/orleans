@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Clustering.Redis
 {
     /// <summary>
-    /// 表示在 Redis 组群中出现的例外。
+    /// 表示 Redis 集群成员管理中发生的异常。
     /// </summary>
     [Serializable]
     public class RedisClusteringException : Exception

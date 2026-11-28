@@ -1,19 +1,19 @@
 # OrleansWebApp
 
-本 ASP.NET 核心应用程序共同主办一个 Orleans silo。HTTP终点通过依赖注射解决 `IGrainFactory` ,并在同一组中呼叫 grain 。
+此 ASP.NET Core 应用共同托管 Orleans Silo。HTTP 终结点从依赖注入容器解析 `IGrainFactory`，并调用同一集群中的 Grain。
 
-运行应用程序 :
+运行应用程序：
 
 ```dotnetcli
 dotnet run
 ```
 
-调用生成的端点 :
+调用生成的终结点：
 
 ```console
 curl http://localhost:5000/hello/Ada
 ```
 
-终点返回 `Hello, Ada!`。
+终结点返回 `Hello, Ada!`。
 
-生成的应用程序使用本地主机群集促进本地发展。 在部署多个实例之前配置共享集群提供商、耐久存储和生产端点。
+生成的应用使用 localhost 集群配置进行本地开发。在部署多个实例之前，请配置共享的集群提供程序、持久化存储及生产环境终结点。

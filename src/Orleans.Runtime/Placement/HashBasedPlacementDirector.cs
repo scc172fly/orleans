@@ -10,14 +10,14 @@ namespace Orleans.Runtime.Placement
         {
             var compatibleSilos = context.GetCompatibleSilos(target);
 
-            // 如果指定了有效的放置提示, 请使用它 。
+            // 如果指定了有效的放置提示，则使用该提示。
             if (IPlacementDirector.GetPlacementHint(target.RequestContextData, compatibleSilos) is { } placementHint)
             {
                 return Task.FromResult(placementHint);
             }
 
-            var sortedSilos = compatibleSilos.OrderBy(s => s).ToArray(); // 需要排序列表, 这样结果才能确定
-            int hash = (int)(target.GrainIdentity.GetUniformHashCode() & 0x7fffffff); // 重置最高顺序位,以避免负内注
+            var sortedSilos = compatibleSilos.OrderBy(s => s).ToArray(); // 必须对列表排序，以使结果具有确定性。
+            int hash = (int)(target.GrainIdentity.GetUniformHashCode() & 0x7fffffff); // 清除最高有效位，避免产生负整数。
 
             return Task.FromResult(sortedSilos[hash % sortedSilos.Length]);
         }

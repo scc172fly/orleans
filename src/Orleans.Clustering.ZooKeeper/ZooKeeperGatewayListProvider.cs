@@ -12,19 +12,19 @@ using Polly;
 namespace Orleans.Runtime.Membership
 {
     /// <summary>
-    /// 提供 Orleans 网关地址 ZooKeeper 分组成员。
+    /// 从 ZooKeeper 集群成员资格信息中提供 Orleans 网关地址。
     /// </summary>
     public class ZooKeeperGatewayListProvider : IGatewayListProvider
     {
         private readonly ZooKeeperWatcher _watcher;
 
         /// <summary>
-        /// 此部署的节点名称。 例如 /ClusterId
+        /// 此部署的节点名称，例如 /ClusterId。
         /// </summary>
         private readonly string _deploymentPath;
 
         /// <summary>
-        /// “192.168.1.1、192.168.1.2/ClusterId”等的部署连接字符串。
+        /// 部署连接字符串，例如 "192.168.1.1,192.168.1.2/ClusterId"。
         /// </summary>
         private readonly string _deploymentConnectionString;
         private readonly TimeSpan _maxStaleness;
@@ -34,13 +34,13 @@ namespace Orleans.Runtime.Membership
         /// <summary>
         /// 初始化 <see cref="ZooKeeperGatewayListProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="logger">日志器。</param>
-        /// <param name="options"> ZooKeeper 网关发现选项。</param>
+        /// <param name="logger">日志记录器。</param>
+        /// <param name="options">ZooKeeper 网关发现选项。</param>
         /// <param name="gatewayOptions">网关发现刷新选项。</param>
-        /// <param name="clusterOptions">集群识别选项。</param>
+        /// <param name="clusterOptions">集群标识选项。</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="logger"/>, <paramref name="options"/>, <paramref name="gatewayOptions"/>,或
-        /// <paramref name="clusterOptions"/> 是 <see langword="null"/>。
+        /// <paramref name="logger"/>、<paramref name="options"/>、<paramref name="gatewayOptions"/> 或
+        /// <paramref name="clusterOptions"/> 为 <see langword="null"/>。
         /// </exception>
         public ZooKeeperGatewayListProvider(
             ILogger<ZooKeeperGatewayListProvider> logger,
@@ -73,7 +73,7 @@ namespace Orleans.Runtime.Membership
         }
 
         /// <summary>
-        /// 初始化基于 ZooKeeper 的网关提供者
+        /// 初始化基于 ZooKeeper 的网关提供程序。
         /// </summary>
         public Task InitializeGatewayListProvider() => InitializeGatewayListProviderAsync(CancellationToken.None);
 
@@ -85,12 +85,12 @@ namespace Orleans.Runtime.Membership
         }
 
         /// <summary>
-        /// 返回网关列表( 返回) (n)silos客户端可以连接到 Orleans 组。
-        /// 尤里语的形式是: "gwy.tcp/IP:port/Generation. " 关于尤里格式的更多详情,见 Utils.ToGatewayUri 和 Utils.ToSiloAddress 。
+        /// 返回客户端可用于连接 Orleans 集群的网关（Silo）列表。
+        /// URI 格式为 "gwy.tcp://IP:port/Generation"。有关格式详情，请参见 Utils.ToGatewayUri 和 Utils.ToSiloAddress。
         /// </summary>
         /// <remarks>
-        /// 网关发现使用版本的封隔会员快照。 本地读者读到 retry connect- loss
-        /// 操作会话失败最多四次,然后传播最后失败。
+        /// 网关发现使用受版本屏障保护的成员资格快照。原生读取在连接丢失时
+        /// 最多在当前操作的会话上重试四次，然后传递最终故障。
         /// </remarks>
         public Task<IList<Uri>> GetGateways() => GetGatewaysAsync(CancellationToken.None);
 
@@ -109,13 +109,13 @@ namespace Orleans.Runtime.Membership
         }
 
         /// <summary>
-        /// 指定该 IGatewayListProvider 刷新的次数,以锁定其返回信息的最大淡度。
+        /// 指定刷新此 IGatewayListProvider 的频率，以限制其返回信息的最长过期时间。
         /// </summary>
         public TimeSpan MaxStaleness => _maxStaleness;
 
         /// <summary>
-        /// 指定此 IGatewayListProvider 是否刷新其返回的信息,还是总是返回相同的 gw 列表。
-        /// (目前只有基于静态配置 StaticGatewayListProvider 的配置不可上调。所有其他都是 。)
+        /// 指定此 IGatewayListProvider 是否刷新返回的信息，还是始终返回相同的网关列表。
+        /// （目前仅基于静态配置的 StaticGatewayListProvider 不可更新，其他提供程序均可更新。）
         /// </summary>
         public bool IsUpdatable => true;
     }

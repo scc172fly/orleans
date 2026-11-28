@@ -1,5 +1,5 @@
-// 根据一项或多项协定获得 .NET 基金会许可证。
-// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Globalization;
 using System.Text;
@@ -496,9 +496,9 @@ public sealed class PackageJsonGeneratorTests
     [Fact]
     public void GeneratePackageJson_IncludesNestedTypesFromPartialDeclarations()
     {
-        // 将两个部分声明分割成不同的源文件,并进行镜像
-        // FoundryModel.cs + FoundryModel.Generated.cs。Roslyn合并部分,所以
-        // 两种嵌套类型都应该从母体中发现。
+        // 两个分布在不同源文件中的分部声明，模拟
+        // FoundryModel.cs + FoundryModel.Generated.cs。Roslyn 会合并分部声明，因此
+        // 应当可以从父类型发现两个嵌套类型。
         using var assembly = TestAssembly.Create(
             [
                 """
@@ -548,7 +548,7 @@ public sealed class PackageJsonGeneratorTests
             ["Sample.Library.Container.Anthropic", "Sample.Library.Container.OpenAI"],
             nested);
 
-        // 嵌套类型也应作为独立的型号条目。
+        // 嵌套类型也应作为独立的类型条目存在。
         Assert.Contains(types, t => t.GetProperty("fullName").GetString() == "Sample.Library.Container.OpenAI");
         Assert.Contains(types, t => t.GetProperty("fullName").GetString() == "Sample.Library.Container.Anthropic");
     }

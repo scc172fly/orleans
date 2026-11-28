@@ -1,113 +1,113 @@
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 定义日记支持的国家机器的重放、快照和确认协议。
+/// 定义基于日志的状态机的重放、快照及确认协议。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 执行由一个 <see cref="JournaledStateManager"/> 拥有,并存取
-/// 一次从一个逻辑线条中选择一种逻辑线条。 他们参与以下日记生命周期:
+/// 实现由单个 <see cref="JournaledStateManager"/> 所有，并且
+/// 每次仅从一个逻辑线程访问。它们按如下方式参与日志持久化生命周期：
 /// </para>
 /// <list type="bullet">
 /// <item>
-/// 用户代码同步同步转换模拟状态(通常通过援引编码助手来进行)
-/// 并同时在当地应用突变, 并将相应的命令发送到日记上 。
+/// 用户代码同步修改内存状态（通常通过调用编解码器辅助方法，
+/// 在本地应用变更并将相应命令发出到日志）。
 /// </item>
 /// <item>
-/// 当申请要求写作时,国家经理会打电话
-/// <see cref="PrepareWriteAsync"/> 建立国家持久性的先决条件,然后
-/// <see cref="WritePendingEntries"/> (偶尔 <see cref="WriteSnapshot"/>)实现
-/// 将日记冲到耐久存储处。
+/// 应用请求写入时，日志状态管理器调用
+/// <see cref="PrepareWriteAsync"/> 建立状态持久化的前置条件，随后调用
+/// <see cref="WritePendingEntries"/>（有时调用 <see cref="WriteSnapshot"/>）以实体化
+/// 待提交变更，然后将日志刷新到持久化存储。
 /// </item>
 /// <item>
-/// <see cref="OnWriteCompleted"/> 是在承认耐用书写时被援引的。
-/// 需要知道国家何时实际持续执行(例如,
-/// 以释放服务员或触发下游通知))应接上这一回召
-/// 而不是将内部突变视为耐久的。
+/// 持久化写入得到确认后调用 <see cref="OnWriteCompleted"/>。
+/// 需要知道状态实际何时持久化的实现（例如为了
+/// 释放等待者或触发下游通知），应使用此回调，
+/// 而不是将内存变更视为已持久化。
 /// </item>
 /// <item>
-/// 写作失败或永久删除,使管理者永久地围住,并要求 grain 停止使用。
-/// 在重放耐久条目之前,包括当启动程序重新尝试时,追偿呼叫 <see cref="Reset"/> 。
+/// 写入或删除失败会永久隔离管理器，并请求 Grain 停用。
+/// 恢复在重放持久化条目之前调用 <see cref="Reset"/>，包括重试初始化的情况。
 /// </item>
 /// </list>
 /// <para>
-/// 应用代码为操作-当地数据中的可失传工作准备了可编篡的可编造工作,而只有阶段变化才涉及
-/// 使用同一经理的跨部电话员共享已演化的突变。
-/// 新的启动机制将产生一个新的经理和州级实例;
-/// 重试初始化失败的重新设置, 重现现有实例 。
+/// 应用程序代码在操作局部数据中准备可能失败的工作，并仅暂存
+/// 可安全提交的变更。使用同一管理器的所有交错执行的调用方共享已暂存的变更。
+/// 存储确认建立持久性。新的激活会创建新的管理器及状态实例；
+/// 重试失败的初始化会重置并重放已有实例。
 /// </para>
 /// </remarks>
 public interface IStateMachine
 {
     /// <summary>
-    /// 在日记恢复期间重放一个条目 。
+    /// 在日志恢复期间重放一条条目。
     /// </summary>
     /// <param name="entry">要重放的条目。</param>
     /// <param name="context">重放上下文。</param>
     /// <remarks>
-    /// 执行不得保留 <see cref="JournalEntry.Reader"/> 或提及该
-    /// 此方法返回后备份存储, 除非复制数据 。
+    /// 此方法返回后，实现不得保留 <see cref="JournalEntry.Reader"/> 或对其
+    /// 底层存储的引用，除非复制数据。
     /// </remarks>
     void ReplayEntry(JournalEntry entry, JournalReplayContext context);
 
     /// <summary>
-    /// 重开州际关系
+    /// 重置状态。
     /// </summary>
     /// <remarks>
-    /// 如果国家有任何动荡状态,必须采用这种方法予以清除。
-    /// 管理器在绑定流、 删除日记或退出状态时调用此方法 。
+    /// 如果状态包含任何易失性状态，此方法必须将其清除。
+    /// 管理器在绑定流、删除日志或使状态退役时调用此方法。
     /// </remarks>
     void Reset(JournalStreamWriter writer);
 
     /// <summary>
-    /// 通知国家,所有先前的日记条目和快照都已应用。
+    /// 通知状态所有之前的日志条目及快照都已应用。
     /// </summary>
     /// <remarks>
-    /// 国家不应期望在采用这种方法后再有追回款项的条目,
-    /// 除非 <see cref="Reset"/> 被调用将状态重置到初始状态。
-    /// 这种方法将被调用到任何 <see cref="WritePendingEntries"/> 或 <see cref="WriteSnapshot"/> 调用之前。
+    /// 调用此方法后，状态不应预期有额外恢复条目，
+    /// 除非调用 <see cref="Reset"/> 将状态重置为初始状态。
+    /// 此方法会在任何 <see cref="WritePendingEntries"/> 或 <see cref="WriteSnapshot"/> 调用之前执行。
     /// </remarks>
     void OnRecoveryCompleted() { }
 
     /// <summary>
-    /// 确立了该国有待改变的持久性先决条件。
+    /// 建立此状态待提交变更的持久化前置条件。
     /// </summary>
-    /// <param name="cancellationToken">当日记所有者停止时取消准备的符号。</param>
-    /// <returns>表示已准备好捕捉到此状态的完成。</returns>
+    /// <param name="cancellationToken">日志所有者停止时取消准备操作的令牌。</param>
+    /// <returns>表示此状态已可供捕获的完成操作。</returns>
     /// <remarks>
-    /// 管理人员在捕捉每个附件或快照之前,先为每一个登记的国家做好准备,无论州是否
-    /// 国家可以建立其他国家持有的变更的先决条件,或未写
-    /// 不可进行修改。 准备是一无所有。 在非同步之后
-    /// 完成准备, 管理员重复准备所有各州的准备, 以包含更改
-    /// 预先准备的先决条件完全同步接听随后的电话
-    /// 完全同步的通行器直接流入捕捉
-    /// 完成准备工作,无需等待自己的日记经理再做一次业务;
-    /// 因为该操作在目前写入后按序列排列。
-    /// 故障报告 <see cref="JournaledStatePreCommitException"/> ,保留待更改
-    /// 用于明确的写重试。
+    /// 管理器在捕获每次追加或快照之前准备每个已注册状态，无论该状态是否
+    /// 包含待提交变更，以便状态为其他状态持有的变更建立前置条件，或使包含
+    /// 不得提交的待提交变更的写入失败。准备操作具有幂等性。异步
+    /// 准备完成后，管理器重新准备所有状态，以包含交错执行轮次中
+    /// 暂存的变更。已准备的前置条件在后续调用中同步完成，
+    /// 并一直有效直至捕获完成。完整的同步准备轮次直接进入捕获过程。
+    /// 准备过程不应等待自身日志管理器上的另一项操作，
+    /// 因为该操作串行排在当前写入之后。
+    /// 失败会报告 <see cref="JournaledStatePreCommitException"/> 并保留待提交变更，
+    /// 以便显式重试写入。
     /// </remarks>
     ValueTask PrepareWriteAsync(CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
 
     /// <summary>
-    /// 正在撰写日记的状态更改。
+    /// 将待提交的状态变更写入日志。
     /// </summary>
-    /// <param name="writer">日记流写作器。</param>
+    /// <param name="writer">日志流写入器。</param>
     void WritePendingEntries(JournalStreamWriter writer);
 
     /// <summary>
-    /// 向提供作者写下国家简况。
+    /// 将状态快照写入提供的写入器。
     /// </summary>
-    /// <param name="writer">日记流写作器。</param>
+    /// <param name="writer">日志流写入器。</param>
     void WriteSnapshot(JournalStreamWriter writer);
 
     /// <summary>
-    /// 通知国家,它所写的所有先前的日记条目和快照都已书面保存到稳定存放处。
+    /// 通知状态它此前写入的所有日志条目及快照都已写入稳定存储。
     /// </summary>
     /// <remarks>
-    /// 管理器为每写一个文件, 记录每个状态: 它调用 <see cref="WritePendingEntries"/> 或
-    /// <see cref="WriteSnapshot"/> 每一个州,坚持结果,然后将这种方法称为每个州。
-    /// 抓取后拍摄属于下个写入, 所以执行只承认它所记录的更改
-    /// 写作此。 记录任何事物的文字, 没有任何存在, 也不打电话来。
+    /// 管理器为每次写入捕获每个状态：对每个状态调用 <see cref="WritePendingEntries"/> 或
+    /// <see cref="WriteSnapshot"/>，持久化结果，随后对每个状态调用此方法。在该捕获之后
+    /// 进行的变更属于下一次写入，因此实现只确认本次写入捕获的
+    /// 变更。没有捕获任何内容的写入不持久化任何内容，也不调用此方法。
     /// </remarks>
     void OnWriteCompleted() { }
 }

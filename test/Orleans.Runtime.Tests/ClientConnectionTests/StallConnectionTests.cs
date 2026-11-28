@@ -12,7 +12,7 @@ using Xunit;
 namespace Tester.ClientConnectionTests
 {
     /// <summary>
-    /// 客户重新连接和集群组合时处理与网关和 silos 连接中断的连接测试。
+    /// 测试客户端重连及加入集群期间处理到网关和 Silo 的停滞连接。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -54,17 +54,17 @@ namespace Tester.ClientConnectionTests
             // 关闭当前客户端连接
             await this.Client.ServiceProvider.GetRequiredService<IHost>().StopAsync(TestContext.Current.CancellationToken);
 
-            // GW 的滞滞连接
+            // 使到网关的连接停滞
             using (stalledSocket = new Socket(gwEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp))
             {
                 await stalledSocket.ConnectAsync(gwEndpoint, TestContext.Current.CancellationToken);
 
-                // 尝试重新连接到 GW
+                // 尝试重新连接到网关
                 var stopwatch = Stopwatch.StartNew();
                 await this.HostedCluster.InitializeClientAsync(TestContext.Current.CancellationToken);
                 stopwatch.Stop();
 
-                // 检查在第一次连接超时前我们能够连接到
+                // 检查是否在首次连接超时前成功连接
                 Assert.True(stopwatch.Elapsed < Timeout);
 
                 stalledSocket.Disconnect(true);
@@ -77,15 +77,15 @@ namespace Tester.ClientConnectionTests
             Socket stalledSocket;
             var siloEndpoint = this.HostedCluster.Primary!.SiloAddress.Endpoint;
 
-            // GW 的滞滞连接
+            // 使到网关的连接停滞
             using (stalledSocket = new Socket(siloEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp))
             {
                 await stalledSocket.ConnectAsync(siloEndpoint, TestContext.Current.CancellationToken);
 
-                // 尝试在组合中添加一个新的 silo
+                // 尝试向集群添加一个新 Silo
                 this.HostedCluster.StartAdditionalSilo();
 
-                // 等待 silo 加入数据组
+                // 等待 Silo 加入集群
                 Assert.True(await WaitForClusterSize(2));
 
                 stalledSocket.Disconnect(true);

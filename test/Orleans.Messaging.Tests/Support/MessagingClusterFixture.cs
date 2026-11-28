@@ -13,11 +13,11 @@ using Xunit;
 namespace Orleans.Durable.Messaging.Tests.Support;
 
 /// <summary>
-/// 主持一个在程序中的信息测试集。
+/// 承载进程内消息传递测试集群。
 /// </summary>
 /// <remarks>
-/// 固定板在每台衍生建筑工事运行后,在 <see cref="InitializeAsync"/>内建造和部署该组群,因此
-/// <see cref="ConfigureServices"/> 和 <see cref="ConfigureOptions"/> 的超转符合完全构造的衍生状态。
+/// 测试夹具在所有派生类构造函数运行之后，于 <see cref="InitializeAsync"/> 中构建并部署集群，因此
+/// <see cref="ConfigureServices"/> 和 <see cref="ConfigureOptions"/> 的重写实现观察到的是完整构造后的派生类状态。
 /// </remarks>
 public class MessagingClusterFixture : IAsyncLifetime
 {
@@ -82,7 +82,7 @@ public class MessagingClusterFixture : IAsyncLifetime
             });
             siloBuilder.Services.AddSingleton<TimeProvider>(Clock);
             siloBuilder.Services.UseTimeProviderForBackgroundAreas(TimeProvider.System);
-            // 推进测试钟还推动了 " 持久工作钟 " ,该钟在试箱中重新输入最后期限。
+            // 推进测试时钟也会推进 Durable Jobs 时钟，收件箱的重试截止时间以该时钟为准。
             siloBuilder.Services.AddKeyedSingleton<TimeProvider>(
                 DurableJobTimeProviderNames.DurableJobs,
                 new FollowingJobClock(Clock, Clock.GetUtcNow()));
@@ -91,7 +91,7 @@ public class MessagingClusterFixture : IAsyncLifetime
             siloBuilder.Services.AddSingleton(SnapshotProbe);
             siloBuilder.Services.AddSingleton(ActivationProbe);
             siloBuilder.UseInMemoryDurableJobs();
-            // 测试 grains 日记 Orleans- 序列类型。
+            // 测试 Grain 将使用 Orleans 序列化的类型记入日志。
             siloBuilder.Services.Configure<JournaledStateManagerOptions>(options => options.JournalFormatKey = "orleans-binary");
             if (_receiverOnly)
             {
@@ -124,13 +124,13 @@ public class MessagingClusterFixture : IAsyncLifetime
     }
 
     /// <summary>
-    /// 使“ 持久工作” 时钟读取 <see cref="Clock"/>,因此重试最后期限是精确的测试时数。
-    /// 测试时钟到来后,时间计将实时跟踪并每敲一次警钟。
+    /// 使 Durable Jobs 时钟读取 <see cref="Clock"/>，因此重试截止时间是精确的测试时钟时间。Durable Jobs 的
+    /// 定时器仍以实际时间为准，在测试时钟达到相应到期时间后执行各次唤醒。
     /// </summary>
     protected void UseTestClockForDurableJobs(IServiceCollection services) =>
         services.AddKeyedSingleton<TimeProvider>(DurableJobTimeProviderNames.DurableJobs, new TestJobClock(Clock));
 
-    /// <summary>工作时钟可以持续, 即时后将实时加试钟的进度。</summary>
+    /// <summary>一个 Durable Jobs 时钟，其时间等于实际时间加上测试夹具启动以来测试时钟的推进量。</summary>
     internal sealed class FollowingJobClock(TimeProvider clock, DateTimeOffset clockStart) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => System.GetUtcNow() + (clock.GetUtcNow() - clockStart);
@@ -157,13 +157,13 @@ public class MessagingClusterFixture : IAsyncLifetime
     public Task<EndpointSnapshot> WaitForOutboxCountAsync(IMessagingTestGrain grain, int expected) =>
         SnapshotProbe.WaitAsync(grain.GetGrainId(), snapshot => snapshot.OutboxCount == expected);
 
-    /// <summary>获得集集的发包深度 silos 通过发箱深度测量仪报告。</summary>
+    /// <summary>获取集群中各 Silo 通过发件箱深度指标报告的发件箱深度。</summary>
     public long GetOutboxDepth() =>
         Cluster.Silos.Sum(silo => Metrics.GetDepth(
             silo.ServiceProvider.GetRequiredService<OrleansInstruments>().Meter,
             "orleans-messaging-outbox-depth"));
 
-    /// <summary>等到集组完成 silos 汇报了 <paramref name="expected"/>.</summary>
+    /// <summary>等待集群各 Silo 报告的发件箱深度总和等于 <paramref name="expected"/>。</summary>
     public Task WaitForOutboxDepthAsync(long expected) =>
         Metrics.WaitUntilAsync(() => GetOutboxDepth() == expected, TestContext.Current.CancellationToken);
 
@@ -185,7 +185,7 @@ public class MessagingClusterFixture : IAsyncLifetime
         GetGrainContext(grain).ActivationServices.GetRequiredService<MessagingPump>();
 
     /// <summary>
-    /// 额外的泵唤醒计划。醒来是至少一次提示,所以额外提示必须是无害的。
+    /// 调度一次额外的消息泵唤醒。唤醒是至少一次的提示，因此额外唤醒必须无害。
     /// </summary>
     public async Task WakeAsync(IAddressable grain)
     {
@@ -203,19 +203,19 @@ public class MessagingClusterFixture : IAsyncLifetime
     }
 
     /// <summary>
-    /// 直接执行泵的耐久工作回调 作为当前警醒任务,作为早期或虚假的发射
-    /// 工作会。
+    /// 以当前唤醒作业的身份直接执行消息泵的持久化作业回调，模拟该作业提前触发或
+    /// 虚假触发。
     /// </summary>
     internal Task<DurableJobRunResult> RunPumpAsync(IAddressable grain) =>
         RunCancelablePumpAsync(grain, TestContext.Current.CancellationToken);
 
-    /// <summary>直接执行泵的耐久工作回调,作为当前提醒工作以外的工作。</summary>
+    /// <summary>以不同于当前唤醒作业的作业身份直接执行消息泵的持久化作业回调。</summary>
     internal Task<DurableJobRunResult> RunDuplicatePumpAsync(IAddressable grain) =>
         RunPumpAsync(grain, TestContext.Current.CancellationToken, duplicate: true);
 
     /// <summary>
-    /// 直接执行泵的耐久工作回调, 以 <paramref name="runCancellation"/> 作为运行标记, 所以 a
-    /// 测试可以取消运行, 和 Everable Jobs 一样 。
+    /// 直接执行消息泵的持久化作业回调，以 <paramref name="runCancellation"/> 作为此次运行的令牌，从而使
+    /// 测试能够像 Durable Jobs 一样取消该次运行。
     /// </summary>
     internal Task<DurableJobRunResult> RunCancelablePumpAsync(IAddressable grain, CancellationToken runCancellation) =>
         RunPumpAsync(grain, runCancellation, duplicate: false);
@@ -238,7 +238,7 @@ public class MessagingClusterFixture : IAsyncLifetime
         return await run.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
     }
 
-    /// <summary>运行运行 <paramref name="func"/> 排在《公约》 grain启动调度器</summary>
+    /// <summary>在 Grain 的激活实例调度器上运行 <paramref name="func"/>。</summary>
     internal Task<T> OnGrainAsync<T>(IAddressable grain, Func<T> func)
     {
         var done = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -263,7 +263,7 @@ public class MessagingClusterFixture : IAsyncLifetime
             return true;
         });
 
-    /// <summary>投票 <paramref name="predicate"/> 排在《公约》 grain排程器一直保持到它保持</summary>
+    /// <summary>在 Grain 的调度器上轮询 <paramref name="predicate"/>，直至条件成立。</summary>
     internal async Task WaitUntilAsync(IAddressable grain, Func<bool> predicate)
     {
         var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(30);
@@ -278,7 +278,7 @@ public class MessagingClusterFixture : IAsyncLifetime
         }
     }
 
-    /// <summary>力在 <paramref name="context"/> 停止使用之前闲置激活收藏。</summary>
+    /// <summary>强制进行空闲激活实例回收，直至 <paramref name="context"/> 停用。</summary>
     internal async Task CollectAsync(IGrainContext context)
     {
         var management = Client.GetGrain<IManagementGrain>(0);

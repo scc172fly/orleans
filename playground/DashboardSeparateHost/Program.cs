@@ -5,7 +5,7 @@ using System.Net;
 using TestGrains;
 
 //
-// 在此样本中,我们将Dashboard最小API纳入客户应用程序。
+// 此示例将 Dashboard 的 Minimal API 集成到客户端应用中。
 //
 var siloHostBuilder = Host.CreateApplicationBuilder(args);
 siloHostBuilder.UseOrleans(builder =>
@@ -23,21 +23,21 @@ await siloHost.StartAsync();
 
 await Task.Delay(1000);
 
-// 创建用于主机仪表板的 WebApplication
+// 创建用于托管 Dashboard 的 WebApplication。
 var dashboardBuilder = WebApplication.CreateBuilder(args);
 
-// 配置 Orleans 客户端
+// 配置 Orleans 客户端。
 dashboardBuilder.UseOrleansClient(clientBuilder =>
 {
     clientBuilder.UseStaticClustering(options => options.Gateways.Add(new IPEndPoint(IPAddress.Loopback, 30000).ToGatewayUri()));
 
-    // 添加仪表仪表仪表仪仪仪仪仪仪仪服务
+    // 添加 Dashboard 服务。
     clientBuilder.AddDashboard();
 });
 
 var dashboardApp = dashboardBuilder.Build();
 
-// 地图仪表板终端点
+// 映射 Dashboard 端点。
 dashboardApp.MapOrleansDashboard();
 
 await dashboardApp.RunAsync();

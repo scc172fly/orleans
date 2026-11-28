@@ -18,17 +18,17 @@ using Xunit;
 namespace Tester.AzureUtils
 {
     /// <summary>
-    /// 试验试验的试验 Orleans 成员人数 AzureStore - 需要外部进入 Azure 储存
+    /// 使用 AzureStore 测试 Orleans 成员资格表的操作，需要访问外部 Azure 存储。
     /// 
-    /// Azure 表格存储提供了 Orleans成员名单执行情况,可缩放、备供查阅。
-    /// 主要特征包括:
-    /// - 自动分割和负负平衡
-    /// - 分分区内强有力的一致性保障
-    /// - 内置冗余和灾后恢复
-    /// - 与 Azure 监测和诊断相结合
+    /// Azure Table Storage 为 Orleans 提供可扩展、高可用的成员资格表实现。
+    /// 主要功能包括：
+    /// - 自动分区和负载均衡
+    /// - 分区内的强一致性保证
+    /// - 内置冗余和灾难恢复
+    /// - 与 Azure 监控和诊断集成
     /// 
-    /// 这些测试核实了所有成员的操作是否正确,与 Azure 表格存储系统(Q0Q]表存储系统)一起工作;
-    /// 包括同时更新、检测故障和网关发现。
+    /// 这些测试验证 Azure Table Storage 上的所有成员资格操作均能正确执行，
+    /// 包括并发更新、故障检测和网关发现。
     /// </summary>
     [TestCategory("Membership"), TestCategory("AzureStorage")]
     [TestSuite("Functional")]
@@ -51,9 +51,9 @@ namespace Tester.AzureUtils
         }
 
         /// <summary>
-        /// 创建用于测试的 Azure 表格存储成员表。
-        /// 配置带有测试默认值的表格,包括连接字符串
-        /// 和适合进行单位测试的表格名称。
+        /// 创建基于 Azure Table Storage 的成员资格表供测试使用。
+        /// 使用适合单元测试的测试默认值配置该表，包括连接字符串
+        /// 和表名。
         /// </summary>
         protected override IMembershipTable CreateMembershipTable(ILogger logger)
             => CreateMembershipTable(logger, _clusterOptions);
@@ -66,7 +66,7 @@ namespace Tester.AzureUtils
             return new AzureBasedMembershipTable(loggerFactory, Options.Create(options), clusterOptions);
         }
 
-        // Azure 表格存储返回最多每页答复1,000个实体。
+        // Azure Table Storage 每个响应页最多返回 1,000 个实体。
         protected override int ConformanceConcurrencyRowCount => 1001;
 
         protected override MembershipTableTestFixture CreateConformanceFixture()
@@ -85,7 +85,7 @@ namespace Tester.AzureUtils
                 },
                 async (clusterId, cancellationToken) =>
                 {
-                    // 分区包含 silo 实体和会籍版本行。
+                    // 该分区同时包含 Silo 实体和成员资格版本记录。
                     await foreach (var page in probe.QueryAsync<TableEntity>(
                         TableClient.CreateQueryFilter($"PartitionKey eq {clusterId}"),
                         maxPerPage: 1,
@@ -103,9 +103,9 @@ namespace Tester.AzureUtils
         }
 
         /// <summary>
-        /// 创建客户端连接的 Azure- 基于用户端的网关列表提供者。
-        /// 此提供者查询 Azure 表格存储以发现可用
-        /// 客户端可连接到的网关 silos 。
+        /// 创建基于 Azure 的网关列表提供程序，用于客户端连接。
+        /// 此提供程序查询 Azure Table Storage，以发现可供
+        /// 客户端连接的网关 Silo。
         /// </summary>
         protected override IGatewayListProvider CreateGatewayListProvider(ILogger logger)
         {
@@ -157,7 +157,7 @@ namespace Tester.AzureUtils
             var legacyVersion = await client.GetEntityAsync<SiloInstanceTableEntry>(
                 clusterId, version.RowKey, cancellationToken: cancellationToken);
             var startTime = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            // 10.2.x 种子格式直接: VersionRow 和 silo 行,没有界碑。
+            // 直接写入 10.2.x 格式的数据：VersionRow 和 Silo 行，均不包含两个边界标记中的任何一个。
             var rows = Enumerable.Range(0, rowCount).Select(index =>
             {
                 var address = SiloAddress.New(IPAddress.Loopback, 12000 + index, 1);
@@ -244,9 +244,9 @@ namespace Tester.AzureUtils
         }
 
         /// <summary>
-        /// 测试将新的 silo 条目插入 Azure 表格存储。
-        /// 证明条目与所有要求的条目一起正确存储
-        /// 并且能够处理 Azure实体规模限制。
+        /// 测试向 Azure Table Storage 插入新的 Silo 条目。
+        /// 验证该条目能以全部必需属性正确存储，
+        /// 并能处理 Azure 的实体大小限制。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task MembershipTable_Azure_InsertRow()
@@ -273,9 +273,9 @@ namespace Tester.AzureUtils
         }
 
         /// <summary>
-        /// 测试同时更新加入条目。
-        /// 证明 Azure 表存储器的乐观同货币控制
-        /// 正确处理多个 silos的同步更新。
+        /// 测试成员资格条目的并发更新。
+        /// 验证 Azure Table Storage 的乐观并发控制能够
+        /// 正确处理来自多个 Silo 的同时更新。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task MembershipTable_Azure_UpdateRowInParallel()
@@ -284,9 +284,9 @@ namespace Tester.AzureUtils
         }
 
         /// <summary>
-        /// 使用 Azure 表存储测试心跳机制。
-        /// 证明: silos 能够有效地更新他们的生活
-        /// 时间戳没有冲突或储存作业过多。
+        /// 测试使用 Azure Table Storage 的心跳机制。
+        /// 验证 Silo 能够高效更新其存活时间戳，
+        /// 不会发生冲突或产生过多存储操作。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task MembershipTable_Azure_UpdateIAmAlive()

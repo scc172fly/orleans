@@ -10,21 +10,21 @@ using Orleans.Runtime.MembershipService;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 提供配置 Azure 表存储组合的扩展方法。
+    /// 提供用于配置 Azure Table Storage 集群的扩展方法。
     /// </summary>
     public static class AzureTableClusteringExtensions
     {
         /// <summary>
-        /// 配置 silo 用于使用 Azure 存储组群。
+        /// 配置 Silo，使其使用 Azure Storage 进行集群管理。
         /// </summary>
         /// <param name="builder">
-        /// 下 silo 建筑商
+        /// Silo 构建器。
         /// </param>
         /// <param name="configureOptions">
-        /// 组合代表
+        /// 配置委托。
         /// </param>
         /// <returns>
-        /// 提供 <see cref="ISiloBuilder"/>。
+        /// 提供的 <see cref="ISiloBuilder"/>。
         /// </returns>
         public static ISiloBuilder UseAzureStorageClustering(
             this ISiloBuilder builder,
@@ -44,16 +44,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 silo 用于使用 Azure 存储组群。
+        /// 配置 Silo，使其使用 Azure Storage 进行集群管理。
         /// </summary>
         /// <param name="builder">
-        /// 下 silo 建筑商
+        /// Silo 构建器。
         /// </param>
         /// <param name="configureOptions">
-        /// 组合代表
+        /// 配置委托。
         /// </param>
         /// <returns>
-        /// 提供 <see cref="ISiloBuilder"/>。
+        /// 提供的 <see cref="ISiloBuilder"/>。
         /// </returns>
         public static ISiloBuilder UseAzureStorageClustering(
             this ISiloBuilder builder,
@@ -70,16 +70,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置客户端使用 Azure 存储组群。
+        /// 配置客户端，使其使用 Azure Storage 发现集群网关。
         /// </summary>
         /// <param name="builder">
-        /// 客户的建设者
+        /// 客户端构建器。
         /// </param>
         /// <param name="configureOptions">
-        /// 组合代表
+        /// 配置委托。
         /// </param>
         /// <returns>
-        /// 提供 <see cref="IClientBuilder"/>。
+        /// 提供的 <see cref="IClientBuilder"/>。
         /// </returns>
         public static IClientBuilder UseAzureStorageClustering(
             this IClientBuilder builder,
@@ -99,16 +99,16 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置客户端使用 Azure 存储组群。
+        /// 配置客户端，使其使用 Azure Storage 发现集群网关。
         /// </summary>
         /// <param name="builder">
-        /// 客户的建设者
+        /// 客户端构建器。
         /// </param>
         /// <param name="configureOptions">
-        /// 组合代表
+        /// 配置委托。
         /// </param>
         /// <returns>
-        /// 提供 <see cref="IClientBuilder"/>。
+        /// 提供的 <see cref="IClientBuilder"/>。
         /// </returns>
         public static IClientBuilder UseAzureStorageClustering(
             this IClientBuilder builder,

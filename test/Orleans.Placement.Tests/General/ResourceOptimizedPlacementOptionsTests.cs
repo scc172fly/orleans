@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.General;
 
 /// <summary>
-/// 资源优化配置选项验证测试。
+/// 测试资源优化放置配置选项的验证。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

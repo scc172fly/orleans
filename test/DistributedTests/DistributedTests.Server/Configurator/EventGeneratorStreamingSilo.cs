@@ -104,7 +104,7 @@ namespace DistributedTests.Server.Configurator
             {
                 _streamIds.Add(StreamId.Create(config.StreamNamespace, Guid.NewGuid()));
             }
-            // PayloadType 默认为具体类型, 所以 CreateInstance 返回非null 实例 。
+            // PayloadType 默认为具体类型，因此 CreateInstance 返回非 null 实例。
             _payload = Activator.CreateInstance(config.PayloadType)!;
         }
 
@@ -112,7 +112,7 @@ namespace DistributedTests.Server.Configurator
         {
             if (utcNow < _startTime || utcNow > _endTime)
             {
-                // IStreamGenerator,只有在方法返回为真时才读取事件。
+                // 根据 IStreamGenerator 的契约，仅在该方法返回 true 时读取 events。
                 events = null!;
                 return false;
             }

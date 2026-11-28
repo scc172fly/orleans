@@ -1,33 +1,33 @@
 <a id="orleans-dashboard---cohosted-example"></a>
 
-# Orleans 机首板 - 共同主办的示例
+# Orleans Dashboard - 同宿主示例
 
-本例子说明如何共同主办 Orleans 在同一网络应用程序中运行您的 Orleans silo.
+此示例演示如何在运行 Orleans Silo 的同一个 Web 应用程序中共同托管 Orleans Dashboard。
 
 <a id="overview"></a>
 
-## 概述
+## 总览
 
-这是将 Orleans 头板添加到您的应用程序中的最简单方式。 仪表板与您 silo一样, 使用 ASP.NET 核心最小API , 以同样程序托管。
+这是向应用程序添加 Orleans Dashboard 最简单的方式。Dashboard 使用 ASP.NET Core 最小 API，与 Silo 托管在同一个进程中。
 
 <a id="key-features"></a>
 
-## 关键字属性
+## 主要特性
 
-- **单一过程**: Orleans 和在同一个网络应用程序中运行的仪表板都在同一网上应用中
-- **最小配置**:简单设置,仅使用几行代码
-- **[ASP.NET 核心整合**:使用 `WebApplication.CreateBuilder()` 和最低API
+- **单进程**：Orleans 和 Dashboard 在同一个 Web 应用程序中运行
+- **最简配置**：仅需几行代码即可完成设置
+- **ASP.NET Core 集成**：使用 `WebApplication.CreateBuilder()` 和最小 API
 
 <a id="how-it-works"></a>
 
-## 如何运作
+## 工作原理
 
-举例显示:
+本示例演示：
 
-1. 创建有 `WebApplication.CreateBuilder()`的网络应用程序
-2. 配置 Orleans 使用 `builder.UseOrleans()`
-3. 添加 `siloBuilder.AddDashboard()`
-4. 带有 `app.MapOrleansDashboard()`的绘图仪表板端点
+1. 使用 `WebApplication.CreateBuilder()` 创建 Web 应用程序
+2. 使用 `builder.UseOrleans()` 配置 Orleans
+3. 使用 `siloBuilder.AddDashboard()` 添加 Dashboard
+4. 使用 `app.MapOrleansDashboard()` 映射 Dashboard 终结点
 
 <a id="running-the-example"></a>
 
@@ -37,12 +37,12 @@
 dotnet run
 ```
 
-一旦运行, 打开您的浏览器到 :
-- **仪表板**: https://localhost:55355/ (或) http://localhost:55356/)
+启动后，在浏览器中打开：
+- **Dashboard**：https://localhost:55355/ （或 http://localhost:55356/ ）
 
 <a id="code-walkthrough"></a>
 
-## 代码走过
+## 代码解读
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -68,17 +68,17 @@ app.Run();
 
 <a id="when-to-use-this-approach"></a>
 
-## 何时使用此方法
+## 适用场景
 
-使用此联合主持方式当 :
-- 您想要最简单的设置
-- 您正在建立一个网络应用程序, 同时也主机 Orleans
-- 您想要在您的网络应用程序的同一个端口使用仪表板
-- 运行一个单 silo 或不需要集中仪表板
+在以下情况下使用同宿主方式：
+- 希望采用最简单的配置
+- 正在构建同时托管 Orleans 的 Web 应用程序
+- 希望通过与 Web 应用相同的端口访问 Dashboard
+- 只运行一个 Silo，或不需要集中式 Dashboard
 
 <a id="customization"></a>
 
-## 自定义
+## 自定义配置
 
 <a id="custom-route-prefix"></a>
 
@@ -90,7 +90,7 @@ app.MapOrleansDashboard(routePrefix: "/dashboard");
 
 <a id="add-authentication"></a>
 
-### 添加认证
+### 添加身份验证
 
 ```csharp
 app.MapOrleansDashboard().RequireAuthorization();
@@ -109,21 +109,21 @@ siloBuilder.AddDashboard(options =>
 
 <a id="important-notes"></a>
 
-## 重要注释
+## 重要说明
 
 > [!WARNING]
-> Orleans 机头板的设计仅用于 **开发和测试情景**。不建议进行生产部署,因为其能对您的组群产生显著性能影响。
+> Orleans Dashboard **仅为开发和测试场景设计**。不建议用于生产部署，因为它可能对集群性能产生显著影响。
 
 <a id="related-examples"></a>
 
-## 相关实例
+## 相关示例
 
-- **DashboardSeparateHost**:显示如何在单独的应用程序中托管仪表板
-- **DashboardToy**:高级示例, .NET 临时整合
+- **DashboardSeparateHost**：演示如何在独立应用程序中托管 Dashboard
+- **DashboardToy**：集成 .NET Aspire 的进阶示例
 
 <a id="learn-more"></a>
 
-## 学习更多
+## 了解更多
 
-- [Orleans 机布文档](../../../src/Dashboard/Orleans.Dashboard/README.md)
+- [Orleans Dashboard 文档](../../../src/Dashboard/Orleans.Dashboard/README.md)
 - [Microsoft Orleans 文档](https://learn.microsoft.com/dotnet/orleans/)

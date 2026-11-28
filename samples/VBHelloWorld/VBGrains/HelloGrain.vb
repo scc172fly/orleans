@@ -1,7 +1,7 @@
 Imports Orleans
 
 ''' <summary>
-''' Orleans grain 执行类
+''' Orleans Grain 实现类 Grain1
 ''' </summary>
 Public Class HelloGrain
     Inherits Grain

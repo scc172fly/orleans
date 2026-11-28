@@ -7,7 +7,7 @@ using Xunit;
 namespace UnitTests.MembershipTests
 {
     /// <summary>
-    /// 试验 Orleans silo 使用 SQL 服务器作为会员提供商。
+    /// 使用 SQL Server 作为成员资格提供程序，测试 Orleans Silo 成员资格的存活性功能。
     /// </summary>
     [TestCategory("SqlServer"), TestCategory("Functional"), TestCategory("Membership"), TestCategory("AdoNet")]
     [TestSuite("Functional")]
@@ -95,7 +95,7 @@ namespace UnitTests.MembershipTests
     }
 
     /// <summary>
-    /// 试验 Orleans silo 使用 PostgreSQL 作为成员提供方。
+    /// 使用 PostgreSQL 作为成员资格提供程序，测试 Orleans Silo 成员资格的存活性功能。
     /// </summary>
     [TestCategory("PostgreSql"), TestCategory("Functional"), TestCategory("Membership"), TestCategory("AdoNet")]
     [TestSuite("Functional")]
@@ -183,7 +183,7 @@ namespace UnitTests.MembershipTests
     }
 
     /// <summary>
-    /// 试验 Orleans silo 使用 MySQL 作为成员提供方。
+    /// 使用 MySQL 作为成员资格提供程序，测试 Orleans Silo 成员资格的存活性功能。
     /// </summary>
     [TestCategory("MySql"), TestCategory("Functional"), TestCategory("Membership"), TestCategory("AdoNet")]
     [TestSuite("Functional")]

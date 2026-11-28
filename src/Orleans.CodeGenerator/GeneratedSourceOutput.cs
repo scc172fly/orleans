@@ -164,7 +164,7 @@ internal static class GeneratedSourceOutput
                 continue;
             }
 
-            // 只有相互冲突的提示需要全部来源的散列和按原创原创重复。
+            // 只有发生冲突的提示名称才需要对完整源代码进行哈希，并按原提示名称去重。
             collidingSourcesByOriginalHintName ??= new(StringComparer.Ordinal);
             if (!collidingSourcesByOriginalHintName.TryGetValue(entry.HintName, out var collidingSources))
             {
@@ -249,8 +249,8 @@ internal static class GeneratedSourceOutput
     }
 
     /// <summary>
-    /// 写入生成的文件: 组装属性, 然后每个名称空间以正序顺序和其成员的插入顺序排列
-    /// 并附有生成代码警告抑制。
+    /// 写入生成文件：先写程序集特性，再按序数比较的顺序写各命名空间，其成员按插入顺序排列，
+    /// 并在生成代码的警告抑制指令中包围这些内容。
     /// </summary>
     internal static string CreateSourceString(
         Dictionary<string, List<Action<SourceWriter>>> namespacedMembers,
@@ -296,7 +296,7 @@ internal static class GeneratedSourceOutput
 
         if (!hasContent)
         {
-            // 一支空的编队仍然在镇压指令之间占据线。
+            // 空编译单元仍占用两条抑制指令之间的一行。
             writer.StartLine();
         }
 

@@ -37,7 +37,7 @@ public class ReferenceAssemblyModelExtractorTests
         Assert.Equal(metadataName, identity.MetadataName);
         Assert.Same(symbol, compilation.Assembly.GetTypeByMetadataName(identity.MetadataName));
 
-        // 与11640号记录的空间排放问题分开。
+        // 独立于 #11640 跟踪的命名空间生成问题，测试发现机制。
         var driver = CreateTrackedDriver().RunGenerators(compilation, TestContext.Current.CancellationToken);
         var result = Assert.Single(driver.GetRunResult().Results);
         Assert.Empty(result.Diagnostics);
@@ -479,7 +479,7 @@ public class ReferenceAssemblyModelExtractorTests
         var types = compilation.Assembly.GetDeclaredTypes().ToArray();
         Assert.Equal(512, types.Length);
 
-        // 温·罗斯林的符号和语法暗藏 比较同步的,细线的地方分配
+        // 在比较同步、线程局部分配之前，先预热 Roslyn 的符号及语法缓存。
         _ = Extract();
         _ = FormatTypes();
         var start = GC.GetAllocatedBytesForCurrentThread();

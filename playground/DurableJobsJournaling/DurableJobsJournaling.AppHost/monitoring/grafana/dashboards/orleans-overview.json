@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Subsystem-oriented Orleans runtime, directory, activation, storage, Azure Blob journaling, DurableJobs, and workload metrics with live quantiles and Prometheus bucket heatmaps.",
+  "description": "按子系统组织的 Orleans 运行时、目录、激活实例、存储、Azure Blob 日志持久化、DurableJobs 和工作负载指标，包含实时分位数和 Prometheus 桶热图。",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -28,8 +28,8 @@
       "keepTime": true,
       "tags": [],
       "targetBlank": false,
-      "title": ".NET runtime metrics",
-      "tooltip": "Open the linked .NET runtime dashboard with the current time range and variables.",
+      "title": ".NET 运行时指标",
+      "tooltip": "使用当前时间范围和变量打开链接的 .NET 运行时仪表板。",
       "type": "link",
       "url": "/d/dotnet-runtime-metrics?${__url.params}"
     },
@@ -41,7 +41,7 @@
       "tags": [],
       "targetBlank": false,
       "title": "ASP.NET Core",
-      "tooltip": "Open the ASP.NET Core dashboard with the current time range and variables.",
+      "tooltip": "使用当前时间范围和变量打开 ASP.NET Core 仪表板。",
       "type": "link",
       "url": "/d/aspnetcore-overview?${__url.params}"
     },
@@ -52,8 +52,8 @@
       "keepTime": true,
       "tags": [],
       "targetBlank": false,
-      "title": "ASP.NET Core Endpoint",
-      "tooltip": "Open the ASP.NET Core per-endpoint dashboard with the current time range and variables.",
+      "title": "ASP.NET Core 终结点",
+      "tooltip": "使用当前时间范围和变量打开 ASP.NET Core 按终结点统计的仪表板。",
       "type": "link",
       "url": "/d/aspnetcore-endpoint?${__url.params}"
     }
@@ -69,7 +69,7 @@
       },
       "id": 1000,
       "panels": [],
-      "title": "Executive overview",
+      "title": "总览",
       "type": "row"
     },
     {
@@ -77,7 +77,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Number of scraped Orleans silo instances in the current selection. Counts only instances that emit silo-specific metrics so non-silo services (for example, the web frontend) are excluded.",
+      "description": "当前选择范围内采集到的 Orleans Silo 实例数。仅统计发出 Silo 专属指标的实例，因此不包括非 Silo 服务（例如 Web 前端）。",
       "fieldConfig": {
         "defaults": {
           "unit": "short",
@@ -125,7 +125,7 @@
           "refId": "A"
         }
       ],
-      "title": "Active silos",
+      "title": "活动 Silo",
       "type": "stat"
     },
     {
@@ -133,7 +133,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Current live Orleans grain activations across selected silos.",
+      "description": "所有选定 Silo 上当前存活的 Orleans Grain 激活实例。",
       "fieldConfig": {
         "defaults": {
           "unit": "short",
@@ -181,7 +181,7 @@
           "refId": "A"
         }
       ],
-      "title": "Live grain activations",
+      "title": "存活的 Grain 激活实例",
       "type": "stat"
     },
     {
@@ -189,7 +189,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Incoming grain calls recorded by the playground filter, grouped by grain type rather than grain id.",
+      "description": "由 playground 筛选器记录的入站 Grain 调用，按 Grain 类型而非 Grain ID 分组。",
       "fieldConfig": {
         "defaults": {
           "unit": "ops",
@@ -237,7 +237,7 @@
           "refId": "A"
         }
       ],
-      "title": "Request rate",
+      "title": "请求速率",
       "type": "stat"
     },
     {
@@ -245,7 +245,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Error ratio for incoming grain calls recorded by the playground filter.",
+      "description": "playground 筛选器记录的入站 Grain 调用的错误比例。",
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
@@ -302,7 +302,7 @@
           "refId": "A"
         }
       ],
-      "title": "Request error %",
+      "title": "请求错误百分比",
       "type": "stat"
     },
     {
@@ -310,7 +310,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "P99 incoming grain call latency from the playground grain-type histogram.",
+      "description": "根据 playground 的 Grain 类型直方图计算的入站 Grain 调用 P99 延迟。",
       "fieldConfig": {
         "defaults": {
           "unit": "ms",
@@ -358,7 +358,7 @@
           "refId": "A"
         }
       ],
-      "title": "Request p99",
+      "title": "请求 p99",
       "type": "stat"
     },
     {
@@ -366,7 +366,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "P99 end-to-end workflow latency for the playground workload.",
+      "description": "playground 工作负载的工作流端到端 P99 延迟。",
       "fieldConfig": {
         "defaults": {
           "unit": "ms",
@@ -414,7 +414,7 @@
           "refId": "A"
         }
       ],
-      "title": "Workflow p99 latency",
+      "title": "工作流 p99 延迟",
       "type": "stat"
     },
     {
@@ -427,7 +427,7 @@
       },
       "id": 1100,
       "panels": [],
-      "title": "Silo / host overview",
+      "title": "Silo / 宿主概览",
       "type": "row"
     },
     {
@@ -435,7 +435,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Incoming grain calls per silo, tagged by success/error status and grain type.",
+      "description": "各 Silo 的入站 Grain 调用，以成功/错误状态及 Grain 类型为标签。",
       "fieldConfig": {
         "defaults": {
           "unit": "ops"
@@ -474,7 +474,7 @@
           "refId": "A"
         }
       ],
-      "title": "Per-silo request rate",
+      "title": "各 Silo 的请求速率",
       "type": "timeseries"
     },
     {
@@ -482,7 +482,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "P95 incoming grain call latency per silo.",
+      "description": "各 Silo 的入站 Grain 调用 P95 延迟。",
       "fieldConfig": {
         "defaults": {
           "unit": "ms"
@@ -521,7 +521,7 @@
           "refId": "A"
         }
       ],
-      "title": "Per-silo p95 latency",
+      "title": "各 Silo 的 p95 延迟",
       "type": "timeseries"
     },
     {
@@ -529,7 +529,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Live grain activations split by silo and Orleans grain type label.",
+      "description": "按 Silo 和 Orleans Grain 类型标签拆分的存活 Grain 激活实例。",
       "fieldConfig": {
         "defaults": {
           "unit": "short"
@@ -568,7 +568,7 @@
           "refId": "A"
         }
       ],
-      "title": "Per-silo live grain activations",
+      "title": "各 Silo 存活的 Grain 激活实例",
       "type": "timeseries"
     },
     {
@@ -576,7 +576,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Directory registration throughput per silo.",
+      "description": "各 Silo 的目录注册吞吐量。",
       "fieldConfig": {
         "defaults": {
           "unit": "ops"
@@ -615,7 +615,7 @@
           "refId": "A"
         }
       ],
-      "title": "Per-silo directory registration rate",
+      "title": "各 Silo 的目录注册速率",
       "type": "timeseries"
     },
     {
@@ -628,7 +628,7 @@
       },
       "id": 1200,
       "panels": [],
-      "title": "Grain requests",
+      "title": "Grain 请求",
       "type": "row"
     },
     {
@@ -636,7 +636,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Top live grain activation counts using Orleans runtime grain type labels.",
+      "description": "使用 Orleans 运行时 Grain 类型标签统计的存活 Grain 激活实例数量排名。",
       "fieldConfig": {
         "defaults": {
           "unit": "short"
@@ -677,7 +677,7 @@
           "instant": true
         }
       ],
-      "title": "Top live grain types",
+      "title": "存活实例数最多的 Grain 类型",
       "type": "bargauge"
     },
     {
@@ -685,7 +685,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Incoming grain call throughput by GrainId.Type.ToString() and status.",
+      "description": "按 GrainId.Type.ToString() 和状态统计的入站 Grain 调用吞吐量。",
       "fieldConfig": {
         "defaults": {
           "unit": "ops"
@@ -724,7 +724,7 @@
           "refId": "A"
         }
       ],
-      "title": "Request throughput",
+      "title": "请求吞吐量",
       "type": "timeseries"
     },
     {
@@ -732,7 +732,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Per-grain-type error ratio. The grain_type label is the grain type only, not the grain id/key.",
+      "description": "各 Grain 类型的错误比例。grain_type 标签仅表示 Grain 类型，不表示 Grain ID/键。",
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit"
@@ -771,7 +771,7 @@
           "refId": "A"
         }
       ],
-      "title": "Request error rate",
+      "title": "请求错误率",
       "type": "timeseries"
     },
     {
@@ -779,7 +779,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Per-grain-type latency quantiles from the playground incoming call filter.",
+      "description": "由 playground 入站调用筛选器提供的各 Grain 类型延迟分位数。",
       "fieldConfig": {
         "defaults": {
           "unit": "ms"
@@ -832,7 +832,7 @@
           "refId": "C"
         }
       ],
-      "title": "Request latency quantiles",
+      "title": "请求延迟分位数",
       "type": "timeseries"
     },
     {
@@ -840,7 +840,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Heatmap for selected grain-type request latency buckets. This is tagged by grain type only, never grain id/key.",
+      "description": "所选 Grain 类型的请求延迟桶热图。标签只使用 Grain 类型，绝不使用 Grain ID/键。",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -910,7 +910,7 @@
           "format": "heatmap"
         }
       ],
-      "title": "Request latency heatmap",
+      "title": "请求延迟热图",
       "type": "heatmap"
     },
     {
@@ -923,7 +923,7 @@
       },
       "id": 102,
       "panels": [],
-      "title": "Orleans messaging and app requests",
+      "title": "Orleans 消息传递和应用请求",
       "type": "row"
     },
     {
@@ -985,7 +985,7 @@
           "refId": "D"
         }
       ],
-      "title": "Orleans request/response rates",
+      "title": "Orleans 请求/响应速率",
       "type": "timeseries"
     },
     {
@@ -1054,7 +1054,7 @@
           "refId": "E"
         }
       ],
-      "title": "Orleans error rates",
+      "title": "Orleans 错误发生速率",
       "type": "timeseries"
     },
     {
@@ -1095,9 +1095,9 @@
           "refId": "A"
         }
       ],
-      "title": "Global Orleans app request latency quantiles",
+      "title": "全局 Orleans 应用请求延迟分位数",
       "type": "timeseries",
-      "description": "Global Orleans app request latency quantiles. This runtime metric is not split by grain type."
+      "description": "全局 Orleans 应用请求延迟分位数。此运行时指标不按 Grain 类型拆分。"
     },
     {
       "datasource": {
@@ -1173,9 +1173,9 @@
           "refId": "A"
         }
       ],
-      "title": "Global grain request latency heatmap",
+      "title": "全局 Grain 请求延迟热图",
       "type": "heatmap",
-      "description": "Global Orleans app request latency heatmap. Use the Grain requests row for per-grain-type latency."
+      "description": "全局 Orleans 应用请求延迟热图。要查看各 Grain 类型的延迟，请使用“Grain 请求”行。"
     },
     {
       "collapsed": false,
@@ -1187,7 +1187,7 @@
       },
       "id": 103,
       "panels": [],
-      "title": "Catalog / Grain activation",
+      "title": "Catalog / Grain 激活",
       "type": "row"
     },
     {
@@ -1249,7 +1249,7 @@
           "refId": "D"
         }
       ],
-      "title": "Catalog and activation gauges",
+      "title": "Catalog 和激活实例瞬时指标",
       "type": "timeseries"
     },
     {
@@ -1311,7 +1311,7 @@
           "refId": "D"
         }
       ],
-      "title": "Grain activation throughput",
+      "title": "Grain 激活吞吐量",
       "type": "timeseries"
     },
     {
@@ -1366,7 +1366,7 @@
           "refId": "C"
         }
       ],
-      "title": "Grain activation latency quantiles",
+      "title": "Grain 激活延迟分位数",
       "type": "timeseries"
     },
     {
@@ -1443,7 +1443,7 @@
           "refId": "A"
         }
       ],
-      "title": "Grain activation latency heatmap",
+      "title": "Grain 激活延迟热图",
       "type": "heatmap"
     },
     {
@@ -1456,7 +1456,7 @@
       },
       "id": 104,
       "panels": [],
-      "title": "Grain directory",
+      "title": "Grain 目录",
       "type": "row"
     },
     {
@@ -1504,7 +1504,7 @@
           "refId": "B"
         }
       ],
-      "title": "Grain directory cache and partition size",
+      "title": "Grain 目录缓存和分区大小",
       "type": "timeseries"
     },
     {
@@ -1566,7 +1566,7 @@
           "refId": "D"
         }
       ],
-      "title": "Grain directory operation rates",
+      "title": "Grain 目录操作速率",
       "type": "timeseries"
     },
     {
@@ -1635,7 +1635,7 @@
           "refId": "E"
         }
       ],
-      "title": "Directory registration throughput",
+      "title": "目录注册吞吐量",
       "type": "timeseries"
     },
     {
@@ -1690,7 +1690,7 @@
           "refId": "C"
         }
       ],
-      "title": "Directory registration latency quantiles",
+      "title": "目录注册延迟分位数",
       "type": "timeseries"
     },
     {
@@ -1767,7 +1767,7 @@
           "refId": "A"
         }
       ],
-      "title": "Directory registration latency heatmap",
+      "title": "目录注册延迟热图",
       "type": "heatmap"
     },
     {
@@ -1780,7 +1780,7 @@
       },
       "id": 105,
       "panels": [],
-      "title": "Storage / Journaling / Azure Blob",
+      "title": "存储 / 日志持久化 / Azure Blob",
       "type": "row"
     },
     {
@@ -1835,7 +1835,7 @@
           "refId": "C"
         }
       ],
-      "title": "Journaling storage latency quantiles by operation",
+      "title": "按操作统计的日志持久化存储延迟分位数",
       "type": "timeseries"
     },
     {
@@ -1883,7 +1883,7 @@
           "refId": "B"
         }
       ],
-      "title": "Journaling storage error rates",
+      "title": "日志持久化存储错误发生速率",
       "type": "timeseries"
     },
     {
@@ -1960,7 +1960,7 @@
           "refId": "A"
         }
       ],
-      "title": "Journaling storage write latency heatmap",
+      "title": "日志持久化存储写入延迟热图",
       "type": "heatmap"
     },
     {
@@ -2037,7 +2037,7 @@
           "refId": "A"
         }
       ],
-      "title": "Journaling storage read latency heatmap",
+      "title": "日志持久化存储读取延迟热图",
       "type": "heatmap"
     },
     {
@@ -2099,7 +2099,7 @@
           "refId": "D"
         }
       ],
-      "title": "Journaling throughput",
+      "title": "日志持久化吞吐量",
       "type": "timeseries"
     },
     {
@@ -2154,7 +2154,7 @@
           "refId": "C"
         }
       ],
-      "title": "Logical journaling latency",
+      "title": "逻辑日志持久化延迟",
       "type": "timeseries"
     },
     {
@@ -2195,7 +2195,7 @@
           "refId": "A"
         }
       ],
-      "title": "Azure Blob journal throughput",
+      "title": "Azure Blob 日志吞吐量",
       "type": "timeseries"
     },
     {
@@ -2250,7 +2250,7 @@
           "refId": "C"
         }
       ],
-      "title": "Azure Blob journal latency quantiles",
+      "title": "Azure Blob 日志延迟分位数",
       "type": "timeseries"
     },
     {
@@ -2327,7 +2327,7 @@
           "refId": "A"
         }
       ],
-      "title": "Azure Blob journal operation latency heatmap",
+      "title": "Azure Blob 日志操作延迟热图",
       "type": "heatmap"
     },
     {
@@ -2335,7 +2335,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Logical append payload size produced by Orleans.Journaling before the storage provider writes it. Use this to tune append batch size.",
+      "description": "Orleans.Journaling 在存储提供程序写入之前生成的逻辑追加负载大小。可据此调整追加批次大小。",
       "fieldConfig": {
         "defaults": {
           "unit": "bytes"
@@ -2390,7 +2390,7 @@
           "refId": "D"
         }
       ],
-      "title": "Journaling append batch bytes",
+      "title": "日志持久化追加批次字节数",
       "type": "timeseries"
     },
     {
@@ -2398,7 +2398,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Time a logical storage work item spent waiting in the JournaledStateManager serialized work queue before processing began. Provider-internal waits and retries remain part of storage operation latency.",
+      "description": "逻辑存储工作项在开始处理之前，于 JournaledStateManager 串行工作队列中等待的时间。提供程序内部的等待和重试仍计入存储操作延迟。",
       "fieldConfig": {
         "defaults": {
           "unit": "ms"
@@ -2446,7 +2446,7 @@
           "refId": "C"
         }
       ],
-      "title": "Journaling storage queue delay quantiles",
+      "title": "日志持久化存储队列等待延迟分位数",
       "type": "timeseries"
     },
     {
@@ -2454,7 +2454,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Distribution of JournaledStateManager work-queue wait time for logical storage writes/deletes.",
+      "description": "逻辑存储写入/删除操作在 JournaledStateManager 工作队列中的等待时间分布。",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -2524,7 +2524,7 @@
           "refId": "A"
         }
       ],
-      "title": "Journaling storage queue delay heatmap",
+      "title": "日志持久化存储队列等待延迟热图",
       "type": "heatmap"
     },
     {
@@ -2537,7 +2537,7 @@
       },
       "id": 106,
       "panels": [],
-      "title": "DurableJobs backend",
+      "title": "DurableJobs 后端",
       "type": "row"
     },
     {
@@ -2613,7 +2613,7 @@
           "refId": "F"
         }
       ],
-      "title": "DurableJobs backend throughput",
+      "title": "DurableJobs 后端吞吐量",
       "type": "timeseries"
     },
     {
@@ -2668,7 +2668,7 @@
           "refId": "C"
         }
       ],
-      "title": "DurableJobs caller and shard throughput",
+      "title": "DurableJobs 调用方和分片吞吐量",
       "type": "timeseries"
     },
     {
@@ -2786,7 +2786,7 @@
           "refId": "L"
         }
       ],
-      "title": "DurableJobs latency quantiles",
+      "title": "DurableJobs 延迟分位数",
       "type": "timeseries"
     },
     {
@@ -2863,7 +2863,7 @@
           "refId": "A"
         }
       ],
-      "title": "DurableJobs job attempt latency heatmap",
+      "title": "DurableJobs 作业尝试延迟热图",
       "type": "heatmap"
     },
     {
@@ -2925,7 +2925,7 @@
           "refId": "D"
         }
       ],
-      "title": "DurableJobs storage batch size",
+      "title": "DurableJobs 存储批次大小",
       "type": "timeseries"
     },
     {
@@ -2966,7 +2966,7 @@
           "refId": "A"
         }
       ],
-      "title": "DurableJobs storage batch writes",
+      "title": "DurableJobs 存储批次写入",
       "type": "timeseries"
     },
     {
@@ -2979,7 +2979,7 @@
       },
       "id": 107,
       "panels": [],
-      "title": "Playground workload",
+      "title": "Playground 工作负载",
       "type": "row"
     },
     {
@@ -3041,7 +3041,7 @@
           "refId": "D"
         }
       ],
-      "title": "Playground workflow throughput",
+      "title": "Playground 工作流吞吐量",
       "type": "timeseries"
     },
     {
@@ -3159,7 +3159,7 @@
           "refId": "L"
         }
       ],
-      "title": "Playground workflow latency quantiles",
+      "title": "Playground 工作流延迟分位数",
       "type": "timeseries"
     },
     {
@@ -3236,7 +3236,7 @@
           "refId": "A"
         }
       ],
-      "title": "Workflow duration heatmap",
+      "title": "工作流持续时间热图",
       "type": "heatmap"
     },
     {
@@ -3313,7 +3313,7 @@
           "refId": "A"
         }
       ],
-      "title": "Stage execution latency heatmap",
+      "title": "阶段执行延迟热图",
       "type": "heatmap"
     },
     {
@@ -3326,7 +3326,7 @@
       },
       "id": 108,
       "panels": [],
-      "title": "Metric discovery",
+      "title": "指标发现",
       "type": "row"
     },
     {
@@ -3367,7 +3367,7 @@
           "refId": "A"
         }
       ],
-      "title": "Observed Orleans counter series",
+      "title": "观测到的 Orleans 计数器序列",
       "type": "timeseries"
     },
     {
@@ -3401,7 +3401,7 @@
           "refId": "A"
         }
       ],
-      "title": "Discovered Orleans and playground metric series",
+      "title": "发现的 Orleans 和 playground 指标序列",
       "type": "table"
     }
   ],
@@ -3450,7 +3450,7 @@
         "definition": "label_values(target_info, job)",
         "hide": 0,
         "includeAll": true,
-        "label": "Service",
+        "label": "服务",
         "multi": true,
         "name": "job",
         "options": [],
@@ -3478,7 +3478,7 @@
         "definition": "label_values(target_info{job=~\"$job\"}, instance)",
         "hide": 0,
         "includeAll": true,
-        "label": "Instance",
+        "label": "实例",
         "multi": true,
         "name": "instance",
         "options": [],
@@ -3506,7 +3506,7 @@
         "definition": "label_values(playground_grain_requests_total{job=~\"$job\", instance=~\"$instance\"}, grain_type)",
         "hide": 0,
         "includeAll": true,
-        "label": "Grain type",
+        "label": "Grain 类型",
         "multi": true,
         "name": "grain_type",
         "options": [],
@@ -3528,7 +3528,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Orleans DurableJobs Journaling Overview",
+  "title": "Orleans DurableJobs 日志持久化概览",
   "uid": "orleans-durablejobs-journaling",
   "version": 2,
   "weekStart": ""

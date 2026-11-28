@@ -8,10 +8,10 @@ namespace Tester.AdoNet
         {
             Microsoft.Data.SqlClient.SqlClientFactory.Instance,
             MySql.Data.MySqlClient.MySqlClientFactory.Instance,
-            //Oracle.ManagedDataAccess.Client.OracleClientFactory.Instance,//目前没有试验
+            //Oracle.ManagedDataAccess.Client.OracleClientFactory.Instance, // 目前没有相关测试
             Npgsql.NpgsqlFactory.Instance,
             Microsoft.Data.Sqlite.SqliteFactory.Instance,
-            //MySqlConnector.MySqlConnectorFactory.Instance,//目前没有试验
+            //MySqlConnector.MySqlConnectorFactory.Instance, // 目前没有相关测试
         };
     }
 }

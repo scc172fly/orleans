@@ -1,25 +1,25 @@
 ---
-title: "ORLEANS0211:等待时间拖"
-description: "理解 ORLEANS0211,其中报告 Task.Delay 或 Thread.Sleep 的耐久任务代码,并用 DurableTask.Delay、 DurableTask.DelayUntil或持久超时来修正。"
+title: "ORLEANS0211: 使用持久化延迟进行等待"
+description: 了解 ORLEANS0211：持久化任务代码使用 Task.Delay 或 Thread.Sleep。使用 DurableTask.Delay、DurableTask.DelayUntil 或持久化超时修复。
 ms.date: 10/15/2026
 ms.topic: reference
 ---
 
 <a id="orleans0211-wait-with-durable-delays"></a>
 
-# ORLEANS0211:等待时间拖
+# ORLEANS0211: 使用持久化延迟进行等待
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
 | 严重性 | 警告 |
-| 类别类 | 用法 |
-| 代码修正 | 无无无无 |
+| 类别 | 用法 |
+| 代码修复 | 无 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-持久任务机构在仍然能够开展持久行动时等待 `Task.Delay` 或呼叫 `Thread.Sleep` :
+持久化任务主体在之后仍会到达持久化操作的位置等待 `Task.Delay` 或调用 `Thread.Sleep`：
 
 :::code source="snippets/durable-tasks/Orleans0211.cs" id="orleans0211_violation" language="csharp":::
 
@@ -27,30 +27,30 @@ ms.topic: reference
 
 ## 规则说明
 
-`Task.Delay` 等待当前运行的记忆。 当激活停止、 其 silo 重新启动或运行在延迟结束前失败时, 等待丢失, 重播开始14天的新等待从运行开始, 因此每几天重新开始一次的试验永远不会结束。 `Thread.Sleep` 还阻断了启动的调度器, 所以 grain 在它睡觉的时候不处理其它问题 。
+`Task.Delay` 在当前运行的内存中等待。当激活实例停用、所属 Silo 重启，或运行在延迟结束前失败时，等待会丢失，重放从运行起点开始新的 14 天等待，因此每隔几天重启一次运行的试用期永远不会到期。`Thread.Sleep` 还会阻塞激活实例的调度器，因此 Grain 在休眠期间不处理其他工作。
 
-长期延误记录了执行时的正常时间。 grain 可以在等待期间停止使用,运行时间在延迟到期时重新启动,重播恢复了记录的延误而不是开始另一个延迟。
+持久化延迟在执行的逻辑时间中记录到期时间。Grain 可以在等待时停用；延迟到期时，运行时重新激活 Grain，重放恢复已记录的延迟，而不是开始另一次延迟。
 
-关于延误和超时,见 [组合器和控点](../grains/durable-tasks.md#combinators-and-handles)。
+有关延迟及超时，请参阅[组合器和句柄](../grains/durable-tasks.md#combinators-and-handles)。
 
 <a id="how-to-fix-violations"></a>
 
-## 如何纠正违反情况
+## 如何修复违规
 
-**等待 `DurableTask.Delay`:**
+**使用 `DurableTask.Delay` 等待一段时长：**
 
 :::code source="snippets/durable-tasks/Orleans0211.cs" id="orleans0211_fix_delay" language="csharp":::
 
-**等待到有 `DurableTask.DelayUntil`的时间。** 从参数、记录的结果或 `DurableTask.Current.UtcNow`计算时间, 所以每次重编都同时计算到期时间:
+**使用 `DurableTask.DelayUntil` 等待至指定时间。** 根据参数、已记录结果或 `DurableTask.Current.UtcNow` 计算时间，使每次重放都计算出相同的到期时间：
 
 :::code source="snippets/durable-tasks/Orleans0211.cs" id="orleans0211_fix_delay_until" language="csharp":::
 
-**与 `WaitAsync` 或 `WaitUntilAsync`或** 的工作相隔绝,而不是与 `Task.Delay`进行赛跑。超时是从第一次运行起计数的持久延迟。当工作开始后,会收到取消请求,而结束的任务则取消丢弃 `TimeoutException`:
+**使用 `WaitAsync` 或 `WaitUntilAsync` 为工作设置时间限制**，而不是与 `Task.Delay` 竞速。超时是从首次运行起计算的持久化延迟。如果超时先到期，则工作收到取消请求，最终处于已取消状态的任务会抛出 `TimeoutException`：
 
 :::code source="snippets/durable-tasks/Orleans0211.cs" id="orleans0211_fix_timeout" language="csharp":::
 
 <a id="when-to-suppress"></a>
 
-## 何时压缩
+## 何时抑制
 
-将诊断限制为短暂停的诊断, 重放可能会重复一次, 例如在持续操作前暂停, 以测量资源仍在启动中。 在外部呼叫后出现回击 `DurableTask.Run` 代表不能持久运作 所以规则不会报告
+对于重放可以重复的短暂停顿，可以抑制诊断，例如在轮询仍在启动的资源的持久化操作之前暂停。`DurableTask.Run` 委托内部外部调用各次尝试之间的退避之后不会到达持久化操作，因此此规则不会报告它。

@@ -14,7 +14,7 @@ using Xunit;
 namespace Tester.Forwarding
 {
     /// <summary>
-    /// 测试 silo 关闭情景,包括请求转发、计时器处理和卡住激活。
+    /// 测试 Silo 关闭场景，包括请求转发、定时器处理及卡住的激活实例。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -91,7 +91,7 @@ namespace Tester.Forwarding
                 tasks.Add(grain.GetRuntimeInstanceIdWithDelay(TimeSpan.FromMilliseconds(50)));
             }
 
-            // 关闭 silo 位于 grain 是
+            // 关闭 Grain 所在的 Silo
             await Task.Delay(500, TestContext.Current.CancellationToken);
             await HostedCluster.StopSiloAsync(HostedCluster.SecondarySilos.First(), TestContext.Current.CancellationToken);
 

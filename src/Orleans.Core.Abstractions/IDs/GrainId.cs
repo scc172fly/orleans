@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 指定一个 grain。
+    /// 标识一个 Grain。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     [JsonConverter(typeof(GrainIdJsonConverter))]
@@ -39,12 +39,12 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取 grain 类型。
+        /// 获取 Grain 类型。
         /// </summary>
         public GrainType Type => _type;
 
         /// <summary>
-        /// 获取 grain 密钥。
+        /// 获取 Grain 键。
         /// </summary>
         public IdSpan Key => _key;
 
@@ -68,7 +68,7 @@ namespace Orleans.Runtime
         public static GrainId Create(GrainType type, IdSpan key) => new GrainId(type, key);
 
         /// <summary>
-        /// 从宽度中划出一个 <see cref="GrainId"/> 。
+        /// 从 Span 解析 <see cref="GrainId"/>。
         /// </summary>
         public static GrainId Parse(ReadOnlySpan<char> value, IFormatProvider? provider = null)
         {
@@ -83,9 +83,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 尝试从宽度中解析一个 <see cref="GrainId"/> 。
+        /// 尝试从 Span 解析 <see cref="GrainId"/>。
         /// </summary>
-        /// <returns><see langword="true"/> 如果对一个有效的 <see cref="GrainId"/> 进行了解析。 <see langword="false"/> ,否则</returns>
+        /// <returns>返回 <see langword="true"/> 表示成功解析有效的 <see cref="GrainId"/>，否则返回 <see langword="false"/>。</returns>
         public static bool TryParse(ReadOnlySpan<char> value, IFormatProvider? provider, out GrainId result)
         {
             int i;
@@ -108,33 +108,33 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 从字符串中提取 <see cref="GrainId"/> 。
+        /// 从字符串解析 <see cref="GrainId"/>。
         /// </summary>
         public static GrainId Parse(string value)
             => Parse(value.AsSpan(), null);
 
         /// <summary>
-        /// 从字符串中提取 <see cref="GrainId"/> 。
+        /// 从字符串解析 <see cref="GrainId"/>。
         /// </summary>
         public static GrainId Parse(string value, IFormatProvider? provider = null)
             => Parse(value.AsSpan(), provider);
 
         /// <summary>
-        /// 尝试从字符串中解析 <see cref="GrainId"/> 。
+        /// 尝试从字符串解析 <see cref="GrainId"/>。
         /// </summary>
-        /// <returns><see langword="true"/> 如果对一个有效的 <see cref="GrainId"/> 进行了解析。 <see langword="false"/> ,否则</returns>
+        /// <returns>返回 <see langword="true"/> 表示成功解析有效的 <see cref="GrainId"/>，否则返回 <see langword="false"/>。</returns>
         public static bool TryParse(string? value, out GrainId result)
             => TryParse(value.AsSpan(), null, out result);
 
         /// <summary>
-        /// 尝试从字符串中解析 <see cref="GrainId"/> 。
+        /// 尝试从字符串解析 <see cref="GrainId"/>。
         /// </summary>
-        /// <returns><see langword="true"/> 如果对一个有效的 <see cref="GrainId"/> 进行了解析。 <see langword="false"/> ,否则</returns>
+        /// <returns>返回 <see langword="true"/> 表示成功解析有效的 <see cref="GrainId"/>，否则返回 <see langword="false"/>。</returns>
         public static bool TryParse(string? value, IFormatProvider? provider, out GrainId result)
             => TryParse(value.AsSpan(), provider, out result);
 
         /// <summary>
-        /// <see langword="true"/> 如果此实例为默认值,则该实例为默认值,如果不是,则为 <see langword="false"/> 。
+        /// 此实例为默认值时返回 <see langword="true"/>，否则返回 <see langword="false"/>。
         /// </summary>
         public bool IsDefault => _type.IsDefault && _key.IsDefault;
 
@@ -148,17 +148,17 @@ namespace Orleans.Runtime
         public override int GetHashCode() => HashCode.Combine(_type, _key);
 
         /// <summary>
-        /// 为 grain id 生成一个统一、稳定的散列代码。
+        /// 为 Grain ID 生成均匀分布且稳定的哈希码。
         /// </summary>
         public uint GetUniformHashCode()
         {
-            // 对于给定的代号来说,这个值必须稳定,对于组内的所有节点必须是相等的。
-            // HashCode.Combine 目前没有提供其投入的稳定性。
+            // 对于给定的 ID，此值必须稳定，并且在集群所有节点上相同。
+            // HashCode.Combine 目前无法保证其输入对应的结果稳定。
             return _type.GetUniformHashCode() * 31 + _key.GetUniformHashCode();
         }
 
         /// <inheritdoc/>
-        /// <exception cref="ArgumentNullException"><paramref name="info"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="info"/> 为 <see langword="null"/>。</exception>
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             ArgumentNullException.ThrowIfNull(info);
@@ -178,19 +178,19 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 与所提供的平等目标相比较。
+        /// 比较提供的操作数是否相等。
         /// </summary>
-        /// <param name="left">左侧操作。</param>
-        /// <param name="right">右侧操作。</param>
-        /// <returns><see langword="true"/> 如果规定的数值相等,否则 <see langword="false"/>。</returns>
+        /// <param name="left">左操作数。</param>
+        /// <param name="right">右操作数。</param>
+        /// <returns>如果提供的值相等，则返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
         public static bool operator ==(GrainId left, GrainId right) => left.Equals(right);
 
         /// <summary>
-        /// 比较所提供的不平等域。
+        /// 比较提供的操作数是否不相等。
         /// </summary>
-        /// <param name="left">左侧操作。</param>
-        /// <param name="right">右侧操作。</param>
-        /// <returns><see langword="true"/> 如果所提供的数值不相等,否则 <see langword="false"/>.</returns>
+        /// <param name="left">左操作数。</param>
+        /// <param name="right">右操作数。</param>
+        /// <returns>如果提供的值不相等，则返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
         public static bool operator !=(GrainId left, GrainId right) => !left.Equals(right);
 
         /// <inheritdoc/>
@@ -203,7 +203,7 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// 转换功能a <see cref="GrainId"/> 和从一个 JSON 字符串。
+    /// 提供 <see cref="GrainId"/> 与 JSON 字符串之间的转换功能。
     /// </summary>
     public sealed class GrainIdJsonConverter : JsonConverter<GrainId>
     {
@@ -229,7 +229,7 @@ namespace Orleans.Runtime
             => Read(ref reader, typeToConvert, options);
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 为 <see langword="null"/>。</exception>
         public override void Write(Utf8JsonWriter writer, GrainId value, JsonSerializerOptions options)
         {
             ArgumentNullException.ThrowIfNull(writer);
@@ -237,7 +237,7 @@ namespace Orleans.Runtime
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 为 <see langword="null"/>。</exception>
         public override void WriteAsPropertyName(Utf8JsonWriter writer, [DisallowNull] GrainId value, JsonSerializerOptions options)
         {
             ArgumentNullException.ThrowIfNull(writer);

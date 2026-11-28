@@ -8,7 +8,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// 提供工厂和配置方法 Newtonsoft.Json 支持的设置 Orleans 框架类型。
+    /// 提供支持 Orleans 框架类型的 Newtonsoft.Json 设置的工厂方法和配置方法。
     /// </summary>
     public static class OrleansJsonSerializerSettings
     {
@@ -30,10 +30,10 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// 创建默认的序列器设置,并配置 Orleans 序列绑定和转换器。
+        /// 创建默认序列化器设置，并配置 Orleans 序列化绑定器及转换器。
         /// </summary>
-        /// <param name="services">用于解决序列器依赖关系的服务供应商。</param>
-        /// <returns>配置的默认序列器设置。</returns>
+        /// <param name="services">用于解析序列化器依赖项的服务提供程序。</param>
+        /// <returns>已配置的默认序列化器设置。</returns>
         public static JsonSerializerSettings GetDefaultSerializerSettings(IServiceProvider services)
         {
             var settings = GetDefaultSerializerSettings();
@@ -62,20 +62,20 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// 更新所提供的序列器设置, 并使用指定的选项 。
+        /// 使用指定选项更新提供的序列化器设置。
         /// </summary>
         /// <param name="settings">设置。</param>
         /// <param name="useFullAssemblyNames">
-        /// 当 <see langword="true"/>时,在格式化类型名称时使用完整的组装合格名称;
-        /// 另选其他格式,不修改当前组装名称的格式。
+        /// 当值为 <see langword="true"/> 时，在格式化类型名称时使用完整程序集限定名称；
+        /// 否则保持当前程序集名称格式不变。
         /// </param>
         /// <param name="indentJson">
-        /// 当 <see langword="true"/>时,缩进格式 JSON;否则,保持当前格式不变。
+        /// 当值为 <see langword="true"/> 时，对格式化后的 JSON 进行缩进；否则保持当前格式不变。
         /// </param>
         /// <param name="typeNameHandling">
-        /// 要应用的名称处理值类型, 或要保持当前值不变的 <see langword="null"/> 。
+        /// 要应用的类型名称处理值，或使用 <see langword="null"/> 保持当前值不变。
         /// </param>
-        /// <returns>提供的序列器设置。</returns>
+        /// <returns>提供的序列化器设置。</returns>
         public static JsonSerializerSettings UpdateSerializerSettings(JsonSerializerSettings settings, bool useFullAssemblyNames, bool indentJson, TypeNameHandling? typeNameHandling)
         {
             if (useFullAssemblyNames)

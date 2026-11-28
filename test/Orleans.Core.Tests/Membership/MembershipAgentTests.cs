@@ -15,7 +15,7 @@ using Xunit;
 namespace NonSilo.Tests.Membership
 {
     /// <summary>
-    /// 成员代理功能测试,包括生命周期阶段、 IAmAlive 更新和连接验证。
+    /// 测试成员资格代理功能，包括生命周期阶段、IAmAlive 更新及连通性验证。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Membership")]
     [TestSuite("BVT")]
@@ -79,7 +79,7 @@ namespace NonSilo.Tests.Membership
             this.clusterMembershipOptions = Options.Create(new ClusterMembershipOptions() { MaxJoinAttemptTime = TimeSpan.FromSeconds(45) });
             this.manager = new MembershipTableManager(
                 localSiloDetails: this.localSiloDetails,
-                // 这些固定装置使用固定世代,与时钟无关。
+                // 这些测试夹具使用与时钟无关的固定世代。
                 clusterMembershipOptions: Options.Create(new ClusterMembershipOptions { SiloGenerationRetirementAge = null }),
                 membershipTable: membershipTable,
                 fatalErrorHandler: this.fatalErrorHandler,
@@ -399,7 +399,7 @@ namespace NonSilo.Tests.Membership
             await Until(() => updateCounter == 3, cancellationToken);
             Assert.Equal(3, updateCounter);
 
-            // 当某物变得可怕(例如,定时器抛出一个例外)时,其 silo 就应该有误。
+            // 当出现严重异常情况时（例如计时器抛出异常），Silo 应进入故障状态。
             this.fatalErrorHandler.DidNotReceiveWithAnyArgs().OnFatalException(default, default, default);
             while (!this.timerCalls["UpdateIAmAlive"].TryDequeue(out timer)) await Task.Delay(1, cancellationToken);
             timer.Completion.TrySetException(new Exception("no"));
@@ -407,7 +407,7 @@ namespace NonSilo.Tests.Membership
             await Until(() => this.fatalErrorHandler.ReceivedCalls().Any(), cancellationToken);
             this.fatalErrorHandler.ReceivedWithAnyArgs().OnFatalException(default, default, default);
 
-            // 停止取消所有计时器( C) 。
+            // 停止并取消所有计时器。
             await StopLifecycle(cancellationToken);
         }
 
@@ -428,7 +428,7 @@ namespace NonSilo.Tests.Membership
                 Entry(Silo("127.0.0.200:900@100"), SiloStatus.Active)
             };
 
-            // 添加新的 silos
+            // 添加新的 Silo。
             foreach (var entry in otherSilos)
             {
                 var table = await this.membershipTable.ReadAllAsync(cancellationToken);
@@ -528,7 +528,7 @@ namespace NonSilo.Tests.Membership
                 Entry(Silo("127.0.0.200:900@100"), SiloStatus.Active)
             };
 
-            // 添加新的 silos
+            // 添加新的 Silo。
             foreach (var entry in otherSilos)
             {
                 var table = await this.membershipTable.ReadAllAsync(cancellationToken);
@@ -558,7 +558,7 @@ namespace NonSilo.Tests.Membership
             await Until(() => this.remoteSiloProber.ReceivedCalls().Count() >= otherSilos.Length, cancellationToken);
             await Until(() => started.IsCompleted, cancellationToken);
 
-            // 启动应该有错误的
+            // 启动应已以异常结束。
             Assert.True(started.IsFaulted);
 
             await StopLifecycle(cancellationToken);

@@ -63,7 +63,7 @@ public class PooledCacheCompatibilityTests
             cache.AddToCache([new GeneratedBatchContainer(stream, 1, new EventSequenceTokenV2(1))]);
         }
 
-#pragma warning disable CS0618 // Verify compatibility of the obsolete wrapper.
+#pragma warning disable CS0618 // 验证已弃用包装器的兼容性。
         using var legacyCursor = cache.GetCacheCursor(
             stream,
             position == StreamSubscriptionStartPosition.Latest ? null : new EventSequenceTokenV2(1));

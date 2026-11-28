@@ -4,34 +4,34 @@ using System.Diagnostics;
 namespace Orleans.Caching.Internal;
 
 /// <summary>
-/// 能力分割方案,通过分配80%的配额,有利于经常存取的项目
-/// 以热队列显示容量。
+/// 容量分区方案，通过将 80% 的容量分配给温队列，
+/// 优先保留频繁访问的条目。
 /// </summary>
-// 由Alex Peck从 BitFaster.Caching 取出
+// Derived from BitFaster.Caching by Alex Peck
 // https://github.com/bitfaster/BitFaster.Caching/blob/5b2d64a1afcc251787fbe231c6967a62820fc93c/BitFaster.Caching/Lru/FavorWarmPartition.cs
 [DebuggerDisplay("{Hot}/{Warm}/{Cold}")]
 internal readonly struct CapacityPartition
 {
     /// <summary>
-    /// 默认值为80% 容量分配到热队列,20% 以热和冷平均分。
-    /// 这有助于经常访问的物品。
+    /// 默认将 80% 的容量分配给温队列，其余 20% 在热队列和冷队列之间平均分配。
+    /// 这有利于保留频繁访问的条目。
     /// </summary>
     public const double DefaultWarmRatio = 0.8;
 
     /// <summary>
-    /// 初始化 CapacityPartition 类的新实例,该例子具有指定容量和默认热率。
+    /// 使用指定容量和默认温区段比例初始化 CapacityPartition 类的新实例。
     /// </summary>
-    /// <param name="totalCapacity">总能力。</param>
+    /// <param name="totalCapacity">总容量。</param>
     public CapacityPartition(int totalCapacity)
         : this(totalCapacity, DefaultWarmRatio)
     {
     }
 
     /// <summary>
-    /// 初始化一个 CapacityPartition 类的新实例,该例子具有特定容量和热比。
+    /// 使用指定容量和温区段比例初始化 CapacityPartition 类的新实例。
     /// </summary>
-    /// <param name="totalCapacity">总能力。</param>
-    /// <param name="warmRatio">热物与热物和冷物之比。</param>
+    /// <param name="totalCapacity">总容量。</param>
+    /// <param name="warmRatio">温区段条目与热、冷区段条目的比例。</param>
     public CapacityPartition(int totalCapacity, double warmRatio)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(totalCapacity, 3);

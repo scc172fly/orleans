@@ -29,7 +29,7 @@ public class FirestoreClusteringTests : IAsyncLifetime
         this._generation = 0;
         await WriteSiloInstance(SiloStatus.Dead, TestContext.Current.CancellationToken);
 
-        // 创建新活动条目
+        // 创建新的活动状态条目
         for (int i = 1; i < 5; i++)
         {
             this._generation = i;
@@ -81,17 +81,17 @@ public class FirestoreClusteringTests : IAsyncLifetime
         await WriteSiloInstance(SiloStatus.Created, TestContext.Current.CancellationToken);
 
         var gateways = await this._gatewayProvider.GetGateways();
-        Assert.Empty(gateways);  // " Silo.Activate之前的网关数量 "
+        Assert.Empty(gateways);  // "Silo.Activate 之前的网关数量"
 
         this._entity.Status = (int)SiloStatus.Active;
         await this._storage.UpsertEntity(this._entity, TestContext.Current.CancellationToken);
 
         gateways = await this._gatewayProvider.GetGateways();
-        Assert.Single(gateways);  // " Silo.Activate之后的网关数量 "
+        Assert.Single(gateways);  // "Silo.Activate 之后的网关数量"
 
         Uri myGateway = gateways.First();
-        Assert.Equal(this._entity.Address, myGateway.Host.ToString());  // "地盘地址"
-        Assert.Equal(this._entity.ProxyPort, myGateway.Port);  // "码头"
+        Assert.Equal(this._entity.Address, myGateway.Host.ToString());  // "网关地址"
+        Assert.Equal(this._entity.ProxyPort, myGateway.Port);  // "网关端口"
     }
 
     [Fact]

@@ -1,9 +1,9 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// 综合模型,汇总元数据类生成的所有编审中产出。
-/// 这是对最后 <c>RegisterImplementationSourceOutput</c> 生产可生产
-/// <c>Metadata_{AssemblyName}</c> 类和组级属性。
+/// 聚合所有管道输出的组合模型，用于生成元数据类。
+/// 这是最终 <c>RegisterImplementationSourceOutput</c> 的输入，该步骤生成
+/// <c>Metadata_{AssemblyName}</c> 类和程序集级特性。
 /// </summary>
 internal sealed record class MetadataAggregateModel(
     string AssemblyName,
@@ -21,6 +21,6 @@ internal sealed record class MetadataAggregateModel(
     EquatableArray<DefaultCopierModel> DefaultCopiers);
 
 /// <summary>
-/// 描述为浅可复制型的默认复印机映射(类型为“复印机”类型)。
+/// 描述可浅复制类型的默认复制器映射（类型 → 复制器类型）。
 /// </summary>
 internal readonly record struct DefaultCopierModel(TypeRef OriginalType, TypeRef CopierType);

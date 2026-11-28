@@ -14,7 +14,7 @@ public sealed class ClusterClientHostedService : IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        // 使用客户端来消耗 grains...
+        // 使用 _client 调用 Grain……
 
         return Task.CompletedTask;
     }

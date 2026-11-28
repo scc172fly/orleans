@@ -8,13 +8,13 @@ using Orleans.Durable.Tasks.Diagnostics;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 等待在过渡阶段进行测试,以使他们满意,而不是投票。
+/// 在可能使测试条件成立的状态转换时等待测试条件，而不是通过轮询等待。
 /// </summary>
 /// <remarks>
-/// 每一 <see cref="DurableTaskEvents"/> 和每个变化,测试假报告 <see cref="Notify"/>,
-/// 时间流逝时会同步地增加事件
-/// 等待时间的倒数 。 等待时间的间隔时间
-/// 条件。
+/// 每个 <see cref="DurableTaskEvents"/> 事件，以及测试替身通过 <see cref="Notify"/> 报告的每次更改，
+/// 都会唤醒等待操作，使其重新判断条件是否成立。运行时在暂存
+/// 状态转换时同步引发事件，因此等待操作被唤醒时即可根据运行时的新状态判断条件。超时的等待操作会指出其
+/// 等待的条件。
 /// </remarks>
 internal static class StateChanges
 {
@@ -24,11 +24,11 @@ internal static class StateChanges
 
     static StateChanges() => Subscription = DurableTaskEvents.AllEvents.Subscribe(new Observer());
 
-    /// <summary>唤醒了等待,所以他们再次评估他们的状况。</summary>
+    /// <summary>唤醒等待操作，使其重新判断各自的条件是否成立。</summary>
     public static void Notify() => Interlocked.Exchange(ref _next, Create()).TrySetResult();
 
-    /// <summary>等待到 <paramref name="condition"/> 搁置。</summary>
-    /// <exception cref="TimeoutException">状况没有在超时内维持</exception>
+    /// <summary>等待 <paramref name="condition"/> 成立。</summary>
+    /// <exception cref="TimeoutException">条件未在超时时间内成立。</exception>
     public static async Task WaitUntilAsync(
         Func<bool> condition,
         TimeSpan? timeout = null,
@@ -39,7 +39,7 @@ internal static class StateChanges
         expiry.CancelAfter(timeout ?? DefaultTimeout);
         while (true)
         {
-            // 之后的更改, 读取后完成所捕捉到的信号, 因此不会遗漏任何更改 。
+            // 此次读取之后发生的更改会使捕获的信号完成，因此不会遗漏任何更改。
             var changed = Volatile.Read(ref _next).Task;
             if (condition())
             {

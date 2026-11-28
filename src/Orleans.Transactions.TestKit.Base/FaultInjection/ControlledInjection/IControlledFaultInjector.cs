@@ -6,22 +6,22 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 将过失注入下一个交易性国家储存操作的控制。
+    /// 控制下一次事务状态存储操作中注入的故障。
     /// </summary>
     public interface IControlledTransactionFaultInjector : ITransactionFaultInjector
     {
         /// <summary>
-        /// 获取或设定一个数值,表明是否在存储交易状态之前放弃存储例外。
+        /// 获取或设置一个值，指示是否在存储事务状态之前引发存储异常。
         /// </summary>
         bool InjectBeforeStore { get; set; }
 
         /// <summary>
-        /// 获取或设定一个数值,表明是否在存储交易状态后放弃存储例外。
+        /// 获取或设置一个值，指示是否在存储事务状态之后引发存储异常。
         /// </summary>
         bool InjectAfterStore { get; set; }
 
         /// <summary>
-        /// 获取或设定一个数值,表明是否在存储交易状态后放弃通用例外。
+        /// 获取或设置一个值，指示是否在存储事务状态之后引发一般异常。
         /// </summary>
         bool InjectGenericAfterStore { get; set; }
     }

@@ -13,7 +13,7 @@ using Microsoft.Extensions.Time.Testing;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// 用于与通用设置进行日记测试的基准类
+/// 包含通用初始化逻辑的日志化测试基类
 /// </summary>
 public abstract class JournalingTestBase
 {
@@ -52,7 +52,7 @@ public abstract class JournalingTestBase
     }
 
     /// <summary>
-    /// 创建一个用于测试的内存储存储器
+    /// 创建用于测试的内存存储
     /// </summary>
     protected virtual IJournalStorage CreateStorage()
     {
@@ -60,7 +60,7 @@ public abstract class JournalingTestBase
     }
 
     /// <summary>
-    /// 创建含有内存储存储的日记管理器
+    /// 创建使用内存存储的日志管理器
     /// </summary>
     internal (IJournaledStateManager Manager, IJournalStorage Storage, ILifecycleSubject Lifecycle)
         CreateTestSystem(IJournalStorage? storage = null, TimeProvider? provider = null, IJournalFormat? journalFormat = null)

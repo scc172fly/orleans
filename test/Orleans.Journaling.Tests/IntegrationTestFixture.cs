@@ -8,12 +8,12 @@ using Xunit;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// 使用 InProcessTestCluster用于用通用设置进行日记测试的基准类
+/// 使用 InProcessTestCluster 执行通用初始化的日志化测试基类
 /// </summary>
 public class IntegrationTestFixture : IAsyncLifetime
 {
     public InProcessTestCluster Cluster { get; }
-    public IClusterClient Client => Cluster.Client!; // 定型初始化会部署客户
+    public IClusterClient Client => Cluster.Client!; // 测试夹具初始化时部署客户端。
 
     public IntegrationTestFixture()
     {

@@ -1,47 +1,47 @@
 ---
-title: "ORLEANS0023: Grain 类身份错配"
-description: "理解和决心 ORLEANS0023 时 grain 类 GrainType 与 OrleansContracts.txt."
+title: "ORLEANS0023: Grain 类标识不匹配"
+description: 了解并解决 Grain 类的 GrainType 与 OrleansContracts.txt 不同时出现的 ORLEANS0023。
 ms.date: 08/27/2026
 ms.topic: reference
 ---
 
 <a id="orleans0023-grain-class-identity-mismatch"></a>
 
-# ORLEANS0023: Grain 类身份错配
+# ORLEANS0023: Grain 类标识不匹配
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 类别类 | 版本 |
+| 类别 | 版本控制 |
 | 严重性 | 警告 |
-| 代码修正 | 可用 |
+| 代码修复 | 可用 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-grain 类符合以氯乙烯单体名称表示的申报单,但其有效来源 `GrainType` 与清单不同。
+Grain 类按 CLR 名称匹配了清单中的声明，但源码中的有效 `GrainType` 与清单不同。
 
 <a id="impact"></a>
 
-## 影响影响
+## 影响
 
-这是一个运行时身份更改。 它可以创建新的逻辑 grain 类型, 改变路径和存储身份, 并打破混合转换操作 。
+这是运行时标识变更。它可能创建新的逻辑 Grain 类型，改变路由及存储标识，并破坏混合版本运行。
 
 <a id="how-to-fix"></a>
 
-## 如何修补
+## 修复方法
 
-当更改是意外时恢复上一个 `[GrainType]` 。只有在身份中断是故意的,且其部署和状态迁移设计已经设计好时,才更新该表 。
+如果是意外变更，请恢复先前的 `[GrainType]`。仅当标识的不兼容变更是有意的，并且已经设计其部署和状态迁移方案时，才更新清单。
 
-**更新 grain 类别名,在 OrleansContracts.txt** 代码修正中接受源身份为新基准。在应用前先审查身份变化情况。
+**Update grain class alias in OrleansContracts.txt** 代码修复会将源码标识接受为新的基准。应用之前请检查标识变更。
 
-应用 **Regenerate OrleansContracts.txt** 重建完整的项目清单。为每个合同项目分别运行再生,并利用 [合同兼容性指导](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)审查产生的 diff 。
+应用 **Regenerate OrleansContracts.txt** 以重建完整项目清单。分别为各契约项目执行重新生成，并依据[契约兼容性指南](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)检查生成的差异。
 
 <a id="suppress-the-diagnostic"></a>
 
 ## 抑制诊断
 
-仅对蓄意、有文件证明的身份移徙进行禁止,更新审查的基准比保留禁止要好。
+仅对有意实施且已有文档记录的标识迁移抑制诊断。优先更新经过审查的基准，而不是保留抑制。
 
 ```ini
 [*.cs]

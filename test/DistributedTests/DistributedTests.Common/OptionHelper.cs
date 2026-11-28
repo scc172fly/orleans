@@ -22,8 +22,8 @@ namespace DistributedTests
         public static string Validator<T>(OptionResult result, Func<T, bool> validator)
         {
             var value = result.GetValueOrDefault<T>();
-            // 验证人按与以前完全相同的分析值运作;无效
-            // 操作员只压制不受限制的遗传警告,不发出IL。
+            // 验证器仍按照原有方式处理解析后的值；null 宽恕
+            // 运算符仅抑制无约束泛型的警告，不会生成 IL 指令。
             if (!validator(value!))
             {
                 return $"Option {result.Token?.Value} cannot be set to {value}";

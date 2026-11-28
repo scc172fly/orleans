@@ -9,11 +9,11 @@ internal static class TestTraitNames
 }
 
 /// <summary>
-/// 测试标记为属于CI组套房
+/// 标记测试所属的 CI 套件。
 /// </summary>
 /// <remarks>
-/// 预期值包括标准CI的 <c>BVT</c>、 <c>SlowBVT</c>和 <c>Functional</c> ,
-/// 加非标准套件,如 <c>Nightly</c> 和 <c>Benchmark</c>。
+/// 标准 CI 的预期值包括 <c>BVT</c>、<c>SlowBVT</c> 和 <c>Functional</c>，
+/// 非标准套件则包括 <c>Nightly</c> 和 <c>Benchmark</c> 等。
 /// </remarks>
 /// <example>
 /// <code>
@@ -35,10 +35,10 @@ public sealed class TestSuiteAttribute : Attribute, ITraitAttribute
 }
 
 /// <summary>
-/// 标记一个测试,使用它的后端或后端提供支援。
+/// 标记测试使用的提供程序或后端。
 /// </summary>
 /// <remarks>
-/// 没有外部提供者, 测试使用 <c>None</c> 。
+/// 对于不使用外部提供程序的测试，使用 <c>None</c>。
 /// </remarks>
 /// <example>
 /// <code>
@@ -60,7 +60,7 @@ public sealed class TestProviderAttribute : Attribute, ITraitAttribute
 }
 
 /// <summary>
-/// 标记信息功能区域测试。
+/// 标记测试的功能领域，仅供参考。
 /// </summary>
 /// <example>
 /// <code>

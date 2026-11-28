@@ -13,7 +13,7 @@ using Orleans.Streams;
 
 namespace OrleansAWSUtils.Streams
 {
-    /// <summary>亚马逊SQS流供应商的工厂类。</summary>
+    /// <summary>Amazon SQS 流提供程序的工厂类。</summary>
     public class SQSAdapterFactory : IQueueAdapterFactory
     {
         private readonly string providerName;
@@ -25,20 +25,20 @@ namespace OrleansAWSUtils.Streams
         private readonly IQueueAdapterCache adapterCache;
 
         /// <summary>
-        /// 应用级别故障处理器控制
+        /// 应用程序级故障处理程序的替代实现。
         /// </summary>
         protected Func<QueueId, Task<IStreamFailureHandler>> StreamFailureHandlerFactory { private get; set; } = null!;
 
         /// <summary>
         /// 初始化 <see cref="SQSAdapterFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="name">流体提供者的名称。</param>
+        /// <param name="name">流提供程序名称。</param>
         /// <param name="sqsOptions">SQS 选项。</param>
-        /// <param name="queueMapperOptions">串流到排队映射选项。</param>
+        /// <param name="queueMapperOptions">流到队列的映射选项。</param>
         /// <param name="cacheOptions">接收器缓存选项。</param>
-        /// <param name="clusterOptions">组合组合选项。</param>
-        /// <param name="dataAdapter">用于在 Orleans 流体批量和 SQS 消息 。</param>
-        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="clusterOptions">集群选项。</param>
+        /// <param name="dataAdapter">用于在 Orleans 流批次和 SQS 消息之间转换的适配器。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
         public SQSAdapterFactory(
             string name,
             SqsOptions sqsOptions,
@@ -66,15 +66,15 @@ namespace OrleansAWSUtils.Streams
         }
 
         /// <summary>
-        /// 使用默认的 SQS 数据适配器初始化 <see cref="SQSAdapterFactory"/> 类的新实例。
+        /// 使用默认 SQS 数据适配器初始化 <see cref="SQSAdapterFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="name">流体提供者的名称。</param>
+        /// <param name="name">流提供程序名称。</param>
         /// <param name="sqsOptions">SQS 选项。</param>
-        /// <param name="queueMapperOptions">串流到排队映射选项。</param>
+        /// <param name="queueMapperOptions">流到队列的映射选项。</param>
         /// <param name="cacheOptions">接收器缓存选项。</param>
-        /// <param name="clusterOptions">组合组合选项。</param>
-        /// <param name="serializer">默认 SQS 数据适配器使用的序列器。</param>
-        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="clusterOptions">集群选项。</param>
+        /// <param name="serializer">默认 SQS 数据适配器使用的序列化器。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
         public SQSAdapterFactory(
             string name,
             SqsOptions sqsOptions,
@@ -94,7 +94,7 @@ namespace OrleansAWSUtils.Streams
         {
         }
 
-        /// <summary> 工厂开工了</summary>
+        /// <summary>初始化工厂。</summary>
         public virtual void Init()
         {
             if (StreamFailureHandlerFactory == null)
@@ -104,7 +104,7 @@ namespace OrleansAWSUtils.Streams
             }
         }
 
-        /// <summary>创建 亚马逊 SQS 队列适配器。</summary>
+        /// <summary>创建 Amazon SQS 队列适配器。</summary>
         /// <returns>包含队列适配器的任务。</returns>
         public virtual Task<IQueueAdapter> CreateAdapter()
         {
@@ -119,29 +119,29 @@ namespace OrleansAWSUtils.Streams
             return adapterCache;
         }
 
-        /// <summary>创建工厂流队列映像仪。</summary>
-        /// <returns>流队列映像仪。</returns>
+        /// <summary>创建此工厂的流队列映射器。</summary>
+        /// <returns>流队列映射器。</returns>
         public IStreamQueueMapper GetStreamQueueMapper()
         {
             return streamQueueMapper;
         }
 
         /// <summary>
-        /// 为指定的队列创建发送失败处理器 。
+        /// 为指定队列创建投递失败处理程序。
         /// </summary>
         /// <param name="queueId">队列标识符。</param>
-        /// <returns>含有交付失败处理器的任务。</returns>
+        /// <returns>包含投递失败处理程序的任务。</returns>
         public Task<IStreamFailureHandler> GetDeliveryFailureHandler(QueueId queueId)
         {
             return StreamFailureHandlerFactory(queueId);
         }
 
         /// <summary>
-        /// 使用为指定的流提供商注册的服务创建并启动一个 SQS 适配工厂。
+        /// 使用为具名流提供程序注册的服务创建并初始化 SQS 适配器工厂。
         /// </summary>
-        /// <param name="services">服务供应商。</param>
-        /// <param name="name">流体提供者的名称。</param>
-        /// <returns>初始化适配器厂。</returns>
+        /// <param name="services">服务提供程序。</param>
+        /// <param name="name">流提供程序名称。</param>
+        /// <returns>已初始化的适配器工厂。</returns>
         public static SQSAdapterFactory Create(IServiceProvider services, string name)
         {
             var sqsOptions = services.GetOptionsByName<SqsOptions>(name);

@@ -4,14 +4,14 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-ORLEANS0016 | Versioning | Warning | GrainInterfaceVersionAnalyzer、 Grain 接口未在 OrleansContracts.txt中申报 
-ORLEANS0017 | Versioning | Warning | GrainInterfaceVersionAnalyzer、 Grain 代码和文件的接口版本错配
-ORLEANS0018 | Versioning | Warning | GrainInterfaceVersionAnalyzer, Grain 未声明使用 OrleansContracts.txt
-ORLEANS0019 | Versioning | Warning | GrainInterfaceVersionAnalyzer,删除的界面未标记为 *重新*
-ORLEANS0020 | Versioning | Info | GrainInterfaceVersionAnalyzer, OrleansContracts.txt 文件丢失
-ORLEANS0021 | Versioning | Warning | GrainInterfaceVersionAnalyzer, 存档中的重复接口声明
-ORLEANS0022 | Versioning | Warning | GrainInterfaceVersionAnalyzer, Grain 类未在 OrleansContracts.txt中申报 
-ORLEANS0023 | Versioning | Warning | GrainInterfaceVersionAnalyzer, Grain 类别别名不匹配
-ORLEANS0024 | Versioning | Warning | GrainInterfaceVersionAnalyzer,已删除 grain 类中未标为 *重新*
-ORLEANS0025 | Versioning | Warning | GrainInterfaceVersionAnalyzer,重复 grain 类声明存档
-ORLEANS0027 | Versioning | Warning | GrainInterfaceVersionAnalyzer,删除的 grain 接口成员仍留在 OrleansContracts.txt
+ORLEANS0016 | Versioning | Warning | GrainInterfaceVersionAnalyzer, Grain interface not declared in OrleansContracts.txt
+ORLEANS0017 | Versioning | Warning | GrainInterfaceVersionAnalyzer, Grain interface version mismatch between code and file
+ORLEANS0018 | Versioning | Warning | GrainInterfaceVersionAnalyzer, Grain interface member not declared in OrleansContracts.txt
+ORLEANS0019 | Versioning | Warning | GrainInterfaceVersionAnalyzer, Removed interface not marked as *RETIRED*
+ORLEANS0020 | Versioning | Info | GrainInterfaceVersionAnalyzer, OrleansContracts.txt file is missing
+ORLEANS0021 | Versioning | Warning | GrainInterfaceVersionAnalyzer, Duplicate interface declaration in file
+ORLEANS0022 | Versioning | Warning | GrainInterfaceVersionAnalyzer, Grain class not declared in OrleansContracts.txt
+ORLEANS0023 | Versioning | Warning | GrainInterfaceVersionAnalyzer, Grain class alias mismatch
+ORLEANS0024 | Versioning | Warning | GrainInterfaceVersionAnalyzer, Removed grain class not marked as *RETIRED*
+ORLEANS0025 | Versioning | Warning | GrainInterfaceVersionAnalyzer, Duplicate grain class declaration in file
+ORLEANS0027 | Versioning | Warning | GrainInterfaceVersionAnalyzer, Removed grain interface member remains in OrleansContracts.txt

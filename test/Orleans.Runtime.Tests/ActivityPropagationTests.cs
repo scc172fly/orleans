@@ -9,17 +9,17 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// 分布式追踪和活动测试,通过 Orleans grain 电话进行传播。
+    /// 测试 Orleans Grain 调用之间的分布式跟踪及 Activity 传播。
     ///
-    /// Orleans 支持通过 .NET活动 API进行分布式追踪,该活动与 OpenTelemetry兼容。
-    /// 这些测试证实:
-    /// - 活动环境(跟踪身份识别、横跨身份识别、追踪状态)从客户向 grain适当传播
-    /// - W3C和等级活动身份识别格式都得到支持
-    /// - 正确跨越 grain 边界传送行李(钥匙价值对)
-    /// - 活动传播工作正确,既从外部客户那里,也从 grains之间进行。
+    /// Orleans 通过与 OpenTelemetry 兼容的 .NET Activity API 支持分布式跟踪。
+    /// 这些测试验证：
+    /// - Activity 上下文（跟踪 ID、跟踪跨度 ID、跟踪状态）从客户端正确传播到 Grain
+    /// - 同时支持 W3C 和分层 Activity ID 格式
+    /// - Baggage 项（键值对）正确跨越 Grain 边界传输
+    /// - 无论从外部客户端还是在 Grain 之间，Activity 传播均能正常工作
     ///
-    /// ActivityPropagationGrainCallFilter 负责为 grain 电话创建儿童活动
-    /// 并确保在整个分布式系统适当传播环境。
+    /// ActivityPropagationGrainCallFilter 负责为 Grain 调用创建子 Activity，
+    /// 并确保上下文在整个分布式系统中正确传播。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -30,8 +30,8 @@ namespace UnitTests.General
 
         static ActivityPropagationTests()
         {
-            // 配置 ActivityListener 以监测 grain 调用活动
-            // 该听众专门针对 Orleans 为 grain 电话创建的活动
+            // 配置 ActivityListener 以监视 Grain 调用的 Activity
+            // 此侦听器专门监视 Orleans 为 Grain 调用创建的 Activity
             Listener = new()
             {
                 ShouldListenTo = p => p.Name == ActivitySources.ApplicationGrainActivitySourceName,
@@ -41,9 +41,9 @@ namespace UnitTests.General
 
             static ActivitySamplingResult Sample(ref ActivityCreationOptions<ActivityContext> options)
             {
-                // 在取样期间访问 TraceId 对于确保活动系统十分重要
-                // 正确初始化跟踪上下文。 这复制了特定的设想情景
-                // 何 地 SetParentId 如果 TraceId 无法进入
+                // 采样期间访问 TraceId 很重要，这可确保 Activity 系统
+                // 正确初始化跟踪上下文。这复现了一个特定场景：
+                // 如果不访问 TraceId，SetParentId 可能无法正常工作。
                 var _ = options.TraceId;
                 return ActivitySamplingResult.PropagationData;
             }
@@ -51,7 +51,7 @@ namespace UnitTests.General
 
             static ActivitySamplingResult SampleUsingParentId(ref ActivityCreationOptions<string> options)
             {
-                //在 SetParentId 不工作时,必须用样本访问追踪id才能复制设想情况
+                //必须在采样时访问跟踪 ID，才能复现 SetParentId 无法正常工作的场景
                 var _ = options.TraceId;
                 return ActivitySamplingResult.PropagationData;
             }
@@ -59,8 +59,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试设置,以配置 Orleans 组群,并启用活动传播功能。
-        /// silo 和客户端都配置了支持分布式跟踪的配置。
+        /// 配置启用 Activity 传播的 Orleans 集群的测试夹具。
+        /// Silo 和客户端均已配置为支持分布式跟踪。
         /// </summary>
         public class Fixture : BaseTestClusterFixture
         {
@@ -75,9 +75,9 @@ namespace UnitTests.General
             {
                 public void Configure(ISiloBuilder hostBuilder) =>
                     hostBuilder
-                        // 启用 silo 上的活动传播以支持分布追踪
+                        // 在 Silo 上启用 Activity 传播，以支持分布式跟踪
                         .AddActivityPropagation()
-                        // 用于测试的配置内存存储存储供应商
+                        // 配置用于测试的内存存储提供程序
                         .AddMemoryGrainStorageAsDefault()
                         .AddMemoryGrainStorage("PubSubStore");
             }
@@ -86,7 +86,7 @@ namespace UnitTests.General
             {
                 public void Configure(IConfiguration configuration, IClientBuilder clientBuilder) =>
                     clientBuilder
-                        // 使向客户宣传活动能够参与分布式跟踪
+                        // 在客户端上启用 Activity 传播，使其参与分布式跟踪
                         .AddActivityPropagation();
             }
         }
@@ -104,9 +104,9 @@ namespace UnitTests.General
         public void Dispose() => Activity.DefaultIdFormat = _defaultIdFormat;
 
         /// <summary>
-        /// 测试当不存在父活动时 grain 调用创建新活动。
-        /// 验证 W3C(标准格式)和等级(传统 .NET 格式)活动身份识别格式。
-        /// 当不存在父活动时, Orleans 为 grain 调用创建新的根活动。
+        /// 测试不存在父 Activity 时，Grain 调用能否创建新 Activity。
+        /// 验证 W3C（标准格式）和分层（旧版 .NET 格式）两种 Activity ID 格式。
+        /// 没有父 Activity 时，Orleans 会为 Grain 调用创建新的根 Activity。
         /// </summary>
         [Theory]
         [InlineData(ActivityIdFormat.W3C)]
@@ -132,12 +132,12 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 当父活动存在时, 测试以 W3C 格式传播的活动。
-        /// 证明:
-        /// - 母体活动踪迹识别码保存在 grain中
-        /// - 正确传播追踪状态(具体针对供应商的追查数据)
-        /// - 行李(配对的原始钥匙)传送至 grain
-        /// 这确保分布的痕迹能够跨越客户到grain 边界。
+        /// 测试存在父 Activity 时使用 W3C 格式的 Activity 传播。
+        /// 验证以下情况：
+        /// - 父 Activity 的跟踪 ID 在 Grain 内得到保留
+        /// - 跟踪状态（特定于供应商的跟踪数据）得到正确传播
+        /// - Baggage 项（上下文键值对）被传输至 Grain
+        /// 确保分布式跟踪能够跨越客户端与 Grain 之间的边界。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]
@@ -147,7 +147,7 @@ namespace UnitTests.General
 
             var activity = new Activity("SomeName")
             {
-                // W3C 传播器需要键=值跟踪状态。
+                // W3C 传播器要求跟踪状态采用 key=value 格式。
                 TraceStateString = "vendor=value"
             };
             activity.AddBaggage("foo", "bar");
@@ -171,7 +171,7 @@ namespace UnitTests.General
 
                 Assert.NotNull(result);
                 Assert.NotNull(result.Id);
-                Assert.Contains(activity.TraceId.ToHexString(), result.Id); // 确保追踪id得以持续。
+                Assert.Contains(activity.TraceId.ToHexString(), result.Id); // 确保跟踪 ID 得到保留。
                 Assert.Equal(activity.TraceStateString, result.TraceState);
                 Assert.Equal(
                     activity.Baggage.Select(static pair => new KeyValuePair<string, string>(pair.Key, pair.Value!)),
@@ -180,9 +180,9 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 以等级格式(传统 .NET 格式)进行测试活动传播。
-        /// 默认 W3C 推进器无法输入等级活动, 所以 grain
-        /// 开始新的根活动, 而不是调用器活动的子。
+        /// 测试分层格式（旧版 .NET 格式）的 Activity 传播。
+        /// 默认 W3C 传播器无法注入分层 Activity，因此 Grain
+        /// 会启动新的根 Activity，而非调用方 Activity 的子级。
         /// </summary>
         [Fact]
         [TestCategory("BVT")]

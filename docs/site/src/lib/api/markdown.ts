@@ -51,7 +51,7 @@ export function renderApiIndexMarkdown(
           .join('\n');
   return finalizeMarkdown([
     '# .NET Orleans API 参考',
-    '浏览从 Orleans 程序集、XML 文档及源码信息生成的 API 参考。',
+    '浏览直接根据 Orleans 程序集、XML 文档及源码信息生成的 API 参考。',
     content,
   ]);
 }
@@ -214,9 +214,9 @@ function renderDocNode(node: ApiDocNode, context: MarkdownContext): string {
 
 function renderDocList(node: ApiDocNode, context: MarkdownContext): string {
   if (node.style === 'table') {
-    const headerTerm = renderDocNodes(node.header?.term, context) || 'Name';
+    const headerTerm = renderDocNodes(node.header?.term, context) || '名称';
     const headerDescription =
-      renderDocNodes(node.header?.description, context) || 'Description';
+      renderDocNodes(node.header?.description, context) || '说明';
     const rows = (node.items ?? []).map(
       (item) =>
         `| ${escapeTableCell(renderDocNodes(item.term, context))} | ${escapeTableCell(renderDocNodes(item.description, context))} |`,

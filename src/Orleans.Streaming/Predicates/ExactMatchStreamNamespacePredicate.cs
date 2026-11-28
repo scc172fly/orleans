@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 与指定
+    /// 精确匹配单个指定流命名空间的谓词。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     internal sealed class ExactMatchStreamNamespacePredicate : IStreamNamespacePredicate

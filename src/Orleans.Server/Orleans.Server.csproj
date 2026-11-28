@@ -7,7 +7,7 @@
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <IncludeSymbols>false</IncludeSymbols>
     <IncludeSource>false</IncludeSource>
-    <!-- 这一元包装包含依赖性元数据,没有 API 集会。 -->
+    <!-- 此元包包含依赖项元数据，但不含 API 程序集。 -->
     <EnablePackageValidation>false</EnablePackageValidation>
     <TargetFrameworks>$(DefaultTargetFrameworks)</TargetFrameworks>
     <PackageReadmeFile>README.md</PackageReadmeFile>

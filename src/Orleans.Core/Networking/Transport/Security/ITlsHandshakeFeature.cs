@@ -5,22 +5,22 @@ using System.Security.Authentication;
 namespace Orleans.Connections.Transport.Security;
 
 /// <summary>
-/// 提供TLS握手信息的存取。
+/// 提供对 TLS 握手信息的访问。
 /// </summary>
 public interface ITlsHandshakeFeature
 {
     /// <summary>
-    /// 获取谈判商定的 TLS 协议 。
+    /// 获取协商得到的 TLS 协议。
     /// </summary>
     SslProtocols Protocol { get; }
 
     /// <summary>
-    /// 获得谈判的TLS密码套房。
+    /// 获取协商得到的 TLS 密码套件。
     /// </summary>
     TlsCipherSuite? NegotiatedCipherSuite => null;
 
     /// <summary>
-    /// 如果存在的话, 从 TLS 服务器_ name (SNI) 扩展名中获取主机名 。
+    /// 获取 TLS server_name（SNI）扩展中的主机名（如果存在）。
     /// </summary>
     string HostName => string.Empty;
 

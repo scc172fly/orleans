@@ -4,14 +4,14 @@ using Xunit;
 namespace UnitTests.StreamingTests;
 
 /// <summary>
-/// <see cref="IStreamQueueCheckpointer{TCheckpoint}"/> 履行合同测试
-/// 使用字符串检查点。
+/// 针对 <see cref="IStreamQueueCheckpointer{TCheckpoint}"/> 实现的契约测试，
+/// 这些实现使用字符串检查点。
 /// </summary>
 /// <remarks>
-/// 执行需要将其持续依赖性与
-/// <see cref="ControllableCheckpointStore"/> 并宣布其抵消回归政策。
-/// 商店提供决定性的写作阻断和失败注射,所以这些测试
-/// 并不取决于延误或外部储存。
+/// 实现只需将其持久化依赖项连接到
+/// <see cref="ControllableCheckpointStore"/>，并声明其偏移量回退策略。
+/// 该存储提供确定性的写入阻塞及故障注入，因此这些测试
+/// 不依赖延迟或外部存储。
 /// </remarks>
 public abstract class StreamQueueCheckpointerTests
 {

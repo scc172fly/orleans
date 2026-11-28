@@ -9,7 +9,7 @@ using Xunit;
 namespace Tester.AzureUtils
 {
     /// <summary>
-    /// Azure 队列存储数据管理器操作测试,包括队列信件处理和可见度超时。
+    /// 测试 Azure Queue Storage 数据管理器的操作，包括队列消息处理和可见性超时。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Storage"), TestCategory("AzureQueue")]
     [TestSuite("Functional")]
@@ -55,7 +55,7 @@ namespace Tester.AzureUtils
 
             var inMessage = "Hello, World";
             await manager.AddQueueMessage(inMessage);
-            //可计量<int> 计数= manager.ApproximateMessageCount;
+            //Nullable<int> count = manager.ApproximateMessageCount;
             Assert.Equal(1, await manager.GetApproximateMessageCount());
 
             var outMessage1 = await manager.PeekQueueMessage();
@@ -155,7 +155,7 @@ namespace Tester.AzureUtils
             Assert.Equal(1, outMessage.DequeueCount);
             Assert.NotNull(outMessage.NextVisibleOn);
 
-            // 显示度转换是Azure 的自有功能,所以观察它而不是在精确超时边界上进行比赛。
+            // 可见性转换由 Azure 控制，因此应观察其变化，而不是与精确的超时边界竞速。
             await TestingUtils.WaitUntilAsync(
                 async (lastTry, _) =>
                 {

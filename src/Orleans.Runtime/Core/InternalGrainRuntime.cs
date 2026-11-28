@@ -8,7 +8,7 @@ using Orleans.Runtime.Versions.Compatibility;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 使用 grains 的共享运行服务。
+    /// Grain 使用的共享运行时服务。
     /// </summary>
     internal class InternalGrainRuntime(
         MessageCenter messageCenter,

@@ -1,4 +1,4 @@
-//死后,
+//#define REREAD_STATE_AFTER_WRITE_FAILED
 
 using Xunit;
 using Orleans.TestingHost;
@@ -7,7 +7,7 @@ using Orleans.Configuration;
 namespace Tester.AzureUtils.Persistence;
 
 /// <summary>
-/// PersistenceGrainTests 使用 AzureStore - 需要外部进入 Azure 浮囊储存
+/// 使用 AzureStore 的 PersistenceGrainTests，需要访问外部 Azure Blob Storage。
 /// </summary>
 [TestCategory("Persistence"), TestCategory("AzureStorage")]
 [TestSuite("Functional")]

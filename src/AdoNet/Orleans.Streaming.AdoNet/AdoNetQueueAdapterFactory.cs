@@ -34,32 +34,32 @@ internal class AdoNetQueueAdapterFactory : IQueueAdapterFactory
     private RelationalOrleansQueries? _queries;
 
     /// <summary>
-    /// 不幸地执行细节,以说明缺乏同步寿命。
-    /// 理想的情况是,这种关注将上移到上游,这样就不需要了。
+    /// 由于缺少异步生命周期支持，不得不采用的实现细节。
+    /// 理想情况下，应将此问题移至上游处理，以免需要此实现。
     /// </summary>
     private readonly SemaphoreSlim _semaphore = new(1);
 
     /// <summary>
-    /// 确保只装入一次查询, 并允许在负载失败时恢复 。
+    /// 确保查询仅加载一次，同时允许加载失败后进行恢复。
     /// </summary>
     private ValueTask<RelationalOrleansQueries> GetQueriesAsync()
     {
-        // 尝试快速路径
+        // 尝试快速路径。
         return _queries is not null ? new(_queries) : new(CoreAsync());
 
-        // 慢速路径
+        // 慢速路径。
         async Task<RelationalOrleansQueries> CoreAsync()
         {
             await _semaphore.WaitAsync(_streamOptions.InitializationTimeout, _lifetime.ApplicationStopping);
             try
             {
-                // 重新尝试快速路径
+                // 再次尝试快速路径。
                 if (_queries is not null)
                 {
                     return _queries;
                 }
 
-                // 慢慢路径路路路 - 只有在调用成功时才会设定成员变量
+                // 慢速路径：只有调用成功时才设置成员变量。
                 return _queries = await RelationalOrleansQueries
                     .CreateInstance(_streamOptions.Invariant, _streamOptions.ConnectionString, _streamOptions.DataSource)
                     .WaitAsync(_streamOptions.InitializationTimeout);
@@ -90,7 +90,7 @@ internal class AdoNetQueueAdapterFactory : IQueueAdapterFactory
     public IStreamQueueMapper GetStreamQueueMapper() => _streamQueueMapper;
 
     /// <summary>
-    /// silo 和客户端配置器用作设置流的切入点。
+    /// 由 Silo 及客户端配置器用作设置流的入口点。
     /// </summary>
     public static IQueueAdapterFactory Create(IServiceProvider serviceProvider, string name)
     {
@@ -106,17 +106,17 @@ internal class AdoNetQueueAdapterFactory : IQueueAdapterFactory
     }
 
     /// <summary>
-    /// 工厂 <see cref="AdoNetQueueAdapterFactory"/> 实例。
+    /// <see cref="AdoNetQueueAdapterFactory"/> 实例的工厂。
     /// </summary>
     private static readonly ObjectFactory<AdoNetQueueAdapterFactory> QueueAdapterFactoryFactory = ActivatorUtilities.CreateFactory<AdoNetQueueAdapterFactory>([typeof(string), typeof(AdoNetStreamOptions), typeof(ClusterOptions), typeof(SimpleQueueCacheOptions), typeof(HashRingStreamQueueMapperOptions)]);
 
     /// <summary>
-    /// 工厂 <see cref="AdoNetQueueAdapter"/> 实例。
+    /// <see cref="AdoNetQueueAdapter"/> 实例的工厂。
     /// </summary>
     private static readonly ObjectFactory<AdoNetQueueAdapter> AdapterFactory = ActivatorUtilities.CreateFactory<AdoNetQueueAdapter>([typeof(string), typeof(AdoNetStreamOptions), typeof(ClusterOptions), typeof(SimpleQueueCacheOptions), typeof(AdoNetStreamQueueMapper), typeof(RelationalOrleansQueries), typeof(AdoNetStreamPositions)]);
 
     /// <summary>
-    /// 工厂 <see cref="AdoNetStreamFailureHandler"/> 实例。
+    /// <see cref="AdoNetStreamFailureHandler"/> 实例的工厂。
     /// </summary>
     private static readonly ObjectFactory<AdoNetStreamFailureHandler> HandlerFactory = ActivatorUtilities.CreateFactory<AdoNetStreamFailureHandler>([typeof(bool), typeof(AdoNetStreamOptions), typeof(ClusterOptions), typeof(AdoNetStreamQueueMapper), typeof(RelationalOrleansQueries), typeof(AdoNetStreamPositions)]);
 }

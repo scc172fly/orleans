@@ -9,12 +9,12 @@ using Orleans.TestingHost;
 namespace Orleans.Testing.Reminders;
 
 /// <summary>
-/// 为在 <see cref="InProcessTestCluster"/>运行的提醒测试提供确定时间控制。
+/// 为在 <see cref="InProcessTestCluster"/> 中运行的提醒器测试提供确定性时间控制。
 /// </summary>
 /// <remarks>
-/// 在构建数据组之前,将实例附加到 <see cref="InProcessTestClusterBuilder"/> 。
-/// 随附时钟替换提醒子系统的关键键 <see cref="TimeProvider"/> 和调
-/// 确定性提醒时间安排的<see cref="ReminderOptions"/> ,不影响无关的 silo 计时器。
+/// 在构建集群之前将实例附加到 <see cref="InProcessTestClusterBuilder"/>。
+/// 附加的时钟会替换提醒器子系统的键控 <see cref="TimeProvider"/>，并调整
+/// <see cref="ReminderOptions"/> 以实现确定性的提醒器调度，同时不影响无关的 Silo 定时器。
 /// </remarks>
 public sealed class ReminderTestClock : IDisposable
 {
@@ -38,39 +38,39 @@ public sealed class ReminderTestClock : IDisposable
     internal FakeTimeProvider TimeProvider { get; }
 
     /// <summary>
-    /// 获得在集群组建立前附的诊断观察家,因此提醒服务启动活动
-    /// 可用于确定性生命周期测试。
+    /// 获取在构建集群之前附加的诊断观察者，使提醒器服务启动事件
+    /// 可供确定性生命周期测试使用。
     /// </summary>
     public ReminderDiagnosticObserver DiagnosticObserver { get; }
 
     /// <summary>
-    /// 获取当前提醒时钟的时间 。
+    /// 获取当前提醒器时钟时间。
     /// </summary>
     public DateTimeOffset UtcNow => TimeProvider.GetUtcNow();
 
     /// <summary>
-    /// 获得使用此时钟配置的集群最小提醒时间段 。
+    /// 获取使用此时钟的集群所配置的最短提醒器周期。
     /// </summary>
     public TimeSpan MinimumReminderPeriod { get; }
 
     /// <summary>
-    /// 获取使用此时钟配置的提醒表更新周期。
+    /// 获取使用此时钟的集群所配置的提醒器表刷新周期。
     /// </summary>
     public TimeSpan RefreshReminderListPeriod { get; }
 
     /// <summary>
-    /// 获取使用此时钟配置的提醒服务初始化超时,用于集组。
+    /// 获取使用此时钟的集群所配置的提醒器服务初始化超时时间。
     /// </summary>
     public TimeSpan InitializationTimeout { get; }
 
     /// <summary>
-    /// 在所提供的 <see cref="InProcessTestClusterBuilder"/>上附上确定性提醒时钟。
+    /// 将确定性提醒器时钟附加到指定的 <see cref="InProcessTestClusterBuilder"/>。
     /// </summary>
-    /// <param name="builder">测试组群构建器。</param>
-    /// <param name="minimumReminderPeriod">可选择的最低提醒时间过重 。</param>
-    /// <param name="refreshReminderListPeriod">提醒列表的复新期替换。</param>
-    /// <param name="initializationTimeout">提醒启动超时覆盖选项。</param>
-    /// <returns>所附的提醒测试钟。</returns>
+    /// <param name="builder">测试集群构建器。</param>
+    /// <param name="minimumReminderPeriod">可选的最短提醒器周期覆盖值。</param>
+    /// <param name="refreshReminderListPeriod">可选的提醒器列表刷新周期覆盖值。</param>
+    /// <param name="initializationTimeout">可选的提醒器初始化超时覆盖值。</param>
+    /// <returns>已附加的提醒器测试时钟。</returns>
     public static ReminderTestClock Attach(
         InProcessTestClusterBuilder builder,
         TimeSpan? minimumReminderPeriod = null,
@@ -101,10 +101,10 @@ public sealed class ReminderTestClock : IDisposable
     }
 
     /// <summary>
-    /// 以指定数额将集束提醒时钟提前。
+    /// 将集群提醒器时钟推进指定时长。
     /// </summary>
-    /// <param name="amount">预发时间的长度 。</param>
-    /// <param name="cancellationToken">取消的符号。</param>
+    /// <param name="amount">要推进的时长。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     public async Task AdvanceAsync(TimeSpan amount, CancellationToken cancellationToken = default)
     {
         if (amount < TimeSpan.Zero)
@@ -127,10 +127,10 @@ public sealed class ReminderTestClock : IDisposable
     }
 
     /// <summary>
-    /// 防止同时时预付,直到处理回转的把手。
+    /// 阻止并发推进时钟，直到返回的句柄被释放。
     /// </summary>
-    /// <param name="cancellationToken">取消的符号。</param>
-    /// <returns>一个可自动处理的处理器, 可在处置时恢复钟速预发款。</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>一个支持异步释放的句柄，释放时恢复时钟推进。</returns>
     public async Task<IAsyncDisposable> FreezeAsync(CancellationToken cancellationToken = default)
     {
         await _advanceLock.WaitAsync(cancellationToken);

@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
-/// <summary>测试各机构在运行其最终段段的阶梯中向主机报告其终端响应。</summary>
+/// <summary>测试任务体是否在运行其最后一个执行段的步骤内，向宿主报告终态响应。</summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
@@ -17,7 +17,7 @@ public sealed class DurableTaskBodyCompletionTests
     [MemberData(nameof(BodyKinds))]
     public async Task BodyReportsItsResponseBeforeLaterWorkOnItsScheduler(string bodyKind)
     {
-        // 序列调度器将启动 grain :最后段排队的工作将在该步骤之后进行。
+        // 用串行调度器模拟 Grain 激活实例：最后一个执行段排队的工作在该步骤之后运行。
         var scheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
         var events = new ConcurrentQueue<string>();
         var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);

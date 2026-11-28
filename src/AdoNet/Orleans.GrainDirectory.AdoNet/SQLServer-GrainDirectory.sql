@@ -1,34 +1,34 @@
 /*
 Orleans Grain 目录。
-此表格存储集中所有 grains 的位置。
+此表存储集群中所有 Grain 的位置。
 
-注:
-ClusterId、 ProviderId和 GrainId 的组合构成 OrleansGrainDirectory 表格的主要关键字。
-这些列加起来达到 SQL 服务器索引(900字节)允许的最大关键字大小。
-应注意不要增加这些栏的长度,因为其可能超过 SQL 服务器关键尺寸的限制。
+注意：
+ClusterId、ProviderId 和 GrainId 的组合构成 OrleansGrainDirectory 表的主键。
+这些列的总长度达到 SQL Server 索引允许的最大键长度（900 字节）。
+请勿增加这些列的长度，否则可能超过 SQL Server 的键长度限制。
 
 */
 CREATE TABLE OrleansGrainDirectory
 (
-    /* 确定群集实例 */
+    /* 标识集群实例。 */
     ClusterId VARCHAR(150) NOT NULL,
 
-    /* 指定 grain 目录提供者 */
+    /* 标识 Grain 目录提供程序。 */
     ProviderId VARCHAR(150) NOT NULL,
 
-    /* 以文本格式持有 grain id */
+    /* 存储文本形式的 Grain ID。 */
     GrainId VARCHAR(600) NOT NULL,
 
-    /* 握住 silo 地址 grain 位于 */
+    /* 存储 Grain 所在的 Silo 地址。 */
     SiloAddress VARCHAR(100) NOT NULL,
 
-    /* 将激活id 保存在 silo 所在位置 */
+    /* 存储该 Grain 在其所在 Silo 中的激活实例 ID。 */
     ActivationId VARCHAR(100) NOT NULL,
 
-    /* 持有将 grain 添加到目录的时间 */
+    /* 存储 Grain 加入目录的时间。 */
     CreatedOn DATETIMEOFFSET(3) NOT NULL,
 
-    /* 指定一个独有的 grain 激活 */
+    /* 标识唯一的 Grain 激活实例。 */
     CONSTRAINT PK_OrleansGrainDirectory PRIMARY KEY CLUSTERED
     (
         ClusterId ASC,
@@ -38,7 +38,7 @@ CREATE TABLE OrleansGrainDirectory
 )
 GO
 
-/* 注册新的 grain 激活 */
+/* 注册新的 Grain 激活实例。 */
 CREATE PROCEDURE RegisterGrainActivation
     @ClusterId VARCHAR(150),
     @ProviderId VARCHAR(150),
@@ -54,9 +54,9 @@ DECLARE @Now DATETIMEOFFSET(3) = CAST(SYSUTCDATETIME() AS DATETIMEOFFSET(3));
 
 BEGIN TRANSACTION;
 
-/* 如果存在的话, 获取现有的条目 。 */
-/* 并锁定前方的射程, 以防需要添加新条目 。 */
-/* 防止僵局需要这一锁。 */
+/* 如果条目存在，则获取该条目。 */
+/* 同时预先对键范围加锁，以备需要添加新条目时使用。 */
+/* 需要此锁以防止死锁。 */
 DECLARE @Exists INT =
 (
     SELECT
@@ -72,7 +72,7 @@ DECLARE @Exists INT =
 IF @Exists = 1
 BEGIN
 
-    /* 如果条目已经存在, 我们可以归还它。 */
+    /* 如果条目已存在，则可直接返回。 */
     SELECT
         ClusterId,
         ProviderId,
@@ -90,7 +90,7 @@ END
 ELSE
 BEGIN
 
-    /* 如果还没有条目,我们现在将加入。 */
+    /* 如果条目尚不存在，则立即添加。 */
     INSERT INTO OrleansGrainDirectory
     (
         ClusterId,
@@ -132,7 +132,7 @@ SELECT
 	'EXECUTE RegisterGrainActivation @ClusterId = @ClusterId, @ProviderId = @ProviderId, @GrainId = @GrainId, @SiloAddress = @SiloAddress, @ActivationId = @ActivationId'
 GO
 
-/* 取消现有 grain 激活的不登记 */
+/* 注销现有的 Grain 激活实例。 */
 CREATE PROCEDURE UnregisterGrainActivation
     @ClusterId VARCHAR(150),
     @ProviderId VARCHAR(150),
@@ -143,8 +143,8 @@ AS
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
-/* 如果存在,删除该项。 */
-/* 从而将散列指数页面锁定在前面, */
+/* 如果条目存在，则删除该条目。 */
+/* 预先锁定哈希索引页以防止死锁。 */
 DELETE OrleansGrainDirectory
 FROM OrleansGrainDirectory
 WHERE
@@ -168,7 +168,7 @@ SELECT
 GO
 
 
-/* 查看已有的 grain 激活 */
+/* 查找现有的 Grain 激活实例。 */
 CREATE PROCEDURE LookupGrainActivation
     @ClusterId VARCHAR(150),
     @ProviderId VARCHAR(150),
@@ -178,8 +178,8 @@ AS
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
-/* 如果存在的话, 获取现有的条目 。 */
-/* 从而将散列指数页面锁定在前面,以防止登记陷入僵局。 */
+/* 如果条目存在，则获取该条目。 */
+/* 同时预先锁定哈希索引页，防止与注册操作发生死锁。 */
 SELECT
     ClusterId,
     ProviderId,
@@ -206,7 +206,7 @@ SELECT
 GO
 
 
-/* 全部不登记者 grain 指定 silos */
+/* 注销指定 Silo 中的所有 Grain 激活实例。 */
 CREATE PROCEDURE UnregisterGrainActivations
     @ClusterId VARCHAR(150),
     @ProviderId VARCHAR(150),
@@ -218,8 +218,8 @@ SET XACT_ABORT ON;
 
 BEGIN TRANSACTION;
 
-/* 如果条目存在,则删除它们。 */
-/* 这为整个谈判桌设置了专用锁,以防止登记工作陷入僵局。 */
+/* 如果条目存在，则删除这些条目。 */
+/* 对整个表加排他锁，防止与注册操作发生死锁。 */
 DELETE OrleansGrainDirectory
 FROM OrleansGrainDirectory WITH (TABLOCKX)
 WHERE

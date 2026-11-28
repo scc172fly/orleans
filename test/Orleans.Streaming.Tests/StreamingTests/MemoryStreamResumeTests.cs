@@ -12,7 +12,7 @@ using Xunit;
 namespace Tester.StreamingTests
 {
     /// <summary>
-    /// 测试内存流恢复功能,可配置流无活动期和缓冲驱逐设置。
+    /// 测试具有可配置流非活动期和缓存逐出设置的内存流恢复功能。
     /// </summary>
     [TestSuite("SlowBVT")]
     [TestProvider("None")]

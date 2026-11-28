@@ -12,9 +12,9 @@ internal static class MessagingTime
             && nowTicks - timestampTicks >= retention.Ticks;
     }
 
-    /// <summary>返回重试前的延迟时间 <paramref name="attempt"/>,从最初间隔翻倍到上限。</summary>
-    /// <param name="initialInterval">第一次重试前的延迟。</param>
-    /// <param name="attempt">失败尝试的以一个基于数字的编号。</param>
+    /// <summary>返回第 <paramref name="attempt"/> 次重试前的延迟，从初始间隔开始逐次加倍，直至达到上限。</summary>
+    /// <param name="initialInterval">首次重试前的延迟。</param>
+    /// <param name="attempt">从 1 开始计数的失败尝试序号。</param>
     public static TimeSpan GetBackoff(TimeSpan initialInterval, int attempt) =>
         TimeSpan.FromTicks(initialInterval.Ticks
             * (1L << Math.Clamp(attempt - 1, 0, Configuration.DurableMessagingOptions.MaximumBackoffExponent)));

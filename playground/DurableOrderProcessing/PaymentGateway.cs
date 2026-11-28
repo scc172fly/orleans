@@ -1,29 +1,29 @@
 
 namespace DurableOrderProcessing;
 
-// 付款授权书的主体 请求进入网关。
+// 发送给网关的支付授权请求体。
 public sealed record PaymentAuthorizationRequest(Guid OrderId, decimal Amount, string CardLast4);
 
-// 网关授权状况监测器,以 Azure 长期运行作业的形式。
+// 网关授权的状态监视器，采用 Azure 长时间运行操作的形式。
 public sealed record PaymentAuthorizationStatus(string Id, string Status, PaymentResult? Result);
 
-// 网关分类账的许可 获得/门道/授权名单
+// 网关账本中的授权记录，由 GET /gateway/authorizations 列出。
 public sealed record PaymentAuthorizationEntry(string Id, Guid OrderId, decimal Amount, string Status, bool Voided, int Requests);
 
-// 模拟外部付款网关,订单工作流程通过一个 IDurableHttpClient通过HTTP呼叫。
+// 模拟的外部支付网关，订单工作流通过 IDurableHttpClient 使用 HTTP 调用该网关。
 //
-// 网关像黑条一样,是荣誉-关键。它记录了每个钥匙及其请求的体形,并回答
-// 具有已知密钥和与第一个回应平等机构的请求,有标注的“能力强”重放。
-// 以422个不可处理的内容拒绝另一个正文,而没有密钥的请求则以400个错误请求拒绝。每个密钥
-// 因此,最多授权一次付款,以客户重报请求的次数为准。
+// 网关与 Stripe 一样遵循 Idempotency-Key。它将每个键及其请求体一起记录，并在收到
+// 已知键且请求体相同的请求时返回首次响应，标记为 Idempotent-Replayed。已知键与
+// 不同请求体的组合将被拒绝，返回 422 Unprocessable Content；没有键的请求返回 400 Bad Request。因此，每个键
+// 最多只会授权一次支付，无论客户端重试多少次。
 //
-// 授权无一例外地完成:请求返回202接受,并设有行动所在地状况监测器;
-// 哪些报告在授权决定前运行, 而 POST { 监测}: cancel 宣布无效 。
-// 以2000年结束的卡片号码被拒绝。对于以0003结束的卡片号码,则由网关决定,所以
-// 授权运行到订单的支付超时失效。 对于以0004结束的卡号, 网关会掉下
-// 连接而不是发送第一个密钥响应,因为网关记录后网络故障
-// 授权;客户客户的复原力处理器使用相同的密钥重新发送请求。
-// 5千元,网关无法接通,回答503 服务无可用,所以订单的付款失败。
+// 授权异步完成：请求返回 202 Accepted，并通过 Operation-Location 提供状态监视器地址；
+// 该监视器在授权产生结果前报告 Running，POST {monitor}:cancel 则撤销授权。
+// 尾号为 0002 的银行卡被拒绝。尾号为 0003 的银行卡不会由网关给出授权结果，因此
+// 授权持续运行，直到订单支付超时将其撤销。尾号为 0004 的银行卡会使网关
+// 在首次响应该键时直接断开连接而不发送响应，模拟网关记录
+// 授权后发生的网络故障；客户端的弹性处理器使用相同键重试请求。对于尾号为
+// 0005 的银行卡，网关不可用并返回 503 Service Unavailable，因此订单支付失败。
 public sealed class PaymentGateway(TimeProvider timeProvider)
 {
     public const string IdempotencyKeyHeader = "Idempotency-Key";
@@ -138,7 +138,7 @@ public sealed class PaymentGateway(TimeProvider timeProvider)
         return Results.Json(status, statusCode: statusCode);
     }
 
-    // 帐簿上的授权 网关锁着可变成员
+    // 账本中的授权记录。网关的锁保护其可变成员。
     private sealed class Authorization(string id, PaymentAuthorizationRequest request, DateTimeOffset createdAt)
     {
         public string Id => id;
@@ -151,10 +151,10 @@ public sealed class PaymentGateway(TimeProvider timeProvider)
 
         public DateTimeOffset? VoidedAt { get; set; }
 
-        // 网关在延迟后决定,但以千三时结束的卡片号码除外。
+        // 除尾号为 0003 的银行卡外，网关在延迟一段时间后给出授权结果。
         private DateTimeOffset? DecidesAt => request.CardLast4 == "0003" ? null : createdAt + DecisionLatency;
 
-        // 在决定取消授权之前即为无效;在发放授权付款之后即为无效。
+        // 在授权产生结果前撤销，会取消授权；之后撤销，则释放已授权的支付金额。
         public PaymentAuthorizationStatus GetStatus(DateTimeOffset now)
         {
             if (DecidesAt is not { } decidesAt || decidesAt > (VoidedAt ?? now))

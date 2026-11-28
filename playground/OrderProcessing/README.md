@@ -1,21 +1,21 @@
 <a id="order-processing-playground"></a>
 
-# 秩序处理操场
+# 订单处理实验项目
 
-以 Orleans 通信和日刊方式建造的处理程序工作流程。
-它遵循单项 [dotnet/eShop](https://github.com/dotnet/eShop) 的顺序流程
-网站应用程序,其中主机为 silo、最小 API和浏览器界面。
+使用 Orleans Messaging 和 Journaling 构建的订单处理工作流。
+它遵循 [dotnet/eShop](https://github.com/dotnet/eShop) 的下单流程，在同一个
+Web 应用程序中托管 Silo、最小 API 和浏览器 UI。
 
 ```bash
 dotnet run --project playground/OrderProcessing
 ```
 
-打开打印的 URL 浏览目录,填满篮子,检查并观察订单进度。
-Orleans 仪表板位于 `/dashboard`。
+打开输出的 URL，即可浏览商品目录、添加购物篮商品、结账并查看订单进度。
+Orleans Dashboard 位于 `/dashboard`。
 
 <a id="flow"></a>
 
-## 流动
+## 流程
 
 ```mermaid
 sequenceDiagram
@@ -44,43 +44,43 @@ sequenceDiagram
     end
 ```
 
-| eShop | 这个游乐场 |
+| eShop | 本实验项目 |
 | --- | --- |
-| Basket.API,结关整合活动 | `BasketGrain` 阶段 `SubmitOrder` 并用一本日记写清篮子 |
-| Ordering.API、 `Order` 合计和整合事件日志 | `OrderGrain` 将每个发送的信息发布顺序和阶段与每次过渡时的顺序和阶段记为日记 |
-| `GracePeriodManagerService` 查询数据库 | 每个命令发送给自己的 `GracePeriodElapsed` 信息, 并有 `DeliverAt` 时间 |
-| Catalog.API 库存审定 | 一个 `CatalogItemGrain` 每一产品储备、承诺和排放存量 |
-| PaymentProcessor | `PaymentGrain` 授权订购总数;在 `0002` 结束的牌片被拒绝 |
-| 命令状况通知 | `BuyerGrain` 工程状态信息进入买方订单列表 |
+| Basket.API，结账集成事件 | `BasketGrain` 将 `SubmitOrder` 暂存到发件箱，并在同一次日志写入中清空购物篮 |
+| Ordering.API，`Order` 聚合及集成事件日志 | `OrderGrain` 记录订单日志，并在每次状态转换时暂存所有出站消息 |
+| `GracePeriodManagerService` 轮询数据库 | 每个订单向自身发送一条带 `DeliverAt` 时间的 `GracePeriodElapsed` 消息 |
+| Catalog.API 库存验证 | 每个商品对应一个 `CatalogItemGrain`，负责预留、提交和释放库存 |
+| PaymentProcessor | `PaymentGrain` 对订单总额进行支付授权；尾号为 `0002` 的银行卡会被拒绝 |
+| 订单状态通知 | `BuyerGrain` 将状态消息投影到买家的订单列表 |
 
-买方可以取消订单,直到其库存得到确认,船舶支付订单。
+买家可在库存确认前取消订单，并可对已付款订单执行发货。
 
 <a id="delivery-and-idempotency"></a>
 
-## 交付和应急
+## 投递与幂等性
 
-- 信件至少发送一次,并处理每个邮件编号。
-  顺序编号,例如 `orders/{orderId}/stock/{productId}`,答复使用请求的ID
-  `result` 孩子。
-- 退票申请的ID是命令身份识别号。 篮子记得7天的结关, 所以
-  在此期间重新查取的结账也返回同一顺序。
-- 状态信息含有版本,买方投影保持最高,因为交货
-  顺序未指定。
-- 提交文件处理器将给发件人发送命令的 `GracePeriodElapsed` 信件,该信件应在宽度结尾处发送
-  。命令的收件箱在记录顺序及其
-  处理器只预发一个 `Submitted` 命令,所以被取消的命令忽略了它。
-- 取消后收到的库存确认书解除了保留。
-- 该目录保留了每个订单的保留意见结果,包括释放、承诺和重新启动。
-  被释放后,先到达的 记录拒绝, 所以后来的储备保留了现有库存。
-- 提交书附有其订单日期,保持现状和排定信息内容在整个
-  重新处理。 命令转换在应用状态前准备和播放发出的信息 。
-  对于遗留划界案,订单将私人提交的时间印章印一次,并在之后再重新使用
-  失败发送和重新启动,公共秩序状况一直维持到信息阶段。
+- 消息至少投递一次，每个消息 ID 只处理一次。消息 ID 由
+  订单 ID 派生，例如 `orders/{orderId}/stock/{productId}`，回复使用请求 ID 的
+  `result` 子级标识。
+- 结账请求 ID 就是订单 ID。购物篮将结账记录保留 7 天，因此
+  在该期限内重试结账会返回同一个订单。
+- 状态消息携带版本号；由于投递顺序未规定，买家侧投影保留
+  最高版本。
+- 提交处理程序向订单发送一条在宽限期结束时到期的 `GracePeriodElapsed` 消息。
+  订单收件箱在记录订单的同一次日志写入中接受该消息，并且其
+  处理程序仅推进处于 `Submitted` 状态的订单，因此已取消订单会忽略该消息。
+- 取消订单后才到达的库存确认会释放对应的库存预留。
+- 商品目录在库存释放、提交和 Grain 重新激活期间保留每个订单的预留结果。
+  先到达的释放请求会记录拒绝结果，因此之后到达的预留请求会保持可用库存不变。
+- 提交消息携带订单日期，使状态和定时消息的内容在处理程序重试期间保持稳定。
+  订单转换先准备和暂存出站消息，然后再应用状态变更。
+  对于旧版提交消息，订单只记录一次私有提交时间戳，并在发送失败和重新激活后复用，
+  使公开订单状态在消息成功暂存之前保持不变。
 
 <a id="configuration"></a>
 
 ## 配置
 
-`Ordering:GracePeriod` 内 `appsettings.json` 设置库存审定前的延误。
-信息使用不稳定的存储,
-JSON 日记格式,使用源生成的 `OrderProcessingJsonContext`。
+`appsettings.json` 中的 `Ordering:GracePeriod` 设置库存验证前的延迟。日志以及
+用于唤醒消息传递的持久化作业使用易失性内存存储；日志化状态使用
+JSON 日志格式及源生成的 `OrderProcessingJsonContext`。

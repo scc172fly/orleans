@@ -5,12 +5,12 @@ using Xunit;
 namespace DefaultCluster.Tests
 {
     /// <summary>
-    /// Orleans 提醒功能测试。
-    /// 提醒是 grain中长期存在的一个持久时间安排机制
-    /// 与计时器(时间器是 grain- 本地
-    /// 提醒将存放在外部储存中,
-    /// 每隔一定间隔可靠地触发 grain 方法,使其
-    /// 定期背景任务的理想性,必须能幸存失败。
+    /// Orleans 提醒器功能测试。
+    /// 提醒器是一种可跨 Grain
+    /// 停用及集群重启保留的持久化调度机制。与定时器（Grain 本地
+    /// 且临时存在）不同，提醒器保存在外部存储中，并且会
+    /// 按指定时间间隔可靠地触发 Grain 方法，
+    /// 适用于必须在故障后仍能继续的周期性后台任务。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -22,13 +22,13 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试基本提醒操作:检查是否存在、添加和删除。
-        /// 证明:
-        /// - 不存在为核查存在而伪造的提醒回信
-        /// - 提醒可以成功注册为 grain
-        /// - 通过核查存在可发现已登记的提醒通知
-        /// - 提醒可以消除,此后不再存在
-        /// 这显示了团结和民主行动委员会的基本提醒活动。
+        /// 测试基本提醒器操作：检查是否存在、添加及移除。
+        /// 验证以下情况：
+        /// - 对不存在的提醒器进行存在性检查会返回 false
+        /// - 可以在 Grain 上成功注册提醒器
+        /// - 可通过存在性检查检测已注册的提醒器
+        /// - 提醒器可以移除，且移除后不再存在
+        /// 这展示了提醒器的基本 CRUD 操作。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Reminders")]
         public async Task SimpleGrainGetGrain()

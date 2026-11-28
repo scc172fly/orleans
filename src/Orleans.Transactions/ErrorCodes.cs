@@ -2,14 +2,14 @@
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// Orleans 交易错误代码
+    /// Orleans 事务错误代码。
     /// </summary>
     internal enum OrleansTransactionsErrorCode
     {
         /// <summary>
-        /// orleans 交易错误代码的开始
+        /// Orleans 事务错误代码的起始值。
         /// </summary>
         OrleansTransactions = 1 << 17,
-        // TODO - jbragg - 为交易错误添加错误代码
+        // TODO - jbragg - 为事务错误添加错误代码。
     }
 }

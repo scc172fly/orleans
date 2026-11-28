@@ -5,13 +5,13 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Streaming.EventHubs.Testing
 {
     /// <summary>
-    /// 用于测试目的的数据生成器
+    /// 用于测试的数据生成器。
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface IDataGenerator<T>
     {
         /// <summary>
-        /// 数据生成器模拟事件读取
+        /// 数据生成器模拟事件读取过程。
         /// </summary>
         /// <param name="maxCount"></param>
         /// <param name="events"></param>
@@ -20,34 +20,34 @@ namespace Orleans.Streaming.EventHubs.Testing
     }
 
     /// <summary>
-    /// StreamDataGeneratingController 控制流数据生成启动和停止
+    /// StreamDataGeneratingController 控制流数据生成的启动和停止。
     /// </summary>
     public interface IStreamDataGeneratingController
     {
         /// <summary>
-        /// 溪流配置数据生成器
+        /// 为流配置数据生成器。
         /// </summary>
         /// <param name="streamId"></param>
         void AddDataGeneratorForStream(StreamId streamId);
         /// <summary>
-        /// 要求一条溪停止生产
+        /// 请求一个流停止生成数据。
         /// </summary>
         /// <param name="streamId"></param>
         void StopProducingOnStream(StreamId streamId);
     }
 
     /// <summary>
-    /// 特定流的数据生成器
+    /// 特定流的数据生成器。
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface IStreamDataGenerator<T> : IDataGenerator<T>
     {
         /// <summary>
-        /// 序列号对数
+        /// 序列号计数器。
         /// </summary>
         IIntCounter SequenceNumberCounter { set; }
         /// <summary>
-        /// 此数据生成器的流流身份
+        /// 此数据生成器对应的流标识。
         /// </summary>
         StreamId StreamId { get; }
         /// <summary>
@@ -57,16 +57,16 @@ namespace Orleans.Streaming.EventHubs.Testing
     }
 
     /// <summary>
-    /// 整数对数
+    /// 整数计数器。
     /// </summary>
     public interface IIntCounter
     {
         /// <summary>
-        /// 负值
+        /// 计数器值。
         /// </summary>
         int Value { get; }
         /// <summary>
-        /// 计数加起来
+        /// 递增计数器。
         /// </summary>
         void Increment();
     }

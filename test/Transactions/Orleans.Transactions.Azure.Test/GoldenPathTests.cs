@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.AzureStorage.Tests
 {
     /// <summary>
-    /// 用于存储 Azure 交易金路图情景的测试。
+    /// 测试使用 Azure Storage 时事务正常成功路径的场景。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Transactions"), TestCategory("Functional")]
     [TestSuite("Functional")]

@@ -7,7 +7,7 @@ using Orleans.Storage;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// 利用名为交易储存工厂或 grain 的存储供应商创建交易性国家储存。
+    /// 使用命名事务存储工厂或 Grain 存储提供程序创建事务状态存储。
     /// </summary>
     public class NamedTransactionalStateStorageFactory : INamedTransactionalStateStorageFactory
     {
@@ -16,8 +16,8 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="NamedTransactionalStateStorageFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="contextAccessor">当前 grain 上下文的存取器。</param>
-        /// <param name="loggerFactory">记录器厂的参数保留为兼容性。</param>
+        /// <param name="contextAccessor">当前 Grain 上下文的访问器。</param>
+        /// <param name="loggerFactory">为兼容性而保留的日志记录器工厂参数。</param>
         [Obsolete("Use the NamedTransactionalStateStorageFactory(IGrainContextAccessor contextAccessor) constructor.")]
         public NamedTransactionalStateStorageFactory(IGrainContextAccessor contextAccessor, Microsoft.Extensions.Logging.ILoggerFactory loggerFactory) : this(contextAccessor)
         {
@@ -26,7 +26,7 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="NamedTransactionalStateStorageFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="contextAccessor">当前 grain 上下文的存取器。</param>
+        /// <param name="contextAccessor">当前 Grain 上下文的访问器。</param>
         public NamedTransactionalStateStorageFactory(IGrainContextAccessor contextAccessor)
         {
             this.contextAccessor = contextAccessor;
@@ -38,13 +38,13 @@ namespace Orleans.Transactions
         {
             var currentContext = this.contextAccessor.GrainContext;
 
-            // 尝试从工厂获取 ITransactionalStateStorage
+            // 尝试从工厂获取 ITransactionalStateStorage。
             ITransactionalStateStorageFactory? factory = string.IsNullOrEmpty(storageName)
                 ? currentContext.ActivationServices.GetService<ITransactionalStateStorageFactory>()
                 : currentContext.ActivationServices.GetKeyedService<ITransactionalStateStorageFactory>(storageName);
             if (factory != null) return factory.Create<TState>(stateName, currentContext);
 
-            // 尝试找存储供应商包起来
+            // 否则尝试获取存储提供程序并对其进行包装。
             IGrainStorage? grainStorage = string.IsNullOrEmpty(storageName)
                 ? currentContext.ActivationServices.GetService<IGrainStorage>()
                 : currentContext.ActivationServices.GetKeyedService<IGrainStorage>(storageName);

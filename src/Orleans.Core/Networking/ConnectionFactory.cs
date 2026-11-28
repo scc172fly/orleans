@@ -33,10 +33,10 @@ internal abstract class ConnectionFactory : IDisposable, IAsyncDisposable
         using var admission = _connectionEstablishment.TryEnter();
         ObjectDisposedException.ThrowIf(!admission.Entered, this);
 
-        // 连接到终点
+        // 连接到终结点。
         var transport = await _transportConnector.CreateAsync(GetEndPoint(address), cancellationToken).ConfigureAwait(false);
 
-        // 创建连接对象以表示连接。
+        // 创建代表该连接的连接对象。
         try
         {
             return CreateConnection(address, transport);

@@ -13,7 +13,7 @@ using Microsoft.Extensions.Hosting;
 namespace Orleans
 {
     /// <summary>
-    /// 与 Orleans silos组群通信的客户端。
+    /// 用于与 Orleans Silo 集群通信的客户端。
     /// </summary>
     internal partial class ClusterClient : IInternalClusterClient, IHostedService
     {
@@ -24,11 +24,11 @@ namespace Orleans
         /// <summary>
         /// 初始化 <see cref="ClusterClient"/> 类的新实例。
         /// </summary>
-        /// <param name="serviceProvider">服务供应商。</param>
+        /// <param name="serviceProvider">服务提供程序。</param>
         /// <param name="runtimeClient">运行时客户端。</param>
-        /// <param name="loggerFactory">用于创建日志的 Logger 工厂</param>
-        /// <param name="clientMessagingOptions">通信参数</param>
-        /// <param name="localClientDetails">本地客户端详情。</param>
+        /// <param name="loggerFactory">用于创建日志记录器的日志记录器工厂。</param>
+        /// <param name="clientMessagingOptions">消息传递参数。</param>
+        /// <param name="localClientDetails">本地客户端详细信息。</param>
         public ClusterClient(IServiceProvider serviceProvider, OutsideRuntimeClient runtimeClient, ILoggerFactory loggerFactory, IOptions<ClientMessagingOptions> clientMessagingOptions, LocalClientDetails localClientDetails)
         {
             ValidateSystemConfiguration(serviceProvider);
@@ -38,7 +38,7 @@ namespace Orleans
             _logger = loggerFactory.CreateLogger<ClusterClient>();
             _clusterClientLifecycle = new ClusterClientLifecycle(_logger, localClientDetails);
 
-            // 登记所有生命周期参与者
+            // 注册所有生命周期参与者。
             IEnumerable<ILifecycleParticipant<IClusterClientLifecycle>> lifecycleParticipants = ServiceProvider.GetServices<ILifecycleParticipant<IClusterClientLifecycle>>();
             foreach (var participant in lifecycleParticipants)
             {

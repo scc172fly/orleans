@@ -7,7 +7,7 @@ using Orleans.Streams;
 namespace Orleans.Streaming.Kinesis
 {
     /// <summary>
-    /// 位于 DynamoDB的长途排队检查站。
+    /// 将流队列检查点持久化到 DynamoDB。
     /// </summary>
     internal sealed class DynamoDBStreamQueueCheckpointer : IStreamQueueCheckpointer<string>
     {

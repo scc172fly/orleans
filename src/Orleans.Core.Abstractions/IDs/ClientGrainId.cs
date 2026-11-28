@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 确定客户身份。
+    /// 标识客户端。
     /// </summary>
     internal readonly struct ClientGrainId : IEquatable<ClientGrainId>, IComparable<ClientGrainId>, ISpanFormattable
     {
@@ -13,7 +13,7 @@ namespace Orleans.Runtime
         private ClientGrainId(GrainId grainId) => this.GrainId = grainId;
 
         /// <summary>
-        /// 获取底部 <see cref="GrainId"/>。
+        /// 获取底层 <see cref="GrainId"/>。
         /// </summary>
         public readonly GrainId GrainId;
 
@@ -37,7 +37,7 @@ namespace Orleans.Runtime
         public static ClientGrainId Create(IdSpan id) => new ClientGrainId(new GrainId(GrainTypePrefix.ClientGrainType, id));
 
         /// <summary>
-        /// 将提供的 <see cref="GrainId"/> 转换为 <see cref="ClientGrainId"/>。返回值表示操作是否成功。
+        /// 将提供的 <see cref="GrainId"/> 转换为 <see cref="ClientGrainId"/>。返回值指示操作是否成功。
         /// </summary>
         public static bool TryParse(GrainId grainId, out ClientGrainId clientId)
         {
@@ -47,7 +47,7 @@ namespace Orleans.Runtime
                 return false;
             }
 
-            // 观察员身份(如果在场)。
+            // 移除观察者 ID（如果存在）。
             var key = grainId.Key.AsSpan();
             if (key.IndexOf((byte)ObserverGrainId.SegmentSeparator) is int index && index >= 0)
             {
@@ -80,19 +80,19 @@ namespace Orleans.Runtime
         public int CompareTo(ClientGrainId other) => this.GrainId.CompareTo(other.GrainId);
 
         /// <summary>
-        /// 与所提供的平等目标相比较。
+        /// 比较提供的操作数是否相等。
         /// </summary>
-        /// <param name="left">左侧操作。</param>
-        /// <param name="right">右侧操作。</param>
-        /// <returns><see langword="true"/> 如果规定的数值相等,否则 <see langword="false"/>。</returns>
+        /// <param name="left">左操作数。</param>
+        /// <param name="right">右操作数。</param>
+        /// <returns>如果提供的值相等，则返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
         public static bool operator ==(ClientGrainId left, ClientGrainId right) => left.Equals(right);
 
         /// <summary>
-        /// 比较所提供的不平等域。
+        /// 比较提供的操作数是否不相等。
         /// </summary>
-        /// <param name="left">左侧操作。</param>
-        /// <param name="right">右侧操作。</param>
-        /// <returns><see langword="true"/> 如果所提供的数值不相等,否则 <see langword="false"/>.</returns>
+        /// <param name="left">左操作数。</param>
+        /// <param name="right">右操作数。</param>
+        /// <returns>如果提供的值不相等，则返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
         public static bool operator !=(ClientGrainId left, ClientGrainId right) => !(left == right);
     }
 }

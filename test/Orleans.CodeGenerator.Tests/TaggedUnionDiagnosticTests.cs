@@ -1,4 +1,4 @@
-// 净额10.00测试参考Roslyn 5.9,其中对封闭型和结合进行剖析;净额8.0测试参考最老的受支持的Roslyn。
+// net10.0 测试引用 Roslyn 5.9，它能够解析封闭类型和联合类型；net8.0 测试引用受支持的最旧 Roslyn。
 #if NET10_0_OR_GREATER
 using System.Runtime.Loader;
 using Microsoft.CodeAnalysis;
@@ -13,11 +13,11 @@ using static VerifyXunit.Verifier;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// 测试源发电机对封闭型等级和联盟类型的 ORLEANS0117 诊断。
+/// 测试源生成器针对封闭类型层次结构和联合类型的 ORLEANS0117 诊断。
 /// </summary>
 /// <remarks>
-/// 这些测试用 <see cref="LanguageVersion.Preview"/>汇编了封闭型和工会类型。
-/// 需要一个能暴露它们的编译者,所以测试涵盖引用的编译者提供的工会诊断。
+/// 这些测试使用 <see cref="LanguageVersion.Preview"/> 编译封闭类型及联合类型。依赖联合类型分支类型的诊断
+/// 要求编译器公开这些类型，因此测试涵盖被引用编译器可提供的联合类型诊断。
 /// </remarks>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -46,7 +46,7 @@ public sealed class TaggedUnionDiagnosticTests
     [Fact]
     public void NullabilityConstraintsOfCasesDoNotAffectGeneratedCodec()
     {
-        // 无效性不是类型运行时身份的一部分,生成的代码没有无效的背景,因此支持这些情况。
+        // 可空性不是类型运行时标识的一部分，且生成的代码没有可空上下文，因此支持这些情况。
         var (output, result) = Generate("""
             [GenerateSerializer] public closed record NotNullBase<T>;
             [GenerateSerializer, Case(0)] public sealed record NotNullCase<T>([property: Id(0)] T Value) : NotNullBase<T> where T : notnull;

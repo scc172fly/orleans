@@ -2,7 +2,7 @@ using Orleans.Concurrency;
 
 namespace UnitTests.GrainInterfaces
 {
-    //- - - - - - - - - - - 葛赖因接口
+    //------- Grain 接口 ----//
     public interface IStreaming_ProducerGrain : IGrainWithGuidKey
     {
         Task BecomeProducer(Guid streamId, string providerToUse, string streamNamespace);

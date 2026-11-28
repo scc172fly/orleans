@@ -1,25 +1,25 @@
 ---
-title: "ORLEANS0212: IsTaskCancellationRequested中的过滤器取消处理器"
-description: "理解 ORLEANS0212, 该操作报告处理器在不通过 DurableTask.Current.IsTaskCancellationRequested过滤的情况下,在耐用操作周围捕获取消的处理器, 并使用过滤器或重新丢转来修正它。"
+title: "ORLEANS0212: 使用 IsTaskCancellationRequested 筛选取消处理程序"
+description: 了解 ORLEANS0212：处理程序捕获持久化操作的取消异常时未使用 DurableTask.Current.IsTaskCancellationRequested 筛选。使用筛选器或重新抛出来修复。
 ms.date: 10/19/2026
 ms.topic: reference
 ---
 
 <a id="orleans0212-filter-cancellation-handlers-by-istaskcancellationrequested"></a>
 
-# ORLEANS0212: IsTaskCancellationRequested中的过滤器取消处理器
+# ORLEANS0212: 使用 IsTaskCancellationRequested 筛选取消处理程序
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
 | 严重性 | 警告 |
-| 类别类 | 用法 |
-| 代码修正 | 无无无无 |
+| 类别 | 用法 |
+| 代码修复 | 无 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-A `try` 在一个持久任务机构内,一个长期任务机构有耐久的业务,其 `catch` 条款的渔获量 `OperationCanceledException`,它从某类型或从该类型产生的类型没有过滤器,且 `DurableTaskContext.IsTaskCancellationRequested`并且不会再次发射:
+持久化任务主体中的 `try` 块包含持久化操作，其中某个 `catch` 子句捕获 `OperationCanceledException`、其基类型或派生类型，且既没有读取 `DurableTaskContext.IsTaskCancellationRequested` 的筛选器，也不重新抛出异常：
 
 :::code source="snippets/durable-tasks/Orleans0212.cs" id="orleans0212_violation" language="csharp":::
 
@@ -27,31 +27,31 @@ A `try` 在一个持久任务机构内,一个长期任务机构有耐久的业�
 
 ## 规则说明
 
-一项持久任务通过 `OperationCanceledException`观察到两种取消:
+持久化任务通过 `OperationCanceledException` 观察两类取消：
 
-- **任务取消** 是持久的:一个打电话者要求它,例如对任务处理的 `CancelAsync` ,主机记录任务,以及每次执行时首先观察的任务。重播在同一点观察任务,而机构决定任务结果,例如通过补偿。
-- **取消企图** 停止正文当前运行, 例如激活停止时停止, 或者任务中止或删除时停止。 此尝试的后期持久操作会扔弃 `DurableTaskAttemptCanceledException`,以及它更改了日记状态 grain下一期日记的写。停止激活的任务将再次继续。
+- **任务取消**是持久化的：调用方请求取消，例如对任务句柄使用 `CancelAsync`，宿主将取消与任务一同记录，并记录每次执行首次观察到取消的位置。重放在同一位置观察取消，主体决定任务结果，例如执行补偿。
+- **执行尝试取消**停止主体的当前运行，例如激活实例停止，或者任务被中止或删除。该执行尝试后续的持久化操作抛出 `DurableTaskAttemptCanceledException`，其日志化状态变更随 Grain 的下一次日志写入提交。停止的激活实例中的任务会在新的执行尝试中继续执行。
 
-未经过滤的处理器对两者一视同仁。 当主机在搁置期内取消尝试时, 示例中的处理器可以补偿一个没有人取消的预订: 它的状态改变承诺, 以及它发出的外部呼叫( 如将房间放入订票系统) 生效, 而下一次尝试重播任务并确认预定 。
+不带筛选的处理程序会将两者一视同仁。当宿主在预订保留期间取消本次执行尝试时，示例中的处理程序会对无人取消的预订执行补偿：它的状态变更被提交，其外部调用（例如在预订系统中释放房间）产生效果，而下一次执行尝试会重放任务并确认预订。
 
-`DurableTask.Current.IsTaskCancellationRequested` 是 `true` 仅用于取消任务,在取消尝试中和以后每一次尝试中。
+`DurableTask.Current.IsTaskCancellationRequested` 仅在任务取消时为 `true`，无论是在被取消的执行尝试中，还是之后的每次执行尝试中。
 
-赔偿,见 [当工作流程取消时进行内线补偿](../grains/durable-tasks-recipes.md#compensate-inline-when-the-workflow-is-canceled)。
+有关补偿，请参阅[工作流取消时内联补偿](../grains/durable-tasks-recipes.md#compensate-inline-when-the-workflow-is-canceled)。
 
 <a id="how-to-fix-violations"></a>
 
-## 如何纠正违反情况
+## 如何修复违规
 
-**过滤处理器。** 操作者然后跑去取消任务,但尝试取消的例外情况结束。 `Shielded()`,因此它们运行,尽管任务取消是请求:
+**筛选处理程序。** 这样处理程序仅在任务取消时运行，执行尝试取消的异常则结束当前运行。用 `Shielded()` 屏蔽补偿子任务，使其即使在任务已请求取消时仍能运行：
 
 :::code source="snippets/durable-tasks/Orleans0212.cs" id="orleans0212_fix_filter" language="csharp":::
 
-**补偿后重新进行重写。** 一个处理器, 以 `throw;` 结束, 使每个取消的操作都结束运行, 任务在任务取消后终止 :
+**补偿后重新抛出。** 以 `throw;` 结束的处理程序使任何取消都结束本次运行，并在任务取消之后使任务以已取消状态结束：
 
 :::code source="snippets/durable-tasks/Orleans0212.cs" id="orleans0212_fix_rethrow" language="csharp":::
 
 <a id="when-to-suppress"></a>
 
-## 何时压缩
+## 何时抑制
 
-当处理器代码对任务取消和尝试取消来说正确时, 即禁止诊断, 例如一个处理器只通过重放安全记录器记录日志条目 。
+如果处理程序代码对任务取消和执行尝试取消均正确，可以抑制诊断，例如只通过重放安全的日志记录器记录日志。

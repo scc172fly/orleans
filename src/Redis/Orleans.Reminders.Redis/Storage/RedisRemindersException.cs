@@ -4,31 +4,31 @@ using System.Runtime.Serialization;
 namespace Orleans.Reminders.Redis
 {
     /// <summary>
-    /// 被扔出 <see cref="RedisReminderTable"/>.
+    /// 从 <see cref="RedisReminderTable"/> 抛出的异常。
     /// </summary>
     [GenerateSerializer]
     public class RedisRemindersException : Exception
     {
         /// <summary>
-        /// 初始化 <see cref="RedisRemindersException"/>新实例。
+        /// 初始化 <see cref="RedisRemindersException"/> 的新实例。
         /// </summary>
         public RedisRemindersException()
         {
         }
 
         /// <summary>
-        /// 初始化 <see cref="RedisRemindersException"/>新实例。
+        /// 初始化 <see cref="RedisRemindersException"/> 的新实例。
         /// </summary>
-        /// <param name="message">解释例外原因的错误信息。</param>
+        /// <param name="message">解释异常原因的错误消息。</param>
         public RedisRemindersException(string message) : base(message)
         {
         }
 
         /// <summary>
-        /// 初始化 <see cref="RedisRemindersException"/>新实例。
+        /// 初始化 <see cref="RedisRemindersException"/> 的新实例。
         /// </summary>
-        /// <param name="message">解释例外原因的错误信息。</param>
-        /// <param name="inner">造成目前例外的原因,或者如果没有具体说明内部例外,则无效引用(《视觉基本》中没有任何内容)。</param>
+        /// <param name="message">解释异常原因的错误消息。</param>
+        /// <param name="inner">导致当前异常的异常；如果未指定内部异常，则为空引用（在 Visual Basic 中为 Nothing）。</param>
         public RedisRemindersException(string message, Exception inner) : base(message, inner)
         {
         }

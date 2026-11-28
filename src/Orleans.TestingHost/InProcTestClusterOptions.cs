@@ -7,15 +7,15 @@ using Orleans.Hosting;
 namespace Orleans.TestingHost;
 
 /// <summary>
-/// 测试组群配置选项 。
+/// 测试集群的配置选项。
 /// </summary>
 public sealed class InProcessTestClusterOptions
 {
     /// <summary>
-    /// 获取或设置集束识别码。
+    /// 获取或设置集群标识符。
     /// </summary>
     /// <seealso cref="ClusterOptions.ClusterId"/>
-    /// <value>集束识别符号。</value>
+    /// <value>集群标识符。</value>
     public string ClusterId { get; set; } = null!;
 
     /// <summary>
@@ -26,89 +26,89 @@ public sealed class InProcessTestClusterOptions
     public string ServiceId { get; set; } = null!;
 
     /// <summary>
-    /// 获取或设置基 silo 端口,这是第一个 silo的端口。其他 silos 将使用随后的端口。
+    /// 获取或设置基础 Silo 端口，即第一个 Silo 使用的端口。其他 Silo 将使用后续端口。
     /// </summary>
-    /// <value>基地 silo 端口。</value>
+    /// <value>基础 Silo 端口。</value>
     internal int BaseSiloPort { get; set; }
 
     /// <summary>
-    /// 获取或设置基端网关,这是第一个 silo的网关。其他 silos 将使用随后的港口。
+    /// 获取或设置网关起始端口，即首个 Silo 的网关端口。其他 Silo 使用后续端口。
     /// </summary>
-    /// <value>基端网关端口。</value>
+    /// <value>基础网关端口。</value>
     internal int BaseGatewayPort { get; set; }
 
     /// <summary>
-    /// 获取或设定一个数值,显示是否使用测试组群成员资格。
+    /// 获取或设置一个值，指示是否使用测试集群成员资格机制。
     /// </summary>
-    /// <value><see langword="true" /> 如果采用测试组群成员制;否则, <see langword="false" />.</value>
+    /// <value><see langword="true" /> 表示应使用测试集群成员资格机制；否则为 <see langword="false" />。</value>
     public bool UseTestClusterMembership { get; set; }
 
     /// <summary>
-    /// 获取或设定一个数值,以显示是否使用测试组 grain 目录,该数值只有在 <see cref="UseTestClusterMembership"/> 是 <see langword="true"/>时才适用。
+    /// 获取或设置一个值，指示是否使用测试集群 Grain 目录，仅当 <see cref="UseTestClusterMembership"/> 为 <see langword="true"/> 时适用。
     /// </summary>
-    /// <value><see langword="true" /> 如果使用测试组 grain 目录;否则, <see langword="false" />。</value>
+    /// <value><see langword="true" /> 表示应使用测试集群 Grain 目录；否则为 <see langword="false" />。</value>
     internal bool UseTestClusterGrainDirectory { get; set; }
 
     /// <summary>
-    /// 获取或设置一个值,以显示是否选择分布的 grain 应用后目录 silo 组合代表。
+    /// 获取或设置一个值，指示应用 Silo 配置委托后是否选择分布式 Grain 目录。
     /// </summary>
     /// <value>
-    /// <see langword="true"/> 选择分布式目录为默认值;
-    /// <see langword="false"/> 使用适用的测试指令替换或配置 silo 目录。
-    /// 默认为 <see langword="false"/>。
+    /// <see langword="true"/> 表示选择分布式目录作为默认目录；
+    /// <see langword="false"/> 表示使用适用的测试目录替代项或配置的 Silo 目录。
+    /// 默认值为 <see langword="false"/>。
     /// </value>
     /// <remarks>
-    /// 随着测试会籍和测试 grain 目录启用, <see langword="false"/> 选择了在程序中的测试目录。
-    /// 否则, <see langword="false"/> 将保存由 silo 配置选定的目录,包括运行时默认。
-    /// 要选择遗留目录,请调用 <see cref="CoreHostingExtensions.UseLegacyGrainDirectory"/>
-    /// 从 <see cref="InProcessTestClusterBuilder.ConfigureSilo"/> 中退出, 并离开此选项 <see langword="false"/>。
+    /// 当测试成员资格和测试 Grain 目录均已启用时，<see langword="false"/> 选择进程内测试目录。
+    /// 否则，<see langword="false"/> 保留 Silo 配置所选的目录，包括运行时默认目录。
+    /// 若要选择旧版目录，请调用 <see cref="CoreHostingExtensions.UseLegacyGrainDirectory"/>，
+    /// 调用位置为 <see cref="InProcessTestClusterBuilder.ConfigureSilo"/>，并将此选项保持为 <see langword="false"/>。
     /// </remarks>
     public bool UseDistributedGrainDirectory { get; set; }
 
     /// <summary>
-    /// 获取或设定一个数值,以显示是否使用实际环境统计数据。
+    /// 获取或设置一个值，指示是否使用真实环境统计信息。
     /// </summary>
     public bool UseRealEnvironmentStatistics { get; set; }
 
     /// <summary>
-    /// 获取或设定一个值,以显示是否在部署后立即初始化客户。
+    /// 获取或设置一个值，指示部署时是否立即初始化客户端。
     /// </summary>
-    /// <value><see langword="true" /> ,如果客户部署后应立即启动;否则, <see langword="false" />。</value>
+    /// <value><see langword="true" /> 表示部署时应立即初始化客户端；否则为 <see langword="false" />。</value>
     public bool InitializeClientOnDeploy { get; set; }
 
     /// <summary>
-    /// 获取或设置初始 silos 数。
+    /// 获取或设置初始 Silo 数量。
     /// </summary>
-    /// <value>初始 silos 计数。</value>
+    /// <value>初始 Silo 数量。</value>
     public short InitialSilosCount { get; set; }
 
     /// <summary>
-    /// 获取或设置一个值,以显示是否配置文件记录。
+    /// 获取或设置一个值，指示是否配置文件日志记录。
     /// </summary>
-    /// <value><see langword="true" /> 如果文件记录应该配置; 否则, <see langword="false" />。</value>
+    /// <value><see langword="true" /> 表示应配置文件日志记录；否则为 <see langword="false" />。</value>
     public bool ConfigureFileLogging { get; set; } = true;
 
     /// <summary>
-    /// 获取或设定一个数值,表明是否为测试目的假设同质 silos 。
+    /// 获取或设置一个值，指示测试时是否假定所有 Silo 同构。
     /// </summary>
-    /// <value><see langword="true" /> 如果组群应假定同质 silos;否则, <see langword="false" />。</value>
+    /// <value><see langword="true" /> 表示集群应假定 Silo 同构；否则为 <see langword="false" />。</value>
     public bool AssumeHomogenousSilosForTesting { get; set; }
 
     /// <summary>
-    /// 获取或设置一个值,以显示每个 silo 是否应该主持网关。
+    /// 获取或设置一个值，指示是否每个 Silo 都应承载网关。
     /// </summary>
-    /// <value><see langword="true" /> ,如果每个 silo 都设有网关;否则, <see langword="false" />。</value>
+    /// <value><see langword="true" /> 表示每个 Silo 均应承载网关；否则为 <see langword="false" />。</value>
     public bool GatewayPerSilo { get; set; } = true;
 
     /// <summary>
-    /// 得到 silo 东道国配置代表。
+    /// 获取 Silo 宿主配置委托。
     /// </summary>
-    /// <value>下 silo 东道国配置代表。</value>
+    /// <value>Silo 宿主配置委托。</value>
     public List<Action<InProcessTestSiloSpecificOptions, IHostApplicationBuilder>> SiloHostConfigurationDelegates { get; } = [];
 
     /// <summary>
-    /// 获取客户主机配置代表。
+    /// 获取客户端宿主配置委托。
     /// </summary>
-    /// <value>客户主机配置代表。</value>
+    /// <value>客户端宿主配置委托。</value>
     public List<Action<IHostApplicationBuilder>> ClientHostConfigurationDelegates { get; } = [];
 }

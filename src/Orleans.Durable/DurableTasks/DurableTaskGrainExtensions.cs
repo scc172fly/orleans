@@ -8,27 +8,27 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Tasks;
 
 /// <summary>
-/// 提供业务,以观察和标示 grain 参考文献的现有耐久任务。
+/// 提供通过 Grain 引用观察现有持久化任务和向其发送信号的操作。
 /// </summary>
 public static class DurableTaskGrainExtensions
 {
-    /// <summary>得到 grain 中可计算 grain 呼叫目标,在预定通话时间之前</summary>
-    /// <param name="task">持久任务定义。</param>
+    /// <summary>在调度持久化 Grain 调用之前，获取其目标 Grain。</summary>
+    /// <param name="task">持久化任务定义。</param>
     /// <param name="target">
-    /// 调用目标的 grain ,当该方法返回 <see langword="true"/>时;否则;
+    /// 本方法返回 <see langword="true"/> 时为调用的目标 Grain；否则
     /// <see langword="default"/>.
     /// </param>
     /// <returns>
-    /// <see langword="true"/> 何时 <paramref name="task"/> 是一个呼叫 grain's <see cref="DurableTask"/>- 返回
-    /// 方法,通过 grain 参考,但尚未排定;否则 <see langword="false"/>,例如用于
-    /// 本地定义,如 <see cref="DurableTask.Run(Func{CancellationToken, Task})"/> 或引用已有的
-    /// 任务。
+    /// <see langword="true"/> 表示 <paramref name="task"/> 是通过 Grain 引用发起、尚未调度的、返回 <see cref="DurableTask"/> 的
+    /// Grain 方法调用；否则为 <see langword="false"/>，例如针对
+    /// <see cref="DurableTask.Run(Func{CancellationToken, Task})"/> 之类的本地定义或现有任务的
+    /// 引用。
     /// </returns>
     /// <remarks>
-    /// 电话在 grain 参考文件发出时设定了呼叫目标,因此在拨打前可以调用
-    /// 计划,例如从目标 grain 中选择调用的任务标识符。
+    /// 调用的目标在通过 Grain 引用发起调用时即已确定，因此在调用被
+    /// 调度之前便可使用，例如根据目标 Grain 选择该调用的任务标识符。
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="task"/> 是 <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="task"/> 为 <see langword="null"/>。</exception>
     public static bool TryGetTarget(this DurableTask task, out GrainId target)
     {
         ArgumentNullException.ThrowIfNull(task);
@@ -42,36 +42,36 @@ public static class DurableTaskGrainExtensions
         return false;
     }
     /// <summary>
-    /// 交付交付 <paramref name="signal"/> 与 <paramref name="value"/> 引用的任务 <paramref name="taskId"/> 日期 时
+    /// 将 <paramref name="signal"/> 携带的 <paramref name="value"/> 投递到被调用任务 <paramref name="taskId"/>，该任务位于
     /// <paramref name="target"/>.
     /// </summary>
-    /// <typeparam name="T">信号值类型。</typeparam>
-    /// <param name="target">下 grain 由它来承担任务。</param>
-    /// <param name="taskId">客户端或其他人的任务标识符 grain 援引的时间所援引的 <paramref name="target"/>.</param>
-    /// <param name="signal">任务等待共享的信号描述符。</param>
-    /// <param name="value">信号值。</param>
-    /// <param name="cancellationToken">一种放弃送信者的象征</param>
-    /// <returns>发送时间一旦持久,即完成操作。</returns>
+    /// <typeparam name="T">信号的值类型。</typeparam>
+    /// <param name="target">拥有任务的 Grain。</param>
+    /// <param name="taskId"><paramref name="target"/> 上由客户端或另一个 Grain 调用的任务的标识符。</param>
+    /// <param name="signal">任务的各次等待所共享的信号描述符。</param>
+    /// <param name="value">信号的值。</param>
+    /// <param name="cancellationToken">用于放弃发送操作的令牌。</param>
+    /// <returns>在发送操作持久化后完成的操作。</returns>
     /// <remarks>
     /// <para>
-    /// 任务记录每个信号名称的第一个值,而一个等值的信号则保持不变。
+    /// 任务记录每个信号名称的第一个值；值相等的信号不会改变任务。
     /// </para>
     /// <para>
-    /// 在一个长执行期间,寄出和在行刑树上记录下的一个文件,写在一本日记里
-    /// 发送 grain,因此重播不会再次发送。记录的身份识别来自目标、任务和任务。
-    /// 信号名,执行时重复发送一个信号,按发生次数编号。
-    /// 发送到另一个 grain 的发件箱在发件箱中进行,目标的收件箱记录任务状态或任务状态中的值。
-    /// 拒绝的信号, 发送是一通电话。 在其它地方, 如客户端或普通 grain 方法等, 发送
-    /// 至 <paramref name="target"/> 一旦任务完成, 任务将永久地保持值, 当任务完成时丢弃
-    /// 拒绝。一个 grain 用普通方法通过 <see cref="IDurableTaskManager"/>表示其任务。
+    /// 在持久化执行实例内，发送操作与执行实例任务树中的发送记录在同一次日志写入中提交，
+    /// 此次写入发生在发送方 Grain 中，因此重放不会再次发送。记录标识符由目标、任务和
+    /// 信号名称派生，同一次执行中对同一信号的重复发送按出现次序编号。
+    /// 发往另一个 Grain 的发送操作暂存在发件箱中，目标的收件箱将信号值记录到任务状态中，或
+    /// 将遭拒的信号转为死信。在其他上下文（例如客户端或普通 Grain 方法）中，发送操作是对
+    /// <paramref name="target"/> 的调用，当任务持久化保存该值时完成；若任务
+    /// 拒绝该值，则抛出异常。Grain 通过 <see cref="IDurableTaskManager"/> 从普通方法向自身任务发送信号。
     /// </para>
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="target"/> 或 <paramref name="signal"/> 是 <see langword="null"/>。</exception>
-    /// <exception cref="ArgumentException"><paramref name="taskId"/> 是空的。</exception>
-    /// <exception cref="DurableTaskNotFoundException">在持久执行之外,目标不保留任何援引任务 <paramref name="taskId"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="target"/> 或 <paramref name="signal"/> 为 <see langword="null"/>。</exception>
+    /// <exception cref="ArgumentException"><paramref name="taskId"/> 为空。</exception>
+    /// <exception cref="DurableTaskNotFoundException">在持久化执行之外，目标未保留被调用任务 <paramref name="taskId"/>。</exception>
     /// <exception cref="InvalidOperationException">
-    /// 在持久执行外部,任务对信号具有不同的值,或者该信号是终端,没有价值
-    /// 信号。
+    /// 在持久化执行之外，任务已保存不同的信号值，或者任务已处于终态且未保存该
+    /// 信号的值。
     /// </exception>
     public static ValueTask SignalDurableTaskAsync<T>(
         this IAddressable target,
@@ -103,17 +103,17 @@ public static class DurableTaskGrainExtensions
     }
 
     /// <summary>
-    /// 将 <paramref name="signal"/> 与 <paramref name="value"/> 一起交付根任务 <paramref name="rootId"/>
+    /// 将 <paramref name="signal"/> 携带的 <paramref name="value"/> 投递到根任务 <paramref name="rootId"/>，该任务位于
     /// <paramref name="target"/>.
     /// </summary>
-    /// <typeparam name="T">信号值类型。</typeparam>
-    /// <param name="target">下 grain 由它来承担任务。</param>
-    /// <param name="rootId">客户端、 grain或耐久执行开始的任务的根代号。</param>
-    /// <param name="signal">任务等待共享的信号描述符。</param>
-    /// <param name="value">信号值。</param>
-    /// <param name="cancellationToken">一种放弃送信者的象征</param>
-    /// <returns>一项按 <see cref="SignalDurableTaskAsync{T}(IAddressable, TaskId, DurableSignal{T}, T, CancellationToken)"/> 描述完成的任务。</returns>
-    /// <remarks>发送行为表现为 <see cref="SignalDurableTaskAsync{T}(IAddressable, TaskId, DurableSignal{T}, T, CancellationToken)"/> 用于 <c>TaskId.CreateRoot(rootId)</c>.</remarks>
+    /// <typeparam name="T">信号的值类型。</typeparam>
+    /// <param name="target">拥有任务的 Grain。</param>
+    /// <param name="rootId">由客户端、Grain 或持久化执行启动的任务的根 ID。</param>
+    /// <param name="signal">任务的各次等待所共享的信号描述符。</param>
+    /// <param name="value">信号的值。</param>
+    /// <param name="cancellationToken">用于放弃发送操作的令牌。</param>
+    /// <returns>按 <see cref="SignalDurableTaskAsync{T}(IAddressable, TaskId, DurableSignal{T}, T, CancellationToken)"/> 所述方式完成的任务。</returns>
+    /// <remarks>发送操作的行为与 <see cref="SignalDurableTaskAsync{T}(IAddressable, TaskId, DurableSignal{T}, T, CancellationToken)"/> 相同，其任务标识符为 <c>TaskId.CreateRoot(rootId)</c>。</remarks>
     public static ValueTask SignalDurableTaskAsync<T>(
         this IAddressable target,
         string rootId,
@@ -123,30 +123,30 @@ public static class DurableTaskGrainExtensions
         => target.SignalDurableTaskAsync(TaskId.CreateRoot(rootId), signal, value, cancellationToken);
 
     /// <summary>
-    /// 交付交付 <paramref name="signal"/> 与 <paramref name="value"/> 引用的任务 <paramref name="taskId"/> 日期 时
-    /// <paramref name="target"/>,返回任务处理方式。
+    /// 将 <paramref name="signal"/> 携带的 <paramref name="value"/> 投递到被调用任务 <paramref name="taskId"/>，该任务位于
+    /// <paramref name="target"/> 上，并返回任务对信号的处理结果。
     /// </summary>
-    /// <typeparam name="T">信号值类型。</typeparam>
-    /// <param name="target">下 grain 由它来承担任务。</param>
-    /// <param name="taskId">客户端或其他人的任务标识符 grain 援引的时间所援引的 <paramref name="target"/>.</param>
-    /// <param name="signal">任务等待共享的信号描述符。</param>
-    /// <param name="value">信号值。</param>
-    /// <param name="cancellationToken">一种放弃送信者的象征</param>
+    /// <typeparam name="T">信号的值类型。</typeparam>
+    /// <param name="target">拥有任务的 Grain。</param>
+    /// <param name="taskId"><paramref name="target"/> 上由客户端或另一个 Grain 调用的任务的标识符。</param>
+    /// <param name="signal">任务的各次等待所共享的信号描述符。</param>
+    /// <param name="value">信号的值。</param>
+    /// <param name="cancellationToken">用于放弃发送操作的令牌。</param>
     /// <returns>
-    /// <see cref="DurableSignalResult.Accepted"/> 或 <see cref="DurableSignalResult.Duplicate"/> 任务一旦完成
-    /// 持有该值,或任务拒绝的原因,但不会改变任何内容。
+    /// 当任务持久化保存该值时返回 <see cref="DurableSignalResult.Accepted"/> 或 <see cref="DurableSignalResult.Duplicate"/>，
+    /// 否则返回任务拒绝该值的原因，而不产生任何变更。
     /// </returns>
     /// <remarks>
-    /// 发送是给 <paramref name="target"/>,供客户和普通 grain 方法; 它作为
-    /// <see cref="SignalDurableTaskAsync{T}(IAddressable, TaskId, DurableSignal{T}, T, CancellationToken)"/>,投出
-    /// 拒绝使用此方法的回返回。 耐久执行向其它 grains 发送信号
-    /// <see cref="SignalDurableTaskAsync{T}(IAddressable, TaskId, DurableSignal{T}, T, CancellationToken)"/>,其中
-    /// 用于重放的存储记录,并用下列方式标示它自己的 grain任务
+    /// 对于客户端和普通 Grain 方法，发送操作是对 <paramref name="target"/> 的调用；其行为与
+    /// <see cref="SignalDurableTaskAsync{T}(IAddressable, TaskId, DurableSignal{T}, T, CancellationToken)"/> 相同，后者在遇到本方法返回的
+    /// 拒绝结果时抛出异常。持久化执行通过
+    /// <see cref="SignalDurableTaskAsync{T}(IAddressable, TaskId, DurableSignal{T}, T, CancellationToken)"/> 向其他 Grain 发送信号，该方法
+    /// 记录发送操作以供重放；并通过以下方式向自身 Grain 的任务发送信号：
     /// <see cref="IDurableTaskManager.TrySignalAsync{T}(TaskId, DurableSignal{T}, T, CancellationToken)"/>.
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="target"/> 或 <paramref name="signal"/> 是 <see langword="null"/>。</exception>
-    /// <exception cref="ArgumentException"><paramref name="taskId"/> 是空的。</exception>
-    /// <exception cref="InvalidOperationException">调用器是一个耐久的处决。</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="target"/> 或 <paramref name="signal"/> 为 <see langword="null"/>。</exception>
+    /// <exception cref="ArgumentException"><paramref name="taskId"/> 为空。</exception>
+    /// <exception cref="InvalidOperationException">调用方是持久化执行实例。</exception>
     public static ValueTask<DurableSignalResult> TrySignalDurableTaskAsync<T>(
         this IAddressable target,
         TaskId taskId,
@@ -172,17 +172,17 @@ public static class DurableTaskGrainExtensions
     }
 
     /// <summary>
-    /// 将 <paramref name="signal"/> 与 <paramref name="value"/> 一起交付根任务 <paramref name="rootId"/>
-    /// <paramref name="target"/>,返回任务处理方式。
+    /// 将 <paramref name="signal"/> 携带的 <paramref name="value"/> 投递到根任务 <paramref name="rootId"/>，该任务位于
+    /// <paramref name="target"/> 上，并返回任务对信号的处理结果。
     /// </summary>
-    /// <typeparam name="T">信号值类型。</typeparam>
-    /// <param name="target">下 grain 由它来承担任务。</param>
-    /// <param name="rootId">客户端、 grain或耐久执行开始的任务的根代号。</param>
-    /// <param name="signal">任务等待共享的信号描述符。</param>
-    /// <param name="value">信号值。</param>
-    /// <param name="cancellationToken">一种放弃送信者的象征</param>
-    /// <returns>任务处理信号,因为 <see cref="TrySignalDurableTaskAsync{T}(IAddressable, TaskId, DurableSignal{T}, T, CancellationToken)"/> 返回。</returns>
-    /// <remarks>发送行为表现为 <see cref="TrySignalDurableTaskAsync{T}(IAddressable, TaskId, DurableSignal{T}, T, CancellationToken)"/> 用于 <c>TaskId.CreateRoot(rootId)</c>.</remarks>
+    /// <typeparam name="T">信号的值类型。</typeparam>
+    /// <param name="target">拥有任务的 Grain。</param>
+    /// <param name="rootId">由客户端、Grain 或持久化执行启动的任务的根 ID。</param>
+    /// <param name="signal">任务的各次等待所共享的信号描述符。</param>
+    /// <param name="value">信号的值。</param>
+    /// <param name="cancellationToken">用于放弃发送操作的令牌。</param>
+    /// <returns>任务对信号的处理结果，与 <see cref="TrySignalDurableTaskAsync{T}(IAddressable, TaskId, DurableSignal{T}, T, CancellationToken)"/> 的返回值相同。</returns>
+    /// <remarks>发送操作的行为与 <see cref="TrySignalDurableTaskAsync{T}(IAddressable, TaskId, DurableSignal{T}, T, CancellationToken)"/> 相同，其任务标识符为 <c>TaskId.CreateRoot(rootId)</c>。</remarks>
     public static ValueTask<DurableSignalResult> TrySignalDurableTaskAsync<T>(
         this IAddressable target,
         string rootId,
@@ -192,16 +192,16 @@ public static class DurableTaskGrainExtensions
         => target.TrySignalDurableTaskAsync(TaskId.CreateRoot(rootId), signal, value, cancellationToken);
 
     /// <summary>
-    /// 引用现有根本耐久任务 <paramref name="rootId"/> 日期 时 <paramref name="target"/>,没有
-    /// 计划。
+    /// 获取 <paramref name="rootId"/> 所标识、位于 <paramref name="target"/> 上的现有根持久化任务的引用，而不
+    /// 调度该任务。
     /// </summary>
-    /// <typeparam name="TResult">持久任务结果类型。</typeparam>
-    /// <param name="target">下 grain 拥有持久的任务, 这可以成为号召 grain.</param>
-    /// <param name="rootId">客户端、 grain或耐久执行开始的任务的根代号。</param>
-    /// <returns>一种以 <see cref="GetDurableTask{TResult}(IAddressable, TaskId)"/> 描述的表示方式表现的引用。</returns>
-    /// <remarks>参考地址 <c>TaskId.CreateRoot(rootId)</c>.</remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="target"/> 是 <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException"><paramref name="rootId"/> 是空的或白色的空间。</exception>
+    /// <typeparam name="TResult">持久化任务的结果类型。</typeparam>
+    /// <param name="target">拥有持久化任务的 Grain，可以是调用方 Grain。</param>
+    /// <param name="rootId">由客户端、Grain 或持久化执行启动的任务的根 ID。</param>
+    /// <returns>具有 <see cref="GetDurableTask{TResult}(IAddressable, TaskId)"/> 所描述行为的引用。</returns>
+    /// <remarks>该引用寻址到 <c>TaskId.CreateRoot(rootId)</c>。</remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="target"/> 为 <see langword="null"/>。</exception>
+    /// <exception cref="ArgumentException"><paramref name="rootId"/> 为空或仅包含空白字符。</exception>
     public static DurableTaskReference<TResult> GetDurableTask<TResult>(this IAddressable target, string rootId)
     {
         ArgumentNullException.ThrowIfNull(target);
@@ -210,46 +210,46 @@ public static class DurableTaskGrainExtensions
     }
 
     /// <summary>
-    /// 参考现有耐久任务 <paramref name="taskId"/> 日期 时 <paramref name="target"/>,没有
-    /// 计划。
+    /// 获取 <paramref name="taskId"/> 所标识、位于 <paramref name="target"/> 上的现有持久化任务的引用，而不
+    /// 调度该任务。
     /// </summary>
-    /// <typeparam name="TResult">持久任务结果类型。</typeparam>
-    /// <param name="target">下 grain 拥有持久的任务, 这可以成为号召 grain.</param>
-    /// <param name="taskId">客户端、 grain或耐久执行开始的任务的识别符号。</param>
+    /// <typeparam name="TResult">持久化任务的结果类型。</typeparam>
+    /// <param name="target">拥有持久化任务的 Grain，可以是调用方 Grain。</param>
+    /// <param name="taskId">由客户端、Grain 或持久化执行启动的任务的标识符。</param>
     /// <returns>
-    /// 持久执行的参考文件,等待、安排或传递给组合组以订阅任务
-    /// 其它代码等待的结果, 民意调查、取消或中止。
+    /// 持久化执行等待、调度该引用，或将其传给组合器，以订阅任务的
+    /// 结果；其他代码则通过该引用等待、轮询、取消或中止任务。
     /// </returns>
     /// <remarks>
     /// <para>
-    /// 长期处决,等待参考、安排或转交诸如
-    /// <c>WhenAny</c>, <c>Race</c>, <c>WaitAsync</c>,或 <c>WaitUntilAsync</c> 将执行时的子
-    /// 任务,根据操作指定的身份识别符号。
-    /// 儿童的记录和订阅承诺在一份日记中写下,因此
-    /// 重播到记录 不订阅了 并观察记录的结果。
+    /// 在持久化执行实例中，等待引用、调度引用或将其传给组合器（例如
+    /// <c>WhenAny</c>、<c>Race</c>、<c>WaitAsync</c> 或 <c>WaitUntilAsync</c>）会使用该操作分配的标识符，将执行实例的一个子任务订阅到
+    /// 目标任务。该子任务以目标任务的结果完成，即其
+    /// 结果、失败或取消。子任务记录及其订阅在一次日志写入中提交，因此
+    /// 重放到达该记录时不会再次订阅，而是观察已记录的结果。
     /// </para>
     /// <para>
-    /// <paramref name="target"/> 将孩子添加到任务完成目的地,除了任务请求者之外,还发送
-    /// 任务的结果,如对援引者一样,通过发件箱,并保留任务到完成为止。
-    /// 退出。对终端任务的订阅会迅速完成,一项 <paramref name="target"/>任务也将迅速完成。
-    /// 儿童在被抚养后,
-    /// <see cref="DurableTaskNotFoundException"/> 。一个任务标识符,该标识符从启动此代码的代码中跳出
-    /// 任务指它 grain 持有状态 : <c>ScheduleAsync</c> 一旦任务返回 grain 接受的
-    /// 任务,执行开始一个独立的任务 从开始本身观察它。
+    /// <paramref name="target"/> 将子任务添加到目标任务的完成通知目的地，与目标任务的调用方并列，并通过
+    /// 发件箱发送目标任务的结果（方式与向调用方发送时相同），且保留目标任务直到该完成通知
+    /// 退役。订阅终态任务会迅速完成；对于 <paramref name="target"/>
+    /// 未作为被调用任务保留的任务（例如保留期已经结束的任务），会使子任务以
+    /// <see cref="DurableTaskNotFoundException"/> 迅速结束。脱离启动任务的代码而传到外部的任务标识符
+    /// 指向其 Grain 已保存的任务：<c>ScheduleAsync</c> 在任务所属 Grain 接受
+    /// 任务后才返回；启动分离任务的执行通过启动操作本身观察该任务。
     /// </para>
     /// <para>
-    /// 取消孩子的抚养,例如当 <c>WaitAsync</c> 或超过时限 <c>Race</c> 输入丢失,以
-    /// 取消并终止订阅; 任务继续。 持续取消处决到达了儿童手中
-    /// 任何孩子,除非处决开始的时候被保护着
+    /// 取消子任务（例如 <c>WaitAsync</c> 的截止时间已过，或者 <c>Race</c> 的某个输入落败）会使该子任务以
+    /// 已取消状态结束，并终止订阅；被订阅的任务继续运行。执行实例的持久化取消会传播到子任务，
+    /// 与其他子任务相同，除非执行实例在启动该子任务时启用了取消屏蔽。
     /// </para>
     /// <para>
-    /// 长期执行外部执行,例如客户或普通 grain 方法,等待参考后
-    /// 任务结果, 投票的投票成员呼 <paramref name="target"/>。
-    /// 电话
+    /// 在持久化执行之外，例如客户端或普通 Grain 方法中，等待该引用就是等待
+    /// 任务的结果，而它的轮询成员调用 <paramref name="target"/>。持久化执行不记录这些
+    /// 调用。
     /// </para>
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="target"/> 是 <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException"><paramref name="taskId"/> 是空的。</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="target"/> 为 <see langword="null"/>。</exception>
+    /// <exception cref="ArgumentException"><paramref name="taskId"/> 为空。</exception>
     public static DurableTaskReference<TResult> GetDurableTask<TResult>(this IAddressable target, TaskId taskId)
     {
         ArgumentNullException.ThrowIfNull(target);

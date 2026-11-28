@@ -29,7 +29,7 @@ internal readonly struct GeneratedSourceEntry(string hintName, string source) : 
     }
 }
 
-// 来源可以伴随诊断结果,这样无效的实施就保留其编辑的字型检查申报。
+// 诊断可以附带源代码，使无效实现保留编辑器类型检查所需的声明。
 internal readonly struct SourceOutputResult(GeneratedSourceEntry? sourceEntry, Diagnostic? diagnostic) : IEquatable<SourceOutputResult>
 {
     public GeneratedSourceEntry? SourceEntry { get; } = sourceEntry;
@@ -55,7 +55,7 @@ internal readonly struct SourceOutputResult(GeneratedSourceEntry? sourceEntry, D
     }
 }
 
-// 申报完成部分作者的类别;实施提供其运行时间登记。
+// 声明补全用户编写的分部类型；实现提供其运行时注册。
 internal readonly record struct SerializerContextOutput(SourceOutputResult Declaration, SourceOutputResult Implementation);
 
 internal readonly struct ReferenceAssemblyDataResult(
@@ -66,7 +66,7 @@ internal readonly struct ReferenceAssemblyDataResult(
     public ReferenceAssemblyModel Model { get; } = model;
     public ImmutableArray<Diagnostic> Diagnostics { get; } = diagnostics.IsDefault ? [] : diagnostics;
 
-    // 只有在发布执行产出时,才会报告对生成元数据的诊断。
+    // 仅在生成实现输出时报告有关生成元数据的诊断。
     public ImmutableArray<Diagnostic> ImplementationDiagnostics { get; } = implementationDiagnostics.IsDefault ? [] : implementationDiagnostics;
 
     public static ReferenceAssemblyDataResult FromModelAndDiagnostics(
@@ -168,7 +168,7 @@ internal readonly struct ProxyOutputPreparationResult(
     public static ProxyOutputPreparationResult FromDiagnostic(Diagnostic diagnostic)
         => new([], [], [diagnostic]);
 
-    // 诊断保留当前汇编的源树, 即使它们的讯息和范围匹配。
+    // 即使诊断的消息和范围相同，诊断仍保留当前编译的源代码语法树。
     public bool Equals(ProxyOutputPreparationResult other)
         => StructuralEquality.SequenceEqual(ProxyOutputModels, other.ProxyOutputModels)
             && StructuralEquality.SequenceEqual(SourceOutputs, other.SourceOutputs)
@@ -244,7 +244,7 @@ internal static class SourceGeneratorDiagnosticComparer
             return false;
         }
 
-        // 源的位置保留其语法树,因此在编辑后无法再重新使用不同树的诊断。
+        // 源代码位置保留其语法树，因此编辑之后无法复用来自其他语法树的诊断。
         return left.Location.Equals(right.Location)
             && string.Equals(left.Id, right.Id, StringComparison.Ordinal)
             && left.Severity == right.Severity

@@ -5,8 +5,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// https://github.com/dotnet/orleans/issues/9290的回归测试:代码生成器必须逃跑
-/// 组装名称是 C# 保留识别符号, 当它们用于构建生成的元数据命名空间时 。
+/// https://github.com/dotnet/orleans/issues/9290 的回归测试：如果程序集名称是 C# 保留标识符，代码生成器在
+/// 使用这些名称构建生成的元数据命名空间时必须对其转义。
 /// </summary>
 public class ReservedIdentifierNamespaceTests
 {
@@ -41,8 +41,8 @@ public class ReservedIdentifierNamespaceTests
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics, cancellationToken);
         AssertNoErrors(generatorDiagnostics);
 
-        // 生成的元数据源必须编译, 且不出现语法错误 i.e. 命名空间段
-        // 源自保留关键词组装名称的源代码必须逃跑(e.g. "OrleansCodeGen.@default")。
+        // 生成的元数据源码必须能够编译且无语法错误，即源于保留关键字程序集名称的命名空间段
+        // 必须经过转义（例如 "OrleansCodeGen.@default"）。
         AssertNoErrors(outputCompilation.GetDiagnostics(cancellationToken));
 
         var metadataSource = driver.GetRunResult().Results

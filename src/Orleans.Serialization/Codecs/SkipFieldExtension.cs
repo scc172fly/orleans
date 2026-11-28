@@ -6,7 +6,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// 重现器,它跳过它遇到的所有字段。
+    /// 跳过遇到的所有字段的序列化器。
     /// </summary>
     public class SkipFieldCodec : IFieldCodec
     {
@@ -26,15 +26,15 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="Reader{TInput}"/> 跳过字段的扩展方法。
+    /// 用于 <see cref="Reader{TInput}"/> 跳过字段的扩展方法。
     /// </summary>
     public static class SkipFieldExtension
     {
         /// <summary>
         /// 跳过当前字段。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
         public static void SkipField<TInput>(this ref Reader<TInput> reader, Field field)
         {

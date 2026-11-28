@@ -7,10 +7,10 @@ namespace Orleans
     internal static class SetExtensions
     {
         /// <summary>
-        /// 从 IE 创建 HashSet 的快捷键
-        /// (标准建筑师没有)
+        /// 从 IEnumerable 创建 HashSet 的便捷方式，支持类型推断
+        /// （而标准构造函数不支持类型推断）。
         /// </summary>
-        /// <typeparam name="T">元素类型</typeparam>
+        /// <typeparam name="T">元素类型。</typeparam>
         public static HashSet<T>? ToSet<T>(this IEnumerable<T>? values)
         {
             if (values == null)
@@ -19,27 +19,27 @@ namespace Orleans
         }
 
         /// <summary>
-        /// ToString 查点的每个要素
+        /// 对枚举序列中的每个元素调用 ToString。
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="list"></param>
-        /// <param name="toString">无法供应无效,无法使用 Object.ToString()</param>
-        /// <param name="separator">在每个元素之前,或空格(如果未指定)</param>
+        /// <param name="toString">可以传入 null 以使用 Object.ToString()。</param>
+        /// <param name="separator">置于每个元素之前；未指定时使用空格。</param>
         /// <returns></returns>
         public static string ToStrings<T>(this IEnumerable<T>? list, Func<T, object?>? toString = null, string separator = " ")
         {
             if (list == null) return "";
             toString = toString ?? (x => x);
-            //菲科<T, string> toStringPrinter = (x => 
+            //Func<T, string> toStringPrinter = (x =>
             //    {
-            //        obj 对象 = toString(x);
+            //        object obj = toString(x);
             //        if(obj != null)
             //            return obj.ToString();
-            //        其它
+            //        else
             //            return "null";
             //    });
             //return Utils.IEnumerableToString(list, toStringPrinter, separator);
-            //不要使用总和来连接字符串。 它效率非常低, 将会重新分配并复制中间字符串的众多内容 。
+            // 不要使用 Aggregate 进行字符串拼接。这样效率很低，会重新分配并复制大量中间字符串。
             //toString = toString ?? (x => x);
             return list.Aggregate("", (s, x) => s + separator + toString(x));
         }

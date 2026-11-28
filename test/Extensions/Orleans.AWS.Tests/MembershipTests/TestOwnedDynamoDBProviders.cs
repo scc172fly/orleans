@@ -9,7 +9,7 @@ using Orleans.Messaging;
 
 namespace AWSUtils.Tests.MembershipTests;
 
-// 定型设置通过每个处理器的接口,连续地初始化每种处理器,并在处置前完成已确认的初始化。
+// 测试夹具通过各句柄的接口逐一初始化，并在释放之前完成已获准的初始化。
 internal sealed class TestOwnedDynamoDBMembershipTable(
     ILoggerFactory loggerFactory,
     IOptions<DynamoDBClusteringOptions> options,

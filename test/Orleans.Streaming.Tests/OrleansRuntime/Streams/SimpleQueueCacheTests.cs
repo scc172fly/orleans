@@ -98,7 +98,7 @@ public class SimpleQueueCacheTests
         var stream = StreamId.Create("namespace", Guid.NewGuid());
         cache.AddToCache([new TestBatchContainer(stream, 1)]);
 
-#pragma warning disable CS0618 // Verify compatibility of the obsolete wrapper.
+#pragma warning disable CS0618 // 验证已弃用包装器的兼容性。
         using var cursor = ((IQueueCache)cache).GetCacheCursor(stream, null);
 #pragma warning restore CS0618
 
@@ -232,7 +232,7 @@ public class SimpleQueueCacheTests
         (trackingCache, cache, stream, requestedToken, retainedToken, retainedCursor) = CreateCacheWithMutationDuringInitialization();
         using (retainedCursor)
         {
-#pragma warning disable CS0618 // Verify compatibility of the obsolete wrapper.
+#pragma warning disable CS0618 // 验证已弃用包装器的兼容性。
             var exception = Assert.Throws<QueueCacheMissException>(() => cache.GetCacheCursor(stream, requestedToken));
 #pragma warning restore CS0618
 
@@ -259,7 +259,7 @@ public class SimpleQueueCacheTests
         {
             if (mode == AcquisitionMode.Legacy)
             {
-#pragma warning disable CS0618 // Verify compatibility of the obsolete wrapper.
+#pragma warning disable CS0618 // 验证已弃用包装器的兼容性。
                 cache.GetCacheCursor(stream, token);
 #pragma warning restore CS0618
             }
@@ -305,7 +305,7 @@ public class SimpleQueueCacheTests
         IQueueCacheCursor cursor;
         if (mode == AcquisitionMode.Legacy)
         {
-#pragma warning disable CS0618 // Verify compatibility of the obsolete wrapper.
+#pragma warning disable CS0618 // 验证已弃用包装器的兼容性。
             cursor = cache.GetCacheCursor(stream, null);
 #pragma warning restore CS0618
         }
@@ -424,7 +424,7 @@ public class SimpleQueueCacheTests
         var expected = new QueueCacheMissException("provider message", innerException);
         IQueueCache cache = new LegacyThrowingQueueCache(expected);
 
-#pragma warning disable CS0618 // Verify compatibility of the obsolete wrapper.
+#pragma warning disable CS0618 // 验证已弃用包装器的兼容性。
         var actual = Assert.Throws<QueueCacheMissException>(
             () => cache.GetCacheCursor(default, null));
 #pragma warning restore CS0618

@@ -33,7 +33,7 @@ internal readonly struct JournalCatalogRange
             }
         }
 
-        // 只扩大本地的外观, 以保持原正则范围。
+        // 仅将原生前缀放宽至格式正确的 UTF-16；Contains 保留原始序数比较范围。
         for (var index = 0; listingPrefix is not null && index < listingPrefix.Length; index++)
         {
             var character = listingPrefix[index];

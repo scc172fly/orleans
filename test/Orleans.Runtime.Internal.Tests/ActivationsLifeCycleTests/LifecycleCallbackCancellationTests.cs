@@ -13,8 +13,8 @@ using Xunit;
 namespace UnitTests.ActivationsLifeCycleTests;
 
 /// <summary>
-/// 验证运行时间取消给激活和解除回调的标记, 然后等待这些标记
-/// 在它解除激活、处置其服务或产生替代引爆之前,回呼。
+/// 验证运行时取消传入激活和停用回调的令牌，并等待这些
+/// 回调结束，然后才注销激活、释放其服务或创建替代激活。
 /// </summary>
 [TestSuite("BVT"), TestProvider("None"), TestCategory("BVT")]
 public class LifecycleCallbackCancellationTests(LifecycleCallbackCancellationTests.Fixture fixture) : IClassFixture<LifecycleCallbackCancellationTests.Fixture>
@@ -32,7 +32,7 @@ public class LifecycleCallbackCancellationTests(LifecycleCallbackCancellationTes
         var probe = await fixture.ReadProbe(grain);
         await probe.Entered.Task.WaitAsync(Timeout, Cancellation);
 
-        // 激活期间的禁用取消取消激活符, 即 ActivationTimeout取消的标记。
+        // 在激活期间停用会取消激活令牌，即 ActivationTimeout 所取消的令牌。
         probe.Context.Deactivate(new(DeactivationReasonCode.ApplicationRequested, "Canceled during activation."), Cancellation);
         await AssertCallbackAwaitedPastCancellation(probe, call);
 
@@ -52,7 +52,7 @@ public class LifecycleCallbackCancellationTests(LifecycleCallbackCancellationTes
         await grain.Ping().WaitAsync(Timeout, Cancellation);
         var probe = await fixture.ReadProbe(grain);
 
-        // 固定管的 DeactivationTimeout 倒数在回调等待释放时过后。
+        // 回调等待释放期间，测试夹具的 DeactivationTimeout 到期。
         probe.Context.Deactivate(new(DeactivationReasonCode.ApplicationRequested, "Deactivation timeout test."), Cancellation);
         await probe.Entered.Task.WaitAsync(Timeout, Cancellation);
         var call = grain.Ping();
@@ -130,7 +130,7 @@ public class LifecycleCallbackCancellationTests(LifecycleCallbackCancellationTes
         await probe.Canceled.Task.WaitAsync(Timeout, Cancellation);
         Assert.False(call.IsCompleted);
 
-        // 取消已排队在启动调度器上的任何运行时续续, 因此会随之释放 。
+        // 取消操作已将运行时延续工作排入激活调度器，因此释放操作在其之后运行。
         probe.Context.Scheduler.QueueAction(() => probe.Release.SetResult());
         var observation = await probe.Observation.Task.WaitAsync(Timeout, Cancellation);
         Assert.Equal(new CallbackObservation(ScopeDisposed: false, IsMessageTarget: true, Deactivated: false, ActivationCount: 1), observation);
@@ -308,7 +308,7 @@ public sealed class LifecycleCallbackProbe : IDisposable
         await canceled.Task;
         Canceled.SetResult();
 
-        // 运行时一直跟随其代号的模范用户代码已取消 。
+        // 模拟令牌被取消后仍继续运行的用户代码。
         await Release.Task;
         _timeline.Add("CallbackCompleted");
         Observation.SetResult(new(

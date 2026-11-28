@@ -3,16 +3,16 @@ using System.Threading.Tasks;
 namespace Orleans.Streams.Core
 {
     /// <summary>
-    /// 当由 grain执行时,通知任何新的或恢复的订阅 grain 。
-    /// 无国籍工人 grains 收到每次激活时的通知,这样每个启动都可附上自己的观察员。
+    /// 由 Grain 实现时，可通知该 Grain 新建或恢复的订阅。
+    /// 无状态工作者 Grain 的每个激活实例都会收到此通知，以便各自附加自己的观察者。
     /// </summary>
     public interface IStreamSubscriptionObserver
     {
         /// <summary>
-        /// 当此 grain 收到一条尚未明确签署或恢复的流信息时调用 。
+        /// 当此 Grain 收到一个尚未显式订阅或恢复订阅的流的消息时调用。
         /// </summary>
-        /// <param name="handleFactory">把手柄厂</param>
-        /// <returns>A <see cref="Task"/> 代表操作。</returns>
+        /// <param name="handleFactory">句柄工厂。</param>
+        /// <returns>表示该操作的 <see cref="Task"/>。</returns>
         Task OnSubscribed(IStreamSubscriptionHandleFactory handleFactory);
     }
 }

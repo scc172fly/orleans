@@ -46,7 +46,7 @@ namespace Orleans
 
             services.Add(ServiceDescriptor);
 
-            // 共同事务 共同事务
+            // 公共服务
             services.AddLogging();
             services.AddOptions();
             services.AddMetrics();
@@ -57,7 +57,7 @@ namespace Orleans
             services.TryAddSingleton<MessagingInstruments>();
             services.TryAddSingleton<MessagingProcessingInstruments>();
 
-            // 选项的伐木
+            // 选项日志记录
             services.TryAddSingleton(typeof(IOptionFormatter<>), typeof(DefaultOptionsFormatter<>));
             services.TryAddSingleton(typeof(IOptionFormatterResolver<>), typeof(DefaultOptionsFormatterResolver<>));
 
@@ -69,7 +69,7 @@ namespace Orleans
             services.TryAddFromExisting<IServiceLifecycle, ServiceLifecycle<IClusterClientLifecycle>>();
             services.AddFromExisting<ILifecycleParticipant<IClusterClientLifecycle>, ServiceLifecycle<IClusterClientLifecycle>>();
 
-            // 统计统计统计
+            // 统计信息
             services.AddSingleton<IEnvironmentStatisticsProvider, EnvironmentStatisticsProvider>();
 #pragma warning disable 618
             services.AddSingleton<OldEnvironmentStatistics>();
@@ -109,7 +109,7 @@ namespace Orleans
 
             services.AddSingleton<IConfigureOptions<GrainTypeOptions>, DefaultGrainTypeOptionsProvider>();
 
-            // 添加默认选项, 用于未配置的选项, 以配置需要配置的选项
+            // 对于必须配置的选项，如果尚未配置格式化器，则添加默认选项格式化器。
             services.ConfigureFormatter<ClusterOptions>();
             services.ConfigureFormatter<ClientMessagingOptions>();
             services.ConfigureFormatter<ConnectionOptions>();
@@ -119,7 +119,7 @@ namespace Orleans
             services.AddTransient<IConfigurationValidator, ClientClusteringValidator>();
             services.AddTransient<IConfigurationValidator, SerializerConfigurationValidator>();
 
-            // 建立网络
+            // 网络通信
             services.AddSingleton<MessageHandlerShared>();
             services.TryAddSingleton<IMessageStatisticsSink, NoOpMessageStatisticsSink>();
             services.TryAddSingleton<NetworkingInstruments>();
@@ -152,7 +152,7 @@ namespace Orleans
             services.AddSingleton<ConnectionTrace>();
             services.AddSingleton<MessagingTrace>();
 
-            // 元元数据类型
+            // 类型元数据
             services.AddSingleton<ClientClusterManifestProvider>();
             services.AddFromExisting<IClusterManifestProvider, ClientClusterManifestProvider>();
             services.AddSingleton<ClientManifestProvider>();
@@ -260,7 +260,7 @@ namespace Orleans
         }
 
         /// <summary>
-        /// A <see cref="ITypeNameFilter"/> 允许从装配中含有任何类型的“Orleans" 允许为序列化和去转性目的使用其名称。
+        /// 一种 <see cref="ITypeNameFilter"/>，允许来自程序集名称中包含“Orleans”的程序集的任何类型参与序列化和反序列化。
         /// </summary>
         private class AllowOrleansTypes : ITypeNameFilter
         {
@@ -277,7 +277,7 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 用于确定是否添加默认服务的标记类型。
+        /// 用于确定默认服务是否已添加的标记类型。
         /// </summary>
         private class ServicesAdded { }
     }

@@ -1,7 +1,7 @@
-// 取自实体框架核心分析器测试
+// Derived from Entity Framework Core Analyzer Tests
 // https://github.com/aspnet/EntityFrameworkCore/blob/cbefe76162b16c1122629dbf6c85becbbb5cdc8e/test/EFCore.Analyzers.Tests/TestUtilities/DiagnosticAnalyzerTestBase.cs
 // Copyright (c) .NET Foundation. All rights reserved.
-// 许可证根据阿帕奇牌照,2.0版。见项目根 License.txt ,关于许可证信息。
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Reflection;
@@ -16,9 +16,9 @@ using Xunit;
 namespace Analyzers.Tests
 {
     /// <summary>
-    /// 在 Orleans 项目中测试Roslyn诊断分析器的基础班。
-    /// 提供共同的基础设施,用于编制测试代码和运行分析器,以核实诊断。
-    /// 这使能够测试 Orleans- 有助于开发者避免常见错误的具体代码分析规则。
+    /// Orleans 项目中测试 Roslyn 诊断分析器的基类。
+    /// 提供用于编译测试代码并运行分析器以验证诊断的通用基础设施。
+    /// 借此可以测试 Orleans 特有的代码分析规则，帮助开发者避免常见错误。
     /// </summary>
     /// <typeparam name="TDiagnosticAnalyzer">正在测试的诊断分析器类型。</typeparam>
     public abstract class DiagnosticAnalyzerTestBase<TDiagnosticAnalyzer>
@@ -31,8 +31,8 @@ namespace Analyzers.Tests
         };
 
         /// <summary>
-        /// 为所有 Orleans grain 接口类型提供测试数据。
-        /// 用于理论测试以确保分析者正确使用所有 grain 接口变量。
+        /// 提供涵盖所有 Orleans Grain 接口类型的测试数据。
+        /// 理论测试使用它来确保分析器能够正确处理所有 Grain 接口变体。
         /// </summary>
         public static IEnumerable<object[]> GrainInterfaces =>
             new List<object[]>
@@ -46,17 +46,17 @@ namespace Analyzers.Tests
             };
 
         /// <summary>
-        /// 创建一个正在测试的诊断分析器实例 。
-        /// 可以在衍生的分类中被取代, 以定制分析器创建。
+        /// 创建被测试的诊断分析器实例。
+        /// 派生类可以重写此方法，自定义分析器的创建方式。
         /// </summary>
         protected virtual DiagnosticAnalyzer CreateDiagnosticAnalyzer() => new TDiagnosticAnalyzer();
 
         /// <summary>
-        /// 断言提供源代码在分析时不会产生诊断结果。
-        /// 用来验证有效的代码模式不会引发假阳性
+        /// 断言所提供的源码经过分析后不会产生诊断。
+        /// 用于验证有效的代码模式不会触发误报。
         /// </summary>
-        /// <param name="source">C# 源代码要分析。</param>
-        /// <param name="extraUsings">补充使用语句以包括。</param>
+        /// <param name="source">要分析的 C# 源码。</param>
+        /// <param name="extraUsings">需要包含的额外 using 指令。</param>
         protected async Task AssertNoDiagnostics(string source, params string[] extraUsings)
         {
             var (diagnostics, _) = await this.GetDiagnosticsAsync(source, extraUsings);
@@ -64,12 +64,12 @@ namespace Analyzers.Tests
         }
 
         /// <summary>
-        /// 汇编所提供的源代码,并运行对它进行诊断分析的功能。
-        /// 返回与格式化源代码一起生成的任何诊断。
+        /// 编译所提供的源码，并对其运行诊断分析器。
+        /// 返回产生的所有诊断以及格式化后的源码。
         /// </summary>
-        /// <param name="source">C# 源代码要分析。</param>
-        /// <param name="extraUsings">补充使用语句以包括。</param>
-        /// <returns>含有诊断阵列和格式化源代码的图例。</returns>
+        /// <param name="source">要分析的 C# 源码。</param>
+        /// <param name="extraUsings">需要包含的额外 using 指令。</param>
+        /// <returns>包含诊断数组和格式化源码的元组。</returns>
         protected virtual async Task<(Diagnostic[], string)> GetDiagnosticsAsync(string source, params string[] extraUsings)
         {
             var sb = new StringBuilder();
@@ -85,7 +85,7 @@ namespace Analyzers.Tests
 
         protected async Task<Diagnostic[]> GetDiagnosticsFullSourceAsync(string source)
         {
-            // C##项目总是支持汇编。
+            // C# 项目始终支持编译。
             var compilation = (await CreateProject(source).GetCompilationAsync())!;
             var errors = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
 
@@ -128,7 +128,7 @@ namespace Analyzers.Tests
                 .Cast<MetadataReference>()
                 .ToList();
 
-            // System.Private.CoreLib 从文件支持的组装装入 。
+            // System.Private.CoreLib 是从基于文件的程序集加载的。
             var assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
             metadataReferences.Add(MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "mscorlib.dll")));
             metadataReferences.Add(MetadataReference.CreateFromFile(Path.Combine(assemblyPath, "System.dll")));
@@ -141,7 +141,7 @@ namespace Analyzers.Tests
                 .AddMetadataReferences(projectId, metadataReferences)
                 .AddDocument(documentId, fileName, SourceText.From(source));
 
-            // 该项目是上文提到的这一解决办法中增加的。
+            // 上方已将项目添加到此解决方案。
             return solution.GetProject(projectId)!
                 .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }

@@ -15,7 +15,7 @@ using Orleans.Runtime.Messaging;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// 负责执行工作碎片和个人持久工作。
+/// 负责执行作业分片及其中的各个持久化作业。
 /// </summary>
 internal sealed partial class ShardExecutor
 {
@@ -32,12 +32,12 @@ internal sealed partial class ShardExecutor
     /// <summary>
     /// 初始化 <see cref="ShardExecutor"/> 类的新实例。
     /// </summary>
-    /// <param name="grainFactory">下 grain 创建工厂 grain 参考文献。</param>
-    /// <param name="options">持久工作配置选项。</param>
-    /// <param name="overloadDetector">超载探测器用来进行抽打任务执行</param>
-    /// <param name="logger">日志处理器实例。</param>
-    /// <param name="timeProvider">用于安排任务执行的时间提供者。</param>
-    /// <param name="durableJobsInstruments">持久就业衡量工具。</param>
+    /// <param name="grainFactory">用于创建 Grain 引用的 Grain 工厂。</param>
+    /// <param name="options">持久化作业配置选项。</param>
+    /// <param name="overloadDetector">用于限制过载时作业执行的过载检测器。</param>
+    /// <param name="logger">日志记录器实例。</param>
+    /// <param name="timeProvider">用于调度作业执行的时间提供程序。</param>
+    /// <param name="durableJobsInstruments">持久化作业指标工具。</param>
     public ShardExecutor(
         IInternalGrainFactory grainFactory,
         IOptions<DurableJobsOptions> options,
@@ -61,14 +61,14 @@ internal sealed partial class ShardExecutor
     }
 
     /// <summary>
-    /// 运行一个碎片,处理其中的所有工作,直到完成或尝试取消。
+    /// 运行分片，处理其中的所有作业，直到处理完成或执行尝试被取消。
     /// </summary>
-    /// <param name="shard">要执行的碎片。</param>
+    /// <param name="shard">要执行的分片。</param>
     /// <param name="attemptCancellationToken">
-    /// 合作要求取消目前碎片和工作执行尝试的象征。
-    /// 长期工作仍有资格由另一所有人处理。
+    /// 用于协作式请求取消当前分片及作业执行尝试的令牌。
+    /// 持久化作业仍可由其他所有者处理。
     /// </param>
-    /// <returns>代表非同步操作的任务 。</returns>
+    /// <returns>表示异步操作的任务。</returns>
     public async Task RunShardAsync(IJobShard shard, CancellationToken attemptCancellationToken)
     {
         await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding | ConfigureAwaitOptions.ContinueOnCapturedContext);
@@ -97,7 +97,7 @@ internal sealed partial class ShardExecutor
             var now = _timeProvider.GetUtcNow();
             if (shard.StartTime > now)
             {
-                // 等到碎片开始的时候
+                // 等待到达分片的开始时间。
                 var delay = shard.StartTime - now;
                 LogWaitingForShardStartTime(_logger, shard.Id, delay, shard.StartTime);
                 await Task.Delay(delay, _timeProvider, shardAttemptCancellationToken);
@@ -107,12 +107,12 @@ internal sealed partial class ShardExecutor
             processingStarted = true;
             processingStartTimestamp = _timeProvider.GetTimestamp();
 
-            // 处理碎片中的所有任务
+            // 处理分片中的所有作业。
             await foreach (var jobContext in shard.ConsumeDurableJobsAsync().WithCancellation(shardAttemptCancellationToken))
             {
                 await WaitForOverloadToClearAsync(shard.Id, shardAttemptCancellationToken);
 
-                // 等待货币汇率
+                // 等待可用的并发槽位。
                 await _jobConcurrencyLimiter.WaitAsync(shardAttemptCancellationToken);
 
                 var attemptStarted = false;
@@ -135,7 +135,7 @@ internal sealed partial class ShardExecutor
                         throw new InvalidOperationException($"Unsupported durable job mutation result: {startResult}.");
                     }
 
-                    // 在此点之后,ExecuteJobAsync 拥有同值货币的汇率。
+                    // 从此处开始，ExecuteJobAsync 拥有并发槽位。
                     tasks[jobContext.RunId] = ExecuteJobAsync(
                         jobContext,
                         shard,
@@ -176,7 +176,7 @@ internal sealed partial class ShardExecutor
         }
         finally
         {
-            // 等待所有工作完成
+            // 等待所有作业完成。
             try
             {
                 await Task.WhenAll(tasks.Values);
@@ -240,7 +240,7 @@ internal sealed partial class ShardExecutor
 
     private async Task WaitForOverloadToClearAsync(string shardId, CancellationToken cancellationToken)
     {
-        // 检查超负荷,必要时暂停批量处理
+        // 检查是否过载，必要时暂停批处理。
         if (_overloadDetector.IsOverloaded)
         {
             LogOverloadDetected(_logger, shardId);
@@ -290,7 +290,7 @@ internal sealed partial class ShardExecutor
         }
         catch (Exception ex)
         {
-            // 如果停机坪因任何原因失灵,释放所有剩余能力以避免被困在低货币汇率。
+            // 如果逐步提高并发度的过程因任何原因失败，则释放全部剩余容量，以免并发度一直处于较低水平。
             var currentCapacity = Volatile.Read(ref _currentCapacity);
             var remaining = targetCapacity - currentCapacity;
             if (remaining > 0)
@@ -332,10 +332,10 @@ internal sealed partial class ShardExecutor
 
                 var result = await target.HandleDurableJobAsync(jobContext, attemptCancellationToken);
 
-                // 根据状况处理结果
+                // 根据状态处理结果。
                 while (result.IsInProgress)
                 {
-                    // 输入投票回路
+                    // 进入轮询循环。
                     LogPollingJob(_logger, jobContext.Job.Id, jobContext.Job.Name, result.PollAfterDelay.Value);
 
                     await Task.Delay(result.PollAfterDelay.Value, _timeProvider, attemptCancellationToken);
@@ -435,7 +435,7 @@ internal sealed partial class ShardExecutor
                 failureException = ex;
             }
 
-            // 取消是通过硬性接管处理的,因此只有非取消失败才能在这里重新尝试。
+            // 取消通过分片接管处理，因此此处仅重试非取消导致的失败。
             if (failureException is not null)
             {
                 var retryTime = _options.ShouldRetry(jobContext, failureException);
@@ -490,7 +490,7 @@ internal sealed partial class ShardExecutor
         }
         finally
         {
-            // 即使当重新尝试持久性时,也必须进行清理,否则空档漏水和碎处理就会拖延。
+            // 即使持久化重试操作抛出异常，也必须进行清理，否则会泄漏并发槽位，并可能使分片处理停滞。
             _jobConcurrencyLimiter.Release();
             runningTasks?.TryRemove(jobContext.RunId, out _);
         }

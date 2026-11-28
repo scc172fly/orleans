@@ -1,26 +1,26 @@
 ---
-title: "内部的序列化和代码生成"
-description: "理解 Orleans 产生的编码器、RPC代号、清单、电线识别和序列扩展点。"
+title: 序列化与代码生成内部机制
+description: 了解 Orleans 生成的编解码器、RPC 代理、类型清单、传输格式标识及序列化扩展点。
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
 <a id="serialization-and-code-generation-internals"></a>
 
-# 内部的序列化和代码生成
+# 序列化与代码生成内部机制
 
-Orleans 序列化服务于两个相关的管道:
+Orleans 的序列化机制服务于两个相互关联的处理流程：
 
-- 确定序列、深重复制和启动信息及存储有效载荷的价值;
-- 用于 grain 参考、请求对象、发送和回复的 RPC 代码生成。
+- 为消息和存储有效载荷执行值序列化、深拷贝和对象激活；
+- 为 Grain 引用、请求对象、分派和响应生成 RPC 代码。
 
-大多数应用代码使用生成的组件。基于反省发现的发现有意不是默认结构:产生的显示器使参与类型明确,并保持运行时间发送与 [修补](https://learn.microsoft.com/dotnet/core/deploying/trimming/prepare-libraries-for-trimming) 和超时编译兼容。
+大多数应用程序代码使用生成的组件。基于反射的发现机制并非默认架构，这是有意为之：生成的类型清单明确列出参与的类型，使运行时分派与[裁剪（trimming）](https://learn.microsoft.com/dotnet/core/deploying/trimming/prepare-libraries-for-trimming)和提前编译（AOT）兼容。
 
 <a id="incremental-generator-pipeline"></a>
 
-## 递增发电机管道
+## 增量生成器流水线
 
-Orleans 源生成器是使用增量发电机API实施的 [Roslyn源发电机](https://learn.microsoft.com/dotnet/csharp/roslyn-sdk/#source-generators) 。它发现有 <xref:Orleans.GenerateSerializerAttribute> 标记的类型和直接或中转标为 <xref:Orleans.GenerateMethodSerializersAttribute>的接口,还读取引用组件发出的元数据。
+Orleans 源代码生成器是一个使用增量生成器 API 实现的 [Roslyn 源代码生成器](https://learn.microsoft.com/dotnet/csharp/roslyn-sdk/#source-generators)。它发现带有 <xref:Orleans.GenerateSerializerAttribute> 标记的类型，以及直接或间接带有 <xref:Orleans.GenerateMethodSerializersAttribute> 标记的接口；同时读取被引用程序集生成的元数据。
 
 ```mermaid
 flowchart LR
@@ -42,59 +42,59 @@ flowchart LR
     Manifest --> Runtime
 ```
 
-生成的产出包括序列器、实地编码器、深复印机、活动程序、 grain 代号、可置疑的方法对象、发送元数据、别名和一个类型识别提供者。诊断拒绝不可获取的类型、模糊的字段身份、不支持的 RPC形状,以及在应用程序启动前缺少交叉组合生成元数据。
+生成结果包括序列化器、字段编解码器、深拷贝器、激活器、Grain 代理、可调用方法对象、分派元数据、别名和类型清单提供程序。诊断机制在应用程序启动之前就会拒绝不可访问的类型、存在歧义的字段标识、不受支持的 RPC 形式以及缺失的跨程序集生成元数据。
 
-来源: [`OrleansSourceGenerator`](https://github.com/dotnet/orleans/blob/main/src/Orleans.CodeGenerator/OrleansSourceGenerator.cs) 和 [`ReferenceAssemblyDataProvider`](https://github.com/dotnet/orleans/blob/main/src/Orleans.CodeGenerator/ReferenceAssemblyDataProvider.cs)。
+源码： [`OrleansSourceGenerator`](https://github.com/dotnet/orleans/blob/main/src/Orleans.CodeGenerator/OrleansSourceGenerator.cs) 和 [`ReferenceAssemblyDataProvider`](https://github.com/dotnet/orleans/blob/main/src/Orleans.CodeGenerator/ReferenceAssemblyDataProvider.cs)。
 
 <a id="field-identity-is-the-wire-contract"></a>
 
-## 现场身份是铁线合同
+## 字段标识是传输格式契约
 
-<xref:Orleans.IdAttribute> identifies a serialized member within its declaring type. IDs are not field order and must remain stable as source is edited.
+<xref:Orleans.IdAttribute> 标识其声明类型中的序列化成员。ID 并不表示字段顺序，编辑源代码时必须保持稳定。
 
-例如, `[Id(0)]` 和 `[Id(1)]` 识别两个不同的成员。添加新的ID与容忍遗漏字段的读者兼容。重用或重编号现有的ID会改变线上字节的含义,并可能破坏滚动升级或数据持续更新。
+例如，`[Id(0)]` 和 `[Id(1)]` 标识两个不同的成员。对于允许字段缺失的读取器，添加新的 ID 是兼容的。复用现有 ID 或重新编号会改变传输字节的含义，可能破坏滚动升级或已持久化的数据。
 
-<xref:Orleans.GenerateSerializerAttribute.GenerateFieldIds?displayProperty=nameWithType> 默认值为 <xref:Orleans.GenerateFieldIds.None?displayProperty=nameWithType>。自动公有财产标识是可用的,但明确的身份识别使兼容性审查成为可见的。初级建筑参数被默认地包含在记录中,而默认时排除了其他类型的。
+<xref:Orleans.GenerateSerializerAttribute.GenerateFieldIds?displayProperty=nameWithType> 默认为 <xref:Orleans.GenerateFieldIds.None?displayProperty=nameWithType>。可以为公共属性自动分配 ID，但显式 ID 使兼容性审查更直观。对于 record 类型，默认包含主构造函数参数；对于其他类型，默认不包含。
 
-当 CLR 名称移动时, 异名会提供稳定的型号身份。 在 舱单中必须保持一个别名的独特性。 一般化和复合化别名会通过 舱单的别名树解决 。
+当 CLR 类型名称发生变更时，别名可提供稳定的类型标识。类型别名在清单中必须保持唯一。泛型别名和复合别名通过清单的别名树解析。
 
 <a id="writer-and-reader-sessions"></a>
 
-## 作家和读者会
+## 写入器和读取器会话
 
-电线协议使用作者和读者会话跟踪引用,并键入有效载荷的信息。 参考跟踪保存了对象身份和周期。 实地代码程序写出字段页眉和值; 匹配编码程序读取或跳过它所理解的字段。
+传输协议通过写入器和读取器会话跟踪整个有效载荷中的引用及类型信息。引用跟踪保留对象标识和循环引用。字段编解码器写入字段头和值，对应的编解码器读取或跳过它能够识别的字段。
 
-深复制是单独操作, 当 Orleans 必须保持隔离而不跨越运输边界时使用。 不可变值可以绕过复制; 可变值需要生成或定制复印机。 声明可变型的不可变交易速度安全性, 并且必须依据该类型的实际行为来证明 。
+深拷贝是一项独立操作，用于 Orleans 需要保持隔离、但不跨越传输边界的情形。不可变值可以跳过复制；可变值需要生成的或自定义的复制器。将可变类型声明为不可变，是以安全性换取速度，必须以该类型的实际行为为依据。
 
-字段页眉带有ID和线型, 这样读者可以以不同的源顺序消耗字段。 生成读者发送已知的 ID 并给新作者引入的域调用 `ConsumeUnknownField` 。 添加进化保存了线型和稳定的 ID; 改变两者中的任何一个会给现有有效载荷分配不相容的含义 。
+字段头携带 ID 和传输格式类型，因此读取器能够按不同于源代码声明顺序的顺序读取字段。生成的读取器根据已知 ID 进行分派，并为新版写入器引入的字段调用 `ConsumeUnknownField`。通过增加字段实现的类型演进应保持传输格式类型和稳定 ID 不变；改变两者中的任意一项，都会使已有有效载荷获得不兼容的含义。
 
-参考跟踪的范围包括一个作家/阅读者会话,并将重复的引用和周期保留在一个有效载荷内; 应用程序自有身份,要求不同通话和回溯重复; 深复印机使用相应的会话,因此复制的图表与序列图具有相同的别名关系。
+引用跟踪的作用域为写入器或读取器会话，可保留单个有效载荷中的重复引用与循环引用。跨调用、跨重试的标识维护和请求去重由应用程序负责。深拷贝器使用对应的会话，使复制后的对象图与序列化对象图具有相同的别名引用关系（即多处引用指向同一对象）。
 
 <a id="serialization-constructor-initialization"></a>
 
-### 序号构造器初始化
+### 序列化构造函数初始化
 
-将 <xref:System.Runtime.Serialization.ISerializable> 参考类型改为:“解除序列化分配未初始化对象,并在阅读其字段之前将其记录在读者会话中。序列化构造器初始化了同一对象,因此引用从有效载荷分辨率读到最后试例,包括周期。 `OnDeserializing` 运行在构建器初始化前; `OnDeserialized` 和 <xref:System.Runtime.Serialization.IDeserializationCallback.OnDeserialization*> 运行后。
+对于实现 <xref:System.Runtime.Serialization.ISerializable> 的引用类型，反序列化会在读取字段之前分配一个未初始化的对象，并将其记录到读取器会话中。序列化构造函数初始化的就是这一对象，因此从有效载荷读取的引用会解析为最终实例，包括循环引用。`OnDeserializing` 在构造函数初始化之前运行，`OnDeserialized` 和 <xref:System.Runtime.Serialization.IDeserializationCallback.OnDeserialization*> 在之后运行。
 
-Orleans 管理运行时和运行时按所有者类型和代表形状分列的缓存构建器代表,并使用相同的现有设施启动路径 NativeAOT基数 <xref:System.Exception> 使用静态约束存取器 .NET 10年以后,包括继承基本序列化合同的例外子类型退缩。运行时间选择的序列化构造器利用反射来初始化现有物体; .NET 标准资产还利用基本例外建筑师的反射来进行基础例外建筑师的反射。 `BindingFlags.DoNotWrapExceptions`,保留原例外的特性和建造者堆叠,包括建筑者投掷 <xref:System.Reflection.TargetInvocationException>.
+Orleans 按所属类型和委托形式缓存构造函数委托，并在托管运行时和 NativeAOT 上使用相同的现有实例初始化路径。在 .NET 10 及更高版本中，基类 <xref:System.Exception> 的序列化构造函数使用静态绑定的访问器，这也包括继承基类序列化契约的异常派生类型的回退路径。在运行时选择的序列化构造函数通过反射初始化现有对象；.NET Standard 目标的程序集也通过反射调用基异常构造函数。请保留这些类型的公共和非公共构造函数，以便本机编译保留构造函数元数据及实现。反射使用 `BindingFlags.DoNotWrapExceptions` 调用构造函数，保留原始异常的标识和构造函数调用栈，包括构造函数自身抛出的 <xref:System.Reflection.TargetInvocationException>。
 
-框内价值型代表初始化了现有框。 标准封闭值型构建器代表将调用员的 `ref` 值框,初始化该框并将其复制回一个 `finally` 块,包括制造者抛掷前进行的突变。运行时间创建通用价值型序列器和可评回回传代表有额外的运行时间代码生成要求。 NativeAOT 构建器支持目标 .NET 10及以后;本地应用程序支持还取决于类型列表、编码工厂以及应用程序使用的回溯路径。
+装箱值类型的委托初始化已有的装箱对象。静态封闭的值类型构造函数委托将调用方的 `ref` 值装箱，初始化该装箱对象，并在 `finally` 块中将其复制回原值，包括构造函数抛出异常前所作的修改。运行时创建的泛型值类型序列化器及带特性的回调委托还存在额外的运行时代码生成要求。NativeAOT 的构造函数支持面向 .NET 10 及更高版本；本机应用程序的支持情况还取决于应用程序使用的类型清单、编解码器工厂和回调路径。
 
 <a id="rpc-generation"></a>
 
-## 产生RPC
+## RPC 代码生成
 
-Grain- 参考构建解决了注册类型舱单生成的代理文件,并引用了其 `(GrainReferenceShared, IdSpan)` 构建器。激活者隐藏建筑代表,共享运行时间、界面版本、调用选项和序列服务,且在相同 grain 类型和接口的参考中共享。每个引用都保留自己的 grain 键。JIT运行时使用一个已排放的构建器代表; NativeAOT 使用一个缓存式反射器。生成的 `AddInterfaceProxy` 登记在裁剪期间保护公共代理建构商。
+构造 Grain 引用时，从已注册的类型清单中解析生成的代理，并调用其 `(GrainReferenceShared, IdSpan)` 构造函数。激活器缓存构造函数委托，并在相同 Grain 类型和接口的引用之间共享运行时、接口版本、调用选项及序列化服务。每个引用保留自己的 Grain 键。JIT 运行时使用动态生成的构造函数委托；NativeAOT 使用缓存的反射构造函数调用器。生成的 `AddInterfaceProxy` 注册会在裁剪时保留公共代理构造函数。
 
-对于每一种 grain 接口方法,生成代码将参数记录在一个可引用对象中。生成的代理服务器通过代理基点显示该对象。在目标上,生成的发送元数据引用具体执行并编码回复。
+对于每个 Grain 接口方法，生成的代码将实参捕获到可调用对象中。生成的代理通过其代理基类提交该对象。在目标端，生成的分派元数据调用具体实现并对响应进行编码。
 
-请求对象可以与任何其他 Orleans 值一样连序。 稳定的方法和接口元数据允许调用者和目标组件在支持的版本规则范围内独立演变。 发送和接收的呼叫过滤器将生成的引用包起来; 它们不会取代序列化或发送。
+请求对象可像其他 Orleans 值一样序列化。稳定的方法和接口元数据使调用方与目标程序集能够在受支持的版本控制规则内独立演进。出站和入站调用筛选器对生成的调用进行包装，但不取代序列化或分派。
 
-生成的请求类型和响应信封是滚动升级边界的一部分。 老读者跳过新引入的字段, 省略域的新读者供应默认默认值, 每个兼容的接口版本都使用可解码参数和结果类型。 方法身份和界面格式路径仍然与有价电线身份分离。
+生成的请求类型和响应信封属于滚动升级的兼容性边界。旧版读取器跳过新引入的字段，新版读取器为缺失字段提供兼容的默认值，每个兼容的接口版本都使用可解码的实参和结果类型。方法标识及接口版本路由仍与值的传输格式标识分开处理。
 
 <a id="generated-call-path"></a>
 
-### 生成调用路径
+### 生成的调用路径
 
 ```mermaid
 sequenceDiagram
@@ -120,100 +120,100 @@ sequenceDiagram
     Proxy-->>App: Return/complete caller-facing value
 ```
 
-保留这些边界的各个阶段:
+各阶段维持以下边界：
 
-1. 递增生成器发现直接或中继标记为 <xref:Orleans.GenerateMethodSerializersAttribute> 的接口,并解决选定的代理基数。
-2. 它发出一种代用方法和一个执行 <xref:Orleans.Serialization.Invocation.IInvokable>的生成请求类型。每个参数都是生成字段。
-3. 请求执行 `GetArgumentCount`、 `GetArgument`和 `SetArgument`。 [调用过滤器](../grains/interceptors.md) 和 [上游活动](../grains/request-scheduling.md) 在发送前使用这些存取器检查或替换参数。
-4. 代理基地通过 <xref:Orleans.Runtime.GrainReference> 和 <xref:Orleans.Runtime.IGrainReferenceRuntime>提交请求。外向过滤器围绕该提交文件运行。
-5. 运行时间创建信息, 其主体是可置疑的请求。 请求的复合类型身份和该信息的界面/ 版本元数据让接收者解决生成的类型和目标合同 。
-6. 目标运行时间解决激活问题,在请求时安装目标,运行进取过滤器,并呼叫 <xref:Orleans.Serialization.Invocation.IInvokable.Invoke*>。生成 `InvokeInner` 代码直接发送到 grain 执行中。
-7. 可置换的基数将完成、结果或例外转换为 <xref:Orleans.Serialization.Invocation.Response>。调用员运行时间完成等待操作 。
+1. 增量生成器发现直接或间接带有 <xref:Orleans.GenerateMethodSerializersAttribute> 标记的接口，并解析选定的代理基类。
+2. 生成代理方法，以及实现 <xref:Orleans.Serialization.Invocation.IInvokable> 的请求类型。每个实参都对应一个生成的字段。
+3. 请求实现 `GetArgumentCount`、`GetArgument` 和 `SetArgument`。[调用筛选器](../grains/interceptors.md)和[请求调度谓词](../grains/request-scheduling.md)使用这些访问器，在分派之前检查或替换实参。
+4. 代理基类通过 <xref:Orleans.Runtime.GrainReference> 和 <xref:Orleans.Runtime.IGrainReferenceRuntime> 提交请求。出站筛选器围绕该提交过程运行。
+5. 运行时创建消息，其消息体为可调用请求。请求的复合类型标识及消息的接口与版本元数据，使接收方能够解析生成的类型和目标契约。
+6. 目标运行时解析激活实例，将目标设置到请求中，运行入站筛选器并调用 <xref:Orleans.Serialization.Invocation.IInvokable.Invoke*>。生成的 `InvokeInner` 代码直接分派到 Grain 实现。
+7. 可调用对象的基类将完成状态、结果或异常转换为 <xref:Orleans.Serialization.Invocation.Response>。调用方运行时完成正在等待的操作。
 
-对于通过 <xref:Orleans.Invocation.ReturnValueProxyAttribute>标记的返回类型,第4步在代理边界上的更改:生成代码根据请求调用配置初始化器并返回其值。初始化器拥有请求提交书或另一个适配程序。目标仍然根据可引用的基本合同接收和发送生成的请求。见 [自定义 Orleans 序列代号生成](../grains/code-generation-customization.md)。
+对于通过 <xref:Orleans.Invocation.ReturnValueProxyAttribute> 标记的返回类型，步骤 4 会在代理边界发生变化：生成的代码调用请求上配置的初始化器并返回其值。该初始化器负责提交请求或执行其他适配器协议。目标端仍按照可调用对象基类的契约接收并分派生成的请求。请参阅[自定义 Orleans 序列化代码生成](../grains/code-generation-customization.md)。
 
 <a id="generated-components-and-responsibilities"></a>
 
-### 生成的构成部分和责任
+### 生成的组件及其职责
 
-| 构成部分构成部分构成部分构成部分构成部分 | 责任 |
+| 组件 | 职责 |
 | --- | --- |
-| 生成 grain- 引用代理 | 执行 grain 接口、租赁或创建请求,将参数复制到其中,采用方法选项,并引用选定的代理基方法或返回值初始化器。 |
-| 生成请求类型 | 进行系列论证,揭露论据检查和变异、记录接口和方法元数据、接受目标启动并号召 grain 执行通过执行《公约》的 `InvokeInner`. |
-| <xref:Orleans.Serialization.Invocation.IInvokable> | 界定目标约束、发送、参数访问、取消钩子、方法元数据、反应超时和处置。 |
-| 代理基数 | 定义每个返回的家族如何进入客户端运行时间。 <xref:Orleans.Runtime.GrainReference> 提供内置任务、 价值- 任务、 无效和 等同可数映射 。 |
-| 可援引基础 | 定义目标端完成和响应适应。自定义基地还可以通过 <xref:Orleans.Invocation.ReturnValueProxyAttribute>定义一个符合呼声的适配器。 |
-| 生成元数据 | 登记代用名称的履行情况、 grain 执行情况、编码、激活器和组装清单中的复合请求别名。 |
+| 生成的 Grain 引用代理 | 实现 Grain 接口，租用或创建请求，将实参复制到请求中，应用方法选项，并调用选定的代理基类方法或返回值初始化器。 |
+| 生成的请求类型 | 携带序列化实参，提供实参检查和修改功能，记录接口与方法元数据，接收目标激活实例，并通过 `InvokeInner` 调用 Grain 实现。 |
+| <xref:Orleans.Serialization.Invocation.IInvokable> | 定义目标绑定、分派、实参访问、取消挂钩、方法元数据、响应超时及释放操作。 |
+| 代理基类 | 定义每种返回类型如何进入客户端运行时。<xref:Orleans.Runtime.GrainReference> 提供内置的 Task、ValueTask、void 和异步可枚举对象映射。 |
+| 可调用对象基类 | 定义目标端的完成操作和响应适配。自定义基类还可通过 <xref:Orleans.Invocation.ReturnValueProxyAttribute> 定义面向调用方的适配器。 |
+| 生成的元数据 | 在程序集清单中注册代理实现、Grain 实现、编解码器、激活器以及请求的复合别名。 |
 
-参数和结果值使用正常 Orleans.Serialization 例外是指例外情况答复,由电话填写源重新转发。 grain 下调的呼叫 `CancellationToken` 通过生成的请求来显示取消, 允许运行时间传播合作取消。 Void 方法将单程调用选项设置在请求基数中, 因此没有响应完成源等待结果 。
+实参和结果值使用常规的 Orleans.Serialization 编解码器和复制器。异常由异常响应表示，并由调用方的完成源重新抛出。带有 `CancellationToken` 的 Grain 调用通过生成的请求提供取消功能，使运行时能够传播协作式取消。返回 void 的方法在其请求基类中设置单向调用选项，因此没有响应完成源等待结果。
 
 <a id="request-identity-and-dispatch"></a>
 
-### 请求身份和发出
+### 请求标识与分派
 
-生成的请求名称是执行细节。
+生成的请求名称属于实现细节。其传输格式标识为复合别名，包含以下部分：
 
-- `inv` 标记;
-- (a) 代理基地身份;
-- grain 接口类型;
-- 宣布扩展方法的接口;以及
-- 方法识别。
+- `inv` 标记；
+- 代理基类标识；
+- Grain 接口类型；
+- 对于扩展方法，其声明接口；以及
+- 方法标识。
 
-方法身份使用一种明确的 <xref:Orleans.IdAttribute> 值、一个 <xref:Orleans.AliasAttribute>或方法签名的确定性散列。当明确的身份与产生的散列不同时, Orleans 就为两种身份发出兼容性的别名。这样可以让清晰的分辨率识别请求类型,而独立于生成的 CLR 名称。
+方法标识使用显式 <xref:Orleans.IdAttribute> 值、<xref:Orleans.AliasAttribute> 或方法签名的确定性哈希。当显式标识与生成的哈希不同时，Orleans 为两种标识均生成兼容性别名。这样，清单解析就能独立于生成的 CLR 名称识别请求类型。
 
-信件还包含版本选择所使用的 grain 接口类型和版本。 类型身份解析了序列请求机; 界面/ 版本元数据选择兼容的发送。 这些是相关的兼容性边界, 与不同的职责相关 。
+消息还携带版本选择所使用的 Grain 接口类型和版本。类型标识用于解析序列化请求体；接口与版本元数据用于选择兼容的分派。这是相互关联、职责不同的兼容性边界。
 
 <a id="source-and-referenced-assembly-metadata"></a>
 
-### 来源和引用组装元数据
+### 源代码及引用程序集元数据
 
-语法提供者为源宣布的可序列类型和代理界面创建稳定模型。 一个单独的基于编译的级扫描源和参考组装元数据,用于应用部件、别名、复合别名、序列器登记、代理界面、实施以及组装层面可引用绘图。
+语法提供程序为源代码中声明的可序列化类型及代理接口创建稳定模型。另一个依赖编译上下文的阶段会扫描源代码和被引用程序集的元数据，查找应用程序部件、别名、复合别名、序列化器注册、代理接口、实现以及程序集级可调用对象映射。
 
-生成器在制作代理输出和类型显示时结合了这些模型。 在使用通用模式的平等比较者保留了渐进的缓冲,因为从通税衍生的合同保持不变。 依赖汇编的约束性保存在产出准备阶段,因为回归绘图、无障碍、通用限制、构建器和初始化器超载分辨率在参考值变化时可以改变。
+生成器在准备代理输出和类型清单时合并这些模型。如果从语法派生的契约未发生变化，规范化模型上的相等性比较器可保持增量缓存。依赖编译上下文的绑定仍在输出准备阶段进行，因为返回类型映射、可访问性、泛型约束、构造函数和初始化器的重载解析都可能随着引用变化而改变。
 
-此分割允许不相关的源编辑来重新使用代理模型, 而引用的适配器或组装级别映射则正确无效 。
+这种拆分使不相关的源代码编辑可以复用代理模型，而被引用的适配器或程序集级映射发生变化时，则能正确使生成的代理输出失效。
 
 <a id="runtime-manifest-and-type-safety"></a>
 
-## 运行时间表和类型安全
+## 运行时类型清单和类型安全
 
-每个产出组装的 <xref:Orleans.Serialization.Configuration.TypeManifestProviderAttribute>。 <xref:Orleans.Serialization.SerializerBuilderExtensions.AddAssembly*?displayProperty=nameWithType> 找到这些供应商,并将其部件贡献给 <xref:Orleans.Serialization.Configuration.TypeManifestOptions>。
+每个生成的程序集都携带 <xref:Orleans.Serialization.Configuration.TypeManifestProviderAttribute>。<xref:Orleans.Serialization.SerializerBuilderExtensions.AddAssembly*?displayProperty=nameWithType> 查找这些提供程序，并将其组件添加到 <xref:Orleans.Serialization.Configuration.TypeManifestOptions>。
 
-记录:
+清单记录以下内容：
 
-- 活性器、实地编码器、序列器、复印机和转换器;
-- 区域项目审查委员会的接口、代理和执行;
-- 众所周知的数种身份识别和别名;
-- 明确允许类型和集会。
+- 激活器、字段编解码器、序列化器、复制器及转换器；
+- RPC 接口、代理和实现；
+- 预定义的类型 ID（数字形式）和别名；以及
+- 显式允许的类型和程序集。
 
-<xref:Orleans.Serialization.Configuration.TypeManifestOptions.AllowAllTypes?displayProperty=nameWithType> 默认值为 `false`。 这是一个类型分辨率边界: 接收格式化型号名称不会使每个可装入的 CLR 类型有效输入。
+<xref:Orleans.Serialization.Configuration.TypeManifestOptions.AllowAllTypes?displayProperty=nameWithType> 默认为 `false`。这是类型解析的安全边界：接收到经过格式化的类型名称，并不意味着所有可加载的 CLR 类型都可以作为有效输入。
 
-API: <xref:Orleans.Serialization.Configuration.TypeManifestOptions>、 <xref:Orleans.Serialization.ISerializerBuilder>和 <xref:Orleans.Serialization.SerializerBuilderExtensions.AddAssembly*?displayProperty=nameWithType>。履行: [显示的选项](https://github.com/dotnet/orleans/blob/main/src/Orleans.Serialization/Configuration/TypeManifestOptions.cs)、 [序列创建器扩展](https://github.com/dotnet/orleans/blob/main/src/Orleans.Serialization/Hosting/SerializerBuilderExtensions.cs)和 [序列质测器服务登记](https://github.com/dotnet/orleans/blob/main/src/Orleans.Serialization/Hosting/ServiceCollectionExtensions.cs)。
+API：<xref:Orleans.Serialization.Configuration.TypeManifestOptions>、<xref:Orleans.Serialization.ISerializerBuilder> 和 <xref:Orleans.Serialization.SerializerBuilderExtensions.AddAssembly*?displayProperty=nameWithType>。实现：[类型清单选项](https://github.com/dotnet/orleans/blob/main/src/Orleans.Serialization/Configuration/TypeManifestOptions.cs)、[序列化器构建器扩展](https://github.com/dotnet/orleans/blob/main/src/Orleans.Serialization/Hosting/SerializerBuilderExtensions.cs)和[序列化器服务注册](https://github.com/dotnet/orleans/blob/main/src/Orleans.Serialization/Hosting/ServiceCollectionExtensions.cs)。
 
 <a id="default-object-activation"></a>
 
 ### 默认对象激活
 
-默认连续序列器激活器为每个新实例援引一个公共无参数构建器,包括一个明确的无参数值类型构建器。对于没有公共无参数构建器的类型,它分配了一个带有零初始化字段的未初始化实例。注册的自定义活性控制器对其目标类型的构造进行控制。
+默认序列化器激活器为每个新实例调用公共无参构造函数，包括显式声明的值类型无参构造函数。对于没有公共无参构造函数的类型，分配一个未初始化的实例，其字段均初始化为零值。已注册的自定义激活器控制目标类型的构造过程。
 
-默认活动器隐藏该类型是否有公共无参数构造器,并且通过 <xref:System.Activator.CreateInstance*> 在管理运行时间和 NativeAOT中使用通用结构。运行时间提供构建器和实施分配器。通用建筑包包在 <xref:System.Reflection.TargetInvocationException>中失败;激活器去除外包装并宣传原构建器例外,保存其身份、内部例外和堆叠跟踪。封闭的默认活动器类型带有建设者查找和非初始配置所需的构建器-保存说明。
+默认激活器缓存类型是否具有公共无参构造函数，并在托管运行时及 NativeAOT 上通过 <xref:System.Activator.CreateInstance*> 进行泛型构造。运行时提供构造函数和分配器实现。泛型构造将构造函数故障包装到 <xref:System.Reflection.TargetInvocationException> 中；激活器移除这一外层包装并传播原始构造函数异常，保留其标识、内部异常和堆栈跟踪。封闭的默认激活器类型带有构造函数查找及未初始化对象分配所需的构造函数保留注解。
 
 <a id="extension-points"></a>
 
 ## 扩展点
 
-使用 <xref:Orleans.Serialization.ISerializerBuilder> 披露的登记API,用于:
+使用 <xref:Orleans.Serialization.ISerializerBuilder> 公开的注册 API 注册以下组件：
 
-- 需要自定义电线编码的类型的字段代码;
-- (a) 深复印机,如果生成的成员自成一体的副本不合适;
-- 需要特殊处理的施工活动者;
-- 当类型拥有外部格式时的序列器;或
-- 将类型映射为支持的代孕的转换器。
+- 当类型需要自定义传输编码时，注册字段编解码器；
+- 当生成的逐成员复制方式不适用时，注册深拷贝器；
+- 当构造需要特殊处理时，注册激活器；
+- 当类型使用外部格式时，注册序列化器；或
+- 注册将类型映射到受支持的代理类型的转换器。
 
-将代码和复印机的行为保持对齐。一个保存图表的定制序列器,而其复制机失去参考身份,可以产生不同的本地和远程呼叫行为。
+保持编解码器与复制器的行为一致。如果自定义序列化器保留对象图，但对应的复制器丢失引用标识，可能导致本地调用与远程调用产生不同的行为。
 
-习惯习惯 <xref:Orleans.Serialization.Cloning.IDeepCopier`1> 引用类型中的空空接受无效输入。它返回空输入的无效和非核输入的非null 副本。手写操作,加上无效分析,启用了无效分析,必须使用无效输入和返回类型,并用 <xref:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute>现有执行情况,包括不可修改的投入报告 CS8767 默示执行或 CS8769 明确执行,当无效警告被视为错误时,则构成构建错误。
+自定义 <xref:Orleans.Serialization.Cloning.IDeepCopier`1> 对于引用类型接受 null 输入。输入为 null 时返回 null，输入非 null 时返回非 null 的副本。启用了可空性分析的手写实现必须使用可空输入类型和返回类型，并以 <xref:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute> 标注返回值。现有实现若使用不可空的输入类型，则隐式接口实现会报告 CS8767，显式接口实现会报告 CS8769；将可空性警告视为错误时，这会成为构建错误。
 
-RPC 代码生成扩展可登记自定义的可援引基地和按呼机显示的回调适应器。 [自定义 Orleans 序列代号生成](../grains/code-generation-customization.md).
+RPC 代码生成扩展可注册自定义可调用对象基类及面向调用方的返回值适配器。请参阅[自定义 Orleans 序列化代码生成](../grains/code-generation-customization.md)。
 
-配置示例属于 [序列设置指南](../host/configuration-guide/serialization.md)。 [源源产生指南](../grains/code-generation.md) 包含应用程序符合的生成规则。运行时间呼叫行为在 [信息传递和发送](messaging-delivery-guarantees.md)中描述。执行行为由 [`GeneratedSerializerTests`](https://github.com/dotnet/orleans/blob/main/test/Orleans.Serialization.UnitTests/GeneratedSerializerTests.cs)、 [`GeneratedSerializerBitwiseCompatibilityTests`](https://github.com/dotnet/orleans/blob/main/test/Orleans.Serialization.UnitTests/GeneratedSerializerBitwiseCompatibilityTests.cs)和 [`CustomReturnTypeTests`](https://github.com/dotnet/orleans/blob/main/test/Orleans.CodeGenerator.Tests/CustomReturnTypeTests.cs)行使。
+配置示例见[序列化配置指南](../host/configuration-guide/serialization.md)。[源代码生成指南](../grains/code-generation.md)介绍面向应用程序的生成规则。运行时调用行为见[消息传递与投递语义](messaging-delivery-guarantees.md)。实现行为由 [`GeneratedSerializerTests`](https://github.com/dotnet/orleans/blob/main/test/Orleans.Serialization.UnitTests/GeneratedSerializerTests.cs)、[`GeneratedSerializerBitwiseCompatibilityTests`](https://github.com/dotnet/orleans/blob/main/test/Orleans.Serialization.UnitTests/GeneratedSerializerBitwiseCompatibilityTests.cs) 和 [`CustomReturnTypeTests`](https://github.com/dotnet/orleans/blob/main/test/Orleans.CodeGenerator.Tests/CustomReturnTypeTests.cs) 中的测试覆盖。

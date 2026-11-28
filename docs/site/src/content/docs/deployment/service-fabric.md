@@ -1,6 +1,6 @@
 ---
-title: "服务硬件主机 Orleans"
-description: "主办并运行一个 Orleans 组,作为申请书用户服务机构。"
+title: 在 Service Fabric 上托管 Orleans
+description: 将 Orleans 集群作为应用程序自行实现的 Service Fabric 无状态 Reliable Service 进行托管和运维。
 ms.date: 08/03/2026
 ms.topic: how-to
 ms.custom: devops
@@ -8,169 +8,169 @@ ms.custom: devops
 
 <a id="host-orleans-on-service-fabric"></a>
 
-# 服务硬件主机 Orleans
+# 在 Service Fabric 上托管 Orleans
 
-Orleans 能够运行 [Azure 服务制造](https://learn.microsoft.com/azure/service-fabric) 每个服务局都设有一个服务机构 Orleans silo 正常 .NET 通用主机 。
+Orleans 可以在 [Azure Service Fabric](https://learn.microsoft.com/azure/service-fabric) 上作为不分区的无状态 Reliable Service 运行。每个 Service Fabric 服务实例都在普通的 .NET 通用主机中托管一个 Orleans Silo。
 
-没有 Orleans 服务制造主机或组合软件包。
+Orleans 没有专门用于 Service Fabric 托管或集群成员资格的包。应用程序需自行实现集成，使用：
 
-- [`Microsoft.ServiceFabric.Services`](https://www.nuget.org/packages/Microsoft.ServiceFabric.Services) 可靠服务是运行的。
-- [`Microsoft.Orleans.Server`](https://www.nuget.org/packages/Microsoft.Orleans.Server) 排排 silo.
-- 一个支持 [Orleans 集群集组提供商](networking.md#choose-a-clustering-provider) 加入和网关发现。
+- [`Microsoft.ServiceFabric.Services`](https://www.nuget.org/packages/Microsoft.ServiceFabric.Services) 提供 Reliable Services 运行时。
+- [`Microsoft.Orleans.Server`](https://www.nuget.org/packages/Microsoft.Orleans.Server) 提供 Silo。
+- 一个受支持的 [Orleans 集群提供程序](networking.md#choose-a-clustering-provider)，用于成员资格管理和网关发现。
 
-使用多个无国籍服务实例,覆盖节点、断层域和更新域。不要使用一个状态可靠的服务托管 Orleans 仅仅为了获得服务制造州复制: Orleans grain 州使用一个 Orleans 存储供应商,而独立于服务组合服务类型。
+在多个节点、故障域和更新域中运行多个无状态服务实例。不要仅为了获得 Service Fabric 状态复制能力而使用有状态 Reliable Service 托管 Orleans：Orleans Grain 状态由 Orleans 存储提供程序负责，与 Service Fabric 的服务类型无关。
 
 <a id="separate-platform-and-orleans-responsibilities"></a>
 
-## 独立的平台和 Orleans 责任
+## 区分平台与 Orleans 的职责
 
-服务制造和 Orleans 具有互补作用:
+Service Fabric 和 Orleans 承担互补的职责：
 
-| 关注问题 | 所有人 |
+| 关注事项 | 负责方 |
 | --- | --- |
-| 流程安放、重新启动、服务实例生命周期、应用程序升级 | 服务制造 |
-| 港口分配和节点地址 | 服务基础服务 服务显示和运行时间 |
-| 服务基础服务端点出版物 | <xref:Microsoft.ServiceFabric.Services.Communication.Runtime.ICommunicationListener.OpenAsync*?displayProperty=nameWithType> 和事务处制作命名处 |
-| Silo 成员、故障检测和 Orleans 网关发现 | Orleans 和选定的集群提供商 |
-| Grain 启动和安置 | Orleans |
-| 持久 grain 状态、提醒和流 | 配置的 Orleans 服务提供方 |
+| 进程放置、重启、服务实例生命周期、应用程序升级 | Service Fabric |
+| 每个实例的端口分配及节点地址 | Service Fabric 服务清单和运行时上下文 |
+| Service Fabric 服务终结点发布 | <xref:Microsoft.ServiceFabric.Services.Communication.Runtime.ICommunicationListener.OpenAsync*?displayProperty=nameWithType> 和 Service Fabric Naming Service |
+| Silo 成员资格、故障检测、Orleans 网关发现 | Orleans 与所选集群提供程序 |
+| Grain 激活和放置 | Orleans |
+| 持久化 Grain 状态、提醒器及流 | 已配置的 Orleans 提供程序 |
 
-服务制造命名服务不是 Orleans 集群提供者。 Orleans silos 客户必须使用同样的外部集群供应商、 <xref:Orleans.Configuration.ClusterOptions.ServiceId>和 <xref:Orleans.Configuration.ClusterOptions.ClusterId>。在部署的服务中,不要使用 <xref:Orleans.Hosting.CoreHostingExtensions.UseLocalhostClustering*?displayProperty=nameWithType> 。
+Service Fabric Naming Service 并不是 Orleans 集群提供程序。Orleans Silo 和客户端必须使用相同的外部集群提供程序、<xref:Orleans.Configuration.ClusterOptions.ServiceId> 和 <xref:Orleans.Configuration.ClusterOptions.ClusterId>。不要在已部署的服务中使用 <xref:Orleans.Hosting.CoreHostingExtensions.UseLocalhostClustering*?displayProperty=nameWithType>。
 
 <a id="implement-the-generic-host-integration"></a>
 
-## 实施通用主机集成
+## 实现通用主机集成
 
-`snippets/service-fabric` 下的样本使用 Azure 表存储作为混凝土集成提供商,以便代码汇编结束。在适合环境时用另一个支持的提供者替换。
+`snippets/service-fabric` 下的示例采用 Azure Table Storage 作为一种具体的集群提供程序，使代码能够端到端编译。根据目标环境的实际需求，可以将它替换为其他受支持的提供程序。
 
-汇编的范例针对Windows Services公司制造节点,并出版 `win-x64`,所以节点不需要单独安装 .NET 运行时时间。对于 Linux 集集,请选择相应的 Linux 运行时间标识符,发布一个 Linux 可执行文件,并更新服务列表切入点。保持使用寿命周期和 Orleans 配置模式不变。
+已编译的示例面向 Windows Service Fabric 节点，采用 `win-x64` 自包含发布，因此节点无需另行安装 .NET 运行时。对于 Linux 集群，应选择相应的 Linux 运行时标识符，发布 Linux 可执行文件，并更新服务清单中的入口点。服务生命周期和 Orleans 配置模式保持不变。
 
-服务单宣布两个动态分配的TCP终点:
+服务清单声明两个动态分配的 TCP 终结点：
 
 :::code language="xml" source="snippets/service-fabric/ServiceFabricSilo/PackageRoot/ServiceManifest.xml":::
 
-无国籍服务产生 <xref:Microsoft.ServiceFabric.Services.Communication.Runtime.ICommunicationListener>:
+无状态服务创建一个 <xref:Microsoft.ServiceFabric.Services.Communication.Runtime.ICommunicationListener>：
 
 :::code language="csharp" source="snippets/service-fabric/ServiceFabricSilo/OrleansStatelessService.cs" id="service_fabric_orleans_stateless_service":::
 
-听众拥有 Orleans 通用主机 。 <xref:Microsoft.ServiceFabric.Services.Communication.Runtime.ICommunicationListener.OpenAsync*?displayProperty=nameWithType> 开始 <xref:Microsoft.ServiceFabric.Services.Communication.Runtime.ICommunicationListener.CloseAsync*?displayProperty=nameWithType> 要求优雅关闭, <xref:Microsoft.ServiceFabric.Services.Communication.Runtime.ICommunicationListener.Abort*?displayProperty=nameWithType> 处置时不假定工作优雅即可完成:
+监听器拥有 Orleans 通用主机。<xref:Microsoft.ServiceFabric.Services.Communication.Runtime.ICommunicationListener.OpenAsync*?displayProperty=nameWithType> 启动主机，<xref:Microsoft.ServiceFabric.Services.Communication.Runtime.ICommunicationListener.CloseAsync*?displayProperty=nameWithType> 请求优雅关闭，而 <xref:Microsoft.ServiceFabric.Services.Communication.Runtime.ICommunicationListener.Abort*?displayProperty=nameWithType> 释放主机，但不假定优雅关闭操作能够完成：
 
 :::code language="csharp" source="snippets/service-fabric/ServiceFabricSilo/OrleansCommunicationListener.cs" id="service_fabric_orleans_communication_listener":::
 
-最后,该流程登记了服务处的制造服务类型,并建造了 Orleans 主机:
+最后，进程注册 Service Fabric 服务类型并构建 Orleans 主机：
 
 :::code language="csharp" source="snippets/service-fabric/ServiceFabricSilo/Program.cs" id="service_fabric_program":::
 
-举例使用:
+示例使用：
 
-- 广告地址为 <xref:System.Fabric.NodeContext.IPAddressOrFQDN?displayProperty=nameWithType> 中的节点地址。
-- 服务单中为 silo 和网关端点分配的港口。
-- `listenOnAnyHostAddress: true` ,因为公布的节点地址可能不是地址,因此该程序可以直接约束。
-- <xref:Azure.Identity.DefaultAzureCredential> with an Azure Table service URI, avoiding a storage account key in configuration.
-- 120秒 .NET 主机关闭超时
+- 来自 <xref:System.Fabric.NodeContext.IPAddressOrFQDN?displayProperty=nameWithType> 的节点地址作为通告地址。
+- 从服务清单分配的端口作为 Silo 和网关终结点的端口。
+- `listenOnAnyHostAddress: true`，因为所通告的节点地址可能并不是进程能够直接绑定的地址。
+- <xref:Azure.Identity.DefaultAzureCredential> 和 Azure Table 服务 URI，避免在配置中存放存储帐户密钥。
+- 120 秒的 .NET 主机关闭超时。
 
-应用程序单项应创建单一的无国籍服务,并有多个实例和 `ServicePackageActivationMode="ExclusiveProcess"`。此示例还连接 Orleans 设置、专用本地 RunAs 用户以及 `DefaultAzureCredential`所使用的服务身份约束:
+应用程序清单应创建具有多个实例、采用单一分区的无状态服务，并设置 `ServicePackageActivationMode="ExclusiveProcess"`。此示例还将 Orleans 设置、专用本地 RunAs 用户以及 `DefaultAzureCredential` 所使用的服务标识绑定配置在一起：
 
 :::code language="xml" source="snippets/service-fabric/ApplicationPackageRoot/ApplicationManifest.xml":::
 
-启动专有进程避免在服务中共享一个主机程序和终端资源。 大小能力和冗余的实例数; 三个仅是一个例子。
+独占进程激活避免多个服务实例共享同一个主机进程和终结点资源。应根据容量和冗余需求确定实例数；三个实例只是示例。
 
 <a id="configure-topology-and-endpoints"></a>
 
-## 配置表层和终点
+## 配置拓扑和终结点
 
-每项服务实例需要:
+每个服务实例都需要：
 
-- 独一 silo 身份。 Orleans 如果应用程序不设置, 程序会生成一个 <xref:Orleans.Configuration.SiloOptions.SiloName>.
-- A silo 可以从其他方达到的终点 silo.
-- 启用网关时, 每个 Orleans 客户端都可以达到的网关端点 。
-- 与集群提供商和每个配置状态、提醒和流提供商的连接。
+- 唯一的 Silo 标识。如果应用程序未设置 <xref:Orleans.Configuration.SiloOptions.SiloName>，Orleans 会生成一个标识。
+- 所有其他 Silo 都能够访问的 Silo 终结点。
+- 启用网关时，所有 Orleans 客户端都能够访问的网关终结点。
+- 与集群提供程序以及所有已配置的状态、提醒器和流提供程序的连通性。
 
-当一个端点省略 `Port` 内 _ServiceManifest.xml_,“服务结构”从应用端端口范围分配一个港口。 <xref:System.Fabric.CodePackageActivationContext.GetEndpoint*>不要硬码 Orleans 除非组合组合组合保留了默认端口并防止冲突。
+当 _ServiceManifest.xml_ 中的终结点省略 `Port` 时，Service Fabric 会从应用程序端口范围中分配一个端口。应用程序通过 <xref:System.Fabric.CodePackageActivationContext.GetEndpoint*> 读取分配结果。不要硬编码 Orleans 默认端口，除非集群已预留这些端口并能够防止冲突。
 
-`ICommunicationListener.OpenAsync` 返回一个字符串,由服务 Fabric 通过其命名服务发布。样本公布分配给诊断的 Orleans 终点。 Orleans 客户不消耗该值;他们通过 Orleans 组合提供商发现网关。
+`ICommunicationListener.OpenAsync` 返回一个字符串，Service Fabric 通过 Naming Service 发布该字符串。示例将已分配的 Orleans 终结点发布出去用于诊断。Orleans 客户端不使用此值，而是通过 Orleans 集群提供程序发现网关。
 
-应用只信任的网络控制 silos 才能到达 silo 端口, 只有受信任客户才能到达网关端口。 不要直接将任何一个端口暴露在公共互联网上。 当网络边界本身不提供所需的认证和加密时配置 [Orleans TLS 电信](../host/transport-layer-security.md) 。
+应用网络访问控制，仅允许受信任的 Silo 访问 Silo 端口，仅允许受信任的客户端访问网关端口。不要将任一端口直接暴露于公共互联网。当仅依靠网络边界无法提供所需的身份验证和加密时，应配置 [Orleans TLS](../host/transport-layer-security.md)。
 
 <a id="health-and-readiness"></a>
 
-## 健康和准备状态
+## 健康检查与就绪状态
 
-服务包在拨打 <xref:Microsoft.ServiceFabric.Services.Runtime.StatelessService.RunAsync*?displayProperty=nameWithType>之前打开了通信听众。在这一整合中, `OpenAsync` 只有在 Orleans 主机启动后才完成,所以服务包不会在启动 silo 时发布听众地址。
+Service Fabric 在调用 <xref:Microsoft.ServiceFabric.Services.Runtime.StatelessService.RunAsync*?displayProperty=nameWithType> 之前打开通信监听器。在此集成中，`OpenAsync` 仅在 Orleans 主机启动之后才完成，因此 Silo 仍在启动时，Service Fabric 不会发布监听器地址。
 
-使用寿命周期边界是必要的,但并非一个完整的应用健康模型。添加应用程序用户服务 Fabric [健康报告](https://learn.microsoft.com/azure/service-fabric/service-fabric-health-introduction) 操作者或监测的升级必须评估以下等持续条件:
+这一生命周期边界不可或缺，但并不能构成完整的应用程序健康模型。对于运维人员或受监视的升级必须评估的持续性状况，应用程序应自行生成 Service Fabric [健康报告](https://learn.microsoft.com/azure/service-fabric/service-fabric-health-introduction)，例如：
 
-- 未加入预定的 Orleans 组群。
-- 失去所需的储存或集群依赖。
-- 当地饱和或无法取得进展。
-- 一种长期退化的模式。
+- 无法加入预期的 Orleans 集群。
+- 丢失必需的存储或集群成员资格依赖项。
+- 本地资源饱和或无法继续推进工作。
+- 长时间处于降级模式。
 
-避免瞬时性依赖失灵引发同步重开。 如果该过程还暴露 HTTP 入侵, 则按 [健康和可观察性](health-and-observability.md)所述实施单独的启动、 准备状态、 活性以及抚养检查 。
+避免短暂的依赖项故障导致多个实例同步重启。如果进程还提供 HTTP 入站流量入口，应按照[健康检查与可观测性](health-and-observability.md)中的说明，分别实现启动、就绪、存活和依赖项检查。
 
-Set Service Fabric 将健康政策从应用信号上升级。 内建平台健康可以检测过程和部署故障, 但无法推断 Orleans 要求正确性或能力。
+根据应用程序信号设置 Service Fabric 升级健康策略。平台内置健康监测能够发现进程及部署故障，但无法推断 Orleans 请求的正确性或服务容量。
 
 <a id="shutdown-and-scale-in"></a>
 
-## 关闭和缩放
+## 关闭与横向缩容
 
-在优雅的无国籍服务停业期间,服务公司Fabric呼叫 `ICommunicationListener.CloseAsync`。听众呼叫 <xref:Microsoft.Extensions.Hosting.IHost.StopAsync*>,允许 Orleans 离开成员资格并在规定的期限内停止工作。
+在无状态服务优雅关闭期间，Service Fabric 调用 `ICommunicationListener.CloseAsync`。监听器调用 <xref:Microsoft.Extensions.Hosting.IHost.StopAsync*>，使 Orleans 能够在给定的截止时间内退出集群成员资格并停止运行。
 
-优雅的关闭不能保证:
+优雅关闭并不保证一定发生：
 
-- `Abort` 可在过程、节点或生命周期失效后发生。
-- 服务配置可以在配置超时后终止代码包 。
-- 东道主在退出会籍前可能崩溃或失去网络接入。
+- 进程、节点或生命周期发生故障后，可能调用 `Abort`。
+- Service Fabric 可能在配置的超时之后终止代码包。
+- 主机可能在退出集群成员资格之前崩溃或失去网络连接。
 
-因此,正确性必须能够容忍突然 silo 损失和 [未知的通话结果](handling-failures.md)。配置服务结构关闭和更新超时,超过所计量的 Orleans 停机期限,并与 <xref:Microsoft.Extensions.Hosting.HostOptions.ShutdownTimeout>保持一致。
+因此，系统的正确性必须能够容忍 Silo 突然丢失和[调用结果不确定](handling-failures.md)的情况。将 Service Fabric 的关闭和升级超时配置为大于实测的 Orleans 关闭耗时，并使其与 <xref:Microsoft.Extensions.Hosting.HostOptions.ShutdownTimeout> 保持一致。
 
-在一个实例中缩放, 或者在可能的时间更新域。 等待 Orleans 成员资格和应用延迟以稳定下来, 然后移除更多能力 。
+如有可能，每次仅对一个实例或一个更新域执行横向缩容。等待 Orleans 成员资格状态及应用程序延迟趋于稳定，再进一步减少容量。
 
 <a id="rolling-upgrades"></a>
 
-## 滚式升级
+## 滚动升级
 
-使用服务局监测了滚动升级,因此每个更新域必须在下一个运行之前满足应用卫生政策。在更新域之外保留足够多的事例,以完成工作量并吸收重新启动的 grains。
+使用 Service Fabric 受监视的滚动升级，使每个更新域都必须满足应用程序健康策略后，下一个更新域才能继续升级。在一个更新域之外保留足够的实例，以处理工作负载并承接重新激活的 Grain。
 
-新的和旧的 silos 在滚动升级期间共存。
+滚动升级期间，新旧 Silo 同时存在。它们必须在所有边界上保持兼容：
 
-- Grain 接口和序列式有效载荷。
-- 状态 grain
-- 集束、提醒、流和存储计划。
-- 外部副作用和重复记录。
+- Grain 接口和序列化有效载荷。
+- 已持久化的 Grain 状态。
+- 集群成员资格、提醒器、流和存储架构。
+- 外部副作用及去重记录。
 
-添加发布应用程序类型版本和服务表格式。 另外,还加插每个修改过的代码、配置或数据包的版本; 更改二进制而不修改 `CodePackage` 版本并不表示服务软件包的新代码包。 测试以混合版本和新版本撰写状态自动回滚。 见 [优优优停机和升级](upgrades.md) 和 [服务制造应用程序升级](https://learn.microsoft.com/azure/service-fabric/service-fabric-application-upgrade)。
+发布新版本时，递增应用程序类型版本和服务清单版本。还需递增每个发生变更的代码包、配置包或数据包的版本；仅修改二进制文件而不改变 `CodePackage` 版本，Service Fabric 无法将其识别为新的代码包。测试混合版本以及新版本已写入状态时的自动回滚行为。请参阅[优雅关闭与升级](upgrades.md)和 [Service Fabric 应用程序升级](https://learn.microsoft.com/azure/service-fabric/service-fabric-application-upgrade)。
 
-对于不兼容的释放,请使用单独命名的“服务制造”应用程序和单独的 Orleans `ClusterId`,然后跟随 [蓝绿色指导指南](upgrades.md#blue-green-upgrades)。不要让不兼容的组群同时拥有相同的变异状态 grain 。
+对于不兼容版本，使用单独命名的 Service Fabric 应用程序和不同的 Orleans `ClusterId`，然后遵循[蓝绿升级指南](upgrades.md#blue-green-upgrades)。不要让不兼容的集群同时拥有相同的可变 Grain 状态。
 
 <a id="identity-secrets-and-configuration"></a>
 
-## 身份、秘密和配置
+## 标识、机密与配置
 
-两种身份有不同的目的:
+两种标识的用途不同：
 
-- **RunAs 身份** 是代码包的本地操作系统账户。 样本创建了专门的本地用户, 并应用了一个 `RunAsPolicy` 而不是在服务 Fabric 默认账户下运行 。
-- 一种 **管理下的身份** 认证对 Azure 资源的申请。在申请表上,样本映射了 `OrleansSiloApplicationIdentity` ,显示为服务清单中的 `OrleansSiloServiceIdentity` 。
+- **RunAs 标识**是代码包使用的本地操作系统帐户。示例创建专用本地用户并应用 `RunAsPolicy`，而不是以 Service Fabric 默认帐户运行。
+- **托管标识**用于向 Azure 资源验证应用程序的身份。示例将应用程序清单中的 `OrleansSiloApplicationIdentity` 映射到服务清单中的 `OrleansSiloServiceIdentity`。
 
-光是地标绘图 并不创造或分配 Azure 身份。为 **用户指定身份**.将申请作为 Azure 中指定用户指定的标识 Azure 资源管理员部署,并绘制友好姓名地图 `OrleansSiloApplicationIdentity`.未在 Azure 资源无法使用服务应用程序管理身份 。 [部署一个带有用户指派管理身份的服务硬件应用程序](https://learn.microsoft.com/azure/service-fabric/how-to-deploy-service-fabric-application-user-assigned-managed-identity).
+仅有清单映射并不会创建或分配 Azure 标识。示例配置使用**用户分配的标识**。将应用程序部署为 Azure 资源，在 Azure Resource Manager 部署中分配用户分配的标识，并将其友好名称映射到 `OrleansSiloApplicationIdentity`。未作为 Azure 资源部署的应用程序无法使用 Service Fabric 应用程序托管标识。请参阅[使用用户分配的托管标识部署 Service Fabric 应用程序](https://learn.microsoft.com/azure/service-fabric/how-to-deploy-service-fabric-application-user-assigned-managed-identity)。
 
-系统指定身份使用保留应用程序的识别名称 `SystemAssigned`;如果选择该模式,则相应更新应用程序的主要和有身份约束力的政策。
+系统分配的标识使用保留的应用程序标识名称 `SystemAssigned`；若选择此模型，应相应更新应用程序主体及标识绑定策略。
 
-仅授予其需要的供应商管理身份。 对于样本 Azure 表群集提供者,指定一个角色,在最狭窄的实际范围内包含表格数据行动,如 **存储表数据贡献者**。管理-飞机贡献者的作用不准许访问表格数据。
+仅向托管标识授予提供程序实际所需的权限。对于示例中的 Azure Table 集群提供程序，应在实际可行的最小范围内分配包含表数据操作权限的角色，例如 **Storage Table Data Contributor**（存储表数据参与者）。管理平面的 Contributor（参与者）角色不授予表数据访问权限。
 
-工作身份不存在时,请使用外部秘密商店或 [服务制造加密秘密](https://learn.microsoft.com/azure/service-fabric/service-fabric-application-secret-management),并计划轮换和到期通知。
+不要将凭据放入源代码、清单、应用程序参数或命令行。无法使用工作负载标识时，应使用外部机密存储或 [Service Fabric 加密机密](https://learn.microsoft.com/azure/service-fabric/service-fabric-application-secret-management)，并规划机密轮换及过期告警。
 
-将 `ServiceId` 视为稳定的应用程序身份, `ClusterId` 则视为环境或部署身份。 样本中声明服务状态表中的非绝密缺省, 并指定了应用状态单中的参数环境为超值。 替换示例表 URI 并在部署时设定了特定环境的应用程序参数。 在应用程序升级期间保留有效的参数地图, 因为 Fabric 服务不会自动将应用程序参数向前移动。 在启动主机之前验证有效配置, 当需要值时, 明确启动失败 。
+将 `ServiceId` 视为稳定的应用程序标识，将 `ClusterId` 视为环境或部署标识。示例在服务清单中声明非机密默认值，并在应用程序清单中声明参数化的环境覆盖值。部署时替换示例中的表 URI，并设置各环境专用的应用程序参数。在应用程序升级时保留实际生效的参数映射，因为 Service Fabric 不会自动将应用程序参数传递至新版本。启动主机之前验证实际生效的配置；缺少必要值时，应明确使启动失败。
 
 <a id="diagnostics"></a>
 
 ## 诊断
 
-相关日期 :
+关联以下信息：
 
-- 服务性制造应用程序、 服务、 分区、 实例、 节点、 代码包和版本 。
-- Orleans 服务标识、集束识别码、 silo 名称和广告的终点。
-- 更新部署域和应用升级操作。
+- Service Fabric 应用程序、服务、分区、实例、节点、代码包和版本。
+- Orleans 服务 ID、集群 ID、Silo 名称及已通告的终结点。
+- 部署的更新域及应用程序升级操作。
 
-使用服务包件探索器和健康事件检查放置、重新启动、启动软件包、终端分配和升级决定。出口 Orleans 日志、度量和跟踪 [Orleans 易观测](../host/monitoring/index.md)所述 。在服务包件集群之外保留遥测,以便在集束事故期间仍然可用。
+使用 Service Fabric Explorer 和健康事件检查放置、重启、包激活、终结点分配和升级决策。按照 [Orleans 可观测性](../host/monitoring/index.md)中的说明导出 Orleans 日志、指标和跟踪数据。将遥测数据保存在 Service Fabric 集群之外，以便集群发生事件时仍可使用这些数据。
 
-将听众发表的结束点与 Orleans 测试广告的准确内容 silo 和网关地址。 [故障解决部署](troubleshooting-deployments.md).
+发生事件时，将监听器发布的终结点与 Orleans 成员资格记录进行比较，并测试实际通告的 Silo 和网关地址。请参阅[部署故障排查](troubleshooting-deployments.md)。

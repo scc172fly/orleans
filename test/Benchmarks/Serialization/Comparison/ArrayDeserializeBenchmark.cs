@@ -13,7 +13,7 @@ namespace Benchmarks.Serialization.Comparison;
 
 #pragma warning disable IDE1006 // Naming Styles
 /// <summary>
-/// 将 Orleans 的解序性能与其他阵列类型的流行序列器进行比较。
+/// 比较 Orleans 与其他常用序列化器对数组类型的反序列化性能。
 /// </summary>
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
 [Config(typeof(BenchmarkConfig))]
@@ -56,6 +56,6 @@ public class ArrayDeserializeBenchmark
     public MyVector3[] SystemTextJsonDeserialize() => JsonSerializer.Deserialize<MyVector3[]>(_stjPayload)!;
 
     [Benchmark]
-    public MyVector3[] OrleansDeserialize() => _orleansSerializer.Deserialize(_orleansPayload)!; // 有效载荷在设置期间从 MyVector3 阵列中序列。
+    public MyVector3[] OrleansDeserialize() => _orleansSerializer.Deserialize(_orleansPayload)!; // 初始化期间，使用 MyVector3 数组序列化生成有效载荷。
 }
 #pragma warning restore IDE1006 // Naming Styles

@@ -3,7 +3,7 @@ using Orleans.Runtime;
 namespace GPSTracker.GrainImplementation;
 
 /// <summary>
-/// 活动 SignalR 枢纽的服务发现。
+/// 用于发现处于活动状态的 SignalR Hub 的服务。
 /// </summary>
 public interface IHubListGrain : IGrainWithGuidKey
 {

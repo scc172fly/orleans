@@ -12,7 +12,7 @@ using Orleans.Streams;
 namespace Orleans.Providers
 {
     /// <summary>
-    /// 存储流提供商共享缓存缓存
+    /// 内存流提供程序的池化缓存。
     /// </summary>
     public class MemoryPooledCache<TSerializer> : IQueueCache, ICacheDataAdapter
         where TSerializer : class, IMemoryMessageBodySerializer
@@ -26,15 +26,15 @@ namespace Orleans.Providers
         private FixedSizeBuffer? currentBuffer;
 
         /// <summary>
-        /// 存储流提供商的集合缓存
+        /// 内存流提供程序的池化缓存。
         /// </summary>
-        /// <param name="bufferPool">缓冲池。</param>
-        /// <param name="purgePredicate">清洗的前提。</param>
-        /// <param name="logger">日志器。</param>
-        /// <param name="serializer">序列器。</param>
+        /// <param name="bufferPool">缓冲区池。</param>
+        /// <param name="purgePredicate">清除谓词。</param>
+        /// <param name="logger">日志记录器。</param>
+        /// <param name="serializer">序列化器。</param>
         /// <param name="cacheMonitor">缓存监视器。</param>
-        /// <param name="monitorWriteInterval">监视器写时间隔。</param>
-        /// <param name="purgeMetadataInterval">缓存清除元数据更新之间的间隔。</param>
+        /// <param name="monitorWriteInterval">监视器写入间隔。</param>
+        /// <param name="purgeMetadataInterval">缓存清除元数据更新之间的时间间隔。</param>
         public MemoryPooledCache(
             IObjectPool<FixedSizeBuffer> bufferPool,
             TimePurgePredicate purgePredicate,
@@ -48,17 +48,17 @@ namespace Orleans.Providers
         }
 
         /// <summary>
-        /// 为内存流提供者创建集合缓存, 并配置了删除记录限制 。
+        /// 为内存流提供程序创建池化缓存，并配置每次出队的记录数限制。
         /// </summary>
-        /// <param name="bufferPool">缓冲池。</param>
-        /// <param name="purgePredicate">清洗的前提。</param>
-        /// <param name="logger">日志器。</param>
-        /// <param name="serializer">序列器。</param>
+        /// <param name="bufferPool">缓冲区池。</param>
+        /// <param name="purgePredicate">清除谓词。</param>
+        /// <param name="logger">日志记录器。</param>
+        /// <param name="serializer">序列化器。</param>
         /// <param name="cacheMonitor">缓存监视器。</param>
-        /// <param name="monitorWriteInterval">监视器写时间隔。</param>
-        /// <param name="purgeMetadataInterval">缓存清除元数据更新之间的间隔。</param>
-        /// <param name="maxAddCount">每项取消作业中要求的队列记录正数最多。</param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxAddCount"/> 是零或负。</exception>
+        /// <param name="monitorWriteInterval">监视器写入间隔。</param>
+        /// <param name="purgeMetadataInterval">缓存清除元数据更新之间的时间间隔。</param>
+        /// <param name="maxAddCount">每次出队操作请求的最大队列记录数（正数）。</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxAddCount"/> 为零或负数。</exception>
         public MemoryPooledCache(
             IObjectPool<FixedSizeBuffer> bufferPool,
             TimePurgePredicate purgePredicate,
@@ -90,20 +90,20 @@ namespace Orleans.Providers
             };
         }
 
-        // 将对象信息有效载荷放置在缓冲池的段内。 当这个位置太大时, 旧区块将被清除
+        // 将对象消息有效载荷放入缓冲区池的一个内存段中。当占用空间过大时，将清除较旧的块。
         private ArraySegment<byte> SerializeMessageIntoPooledSegment(MemoryMessageData queueMessage)
         {
-            // 序列化有效载荷
+            // 序列化有效载荷。
             int size = SegmentBuilder.CalculateAppendSize(queueMessage.Payload);
 
-            // 获取当前块的段
+            // 从当前块获取内存段。
             ArraySegment<byte> segment;
             if (currentBuffer == null || !currentBuffer.TryGetSegment(size, out segment))
             {
-                // 没有块或整块, 获得新块并再次试
+                // 没有块或块已满，获取新块并重试。
                 var newBuffer = bufferPool.Allocate();
-                // 如果此失败与干净块块失败, 那么请求的大小太大; 返回
-                // 现金池的未用块块,但失败了,而不是漏出一个从未承诺的块。
+                // 如果使用一个空块仍然失败，则说明请求的大小过大；将
+                // 未使用的块归还给池并报告失败，避免泄漏永远不会提交的块。
                 if (!newBuffer.TryGetSegment(size, out segment))
                 {
                     newBuffer.Dispose();
@@ -112,10 +112,10 @@ namespace Orleans.Providers
                     throw new ArgumentOutOfRangeException(nameof(queueMessage), errmsg);
                 }
                 currentBuffer = newBuffer;
-                //[调用 EvictionStrategy的 OnBlockAllocated 方法
+                // 调用 EvictionStrategy 的 OnBlockAllocated 方法。
                 this.evictionStrategy.OnBlockAllocated(currentBuffer);
             }
-            // 编码名称空间、 偏移、 分割键、 属性和有效载荷等元件
+            // 将命名空间、偏移量、分区键、属性及有效载荷编码到内存段中。
             int writeOffset = 0;
             SegmentBuilder.Append(segment, ref writeOffset, queueMessage.Payload);
             return segment;
@@ -226,7 +226,7 @@ namespace Orleans.Providers
         /// <inheritdoc/>
         public bool TryPurgeFromCache(out IList<IBatchContainer> purgedItems)
         {
-            purgedItems = null!; // 返回值总是虚假的, 以接口 [MaybeNullWhen(false)] 为准。
+            purgedItems = null!; // 返回值始终为 false，因此按接口上的 [MaybeNullWhen(false)] 注解可将输出设为 null。
             this.evictionStrategy.PerformPurge(DateTime.UtcNow);
             if (cache.IsEmpty)
             {
@@ -260,7 +260,7 @@ namespace Orleans.Providers
         private QueueCacheCursorResult<IQueueCacheCursor> WrapCursorResult(QueueCacheCursorResult<object> result)
             => result.Kind switch
             {
-#pragma warning disable CA2000 // The successful result transfers this cursor to the caller for disposal.
+#pragma warning disable CA2000 // 成功结果将此游标的所有权转交给调用方，由其负责释放。
                 QueueCacheCursorResultKind.Success => QueueCacheCursorResult<IQueueCacheCursor>.FromCursor(new Cursor(cache, result.Cursor!)),
 #pragma warning restore CA2000
                 QueueCacheCursorResultKind.CacheMiss => QueueCacheCursorResult<IQueueCacheCursor>.FromCacheMiss(result.CacheMiss!.Value),
@@ -277,7 +277,7 @@ namespace Orleans.Providers
         /// <inheritdoc/>
         public IBatchContainer GetBatchContainer(ref CachedMessage cachedMessage)
         {
-            //降低有效载荷的序列化
+            // 反序列化有效载荷。
             int readOffset = 0;
             ArraySegment<byte> payload = SegmentBuilder.ReadNextBytes(cachedMessage.Segment, ref readOffset);
             MemoryMessageData message = MemoryMessageData.Create(cachedMessage.StreamId, new ArraySegment<byte>(payload.ToArray()));

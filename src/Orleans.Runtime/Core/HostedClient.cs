@@ -16,7 +16,7 @@ using Orleans.Serialization.Invocation;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 客户端位于 silo内。
+    /// 承载于 Silo 内的客户端。
     /// </summary>
     internal sealed partial class HostedClient : IGrainContext, IGrainExtensionBinder, IDisposable, ILifecycleParticipant<ISiloLifecycle>
     {
@@ -204,7 +204,7 @@ namespace Orleans.Runtime
 
             if (msg.Direction == Message.Directions.Response)
             {
-                // 请求通过运行时间客户提出,因此向运行时间客户提供回复,以便可以执行回调。
+                // 请求通过运行时客户端发出，因此将响应交付给运行时客户端，以便执行请求回调。
                 this.runtimeClient.ReceiveResponse(msg);
             }
             else if (InvokableObjectManager.IsCancellationRequest(msg))
@@ -213,7 +213,7 @@ namespace Orleans.Runtime
             }
             else
             {
-                // 针对客户物品的要求预定对客户执行。
+                // 针对客户端对象的请求被调度到客户端执行。
                 if (!this.incomingMessages.Writer.TryWrite(msg))
                 {
                     this.invokableObjects.RejectMessage(msg);
@@ -318,10 +318,10 @@ namespace Orleans.Runtime
             {
                 if (cancellation.IsCancellationRequested) return Task.CompletedTask;
 
-                // 使用信息中心注册,以便接收信息。
+                // 在消息中心注册，以便能够接收消息。
                 this.siloMessageCenter.SetHostedClient(this);
 
-                // 开始抽水信息
+                // 开始处理消息循环。
                 this.Start();
                 return Task.CompletedTask;
             }
@@ -426,13 +426,13 @@ namespace Orleans.Runtime
 
         public void Rehydrate(IRehydrationContext context)
         {
-            // 移民得不到支持,但是如果有背景情况的话,我们需要处理它。
+            // 不支持迁移，但如果提供了上下文，则需要释放它。
             (context as IDisposable)?.Dispose();
         }
 
         public void Migrate(Dictionary<string, object>? requestContext, CancellationToken cancellationToken)
         {
-            // 移民得不到支持,什么都不要做:合同是这种方式试图移徙,但不能保证移徙会发生。
+            // 不支持迁移。不执行任何操作：契约规定此方法会尝试迁移，但不保证迁移一定发生。
         }
 
         [LoggerMessage(

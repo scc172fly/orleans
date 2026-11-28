@@ -14,16 +14,16 @@ namespace Documentation.Grains.DurableTasks;
 [GenerateSerializer, Immutable]
 public sealed record ChargeResult(string ChargeId, decimal Amount);
 
-// 代理支付提供者的客户,如Strake的客户,该客户用一通权钥匙重复请求。
+// 模拟支付提供程序客户端（例如 Stripe 的客户端），该客户端根据幂等键对请求去重。
 public interface IPaymentProvider
 {
     Task<ChargeResult> ChargeAsync(string customerId, decimal amount, string idempotencyKey, CancellationToken cancellationToken);
 }
 
-// 服务提供人拒绝了这项指控,例如因为卡被拒。重新尝试返回相同的拒绝。
+// 提供程序拒绝扣款，例如银行卡被拒付。重试返回相同的拒绝结果。
 public sealed class PaymentDeclinedException(string reason) : Exception(reason);
 
-// 供应商现在无法处理请求,例如因为利率限制或停电。
+// 提供程序当前无法处理请求，例如由于速率限制或服务中断。
 public sealed class PaymentUnavailableException(TimeSpan? retryAfter) : Exception("The payment provider is unavailable.")
 {
     public TimeSpan? RetryAfter { get; } = retryAfter;
@@ -31,7 +31,7 @@ public sealed class PaymentUnavailableException(TimeSpan? retryAfter) : Exceptio
 // </durable_tasks_payment_provider>
 
 // <durable_tasks_charge_outcome>
-// 一步返回工作流程处理的结果作为值,重放时会看到相同的结果。
+// 步骤以值的形式返回工作流需要处理的结果，因此重放观察到相同结果。
 [GenerateSerializer, Immutable]
 public sealed record ChargeOutcome(ChargeResult? Charge, string? DeclineReason, TimeSpan? RetryAfter)
 {
@@ -53,8 +53,8 @@ public interface ICheckoutGrain : IGrainWithGuidKey
 public sealed class CheckoutGrain(IPaymentProvider payments) : DurableGrain, ICheckoutGrain
 {
     // <durable_tasks_idempotency_key>
-    // grain、 任务编号及其化身在每次重放和每次重试中都识别了此运行。
-    // 名称区分了运行的外部请求。
+    // Grain、任务 ID 及运行世代标识在每次重放和重试中唯一标识本次运行。操作的
+    // 名称用于区分本次运行的不同外部请求。
     private string IdempotencyKey(string operation) =>
         $"{this.GetGrainId()}/{DurableTask.Current.Id}/{DurableTask.Current.Incarnation:N}/{operation}";
     // </durable_tasks_idempotency_key>
@@ -65,8 +65,8 @@ public sealed class CheckoutGrain(IPaymentProvider payments) : DurableGrain, ICh
         var key = IdempotencyKey("charge");
         var outcome = await DurableTask.Run(async cancellationToken =>
         {
-            // 将步内短的、短暂的失败重试。 每次尝试都发送相同的密钥, 所以提供者
-            // 包括重复步骤的企图。
+            // 在步骤内重试短暂的瞬时故障。每次尝试发送相同的键，因此提供程序
+            // 只扣款一次，无论多少次尝试到达它，包括步骤重放时重复的尝试。
             for (var attempt = 1; ; attempt++)
             {
                 try
@@ -99,7 +99,7 @@ public sealed class CheckoutGrain(IPaymentProvider payments) : DurableGrain, ICh
         var deadline = DurableTask.Current.UtcNow.AddHours(6);
         while (true)
         {
-            // 每一次尝试都是一步,“充电”、“充电2美元”等等, 每一个尝试都发出同样的钥匙。
+            // 每次尝试都是一个步骤，分别为 "charge"、"charge$2" 等，均发送相同的键。
             var outcome = await DurableTask.Run(async cancellationToken =>
             {
                 try
@@ -118,7 +118,7 @@ public sealed class CheckoutGrain(IPaymentProvider payments) : DurableGrain, ICh
 
             if (outcome.RetryAfter is not { } retryAfter)
             {
-                // 被充斥或拒绝:卡片停留下降,所以工作流程不会重试。
+                // 扣款成功或被拒绝：被拒付的银行卡仍为拒付状态，因此工作流不会重试。
                 return outcome.Charge;
             }
 
@@ -127,7 +127,7 @@ public sealed class CheckoutGrain(IPaymentProvider payments) : DurableGrain, ICh
                 throw new TimeoutException("The payment provider stayed unavailable for six hours.");
             }
 
-            // 长期延误: grain 可在等待期间停止使用,工作流程在延迟到期时恢复。
+            // 持久化延迟：等待期间 Grain 可以停用，并在延迟到期时恢复工作流。
             await DurableTask.Delay(retryAfter).WithId("charge-backoff");
         }
     }
@@ -138,10 +138,10 @@ public sealed class CheckoutGrain(IPaymentProvider payments) : DurableGrain, ICh
 [GenerateSerializer, Immutable]
 public sealed record ShipmentRecord(Guid OrderId, string Carrier, string TrackingNumber);
 
-// 用于连接数据库的数据存取层。
+// 模拟关系数据库之上的数据访问层。
 public interface IShipmentStore
 {
-    // 冲突(行动)上没有做任何:重复写作,使用同样的操作ID,不会改变任何东西。
+    // INSERT ... ON CONFLICT (operation_id) DO NOTHING：使用相同操作 ID 重复写入不会造成任何变化。
     Task UpsertAsync(string operationId, ShipmentRecord shipment, CancellationToken cancellationToken);
 
     Task<ShipmentRecord?> FindAsync(Guid orderId, CancellationToken cancellationToken);
@@ -158,14 +158,14 @@ public sealed class ShipmentGrain(IShipmentStore store) : DurableGrain, IShipmen
     {
         var orderId = this.GetPrimaryKey();
 
-        // 一步一步读取:工作流程从记录行决定,因此重播要遵循相同的路径。
+        // 在步骤中读取：工作流根据已记录的行作出决定，因此重放采用相同路径。
         var existing = await DurableTask.Run(ct => store.FindAsync(orderId, ct)).WithId("find");
         if (existing is not null)
         {
             return existing;
         }
 
-        // 以任务产生的 ID 键入的写作,因此重放重复的写作不会改变任何东西。
+        // 使用任务派生的 ID 作为写入键，因此重放重复执行的写入不会产生变化。
         var shipment = new ShipmentRecord(orderId, carrier, trackingNumber);
         var operationId = $"{this.GetGrainId()}/{DurableTask.Current.Id}/{DurableTask.Current.Incarnation:N}/insert";
         await DurableTask.Run(ct => store.UpsertAsync(operationId, shipment, ct)).WithId("insert");
@@ -183,7 +183,7 @@ public interface IShipmentRequestGrain : IGrainWithGuidKey
     DurableTask<bool> HandleAsync(ShipmentRequested request);
 }
 
-// 应用程序在数据库发箱表格中承诺与自更改相同交易的行。
+// 应用程序在提交自身变更的同一个事务中，将此行提交到数据库发件箱表。
 public sealed record OutboxRow(long Id, ShipmentRequested Request);
 
 public interface IOutboxTable
@@ -199,8 +199,8 @@ public sealed class OutboxRelay(IClusterClient client, IOutboxTable outbox)
     {
         foreach (var row in await outbox.ReadPendingAsync(100, cancellationToken))
         {
-            // 列的 ID 标识任务, 即一个中继器, 其在 MarkSentAsync 前崩溃并再次发送行
-            // 完成相同的任务, 任务只运行一次 。
+            // 该行的 ID 用作任务名称，因此在 MarkSentAsync 之前崩溃并再次发送此行的中继
+            // 会到达同一个任务，该任务只运行一次。
             await client.GetGrain<IShipmentRequestGrain>(row.Request.OrderId)
                 .HandleAsync(row.Request)
                 .WithId($"outbox-{row.Id}")
@@ -224,8 +224,8 @@ public sealed class LabelPrinterGrain([FromKeyedServices("labels")] IDurableHttp
 {
     public async DurableTask<string> PrintLabelAsync(string address)
     {
-        // 步骤:其请求载有根据该步骤身份而得出的一个“相关性钥匙”文件,因此,它的请求含有重写或重录
-        // 第一步就完成了第一次尝试开始的工作。
+        // 一个步骤：其请求携带由此步骤标识派生的 Idempotency-Key，因此步骤的重试或重放
+        // 都会到达首次尝试启动的作业。
         var job = await labels.StartOperationAsync(() => new HttpRequestMessage(HttpMethod.Post, "labels")
         {
             Content = JsonContent.Create(new { address }),
@@ -233,15 +233,15 @@ public sealed class LabelPrinterGrain([FromKeyedServices("labels")] IDurableHttp
 
         try
         {
-            // 工作状况事件在记录结果的一步内阅读,并在一天后放弃。
-            // 逻辑时间。
+            // 在步骤中读取作业的状态事件，并由步骤记录结果；经过一天的
+            // 逻辑时间后放弃等待。
             var label = await labels.WaitForOperationAsync<LabelResult>(job, new() { Mode = DurableHttpWaitMode.Events })
                 .WaitAsync(TimeSpan.FromDays(1));
             return label.Url;
         }
         catch (Exception exception) when (exception is TimeoutException || DurableTask.Current.IsTaskCancellationRequested && exception is OperationCanceledException)
         {
-            // 取消远程任务, 然后让此任务结束超时或取消 。
+            // 取消远程作业，随后让当前任务以超时或取消状态结束。
             if (job.Location is { } location)
             {
                 await labels.CancelOperationAsync(location, DurableTask.Current.TaskCancellationReason ?? "The label wasn't printed within a day.").Shielded();
@@ -256,8 +256,8 @@ internal static class LabelPrinterConfiguration
 {
     internal static void ConfigureSilo(ISiloBuilder siloBuilder, Uri labelService)
     {
-        // 建设者添加的处理器,例如抗御能力处理器,跟随键处理器,进行重试
-        // 携带钥匙。
+        // 构建器添加的处理程序（例如弹性处理程序）位于幂等键处理程序之后，因此这些处理程序的重试
+        // 会携带该键。
         siloBuilder.Services.AddDurableHttpClient("labels")
             .ConfigureHttpClient(client => client.BaseAddress = labelService);
     }
@@ -279,9 +279,9 @@ internal static class ReturnEndpoints
         builder.Services.AddDurableHttp();
         var app = builder.Build();
 
-        // 每一个POST都开始 grain 调用,作为请求方在调用者姓名内所拨的主管官员-钥匙名称的一种行动。
-        // 其状况监测、事件、取消和信号
-        // /返回/{returnId}/行动/{id}。“返回”范围指作业,因此重新命名路线保留了它们。
+        // 每个 POST 都将 Grain 调用作为一个操作启动，该操作由请求的 Idempotency-Key 在调用方
+        // 作用域内命名；路由组在以下路径下提供其状态监视、事件、取消及信号：
+        // /returns/{returnId}/operations/{id}。作用域 "returns" 为操作命名，因此重命名路由不影响这些操作。
         var returns = app.MapGroup("/returns/{returnId}")
             .WithDurableOperations("returns")
             .RequireAuthorization("returns");
@@ -312,13 +312,13 @@ public sealed class PaymentWorkflowGrain(IDurableTaskManager tasks) : DurableGra
 
     public async DurableTask<bool> AwaitPaymentAsync(string chargeId)
     {
-        // 等待记录前的网络捕捉器, 等待立即返回。
+        // 提前到达的 Webhook 会被记录，之后开始等待时立即返回该 Webhook。
         var (received, confirmation) = await Confirmed.TryWaitAsync(DurableTask.Current.UtcNow.AddDays(1)).WithId("confirmation");
         return received && confirmation.Succeeded;
     }
 
-    // 由网络终端点调用, 以校验 Webhook 的签名。 一个提供同样事件的提供者再次发送
-    // 接受复制,终点确认其为被接受。
+    // 由已验证 Webhook 签名的 Web 端点调用。提供程序再次投递同一事件时
+    // 会收到 Duplicate，端点按 Accepted 的方式对此予以确认。
     public async Task<DurableSignalResult> OnPaymentWebhookAsync(PaymentConfirmation confirmation) =>
         await tasks.TrySignalAsync(WorkflowId(this.GetPrimaryKey()), Confirmed, confirmation);
 }
@@ -336,7 +336,7 @@ public sealed class FollowUpGrain : DurableGrain, IFollowUpGrain
     {
         try
         {
-            // 传送信号到目标接受它之前, 工作流量不会重试它 。
+            // Messaging 会重试投递启动请求，直到目标接受，因此工作流不需要重试。
             var survey = await GrainFactory.GetGrain<IExpenseGrain>(orderId)
                 .SubmitAsync(new ExpenseClaim("survey", 0))
                 .Detached($"survey-{orderId:N}")
@@ -345,12 +345,12 @@ public sealed class FollowUpGrain : DurableGrain, IFollowUpGrain
         }
         catch (DurableTaskConflictException)
         {
-            // 身份识别文件已经列出另一个请求,每次重试都达到相同的冲突。
+            // 此 ID 已为另一请求命名，每次重试都会遇到相同的冲突。
             return "conflict";
         }
         catch (DurableTaskDeliveryException)
         {
-            // 开始在Message的 OutboxRetryTimeout中未被接受 。
+            // 启动请求未在 Messaging 的 OutboxRetryTimeout 内被接受。
             return "undelivered";
         }
     }
@@ -374,8 +374,8 @@ public sealed class LedgerGrain : DurableGrain, ILedgerGrain
         _applied = StateManager.GetOrAddDictionary<string, decimal>("applied");
     }
 
-    // 一种普通的方法,在耐久任务之外打电话的人可以重新尝试:操作编号和信用承诺一起,
-    // 重试可以找到操作并返回其产生的平衡。
+    // 普通方法，可由持久化任务以外的调用方重试：操作 ID 与入账操作一同提交，
+    // 因此重试会找到该操作，并返回它产生的余额。
     public async Task<decimal> CreditAsync(string operationId, decimal amount)
     {
         if (_applied.TryGetValue(operationId, out var balance))

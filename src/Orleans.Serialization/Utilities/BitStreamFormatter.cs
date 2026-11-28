@@ -10,16 +10,16 @@ using System.Text;
 namespace Orleans.Serialization.Utilities
 {
     /// <summary>
-    /// 用于格式化编码的位流的工具, 以文字方式格式化 。
+    /// 用于将编码后的位流格式化为文本的实用工具。
     /// </summary>
     public static class BitStreamFormatter
     {
         /// <summary>
-        /// 格式化所提供的缓冲。
+        /// 格式化给定缓冲区。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
-        /// <returns>格式化输入。</returns>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
+        /// <returns>已格式化的输入。</returns>
         public static string Format<TInput>(ref Reader<TInput> reader)
         {
             var res = new StringBuilder();
@@ -28,11 +28,11 @@ namespace Orleans.Serialization.Utilities
         }
 
         /// <summary>
-        /// 格式化指定阵列。
+        /// 格式化指定数组。
         /// </summary>
         /// <param name="slice">数组。</param>
-        /// <param name="session">本届会议。</param>
-        /// <returns>格式化输入。</returns>
+        /// <param name="session">会话。</param>
+        /// <returns>已格式化的输入。</returns>
         public static string Format(PooledBuffer.BufferSlice slice, SerializerSession session)
         {
             var reader = Reader.Create(slice, session);
@@ -40,11 +40,11 @@ namespace Orleans.Serialization.Utilities
         }
 
         /// <summary>
-        /// 格式化指定阵列。
+        /// 格式化指定数组。
         /// </summary>
         /// <param name="array">数组。</param>
-        /// <param name="session">本届会议。</param>
-        /// <returns>格式化输入。</returns>
+        /// <param name="session">会话。</param>
+        /// <returns>已格式化的输入。</returns>
         public static string Format(byte[] array, SerializerSession session)
         {
             var reader = Reader.Create(array, session);
@@ -52,11 +52,11 @@ namespace Orleans.Serialization.Utilities
         }
 
         /// <summary>
-        /// 格式化指定缓冲。
+        /// 格式化指定缓冲区。
         /// </summary>
-        /// <param name="input">输入缓冲。</param>
-        /// <param name="session">本届会议。</param>
-        /// <returns>格式化输入。</returns>
+        /// <param name="input">输入缓冲区。</param>
+        /// <param name="session">会话。</param>
+        /// <returns>已格式化的输入。</returns>
         public static string Format(ReadOnlySpan<byte> input, SerializerSession session)
         {
             var reader = Reader.Create(input, session);
@@ -64,11 +64,11 @@ namespace Orleans.Serialization.Utilities
         }
 
         /// <summary>
-        /// 格式化指定缓冲。
+        /// 格式化指定缓冲区。
         /// </summary>
-        /// <param name="input">输入缓冲。</param>
-        /// <param name="session">本届会议。</param>
-        /// <returns>格式化输入。</returns>
+        /// <param name="input">输入缓冲区。</param>
+        /// <param name="session">会话。</param>
+        /// <returns>已格式化的输入。</returns>
         public static string Format(ReadOnlyMemory<byte> input, SerializerSession session)
         {
             var reader = Reader.Create(input, session);
@@ -76,11 +76,11 @@ namespace Orleans.Serialization.Utilities
         }
 
         /// <summary>
-        /// 格式化指定缓冲。
+        /// 格式化指定缓冲区。
         /// </summary>
-        /// <param name="input">输入缓冲。</param>
-        /// <param name="session">本届会议。</param>
-        /// <returns>格式化输入。</returns>
+        /// <param name="input">输入缓冲区。</param>
+        /// <param name="session">会话。</param>
+        /// <returns>已格式化的输入。</returns>
         public static string Format(ReadOnlySequence<byte> input, SerializerSession session)
         {
             var reader = Reader.Create(input, session);
@@ -88,11 +88,11 @@ namespace Orleans.Serialization.Utilities
         }
 
         /// <summary>
-        /// 格式化指定缓冲。
+        /// 格式化指定缓冲区。（译注：此重载的输入实际为 Stream。）
         /// </summary>
-        /// <param name="input">输入缓冲。</param>
-        /// <param name="session">本届会议。</param>
-        /// <returns>格式化输入。</returns>
+        /// <param name="input">输入流。</param>
+        /// <param name="session">会话。</param>
+        /// <returns>已格式化的输入。</returns>
         public static string Format(Stream input, SerializerSession session)
         {
             var reader = Reader.Create(input, session);
@@ -100,11 +100,11 @@ namespace Orleans.Serialization.Utilities
         }
 
         /// <summary>
-        /// 格式化指定缓冲。
+        /// 格式化指定缓冲区。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
-        /// <param name="result">目的字符串构建器。</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
+        /// <param name="result">目标字符串构建器。</param>
         public static void Format<TInput>(ref Reader<TInput> reader, StringBuilder result)
         {
             ArgumentNullExceptionPolyfill.ThrowIfNull(result);
@@ -118,7 +118,7 @@ namespace Orleans.Serialization.Utilities
             AppendAddress(ref reader, res);
             res.Append(indentString);
 
-            // 无法引用参考文献本身。
+            // 引用本身不能再被引用。
             if (field.WireType == WireType.Reference)
             {
                 ReferenceCodec.MarkValueField(reader.Session);
@@ -138,7 +138,7 @@ namespace Orleans.Serialization.Utilities
                 return;
             }
 
-            // 记录占位符,以便本字段在被引用时稍后可以正确取消其音量。
+            // 记录占位符，以便稍后在该字段被引用时能够正确反序列化它。
             ReferenceCodec.RecordObject(reader.Session, new UnknownFieldMarker(field, reader.Position));
             res.Append('[');
             FormatFieldHeader(res, reader.Session, field, id, typeName);
@@ -161,7 +161,7 @@ namespace Orleans.Serialization.Utilities
                     }
                     break;
                 case WireType.TagDelimited:
-                    // 由于标记的划定字段可以由其它字段组成,因此这些字段也相继消耗。
+                    // 由于标记分隔字段可能由其他字段组成，因此也要递归地消耗这些字段。
 
                     res.Append($"{{\n");
                     reader.FormatTagDelimitedField(res, indentation + 1);
@@ -276,7 +276,7 @@ namespace Orleans.Serialization.Utilities
         }
 
         /// <summary>
-        /// 占用了限定标签的字段。
+        /// 消耗由标记分隔的字段。
         /// </summary>
         private static void FormatTagDelimitedField<TInput>(this ref Reader<TInput> reader, StringBuilder res, int indentation)
         {

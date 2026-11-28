@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime.Messaging
 {
     /// <summary>
-    /// 表示连接失败 。
+    /// 指示连接失败。
     /// </summary>
     public class ConnectionFailedException : OrleansException
     {
@@ -18,7 +18,7 @@ namespace Orleans.Runtime.Messaging
         /// <summary>
         /// 初始化 <see cref="ConnectionFailedException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">电文。</param>
+        /// <param name="message">消息。</param>
         public ConnectionFailedException(string message) : base(message)
         {
         }
@@ -26,8 +26,8 @@ namespace Orleans.Runtime.Messaging
         /// <summary>
         /// 初始化 <see cref="ConnectionFailedException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">电文。</param>
-        /// <param name="innerException">内在的例外</param>
+        /// <param name="message">消息。</param>
+        /// <param name="innerException">内部异常。</param>
         public ConnectionFailedException(string message, Exception innerException) : base(message, innerException)
         {
         }
@@ -35,7 +35,7 @@ namespace Orleans.Runtime.Messaging
         /// <summary>
         /// 初始化 <see cref="ConnectionFailedException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">序列号信息。</param>
+        /// <param name="info">序列化信息。</param>
         /// <param name="context">上下文。</param>
         [Obsolete]
         protected ConnectionFailedException(SerializationInfo info, StreamingContext context) : base(info, context)

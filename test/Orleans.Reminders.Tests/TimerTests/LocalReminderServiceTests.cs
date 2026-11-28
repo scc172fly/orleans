@@ -179,7 +179,7 @@ public class LocalReminderServiceTests
             options.ReminderLoadingWindow = TimeSpan.FromMinutes(1);
         });
 
-        // AddReminders 必须具备无主能力:调用两次不能登记两次验证人。
+        // AddReminders 必须具备幂等性：调用两次不得重复注册验证器。
         services.AddReminders();
         services.AddReminders();
 
@@ -191,8 +191,8 @@ public class LocalReminderServiceTests
         Assert.Single(validators);
         Assert.IsType<ReminderOptionsValidator>(validators[0]);
 
-        // 无效配置必须通过解决 IConfigurationValidator而不是
-        // 直接构建 ReminderOptionsValidator 。
+        // 必须通过解析得到的 IConfigurationValidator 拒绝无效配置，而不是
+        // 直接构造 ReminderOptionsValidator。
         var exception = Assert.Throws<OrleansConfigurationException>(() =>
         {
             foreach (IConfigurationValidator resolvedValidator in validators)
@@ -649,7 +649,7 @@ public class LocalReminderServiceCompatibilityTests : IClassFixture<LocalReminde
         try
         {
             var refresh = reminderService.TestOnlyRefresh();
-            // 两次操作之间都保持调度器, 使第二个供应商大门在改变范围前被武装起来。
+            // 在两项操作之间暂停调度器，确保范围变更运行前已设置好第二个提供程序门控。
             reminderService.Scheduler.QueueTask(rangeChangeBarrier);
             rangeChangeBarrierQueued = true;
             var rangeChange = reminderService.TestOnlyChangeRange(oldRange, newRange, increased: false);
@@ -1210,7 +1210,7 @@ public class LocalReminderServiceCompatibilityTests : IClassFixture<LocalReminde
                 return gate.Task;
             }
 
-            // 模拟在返回值被附加非null 之前所编译的供应商二进制书。
+            // 模拟在返回值被标注为非 null 之前编译的提供程序二进制文件。
             return Task.FromResult<ReminderTableData>(null!);
         }
 

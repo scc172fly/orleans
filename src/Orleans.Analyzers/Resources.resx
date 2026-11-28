@@ -1,63 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
-    Microsoft ResX 气相 
+    Microsoft ResX Schema
     
-    2. 0版
+    Version 2.0
     
-    此格式的首要目标是允许简单的 XML 格式 
-    人类的创造和分裂 
-    各种数据类型通过 TypeConverter 类进行 
-    与数据类型相关联。
+    此格式的主要目标是提供简洁的 XML 格式，
+    使其大部分内容便于人工阅读。各种数据类型的
+    生成与解析通过与这些数据类型关联的 TypeConverter 类
+    完成。
     
-    示例:
+    示例：
     
-    ... ado.net/XML信头和计划...
+    ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
     <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
     <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-    <data name="Name1"><value>这是我的长字符串</value><comment>这是一份注释</comment></data>
-    <data name="Color1" type="System.Drawing.Color, System.Drawing">蓝色</data>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
     <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-        <value>[基准64米编码的序列 .NET 框架对象]</value>
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
     </data>
     <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-        <value>[基准64 MIME编码字符串,代表 .NET 框架对象的字节数组形式]</value>
-        <comment>这是一份注释</comment>
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
     </data>
                 
-    任何数行的“ 排头” 包含简单 
-    名称/价值对。
+    可以有任意数量的 "resheader" 行，其中包含简单的
+    名称/值对。
     
-    每个数据行包含一个名称和值。该行还包含 
-    类型对应于支持的 .NET 类 
-    通过 TypeConverter 结构转换文字/数值。 
-    无法支持的分类被序列化并存储在 
-    MIME类型设置 。
+    每个 data 行都包含 name 和 value，并带有
+    type 或 mimetype。type 对应一个 .NET 类，该类通过
+    TypeConverter 体系结构支持文本与值之间的转换。
+    不支持这种转换的类会先序列化，然后在设置
+    mimetype 后存储。
     
-    MIME类型用于序列化物体,并告诉 
-    ResXResourceReader 如何使对象的分解。 这目前不是 
-    可扩展。 对于给定的 MIME 类型, 数值必须相应设定:
+    mimetype 用于序列化后的对象，并告知
+    ResXResourceReader 如何还原已持久化的对象。此机制目前
+    不可扩展。对于给定的 mimetype，value 必须相应设置：
     
-    注 - 应用程序/x-microsoft.net.object.binary.base64 是格式 
-    和 ResXResourceWriter 将产生,但读者可以 
-    读取以下所列任何格式。
+    注意 - application/x-microsoft.net.object.binary.base64 是
+    ResXResourceWriter 生成的格式，但读取器可以
+    读取下列任意格式。
     
-    mime类型: 应用程序/ x -microsoft.net.object.binary.base64
-    值:对象必须用 
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : 对象必须使用
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
-            ,然后编码为64码
+            : 进行序列化，然后使用 base64 编码。
     
-    mime类型: 应用程序/ x -microsoft.net.object.soap.base64
-    值:对象必须用 
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : 对象必须使用
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-            ,然后编码为64码
+            : 进行序列化，然后使用 base64 编码。
 
-    mime类型: 应用程序/ x -microsoft.net.object.bytearray.base64
-    值:对象必须序列成字节数组 
-            :使用 System.ComponentModel.TypeConverter
-            ,然后编码为64码
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : 对象必须序列化为字节数组，
+            : 使用 System.ComponentModel.TypeConverter
+            : 然后使用 base64 编码。
     -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />

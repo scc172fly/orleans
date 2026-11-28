@@ -42,7 +42,7 @@ public class FirestoreMembershipTableTests : MembershipTableTestsBase, IClassFix
         return new FirestoreMembershipTable(this.loggerFactory, Options.Create(CreateClusteringOptions()), clusterOptions);
     }
 
-    // RunQuery 向每个回复信件的文档流转 。
+    // RunQuery 在每条响应消息中流式返回一个文档。
     protected override int ConformanceConcurrencyRowCount => 17;
 
     protected override MembershipTableTestFixture CreateConformanceFixture()
@@ -66,8 +66,8 @@ public class FirestoreMembershipTableTests : MembershipTableTestsBase, IClassFix
             },
             async (clusterId, cancellationToken) =>
             {
-                // 包括分组版本在内的任何文件都证明这一范围仍然有人在。
-                // 母“ Cluster” 文件是一个共享的头版, 不是集束所有的成员元数据 。
+                // 任何文档（包括集群版本文档）都证明此作用域仍包含数据。
+                // 父级 "Cluster" 文档是共享头部，不是该集群专有的成员资格元数据。
                 var snapshot = await probe.Collection(options.RootCollectionName)
                     .Document("Cluster")
                     .Collection(Utils.SanitizeId(clusterId))
@@ -152,7 +152,7 @@ public class FirestoreMembershipTableTests : MembershipTableTestsBase, IClassFix
             var entry = CreateMembershipEntry(address, version.Version);
             Assert.True(await table.InsertRowAsync(entry, version, TestContext.Current.CancellationToken));
 
-            // 使 ReadAllAsync 在监控行更改时消耗多条消息 RunQuery 流。
+            // 让 ReadAllAsync 在哨兵行发生变化时读取包含多条消息的 RunQuery 响应流。
             var storage = new FirestoreDataManager(
                 "Cluster",
                 Utils.SanitizeId(clusterId),

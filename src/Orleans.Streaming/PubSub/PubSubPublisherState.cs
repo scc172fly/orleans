@@ -12,25 +12,25 @@ namespace Orleans.Streams
     {
         public static MembershipVersion UnknownMembershipVersion => default;
 
-        // 重要!
-        // 这些字段必须是非公开的, 无法被读取, 以便 JsonSerialization 工作!
-        // 如果将其中任何一项修改为只读, 则执行可实现的 ISeal
+        // 重要！！！！！
+        // 为使 JsonSerialization 正常工作，这些字段必须为 public 且不能为 readonly！
+        // 如果将其中任何字段改为 readonly，则需实现 ISerializable。
         [JsonProperty]
         [Id(0)]
         public QualifiedStreamId Stream;
 
         [JsonProperty]
         [Id(1)]
-        public GrainId Producer; // 字段需要公开类型, 否则我们不会为该类生成 Orleans 序列器。
+        public GrainId Producer; // 此字段的类型必须为公开类型，否则不会为该类生成 Orleans 序列化器。
 
         [JsonProperty]
         [Id(2)]
-        // 旧状态有默认值, 因为此字段不存在。 MembershipVersion 被排除
-        // 重新登记可以推进其落实。
+        // 旧状态由于缺少此字段而具有默认值。MembershipVersion 不参与
+        // 相等性比较，以便重新注册时可以就地推进其版本。
         public MembershipVersion MembershipVersion;
 
-        // 建造者必须公开工作才能 JsonSerialization !
-        // 如果将其改为非公开,则可以实施
+        // 为使 JsonSerialization 正常工作，此构造函数必须为 public！
+        // 如果将其改为非 public，则需实现 ISerializable。
         public PubSubPublisherState(QualifiedStreamId streamId, GrainId streamProducer)
         {
             Stream = streamId;
@@ -40,12 +40,12 @@ namespace Orleans.Streams
         public override bool Equals([NotNullWhen(true)] object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
-            // 注:不能使用 PubSubPublisherState 上的“作为”运算符,因为它是一个类。
+            // 注意：不能对 PubSubPublisherState 使用 'as' 运算符，因为它是类。（译注：类是引用类型，实际可以使用 as 运算符；原文有误。）
             return obj is PubSubPublisherState && Equals((PubSubPublisherState)obj);
         }
         public bool Equals(PubSubPublisherState? other)
         {
-            return Equals(other!.Stream, other.Producer); // 保护遗产的无效行为。
+            return Equals(other!.Stream, other.Producer); // 保留旧版空引用解引用行为。
         }
         public bool Equals(QualifiedStreamId streamId, GrainId streamProducer)
         {
@@ -55,11 +55,11 @@ namespace Orleans.Streams
 
         public static bool operator ==(PubSubPublisherState? left, PubSubPublisherState? right)
         {
-            return left!.Equals(right); // 保护遗产的无效行为。
+            return left!.Equals(right); // 保留旧版空引用解引用行为。
         }
         public static bool operator !=(PubSubPublisherState? left, PubSubPublisherState? right)
         {
-            return !left!.Equals(right); // 保护遗产的无效行为。
+            return !left!.Equals(right); // 保留旧版空引用解引用行为。
         }
         public override int GetHashCode() => HashCode.Combine(Stream, Producer);
 

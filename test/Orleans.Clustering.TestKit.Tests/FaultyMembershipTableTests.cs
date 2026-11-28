@@ -213,7 +213,7 @@ public sealed class FaultyMembershipTableTests
                 writer = Write();
             }
 
-            // 加入实际操作,然后固定拆解,包括取消。
+            // 在测试夹具拆除之前等待实际操作结束，即使发生取消也是如此。
             await Task.WhenAll(readers.Cast<Task>().Append(writer));
             Assert.True(earlyReadersPending, $"{schedule}: the first operations must wait for their counterpart.");
             Assert.True(await writer);

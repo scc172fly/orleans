@@ -14,26 +14,26 @@ namespace Orleans.Durable.Tasks.Runtime;
 
 /// <remarks>
 /// <para>
-/// 信号表示援引的任务,该任务记录每个信号名称的第一个值,作为在
-/// 执行树: 孩子 <c>$signal:{name}</c>,其指纹是值的指纹,结果就是
-/// 值。记录承诺与交付该记录的更改一起进行,并随树删除,所以在树上每等一等,
-/// 包含重放中的等待, 观察相同值。 等值的信号是重复的, 和
-/// 具有不同值的数值,或用于本任务 grain 不得保留被援引的或没有它就属于终点
-/// 拒绝, 输入信箱在援引前发送的信号被记录为该引用。
+/// 信号寻址到被调用任务，该任务将每个信号名称的第一个值记录为其
+/// 执行树中的终态记录，即子记录 <c>$signal:{name}</c>；其指纹为值的指纹，其结果为该
+/// 值。记录随投递它的变更一起提交，并随执行树删除，所以执行树中的每次等待，
+/// 包括重放期间的等待，都观察到相同的值。值相等的信号是重复信号；若信号
+/// 携带不同的值，或者目标任务未由本 Grain 作为被调用任务保留，或者任务已处于终态且无该
+/// 记录，则信号被拒绝。收件箱先于调用投递的信号会为该调用保留记录。
 /// </para>
 /// <para>
-/// 记录一旦完成即完成等待。一个被废弃的等待,例如由于耐久取消或树
-/// 取消执行, 自行删除, 所以运行时间不会保留任何信号状态, 因为信号从未到达 。
+/// 等待在记录提交后完成。如果等待被放弃（例如持久化取消或执行树
+/// 删除取消了执行实例），则等待会自行移除，因此运行时不会为从未到达的信号保留状态。
 /// </para>
 /// </remarks>
 internal sealed partial class DurableTaskGrainRuntime
 {
-    // 执行树记录从"$"开始 所以信号记录不会与 明确命名的孩子相撞
+    // 执行树的记录以 '$' 开头，因此信号记录不会与显式命名的子任务发生冲突。
     private const string SignalSegmentPrefix = "$signal:";
     private const string SignalFingerprintPrefix = "$signal:";
     private const string SignalSendFingerprintPrefix = "$signal-send:";
 
-    // 等待尚未承诺的信号 通过信号记录
+    // 按信号记录索引的、尚未提交信号的等待操作。
     private readonly Dictionary<TaskId, List<TaskCompletionSource>> _signalWaits = [];
 
     public async ValueTask<(DurableTaskResponse Value, DateTimeOffset RecordedAt)> WaitForSignalAsync(
@@ -46,7 +46,7 @@ internal sealed partial class DurableTaskGrainRuntime
         var recordId = GetSignalRecordId(GetSignalOwner(executionId), name);
         while (true)
         {
-            // 象其他结果一样,在等待到来之前就作一个有阶段记录的记录。
+            // 与其他结果一样，暂存的记录会先提交，其等待操作随后才能观察到它。
             if (_storage.TryGetTask(recordId, out var record) && !_pendingHandleResponses.ContainsKey(recordId))
             {
                 Debug.Assert(record.CompletedAt.HasValue, "A signal record holds its value.");
@@ -78,7 +78,7 @@ internal sealed partial class DurableTaskGrainRuntime
         }
     }
 
-    /// <summary>完成一个已承诺值的信号记录的等待。</summary>
+    /// <summary>完成对信号记录的等待，该记录的值已经提交。</summary>
     private void CompleteSignalWaits(TaskId recordId)
     {
         if (_signalWaits.Count == 0 || !_signalWaits.Remove(recordId, out var waiters))
@@ -93,18 +93,18 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// 执行中从耐久处决发出信号,在处决时记录 <paramref name="markerId"/> 之下的发送
-    /// 树,等待日记写作,两者兼具。
+    /// 从持久化执行实例发送信号，将发送操作记录在 <paramref name="markerId"/> 下，位于该执行实例的
+    /// 执行树中，并等待提交两者的日志写入。
     /// </summary>
     /// <param name="throwOnRejection">
-    /// <see langword="true"/> 投键 grain任务拒绝信号,而不记录发送;否则
-    /// 标记拒绝, 操作返回后, 重放返回相同的结果 。
+    /// <see langword="true"/> 表示本 Grain 上的任务拒绝信号时抛出异常，而不记录发送操作；否则
+    /// 标记记录拒绝结果，操作返回该结果，所以重放返回相同的结果。
     /// </param>
     /// <remarks>
-    /// 此 grain 的信号直接在任务状态下发出;一个对另一个对另一个对另一个对 grain 的信号放在发件箱中,该发件箱
-    /// 目标的收件箱记录值或死字母, 拒绝信号, 所以发送报告
-    /// <see cref="DurableSignalResult.Accepted"/>。一个重放,到达标记的重放,再发出一无任何信号,而标记就是
-    /// 将执行树删除。
+    /// 发往本 Grain 的信号直接暂存在任务状态中；发往另一 Grain 的信号暂存在发件箱中，其
+    /// 目标的收件箱记录信号值，或将被拒绝的信号移入死信，因此发送操作会报告
+    /// <see cref="DurableSignalResult.Accepted"/>。到达标记的重放不会再次发送任何内容，标记随
+    /// 执行实例的执行树删除。
     /// </remarks>
     public async ValueTask<DurableSignalResult> SendSignalAsync(
         TaskId markerId,
@@ -121,8 +121,8 @@ internal sealed partial class DurableTaskGrainRuntime
         DurableSignalResult result;
         if (_storage.TryGetTask(markerId, out var recorded))
         {
-            // 标记标记的标识符识别符号指定目标、任务和信号, 所以发送的标记就是同一个操作
-            // 重播发送的值: 一个其序列价值不同地重复读取记录的结果。
+            // 标记的标识符包含目标、任务和信号，因此发送标记始终属于同一操作，
+            // 无论重放发送的值为何：即使重放的值以不同形式序列化，也会读取已记录的结果。
             if (recorded.Kind != DurableTaskRecordKind.SignalSend)
             {
                 throw CreateDivergenceException(
@@ -131,7 +131,7 @@ internal sealed partial class DurableTaskGrainRuntime
                     $"sending signal '{name}' to task '{taskId}' on grain '{target}'");
             }
 
-            // 标记与发送承诺,可能写在早期尝试仍在等待的一封信中。
+            // 标记随发送操作提交，可能发生在先前的执行尝试仍在等待的写入中。
             await WriteStateAsync(cancellationToken);
             result = ReadRecordedResult(markerId, recorded)!.Result is DurableSignalResult recordedResult ? recordedResult : DurableSignalResult.Accepted;
             if (throwOnRejection && CreateSignalRejection(taskId, name, result) is { } recordedRejection)
@@ -167,8 +167,8 @@ internal sealed partial class DurableTaskGrainRuntime
         return result;
     }
 
-    /// <summary>阶段通过收件箱接收信号,完成收件箱批次承诺后等待。</summary>
-    /// <returns><see langword="null"/> 当信号被接受或被拒绝时。</returns>
+    /// <summary>暂存通过收件箱接收的信号，在收件箱批次提交后完成对它的等待。</summary>
+    /// <returns><see langword="null"/> 表示信号已被接受；否则返回拒绝信号的原因。</returns>
     internal Exception? StageSignalFromInbox(TaskId taskId, string name, DurableTaskResponse value)
     {
         ThrowIfStopping();
@@ -214,16 +214,16 @@ internal sealed partial class DurableTaskGrainRuntime
         ArgumentNullException.ThrowIfNull(signal);
         var response = DurableTaskResponse.FromResult(value);
 
-        // 耐久执行记录发送, 所以它的重播不取决于目标的当前状态。
+        // 持久化执行记录发送操作，因此其重放不依赖目标的当前状态。
         return DurableTaskContext.TryGetCurrent(out var current) && current is GrainDurableTaskContext context
             ? context.SendSignalAsync(GrainId, taskId, signal.Name, response, throwOnRejection, cancellationToken)
             : SignalOwnTaskAsync(taskId, signal.Name, response, throwOnRejection, cancellationToken);
     }
 
-    /// 阶段<summary>, 即此 grain 任务的一个信号, 等待日记的写作。</summary>
+    /// <summary>暂存发往本 Grain 任务的信号，并等待提交该信号的日志写入。</summary>
     /// <remarks>
-    /// 重复还等待写入, 所以当操作完成时值是可持久的。 拒绝阶段
-    /// 空无所物,不抛下,不退回去。
+    /// 重复信号同样等待该次写入，因此操作完成时该值已持久化。拒绝信号不暂存
+    /// 任何内容，并根据情况抛出异常或返回拒绝结果。
     /// </remarks>
     private async ValueTask<DurableSignalResult> SignalOwnTaskAsync(
         TaskId taskId,
@@ -247,18 +247,18 @@ internal sealed partial class DurableTaskGrainRuntime
         return result;
     }
 
-    /// <summary>记录所援引任务信号的第一个值,不以书面形式。</summary>
+    /// <summary>记录被调用任务的信号的第一个值，但不执行写入。</summary>
     /// <param name="fromInbox">
-    /// <see langword="true"/> 当信号通过信箱传送时, 以便它能在请求之前发出。
+    /// <see langword="true"/> 表示信号通过收件箱投递，因此可以先于其调用到达。
     /// </param>
-    /// <returns>是否记录了信号,是重复的,或为什么拒绝;拒绝阶段没有。</returns>
+    /// <returns>返回信号是否已记录、是否为重复信号，或其被拒绝的原因；拒绝不暂存任何内容。</returns>
     /// <remarks>
-    /// 发送者可以进行一个呼吁和发出一个信号,用一个字来表示,发件人独立地发送。
-    /// 发送信号, 用于一项任务, 而不存储, 或只记录取消之前的
-    /// 因此,在援引之前记录了援引,而该援引在其树上发现。
-    /// 或,当无任何祈祷到达时,一旦
-    /// <see cref="DurableTaskGrainRuntimeShared.EarlyRecordRetention"/> 已过期,此后 grain 不再
-    /// 承认发信人在信号前作出的援引。
+    /// 发送方可以在一次写入中提交调用及发往该调用的信号，发件箱分别独立投递两者。
+    /// 因此，对于发往未存储任务的信号，或发往仅记录了先于其调用到达的取消请求的任务的信号，
+    /// 会先于调用记录；调用随后在自身执行树中找到该记录。该记录
+    /// 随执行树删除；若调用始终未到达，则在
+    /// <see cref="DurableTaskGrainRuntimeShared.EarlyRecordRetention"/> 指定的时长经过后删除，之后 Grain 不再
+    /// 接受发送方先于该信号暂存的调用。
     /// </remarks>
     private DurableSignalResult StageSignal(
         TaskId taskId,
@@ -302,14 +302,14 @@ internal sealed partial class DurableTaskGrainRuntime
         return DurableSignalResult.Accepted;
     }
 
-    /// <summary>返回任务是否记录信号值。</summary>
+    /// <summary>返回任务是否记录了信号值。</summary>
     private static bool IsSignalRecord(IDurableTaskState state) => state.Kind == DurableTaskRecordKind.SignalValue;
 
-    /// <summary>返回,当信号在被援引之前发出的信号被删除时,除非该信号到达。</summary>
+    /// <summary>返回先于调用到达的信号在调用未到达时的删除时间。</summary>
     private DateTimeOffset GetEarlySignalExpiry(IDurableTaskState record) =>
         AddSaturating(record.CreatedAt, _shared.EarlyRecordRetention);
 
-    /// <summary>创建例外,报告拒绝信号或返回所记录的 <see langword="null"/> 。</summary>
+    /// <summary>创建报告信号被拒绝的异常；对于已记录的信号，返回 <see langword="null"/>。</summary>
     private static Exception? CreateSignalRejection(TaskId taskId, string name, DurableSignalResult result) => result switch
     {
         DurableSignalResult.Conflict => new InvalidOperationException(
@@ -334,7 +334,7 @@ internal sealed partial class DurableTaskGrainRuntime
         }
     }
 
-    /// <summary>返回所引用的任务,其执行树含有 <paramref name="executionId"/>。</summary>
+    /// <summary>返回执行树包含 <paramref name="executionId"/> 的被调用任务。</summary>
     private TaskId GetSignalOwner(TaskId executionId)
     {
         for (var taskId = executionId; !taskId.IsDefault; taskId = taskId.Parent())

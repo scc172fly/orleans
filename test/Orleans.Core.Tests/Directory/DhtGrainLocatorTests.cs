@@ -11,7 +11,7 @@ using Xunit;
 namespace UnitTests.Directory
 {
     /// <summary>
-    /// 散装散列表 grain 定位功能的测试,包括 grain 未登记和批量操作。
+    /// 测试分布式哈希表 Grain 定位器的功能，包括 Grain 注销及批处理操作。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Directory")]
     [TestSuite("BVT")]

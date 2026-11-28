@@ -3,7 +3,7 @@ using Presence.Grains.Models;
 namespace Presence.Grains;
 
 /// <summary>
-/// 与特定游戏实例的接口, 该游戏有其自身的地位和玩家列表 。
+/// 某个具体游戏实例的接口，该实例有自己的状态和玩家列表。
 /// </summary>
 public interface IGameGrain : IGrainWithGuidKey
 {

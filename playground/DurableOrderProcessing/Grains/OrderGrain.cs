@@ -11,30 +11,30 @@ public interface IOrderGrain : IGrainWithGuidKey
 {
     Task<OrderDetails?> GetAsync();
 
-    // 将命令的从提交时起就流传到历史中,一旦命令船舶或取消,即告终止。
+    // 以流的形式提供自订单提交以来已提交的历史记录，并在订单发货或取消后结束。
     IAsyncEnumerable<OrderDetails> WatchAsync(CancellationToken cancellationToken);
 
-    // 命令工作流程,即POST/api/ords以操作命令({orderId}开始的流程。
+    // 订单工作流，由 POST /api/orders 以操作 orders/{orderId} 的形式启动。
     DurableTask<OrderResult> PlaceOrderAsync(PlaceOrder request);
 }
 
-// 命令处理管理器, 在 eShop的订单流后 :
-// 提交 - > (宽限期) - > AwaitingValidation - > StockConfirmed - > 已支付 - > 已装运,
-// 或当篮子空空、库存被拒、付款被拒绝或退出或买方取消时取消
-// 在命令支付之前
-// PlaceOrder 是一个耐久的任务。 停止后, 运行时间会从开始重弹: 完成儿童任务
-// 命令状态是它的历史:
-// 工作流程将当前快照保存在本地变量中, 从请求中计算每次过渡, 记录结果,
-// 和逻辑时间,并将新的快照附加到历史日志中,以记录效果 DurableTask.RunInline。
-// 并指定每买方更新效果, 以其过渡为名称, 因此重放会发现记录, 尽管取消和
-// 失败路径运行不同的操作,返回被记录的条目的序列而不附加
-// 买方再次取消订单,在支付之前取消其经营,并发送
-// 操作的发运信号
+// 遵循 eShop 订单流程的订单流程管理器：
+// Submitted（已提交）->（宽限期）-> AwaitingValidation（等待验证）-> StockConfirmed（库存已确认）-> Paid（已支付）-> Shipped（已发货），
+// 或在购物车为空、库存预留被拒绝、支付被拒绝或超时，或者买家在
+// 支付完成前取消订单时进入 Cancelled（已取消）状态。
+// PlaceOrder 是一个持久化任务。Grain 停用后，运行时从头重放该任务：已完成的子任务
+// 返回其记录的结果，使工作流从之前停止的位置继续运行。订单状态由其历史记录表示：
+// 工作流将当前快照保存在局部变量中，根据请求、记录的结果和
+// 逻辑时间计算每次状态转换，并在已记录效果 DurableTask.RunInline 中将新快照追加到历史日志。每个
+// 效果及每次买家状态更新都以相应的状态转换命名，因此即使取消和失败路径执行的操作不同，重放也能找到相应记录，
+// 并返回记录条目的序列号，而不必将该条目
+// 再次追加。订单支付前，买家通过取消该操作来取消订单；发货则通过发送
+// 该操作的 shipped 信号完成。
 public sealed class OrderGrain : DurableGrain, IOrderGrain
 {
     public const string PaymentsClient = "payments";
 
-    // 支付订单的工作流程等待这一信号,即POST/api/命令/操作/{orderId}/信号/发货发送的信号。
+    // 已支付订单的工作流等待此信号，由 POST /api/orders/operations/{orderId}/signals/shipped 发送。
     public static readonly DurableSignal<Shipment> Shipped = new("shipped");
 
     private readonly OrderingOptions _options;
@@ -54,8 +54,8 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
 
     public Task<OrderDetails?> GetAsync() => Task.FromResult(Latest);
 
-    // 读取激活的历史, 所以观察者观察每个快照一旦发生。
-    // 与订单的其他电话互连 所以观察者不会延迟工作流程
+    // 在激活实例上读取历史记录，因此观察者可以在每个快照提交后观察到它。枚举调用
+    // 与订单的其他调用交错执行，因此观察者不会延迟工作流。
     public async IAsyncEnumerable<OrderDetails> WatchAsync([EnumeratorCancellation] CancellationToken cancellationToken)
     {
         await foreach (var change in _history.ReadAsync(cancellationToken: cancellationToken))
@@ -78,8 +78,8 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
 
     public async DurableTask<OrderResult> PlaceOrderAsync(PlaceOrder request)
     {
-        // 篮子的物品。篮子运行了一次 要求完成这项任务, 所以重试或重放读取相同
-        // 线条,以及重新审阅的退票到达的命令不再需要其他项目。
+        // 取出购物车中的商品。购物车针对该任务只执行一次此调用，因此重试或重放会读取相同的
+        // 明细；结算重试再次到达同一订单时，不会再取走其他商品。
         var lines = await GrainFactory.GetGrain<IBasketGrain>(request.BuyerId).CheckoutAsync(OrderId).WithId("checkout");
         if (lines.Length == 0)
         {
@@ -90,9 +90,9 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         DurableTask.RunInline("submitted", () => _history.Append(order));
         Record(order.Order, "submitted");
 
-        // 直至命令被支付之前,取消其运作将取消这一任务。
-        // 并丢弃 OperationCanceledException,工作流程释放了审定可能使用的行
-        // 已经保留了。
+        // 在订单支付之前，取消其操作会取消此任务。下一次持久化操作观察到
+        // 取消请求后抛出 OperationCanceledException，工作流随后释放库存验证可能已经为订单明细
+        // 预留的库存。
         OrderLine[] reservable = [];
         try
         {
@@ -102,8 +102,8 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
             DurableTask.RunInline("validating", () => _history.Append(order));
             Record(order.Order, "validating");
 
-            // 保留每一行,作为儿童储备/0、储备/1等。 WhenAll 等待时间
-            // 保留,包括取消后的保留,因此每一行的保留在返回或抛出时即予解决。
+            // 并发预留每个订单行，子任务分别为 reserve/0、reserve/1 等。WhenAll 等待每个
+            // 库存预留，即使发生取消也是如此；因此该调用返回或抛出异常时，每项明细的预留操作都已结束。
             var confirmed = await lines.Select(line => Catalog(line.ProductId).ReserveAsync(OrderId, line.Units)).WhenAll().WithId("reserve");
             order = order.RecordStock(confirmed);
             if (Array.IndexOf(confirmed, false) is var rejected and >= 0)
@@ -114,8 +114,8 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
             DurableTask.RunInline("stock-confirmed", () => _history.Append(order));
             Record(order.Order, "stock-confirmed");
 
-            // 通常在取消后完成返回的保留意见保留,因此工作流程要检查之前的
-            // 授权付款。所记录的决定在第一次运行的路径上保留重播。
+            // 取消后，已经完成的库存预留仍然正常返回，因此工作流会在
+            // 授权支付前检查是否已请求取消。记录下来的决策使重放沿用首次运行所走的路径。
             if (DurableTask.RunInline("cancellation-check", () => DurableTask.Current.IsTaskCancellationRequested))
             {
                 throw new OperationCanceledException();
@@ -126,15 +126,15 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
             return await CancelOrderAsync(order, reservable, DurableTask.Current.TaskCancellationReason);
         }
 
-        // 授权在网关支付,并调查核准额,作为等待付款/0,直至完成或
-        // 取消、暂停或这些步骤的失败都放弃了
-        // 支付,因为批准申请可能到达网关,工作流程将取消支付。
+        // 在网关处发起支付授权，并以 await-payment/0 轮询该授权，直至授权完成或
+        // 超时步骤 await-payment/1 到期。这些步骤发生取消、超时或失败时，工作流放弃
+        // 此次支付，并撤销授权，因为授权请求可能已经到达网关。
         DurableHttpOperation? authorization = null;
         PaymentResult? payment = null;
         string? failure = null;
         try
         {
-            // 启动被屏蔽, 所以取消会让它完成, 而工作流程会学习无效授权 。
+            // 启动步骤受到取消屏蔽保护，因此取消请求不会阻止它完成，工作流由此获知要撤销的授权。
             authorization = await _payments.StartOperationAsync(() => CreateAuthorizationRequest(order, DurableTask.Current.Incarnation)).WithId("authorize-payment").Shielded();
             payment = await _payments.WaitForOperationAsync<PaymentResult>(authorization, new() { PollInterval = _options.PaymentPollInterval })
                 .WaitAsync(_options.PaymentTimeout)
@@ -150,9 +150,9 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // 任何其他故障,如无法进入的网关、复原力处理器超时或开路线路,或
-            // 取消的尝试会传播,所以下一次尝试重放
-            // 工作流程。
+            // 其他任何失败，例如网关无法访问、弹性处理器超时或熔断器处于断开状态，或者
+            // 响应无法解码，都会导致支付失败。执行尝试被取消时，取消会向外传播，因此下一次执行尝试将重放
+            // 工作流。
             failure = "Payment authorization failed.";
         }
 
@@ -172,8 +172,8 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         DurableTask.RunInline("paid", () => _history.Append(order));
         Record(order.Order, "paid");
 
-        // 定船,行军和等待发运的船 都蒙蔽了屏蔽,所以取消不会到达他们手中
-        // 等待货物的返回时间是较早之前运到的。
+        // 已支付的订单将发货：库存确认和等待发货的操作都受到取消屏蔽保护，因此取消不会传播到这些操作。
+        // 如果发货信号此前已到达，等待会立即返回。
         await lines.Select(line => Catalog(line.ProductId).CommitAsync(OrderId)).WhenAll().WithId("commit").Shielded();
         await Shipped.WaitAsync().Shielded();
         order = order.MarkShipped();
@@ -182,11 +182,11 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         return Result(order);
     }
 
-    // 命令在网关上公布,包括命令停止等待后完成的授权。
-    // 命令中未得知授权方的 批准位置,例如当启动响应丢失时,发送
-    // 键盘再次请求授权,网关以其记录的授权进行回复,或
-    // 并且将一个记录下来,而那(记录其中的律例)无效。请求是被遮蔽的,所以他们可以运行,尽管命令被撤销。
-    // 无法在网关上让授权到期,命令将被取消。
+    // 在网关处撤销订单的支付授权，包括订单停止等待后才完成的授权。如果
+    // 订单未获知其授权的地址，例如启动请求的响应丢失，则再次使用相同的键发送
+    // 授权请求。网关返回已记录的授权；如果此前未记录，则
+    // 新建一个授权，然后撤销该授权。请求受到取消屏蔽保护，因此即使订单已取消，仍然会执行。撤销操作
+    // 失败时，授权将在网关处过期；无论撤销是否成功，订单都会取消。
     private async Task VoidPaymentAsync(OrderDetails order, DurableHttpOperation? authorization, string reason)
     {
         try
@@ -202,10 +202,10 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         }
     }
 
-    // 创建命令授权请求。 它的“ 电子资产- Key ” 指定命令和工作流程运行, 所以每个
-    // 申请竞选许可,包括吊销命令所在地点授权的许可
-    // 保留了之后 命令工作流程的身份证
-    // 工作流程的每个步骤都报告工作流程的化身。
+    // 创建订单的授权请求。Idempotency-Key 标识订单及工作流的本次运行，因此
+    // 本次运行的所有授权请求，包括用于撤销订单尚未获知地址的授权的请求，
+    // 都会指向同一授权；在保留期结束后使用订单的工作流 ID 再次运行
+    // 则会重新授权。工作流的每个步骤都会报告其运行世代标识。
     private HttpRequestMessage CreateAuthorizationRequest(OrderDetails order, Guid incarnation)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "authorizations")
@@ -216,9 +216,9 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         return request;
     }
 
-    // 解脱线条同时释放保留, 然后记录取消。 解除是无能的返回
-    // 这条线是否保留,因此工作流程释放每一条线,而不跟踪保留是哪一条。
-    // 解封后会保护好, 所以结束工作流程的取消会让补偿工作顺利完成。
+    // 并发释放各订单明细的库存预留，然后记录取消状态。释放操作具有幂等性，并返回
+    // 该明细是否持有库存预留，因此工作流可以释放每项明细，而无需记录哪些预留已执行。
+    // 释放操作受到取消屏蔽保护，因此导致工作流结束的取消不会阻止此补偿操作运行至完成。
     private async Task<OrderResult> CancelOrderAsync(OrderDetails order, OrderLine[] lines, string? reason)
     {
         var released = await lines.Select(line => Catalog(line.ProductId).ReleaseAsync(OrderId)).WhenAll()
@@ -230,10 +230,10 @@ public sealed class OrderGrain : DurableGrain, IOrderGrain
         return Result(order);
     }
 
-    // 将买方预测更新作为单独任务,其根ID来自工作流程的ID和
-    // 更新的名称, 因此工作流程会继续而不等待买家, 更新运行独立于
-    // 工作流程。更新承诺在工作流程记录快照后,以工作流程下一期日记写方式进行
-    // 更新以任何订单方式送达;买方将摘要保存在最高版本。
+    // 将买家订单投影的更新作为分离任务投递，其根 ID 派生自工作流 ID 和
+    // 更新名称，因此工作流无需等待买家 Grain 即可继续，更新独立于
+    // 工作流执行。工作流将快照写入订单历史记录后，更新随工作流的下一次日志写入一起提交。
+    // 更新可能以任意顺序到达；买家 Grain 保留版本号最高的摘要。
     private void Record(OrderState order, string transition) =>
         _ = GrainFactory.GetGrain<IBuyerGrain>(order.BuyerId).RecordOrderAsync(order.ToSummary())
             .WithId($"record-{transition}")

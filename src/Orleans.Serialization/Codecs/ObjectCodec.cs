@@ -9,7 +9,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="object"/>的序列器。
+    /// <see cref="object"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class ObjectCodec : IFieldCodec<object>
@@ -19,12 +19,12 @@ namespace Orleans.Serialization.Codecs
         object IFieldCodec<object>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field)!;
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static object? ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
@@ -57,13 +57,13 @@ namespace Orleans.Serialization.Codecs
         void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] object value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
 
         /// <summary>
-        /// 写一个字段。
+        /// 写入一个字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="expectedType">预想的类型。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="expectedType">预期类型。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] object? value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -78,19 +78,19 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写一个字段。
+        /// 写入一个字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, object? value) where TBufferWriter : IBufferWriter<byte>
             => WriteField(ref writer, fieldIdDelta, null!, value);
 
         void IFieldCodec.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] object? value)
         {
-            // 只需要未输入的写器来支持实际对象类型值
+            // 只有无类型写入器才需要支持实际类型为 object 的值。
             if (value is null || value.GetType() == typeof(object))
             {
                 if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value!))
@@ -109,17 +109,17 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="object"/>的复印机。
+    /// <see cref="object"/> 的复制器。
     /// </summary>
     [RegisterCopier]
     public sealed class ObjectCopier : IDeepCopier<object>
     {
         /// <summary>
-        /// 创建所提供输入的深度副本。
+        /// 创建给定输入的深拷贝。
         /// </summary>
         /// <param name="input">输入。</param>
         /// <param name="context">上下文。</param>
-        /// <returns>一份 <paramref name="input" />.</returns>
+        /// <returns><paramref name="input" /> 的副本。</returns>
         [return: NotNullIfNotNull(nameof(input))]
         public static object? DeepCopy(object? input, CopyContext context)
         {

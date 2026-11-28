@@ -11,21 +11,21 @@ using Xunit;
 namespace UnitTests;
 
 /// <summary>
-/// 模拟 grain 存储提供者的测试。
+/// 测试内存 Grain 存储提供程序。
 /// 
-/// 内存存储供应商的特点:
-/// - 仅存储储存 grain 状态(不可耐用)
-/// - silo 重新启动时损失状态
-/// - 有助于发展、测试和缓存情景
-/// - 支持所有标准持久性作业(阅读、写、清除)
-/// - 多个已命名的实例可以配置
+/// 内存存储提供程序的特点：
+/// - 仅在内存中存储 Grain 状态（非持久化）。
+/// - Silo 重启时状态丢失。
+/// - 适用于开发、测试和缓存场景。
+/// - 支持所有标准持久化操作（Read、Write、Clear）。
+/// - 可以配置多个命名实例。
 /// 
-/// 这些测试核查内存存储正确执行
-/// IGrainStorage 接口和处理所有持续运行,
-/// 尽管存储在重新开始时不耐久。
+/// 这些测试验证内存存储能否正确实现
+/// IGrainStorage 接口并处理所有持久化操作，
+/// 尽管该存储不能跨重启持久保留数据。
 /// 
-/// 试验的继承 GrainPersistenceTestsRunner ,该试验规定
-/// 一套全面的持久性行为测试
+/// 这些测试继承 GrainPersistenceTestsRunner，它提供
+/// 一整套持久化行为测试。
 /// </summary>
 [TestCategory("Persistence"), TestCategory("Memory")]
 [TestSuite("Functional")]
@@ -39,8 +39,8 @@ public class MemoryGrainStorageTests : GrainPersistenceTestsRunner, IClassFixtur
         {
             public void Configure(ISiloBuilder hostBuilder)
             {
-                // 配置多个名为内存存储供应商
-                // Grains 可指定通过[StorageProvider属性使用哪个供应商
+                // 配置多个命名内存存储提供程序。
+                // Grain 可通过 [StorageProvider] 特性指定要使用的提供程序。
                 hostBuilder.AddMemoryGrainStorage("GrainStorageForTest")
                 .AddMemoryGrainStorage("test1")
                 .AddMemoryGrainStorage("MemoryStore");
@@ -56,8 +56,8 @@ public class MemoryGrainStorageTests : GrainPersistenceTestsRunner, IClassFixtur
     public MemoryGrainStorageTests(ITestOutputHelper output, Fixture fixture) : base(output, fixture)
     {
         fixture.EnsurePreconditionsMet();
-        // 内存存储不耐久 - 恢复时丢失状态
-        // 国旗让基准测试运行者跳过耐久性测试
+        // 内存存储不具备持久性，重启后状态丢失。
+        // 此标志通知基础测试运行器跳过持久性测试。
         IsDurableStorage = false;
     }
 }

@@ -7,9 +7,9 @@ using Xunit;
 namespace Orleans.TestingHost.Tests
 {
     /// <summary>
-    /// 测试 Orleans 主机(silo 或客户端)是否断存未结 grain- 当它
-    /// 关闭,所以飞行通话 观察一个终端结果 而不是永远吊死一次
-    /// 主机无法再接收回复 。
+    /// 测试 Orleans 宿主（Silo 或客户端）在关闭时是否使尚未完成的 Grain 调用回调失败，
+    /// 从而让正在进行的调用得到终止结果，而不是在
+    /// 宿主无法再接收响应之后无限挂起。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -19,10 +19,10 @@ namespace Orleans.TestingHost.Tests
         [Fact]
         public async Task StoppedClient_WithInFlightCall_FaultsInsteadOfHanging()
         {
-            // 客户端在飞行 grain 呼叫时被停止的客户端必须断开未结
-            // 用户关闭回拨时, 客户端关闭回调时
-            // 处理过期失效时间计时器,除非未回的回回调被明确错开
-            // 任务从来就没有完成。
+            // 客户端在有 Grain 调用正在进行时停止，必须使尚未完成的
+            // 请求失败，而非让调用方无限挂起。客户端关闭时，回调
+            // 超时计时器会被释放；因此，如果没有显式使未完成的回调失败，
+            // 等待中的任务就永远不会完成。
             var builder = new InProcessTestClusterBuilder(1);
             builder.ConfigureHost(hostBuilder => TestDefaultConfiguration.ConfigureHostConfiguration(hostBuilder.Configuration));
             await using var cluster = builder.Build();
@@ -31,7 +31,7 @@ namespace Orleans.TestingHost.Tests
             var key = Guid.NewGuid();
             var blocker = cluster.Client.GetGrain<IRemoteBlockerGrain>(key);
 
-            // 启动( 但不要等待) 呼叫该区块的 grain , 永远不回应 。
+            // 启动（但不等待）对一个会阻塞且始终不响应的 Grain 的调用。
             var pending = blocker.BlockUntilReleased();
             var followUp = RetryAfterFailure(pending, blocker);
             Assert.True(
@@ -41,10 +41,10 @@ namespace Orleans.TestingHost.Tests
                     TestContext.Current.CancellationToken),
                 "The blocking call was never entered.");
 
-            // 通话在飞行时停止客户
+            // 在调用仍在进行时停止客户端。
             await cluster.StopClusterClientAsync(TestContext.Current.CancellationToken);
 
-            // 等待的电话必须迅速过错,而不是绞刑。
+            // 挂起的调用必须及时失败，而不能一直挂起。
             var faulted = await Task.WhenAny(pending, Task.Delay(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken));
             Assert.True(faulted == pending, "Stopping the client should fault in-flight calls instead of hanging.");
             await Assert.ThrowsAnyAsync<Exception>(async () => await pending);

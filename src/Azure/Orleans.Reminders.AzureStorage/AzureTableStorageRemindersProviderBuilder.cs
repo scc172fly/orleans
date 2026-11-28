@@ -30,12 +30,12 @@ internal sealed class AzureTableStorageRemindersProviderBuilder : IProviderBuild
                 var serviceKey = configurationSection["ServiceKey"];
                 if (!string.IsNullOrEmpty(serviceKey))
                 {
-                    // 给客户取个名字
+                    // 按名称获取客户端。
                     options.TableServiceClient = services.GetRequiredKeyedService<TableServiceClient>(serviceKey);
                 }
                 else
                 {
-                    // 构造连接字符串中的连接多路驱动器。
+                    // 根据连接字符串构造连接多路复用器。（译注：此处实际创建 TableServiceClient。）
                     var connectionName = configurationSection["ConnectionName"];
                     var connectionString = configurationSection["ConnectionString"];
                     if (!string.IsNullOrEmpty(connectionName) && string.IsNullOrEmpty(connectionString))

@@ -4,8 +4,8 @@ using System.Text.RegularExpressions;
 namespace Orleans.BroadcastChannel
 {
     /// <summary>
-    /// <see cref="IChannelNamespacePredicate"/> 执行允许通过常规过滤流命名空间
-    /// 表达式。
+    /// <see cref="IChannelNamespacePredicate"/> 的实现，允许通过正则
+    /// 表达式筛选流命名空间。
     /// </summary>
     public class RegexChannelNamespacePredicate : IChannelNamespacePredicate
     {
@@ -13,14 +13,14 @@ namespace Orleans.BroadcastChannel
         private readonly Regex regex;
 
         /// <summary>
-        /// 返回用于描述此实例的图案。该图案将在每个节点上用 <see cref="IChannelNamespacePredicateProvider"/> 例进行解析。
+        /// 返回用于描述此实例的模式。该模式会由每个节点上的 <see cref="IChannelNamespacePredicateProvider"/> 实例解析。
         /// </summary>
         public string PredicatePattern => $"{Prefix}{regex}";
 
         /// <summary>
-        /// 创建有指定正则表达式的 <see cref="RegexChannelNamespacePredicate"/> 实例。
+        /// 使用指定的正则表达式创建 <see cref="RegexChannelNamespacePredicate"/> 实例。
         /// </summary>
-        /// <param name="regex">流名空间正则表达式。</param>
+        /// <param name="regex">流命名空间的正则表达式。</param>
         public RegexChannelNamespacePredicate(string regex)
         {
             if (regex is null) throw new ArgumentNullException(nameof(regex));

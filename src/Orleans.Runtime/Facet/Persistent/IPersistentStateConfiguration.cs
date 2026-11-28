@@ -2,21 +2,21 @@
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 持续状态配置 。
+    /// 持久化状态配置。
     /// </summary>
     /// <seealso cref="IPersistentState{TState}"/>
     public interface IPersistentStateConfiguration
     {
         /// <summary>
-        /// 得到国家的名字。
+        /// 获取状态名称。
         /// </summary>
-        /// <value>国家名称。</value>
+        /// <value>状态名称。</value>
         string StateName { get; }
 
         /// <summary>
-        /// 获取存储供应商的名称。
+        /// 获取存储提供程序名称。
         /// </summary>
-        /// <value>存储提供者的名称。</value>
+        /// <value>存储提供程序名称。</value>
         string? StorageName { get; }
     }
 }

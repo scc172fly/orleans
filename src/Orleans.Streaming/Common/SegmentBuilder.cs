@@ -5,24 +5,24 @@ using System.Runtime.InteropServices;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// 将数据编码为 ArraySegment的实用类。
+    /// 用于将数据编码到 ArraySegment 中的实用工具类。
     /// </summary>
     public static class SegmentBuilder
     {
         /// <summary>
-        /// 计算在段中附加提供的字节需要多少空间。
+        /// 计算将指定字节追加到内存段所需的空间。
         /// </summary>
         public static int CalculateAppendSize(ReadOnlySpan<byte> memory) => memory.Length + sizeof(int);
 
         /// <summary>
-        /// 计算在段中追加提供字符串需要多少空间。
+        /// 计算将指定字符串追加到内存段所需的空间。
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
         public static int CalculateAppendSize(string? str) => str is null ? sizeof(int) : str.Length * sizeof(char) + sizeof(int);
 
         /// <summary>
-        /// 在段末加上 <see cref="ReadOnlyMemory{T}"/> 字节的字节
+        /// 将包含字节的 <see cref="ReadOnlyMemory{T}"/> 追加到内存段末尾。
         /// </summary>
         /// <param name="writerOffset"></param>
         /// <param name="bytes"></param>
@@ -46,7 +46,7 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// 将字符串附加到段末
+        /// 将字符串追加到内存段末尾。
         /// </summary>
         /// <param name="writerOffset"></param>
         /// <param name="str"></param>
@@ -70,7 +70,7 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// 将段内的下一个项作为字节数组读取。对于性能,此项作为原段的一个子部分返回。
+        /// 将内存段中的下一个数据项作为字节数组读取。为提高性能，返回原内存段的子段。
         /// </summary>
         /// <returns></returns>
         public static ArraySegment<byte> ReadNextBytes(ArraySegment<byte> segment, ref int readerOffset)
@@ -87,7 +87,7 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// 将段内的下一个项目作为字符串读取。
+        /// 将内存段中的下一个数据项作为字符串读取。
         /// </summary>
         /// <returns></returns>
         public static string? ReadNextString(ArraySegment<byte> segment, ref int readerOffset)

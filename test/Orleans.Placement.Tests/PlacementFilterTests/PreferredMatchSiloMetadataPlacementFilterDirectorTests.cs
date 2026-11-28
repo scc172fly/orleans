@@ -9,7 +9,7 @@ using Xunit;
 namespace UnitTests.PlacementFilterTests;
 
 /// <summary>
-/// 首选匹配 silo 元数据配置过滤器主任行为测试。
+/// 测试优先匹配 Silo 元数据的放置过滤器决策器行为。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]

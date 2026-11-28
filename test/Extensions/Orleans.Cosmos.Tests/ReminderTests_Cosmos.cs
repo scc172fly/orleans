@@ -26,7 +26,7 @@ public sealed class ReminderServiceLifecycleTests_Cosmos
 }
 
 /// <summary>
-/// 试验 Orleans 使用提醒提醒功能 Azure 宇宙DB作为提醒服务支持商店
+/// 测试以 Azure Cosmos DB 为提醒器服务后备存储的 Orleans 提醒器功能。
 /// </summary>
 [TestProvider("Cosmos")]
 [TestArea("Reminders")]
@@ -113,7 +113,7 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
         fixture.EnsurePreconditionsMet();
     }
 
-    // 基本测试
+    // 基础测试
 
     [TestSuite("Functional")]
     [Fact, TestCategory("Functional")]
@@ -136,7 +136,7 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
         await Test_Reminders_Basic_ListOps(TestContext.Current.CancellationToken);
     }
 
-    // 单单合并测试... 多个 grain、多提醒
+    // 单次加入测试：多个 Grain、多个提醒器。
 
     [TestSuite("Functional")]
     [Fact, TestCategory("Functional")]
@@ -156,14 +156,14 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
     [Fact, TestCategory("Functional")]
     public async Task Rem_Azure_Basic()
     {
-        // 启动测试 grain ,并获得程序要使用的期间。
+        // 启动测试 Grain，并获取为其编程设定的周期。
         IReminderTestGrain2 grain = GrainFactory.GetGrain<IReminderTestGrain2>(Guid.NewGuid());
         TimeSpan period = await grain.GetReminderPeriod(DR);
-        // 启动“ DR” 提醒, 等待两个秒的通过 。
+        // 启动 'DR' 提醒器，等待两次触发。
         await grain.StartReminder(DR);
         long last = await WaitForReminderCounterAsync(grain, DR, () => grain.GetCounter(DR), 2, TestContext.Current.CancellationToken);
         Assert.Equal(2, last);
-        // 停止计时器,等待整个时间段。
+        // 停止计时器并等待一个完整周期。
         await StopReminderAndWaitForQuiescenceAsync(grain, DR, grain.StopReminder, TestContext.Current.CancellationToken);
         await AdvanceReminderTimeAsync(period, TestContext.Current.CancellationToken);
         long curr = await grain.GetCounter(DR);
@@ -187,7 +187,7 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
         Assert.Equal(last, curr);
         AssertIsInRange(curr, last, last + 1, grain, DR, sleepFor);
 
-        // 重新启动相同的提醒
+        // 再次启动同一个提醒器
         await grain.StartReminder(DR);
         sleepFor = period.Multiply(2);
         curr = await WaitForReminderCounterAsync(grain, DR, () => grain.GetCounter(DR), 2, TestContext.Current.CancellationToken);
@@ -242,7 +242,7 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
 
         await PrepareForGrainFailureAsync(cts.Token, g1);
 
-        // 二级中点 silo
+        // 停止次要 Silo
         await using (await PauseReminderTimeAsync(cts.Token))
         {
             var reminderOwner = GetReminderOwner(g1, DR);
@@ -274,7 +274,7 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
         IAddressable[] grains = [g1, g2, g3, g4, g5];
         await PrepareForGrainFailureAsync(cts.Token, grains);
 
-        // 停止一对夫妇 silos
+        // 停止两个 Silo
         await using (await PauseReminderTimeAsync(cts.Token))
         {
             log.LogInformation("Stopping 2 silos");
@@ -306,7 +306,7 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
         await PrepareForGrainFailureAsync(cts.Token, grains);
 
         var siloToKill = GetReminderOwner(g1, DR);
-        // 停止 silo 并平行加入新的
+        // 并行停止一个 Silo 并加入一个新的 Silo
         await using (await PauseReminderTimeAsync(cts.Token))
         {
             log.LogInformation("Stopping a silo and joining a silo");
@@ -330,7 +330,7 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
         Task<IGrainReminder>[] tasks = { promise1, promise2 };
         await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(15), TestContext.Current.CancellationToken);
         //Assert.NotEqual(promise1.Result, promise2.Result);
-        // TODO: 更改提醒时间的写测试
+        // TODO：编写改变提醒器周期的测试
     }
 
     [TestSuite("Functional")]
@@ -339,7 +339,7 @@ public class ReminderTests_Cosmos : ReminderTestsBase, IClassFixture<ReminderTes
     {
         IReminderTestGrain2 g1 = GrainFactory.GetGrain<IReminderTestGrain2>(Guid.NewGuid());
         IReminderTestCopyGrain g2 = GrainFactory.GetGrain<IReminderTestCopyGrain>(Guid.NewGuid());
-        TimeSpan period = await g1.GetReminderPeriod(DR); // 同期
+        TimeSpan period = await g1.GetReminderPeriod(DR); // 使用相同周期
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         cts.CancelAfter(ENDWAIT);
 

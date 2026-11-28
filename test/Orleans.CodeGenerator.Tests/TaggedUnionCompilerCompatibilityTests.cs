@@ -9,10 +9,10 @@ using static Orleans.CodeGenerator.Tests.TaggedUnionTestCompilation;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// 每个支持的编译者必须提供测试工会处理方式。
+/// 测试所有受支持编译器都必须提供的联合类型处理功能。
 /// </summary>
 /// <remarks>
-/// 网内8.0的测试运行在最老的Roslyn支持的发电机,没有工会标志API;网内10.00的测试运行在拥有这些标志的Roslyn的一台罗斯林。
+/// net8.0 测试在支持的最旧 Roslyn 版本（没有联合类型符号 API）上运行生成器；net10.0 测试在具有这些 API 的 Roslyn 版本上运行生成器。
 /// </remarks>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -90,7 +90,7 @@ public sealed class TaggedUnionCompilerCompatibilityTests
     [Fact]
     public void CustomUnionWithoutCompilerCaseTypesReportsDiagnostic()
     {
-        // 以字段顺序排列的自定义工会将写出不同于新编译者所制作的贴标签格式的格式。
+        // 按字段序列化的自定义联合类型会写出与较新编译器生成的带标记格式不同的格式。
         var (_, result) = Generate("""
             [System.Runtime.CompilerServices.Union, GenerateSerializer]
             public readonly struct CustomUnion : System.Runtime.CompilerServices.IUnion

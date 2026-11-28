@@ -1,32 +1,32 @@
 <a id="orleans-dashboard---separate-host-example"></a>
 
-# Orleans 键盘 - 单独主机
+# Orleans Dashboard - 独立宿主示例
 
-本示例显示如何将 Orleans 机头板作为单独的网络应用程序,作为客户连接到 Orleans 组群。
+此示例演示如何在独立 Web 应用程序中托管 Orleans Dashboard，该应用作为客户端连接 Orleans 集群。
 
 <a id="overview"></a>
 
-## 概述
+## 总览
 
-此方法将仪表板网络服务与您的 silos区分开来。
+此方式将 Dashboard Web 服务与 Silo 分离。
 
 <a id="key-features"></a>
 
-## 关键字属性
+## 主要特性
 
-- **独立进程**:Dashboard网络服务独立于 Orleans silos
-- **客户连接**:连接到 Orleans 以组为集合 Orleans 客户
-- **独立 Silo**:包括一个单独的 silo 证明东道主
-- **测试 Grains**:包括为仪表板生成活动而举行的测试 grains
+- **独立进程**：Dashboard Web 服务独立于 Orleans Silo 运行
+- **客户端连接**：作为 Orleans 客户端连接 Orleans 集群
+- **独立 Silo**：包含用于演示的独立 Silo 宿主
+- **测试 Grain**：包含用于产生 Dashboard 活动数据的测试 Grain
 
 <a id="how-it-works"></a>
 
-## 如何运作
+## 工作原理
 
-实例由两个组成部分组成:
+本示例由两个组件组成：
 
-1. **Silo 主机**:独立运行的独立 Orleans silo
-2. **达什板网页应用程序**:一个作为 Orleans 客户端连接并主持仪表板的网络应用程序
+1. **Silo 宿主**：独立运行的 Orleans Silo
+2. **Dashboard Web 应用**：作为 Orleans 客户端连接集群并托管 Dashboard 的 Web 应用程序
 
 <a id="running-the-example"></a>
 
@@ -36,20 +36,20 @@
 dotnet run
 ```
 
-申请将:
-1. 开始 Orleans silo 11111(港口港口和港口港 11111(silo和30000(起点)
-2. 启动仪表板网络应用程序
-3. 自动生成测试 grain 活动
+应用程序将：
+1. 在 11111（Silo）和 30000（网关）端口启动 Orleans Silo
+2. 启动 Dashboard Web 应用程序
+3. 自动产生测试 Grain 活动
 
-一旦运行, 将浏览器打开到默认端口( 通常为 https://localhost:5001 或 http://localhost:5000) 。
+启动后，在浏览器中访问默认端口（通常为 https://localhost:5001 或 http://localhost:5000 ）。
 
 <a id="code-walkthrough"></a>
 
-## 代码走过
+## 代码解读
 
 <a id="silo-host"></a>
 
-### Silo 主机
+### Silo 宿主
 
 ```csharp
 var siloHost = Host.CreateDefaultBuilder(args)
@@ -66,7 +66,7 @@ var siloHost = Host.CreateDefaultBuilder(args)
 
 <a id="dashboard-client"></a>
 
-### 仪表板客户
+### Dashboard 客户端
 
 ```csharp
 var dashboardBuilder = WebApplication.CreateBuilder(args);
@@ -92,7 +92,7 @@ await app.RunAsync();
 
 <a id="architecture"></a>
 
-## 建筑结构架构
+## 架构
 
 ```
 ┌─────────────────┐
@@ -112,11 +112,11 @@ await app.RunAsync();
 
 <a id="customization"></a>
 
-## 自定义
+## 自定义配置
 
 <a id="connect-to-remote-cluster"></a>
 
-### 连接到远程集
+### 连接远程集群
 
 ```csharp
 dashboardBuilder.UseOrleansClient(clientBuilder =>
@@ -141,7 +141,7 @@ app.MapOrleansDashboard(routePrefix: "/dashboard");
 
 <a id="add-authentication"></a>
 
-### 添加认证
+### 添加身份验证
 
 ```csharp
 app.MapOrleansDashboard().RequireAuthorization();
@@ -149,22 +149,22 @@ app.MapOrleansDashboard().RequireAuthorization();
 
 <a id="important-notes"></a>
 
-## 重要注释
+## 重要说明
 
 > [!WARNING]
-> Orleans 机头板的设计仅用于 **开发和测试情景**。不建议进行生产部署,因为其能对您的组群产生显著性能影响。
+> Orleans Dashboard **仅为开发和测试场景设计**。不建议用于生产部署，因为它可能对集群性能产生显著影响。
 
 <a id="related-examples"></a>
 
-## 相关实例
+## 相关示例
 
-- **DashboardCohosted**:显示如何在 silo内存放仪表板
-- **DashboardToy**:高级示例, .NET 临时整合
+- **DashboardCohosted**：演示如何在 Silo 内托管 Dashboard
+- **DashboardToy**：集成 .NET Aspire 的进阶示例
 
 <a id="learn-more"></a>
 
-## 学习更多
+## 了解更多
 
-- [Orleans 机布文档](../../../src/Dashboard/Orleans.Dashboard/README.md)
+- [Orleans Dashboard 文档](../../../src/Dashboard/Orleans.Dashboard/README.md)
 - [Orleans 客户端配置](https://learn.microsoft.com/dotnet/orleans/host/configuration-guide/client-configuration)
 - [Microsoft Orleans 文档](https://learn.microsoft.com/dotnet/orleans/)

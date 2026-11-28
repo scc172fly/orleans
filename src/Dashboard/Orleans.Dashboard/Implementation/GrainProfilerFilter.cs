@@ -81,7 +81,7 @@ internal sealed partial class GrainProfilerFilter(
             }
             catch
             {
-                // 如果参数类型不匹配, 则无法失败 。
+                // 参数类型不匹配时可能失败。
             }
         }
 

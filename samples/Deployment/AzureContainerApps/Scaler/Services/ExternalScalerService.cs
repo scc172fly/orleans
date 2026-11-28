@@ -33,13 +33,13 @@ namespace Scaler.Services
             long grainsPerSilo = (fnd.GrainCount > 0 && fnd.SiloCount > 0) ? (fnd.GrainCount / fnd.SiloCount) : 0;
             long metricValue = fnd.SiloCount;
 
-            // 缩(132 < 300)
+            // 缩容（132 < 300）。
             if (grainsPerSilo < upperbound)
             {
                 metricValue = fnd.GrainCount == 0 ? 1 : Convert.ToInt16(fnd.GrainCount / upperbound);
             }
 
-            // 缩放( 605 > 300)
+            // 扩容（605 > 300）。
             if (grainsPerSilo >= upperbound)
             {
                 metricValue = fnd.SiloCount + 1;

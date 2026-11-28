@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Orleans.Durable.Http.Tests;
 
-/// <summary>演习练习 <see cref="IDurableHttpClient"/>:启动、观察、信号和取消HTTP业务的持久任务。</summary>
+/// <summary>验证 <see cref="IDurableHttpClient"/>：用于启动、观察、发送信号和取消 HTTP 操作的持久化任务。</summary>
 [Collection(DurableHttpCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

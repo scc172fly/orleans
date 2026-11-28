@@ -9,15 +9,15 @@ namespace Orleans.Serialization.UnitTests
     class Derived : Base<int>;
 
     /// <summary>
-    /// 测试普通基级的序列行为。
+    /// 具有泛型基类的类型的序列化行为测试。
     /// 
-    /// Orleans 要求可连号类型必须明确标有[GenerateSerializer]。
-    /// 当基类为通用,并标记序列化时,则关闭的衍生类别
-    /// 通用类型参数不自动继承序列化能力
-    /// 除非也用标记标出[GenerateSerializer].
+    /// Orleans 要求使用 [GenerateSerializer] 显式标记可序列化类型。
+    /// 当泛型基类已标记为可序列化时，将其泛型类型参数具体化的派生类
+    /// 不会自动继承序列化能力，
+    /// 除非这些派生类本身也带有 [GenerateSerializer] 标记。
     /// 
-    /// 此测试校验序列器正确识别哪些类型可以序列
-    /// 依据明确的属性标识而不是继承。
+    /// 此测试验证序列化器能够正确识别哪些类型可以序列化，
+    /// 依据的是显式特性标记而非继承关系。
     /// </summary>
     [Trait("Category", "BVT")]
     [Trait("Suite", "BVT")]

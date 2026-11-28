@@ -16,7 +16,7 @@ internal sealed class LibraryTypes
     public static LibraryTypes FromCompilation(Compilation compilation, CodeGeneratorOptions options)
         => Cache.GetValue(compilation, static compilation => new LibraryTypes(compilation));
 
-    /// <summary>生成代码和复印机的每套序列化库类型拼写。</summary>
+    /// <summary>所有生成的编解码器和复制器所使用的序列化库类型的书写形式。</summary>
     internal Model.EmissionLibraryTypes EmissionTypes => field ??= Model.EmissionLibraryTypes.Create(this);
 
     private LibraryTypes(Compilation compilation)
@@ -360,7 +360,7 @@ internal sealed class LibraryTypes
 
         if (type is INamedTypeSymbol unionType && LanguageFeatureSymbols.IsUnion(type))
         {
-            // 复制回调可以取代甚至不可改变的联盟值, 因此呼叫者必须使用他们的复印机。
+            // 复制回调甚至可能替换不可变联合值，因此调用方必须使用它们的复制器。
             if (type.HasAttribute(SerializationCallbacksAttribute))
             {
                 return _shallowCopyableTypes[type] = false;
@@ -371,7 +371,7 @@ internal sealed class LibraryTypes
                 return _shallowCopyableTypes[type] = true;
             }
 
-            // 参照工会通过登记提供其复制政策,而不受该汇编者案例元数据的影响。
+            // 引用的联合类型通过注册提供其复制策略，不依赖此编译器的分支元数据。
             if (!type.HasAttribute(GenerateSerializerAttribute)
                 || !SymbolEqualityComparer.Default.Equals(type.ContainingAssembly, Compilation.Assembly))
             {
@@ -381,7 +381,7 @@ internal sealed class LibraryTypes
             visiting ??= new(SymbolEqualityComparer.Default);
             if (!visiting.Add(unionType.OriginalDefinition))
             {
-                // 递归案例图表需要深度复制,而不是共享其框框中的数值。
+                // 递归分支图需要深复制，而不是共享其装箱值。
                 return false;
             }
 

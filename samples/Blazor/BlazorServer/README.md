@@ -5,93 +5,93 @@ products:
 - dotnet
 - dotnet-orleans
 page_type: sample
-name: "Orleans ASP.NET Core Blazor Server sample"
+name: "Orleans ASP.NET Core Blazor Server 示例"
 urlFragment: "orleans-aspnet-core-blazor-server-sample"
-description: "举例来说 Orleans 使用Blazor和 ASP.NET 核心"
+description: "使用 Blazor 和 ASP.NET Core 的 Orleans 示例。"
 ---
 
 <a id="orleans-aspnet-core-blazor-server-sample"></a>
 
-# Orleans ASP.NET 核心Blazor服务器样本
+# Orleans ASP.NET Core Blazor Server 示例
 
-本样本演示如何整合 [ASP.NET 核心布拉佐](https://docs.microsoft.com/aspnet/core/blazor/)
-与 [Microsoft Orleans](https://docs.microsoft.com/dotnet/orleans/).
-此处显示浏览器 [Blazor 服务器主机模式](https://docs.microsoft.com/aspnet/core/blazor/hosting-models#blazor-server)。
+本示例演示如何将 [ASP.NET Core Blazor](https://docs.microsoft.com/aspnet/core/blazor/)
+与 [Microsoft Orleans](https://docs.microsoft.com/dotnet/orleans/) 集成。
+本示例演示浏览器中的 [Blazor Server 托管模型](https://docs.microsoft.com/aspnet/core/blazor/hosting-models#blazor-server)。
 
-应用程序利用 Orleans 流在浏览器会话之间提供实时同步。
+应用程序利用 Orleans Streams 在浏览器会话之间提供实时同步。
 
-应用程序基于 [官方官方教官](https://dotnet.microsoft.com/learn/aspnet/blazor-tutorial/intro),适合与 Orleans的整合。
+应用程序基于[官方教程](https://dotnet.microsoft.com/learn/aspnet/blazor-tutorial/intro)，并进行了调整以展示与 Orleans 的集成。
 
 <a id="sample-prerequisites"></a>
 
-## 抽样的前提条件
+## 示例先决条件
 
-本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
+本示例使用 C# 编写，目标框架为 .NET 10。需要 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本。
 
 <a id="building-the-sample"></a>
 
-## 建立样本
+## 构建示例
 
-下载和运行样本时,请遵循以下步骤:
+按照以下步骤下载并运行示例：
 
-1. 下载并解开样本的平面
-2. 视觉演播室(2022年或以后):
-    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
-    2. 打开解压后的示例目录，再打开其中的 C# 项目文件（`.csproj`）。
-    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 直接运行。
-3. 从命令行 :
-   1. 导航到持有未设偏移样本代码的文件夹 。
-   2. 在命令行,类型 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
+1. 下载并解压示例。
+2. 在 Visual Studio（2022 或更高版本）中：
+    1. 在菜单栏中选择 **文件** > **打开** > **项目/解决方案**。
+    2. 导航到存放已解压示例代码的文件夹，并打开 C# 项目（.csproj）文件。
+    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 在不调试的情况下运行项目。
+3. 从命令行运行：
+   1. 导航到存放已解压示例代码的文件夹。
+   2. 在命令行输入 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
 
 <a id="running-the-sample"></a>
 
-## 运行样本
+## 运行示例
 
-通过打开终端窗口运行样本,并在命令提示处执行以下操作:
+打开终端窗口，在命令提示符下执行以下命令以运行示例：
 
 ```dotnetcli
 dotnet run
 ```
 
-一旦应用程序似乎启动,您可以通过浏览器访问到 [http://localhost:5000/](http://localhost:5000/)。
+应用程序启动后，可通过 Web 浏览器访问 [http://localhost:5000/](http://localhost:5000/)。
 
-向该地址打开多个浏览器会话将显示在 *待办列表* 中文本不译。
+在多个浏览器会话中打开该地址，可以在*待办事项列表*演示中观察浏览器会话之间的实时同步。
 
 <a id="demos"></a>
 
 ## 演示
 
-客户端和服务器端应用程序展示相同的三个演示:
+客户端和服务器端应用均展示相同的三个演示：
 
 <a id="counter"></a>
 
-### 柜台
+### 计数器
 
-显示更新柜台的按钮。
-这在布拉佐里表明了基本逻辑。
-此演示不与 Orleans融合。
+显示一个用于更新计数器的按钮。
+这演示了 Blazor 中的基本逻辑。
+此演示不与 Orleans 集成。
 
 <a id="fetch-data"></a>
 
 ### 获取数据
 
-从 Orleans获取只读数据的页面。
+从 Orleans 获取只读数据的页面。
 
-应用程序来源于此数据来自 Orleans grain 生成 grain 通过 [`WeatherForecastService`](./Services/WeatherForecastService.cs) 类型。
+应用程序通过 [`WeatherForecastService`](./Services/WeatherForecastService.cs) 类型发起 Grain 调用，从 Orleans Grain 获取数据。
 
 <a id="todo-list"></a>
 
-### 待办列表
+### 待办事项列表
 
-管理待办事宜列表的页面 。
-允许创建、编辑和删除待办事宜项目。
+用于管理待办事项列表的页面。
+允许创建、编辑及删除待办事项。
 
-应用程序通过直接呼叫支持来管理这些数据 grains 中在 Orleans 组。
-应用程序通过 Orleans 流订阅对列表的个别修改。
-这样它就可以在从其他浏览器会话更改后,实时更新待办事宜列表。
-修改通过Blazor的基底 SignalR 基础设施实时完成并发送到浏览器。
+应用程序通过直接调用 Orleans 集群中提供支持的 Grain 管理这些数据。
+应用程序通过 Orleans Streams 订阅此列表中的各项变更。
+这使应用程序能够在其他浏览器会话发生变更时实时更新待办事项列表。
+变更通过 Blazor 底层的 SignalR 基础设施实时呈现并发送至浏览器。
 
-要显示实时服务器更新, 请打开多个浏览器窗口, 显示服务器端的待办事宜演示,
-然后从任何窗口对待办事宜列表进行修改。其他窗口将实时反映更新内容。
+要演示实时服务器更新，请打开多个显示服务器端待办事项演示的浏览器窗口，
+然后在任意窗口中修改待办事项列表。其他窗口会实时反映该更新。
 
-![截图](screenshot.png)
+![屏幕截图](screenshot.png)

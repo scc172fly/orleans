@@ -25,7 +25,7 @@ namespace Orleans.Runtime.MembershipService
         public const string START_TIME_PROPERTY_NAME = "StartTime";
         public const string I_AM_ALIVE_TIME_PROPERTY_NAME = "IAmAliveTime";
         internal const char Seperator = '-';
-        internal const string TABLE_VERSION_ROW = "VersionRow"; // 版本行的密钥范围 。
+        internal const string TABLE_VERSION_ROW = "VersionRow"; // 版本记录的排序键。
         public const string MEMBERSHIP_VERSION_PROPERTY_NAME = "MembershipVersion";
 
         public string DeploymentId { get; set; } = null!;

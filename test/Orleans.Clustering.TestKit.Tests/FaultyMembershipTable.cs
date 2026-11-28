@@ -155,7 +155,7 @@ internal sealed class FaultyMembershipTable(MembershipFaultController control, s
     {
         if (Fault == MembershipFault.IgnoreTableToken)
         {
-            // 将两个“不光彩的表牌”承诺连为一。
+            // 使故意引入的违规行为具有确定性：串行执行两次“忽略表令牌”的提交。
             lock (control.Backend.Sync)
             {
                 var current = inner.ReadAllAsync(cancellationToken).GetAwaiter().GetResult().Version.Next();
@@ -306,8 +306,8 @@ internal sealed class FaultyMembershipTable(MembershipFaultController control, s
         if (Fault == MembershipFault.TornCleanupReadAll)
         {
             var current = await inner.ReadAllAsync(ct);
-            // 死路过渡有一个核查,前面有两个基线
-            // 等清理完之后再看
+            // 在受门控的竞争开始之前，Dead 状态转换包含一次验证读取和两次基线读取。
+            // 阻塞后续读取者，直到清理操作已取得该视图。
             var racingRead = Volatile.Read(ref control.TornArmed) != 0
                 || (current.Members.Any(row => row.Item1.Status == SiloStatus.Dead)
                     && Interlocked.Increment(ref control.ReadsWithDeadTarget) > 3);
@@ -323,7 +323,7 @@ internal sealed class FaultyMembershipTable(MembershipFaultController control, s
         }
         if (Fault == MembershipFault.TornReadAll)
         {
-            // 最后插入核查,最后两个设置是:两句为:作者屏障之前两句圆边文字。
+            // 最后一次插入验证、两次最终初始化读取及两次轮次边界读取均发生在写入者屏障之前。
             var current = await inner.ReadAllAsync(ct);
             var fullReads = current.Version.Version == 5
                 ? Interlocked.Increment(ref control.ReadsAtFiveRows)

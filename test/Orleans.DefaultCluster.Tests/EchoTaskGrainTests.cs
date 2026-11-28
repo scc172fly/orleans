@@ -9,15 +9,15 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// 基本测试 grain 使用回声 grains.
-    /// Echo grains 是返回或处理其收到的输入的简单测试 grains 。
-    /// 这些测试核实了基本 Orleans 特征:
-    /// - 基本请求/答复通信
-    /// - 错误从 grains 传播到客户端
-    /// - 超时处理和恢复
-    /// -silo 交叉通信
-    /// - grain 方法中的阿斯辛/等待模式
-    /// - 跨越 grain 边界的可调用型号处理
+    /// 使用 Echo Grain 测试基本 Grain 通信模式。
+    /// Echo Grain 是简单的测试 Grain，它返回或处理接收到的输入。
+    /// 这些测试验证 Orleans 的基础功能：
+    /// - 基本请求与响应通信
+    /// - 错误从 Grain 传播至客户端
+    /// - 超时处理及恢复
+    /// - 跨 Silo 通信
+    /// - Grain 方法中的 async/await 模式
+    /// - 跨 Grain 边界的可空类型处理
     /// </summary>
     [TestArea("Runtime")]
     public class EchoTaskGrainTests : HostedTestClusterEnsureDefaultStarted
@@ -39,9 +39,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试基本 grain 参考创建。
-        /// 证明可不经激活获取 grain 参考文献。
-        /// 获取 grain 引用是一个与集不连接的本地操作 。
+        /// 测试基本 Grain 引用创建。
+        /// 验证无需激活即可获取 Grain 引用。
+        /// 获取 Grain 引用是无需与集群通信的本地操作。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -52,12 +52,12 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试基本 grain 方法,使用字符串回声。
-        /// 证明:
-        /// - Grain 第一次呼叫即启动
-        /// - 方法参数被正确排到 grain
-        /// - 返回值正确发送回信给客户
-        /// 这是对 grain 通信的最根本检验。
+        /// 使用字符串回显测试基本 Grain 方法调用。
+        /// 验证以下情况：
+        /// - 首次调用时发生 Grain 激活
+        /// - 方法参数被正确封送至 Grain
+        /// - 返回值被正确封送回客户端
+        /// 这是 Grain 通信最基本的测试。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -78,12 +78,12 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试例外从 grain 传播到客户端。
-        /// 证明所实行的例外情形 grain 方法为:
-        /// - 进行序列处理,并发回客户
-        /// - 以适当的例外类型包装
+        /// 测试异常从 Grain 传播至客户端。
+        /// 验证 Grain 方法引发的异常：
+        /// - 被序列化并发送回客户端
+        /// - 被包装为适当的异常类型
         /// - 包含原始错误消息
-        /// 这确保在分布式假设情景中正确处理错误。
+        /// 这确保分布式场景中的错误得到正确处理。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -96,7 +96,7 @@ namespace DefaultCluster.Tests.General
             Task<string> promise = grain.EchoErrorAsync(expectedEchoError);
             await promise.ContinueWith(t =>
             {
-                if (!t.IsFaulted) Assert.True(false); // EchoError 不应该成功完成
+                if (!t.IsFaulted) Assert.True(false); // EchoError 不应成功完成
 
                 Exception exc = t.Exception!;
                 while (exc is AggregateException) exc = exc.InnerException!;
@@ -106,12 +106,12 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 使用 ContinueWith 模式测试超时处理。
-        /// 证明:
-        /// - 长程 grain 方法,根据配置超时
-        /// - TimeoutException 扔得当
-        /// - 在预期时限内发生超时
-        /// 测试 Orleans防止挂号电话无限期中断的能力。
+        /// 测试使用 ContinueWith 模式处理超时。
+        /// 验证以下情况：
+        /// - 长时间运行的 Grain 方法根据配置发生超时
+        /// - 正确引发 TimeoutException
+        /// - 超时发生在预期的时间范围内
+        /// 此测试验证 Orleans 防止挂起的调用无限期阻塞的能力。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -121,7 +121,7 @@ namespace DefaultCluster.Tests.General
             var cancellationToken = TestContext.Current.CancellationToken;
             var grain = this.GrainFactory.GetGrain<IEchoTaskGrain>(Guid.NewGuid());
 
-            TimeSpan delay5 = TimeSpan.FromSeconds(30); // grain 呼叫超时(在配置中设置)
+            TimeSpan delay5 = TimeSpan.FromSeconds(30); // Grain 调用超时（在配置中设置）
             TimeSpan delay45 = TimeSpan.FromSeconds(45);
             TimeSpan delay60 = TimeSpan.FromSeconds(60);
             Stopwatch sw = new Stopwatch();
@@ -142,9 +142,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 使用 async/ wait 模式测试超时处理。
-        /// 类似超时,但使用现代合成/等待语法。
-        /// 验证适当的超时行为, 并使用等待错误处理 。
+        /// 测试使用 async/await 模式处理超时。
+        /// 与 Timeout_ContinueWith 类似，但使用现代 async/await 语法。
+        /// 验证基于 await 的错误处理能够正确应对超时。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -175,9 +175,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 使用 Task.Result (阻塞等候) 时测试超时处理 。
-        /// 证明超时工作是正确的,即使使用同步等待模式。
-        /// 注:这种模式一般不鼓励,但需要努力做到兼容。
+        /// 测试使用 Task.Result（阻塞等待）时的超时处理。
+        /// 验证即使使用同步等待模式，超时仍能正确工作。
+        /// 注意：通常不建议采用此模式，但出于兼容性考虑仍需支持。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -193,7 +193,7 @@ namespace DefaultCluster.Tests.General
             sw.Start();
             try
             {
-                // 请注意,这种方法有意使用 Task.Result。
+                // 注意，此方法故意使用 Task.Result。
                 int res = await Task.Run(() =>
                 {
 #pragma warning disable xUnit1031 // Do not use blocking task operations in test method
@@ -215,12 +215,12 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grain 多次调用时的状态持久性。
-        /// 证明:
-        /// - Grains 能够保持通话之间的状态
-        /// - 正确更新成功和错误案例的状态
-        /// - 最后一个值(或错误消息)是可检索的
-        /// 这表明基本有条不紊 grain 行为。
+        /// 测试跨多次调用的 Grain 状态保留。
+        /// 验证以下情况：
+        /// - Grain 可以在调用之间维护状态
+        /// - 成功及错误两种情况下，状态均得到正确更新
+        /// - 可以获取最近一次的值（或错误消息）
+        /// 这展示了有状态 Grain 的基本行为。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -250,7 +250,7 @@ namespace DefaultCluster.Tests.General
             Task<string> promise = grain.EchoErrorAsync(expectedEchoError);
             await promise.ContinueWith(t =>
             {
-                if (!t.IsFaulted) Assert.True(false); // EchoError 不应该成功完成
+                if (!t.IsFaulted) Assert.True(false); // EchoError 不应成功完成
 
                 Exception exc = t.Exception!;
                 while (exc is AggregateException) exc = exc.InnerException!;
@@ -266,9 +266,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 基本测试 grain 活性检查(平方英寸)。
-        /// 证明 grains 可以对简单的无参数调用作出反应。
-        /// 平方公尺操作有助于健康检查和保持 grains 的启动。
+        /// 测试基本 Grain 存活检查（ping）。
+        /// 验证 Grain 能响应简单的无参调用。
+        /// Ping 操作适用于健康检查及保持 Grain 激活。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -291,9 +291,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grain的本地调试能力 silo。
-        /// 验证内部...silo 通信时的通信 grain 与主机主机通信 silo.
-        /// 这一模式对 silo-一级健康检查和诊断非常有用。
+        /// 测试 Grain 对其本地 Silo 执行 ping 操作的能力。
+        /// 验证 Grain 与托管它的 Silo 进行通信的 Silo 内通信行为。
+        /// 此模式适用于 Silo 级健康检查和诊断。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -315,9 +315,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grain的按点特定远程 silos的能力。
-        /// 核证交叉silo 通信时的通信 grain 目标 silos.
-        /// 这显示了 Orleans将信息传送到特定组节点的能力。
+        /// 测试 Grain 对指定远程 Silo 执行 ping 操作的能力。
+        /// 验证 Grain 可以以特定 Silo 为目标的跨 Silo 通信。
+        /// 这展示了 Orleans 将消息路由至指定集群节点的能力。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -347,9 +347,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grain在组群中切换任何其他 silo 的能力。
-        /// 证明 grains 能够动态发现并与其他 silos 进行通信。
-        /// 这有助于分发健康检查和对群集地形的认识。
+        /// 测试 Grain 对集群中任意其他 Silo 执行 ping 操作的能力。
+        /// 验证 Grain 可以动态发现其他 Silo 并与之通信。
+        /// 这适用于分布式健康检查及集群拓扑感知。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -371,9 +371,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grain与集群成员互动的能力。
-        /// 证明 grains 可以查询并利用成员信息进行沟通
-        /// 这显示了 Orleans成员对成员资格的认识。
+        /// 测试 Grain 与集群成员资格交互的能力。
+        /// 验证 Grain 可以查询并使用成员资格信息，与
+        /// 其他集群成员通信。这展示了 Orleans 的成员资格感知能力。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -395,12 +395,12 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 在非再入状态 grains中测试各种合成/等待模式。
-        /// 证明屏蔽 grains 处理正确:
-        /// - 直接使用自动同步方法呼叫
-        /// - 链锁的断声调 (grain 呼叫 grain)
-        /// - 不同任务返回模式
-        /// 未重新输入 grains 一次处理一个消息 。
+        /// 测试不可重入 Grain 中的多种 async/await 模式。
+        /// 验证阻塞式 Grain 能正确处理：
+        /// - 直接异步方法调用
+        /// - 链式异步调用（Grain 调用 Grain）
+        /// - 不同的基于 Task 的返回模式
+        /// 不可重入 Grain 一次处理一条消息。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -410,7 +410,7 @@ namespace DefaultCluster.Tests.General
             IBlockingEchoTaskGrain g = this.GrainFactory.GetGrain<IBlockingEchoTaskGrain>(GetRandomGrainId());
 
             string received = await g.Echo(expectedEcho);
-            Assert.Equal(expectedEcho, received); // 回回回
+            Assert.Equal(expectedEcho, received); // Echo
 
             received = await g.CallMethodAV_Await(expectedEcho);
             Assert.Equal(expectedEcho, received); // CallMethodAV_Await
@@ -420,9 +420,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 在重新输入时测试各种合成/等待模式 grains。
-        /// 与 EchoTaskGrain_Await 相似,但可与可处理的重新entrant grains
-        /// 同时发送多个信件。 这将验证 Orleans的再存支持 。
+        /// 测试可重入 Grain 中的多种 async/await 模式。
+        /// 与 EchoTaskGrain_Await 类似，但采用可重入 Grain，可以
+        /// 并发处理多条消息。此测试验证 Orleans 的可重入性支持。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -432,7 +432,7 @@ namespace DefaultCluster.Tests.General
             IReentrantBlockingEchoTaskGrain g = this.GrainFactory.GetGrain<IReentrantBlockingEchoTaskGrain>(GetRandomGrainId());
 
             string received = await g.Echo(expectedEcho);
-            Assert.Equal(expectedEcho, received); // 回回回
+            Assert.Equal(expectedEcho, received); // Echo
 
             received = await g.CallMethodAV_Await(expectedEcho);
             Assert.Equal(expectedEcho, received); // CallMethodAV_Await
@@ -442,11 +442,11 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试跨越 grain 边界的无效类型处理。
-        /// 证明:
-        /// - 非null时,对无效值正确进行序列记录
-        /// - 妥善处理无效数值,并作为无效值返回
-        /// 这确保了 Orleans 正确处理 .NET 可无效值类型。
+        /// 测试跨 Grain 边界的可空类型处理。
+        /// 验证以下情况：
+        /// - 可空值非 null 时得到正确序列化
+        /// - null 值得到正确处理并以 null 返回
+        /// 这确保 Orleans 能正确处理 .NET 可空值类型。
         /// </summary>
         [TestSuite("BVT")]
         [TestProvider("None")]
@@ -472,7 +472,7 @@ namespace DefaultCluster.Tests.General
             Assert.Null(received);
         }
 
-        // 实用方法...
+        // ---------- 辅助方法 ----------
 
         private bool TimeIsLonger(TimeSpan time, TimeSpan limit)
         {

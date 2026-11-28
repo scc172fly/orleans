@@ -1,64 +1,64 @@
 ---
-title: "迁移 Orleans 合同身份"
-description: "在采用与时间不相符的身份分析时,将现有合同表和别名进行缩减并保持原用。"
+title: 迁移 Orleans 契约标识
+description: 采用与运行时一致的标识分析时，迁移现有契约清单和持久化别名。
 ms.date: 10/27/2026
 ms.topic: how-to
 ---
 
 <a id="migrate-orleans-contract-identities"></a>
 
-# 迁移 Orleans 合同身份
+# 迁移 Orleans 契约标识
 
-[合同兼容性分析器](../grains/grain-versioning/contract-compatibility-analyzer.md) 记录 Orleans所使用的身份:一个明确的 <xref:Orleans.Runtime.GrainInterfaceTypeAttribute>,否则是接口的 <xref:Orleans.AliasAttribute>,或者它的CLR名称用替代的别名代替含有型号的。
+[契约兼容性分析器](../grains/grain-versioning/contract-compatibility-analyzer.md) 记录 Orleans 实际使用的标识：优先采用显式的 <xref:Orleans.Runtime.GrainInterfaceTypeAttribute>，否则采用接口的 <xref:Orleans.AliasAttribute>，再否则采用其 CLR 名称（其中外围类型的名称以别名替换）。
 
-Orleans 10.4.0 生成的CLR(甚甚至对化名接口也生成了CLR)界面身份。 `OrleansContracts.txt` 身份验证还单独对使用含有新拒绝字符的别名的申请提出了运行时间兼容性要求。
+Orleans 10.4.0 即使对具有别名的接口，也会生成基于 CLR 的接口标识。升级到识别别名的分析方式时，需一次性审查已签入版本控制的 `OrleansContracts.txt` 条目。对于别名包含新规则所拒绝字符的应用程序，标识验证还引入了独立的运行时兼容性要求。
 
 <a id="migrate-a-1040-contract-manifest"></a>
 
-## 10.4.0合同清单
+## 迁移 10.4.0 契约清单
 
-在更改申请合同之前,对照最后部署的来源和配置进行基线迁移:
+在更改应用程序契约之前，针对最近一次部署的源码及配置执行基线迁移：
 
-1. 保存部署来源、合同清单及其身份配置的副本。
-2. 使用 <xref:Orleans.Metadata.GrainInterfaceTypeResolver.GetGrainInterfaceType*>解决每个受影响的接口部署的身份。 先检查明确的界面身份, 然后检查接口和包含型号别名。 审查自定义的身份提供者, 并配置了与应用程序运行时配置的别名 。
-3. 对于错误记录 CLR 名称的条目, 请用已核实部署的身份替换其记录的 `GrainInterfaceType` 值。 保存其 CLR 名称、 版本、 方法身份、 签名、 注释和退休状态 。
-4. 与更新的分析器一起构建, 并审查所有剩余的诊断。 在基准匹配了部署的身份后, 使用 [项目级再恢复命令](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest) 重新生成它, 并检查 diff 。
-5. 将基准更正与应用合同的更改分开提交。确认随后的别名更改会产生合同诊断结果。
+1. 保留已部署源码、契约清单及标识配置的副本。
+2. 使用 <xref:Orleans.Metadata.GrainInterfaceTypeResolver.GetGrainInterfaceType*> 解析每个受影响接口的已部署标识。先检查显式接口标识，再检查接口及外围类型的别名。结合应用程序运行时配置，审查自定义标识提供程序和配置的类型别名。
+3. 对错误记录 CLR 名称的条目，将记录的 `GrainInterfaceType` 值替换为已验证的部署标识。保留其 CLR 名称、版本、方法标识、签名、注释及退役状态。
+4. 使用更新后的分析器构建项目，并审查所有剩余诊断信息。基线与已部署标识一致后，使用[项目级重新生成命令](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest) 重新生成基线并审查差异。
+5. 将基线修正与应用程序契约变更分开提交。确认随后更改别名时会产生契约诊断信息。
 
-例如,如果部署的接口 `Contoso.ICounterGrain` 有别名 `counter`,请更正此条目:
+例如，如果已部署的接口 `Contoso.ICounterGrain` 的别名为 `counter`，将以下条目：
 
 ```text
 interface [GrainInterfaceType("Contoso.ICounterGrain")] Contoso.ICounterGrain [Version(2)]
   ping: Ping() -> Task
 ```
 
-至:
+修正为：
 
 ```text
 interface [GrainInterfaceType("counter")] Contoso.ICounterGrain [Version(2)]
   ping: Ping() -> Task
 ```
 
-这改变了记录的基准,以与部署的线性身份匹配。运行时间属性和数据保持不变。
+这样可使记录的基线与已部署的传输标识一致。运行时特性及持久化数据保持不变。
 
-重新生成未校正的 10.4.0 基线,可释放一个主动化名输入,并保留旧的以CLR为基础的输入为 `*RETIRED*`。这保守了记录的历史。对照部署的来源审查这些对子,以区分基准更正和实际身份替换。仅用目前的别名无法确定使用哪个别名来取代先前部署。
+重新生成未经修正的 10.4.0 基线时，会发出基于别名的有效条目，并将旧的基于 CLR 的条目保留为 `*RETIRED*`。这种保守方式保留了记录历史。结合已部署源码审查这些成对条目，以区分基线修正和实际标识替换。仅凭当前别名无法确定早期部署所使用的别名。
 
-对于仅包含 CLR 名称的遗留声明, 原始源类型可用时再生。 分析器可以解决嵌套类型并将身份记录在退休声明中。 当需要确定已退出声明的原嵌套或别名历史时, 恢复已部署的来源 。
+对于只包含 CLR 名称的旧声明，在原始源类型仍然可用时重新生成清单。这样分析器就可以解析嵌套类型，并在退役声明中记录其标识。需要确定退役声明的原始嵌套关系或别名历史时，请恢复当时已部署的源码。
 
 <a id="migrate-aliases-rejected-by-identity-validation"></a>
 
-## 身份验证拒绝使用的除役别名
+## 迁移被标识验证拒绝的别名
 
-[`ORLEANS0028`](../diagnostics/orleans0028.md) 验证 <xref:Orleans.AliasAttribute>、 <xref:Orleans.GrainTypeAttribute>和 <xref:Orleans.Runtime.GrainInterfaceTypeAttribute> 声明。在构建这些属性并登记配置的型号别名时,适用同样的规则:
+[`ORLEANS0028`](../diagnostics/orleans0028.md) 验证 <xref:Orleans.AliasAttribute>、<xref:Orleans.GrainTypeAttribute> 和 <xref:Orleans.Runtime.GrainInterfaceTypeAttribute> 声明。构造这些特性及注册配置的类型别名时，同样适用以下规则：
 
-- 使用含有无引号、空白空间、控制字符或保留类型名称分隔符的非空值(`[](),*&`).
-- 以回溯方式写通用性, 之后是 ASCII 在每个嵌套型名称结尾的十进制位数, 组合数最多为 64. 例如, ``Contoso.Outer`1+Inner`2`` 组合数为3。
+- 使用非空值，不得包含引号、空白字符、控制字符或保留的类型名称分隔符（`[](),*&`）。
+- 每个嵌套类型名称的末尾使用反引号后跟 ASCII 十进制数字表示泛型参数个数，总个数不超过 64。例如，``Contoso.Outer`1+Inner`2`` 的泛型参数总个数为 3。
 
-对于使用受影响长期存在别名的申请,在通过验证修改之前,使用兼容的 Orleans 版本完成数据迁移:
+对于具有受影响的持久化别名的应用程序，在采用验证规则变更之前，请使用兼容版本的 Orleans 完成数据迁移：
 
-1. 清单源身份和配置的别名,包括储存 grain 状态、流有效载荷和持续 grain 参考文献所用的名称。
-2. 选择有效的替换身份。使用在早期运行的应用程序特定迁移 Orleans 保存字段ID和应用状态,并记 grain 修改 grain 类型。
-3. 测试升级后的应用是否读取了每一个迁移的有效载荷,并能够构建其序列器和运行时间服务。 建立一个可读取重写数据的回滚结构 。
-4. 协调部署和交通的削减,以适应或协调已改变的区域通信委员会或 grain 使用 [部署和回滚指导](deployment-and-rollback.md).
+1. 盘点源代码标识和配置的别名，包括已存储 Grain 状态、流有效载荷及持久化 Grain 引用使用的名称。备份受影响的数据。
+2. 选择有效的替代标识。使用在较早 Orleans 版本上运行的应用程序专用迁移程序读取旧有效载荷，并以替代标识重写。保留字段 ID 和应用程序状态；更改 Grain 类型时，考虑 Grain 键、引用及存储寻址的影响。
+3. 验证升级后的应用程序可以读取每个迁移后的有效载荷，并能构造其序列化器及运行时服务。准备能够读取已重写数据的回滚构建版本。
+4. 使用[部署与回滚指南](deployment-and-rollback.md)，协调 RPC 或 Grain 标识变更的部署和流量切换。
 
-重命名源属性会改变未来身份; 重写现有有效载荷可以确定它们与新身份的兼容性。 在 `WellKnownTypeAliases` 中注册一个被拒绝的名称也会触发运行时间验证, 所以完成旧格式读取和早期运行时间 。
+重命名源码中的特性将更改未来使用的标识；重写现有有效载荷则使它们与新标识兼容。在 `WellKnownTypeAliases` 中注册被拒绝的名称同样会触发运行时验证，因此应使用较早运行时完成旧格式数据的读取。

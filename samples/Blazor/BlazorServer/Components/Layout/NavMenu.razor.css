@@ -99,10 +99,10 @@
     }
 
     .nav-scrollable {
-        /* 永远不要为宽屏幕而折叠侧边栏 */
+        /* 宽屏下始终保持侧边栏展开。 */
         display: block;
 
-        /* 允许侧边栏滚动高菜单 */
+        /* 菜单过长时允许侧边栏滚动。 */
         height: calc(100vh - 3.5rem);
         overflow-y: auto;
     }

@@ -164,10 +164,10 @@ namespace UnitTests.StorageTests
         }
 
         /// <summary>
-        /// 函数来执行控制命令。
+        /// 用于执行控制命令的函数。
         /// </summary>
-        /// <param name="command">命令的序列号。</param>
-        /// <param name="arg">一个不透明的命令参数</param>
+        /// <param name="command">命令的序号。</param>
+        /// <param name="arg">不透明的命令参数。</param>
         public override Task<object?> ExecuteCommand(int command, object? arg)
         {
             switch ((Commands)command)

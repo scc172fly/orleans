@@ -5,126 +5,126 @@ using Orleans.Runtime;
 namespace Orleans.Configuration;
 
 /// <summary>
-/// 配置激活重新分割的选项 。
+/// 激活实例重新分区的配置选项。
 /// </summary>
 public sealed class ActivationRepartitionerOptions
 {
     /// <summary>
     /// <para>
-    /// 重新分割回合中保留记忆中的边缘的最大边数。 边缘代表从一个 grain 对另一个。
+    /// 一轮重新分区期间在内存中保留的最大边数。每条边表示一个 Grain 调用另一个 Grain 的次数。
     /// </para>
     /// <para>
-    /// 如果这个数字是N,则并不意味着N启动将在重新分配后迁移。
-    /// 这也不意味着任何启动的排名都很高,在下一个周期中将排位高。
-    /// 在最极端的情况下, 迁移的激活次数将等于这个数目, 这样你就可以知道为此设定一个合理的价值。
+    /// 如果此值为 N，并不意味着一轮重新分区后会迁移 N 个激活实例。
+    /// 也不意味着本轮排名很高的激活实例在下一轮仍会排名很高。
+    /// 在最极端的情况下，迁移的激活实例数等于此值，因此可据此设置合理的数值。
     /// </para>
     /// </summary>
     /// <remarks>
-    /// 为了保存记忆,最重的链接是概率性记录,因此存在一个与此相关的内在错误。
-    /// 此错误与此值成反比, 因此不推荐低于100的数值。 如果您注意到系统没有快速融合, 请考虑增加这个数字 。
+    /// 为节省内存，权重最大的连接采用概率方式记录，因此存在固有误差。
+    /// 该误差与此值成反比，因此不建议使用小于 100 的值。如果系统收敛速度不够快，可考虑增大此值。
     /// </remarks>
     public int MaxEdgeCount { get; set; } = DEFAULT_MAX_EDGE_COUNT;
 
     /// <summary>
-    /// 默认值 <see cref="MaxEdgeCount"/>。
+    /// <see cref="MaxEdgeCount"/> 的默认值。
     /// </summary>
     public const int DEFAULT_MAX_EDGE_COUNT = 10_000;
 
     /// <summary>
-    /// 启动再分配回合的最小时间 。
+    /// 发起两轮重新分区之间的最短时间间隔。
     /// </summary>
-    /// <remarks>实际到期时间是随机选择的,在 <see cref="MaxRoundPeriod"/>.</remarks>
+    /// <remarks>实际触发时间在此值与 <see cref="MaxRoundPeriod"/> 之间随机选取。</remarks>
     public TimeSpan MinRoundPeriod { get; set; } = DEFAULT_MINUMUM_ROUND_PERIOD;
 
     /// <summary>
-    /// 默认值 <see cref="MinRoundPeriod"/>。
+    /// <see cref="MinRoundPeriod"/> 的默认值。
     /// </summary>
     public static readonly TimeSpan DEFAULT_MINUMUM_ROUND_PERIOD = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// 启动再分配回合之间的最大时间 。
+    /// 发起两轮重新分区之间的最长时间间隔。
     /// </summary>
     /// <remarks>
-    /// <para>实际到期时间是随机选择的,在 <see cref="MinRoundPeriod"/>.</para>
-    /// <para>为了取得最佳效果,您应力求将这一额外增加10秒乘以预期的上限 silo 组合中计数。</para>
+    /// <para>实际触发时间在此值与 <see cref="MinRoundPeriod"/> 之间随机选取。</para>
+    /// <para>为获得最佳效果，建议额外预留 10 秒乘以集群预计的最大 Silo 数量。</para>
     /// </remarks>
     public TimeSpan MaxRoundPeriod { get; set; } = DEFAULT_MAXIMUM_ROUND_PERIOD;
 
     /// <summary>
-    /// 默认值 <see cref="MaxRoundPeriod"/>。
+    /// <see cref="MaxRoundPeriod"/> 的默认值。
     /// </summary>
     public static readonly TimeSpan DEFAULT_MAXIMUM_ROUND_PERIOD = TimeSpan.FromMinutes(2);
 
     /// <summary>
-    /// 上一轮再分配后 silo 恢复的最低时间。
-    /// 直到这一时间过去,这个 silo 将不参加任何其他 silo的企图。
+    /// Silo 从上一轮重新分区恢复所需的最短时间。
+    /// 在此时间结束之前，该 Silo 不会参与其他 Silo 发起的重新分区尝试。
     /// </summary>
     public TimeSpan RecoveryPeriod { get; set; } = DEFAULT_RECOVERY_PERIOD;
 
     /// <summary>
-    /// 默认值 <see cref="RecoveryPeriod"/>。
+    /// <see cref="RecoveryPeriod"/> 的默认值。
     /// </summary>
     public static readonly TimeSpan DEFAULT_RECOVERY_PERIOD = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// 缓冲处未处理边缘的最大数量。 如果超过此数量, 则会丢弃最老的边缘 。
+    /// 缓冲区中尚未处理的边的最大数量。超过此值时，将丢弃最早的边。
     /// </summary>
     public int MaxUnprocessedEdges { get; set; } = DEFAULT_MAX_UNPROCESSED_EDGES;
 
     /// <summary>
-    /// 默认值 <see cref="MaxUnprocessedEdges"/>。
+    /// <see cref="MaxUnprocessedEdges"/> 的默认值。
     /// </summary>
     public const int DEFAULT_MAX_UNPROCESSED_EDGES = 100_000;
 
     /// <summary>
-    /// 获取或设置值,以显示是否启用本地顶点过滤器。此过滤器跟踪
-    /// 脊椎是分很细的(从当地宿主移走会有害),并粉碎
-    /// 成单数 /silo 减少跟踪涉及该顶端的边缘所需的空间的顶部。 结果
-    /// 准确性降低,但有可能大大提高重新分配者的效力,因为
-    /// 分布良好的边缘不会主宰顶层K级数据结构,留有足够的跟踪空间
-    /// 不带完全分隔的顶点。 这是默认启用的 。
+    /// 获取或设置是否启用本地顶点过滤器的值。该过滤器跟踪
+    /// 已合理分区的顶点（将它们移出本地主机会产生负面影响），并将它们合并
+    /// 为每个 Silo 对应的单个顶点，以减少跟踪涉及该顶点的边所需的空间。这样会
+    /// 降低精度，但可能显著提高重新分区器的有效性，因为
+    /// 已合理分区的边不会占据 Top-K 数据结构的主要空间，从而留出足够空间跟踪
+    /// 尚未合理分区的顶点。默认启用此功能。
     /// </summary>
     public bool AnchoringFilterEnabled { get; set; } = DEFAULT_ANCHORING_FILTER_ENABLED;
 
     /// <summary>
-    /// 默认值 <see cref="AnchoringFilterEnabled"/>。
+    /// <see cref="AnchoringFilterEnabled"/> 的默认值。
     /// </summary>
     public const bool DEFAULT_ANCHORING_FILTER_ENABLED = true;
 
     /// <summary>
-    /// <see cref="AnchoringFilterEnabled"/> 设为 <see langword="true"/>时允许的最大错误率,否则此值不适用。
+    /// 当 <see cref="AnchoringFilterEnabled"/> 设置为 <see langword="true"/> 时允许的最大误差率，否则此设置不适用。
     /// </summary>
-    /// <remarks>允许范围: [0.001 - 0.01](0.1% - 1%)</remarks>
+    /// <remarks>允许的范围：[0.001 - 0.01]（0.1% - 1%）。</remarks>
     public double ProbabilisticFilteringMaxAllowedErrorRate { get; set; } = DEFAULT_PROBABILISTIC_FILTERING_MAX_ALLOWED_ERROR;
 
     /// <summary>
-    /// 默认值 <see cref="ProbabilisticFilteringMaxAllowedErrorRate"/>。
+    /// <see cref="ProbabilisticFilteringMaxAllowedErrorRate"/> 的默认值。
     /// </summary>
     public const double DEFAULT_PROBABILISTIC_FILTERING_MAX_ALLOWED_ERROR = 0.01d;
 
     /// <summary>
     /// <para>
-    /// 确定保存锁定历史的时间长度。低代数可以让过滤器更新,但可能会忘记锁定 grains 的过快。
-    /// 高一代的统计保留了更长的历史,但增加了记忆的使用和饱和的风险。
+    /// 决定锚定历史的保留时间。较少的代数能保持过滤器数据更新，但可能过快地遗忘已锚定的 Grain。
+    /// 较多的代数可延长历史保留时间，但会增加内存占用和饱和风险。
     /// </para>
     /// <para>
-    /// 因为过滤器每轮的分化周期都精确衰减一次, 实际“冷” grain 固定在地上的时间直接与 
-    /// <see cref="MinRoundPeriod"/> 和 <see cref="MaxRoundPeriod"/>。 
-    /// 例如,在3代人违约和周期连续连续2-2分钟之间随机发射的情况下,a grain 完全彻底 
-    /// 冷在过滤器中保留4.5分钟,然后(平均)扔掉。
+    /// 由于过滤器在每轮重新分区时恰好衰减一次，因此“冷”Grain 保持锚定的实际时间直接取决于
+    /// <see cref="MinRoundPeriod"/> 和 <see cref="MaxRoundPeriod"/>。
+    /// 例如，默认保留 3 代且每轮随机间隔为 1 至 2 分钟时，一个完全
+    /// “冷却”的 Grain 在被移除前将在过滤器中平均保留 4.5 分钟。
     /// </para>
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 设置此值为 1 有效禁用保留。 过滤器将在每次 
-    /// 重新分割回合,意思是 grain 必须在当前确切周期中连续活动才能保持固定状态。
-    /// 这使得过滤器对当前流量反应非常积极,但容易在短暂闲置期间忘记固定 grains 。
+    /// 将此值设为 1 实际上会禁用历史保留。过滤器将在每轮
+    /// 重新分区开始时完全清空，这意味着 Grain 必须在当前轮次持续活跃才能保持锚定。
+    /// 这样过滤器能快速响应当前流量，但容易在短暂空闲期间遗忘已锚定的 Grain。
     /// </para>
     /// </remarks>
     public int AnchoringFilterGenerations { get; set; } = DEFAULT_ANCHORING_FILTER_GENERATIONS;
 
     /// <summary>
-    /// 默认值 <see cref="AnchoringFilterGenerations"/>。
+    /// <see cref="AnchoringFilterGenerations"/> 的默认值。
     /// </summary>
     public const int DEFAULT_ANCHORING_FILTER_GENERATIONS = 3;
 }

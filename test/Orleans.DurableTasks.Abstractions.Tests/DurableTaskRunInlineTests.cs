@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
-/// <summary>测试 <see cref="DurableTask.RunInline{TResult}(string, Func{TResult})"/>的重播合同。</summary>
+/// <summary>测试 <see cref="DurableTask.RunInline{TResult}(string, Func{TResult})"/> 的重放契约。</summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
@@ -163,8 +163,8 @@ public class DurableTaskRunInlineTests
         var host = new TestHost(Now);
         var runs = 0;
 
-        // 代表的不同步不会汇编;结果类型通过通用代码是无同步的代表就是
-        // 当它运行时,在其中和之外被拒一次。
+        // 异步委托无法通过编译；通过泛型代码使结果类型为异步类型的委托，在运行时
+        // 会被拒绝，无论在持久化任务内部还是外部。
         var response = await DurableTaskRuntimeHelper.RunAsync(
             DurableTask.Run(_ => RunInline<ValueTask<int>>(() => ValueTask.FromResult(++runs))),
             host.CreateContext(TaskId.CreateRoot("root")));
@@ -205,8 +205,8 @@ public class DurableTaskRunInlineTests
 
         var response = await DurableTaskRuntimeHelper.RunAsync(Body(), host.CreateContext(TaskId.CreateRoot("root")));
 
-        // 出现名称时,无论使用何种操作类型的名称都具有相同的识别特征,因此主机可以检测到
-        // 设置,可以改变发生事件的类型。
+        // 无论哪种操作使用某个名称，其一次出现都具有相同标识符，因此宿主可以检测
+        // 改变某次出现的操作类型的部署。
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully, response.Status);
         Assert.Equal(
             ["root/step", "root/step$4"],
@@ -285,8 +285,8 @@ public class DurableTaskRunInlineTests
         var first = await DurableTaskRuntimeHelper.RunAsync(Body(), host.CreateContext(TaskId.CreateRoot("root")));
         var replayed = await DurableTaskRuntimeHelper.RunAsync(Body(), host.CreateContext(TaskId.CreateRoot("root")));
 
-        // 命名的操作不会推进生成的计数, 所以未命名的操作是 $1, $2,
-        // 以身体创造的顺序 以3美元为单位 每个重播都找到相同的记录
+        // 具名操作不会递增自动生成的计数，因此未命名的操作按任务体创建它们的顺序依次为 $child-1、$child-2 和
+        // $child-3；每次重放都会找到相同的记录。
         Assert.Equal([1, 2, 3], first.GetResult<int[]>());
         Assert.Equal([1, 2, 3], replayed.GetResult<int[]>());
         Assert.Equal(2, effectRuns);
@@ -396,8 +396,8 @@ public class DurableTaskRunInlineTests
         var taskId = TaskId.CreateRoot("root");
         var runs = 0;
 
-        // 附加效应记录维持嵌套效应的结果 所以一个不同时运行的重放
-        // 后天效果相同识别符 返回自己的记录值
+        // 外层效果的记录包含嵌套效果的结果，因此两个效果都不会在重放时执行；重放为
+        // 任务体后续的效果分配相同标识符，并返回该效果自身的记录值。
         (Guid Audit, int Charge, int Next) Body()
         {
             var pay = DurableTask.RunInline("pay", () => (Audit: DurableTask.RunInline(Guid.NewGuid), Charge: ++runs));
@@ -438,8 +438,8 @@ public class DurableTaskRunInlineTests
         var first = await RunAsync(host, taskId, Body);
         var replayed = await RunAsync(host, taskId, Body);
 
-        // 每一个失败都是效果记录的结果 所以重放时没有运行效果
-        // 操作失败时没有使用标识符:之后的未命名效果是第一个。
+        // 每次失败都是该效果的已记录结果，因此重放可在不运行效果的情况下观察它；并且
+        // 失败的操作未占用标识符，后续未命名的效果是第一个。
         Assert.All(first.Failures, static failure => Assert.Contains("ORLEANS0227", failure, StringComparison.Ordinal));
         Assert.Equal(first.Failures, replayed.Failures);
         Assert.Equal((1, 1), (first.Next, replayed.Next));
@@ -459,7 +459,7 @@ public class DurableTaskRunInlineTests
         return response.GetResult<T>();
     }
 
-    /// <summary>运行效果并记录其记录的主机,或者不支持这些主机。</summary>
+    /// <summary>运行效果并记录其记录的宿主，或不支持效果的宿主。</summary>
     private sealed class EffectContext(TaskId taskId, List<string>? log) : DurableTaskContext(taskId)
     {
         public override DateTimeOffset UtcNow => Now;

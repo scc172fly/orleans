@@ -3,16 +3,16 @@ using System;
 namespace Orleans.Durable.Messaging.Configuration;
 
 /// <summary>
-/// 用于耐用信息信箱、发件箱和短信泵的配置选项。
+/// 持久化消息传递的收件箱、发件箱和消息泵的配置选项。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 这些选项控制箱容量、重复跟踪、箱和发件箱重试
-/// 和泵批量尺寸。
+/// 这些选项控制收件箱容量、去重记录的跟踪、收件箱和发件箱的重试及
+/// 死信处理行为，以及消息泵的批量大小。
 /// </para>
 /// <para>
-/// 保存处理的记录和持久入场底层的复杂逻辑发送。
-/// 配置值影响交付的可用性、记忆使用、吞吐量和回收特性。
+/// 传输采用至少一次投递。保留的已处理记录和持久化准入下限用于对逻辑发送去重。
+/// 配置值影响投递可用性、内存占用、吞吐量和恢复特性。
 /// </para>
 /// </remarks>
 public class DurableMessagingOptions
@@ -20,172 +20,172 @@ public class DurableMessagingOptions
     internal const int MaximumBackoffExponent = 6;
     internal const int MaximumBackoffMultiplier = 1 << MaximumBackoffExponent;
 
-    // 运行时将基准延迟乘以最多 MaximumBackoffMultiplier。
-    // 将扩大的延迟保持在时间执行的五毫米限内。
+    // 运行时将此基础延迟乘以一个不超过 MaximumBackoffMultiplier 的倍数。
+    // 扩大后的延迟必须处于定时器实现所支持的 uint 毫秒数范围内。
     private static readonly TimeSpan MaxSupportedRetryDelay =
         TimeSpan.FromTicks(
             TimeSpan.FromMilliseconds(uint.MaxValue - 1).Ticks
             / MaximumBackoffMultiplier);
 
     /// <summary>
-    /// 获取或设定待发信箱信件的最大数量 。
-    /// 当达到这一限额时,新交货返回 <see cref="DeliveryResult.Backpressured"/>。
+    /// 获取或设置收件箱中待处理消息的最大数量。
+    /// 达到此上限时，新投递返回 <see cref="DeliveryResult.Backpressured"/>。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 低值(e.g.,100)提供较强的后压,但可能会减少吞吐量。
-    /// 数值越高(e.g, 10,000),可以使更多的缓冲,但增加内存的使用和恢复时间。
+    /// 较小的值（例如 100）提供更强的背压，但可能降低吞吐量。
+    /// 较大的值（例如 10,000）允许缓冲更多消息，但增加内存占用和恢复耗时。
     /// </para>
     /// <para>
-    /// 接收新信件前先检查收件箱容量。 信件会持续到耐用
-    /// 容量限制既影响模拟状态,也影响恢复期间的储存I/O/I/O。
+    /// 接收新消息之前检查收件箱容量。消息持久化到
+    /// 存储，因此容量限制既影响内存中的状态，也影响恢复期间的存储 I/O。
     /// </para>
     /// <para>
-    /// 带有 <see cref="Envelope.DeliverAt"/> 时间的电文从接受到接收,其时间数都指向此限制
-    /// 完整,因此要对预定的 grain 搁置以及正在处理的信件的限度大小。
+    /// 带有 <see cref="Envelope.DeliverAt"/> 时间的消息，从被接纳开始直到
+    /// 处理完成都计入此限制，因此应根据 Grain 持有的已调度消息和正在处理的消息共同确定容量。
     /// </para>
     /// <para>
-    /// 不论此限制,自发的 grain 信件被接受,因为发送同步。它们计数
-    /// 至于完成,而从别的牲畜中取出粮食, grains 以至后退。
+    /// Grain 发送给自身的消息不受此限制地被接纳，因为发送是同步操作。这些消息
+    /// 在完成之前仍计入容量，因此可能使来自其他 Grain 的投递受到背压。
     /// </para>
     /// </remarks>
     /// <value>
-    /// 最大收件箱容量。 必须大于零, 默认为1000 。
+    /// 收件箱最大容量。必须大于零，默认为 1000。
     /// </value>
     public int MaxCapacity { get; set; } = 1000;
 
     /// <summary>
-    /// 获取或设定信息发送时间后多久接收收件箱保留其处理过的记录并承认
-    /// 跟踪处理的电文以 <see cref="DeliveryResult.Duplicate"/>回答,或当
-    /// 投递时, 收件箱槽拒绝发送, 与 <see cref="DeliveryResult.DeadLettered"/> 理性和代码。
+    /// 获取或设置从消息发送时间起，接收收件箱保留其已处理记录并允许
+    /// 投递该消息的时长。对仍有记录的已处理消息，返回 <see cref="DeliveryResult.Duplicate"/>；若
+    /// 收件箱接收器在投递时拒绝了它，则返回相同的 <see cref="DeliveryResult.DeadLettered"/> 原因和代码。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 较长的窗口(e.g.,30天)保留处理较多的记录并承认旧发件,增加
-    /// 短窗口(e.g., 1小时)过期时间较早。
+    /// 较长的窗口（例如 30 天）保留更多已处理记录并允许更早发送的消息被投递，从而增加
+    /// 内存占用和存储 I/O。较短的窗口（例如 1 小时）使较早发送的消息更快过期。
     /// </para>
     /// <para>
-    /// 箱箱将日记录取层提前到当前时钟时点减去此窗口;仅提前
-    /// 处理完毕的档案记录
-    /// 一旦 <see cref="InboxMessage.SentAt"/> 位于或低于耐久底线,即有资格被除名。
-    /// 框中不跟踪在地板上或下层发送时间的 <see cref="DeliveryResult.Expired"/>,
-    /// 包括后时钟跳过。 收件箱从不接受发货, 时间要晚于它的时间加上
-    /// 窗口中,它拒绝这样的发送,而当信息被解跟踪且在
-    /// 允许进入的楼层。 A grain给自己发的信息使用时钟,或后退后的第一次在地板上方
-    /// 因此,每一份处理的记录都有资格在两倍的这一窗口内被删除。
-    /// 接收器的时钟,或者在地板之后 当自我发送后会发生后向跳跃。
+    /// 收件箱将记入日志的准入下限推进至当前时钟减去此窗口；该下限只会向前推进，
+    /// 并且在恢复和迁移后仍然有效。待处理消息保留至处理完成。已处理记录在其
+    /// <see cref="InboxMessage.SentAt"/> 不晚于持久化下限时即可被移除。对于收件箱
+    /// 未跟踪且发送时间不晚于下限的消息，返回 <see cref="DeliveryResult.Expired"/>，
+    /// 即使时钟发生回拨也如此。收件箱绝不接纳发送时间晚于自身时钟加上
+    /// 此窗口的投递：若该消息未被跟踪且高于准入下限，则拒绝投递，不暂存任何变更。
+    /// Grain 向自身发送的消息采用自身时钟，若时钟回拨则采用回拨后高于下限的第一个时间。
+    /// 因此，每条已处理记录最迟在接收方时钟的两个此类窗口内即可移除，
+    /// 或在时钟回拨后的自发送场景中，于下限之后不久即可移除。
     /// </para>
     /// <para>
-    /// 当信件过期和保留记录的时间长度时,时钟跳转和扭曲会更改;重复后
-    /// 日记地板和每个发送发送的固定时间。 此窗口大小以超过 <see cref="OutboxRetryTimeout"/> 截止2013年
-    /// 交付延误和时钟改变应用程序的耐受性,并在整个组群中统一配置。
+    /// 时钟跳变与偏差会改变消息过期时间和记录保留时长；去重依据
+    /// 日志中的下限以及每次发送的固定时间。此窗口应比 <see cref="OutboxRetryTimeout"/> 更长，差值应足以容纳
+    /// 应用允许的投递延迟和时钟变化，并在整个集群中统一配置。
     /// </para>
     /// </remarks>
     /// <value>
-    /// 解码窗口。 必须大于 <see cref="OutboxRetryTimeout"/>。 默认为 7 天 。
+    /// 去重窗口。必须大于 <see cref="OutboxRetryTimeout"/>，默认为 7 天。
     /// </value>
     public TimeSpan DeduplicationWindow { get; set; } = TimeSpan.FromDays(7);
 
     /// <summary>
-    /// 在发送失败的发件箱或处理失败尝试第一次重试之前获取或设置延迟 。
+    /// 获取或设置发件箱投递失败或收件箱处理尝试失败后，首次重试前的延迟。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 每次发送失败后,包括目标信箱返回时,发件箱的间隔将加倍
-    /// <see cref="DeliveryResult.Backpressured"/>,最多64倍此间隔。在
-    /// 处理器失败 。
+    /// 发件箱在每次投递尝试失败后将此间隔加倍，包括目标收件箱返回
+    /// <see cref="DeliveryResult.Backpressured"/> 的情形，最大为此间隔的 64 倍。收件箱在
+    /// 处理器失败后采用相同的退避策略。
     /// </para>
     /// <para>
-    /// 较短的延迟(e.g.,100米)能够更快地恢复目标信息快速处理时的信号,
-    /// 延迟时间更长(e.g.,5秒)
-    /// 减少重试管理费用,但增加信息传递的延迟时间。
+    /// 较短的延迟（例如 100 毫秒）在目标快速处理消息时能够更快恢复，
+    /// 但在持续背压下可能增加 CPU 占用。较长的延迟（例如 5 秒）
+    /// 可以降低重试开销，但会增加消息投递延迟。
     /// </para>
     /// <para>
-    /// 对于高通量情景来说 后压快速恢复很重要
-    /// 考虑值在100-500米之间。对于时间敏感度较低的工作量,1-5秒是适当的。
+    /// 对于需要从背压中迅速恢复的高吞吐量场景，
+    /// 可考虑 100 至 500 毫秒的值。对时延不太敏感的工作负载可采用 1 至 5 秒。
     /// </para>
     /// </remarks>
     /// <value>
-    /// 初始重试间隔。 必须大于零。 默认为 1 秒 。
+    /// 初始重试间隔。必须大于零，默认为 1 秒。
     /// </value>
     public TimeSpan RetryInitialInterval { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
-    /// 获取或设定信箱在信件发送前要将处理者试图丢出的信件重试多久
-    /// 写得一无所有
+    /// 获取或设置收件箱对处理器尝试抛出异常的消息持续重试的时间，超过该时间后消息将
+    /// 被转入死信。
     /// </summary>
     /// <remarks>
-    /// 超时从第一次失败尝试开始,而上次尝试在它倒塌时进行。处理者例外
-    /// 使信息的结果未知,所以回溯横跨瞬断层,例如断线和部署
-    /// 修正错误; 处理者立刻调用 <c>IInboxHandlerContext.Fail</c> 来写一个信件, 以破封方式发送。 正在重新尝试信件
-    /// 常居其中, <see cref="MaxCapacity"/>工作时间长于可持久的工作时间,
-    /// 用于每次重试的觉醒时间。
+    /// 超时从首次失败尝试开始计时，到期时执行最后一次尝试。处理器异常
+    /// 使消息的处理结果处于未知状态，因此重试可以跨越暂时性故障，例如服务中断和修复缺陷的部署；
+    /// 处理器可调用 <c>IInboxHandlerContext.Fail</c> 立即将消息转入死信。正在重试的消息
+    /// 保持其在 <see cref="MaxCapacity"/> 中的位置。超时与重试退避均依据 Durable Jobs 时钟，
+    /// 该时钟为每次重试安排唤醒。
     /// </remarks>
     /// <value>
-    /// 必须大于或等于 <see cref="TimeSpan.Zero"/>,它写了一条信息 在它的第二次失败:
-    /// 恢复无法从坠机运行前中断的失败尝试中看出失败的尝试 。
-    /// 默认为6小时。
+    /// 必须大于或等于 <see cref="TimeSpan.Zero"/>；取该值时，消息在第二次失败后转入死信：
+    /// 恢复时无法区分失败的尝试与尚未运行就因崩溃中断的尝试。
+    /// 默认为 6 小时。
     /// </value>
     public TimeSpan InboxRetryTimeout { get; set; } = TimeSpan.FromHours(6);
 
     /// <summary>
-    /// 获取或设置在信息发送时间后多久 发件箱试图传送
-    /// 信件, 包括接收器被回压或报告没有收件箱处理程序时的邮件。
+    /// 获取或设置从消息发送时间起，发件箱尝试投递该消息的时长，到期后将其
+    /// 转入死信，包括接收方施加背压或报告没有收件箱处理器的期间。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 发件箱日记 信息的信息的 <see cref="InboxMessage.SentAt"/> 当它使送文阶段,
-    /// 恢复后保持了反压。 超时跟随“ 持久工作钟” 的时钟; 跳跃可以提前结束回溯, 或者
-    /// 超时或 <see cref="DeliveryResult.Expired"/> 使接收者早前交付结果
-    /// 未知的源 <see cref="IOutboxMessageSource.OnRetired"/> 应用阶段
-    /// 留存; 见 <see cref="OutboxMessageRetirement.DeadLettered"/>。
+    /// 发件箱在暂存发送时将消息的 <see cref="InboxMessage.SentAt"/> 记入日志；重试、
+    /// 背压和恢复均保留该时间。超时依据 Durable Jobs 时钟，时钟跳变可能使重试提前结束或
+    /// 延长。超时或 <see cref="DeliveryResult.Expired"/> 意味着接收方此前的投递结果
+    /// 未知。消息来源的 <see cref="IOutboxMessageSource.OnRetired"/> 将应用响应与
+    /// 消息退出发件箱的操作原子地暂存；参见 <see cref="OutboxMessageRetirement.DeadLettered"/>。
     /// </para>
     /// <para>
-    /// 发件箱对每个 <see cref="DeliveryResult.HandlerNotFound"/> 回答错误进行日志。
+    /// 发件箱将每个 <see cref="DeliveryResult.HandlerNotFound"/> 响应记录为错误。
     /// </para>
     /// </remarks>
     /// <value>
-    /// 必须大于零且小于 <see cref="DeduplicationWindow"/>,所以在
-    /// 接收器的保留窗口,默认为6小时
+    /// 必须大于零且小于 <see cref="DeduplicationWindow"/>，以使重试预算在
+    /// 接收方的保留窗口内耗尽。默认为 6 小时。
     /// </value>
     public TimeSpan OutboxRetryTimeout { get; set; } = TimeSpan.FromHours(6);
 
     /// <summary>
-    /// 获取或设置保留信箱和发件箱的死信多长时间。
+    /// 获取或设置收件箱和发件箱死信的保留时长。
     /// </summary>
     public TimeSpan DeadLetterRetentionPeriod { get; set; } = TimeSpan.FromDays(30);
 
     /// <summary>
-    /// 获取或设定每个信箱和每个发件箱保留的最大死亡信件数量。
+    /// 获取或设置每个收件箱和每个发件箱保留死信的最大数量。
     /// </summary>
     public int MaxRetainedDeadLetters { get; set; } = 1000;
 
     /// <summary>
-    /// 获取或设定通过一个信息泵通行证处理的最多信箱信息数量。
+    /// 获取或设置消息泵单轮处理的收件箱消息最大数量。
     /// </summary>
     public int InboxBatchSize { get; set; } = 32;
 
     /// <summary>
-    /// 获取或设定一个 grain在飞行中发送发包的最大尝试次数。
+    /// 获取或设置单个 Grain 同时在途的发件箱投递尝试最大数量。
     /// </summary>
     /// <remarks>
-    /// 泵一旦完成,就启动另一次尝试 所以一个慢速接收器 保持一个位置,没有拖延
-    /// 给其他收件人的电文。
+    /// 一次尝试完成后，消息泵立即启动另一次尝试，因此较慢的接收方只占用一个槽位，不会延迟
+    /// 发往其他接收方的消息。
     /// </remarks>
     public int OutboxBatchSize { get; set; } = 32;
 
     /// <summary>
-    /// 如果配置值无效, 校验配置值和抛掷 。
+    /// 验证配置值，若有无效值则抛出异常。
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// 如果 <see cref="MaxCapacity"/> 小于或等于零,则扔弃
-    /// 或 <see cref="DeduplicationWindow"/> 小于或等于 <see cref="TimeSpan.Zero"/>,
-    /// 或如果重试、保留或批量选项超出其支持范围。
+    /// 当 <see cref="MaxCapacity"/> 小于或等于零，
+    /// 或 <see cref="DeduplicationWindow"/> 小于或等于 <see cref="TimeSpan.Zero"/>，
+    /// 或任一重试、保留或批处理选项超出支持范围时抛出。
     /// </exception>
 
     /// <remarks>
-    /// 这种方法通常在服务登记期间被依赖性注射容器称为
-    /// 以确保配置值在系统启动前有效。
+    /// 依赖注入容器通常在注册服务时调用此方法，
+    /// 以确保系统启动前配置值有效。
     /// </remarks>
     public void Validate()
     {

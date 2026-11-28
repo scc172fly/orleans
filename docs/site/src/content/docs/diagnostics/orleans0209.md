@@ -1,25 +1,25 @@
 ---
-title: "ORLEANS0209:在排程器上保持持久任务机构"
-description: "理解 ORLEANS0209, 其中报告长期任务代码, 即启动线条、计时器或线索库工作, 并用机构等待的步骤或服务来修正它 。"
+title: "ORLEANS0209: 使持久化任务主体始终在其调度器上执行"
+description: 了解 ORLEANS0209：持久化任务代码启动线程、定时器或线程池工作。通过主体等待的步骤或服务修复。
 ms.date: 10/15/2026
 ms.topic: reference
 ---
 
 <a id="orleans0209-keep-durable-task-bodies-on-their-scheduler"></a>
 
-# ORLEANS0209:在排程器上保持持久任务机构
+# ORLEANS0209: 使持久化任务主体始终在其调度器上执行
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
 | 严重性 | 警告 |
-| 类别类 | 用法 |
-| 代码修正 | 无无无无 |
+| 类别 | 用法 |
+| 代码修复 | 无 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-持久任务机构、 `DurableTask.Run` 代表或 `DurableTask.RunInline` 效应开始在另一个排程器上工作: `Task.Run`、 `TaskFactory.StartNew`、 `Parallel` 方法、 `ThreadPool.QueueUserWorkItem`、新的 `Thread`或一个新的 `System.Threading.Timer`、 `System.Timers.Timer`或 `PeriodicTimer`:
+持久化任务主体、`DurableTask.Run` 委托或 `DurableTask.RunInline` 效果在另一调度器上启动工作：`Task.Run`、`TaskFactory.StartNew`、`Parallel` 方法、`ThreadPool.QueueUserWorkItem`、新的 `Thread`，或者新的 `System.Threading.Timer`、`System.Timers.Timer` 或 `PeriodicTimer`：
 
 :::code source="snippets/durable-tasks/Orleans0209.cs" id="orleans0209_violation" language="csharp":::
 
@@ -27,30 +27,30 @@ ms.topic: reference
 
 ## 规则说明
 
-耐久任务机构在启动 grain 的调度器上运行, 它一次运行一个 grain 代码。 调度器命令机的持久操作, 所以每个运行都以相同的顺序创建它们, 它会保持身体状态的变化, 而不是与 grain的其他工作竞争。 `Task.Run` 在线性集合中执行代表; 一个正常的 `await Task.Run(...)` 捕捉激活的调度器并在那里恢复尸体。 离位代表承担风险 :
+持久化任务主体在其 Grain 激活实例的调度器上运行，该调度器每次运行一段 Grain 代码。调度器对主体的持久化操作排序，使每次运行按相同顺序创建操作，并防止主体状态变更与 Grain 的其他工作发生竞态。`Task.Run` 在线程池执行委托；普通的 `await Task.Run(...)` 捕获激活实例调度器，并在其上恢复主体执行。在调度器之外运行的委托存在以下风险：
 
-- 代表内部的代码在激活之外。 `DurableTask.RunInline` 和 `Post` 在那里投放 `InvalidOperationException` ,因为他们随着激活状态的变化而进行记录。
-- Grain 说明工作变化与 grain的方法和其他处决的比赛情况,以及任何日记书中的下列内容所实现的变化。
-- 线条和计时器比开始它们的时间运行时间长, 重播又重新开始它们。
+- 委托内的代码在激活实例之外运行。`DurableTask.RunInline` 和 `Post` 在此处抛出 `InvalidOperationException`，因为它们将记录与激活实例的状态变更一同暂存。
+- 工作修改的 Grain 状态会与 Grain 方法及其他执行发生竞态；其变更与随后发生的任何日志写入一同提交。
+- 线程和定时器的生命周期超过启动它们的运行，重放会再次启动它们。
 
-ORLEANS0014 报告 `ConfigureAwait(false)`,其中也移动启动的续续。
+ORLEANS0014 报告 `ConfigureAwait(false)`，它同样会使延续操作离开激活实例。
 
 <a id="how-to-fix-violations"></a>
 
-## 如何纠正违反情况
+## 如何修复违规
 
-**记录工作效果。 A** A `DurableTask.RunInline` 效果在激活的调度器上同步运行,结果被记录, 因此重放返回它而不再次计算 :
+**在效果中记录工作。** `DurableTask.RunInline` 效果在激活实例调度器上运行同步工作，且结果被记录，因此重放直接返回结果，无需再次计算：
 
 :::code source="snippets/durable-tasks/Orleans0209.cs" id="orleans0209_fix_inline" language="csharp":::
 
-**等待一个运行工作的服务。 对于CPU密集型的工作,** 从一个阶梯上调用服务或无国籍工人 grain 。该服务使用自己的线条,该阶梯的继续返回激活:
+**等待执行工作的服务。** 对于 CPU 密集型工作，从步骤中调用服务或无状态工作者 Grain。服务使用自己的线程，步骤的延续操作返回激活实例：
 
 :::code source="snippets/durable-tasks/Orleans0209.cs" id="orleans0209_fix_service" language="csharp":::
 
-**替换时间轴以耐久延迟代替。** `DurableTask.Delay` 和 `DurableTask.DelayUntil` 在到期时恢复任务,包括在停止运行之后。定期工作是按命名的延误循环进行,或作为每次迭代开始的一项独立任务进行。
+**以持久化延迟替换定时器。** `DurableTask.Delay` 和 `DurableTask.DelayUntil` 在到期时恢复任务，即使此前发生了停用也不例外。周期性工作可以运行由命名延迟构成的循环，或者由每次迭代启动分离任务。
 
 <a id="when-to-suppress"></a>
 
-## 何时压缩
+## 何时抑制
 
-禁止对工作进行诊断,因为工作没有触及 grain 状态,没有计划持久操作,而且身体在线性集合上运行时需要等待完成,例如纯粹计算。
+如果工作不访问任何 Grain 状态、不调度持久化操作，并且主体等待其完成（例如纯计算），同时确实需要在线程池上运行，可以抑制诊断。

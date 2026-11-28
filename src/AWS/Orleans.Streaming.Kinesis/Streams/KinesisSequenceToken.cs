@@ -17,9 +17,9 @@ namespace Orleans.Streaming.Kinesis
         /// <summary>
         /// 初始化 <see cref="KinesisSequenceToken" /> 类的新实例。
         /// </summary>
-        /// <param name="shardSequence">Kinesis 折叠在发出此信件的碎片( 分割区) 内。</param>
-        /// <param name="sequenceNumber">收件人为此信件生成了 sequenceNumber 。</param>
-        /// <param name="eventIndex">指数,如果在一个单一的Kinesis记录中提供多个事件,则按一系列活动分列。</param>
+        /// <param name="shardSequence">此消息来源的 Kinesis 分片（分区）内的偏移量。</param>
+        /// <param name="sequenceNumber">接收器为此消息生成的 sequenceNumber。</param>
+        /// <param name="eventIndex">当单个 Kinesis 记录包含多个事件时，此值为批次内事件的索引。</param>
         [JsonConstructor]
         public KinesisSequenceToken(string shardSequence, long sequenceNumber, int eventIndex)
             : base(sequenceNumber, eventIndex)
@@ -31,14 +31,14 @@ namespace Orleans.Streaming.Kinesis
         /// 初始化 <see cref="KinesisSequenceToken" /> 类的新实例。
         /// </summary>
         /// <remarks>
-        /// 此构建器仅暴露于序列器使用。
+        /// 此构造函数仅供序列化器使用。
         /// </remarks>
         public KinesisSequenceToken() : base()
         {
         }
 
         /// <summary>
-        /// 偏移 Kinesis 碎片内的信件 。
+        /// 消息在 Kinesis 分片内的偏移量。
         /// </summary>
         [Id(0)]
         [JsonProperty]
@@ -78,8 +78,8 @@ namespace Orleans.Streaming.Kinesis
         /// <inheritdoc />
         public override int GetHashCode() => HashCode.Combine(NumericShardSequence, EventIndex);
 
-        /// <summary>返回一个代表当前对象的字符串。</summary>
-        /// <returns>一个代表当前对象的字符串。</returns>
+        /// <summary>返回表示当前对象的字符串。</summary>
+        /// <returns>表示当前对象的字符串。</returns>
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {

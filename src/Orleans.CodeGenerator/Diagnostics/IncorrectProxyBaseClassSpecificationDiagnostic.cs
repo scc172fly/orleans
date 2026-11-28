@@ -3,12 +3,12 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.Diagnostics;
 
 /// <summary>
-/// 定义在配置的 RPC 代理基级不能满足要求的合同时报告的诊断。
+/// 定义所配置的 RPC 代理基类不满足所需契约时报告的诊断。
 /// </summary>
 public static class IncorrectProxyBaseClassSpecificationDiagnostic
 {
     /// <summary>
-    /// 诊断识别器
+    /// 诊断标识符。
     /// </summary>
     public const string RuleId = DiagnosticRuleId.IncorrectProxyBaseClassSpecification;
     private const string Category = "Usage";

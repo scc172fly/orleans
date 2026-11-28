@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <!-- 当为内部使用而构建工具时, 将源仅来自内部 URIs 的源设为 DisableSourceLinkUrlTranslation 设定为真实 -->
+    <!-- 构建仅供内部使用且源码仅来自内部 URI 的工具时，将 DisableSourceLinkUrlTranslation 设置为 true。 -->
     <DisableSourceLinkUrlTranslation Condition="'$(DisableSourceLinkUrlTranslation)' == ''">false</DisableSourceLinkUrlTranslation>
     <_TranslateUrlPattern>(https://.*\.visualstudio\.com/.*/_git/[^/]*)|(https://dev\.azure\.com/.*/_git/[^/]*)</_TranslateUrlPattern>
     <_TranslateUrlReplacement>$(PublicRepositoryUrl)</_TranslateUrlReplacement>
@@ -59,8 +59,8 @@
   </Target>
 
   <!--
-    使用其它 Orleans 包包的内置软件包取决于该包的精确版本,因为内部
-    文本之间表面变化。标记 ProjectReference 与 PackExactVersion真正"包扎一个完全依赖的
+    使用另一个 Orleans 包内部实现的包依赖该包的精确版本，因为内部接口在版本之间会变化。
+    为 ProjectReference 标记 PackExactVersion="true"，以打包精确版本的依赖项。
   -->
   <Target Name="_PackExactProjectReferenceVersions" AfterTargets="_GetProjectReferenceVersions">
     <ItemGroup>
@@ -73,7 +73,7 @@
   </Target>
 
   <PropertyGroup>
-    <!-- 如果项目可以包装,我们产生 API 在一个单独的文件中, API 审评进程。 -->
+    <!-- 对于可打包项目，将其 API 公开接口生成到单独文件中，供 API 审查流程使用。 -->
     <GenAPITargetDirectory Condition="'$(IsPackable)' == 'true'">$(MSBuildThisFileDirectory)/api/$([MSBuild]::MakeRelative($(MSBuildThisFileDirectory), $(MSBuildProjectDirectory)))/</GenAPITargetDirectory>
     <GenAPITargetPath Condition="'$(IsPackable)' == 'true'">$(GenAPITargetDirectory)$(AssemblyName).cs</GenAPITargetPath>
   </PropertyGroup>

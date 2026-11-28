@@ -6,116 +6,116 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Runtime.Diagnostics;
 
 /// <summary>
-/// 提供诊断听者类型和事件有效载荷类型,用于部署负载出版社统计活动。
+/// 提供部署负载发布器统计事件的诊断监听器及事件数据类型。
 /// </summary>
 /// <remarks>
-/// 这些类型是公开的,但可能在不同版本之间发生变化。
-/// 模拟测试和诊断等先进假设情景。
+/// 这些类型是公共类型，但可能在次版本之间发生变化。它们适用于
+/// 模拟测试和诊断等高级场景。
 /// </remarks>
 public static class DeploymentLoadPublisherEvents
 {
     /// <summary>
-    /// 部署负载出版商统计事件诊断听众的名字。
+    /// 部署负载发布器统计事件的诊断监听器名称。
     /// </summary>
     public const string ListenerName = "Orleans.DeploymentLoadPublisher";
 
     private static readonly DiagnosticListener Listener = new(ListenerName);
 
     /// <summary>
-    /// 获得所有部署负载出版商事件的可观测序列。
+    /// 获取所有部署负载发布器事件的可观察序列。
     /// </summary>
     public static IObservable<DeploymentLoadPublisherEvent> AllEvents { get; } = new Observable();
 
     /// <summary>
-    /// 用于部署装货量出版商诊断事件的基本等级。
+    /// 部署负载发布器诊断事件使用的基类。
     /// </summary>
     public abstract class DeploymentLoadPublisherEvent
     {
     }
 
     /// <summary>
-    /// 事件有效载荷,用于 silo 向集发布运行时统计数据。
+    /// Silo 向集群发布其运行时统计信息时的事件数据。
     /// </summary>
-    /// <param name="siloAddress">大会主席的地址 silo 出版统计。</param>
-    /// <param name="statistics">公布的运行时统计。</param>
+    /// <param name="siloAddress">发布统计信息的 Silo 地址。</param>
+    /// <param name="statistics">已发布的运行时统计信息。</param>
     public sealed class Published(
         SiloAddress siloAddress,
         SiloRuntimeStatistics statistics) : DeploymentLoadPublisherEvent
     {
         /// <summary>
-        /// 出版统计 silo 的地址。
+        /// 发布统计信息的 Silo 地址。
         /// </summary>
         public readonly SiloAddress SiloAddress = siloAddress;
 
         /// <summary>
-        /// 公布的运行时间统计数据。
+        /// 已发布的运行时统计信息。
         /// </summary>
         public readonly SiloRuntimeStatistics Statistics = statistics;
     }
 
     /// <summary>
-    /// silo 从另一个 silo获得运行时统计时,事件有效载荷。
+    /// Silo 从另一个 Silo 接收运行时统计信息时的事件数据。
     /// </summary>
-    /// <param name="fromSilo">大会主席的地址 silo 发送统计的那个人。</param>
-    /// <param name="receiverSilo">大会主席的地址 silo 收到统计数字的国家。</param>
-    /// <param name="statistics">收到的运行时间统计数据。</param>
+    /// <param name="fromSilo">发送统计信息的 Silo 地址。</param>
+    /// <param name="receiverSilo">接收统计信息的 Silo 地址。</param>
+    /// <param name="statistics">收到的运行时统计信息。</param>
     public sealed class Received(
         SiloAddress fromSilo,
         SiloAddress receiverSilo,
         SiloRuntimeStatistics statistics) : DeploymentLoadPublisherEvent
     {
         /// <summary>
-        /// 发送统计数据的 silo 地址。
+        /// 发送统计信息的 Silo 地址。
         /// </summary>
         public readonly SiloAddress FromSilo = fromSilo;
 
         /// <summary>
-        /// 收到统计数据的 silo 地址。
+        /// 接收统计信息的 Silo 地址。
         /// </summary>
         public readonly SiloAddress ReceiverSilo = receiverSilo;
 
         /// <summary>
-        /// 收到的运行时间统计数据。
+        /// 收到的运行时统计信息。
         /// </summary>
         public readonly SiloRuntimeStatistics Statistics = statistics;
     }
 
     /// <summary>
-    /// 当 silo 完成来自所有组群成员的更新统计数据时,事件有效载荷。
+    /// Silo 完成刷新所有集群成员的统计信息时的事件数据。
     /// </summary>
-    /// <param name="siloAddress">填充刷新内容的 silo 地址。</param>
-    /// <param name="statistics">当前缓存集统计数据。</param>
+    /// <param name="siloAddress">完成刷新的 Silo 地址。</param>
+    /// <param name="statistics">当前缓存的集群统计信息。</param>
     public sealed class ClusterRefreshed(
         SiloAddress siloAddress,
         IReadOnlyDictionary<SiloAddress, SiloRuntimeStatistics> statistics) : DeploymentLoadPublisherEvent
     {
         /// <summary>
-        /// 填充刷新内容的 silo 地址 。
+        /// 完成刷新的 Silo 地址。
         /// </summary>
         public readonly SiloAddress SiloAddress = siloAddress;
 
         /// <summary>
-        /// 当前缓存的集束统计 。
+        /// 当前缓存的集群统计信息。
         /// </summary>
         public readonly IReadOnlyDictionary<SiloAddress, SiloRuntimeStatistics> Statistics = statistics;
     }
 
     /// <summary>
-    /// 从缓存中删除 silo统计数据时的事件有效载荷。
+    /// 某个 Silo 的统计信息从缓存中移除时的事件数据。
     /// </summary>
-    /// <param name="removedSilo">大会主席的地址 silo 其统计数据被删除。</param>
-    /// <param name="observerSilo">大会主席的地址 silo ,删除了统计数据。</param>
+    /// <param name="removedSilo">其统计信息被移除的 Silo 地址。</param>
+    /// <param name="observerSilo">执行统计信息移除操作的 Silo 地址。</param>
     public sealed class Removed(
         SiloAddress removedSilo,
         SiloAddress observerSilo) : DeploymentLoadPublisherEvent
     {
         /// <summary>
-        /// 统计被删除的 silo 地址。
+        /// 其统计信息被移除的 Silo 地址。
         /// </summary>
         public readonly SiloAddress RemovedSilo = removedSilo;
 
         /// <summary>
-        /// 删除统计数据的 silo 地址。
+        /// 执行统计信息移除操作的 Silo 地址。
         /// </summary>
         public readonly SiloAddress ObserverSilo = observerSilo;
     }

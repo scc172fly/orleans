@@ -1,10 +1,10 @@
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// 用于进行 Orleans 实地编码的编码器快照测试所用的复合体试验类型c
-/// 多字段记录(字符串+内特+嵌套结构)的行为行为。
-/// <see cref="GenerateSerializerAttribute"/> + <see cref="IdAttribute"/> ID 插上电线
-/// 形状,可以复制 <c>snapshots/</c> 中的快照文件。
+/// 编解码器快照测试使用的复合测试类型，用于检验 Orleans 字段编解码器
+/// 针对多字段记录（string + int + 嵌套结构体）的行为。稳定的
+/// <see cref="GenerateSerializerAttribute"/> + <see cref="IdAttribute"/> 标识固定了传输
+/// 格式，使 <c>snapshots/</c> 中的快照文件可以复现。
 /// </summary>
 [GenerateSerializer]
 public sealed record class JournalingSnapshotRecord
@@ -20,8 +20,8 @@ public sealed record class JournalingSnapshotRecord
 }
 
 /// <summary>
-/// <see cref="JournalingSnapshotRecord"/>的内嵌支架成员。 存在如此二进制
-/// 快速操作 定位的野地码线布局 而不仅仅是平面的卡路里有效载荷
+/// <see cref="JournalingSnapshotRecord"/> 的嵌套结构体成员。用于使二进制
+/// 快照检验嵌套字段编解码器的传输布局，而不仅仅是扁平的标量有效载荷。
 /// </summary>
 [GenerateSerializer]
 public readonly record struct JournalingSnapshotRecordTag

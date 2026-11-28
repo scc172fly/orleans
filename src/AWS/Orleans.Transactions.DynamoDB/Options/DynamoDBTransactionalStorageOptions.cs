@@ -16,64 +16,64 @@ using Orleans.Transactions.DynamoDB;
 namespace Orleans.Configuration;
 
 /// <summary>
-/// DynamoDB 交易状态存储的配置选项。
+/// DynamoDB 事务状态存储的配置选项。
 /// </summary>
 public class DynamoDBTransactionalStorageOptions : DynamoDBClientOptions, IStorageProviderSerializerOptions
 {
     /// <summary>
-    /// 获取或设置此项服务的独特识别符,该服务应能在部署和重新部署后生存。
+    /// 获取或设置此服务的唯一标识，该标识应在部署及重新部署后保持不变。
     /// </summary>
     public string ServiceId { get; set; } = string.Empty;
 
     /// <summary>
-    /// 表中已提供投入的用途
+    /// 对表使用预置吞吐量。
     /// </summary>
     public bool UseProvisionedThroughput { get; set; } = true;
 
     /// <summary>
-    /// 如果表格不存在创建表格
+    /// 如果表不存在，则创建该表。
     /// </summary>
     public bool CreateIfNotExists { get; set; } = true;
 
     /// <summary>
-    /// 如果有更新表格,则更新列表
+    /// 如果表存在，则更新该表。
     /// </summary>
     public bool UpdateIfExists { get; set; } = true;
 
     /// <summary>
-    /// DynamoDB 储存读能力单位
+    /// DynamoDB 存储的读取容量单位。
     /// </summary>
     public int ReadCapacityUnits { get; set; } = DynamoDBStorage.DefaultReadCapacityUnits;
 
     /// <summary>
-    /// DynamoDB 储存的写能力单位
+    /// DynamoDB 存储的写入容量单位。
     /// </summary>
     public int WriteCapacityUnits { get; set; } = DynamoDBStorage.DefaultWriteCapacityUnits;
 
     /// <summary>
-    /// DynamoDB 表格名称。
-    /// 默认值为 'OrleansTransactionalState' 。
+    /// DynamoDB 表名称。
+    /// 默认值为 OrleansTransactionalState。
     /// </summary>
     public string TableName { get; set; } = "OrleansTransactionalState";
 
     /// <summary>
-    /// 储存应初始化的 silo 生命周期阶段,储存必须在使用前初始化。
+    /// 应初始化存储的 Silo 生命周期阶段。存储必须在使用前完成初始化。
     /// </summary>
     public int InitStage { get; set; } = DEFAULT_INIT_STAGE;
 
     /// <summary>
-    /// 启动交易状态储存的默认 silo 生命周期阶段。
+    /// 初始化事务状态存储的默认 Silo 生命周期阶段。
     /// </summary>
     public const int DEFAULT_INIT_STAGE = ServiceLifecycleStage.ApplicationServices;
 
     /// <summary>
-    /// 获取或设置序列化 grain 状态的序列化器。
+    /// 获取或设置用于序列化 Grain 状态的序列化器。
     /// </summary>
     public IGrainStorageSerializer GrainStorageSerializer { get; set; } = null!;
 }
 
 /// <summary>
-/// DynamoDBTransactionalStorageOptions的配置验证符
+/// DynamoDBTransactionalStorageOptions 的配置验证器。
 /// </summary>
 public class DynamoDBTransactionalStorageOptionsValidator : IConfigurationValidator
 {
@@ -81,10 +81,10 @@ public class DynamoDBTransactionalStorageOptionsValidator : IConfigurationValida
     private readonly string name;
 
     /// <summary>
-    /// 构造建构器
+    /// 构造函数。
     /// </summary>
-    /// <param name="options">选项将生效。</param>
-    /// <param name="name">需要验证的选项名称。</param>
+    /// <param name="options">要验证的选项。</param>
+    /// <param name="name">要验证的选项名称。</param>
     public DynamoDBTransactionalStorageOptionsValidator(DynamoDBTransactionalStorageOptions options, string name)
     {
         this.options = options;

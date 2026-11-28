@@ -1,16 +1,16 @@
 <a id="microsoft-orleans-persistence-for-dynamodb"></a>
 
-# Microsoft Orleans 持久性 DynamoDB
+# Microsoft Orleans DynamoDB 持久化提供程序
 
 <a id="introduction"></a>
 
 ## 简介
-Microsoft Orleans 持久性 DynamoDB 提供 grain 持久性或持久性 Microsoft Orleans 使用亚马逊 DynamoDB。这样可以让您 grains 坚持自己在 DynamoDB 当他们被重新造化的时候,你们要装填它。
+Microsoft Orleans DynamoDB 持久化提供程序利用 Amazon DynamoDB 为 Microsoft Orleans 提供 Grain 持久化功能，使 Grain 能够将状态持久化到 DynamoDB，并在重新激活时加载状态。
 
 <a id="getting-started"></a>
 
 ## 入门
-要使用此软件包, 请通过 NuGet安装 :
+要使用此包，请通过 NuGet 安装：
 
 ```shell
 dotnet add package Microsoft.Orleans.Persistence.DynamoDB
@@ -18,7 +18,7 @@ dotnet add package Microsoft.Orleans.Persistence.DynamoDB
 
 <a id="example---configuring-dynamodb-persistence"></a>
 
-## 示例 - 配置 DynamoDB 持久性
+## 示例 - 配置 DynamoDB 持久化
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Orleans.Configuration;
@@ -47,23 +47,23 @@ await builder.RunAsync();
 
 <a id="service-identity-and-upgrades"></a>
 
-## 服务身份和升级
+## 服务标识与升级
 
-明确为每个提供者设置 `DynamoDBStorageOptions.ServiceId` 。 它将每一个 grain 键的前缀标为 `{ServiceId}_{grainId}` , 并且必须保持共享状态的部署之间的稳定性。 当启动验证报告未设置时, 启动验证报告为 `OrleansConfigurationException` 。
+请为每个提供程序显式设置 `DynamoDBStorageOptions.ServiceId`。它为每个 Grain 状态键添加服务标识前缀，形成 `{ServiceId}_{grainId}` 格式，并且必须在共享状态的各次部署之间保持稳定。未设置时，启动验证将报告 `OrleansConfigurationException`。
 
-对于新部署,选择一个稳定的应用程序识别标识符,例如分组 `ServiceId`。升级时,保留用于写入现有状态的标识符。如果部署使用了前一个空字符串默认,则设置 `ServiceId = string.Empty` 代码或 `"ServiceId": ""` 配置中保存这些密钥的存取权限。选择不同的识别符号可以选择不同的州名空间;在前缀下访问现有状态需要单独的数据迁移 。
+对于新部署，请选择稳定的应用程序标识符，例如集群的 `ServiceId`。升级时保留写入现有状态所使用的标识符。如果部署使用了先前默认的空字符串，请在代码中设置 `ServiceId = string.Empty`，或在配置中设置 `"ServiceId": ""`，以保留对这些键的访问能力。选择不同的标识符会切换到另一个状态命名空间；要在该前缀下访问现有状态，需要另行迁移数据。
 
 <a id="endpoints-and-credentials"></a>
 
-## 终点和全权证书
+## 终结点与凭据
 
-`Service` 选择 AWS 区域或 HTTP/HTTPS 端点 URL。 `AccessKey` 和 `SecretKey` 提供明确的全权证书;添加 `Token` 会话证书。 `ProfileName` 在省略明确密钥时选择名为 AWS 的配置文件。这些全权证书适用于区域和端点 URL 。
+`Service` 用于选择 AWS 区域或 HTTP/HTTPS 终结点 URL。`AccessKey` 和 `SecretKey` 提供显式凭据；添加 `Token` 可提供会话凭据。省略显式密钥时，`ProfileName` 用于选择命名 AWS 配置文件。这些凭据同时适用于区域和终结点 URL。
 
-AWS SDK 证书链路由提供区域及HTTPS终点点的证书,如果删除明确的密钥和剖面, HTTP终点点在这种情况下使用当地开发证书 `dummy` 和 `dummyKey` 。当 DynamoDB 地方机构使用访问键选择数据库时,配置明确的全权证书。
+省略显式密钥和配置文件时，区域及 HTTPS 终结点的凭据由 AWS SDK 凭据链提供。在此情况下，HTTP 终结点使用本地开发凭据 `dummy` 和 `dummyKey`。如果 DynamoDB Local 实例通过访问密钥选择数据库，请配置显式凭据。
 
 <a id="example---using-grain-storage-in-a-grain"></a>
 
-## 实例 - 使用 Grain 储存在 Grain
+## 示例 - 在 Grain 中使用 Grain 存储
 ```csharp
 // Define grain state class
 
@@ -99,17 +99,17 @@ public class MyGrain : Grain, IMyGrain, IGrainWithStringKey
 
 <a id="documentation"></a>
 
-## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
-关于更全面的文件,请参见:
+## 文档
+有关更全面的文档，请参阅：
 - [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
-- [Grain 持久性](https://dotnet.github.io/orleans/docs/grains/grain-persistence/)
-- [.NET 文档的 AWSSDK](https://docs.aws.amazon.com/sdk-for-net/index.html)
+- [Grain 持久化](https://dotnet.github.io/orleans/docs/grains/grain-persistence/)
+- [AWS SDK for .NET 文档](https://docs.aws.amazon.com/sdk-for-net/index.html)
 
 <a id="feedback--contributing"></a>
 
-## 反馈和贡献
-- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
-- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
-- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
-- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证
+## 反馈与贡献
+- 如果遇到问题或希望提供反馈，请[在 GitHub 上创建 Issue](https://github.com/dotnet/orleans/issues)
+- 加入我们的 [Discord](https://aka.ms/orleans-discord) 社区
+- 关注 Twitter 上的 [@msftorleans](https://twitter.com/msftorleans) 账号，获取 Orleans 公告
+- 欢迎贡献！请阅读我们的[贡献指南](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 本项目采用 [MIT 许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)

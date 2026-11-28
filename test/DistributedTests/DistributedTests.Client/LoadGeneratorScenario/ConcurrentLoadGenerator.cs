@@ -87,10 +87,10 @@ namespace DistributedTests.Client
                     cancellationToken);
             }
 
-            // 等待热身完成
+            // 等待预热完成。
             await Task.WhenAll(this._tasks).WaitAsync(cancellationToken);
 
-            // 忽略了热身区块。
+            // 忽略预热期间的数据块。
             while (completedBlockReader.TryRead(out _)) ;
             GC.Collect();
             GC.Collect();
@@ -115,7 +115,7 @@ namespace DistributedTests.Client
             this.ResetBetweenRuns();
             var completedBlockReader = this._completedBlocks.Reader;
 
-            // 开始跑步
+            // 开始运行。
             for (var i = 0; i < this._numWorkers; i++)
             {
                 this._tasks[i] = this.RunWorker(
@@ -127,7 +127,7 @@ namespace DistributedTests.Client
 
             var completion = Task.WhenAll(this._tasks);
             _ = CompleteWriterAsync(completion);
-            // 不分配能力过强的清单
+            // 不要分配容量过大的列表
             var blocks = new List<WorkBlock>(this._numWorkers * Math.Min(100, this._blocksPerWorker));
             var blocksPerReport = this._numWorkers * Math.Min(100, this._blocksPerWorker) / 5;
             var nextReportBlockCount = blocksPerReport;
@@ -137,7 +137,7 @@ namespace DistributedTests.Client
                 if (!more) break;
                 while (completedBlockReader.TryRead(out var block))
                 {
-                    // 登记测量值
+                    // 记录测量值
                     BenchmarksEventSource.Measure("requests", block.Completed);
                     BenchmarksEventSource.Measure("failures", block.Failures);
                     BenchmarksEventSource.Measure("rps", block.RequestsPerSecond);

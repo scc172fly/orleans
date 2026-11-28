@@ -3,12 +3,12 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Tasks.Protocol;
 
 /// <summary>
-/// 收到持久任务最终结果的 grain 的任务:任务本身下的该任务援引人
-/// 或可持久处决儿童,但同意执行
+/// 接收持久化任务终态结果的 Grain 任务：可以是以该任务自身的
+/// 标识符标识的调用方，也可以是通过以下方式订阅现有任务的持久化执行实例的子任务：
 /// <see cref="DurableTaskGrainExtensions.GetDurableTask{TResult}(IAddressable, TaskId)"/>.
 /// </summary>
-/// <param name="GrainId">下 grain 并获得结果。</param>
-/// <param name="TaskId">接受者 grain完成结果的任务</param>
+/// <param name="GrainId">接收结果的 Grain。</param>
+/// <param name="TaskId">接收方 Grain 中由此结果完成的任务。</param>
 [GenerateSerializer, Immutable]
 [Alias("Orleans.Durable.Tasks.Protocol.DurableTaskSubscriber")]
 internal readonly record struct DurableTaskSubscriber(

@@ -10,7 +10,7 @@ using Xunit;
 namespace UnitTests.StreamingTests
 {
     /// <summary>
-    /// 测试不同 grain 关键类型隐含流订阅,具体测试长键类型 grain 订阅。
+    /// 测试不同 Grain 键类型的隐式流订阅，具体测试使用 long 类型键的 Grain 订阅。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

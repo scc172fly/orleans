@@ -5,29 +5,29 @@ using System.Linq;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 最佳平衡器使每个活跃的桶子对其理想资源负责,并重新分配
-    /// 闲置桶的资源均匀地从闲置桶中提取,如果有大量闲置桶的话,
-    /// 这可能会导致大量从闲置桶中抽取资源,
-    /// 所需经费:
-    /// - 资源在桶中甚至分配
-    /// - 无论输入顺序如何,同样的投入必须取得一致的结果。
-    /// - 在对活动桶的改变进行再平衡时,尽量减少资源的流动。
-    /// - 必须与先前的分配状态无关,必须具有确定性。
-    /// 算法 :
-    /// - 创造后,所有桶都实现理想的资源分配,即每桶最多只能多出1个
-    ///    比任何其他桶。
-    /// - 在要求为一份现行桶清单分配新的资源时:
-    ///     (1) 开始对每个活桶进行新的分配,为桶提供理想资源。
-    ///        除非桶子不再活动,否则这些资源将分配给另一桶。
-    ///     (2) 编制一份闲置桶清单。
-    ///     (3) 对于每个闲置桶,在拟重新分配的资源清单中加上理想的资源分配。
-    ///     (4) 将活动桶按分配给每个桶的资源数量订购,并开始分配更多的资源
-    ///        资源列表中列出的待重新分配的资源。
-    ///         (一) 继续重复现有的水桶分配资源,直至不再需要资源
-    ///            重新分配。
+    /// 最佳适配均衡器使每个活动桶负责其理想资源集合，并将
+    /// 非活动桶的资源均匀重新分配给活动桶。如果有大量非活动桶，
+    /// 当这些桶重新上线时，可能需要对原属于非活动桶的资源进行较多调动。
+    /// 要求：
+    /// - 在各桶之间均匀分配资源。
+    /// - 对相同输入必须产生一致的结果，不受输入顺序影响。
+    /// - 活动桶发生变化而再均衡时，尽量减少资源移动。
+    /// - 必须具有确定性，不依赖于先前的分配状态。
+    /// 算法：
+    /// - 创建时生成所有桶之间的理想资源分布，即每个桶的资源数量与
+    /// 其他任意桶相比最多多 1 个。
+    /// - 请求为一组活动桶生成新的资源分配时：
+    /// 1) 用各活动桶的理想资源初始化其新的分配结果。这样可以确保
+    /// 这些资源不会分配给其他桶，除非该桶变为非活动状态。
+    /// 2) 构建非活动桶的列表。
+    /// 3) 将各非活动桶的理想资源分配加入待重新分配的资源列表。
+    /// 4) 按各活动桶已分配的资源数进行排序，然后从
+    /// 待重新分配的资源列表中为它们分配更多资源。
+    /// i) 继续遍历活动桶并分配资源，直到没有更多资源
+    /// 需要重新分配。
     /// </summary>
-    /// <typeparam name="TBucket">资源分配的桶类型</typeparam>
-    /// <typeparam name="TResource">资源分配类型</typeparam>
+    /// <typeparam name="TBucket">用于分配资源的桶的类型。</typeparam>
+    /// <typeparam name="TResource">要分配的资源的类型。</typeparam>
     internal class BestFitBalancer<TBucket, TResource>
         where TBucket : IEquatable<TBucket>, IComparable<TBucket>
         where TResource : IEquatable<TResource>, IComparable<TResource>
@@ -37,11 +37,11 @@ namespace Orleans.Streams
         public Dictionary<TBucket, List<TResource>> IdealDistribution { get { return idealDistribution; } }
 
         /// <summary>
-        /// 构造器
-        /// 初步确定用于帮助将资源分配给水桶亲和的理想分配。
+        /// 构造函数。
+        /// 初始化理想分配，用于维持资源与桶之间的亲和性。
         /// </summary>
-        /// 用于分配资源的<param name="buckets">桶。</param>
-        /// <param name="resources">待分配的资源。</param>
+        /// <param name="buckets">资源要分配到的桶。</param>
+        /// <param name="resources">要分配的资源。</param>
         public BestFitBalancer(IEnumerable<TBucket> buckets, IEnumerable<TResource> resources)
         {
             if (buckets == null)
@@ -58,11 +58,11 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 得到一个分布 活动桶。
-        /// 任何活动桶都保持理想的分配。
-        /// 首先是那些资源分配最少的桶。
+        /// 获取活动桶的资源分配结果。
+        /// 所有活动桶保留其理想分配。非活动桶的资源均匀重新分配
+        /// 给活动桶，从已分配资源最少的桶开始。
         /// </summary>
-        /// <param name="activeBuckets">目前使用的桶</param>
+        /// <param name="activeBuckets">当前活动桶。</param>
         /// <returns></returns>
         public Dictionary<TBucket, List<TResource>> GetDistribution(IEnumerable<TBucket> activeBuckets)
         {
@@ -71,7 +71,7 @@ namespace Orleans.Streams
                 throw new ArgumentNullException(nameof(activeBuckets));
             }
 
-            // 净化活桶。清除重复,确保所有桶有效
+            // 规范化活动桶：移除重复项并确保所有桶有效。
             HashSet<TBucket> activeBucketsSet = new HashSet<TBucket>(activeBuckets);
             foreach (var bucket in activeBucketsSet)
             {
@@ -82,13 +82,13 @@ namespace Orleans.Streams
             }
 
             var newDistribution = new Dictionary<TBucket, List<TResource>>();
-            // 如果没有桶,就退回空资源分配
+            // 如果没有桶，则返回空的资源分配结果。
             if (activeBucketsSet.Count == 0)
             {
                 return newDistribution;
             }
 
-            // 建立活动桶的理想分配,并编制所有需要从闲置桶中重新分配的资源清单
+            // 为活动桶建立理想分配，并构建需要从非活动桶重新分配的所有资源的列表。
             var resourcesToRedistribute = new List<TResource>();
             foreach (var kv in idealDistribution)
             {
@@ -98,12 +98,12 @@ namespace Orleans.Streams
                     resourcesToRedistribute.AddRange(kv.Value);
             }
 
-            // 将剩余资源通过现有桶的资源清单,即资源清单(资源清单,资源清单,资源资源清单,资源清单中最少的首先来源)重新分配
+            // 将剩余资源重新分配到各活动桶的资源列表中，优先处理资源最少的列表。
             IOrderedEnumerable<List<TResource>> sortedResourceLists = newDistribution.Values.OrderBy(resources => resources.Count);
             IEnumerator<List<TResource>> resourceListenumerator = sortedResourceLists.GetEnumerator();
             foreach (TResource resource in resourcesToRedistribute)
             {
-                // 如果我们走到尽头,重新开始
+                // 如果到达末尾，则重新从头开始。
                 if (!resourceListenumerator.MoveNext())
                 {
                     resourceListenumerator = sortedResourceLists.GetEnumerator();
@@ -116,17 +116,17 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 以决定性的方式在桶中公平分配资源。
-        /// - 不论投入的顺序如何,必须均衡分配资源。
+        /// 以确定性方式将资源均匀分配到各桶。
+        /// - 必须均匀分配资源，不受输入顺序影响。
         /// </summary>
-        /// 用于分配资源的<param name="buckets">桶。</param>
-        /// <param name="resources">待分配的资源。</param>
-        /// <returns>平均分配于桶之间资源字典</returns>
+        /// <param name="buckets">资源要分配到的桶。</param>
+        /// <param name="resources">要分配的资源。</param>
+        /// <returns>资源均匀分配到各桶的字典。</returns>
         private static Dictionary<TBucket, List<TResource>> BuildIdealDistribution(IEnumerable<TBucket> buckets, IEnumerable<TResource> resources)
         {
             var idealDistribution = new Dictionary<TBucket, List<TResource>>();
 
-            // 清洁水桶,清除重复品和分类
+            // 规范化桶：去重并排序。
             List<TBucket> bucketList = buckets.Distinct().ToList();
             if (bucketList.Count == 0)
             {
@@ -134,16 +134,16 @@ namespace Orleans.Streams
             }
             bucketList.Sort();
 
-            // 使资源清洁化。
+            // 规范化资源：去重并排序。
             List<TResource> resourceList = resources.Distinct().ToList();
             resourceList.Sort();
 
-            // 在桶中公平分配资源
+            // 将资源均匀分配到各桶。
             var upperResourceCountPerBucket = (int)Math.Ceiling((double)resourceList.Count / bucketList.Count);
             var lowerResourceCountPerBucket = upperResourceCountPerBucket - 1;
             List<TResource>.Enumerator resourceEnumerator = resourceList.GetEnumerator();
             int bucketsToFillWithUpperResource = resourceList.Count % bucketList.Count;
-            // a bucketsToFillWithUpperResource 0表示资源均匀地可视不见,因此以高资源数填充所有资源。
+            // bucketsToFillWithUpperResource 为 0 表示资源可以整除，因此所有桶都按资源数量上限填充。
             if (bucketsToFillWithUpperResource == 0)
             {
                 bucketsToFillWithUpperResource = bucketList.Count;
@@ -151,8 +151,8 @@ namespace Orleans.Streams
             int bucketsFilledCount = 0;
             foreach (TBucket bucket in bucketList)
             {
-                // 如果我们填满了第一个 bucketsToFillWithUpperResource 桶装 upperResourceCountPerBucket
-                //   以 lowerResourceCountPerBucket填充其余的资源
+                // 如果已经用 upperResourceCountPerBucket 个资源填充了前 bucketsToFillWithUpperResource 个桶，
+                // 则按 lowerResourceCountPerBucket 填充其余桶。
                 int resourcesToAddToBucket = bucketsFilledCount < bucketsToFillWithUpperResource
                     ? upperResourceCountPerBucket
                     : lowerResourceCountPerBucket;

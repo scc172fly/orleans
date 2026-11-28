@@ -1,16 +1,16 @@
 <a id="microsoft-orleans-streaming-for-azure-storage-queues"></a>
 
-# Microsoft Orleans 流来 Azure 存储队列
+# Microsoft Orleans 的 Azure Storage 队列流提供程序
 
 <a id="introduction"></a>
 
 ## 简介
-Microsoft Orleans 流来 Azure 储存提供供应商实施 Orleans 使用 Azure 存储队列。 这样可以发布并订阅 Azure 存储队列作为基本信息基础设施。
+Microsoft Orleans 的 Azure Storage 流提供程序提供了基于 Azure Storage 队列的 Orleans 流提供程序实现。这使应用程序可以使用 Azure Storage 队列作为底层消息基础设施来发布和订阅事件流。
 
 <a id="getting-started"></a>
 
 ## 入门
-要使用此软件包, 请通过 NuGet安装 :
+通过 NuGet 安装此包：
 
 ```shell
 dotnet add package Microsoft.Orleans.Streaming.AzureStorage
@@ -18,7 +18,7 @@ dotnet add package Microsoft.Orleans.Streaming.AzureStorage
 
 <a id="example---configuring-azure-storage-queues-streaming"></a>
 
-## 示例 - 配置 Azure 存储队列流
+## 示例：配置 Azure Storage 队列流
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Orleans.Hosting;
@@ -45,7 +45,7 @@ await builder.RunAsync();
 
 <a id="example---using-azure-storage-queue-streams-in-a-grain"></a>
 
-## 实例 - 使用 Azure 存储一个中队流 Grain
+## 示例：在 Grain 中使用 Azure Storage 队列流
 ```csharp
 // Producer grain
 public class ProducerGrain : Grain, IProducerGrain
@@ -107,17 +107,17 @@ public class ConsumerGrain : Grain, IConsumerGrain, IAsyncObserver<string>
 
 <a id="documentation"></a>
 
-## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
-关于更全面的文件,请参见:
+## 文档
+有关更详细的文档，请参阅：
 - [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
 - [Orleans 流](https://dotnet.github.io/orleans/docs/streaming/)
-- [流源供应商](https://dotnet.github.io/orleans/docs/streaming/stream-providers/)
+- [流提供程序](https://dotnet.github.io/orleans/docs/streaming/stream-providers/)
 
 <a id="feedback--contributing"></a>
 
-## 反馈和贡献
-- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
-- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
-- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
-- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证
+## 反馈与贡献
+- 如果遇到问题或希望提供反馈，请[在 GitHub 上提交 Issue](https://github.com/dotnet/orleans/issues)。
+- 欢迎加入我们的 [Discord](https://aka.ms/orleans-discord) 社区。
+- 关注 Twitter 账号 [@msftorleans](https://twitter.com/msftorleans)，获取 Orleans 公告。
+- 欢迎参与贡献！请先阅读[贡献指南](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)。
+- 本项目采用 [MIT 许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)。

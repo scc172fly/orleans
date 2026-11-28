@@ -1,395 +1,229 @@
 ---
-title: "持久任务配方"
-description: "抛出、种族、暂停、补偿、解决所有输入、完成过程、等待信号、开始独立工作、取消、中止和安排持久任务。"
+title: 持久化任务实践指南
+description: 并发扇出、竞速、超时、补偿、等待所有输入进入终态、按完成顺序处理结果、等待信号、启动分离任务，以及取消、中止和调度持久化任务。
 ms.date: 10/14/2026
 ms.topic: how-to
 ---
 
 <a id="durable-task-recipes"></a>
 
-# 持久任务配方
+# 持久化任务实践指南
 
-这些汇编的例子使用 grains
-<xref:Orleans.Durable.Journaling.DurableGrain> and the contracts from
-[持久任务](durable-tasks.md#define-durable-task-methods). 配置日记,
-长期的就业机会,以及如以下所示的持久任务运行时间
-[配置 silo 和客户端](durable-tasks.md#configure-the-silo-and-clients).
-每种配方的结果 [工作对数的测量](durable-tasks-operations.md#observe-a-task)
-贯穿 [运行时过渡](durable-tasks-operations.md#observe-runtime-transitions)
-和 `DurableTaskEvents` 报告。
+这些可编译的示例使用派生自 <xref:Orleans.Durable.Journaling.DurableGrain> 的 Grain，以及[持久化任务](durable-tasks.md#define-durable-task-methods)中的契约。按照[配置 Silo 和客户端](durable-tasks.md#configure-the-silo-and-clients)中的说明配置 Journaling、Durable Jobs 和持久化任务运行时。每个示例的结果均可通过[轮询任务](durable-tasks-operations.md#observe-a-task)以及 `DurableTaskEvents` 报告的[运行时状态转换](durable-tasks-operations.md#observe-runtime-transitions)进行观察。
 
 <a id="fan-out-to-every-line-with-a-named-whenall"></a>
 
-## 扇形切换到有 WhenAll名称的每条线
+## 使用命名的 WhenAll 并发处理每个订单行
 
-**任务:** 每个订单线的储备储备库存同时并存,并继续执行
-线条结果按线条顺序排列。
+**任务：** 并发为每个订单行预留库存，并按订单行顺序继续处理各行的结果。
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_fan_out" language="csharp":::
 
-<xref:Orleans.Durable.Tasks.DurableTask.WhenAll*?displayProperty=nameWithType> 附表
-每行每批保留一行,单批保留一行。 订单 grain 以一份日记本承诺
-以输入顺序写,然后返回一个 `bool[]` 。它等待每个保留,包括
-在一项取消请求之后,在没有任何保留的情况下 `catch` 块运行
-。 `WithId("reserve")` 将输入确定为 `reserve/0`、 `reserve/1`,等等
-开。
+<xref:Orleans.Durable.Tasks.DurableTask.WhenAll*?displayProperty=nameWithType> 在一个批次中为每行调度一次库存预留，订单 Grain 通过一次日志写入提交该批次，并按输入顺序返回一个 `bool[]`。即使收到取消请求，它也会等待所有预留操作结束，因此 `catch` 块开始执行时，已没有仍在运行的预留操作。`WithId("reserve")` 将输入标识为 `reserve/0`、`reserve/1`，依此类推。
 
-空虚 :
+注意事项：
 
-- 以决定顺序构建输入, 如命令的线条顺序。 输入
-  索引是每项输入任务编号的一部分。
-- 名称组合器。 一个未命名的组合器生成的 ID 计算
-  将输入的数重新编号。
-- `WhenAll` 丢弃输入顺序的第一个失败, 然后放弃第一个取消。 要采取行动
-  每种输入结果的利用
-  [`WhenAllCompleted`](#settle-every-input-and-inspect-each-outcome).
+- 按确定性顺序构造输入，例如订单的行顺序。输入索引是各输入任务 ID 的一部分。
+- 为组合器命名。未命名组合器生成的 ID 取决于此前运行的组合器数量，因此在后续部署中于其之前添加一个组合器，会使其输入的编号发生变化。
+- `WhenAll` 优先抛出按输入顺序遇到的第一个失败，否则抛出第一个取消。若要分别处理各输入的结果，请使用 [`WhenAllCompleted`](#settle-every-input-and-inspect-each-outcome)。
 
-**核查:** 顺序 grain 列出 `place-order-{orderId}/reserve/0`
-`reserve/{n-1}`, 每个 `Completed` 其与本 `True` 或 `False` 和每一目录
-grain 列出一个带有同一ID的任务。
+**验证：** 订单 Grain 列出从 `place-order-{orderId}/reserve/0` 到 `reserve/{n-1}` 的任务，每个任务均为 `Completed`，结果为 `True` 或 `False`；各商品目录 Grain 中也列出具有相同 ID 的任务。
 
 <a id="take-the-first-result-and-cancel-the-rest-with-race"></a>
 
-## 取得第一个结果, 然后与 Race 取消其余的
+## 使用 Race 获取首个结果并取消其余请求
 
-**任务:** 从两个承运人中取第一个航运报价,然后取消另一个
-承运人的请求。
+**任务：** 从两家承运商中取得最先返回的运输报价，并取消另一家承运商的请求。
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_race" language="csharp":::
 
-<xref:Orleans.Durable.Tasks.DurableTask.Race*?displayProperty=nameWithType> 附表和
-将请求作为 `first-quote/0` 和 `first-quote/1` ,并选择填写的
-首个 grain 印章每个输入结果的印页都有持久的完成顺序,因此
-即使其他请求自此完成后, 仍重放选择同一赢家 。 `Race`
-请求取消其他请求,原因
-`Another task won the race.` 并等待请求为终端,所以工作流程
-只有在两个承运人的电话都解决后,才继续。 `Race<TResult>` 返回
-赢家索引和结果。
+<xref:Orleans.Durable.Tasks.DurableTask.Race*?displayProperty=nameWithType> 将请求调度为 `first-quote/0` 和 `first-quote/1`，并选出最先完成的请求。Grain 为各输入的结果标记持久化完成序号，因此即使另一请求在此后也已完成，重放仍会选出相同的获胜者。随后 `Race` 以 `Another task won the race.` 为原因请求取消另一请求，并等待该请求进入终态，因此只有两家承运商的调用均已结束后，工作流才会继续。`Race<TResult>` 返回获胜者的索引和结果。
 
-空虚 :
+注意事项：
 
-- 失败或被取消的赢家失败 `Race`。返回一个数值,例如 `null`,
-  其失败是预期结果的投入。
-- 取消是合作的,无视请求的承运人保留种族
-  等待它的呼声完成, 和种族抛弃 呼叫的结果。
-- 将其他输入投入运行,使用
-  <xref:Orleans.Durable.Tasks.DurableTask.WhenAny*?displayProperty=nameWithType>,其
-  其它输入运行到完成或运行时删除任务执行树。
+- 获胜者失败或被取消都会使 `Race` 失败。若某输入的失败属于预期结果，应从该输入返回值，例如 `null`。
+- 取消是协作式的。若承运商忽略取消请求，竞速操作会一直等待，直到该调用完成，并丢弃该调用的结果。
+- 若要让其余输入继续运行，请使用 <xref:Orleans.Durable.Tasks.DurableTask.WhenAny*?displayProperty=nameWithType>，它的其他输入会继续运行，直到自身完成或运行时删除任务的执行树。
 
-**校验 :** 较慢的要求解决了,而航运 grain 列表中作为
-`Canceling` 与原因 `Another task won the race.`;一次 `QuoteFirstAsync`
-返回 `first-quote/0` 和 `first-quote/1` 均为终端。
+**验证：** 较慢的请求尚未进入终态时，运输 Grain 将其列为 `Canceling`，原因为 `Another task won the race.`；`QuoteFirstAsync` 返回后，`first-quote/0` 和 `first-quote/1` 均已处于终态。
 
 <a id="time-out-a-call-with-waitasync"></a>
 
-## 超时呼叫 WaitAsync
+## 使用 WaitAsync 为调用设置超时
 
-**任务:** 要求地面承运人报价,两分钟后放弃。
+**任务：** 向陆运承运商请求报价，两分钟后放弃等待。
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_timeout" language="csharp":::
 
-<xref:Orleans.Durable.Tasks.DurableTaskExtensions.WaitAsync*?displayProperty=nameWithType>
-比赛的呼唤, `ground-quote/0`并等待着持久的拖延, `ground-quote/1`运行时间
-记录延迟的到期时间, 所以在停止作用后重放时保留了原
-截止时间:从第一运行开始计时超时。当延迟先过,请拨
-收到取消请求的原因
-`The operation timed out after 00:02:00.`,以及 `WaitAsync` 等待承运人的
-结束的呼声取消投出 <xref:System.TimeoutException>,其内心
-例外是调用 `OperationCanceledException`;承运人返回的引号
-反之为结果。在第一个电话打完后, `WaitAsync` 将取消延迟,
-返回呼叫结果或丢弃失败。
-<xref:Orleans.Durable.Tasks.DurableTaskExtensions.WaitUntilAsync*> 需要一个绝对值
-而不是最后期限。
+<xref:Orleans.Durable.Tasks.DurableTaskExtensions.WaitAsync*?displayProperty=nameWithType> 使调用 `ground-quote/0` 与持久化延迟 `ground-quote/1` 竞速。运行时记录延迟的到期时间，因此 Grain 停用后的重放仍保留原截止时间：超时从首次运行时开始计算。当延迟先到期时，调用会收到取消请求，原因为 `The operation timed out after 00:02:00.`，而 `WaitAsync` 会等待承运商的调用结果。如果调用最终被取消，则抛出 <xref:System.TimeoutException>，其内部异常为该调用的 `OperationCanceledException`；若承运商仍然返回了报价，则以该报价为结果。当调用先完成时，`WaitAsync` 取消延迟，并返回调用结果或抛出其失败异常。<xref:Orleans.Durable.Tasks.DurableTaskExtensions.WaitUntilAsync*> 则接受绝对截止时间。
 
-空虚 :
+注意事项：
 
-- 计算绝对截止时间
-  <xref:Orleans.Durable.Tasks.DurableTaskContext.UtcNow?displayProperty=nameWithType>, 如此
-  a 重放计算相同的截止时间。
-- 接球 `TimeoutException` 处理超时。 `OperationCanceledException`
-  报告的另外一次取消, 如工作流程自己的取消 。
-- 整个种族的`Race(...).WaitAsync(timeout).WithId(name)` 线以
-  儿 幼 `{name}/0` 以其下层的文采。
-- 一项已经排定的任务
-  <xref:Orleans.Durable.Tasks.ScheduledTask.WaitAsync*?displayProperty=nameWithType> 加上 a
-  超时适用相同的规则。 在一项耐久的任务之外,例如客户的耐用任务,它
-  测量系统时钟的超时。
+- 根据 <xref:Orleans.Durable.Tasks.DurableTaskContext.UtcNow?displayProperty=nameWithType> 计算绝对截止时间，使重放计算出相同的截止时间。
+- 捕获 `TimeoutException` 以处理超时。`OperationCanceledException` 表示其他取消情况，例如工作流自身的取消。
+- `Race(...).WaitAsync(timeout).WithId(name)` 限制整个竞速操作的时长，该操作随后作为子操作 `{name}/0` 运行，其输入归属于该子操作。
+- 对于已经调度的任务，带超时参数的 <xref:Orleans.Durable.Tasks.ScheduledTask.WaitAsync*?displayProperty=nameWithType> 适用相同规则。在持久化任务外部（例如客户端），它使用系统时钟计算超时。
 
-**核查:** 航运 grain 将 `ground-quote/1` 列为 `Delayed` ,直至其到期。
-暂停后 `ground-quote/0` 原因报告
-`The operation timed out after 00:02:00.`,以及工作流程返回 `null`
-航空公司的要求终止了
+**验证：** 运输 Grain 将 `ground-quote/1` 列为 `Delayed`，直到其到期。超时后，`ground-quote/0` 报告原因为 `The operation timed out after 00:02:00.`，承运商的请求最终被取消时，工作流返回 `null`。
 
 <a id="compensate-inline-when-the-workflow-is-canceled"></a>
 
-## 当工作流程取消时进行内线补偿
+## 工作流取消时在原工作流内执行补偿
 
-**任务:** 当买方在审定期间取消订单时,解除所有保留
-记录为什么取消订单
+**任务：** 当买家在验证期间取消订单时，释放所有已预留的库存，并记录取消订单的原因。
 
-`catch` 块 [扇出配方](#fan-out-to-every-line-with-a-named-whenall)
-在 `IsTaskCancellationRequested`上过滤器,因此它处理工作流程本身的任务
-取消和通行证
-<xref:Orleans.Durable.Tasks.DurableTaskContext.TaskCancellationReason?displayProperty=nameWithType>
-赔偿金额:
+[并发扇出示例](#fan-out-to-every-line-with-a-named-whenall)中的 `catch` 块通过 `IsTaskCancellationRequested` 进行筛选，因此它处理的是工作流自身任务的取消，并将 <xref:Orleans.Durable.Tasks.DurableTaskContext.TaskCancellationReason?displayProperty=nameWithType> 传递给补偿操作：
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_compensation" language="csharp":::
 
-儿童中,如果一个取消的任务在不运行的情况下以取消的方式终止了该任务,除非
-任务开始于
-<xref:Orleans.Durable.Tasks.DurableTaskExtensions.Shielded*>. 屏蔽 `release`
-每种输入的组合套套,因此输入和 `cancel` 效果都运行到
-完成时间和
-返回记录原因的 `OrderResult` 。保留从未被
-没有任何留叶可释放, 所以 `ReleaseAsync` 返回命令是否维持
-保留,释放每一行是安全的:
+已取消的任务启动子操作时，子操作会直接以已取消状态终止而不执行，除非任务通过 <xref:Orleans.Durable.Tasks.DurableTaskExtensions.Shielded*> 启动它们。受取消屏蔽保护的 `release` 组合器会保护其每个输入，因此输入和 `cancel` 效果操作会运行至完成，工作流返回记录取消原因的 `OrderResult`。从未执行的库存预留不会留下需要释放的内容，因此 `ReleaseAsync` 返回订单是否曾持有预留库存，可以安全地对所有订单行执行释放操作：
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_catalog_grain" language="csharp":::
 
-空虚 :
+注意事项：
 
-- 每一个孩子都得用盾牌来补偿。一个没有被保护的孩子会因取消而终止
-  不带运行。
-- 使补偿成为能干的,并报告他们是否行动,这样工作流程就可以
-  补偿却不知道是哪一步
-- 中止不能补偿,中止是给那些赔偿被拖延的任务。
-- 工作必须比工作流程活得长,例如工作流程结果之后的清理
-  交付,属于 [分离任务](#start-follow-up-work-without-waiting)。
+- 为每个补偿子操作提供取消屏蔽保护。未受保护的子操作会直接以已取消状态终止，不会运行。
+- 使补偿操作具有幂等性，并报告是否实际执行了补偿动作，这样工作流无须知道哪些步骤已运行即可进行补偿。
+- 中止不会运行补偿操作。中止适用于补偿操作卡住的任务。
+- 必须比工作流存续更久的工作（例如投递工作流结果后的清理操作）应放在[分离任务](#start-follow-up-work-without-waiting)中。
 
-**校验 :** 之后 `CancelAsync` 宽限期期间的顺序 grain 列表列表
-`grace-period` 年为 `Canceled`, `release/{n}` 和 `cancel` 年为 `Completed`根
-任务作为任务 `Completed` 和 A 相 `OrderResult` 其描述 `Cancelled by the buyer.`.
+**验证：** 在宽限期内调用 `CancelAsync` 后，订单 Grain 将 `grace-period` 列为 `Canceled`，将 `release/{n}` 和 `cancel` 列为 `Completed`，并将根任务列为 `Completed`，其结果为描述内容是 `Cancelled by the buyer.` 的 `OrderResult`。
 
 <a id="settle-every-input-and-inspect-each-outcome"></a>
 
-## 解决每项投入并检查每个结果
+## 等待所有输入进入终态并检查各自结果
 
-**任务:** 保留每一行,在任何保留失效、被拒绝或被否决时
-取消, 释放保留成功时的线条 。
+**任务：** 为每个订单行预留库存；当任一预留失败、遭拒绝或被取消时，仅释放预留成功的订单行。
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_when_all_completed" language="csharp":::
 
-<xref:Orleans.Durable.Tasks.DurableTask.WhenAllCompleted*?displayProperty=nameWithType>
-将输入的处理器返回到输入中
-组合成功,包括
-工作流程在自己提出取消请求后,将输入输入。
-对其结果表示意见,因此
-<xref:Orleans.Durable.Tasks.ScheduledTask`1.TryGetResult*> 返回 `true` ,结果
-成功完成的保留的撤回
-<xref:Orleans.Durable.Tasks.ScheduledTask.Status>,
-<xref:Orleans.Durable.Tasks.ScheduledTask.Exception>, and
-<xref:Orleans.Durable.Tasks.ScheduledTask`1.GetResult*> 检查其他的。
-使用屏蔽组合器释放所持的线条,因此当
-工作流程被取消, 然后重新扔出取消的选项, 这样任务就以取消结束 。
+<xref:Orleans.Durable.Tasks.DurableTask.WhenAllCompleted*?displayProperty=nameWithType> 调度所有输入，等待每个输入进入终态，并按输入顺序返回它们的句柄。输入失败或被取消不会导致组合器失败，即使工作流自身发出了取消请求且该请求传播到了各输入，组合器仍会成功完成。每个句柄均已观察到其结果，因此 <xref:Orleans.Durable.Tasks.ScheduledTask`1.TryGetResult*> 对于成功完成的预留操作会返回 `true` 并提供结果，而 <xref:Orleans.Durable.Tasks.ScheduledTask.Status>、<xref:Orleans.Durable.Tasks.ScheduledTask.Exception> 和 <xref:Orleans.Durable.Tasks.ScheduledTask`1.GetResult*> 可用于检查其他结果。工作流使用受取消屏蔽保护的组合器释放已持有的库存，因此即使工作流已被取消，释放操作也会执行；随后重新抛出取消异常，使任务以已取消状态结束。
 
-空虚 :
+注意事项：
 
-- 每一个把手结果的分支,而不是综合结果:组合器从来没有
-  丢弃输入。
-- 保护盾只要工作流程在补偿时被取消,就会发布。
-- `WhenAllCompleted` 只有在等待执行耐久处决时才运行。
-  先前返回的`ScheduleAll` ,
-  <xref:Orleans.Durable.Tasks.ScheduledTask.WhenAllCompleted*?displayProperty=nameWithType>
-  等待的方式是一样的。
+- 根据各句柄的结果进行分支，而不是依据组合后的结果：组合器不会因某个输入而抛出异常。
+- 只要工作流可能在补偿期间被取消，就应为释放操作提供取消屏蔽保护。
+- `WhenAllCompleted` 只有在持久化执行内部被等待时才会运行。对于 `ScheduleAll` 先前返回的句柄，可用 <xref:Orleans.Durable.Tasks.ScheduledTask.WhenAllCompleted*?displayProperty=nameWithType> 以相同方式等待。
 
-**核查:** ,有一个行的库存外线,分配 grain 清单 `reserve/{i}`
-`True` 和 `False` 结果,a `release/{n}` 每个输入 `True` 仅行, 和
-单表 grains'现有库存返回其起始价值。
+**验证：** 某订单行库存不足时，分配 Grain 会列出具有 `True` 和 `False` 结果的 `reserve/{i}`，并且只为每个结果为 `True` 的订单行列出一个 `release/{n}` 输入；各商品目录 Grain 的可用库存恢复至初始值。
 
 <a id="process-results-as-they-arrive-with-wheneach"></a>
 
-## 与 WhenEach一起到达的流程结果
+## 使用 WhenEach 按完成顺序处理结果
 
-**任务:** 请求数个承运人报价,保留第一个 `count` 报价
-收到并取消其余请求。
+**任务：** 向多家承运商请求报价，按报价到达的顺序保留前 `count` 个报价，并取消其余请求。
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_when_each" language="csharp":::
 
-<xref:Orleans.Durable.Tasks.DurableTask.ScheduleAll*?displayProperty=nameWithType>
-请求以 `quotes/0`、 `quotes/1`等形式列表,并返回其控件。
-<xref:Orleans.Durable.Tasks.ScheduledTask.WhenEach*?displayProperty=nameWithType> 产量
-每一个处理一次,按完成顺序,包括失败和取消的请求。
-运行时间根据结果的持久完成序列选择下一个处理器, 所以
-每个重放的重放产生相同的顺序, 运行同样的步骤, 包括一个重放
-完成更多请求。 在循环后,
-<xref:Orleans.Durable.Tasks.ScheduledTask.CancelAsync*?displayProperty=nameWithType>
-取消每项请求并附上理由; 取消已经完成更改的请求
-什么都没有。
+<xref:Orleans.Durable.Tasks.DurableTask.ScheduleAll*?displayProperty=nameWithType> 将请求调度为 `quotes/0`、`quotes/1` 等，并返回它们的句柄。<xref:Orleans.Durable.Tasks.ScheduledTask.WhenEach*?displayProperty=nameWithType> 按完成顺序逐个产出每个句柄，且每个句柄只产出一次，包括失败或被取消的请求。运行时根据各结果的持久化完成序号选择下一个句柄，因此每次重放均以相同顺序产出句柄并运行相同的步骤，即使重放时已有更多请求完成。循环结束后，<xref:Orleans.Durable.Tasks.ScheduledTask.CancelAsync*?displayProperty=nameWithType> 按给定原因取消各请求；取消已完成的请求不会产生任何变更。
 
-空虚 :
+注意事项：
 
-- 依据查点结果的手柄决定
-  后导出可在重放时报告不同的 `IsCompleted` 值。
-- `DurableTask.WhenEach` 接受不接受 `WithId`; 要命名输入, 请等待
-  `ScheduleAll(...).WithId(name)` 和列举 `ScheduledTask.WhenEach(handles)`.
-- 查点结果无法持续处理的请求
-  取消, 否则任务执行树被删除 。
+- 根据枚举已产出的句柄作出决策。尚未由枚举产出的句柄在重放时可能报告不同的 `IsCompleted` 值。
+- `DurableTask.WhenEach` 不接受 `WithId`；若要命名输入，请等待 `ScheduleAll(...).WithId(name)`，再枚举 `ScheduledTask.WhenEach(handles)`。
+- 枚举未遍历到的请求会继续运行，直到完成、被取消或任务的执行树被删除。
 
-**核查:** 航运 grain 清单列出每个承运人的 `quotes/{i}` 。
-还没有完成报告 `Enough quotes were collected.` 时 `Canceling`,
-其承运人所应尽的 grain .报告。
+**验证：** 运输 Grain 为每家承运商列出 `quotes/{i}`。尚未完成的各请求在处于 `Canceling` 状态时报告原因为 `Enough quotes were collected.`，随后报告其承运商 Grain 所报告的结果。
 
 <a id="schedule-now-await-later-with-scheduleall"></a>
 
-## 计划,等待稍后 ScheduleAll
+## 使用 ScheduleAll 先调度、后等待
 
-**任务:** 开始打印每个包标签,记录在选择顺序时所选的顺序
-标签打印,然后收集标签。
+**任务：** 启动所有包裹标签的打印操作，在打印标签期间记录订单已完成拣货，随后收集标签。
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_schedule_all" language="csharp":::
 
-`ScheduleAll(...).WithId("labels")` 以一个日记写方式执行每份标签请求
-并返回他们的控点,不等待。 `pick` 步数运行,而标签打印。
-<xref:Orleans.Durable.Tasks.ScheduledTask.WhenAll*?displayProperty=nameWithType> 然后
-等待每个标签,然后将第一个失败按输入顺序进行输入,否则第一个
-取消, 所以每个控点的 `GetResult()` 返回标签 。
+`ScheduleAll(...).WithId("labels")` 通过一次日志写入提交所有标签请求，并在不等待完成的情况下返回其句柄。打印标签期间运行 `pick` 步骤。随后 <xref:Orleans.Durable.Tasks.ScheduledTask.WhenAll*?displayProperty=nameWithType> 等待所有标签，优先抛出按输入顺序遇到的第一个失败，否则抛出第一个取消；成功时，各句柄的 `GetResult()` 返回对应标签。
 
-空虚 :
+注意事项：
 
-- 在工作流程返回之前,等待每个控点,或将其传递给组合器。
-  工作流程不会等待的运行 继续运行,运行时间在它的时候取消
-  删除任务执行树。
-- `ScheduleAll` 只有在等待执行持久处决时才运行,因为其手柄
-  属于执行者
+- 在工作流返回前等待每个句柄，或将它传递给组合器。工作流未等待的标签任务会继续运行，运行时会在删除任务的执行树时将其取消。
+- `ScheduleAll` 只有在持久化执行内部被等待时才会运行，因为其句柄归属于该执行。
 
-**核查:** 履行 grain 清单 `labels/{i}` 和 `pick`,以及标签任务
-与 `pick`有关的任何顺序。
+**验证：** 履约 Grain 列出 `labels/{i}` 和 `pick`，标签任务相对于 `pick` 可以按任意顺序完成。
 
 <a id="wait-for-an-external-event-with-a-deadline"></a>
 
-## 等待有截止时间的外部事件
+## 在截止时间前等待外部事件
 
-**任务:** 等待核准人就费用索赔作出决定最多3天。
+**任务：** 对于一份费用报销申请，最多等待三天以获取审批人的决定。
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_signal" language="csharp":::
 
-<xref:Orleans.Durable.Tasks.DurableSignal`1.TryWaitAsync*> 与耐久性相比
-延迟到截止时间和返回 `(true, decision)` 或 `(false, default)`。任务
-记录第一个决定,而每次等待和重放都返回它。普通 grain
-以 `IDurableTaskManager.TrySignalAsync`的方式作出决定,
-grain的待状态更改并返回一个 `DurableSignalResult`。客户端发送
-通过 grain 参考文献的相同信号:
+<xref:Orleans.Durable.Tasks.DurableSignal`1.TryWaitAsync*> 使信号与到截止时间为止的持久化延迟竞速，并返回 `(true, decision)` 或 `(false, default)`。任务记录首次收到的决定，每次等待和重放均返回该决定。普通 Grain 方法通过 `IDurableTaskManager.TrySignalAsync` 投递决定，该投递操作与 Grain 待提交的状态变更一同提交，并返回 `DurableSignalResult`。客户端通过 Grain 引用发送相同的信号：
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_signal_client" language="csharp":::
 
-空虚 :
+注意事项：
 
-- 计算截止时间
-  <xref:Orleans.Durable.Tasks.DurableTaskContext.UtcNow?displayProperty=nameWithType>,
-  重播计算相同的截止时间。
-- 处理引用的任务, 这里选择客户客户计划的任务根任务。 本地
-  儿童的身份识别不是被引用的任务, 所以一个信号返回 `TaskNotFound`。
-- 每个名字记录一个值。使用
-  <xref:Orleans.Durable.Tasks.DurableSignal`1.For*> 以在一
-  重复事件,例如每轮批准一个。
-- 在任务开始期间,记录了在最后期限之后作出的决定和
-  后期 `Decided.WaitAsync()` 在同一任务中返回。
+- 根据 <xref:Orleans.Durable.Tasks.DurableTaskContext.UtcNow?displayProperty=nameWithType> 计算截止时间，使重放计算出相同的截止时间。
+- 以被调用的任务为目标，在本例中即客户端调度的根任务。本地子操作的 ID 并不标识被调用的任务，因此向其发送信号会返回 `TaskNotFound`。
+- 每个名称仅记录一个值。使用 <xref:Orleans.Durable.Tasks.DurableSignal`1.For*> 为重复事件的每次发生派生一个名称，例如每轮审批使用一个名称。
+- 在任务运行期间，截止时间之后到达的决定也会被记录，同一任务中后续的 `Decided.WaitAsync()` 将返回该决定。
 
-**核查:** `DecideAsync` 返回 `Accepted`,同一决定再次返回
-`Duplicate`,不同的决定返回 `Conflict`,任务结束后的决定
-完成一个返回时没有填充 `TaskCompleted`。
+**验证：** `DecideAsync` 返回 `Accepted`，再次提交相同决定返回 `Duplicate`，提交不同决定返回 `Conflict`，而在任务未收到决定便已完成之后提交决定则返回 `TaskCompleted`。
 
 <a id="start-follow-up-work-without-waiting"></a>
 
-## 开始后续工作,不等待等候
+## 无须等待即可启动后续工作
 
-**任务:** 在开具发票时发出收据,而不等待发票
-通知服务或发票取消时取消收据。
+**任务：** 开具发票时发送收据，无须让发票工作流等待通知服务，也不会在发票被取消时取消收据发送。
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_detach" language="csharp":::
 
-<xref:Orleans.Durable.Tasks.DurableTaskExtensions.Detached*> 将该电话作为独立电话
-通知 grain的根任务,名称为 `receipt-{invoiceId}`
-<xref:Orleans.Durable.Tasks.DurableTaskExtensions.WithId*>, 和
-<xref:Orleans.Durable.Tasks.ConfiguredDurableTask.Post*> 在发票 grain中分阶段处理
-要求和在发票的处决树上的记录
-发票结果,所以一个重放 到达记录开始没有意义。
-以姓名收悉:
+<xref:Orleans.Durable.Tasks.DurableTaskExtensions.Detached*> 使调用成为通知 Grain 上独立的根任务，<xref:Orleans.Durable.Tasks.DurableTaskExtensions.WithId*> 将其命名为 `receipt-{invoiceId}`，而 <xref:Orleans.Durable.Tasks.ConfiguredDurableTask.Post*> 将其暂存到发票 Grain 的发件箱中。调用及其在发票执行树中的记录与发票结果一同提交，因此重放到达此记录时不会再次启动任务。观察者根据收据任务的名称定位它：
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_detach_observe" language="csharp":::
 
-空虚 :
+注意事项：
 
-- 以稳定值后指定分离任务。在现有的
-  根 I 像其它任务ID 重新使用一样失败 。
-- 将收据的身份证交给另一方的工作流量,然后方作出自己的决定
-  以 `ScheduleAsync`,返回通知 grain 拿着它
-- 通知 grain 在通知 `ResultRetentionPeriod` 之后保留收到结果
-  完成,投票
+- 根据稳定的值命名分离任务。在已有根 ID 下启动不同的方法，会像其他任务 ID 重用情况一样失败。
+- 如果工作流在自身结果提交之前将收据任务 ID 交给另一方，应通过 `ScheduleAsync` 启动该任务；它会在通知 Grain 持有该任务后返回。
+- 通知 Grain 在收据任务完成后将其结果保留 `ResultRetentionPeriod`，以供轮询。
 
-**核查:** 通知 grain 清单 `receipt-{invoiceId}`和发票 grain
-列表 a `$detach:…` 通知中注明的发票工作之下记录 grain 和
-收据的根身份,直到发票的树被删除。
+**验证：** 通知 Grain 列出 `receipt-{invoiceId}`；发票 Grain 在发票任务下列出一条 `$detach:…` 记录，该记录根据通知 Grain 和收据任务的根 ID 命名，并保留至发票的执行树被删除。
 
 <a id="cancel-and-abort-from-ordinary-grain-methods"></a>
 
-## 取消普通 grain 方法并中止该方法
+## 从普通 Grain 方法取消和中止任务
 
-**任务:** 在确认库存之前让买方取消订单,然后让
-操作员中止一个被卡住的工作流程 。
+**任务：** 允许买家在订单库存确认之前取消订单，并允许运维人员中止卡住的工作流。
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_order_controls" language="csharp":::
 
-与激活本身相对的 grain 注射器 `IDurableTaskManager`
-运行时, 没有呼叫 grain 。 一旦请求完成, `CancelAsync(rootId, reason)`
-承诺和倡导;工作流程遵守并决定其结果,如
-[补偿食谱](#compensate-inline-when-the-workflow-is-canceled).
-`AbortAsync(rootId, reason)` 承诺将工作流程及其执行树与
-<xref:Orleans.Durable.Tasks.DurableTaskAbortedException>, whose message is the reason, and
-向其它未解决的调用 grain发送中止。 客户端使用任务控件 :
+Grain 注入 `IDurableTaskManager`，它直接针对当前激活自身的运行时执行操作，无须发起 Grain 调用。`CancelAsync(rootId, reason)` 在请求已提交并传播后完成；工作流观察该请求并决定其结果，如[补偿示例](#compensate-inline-when-the-workflow-is-canceled)所示。`AbortAsync(rootId, reason)` 将工作流及其执行树以 <xref:Orleans.Durable.Tasks.DurableTaskAbortedException> 提交为失败状态，该异常的消息为中止原因，并向每个尚未完成的跨 Grain 调用发送中止请求。客户端使用任务句柄：
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_client_controls" language="csharp":::
 
-空虚 :
+注意事项：
 
-- 取消前先检查商务状态。取消后即到期
-  工作流程通过了其可撤销的步骤,这些步骤仍然在运行补偿
-  够
-- 重复的取消请求是完全可以的,第一个请求的原因是
-  工作流程读取的。
-- 中止没有补偿, 并留下独立任务运行; 单独中止它们 。
+- 在取消之前检查业务状态。若取消请求在工作流已经过可取消步骤之后到达，只会执行这些步骤仍能触达的补偿操作。
+- 重复的取消请求是幂等的，工作流读取的是首次请求的原因。
+- 中止不会执行补偿操作，而且分离任务会继续运行；须单独中止这些任务。
 
-**校验 :** 取消的订单诊断报告其根为 `Completed` 和
-时退出工作流程的 `Canceled` ,
-中止的根报告 `Faulted`
-`DurableTaskAbortedException: <reason>`.
+**验证：** 已取消订单的诊断信息将根任务报告为 `Completed`，并携带取消结果；或者在异常传播出工作流时，将根任务报告为 `Canceled`，响应为取消原因。被中止的根任务报告为 `Faulted`，并携带 `DurableTaskAbortedException: <reason>`。
 
 <a id="schedule-a-workflow-from-another-grain-or-a-client"></a>
 
-## 调度来自另一个 grain 或客户端的工作流程
+## 从其他 Grain 或客户端调度工作流
 
-**任务:** 当买方检查并观察其结果时启动订单工作流程。
+**任务：** 在买家结算时启动订单工作流，并观察其结果。
 
-耐久 grain 从普通方法开始工作流程
-<xref:Orleans.Durable.Tasks.ConfiguredDurableTask.Post*>,该程序将分阶段援引
-以它发出的箱,所以清理的篮子和祈祷 一起在日记上写
-其内容如下:
+持久化 Grain 从普通方法通过 <xref:Orleans.Durable.Tasks.ConfiguredDurableTask.Post*> 启动工作流，该方法将调用暂存到其发件箱中，使购物篮的清空操作和调用在随后的一次日志写入中一同提交：
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_schedule_from_grain" language="csharp":::
 
-工作流程是顺序 grain上的一项根本任务,保留了顺序及其结果
-`ResultRetentionPeriod` 完成后,篮子投票结果
-`GetDurableTask<TResult>` grain- 参考扩展名。
+该工作流是订单 Grain 上的根任务；订单 Grain 在任务完成后将任务及其结果保留 `ResultRetentionPeriod`，而购物篮 Grain 使用 Grain 引用扩展方法 `GetDurableTask<TResult>` 在订单 Grain 上轮询该任务。
 
-客户将工作流程与
-<xref:Orleans.Durable.Tasks.ConfiguredDurableTask.ScheduleAsync*>,返回时返回
-顺序顺序顺序 grain 持此任务,等待着返回的手柄,或稍晚地重新接续它。
-根标识符 `GetDurableTask<TResult>`:
+客户端使用 <xref:Orleans.Durable.Tasks.ConfiguredDurableTask.ScheduleAsync*> 调度工作流，该方法在订单 Grain 持有任务后返回。客户端可等待返回的句柄，也可稍后使用 `GetDurableTask<TResult>` 根据根 ID 重新关联到任务：
 
 :::code source="../snippets/compiled-durable/Grains/DurableTaskSnippets.cs" id="durable_tasks_schedule_from_client" language="csharp":::
 
-A <xref:Orleans.Durable.Tasks.PollingOptions> 数值为零的值 `PollTimeout` 返回返回
-当前状态同时同步; 更长的超时等待时间要等到完成。
-等待呼唤的持久任务,从幼年起即开始,并且 `WithId(name).ScheduleAsync()`
-儿童开始,然后返回其手柄等待。
+<xref:Orleans.Durable.Tasks.PollingOptions> 值的 `PollTimeout` 为零时立即返回当前状态；更长的超时值则最多等待这么长时间以获取任务完成结果。在持久化任务内部，等待调用会将其作为子任务运行，而 `WithId(name).ScheduleAsync()` 启动一个子任务并返回其句柄，供稍后等待。
 
-空虚 :
+注意事项：
 
-- 将根身份从商业身份(如排序号)中提取出来,带有 `WithId`的[命令号],所以
-  重新查取的检出结果达到相同的任务,而不是启动第二个工作流程。
-- 完成后, `ResultRetentionPeriod` 将保留根任务。
-  `DurableTaskNotFoundException`,并重新开始同一根 根ID
-  再来一次
+- 使用 `WithId` 根据业务标识（例如订单 ID）派生根 ID，使结算重试到达同一个任务，而非启动第二个工作流。
+- 根任务在完成后保留 `ResultRetentionPeriod`。保留期结束后的轮询会抛出 `DurableTaskNotFoundException`，再次使用相同的根 ID 启动则会重新运行工作流。
 
-**核查:** 顺序 grain 列出 `place-order-{orderId}`,篮子清单中未列出任务
-并且, `GetOrderResultAsync` 命令船舶返回后的结果。
+**验证：** 订单 Grain 列出 `place-order-{orderId}`，购物篮 Grain 不会为该工作流列出任务，而 `GetOrderResultAsync` 在订单发货后返回结果。

@@ -185,12 +185,12 @@ namespace Documentation.EventSourcing.Diagnostics
         // <connection_issue_callbacks>
 protected override void OnConnectionIssue(ConnectionIssue issue)
 {
-    // 记录议题类别、重试计数和例外。
+    // 记录问题类别、重试次数及异常。
 }
 
 protected override void OnConnectionIssueResolved(ConnectionIssue issue)
 {
-    // 明确或解决相应的健康信号。
+    // 清除或解决对应的健康信号。
 }
         // </connection_issue_callbacks>
     }
@@ -207,7 +207,7 @@ namespace Documentation.EventSourcing.Notifications
         // <confirmed_state_changed>
 protected override void OnStateChanged()
 {
-    // 检查州和版本。
+    // 检查 State 和 Version。
 }
         // </confirmed_state_changed>
 

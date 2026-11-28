@@ -6,12 +6,12 @@ using Orleans.TestingHost;
 namespace Orleans.Testing.Reminders;
 
 /// <summary>
-/// 确定了确定性提醒测试所需的地形界限。
+/// 建立确定性提醒器测试所需的拓扑边界。
 /// </summary>
 public static class ReminderTopologyStabilizer
 {
     /// <summary>
-    /// 等待提醒服务准备就绪、稳定成员能见度和当前提醒对账。
+    /// 等待提醒器服务就绪、成员资格视图稳定及当前提醒器协调完成。
     /// </summary>
     public static async Task<IReadOnlyList<InProcessSiloHandle>> WaitForStableTopologyAsync(
         InProcessTestCluster cluster,
@@ -25,7 +25,7 @@ public static class ReminderTopologyStabilizer
             cancellationToken);
 
     /// <summary>
-    /// 等待稳定成员能见度和完成该地形引起的和解。
+    /// 等待成员资格视图稳定，并等待该拓扑触发的协调完成。
     /// </summary>
     public static async Task<IReadOnlyList<InProcessSiloHandle>> WaitForReconciledTopologyAsync(
         InProcessTestCluster cluster,
@@ -39,7 +39,7 @@ public static class ReminderTopologyStabilizer
             cancellationToken);
 
     /// <summary>
-    /// 等待初始提醒表及其当前范围对齐。
+    /// 等待初始提醒器拓扑及当前范围的协调完成。
     /// </summary>
     public static async Task<IReadOnlyList<InProcessSiloHandle>> WaitForStartupTopologyAsync(
         InProcessTestCluster cluster,

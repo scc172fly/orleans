@@ -4,29 +4,29 @@ using System.Diagnostics;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// 实施毗连范围的概念。
+    /// 实现连续范围的概念。
     /// </summary>
     /// <typeparam name="T">范围的类型。</typeparam>
-    /// <remarks>初步执行。</remarks>
+    /// <remarks>一个基础实现。</remarks>
     [DebuggerDisplay("Start = {Start}, End = {End}")]
     public sealed class Range<T> : IEquatable<Range<T>> where T : notnull
     {
         /// <summary>
-        /// 毗连范围的起始范围。
+        /// 连续范围的起点。
         /// </summary>
         public T Start { get; }
 
         /// <summary>
-        /// 毗连范围的终点。
+        /// 连续范围的终点。
         /// </summary>
         public T End { get; }
 
         /// <summary>
-        /// 构造器
+        /// 构造函数。
         /// </summary>
-        /// <param name="start">范围起始。</param>
-        /// <param name="end">范围末端。</param>
-        /// <param name="comparer">区域比较器。</param>
+        /// <param name="start">范围的起点。</param>
+        /// <param name="end">范围的终点。</param>
+        /// <param name="comparer">范围的比较器。</param>
         /// <exception cref="ArgumentOutOfRangeException"/>.
         public Range(T start, T end, IComparer<T>? comparer = null)
         {

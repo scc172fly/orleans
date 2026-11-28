@@ -373,7 +373,7 @@ public class GrainInstrumentsTests
         Assert.Equal(1, second.GrainCount);
         if (!enabled)
         {
-            // 启用延迟后没有重放; 新的操作既发布又更新了《公约》保存簿。
+            // 事后启用指标时不会重放历史操作；新操作既会发出指标，也会继续更新 CLR 记账信息。
             foreach (var instrument in fixture.PublishedInstruments) listener.EnableMeasurementEvents(instrument);
             Assert.Equal(new int[3], positives);
             Assert.Equal(new int[3], negatives);

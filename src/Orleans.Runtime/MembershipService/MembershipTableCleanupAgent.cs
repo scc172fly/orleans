@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Runtime.MembershipService
 {
     /// <summary>
-    /// 负责清理死亡会员名单条目
+    /// 负责清理成员表中的死亡成员条目。
     /// </summary>
     internal partial class MembershipTableCleanupAgent : ILifecycleParticipant<ISiloLifecycle>, IDisposable
     {
@@ -99,7 +99,7 @@ namespace Orleans.Runtime.MembershipService
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // 忽略并继续关闭
+                // 忽略并继续关闭。
             }
             finally
             {
@@ -114,8 +114,8 @@ namespace Orleans.Runtime.MembershipService
                 var now = _timeProvider.GetUtcNow();
                 DateTimeOffset? beforeDate = default;
 
-                // 最近已死亡的条目保留,以便 silos 在成员业务延迟或重新审理后能够继续工作;
-                // 例如,加插一个其答复已丢失、观察自己的死亡而不是重新登记。
+                // 保留近期死亡的条目，以便成员资格操作发生延迟或重试的 Silo，
+                // 例如加入时插入成功但响应丢失的 Silo，能够观察到自身已经死亡，而不是重新注册。
                 var minimumRetention = _clusterMembershipOptions.DefunctSiloMinimumRetention;
                 var retentionBeforeDate = now - minimumRetention;
 
@@ -170,7 +170,7 @@ namespace Orleans.Runtime.MembershipService
                             excessBeforeDate = retentionBeforeDate;
                         }
 
-                        // 当最低留存额没有超出的条目有资格被删除时, 跳过呼叫 。
+                        // 如果最短保留时间约束使得没有额外条目符合删除条件，则跳过调用。
                         if (oldestDefunctUpdateTime < excessBeforeDate.UtcDateTime
                             && (!beforeDate.HasValue || excessBeforeDate > beforeDate.Value))
                         {

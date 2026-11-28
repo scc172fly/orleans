@@ -23,8 +23,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grain 简单的移民 grain 直接执行 <see cref="IGrainMigrationParticipant"/>.
-        /// 测试没有指定 grain 迁移到的替代地点,而是旋转直到它自己选择一个替代地点。
+        /// 测试直接实现 <see cref="IGrainMigrationParticipant"/> 的简单 Grain 能否正确迁移。
+        /// 测试不指定 Grain 的迁移备选位置，而是反复尝试，直到 Grain 自行选择另一个位置。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task BasicGrainMigrationTest()
@@ -37,8 +37,8 @@ namespace DefaultCluster.Tests.General
                 GrainAddress newAddress;
                 do
                 {
-                    // 触发移徙,而不设置安置提示,所以 grain 安置提供者将是
-                    // 选择包括现有位置在内的任何位置。
+                    // 不设置放置提示而触发迁移，因此 Grain 放置提供程序
+                    // 可自由选择任意位置，包括当前位置。
                     await grain.Cast<IGrainManagementExtension>().MigrateOnIdle(TestContext.Current.CancellationToken);
                     await grain.SetState(expectedState);
                     newAddress = await grain.GetGrainAddress();
@@ -50,7 +50,7 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试可在 grain <see cref="IGrainBase.OnDeactivateAsync(DeactivationReason, CancellationToken)"/> 执行范围内启动迁移。
+        /// 测试是否能从 Grain 的 <see cref="IGrainBase.OnDeactivateAsync(DeactivationReason, CancellationToken)"/> 实现内部发起迁移。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task InitiateMigrationFromOnDeactivateAsyncTest()
@@ -64,7 +64,7 @@ namespace DefaultCluster.Tests.General
                 var originalHost = originalAddress.SiloAddress;
                 var targetHost = Fixture.HostedCluster.GetActiveSilos().Select(s => s.SiloAddress).First(address => address != originalHost);
 
-                // 触发禁用,并告诉 grain ,它应该迁移到解除目标主机。
+                // 触发停用，并告知 Grain 在停用时应迁移到目标宿主。
                 await grain.MigrateDuringDeactivation(targetHost);
 
                 GrainAddress newAddress;
@@ -82,8 +82,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grain 简单的移民 grain 直接执行 <see cref="IGrainMigrationParticipant"/>.
-        /// 试验指定了 grain 迁移到该地点并声称迁移到该地点的替代地点。
+        /// 测试直接实现 <see cref="IGrainMigrationParticipant"/> 的简单 Grain 能否正确迁移。
+        /// 测试指定 Grain 迁移的备选位置，并断言它迁移到该位置。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DirectedGrainMigrationTest()
@@ -97,7 +97,7 @@ namespace DefaultCluster.Tests.General
                 var originalHost = originalAddress.SiloAddress;
                 var targetHost = Fixture.HostedCluster.GetActiveSilos().Select(s => s.SiloAddress).First(address => address != originalHost);
 
-                // 触发移徙,设定安置提示,迫使安置主任使用目标 silo
+                // 触发迁移，并设置放置提示以促使放置决策器使用目标 Silo。
                 RequestContext.Set(IPlacementDirector.PlacementHintKey, targetHost);
                 await grain.Cast<IGrainManagementExtension>().MigrateOnIdle(TestContext.Current.CancellationToken);
 
@@ -116,7 +116,7 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试多个 grains 可同时迁移。
+        /// 测试能否同时迁移多个 Grain。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task MultiGrainDirectedMigrationTest()
@@ -138,7 +138,7 @@ namespace DefaultCluster.Tests.General
 
                 var targetHost = Fixture.HostedCluster.GetActiveSilos().Select(s => s.SiloAddress).First(address => address != originalHostA);
 
-                // 触发移徙,设定安置提示,迫使安置主任使用目标 silo
+                // 触发迁移，并设置放置提示以促使放置决策器使用目标 Silo。
                 RequestContext.Set(IPlacementDirector.PlacementHintKey, targetHost);
                 var migrateA = a.Cast<IGrainManagementExtension>().MigrateOnIdle(TestContext.Current.CancellationToken);
                 var migrateB = b.Cast<IGrainManagementExtension>().MigrateOnIdle(TestContext.Current.CancellationToken);
@@ -171,8 +171,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grain 简单的移民 grain 使用 <see cref="Grain{TGrainState}"/> 州。
-        /// 试验指定了 grain 迁移到该地点并声称迁移到该地点的替代地点。
+        /// 测试使用 <see cref="Grain{TGrainState}"/> 管理状态的简单 Grain 能否正确迁移。
+        /// 测试指定 Grain 迁移的备选位置，并断言它迁移到该位置。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DirectedGrainMigrationTest_GrainOfT()
@@ -186,7 +186,7 @@ namespace DefaultCluster.Tests.General
                 var originalHost = originalAddress.SiloAddress;
                 var targetHost = Fixture.HostedCluster.GetActiveSilos().Select(s => s.SiloAddress).First(address => address != originalHost);
 
-                // 触发移徙,设定安置提示,迫使安置主任使用目标 silo
+                // 触发迁移，并设置放置提示以促使放置决策器使用目标 Silo。
                 RequestContext.Set(IPlacementDirector.PlacementHintKey, targetHost);
                 await grain.Cast<IGrainManagementExtension>().MigrateOnIdle(TestContext.Current.CancellationToken);
 
@@ -205,8 +205,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grain 简单的移民 grain 使用 <see cref="IPersistentState{TState}"/> 州。
-        /// 试验指定了 grain 迁移到该地点并声称迁移到该地点的替代地点。
+        /// 测试使用 <see cref="IPersistentState{TState}"/> 管理状态的简单 Grain 能否正确迁移。
+        /// 测试指定 Grain 迁移的备选位置，并断言它迁移到该位置。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DirectedGrainMigrationTest_IPersistentStateOfT()
@@ -221,7 +221,7 @@ namespace DefaultCluster.Tests.General
                 var originalHost = originalAddress.SiloAddress;
                 var targetHost = Fixture.HostedCluster.GetActiveSilos().Select(s => s.SiloAddress).First(address => address != originalHost);
 
-                // 触发移徙,设定安置提示,迫使安置主任使用目标 silo
+                // 触发迁移，并设置放置提示以促使放置决策器使用目标 Silo。
                 RequestContext.Set(IPlacementDirector.PlacementHintKey, targetHost);
                 await grain.Cast<IGrainManagementExtension>().MigrateOnIdle(TestContext.Current.CancellationToken);
 
@@ -241,7 +241,7 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 当 grain 脱水失效时,应停止使用 grain ,但将不再保留移徙状态。
+        /// Grain 状态提取失败时，应停用 Grain，但不会保留迁移状态。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task FailDehydrationTest()
@@ -254,8 +254,8 @@ namespace DefaultCluster.Tests.General
             var originalAddress = await grain.GetGrainAddress();
             var targetHost = Fixture.HostedCluster.GetActiveSilos().Select(s => s.SiloAddress).First(address => address != originalAddress.SiloAddress);
 
-            // 等待成员稳定,并公布分组名单。
-            // 我们这样做,就是反复试图激活 grain 目标 silo.
+            // 等待成员资格稳定，并等待集群清单传播。
+            // 通过反复尝试在目标 Silo 上激活 Grain 来实现这一点。
             var primaryGrainFactory = ((InProcessSiloHandle)Fixture.HostedCluster.Primary!).ServiceProvider.GetRequiredService<IGrainFactory>();
             SiloAddress? grainOnOtherSiloAddr;
             do
@@ -268,13 +268,13 @@ namespace DefaultCluster.Tests.General
                 await Task.Delay(100, cts.Token);
             } while (!targetHost.Equals(grainOnOtherSiloAddr));
 
-            // 触发移徙,设定安置提示,迫使安置主任使用目标 silo
-            // 另外,告诉 grain 没有脱水(将一些数据填入请求中要求扔出的内容)
+            // 触发迁移，并设置放置提示以促使放置决策器使用目标 Silo。
+            // 同时指示 Grain 使状态提取失败（在请求上下文中放入一些数据，使其引发异常）
             RequestContext.Set("fail_dehydrate", true);
             RequestContext.Set(IPlacementDirector.PlacementHintKey, targetHost);
             await grain.Cast<IGrainManagementExtension>().MigrateOnIdle(TestContext.Current.CancellationToken);
 
-            // grain 本应在移民失败期间丧失状态。
+            // Grain 应已在失败的迁移期间丢失其状态。
             var newState = await grain.GetState();
             Assert.NotEqual(expectedState, newState);
 
@@ -283,7 +283,7 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 当 grain 补液失效时,应停止使用 grain ,但不再保留移徙状态。
+        /// Grain 状态恢复失败时，应停用 Grain，但不会保留迁移状态。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task FailRehydrationTest()
@@ -294,8 +294,8 @@ namespace DefaultCluster.Tests.General
             var originalAddress = await grain.GetGrainAddress();
             var targetHost = Fixture.HostedCluster.GetActiveSilos().Select(s => s.SiloAddress).First(address => address != originalAddress.SiloAddress);
 
-            // 触发移徙,设定安置提示,迫使安置主任使用目标 silo
-            // 另外,告诉 grain 没有再水化(通过将一些数据塞进要求它扔的再水化环境)
+            // 触发迁移，并设置放置提示以促使放置决策器使用目标 Silo。
+            // 同时指示 Grain 使状态恢复失败（在恢复上下文中放入一些数据，使其引发异常）
             RequestContext.Set("fail_rehydrate", true);
             RequestContext.Set(IPlacementDirector.PlacementHintKey, targetHost);
             await grain.Cast<IGrainManagementExtension>().MigrateOnIdle(TestContext.Current.CancellationToken);
@@ -303,7 +303,7 @@ namespace DefaultCluster.Tests.General
             var newAddress = await grain.GetGrainAddress();
             Assert.Equal(targetHost, newAddress.SiloAddress);
 
-            // grain 本应在移民失败期间丧失状态。
+            // Grain 应已在失败的迁移期间丢失其状态。
             var newState = await grain.GetState();
             Assert.NotEqual(expectedState, newState);
         }
@@ -426,7 +426,7 @@ namespace DefaultCluster.Tests.General
         ValueTask MigrateDuringDeactivation(SiloAddress targetHost);
     }
 
-    // 使用随机放置, 因为用于测试非定向迁移 。
+    // 采用随机放置，因为此处用于测试未指定目标的迁移。
     [RandomPlacement]
     public class MigrationTestGrain : Grain, IMigrationTestGrain, IGrainMigrationParticipant
     {

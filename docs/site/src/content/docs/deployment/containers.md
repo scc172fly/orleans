@@ -1,6 +1,6 @@
 ---
-title: "运行 Orleans 多个主机的集装箱"
-description: "配置多主机集装箱部署的常规 Orleans 端点 。"
+title: 在跨多个主机的容器中运行 Orleans
+description: 为跨主机容器部署配置可路由的 Orleans 终结点。
 ms.date: 08/15/2026
 ms.topic: how-to
 ms.custom: devops
@@ -8,114 +8,114 @@ ms.custom: devops
 
 <a id="run-orleans-in-containers-across-multiple-hosts"></a>
 
-# 运行 Orleans 多个主机的集装箱
+# 在跨多个主机的容器中运行 Orleans
 
-A 音 A Orleans 组合集只有在每个 silo 所有其他 silos 外部可直接达到。 Orleans 集装箱发现、共同会员表和公布后的主机港口本身不能创造这些网络路径。
+只有当每个 Silo 都拥有其他所有 Silo 可以直接访问的唯一终结点时，Orleans 集群才能跨多个容器主机运行。外部 Orleans 客户端同样需要能够访问每个通告的网关终结点。容器发现、共享成员资格表和发布的主机端口本身并不能建立这些网络路径。
 
-尽可能使用私人网络、集装箱重叠或每个工作负荷网络界面。 不要将 Orleans silo 或网关端暴露在公共互联网上。
+应尽可能使用私有路由网络、容器覆盖网络或每个工作负载独立的网络接口。不要将 Orleans Silo 或网关端口暴露到公共互联网。
 
 <a id="choose-an-endpoint-model"></a>
 
-## 选择终点模式
+## 选择终结点模型
 
-每个 silo 都有单独的监听和广告的终点:
+每个 Silo 分别具有监听终结点和通告终结点：
 
-| 设置设置设置设置 | 意义的含义含义 | 典型集装箱价值 |
+| 设置 | 含义 | 典型容器值 |
 | --- | --- | --- |
-| <xref:Orleans.Configuration.EndpointOptions.SiloListeningEndpoint> | 集装箱内为 silo 交通开放的地址和港口 | `0.0.0.0:11111` |
-| <xref:Orleans.Configuration.EndpointOptions.GatewayListeningEndpoint> | 集装箱内为客户交通开放的地址和港口 | `0.0.0.0:30000` |
-| <xref:Orleans.Configuration.EndpointOptions.AdvertisedIPAddress> | 人均 --silo 地址,供同侪和客户拨打 | 易变私人集装箱、任务、舱或主机地址 |
-| <xref:Orleans.Configuration.EndpointOptions.SiloPort> |  储存入会港口 Silo | 直接路由或公布的 silo 端口 |
-| <xref:Orleans.Configuration.EndpointOptions.GatewayPort> | G网关端端口返回客户 | 直接路由或公布的网关端口 |
+| <xref:Orleans.Configuration.EndpointOptions.SiloListeningEndpoint> | 在容器内为 Silo 通信开放的地址及端口 | `0.0.0.0:11111` |
+| <xref:Orleans.Configuration.EndpointOptions.GatewayListeningEndpoint> | 在容器内为客户端通信开放的地址及端口 | `0.0.0.0:30000` |
+| <xref:Orleans.Configuration.EndpointOptions.AdvertisedIPAddress> | 对等节点及客户端连接的每 Silo 地址 | 可路由的私有容器、任务、Pod 或主机地址 |
+| <xref:Orleans.Configuration.EndpointOptions.SiloPort> | 存储在成员资格中的 Silo 端口 | 直接路由或发布的 Silo 端口 |
+| <xref:Orleans.Configuration.EndpointOptions.GatewayPort> | 返回给客户端的网关端口 | 直接路由或发布的网关端口 |
 
-绑定到 `0.0.0.0` 或 `::` 只打开本地界面。通配符地址不能被广告公布, Orleans 也不从容器捆绑中推断主机已公布的端口 。
+绑定 `0.0.0.0` 或 `::` 仅会开放本地接口。不能将通配地址作为通告地址，Orleans 也不会根据容器的绑定推断主机发布的端口。
 
-优先选择其中一种模式:
+优先采用以下模型之一：
 
-- **直接每个集装箱地址:** 向每个集装箱提供来自所有 silo 和客户网络的私人地址,并公布该地址在集装箱内外的相同港口。
-- **/silo 主机-港口映射:** 公布主机的私人地址和独有的已出版的 silo 和网关端对。
+- **每容器直接寻址：** 为每个容器分配可从所有 Silo 及客户端网络路由到达的私有地址。通告该地址，并在容器内外使用相同端口。
+- **每 Silo 主机端口映射：** 通告主机的私有地址及一对唯一的已发布 Silo 端口和网关端口。在容器内部绑定相应的目标端口。
 
-不要广告上刊登共享负载平衡器、 侵入虚拟 IP 或服务名称, 以连接到不同的复制件。 Orleans 成员资格指定了特定的 silo, 不是可互换的后端组合 。
+不要通告共享负载均衡器、入口虚拟 IP 或可能将连接路由到其他副本的服务名称。Orleans 成员资格标识的是特定 Silo，而不是可以相互替换的后端实例池。
 
 <a id="configure-listening-and-advertised-endpoints"></a>
 
-## 配置监听和广告的端点
+## 配置监听终结点和通告终结点
 
-向部署平台上每个复制品传送广告地址和公布的港口。
+由部署平台将通告地址和已发布端口传递给每个副本。以下示例使用固定的容器目标端口及独立提供的通告值：
 
 :::code language="csharp" source="../snippets/compiled/Deployment/DeploymentSnippets.cs" id="container_endpoint_usings":::
 :::code language="csharp" source="../snippets/compiled/Deployment/DeploymentSnippets.cs" id="configure_container_endpoints":::
 
-例如,集装箱可以监听 `0.0.0.0:11111` 和 `0.0.0.0:30000` 广告发布私人主机映像 `10.0.8.24:21111` 和 `10.0.8.24:23000`彼此之间 silo 连接必须能够连接到 `10.0.8.24:21111`,以及每个外部 Orleans 客户端必须能够连接到 `10.0.8.24:23000`.
+例如，容器可以监听 `0.0.0.0:11111` 和 `0.0.0.0:30000`，同时通告私有主机映射 `10.0.8.24:21111` 和 `10.0.8.24:23000`。其他所有 Silo 必须能够连接 `10.0.8.24:21111`，每个外部 Orleans 客户端必须能够连接 `10.0.8.24:23000`。
 
-如果地址或已公布的港口是动态分配的,在开始 Orleans 之前发现这些地址或港口并在加入该 silo 成员时保持其稳定。替代实例可以使用不同的终点,但必须结合新一代 silo 。
+如果地址或发布端口是动态分配的，应在启动 Orleans 之前获取这些值，并使其在该 Silo 成员资格条目的整个生命周期内保持稳定。替换实例可以使用不同的终结点，但必须使用新的 Silo 世代加入集群。
 
 <a id="provide-private-bidirectional-connectivity"></a>
 
-## 提供私营双向连接
+## 提供私有双向连通性
 
-验证完整的网络矩阵:
+验证完整的网络连通性矩阵：
 
-1. 从每个 silo 网络连接到每一个广告的 silo 终点。
-1. 连接到每个广告网关端点
-1. 使用主机端口翻译时, 请测试所有主机或集装箱以及远程主机的已公布的端点。 有些网络地址的翻译实施不支持所需的发型路径 。
-1. 扩大规模、按比例计算、更换主机和滚动部署后,重复测试。
+1. 从每个 Silo 网络连接到每个通告的 Silo 终结点。
+1. 从每个客户端网络连接到每个通告的网关终结点。
+1. 使用主机端口转换时，既要从远程主机测试已发布的终结点，也要从所属主机或容器进行测试。某些网络地址转换实现不支持所需的回流（hairpin）路径。
+1. 在扩容、缩容、主机替换和滚动部署之后重复上述测试。
 
-防火墙规则、安全小组、网络政策和服务政策必须允许 silos之间长期的TCP双向连接。客户只需要网关接入,而不是 silo-港口准入。两个港口都限制在可信赖的工作量上,当网络不是可信任的边界时使用 [Orleans 运输层安全](../host/transport-layer-security.md) 。
+防火墙规则、安全组、网络策略及服务网格策略必须允许 Silo 之间建立双向长连接 TCP 通信。客户端只需要访问网关，无需访问 Silo 端口。应将两个端口均限制为受信任工作负载可访问；如果网络不构成可信边界，请使用 [Orleans 传输层安全性](../host/transport-layer-security.md)。
 
 <a id="understand-discovery-versus-connectivity"></a>
 
-## 理解发现与连接
+## 理解发现与连通性的区别
 
-集群供应商,如 DynamoDB、 Azure 表格存储、 ADO.NET、 Redis、领事或 ZooKeeper 等,协调成员和网关发现。它记录了参与者广告的终点;它不代理 Orleans 交通,建立路线,或者核实这些端点是可达到的。
+DynamoDB、Azure Table Storage、ADO.NET、Redis、Consul 或 ZooKeeper 等集群成员资格提供程序负责协调成员资格和网关发现。它记录参与方所通告的终结点，但不会代理 Orleans 通信、创建路由或验证这些终结点是否可达。
 
-因此,所有 silos 都能够成功地读写相同的会籍表而组群仍然无法沟通。 同样,客户可以发现活跃的网关,然后暂停时间,因为其网络无法达到一个或多个广告网关端点。
+因此，即使所有 Silo 都能成功读写同一个成员资格表，集群仍可能无法通信。同样，客户端可能成功发现活动网关，却因其网络无法访问一个或多个通告网关终结点而超时。
 
-HTTP 入侵和应用服务发现是分开的。 前端负载平衡器可以将 HTTP 请求发送到申请中,但 Orleans silo 和网关连接仍必须到达从分组成员中选出的特定成员。
+HTTP 入口和应用服务发现是独立的机制。前端负载均衡器可以将 HTTP 请求路由至应用，但 Orleans 的 Silo 和网关连接仍必须访问从集群成员资格中选出的特定成员。
 
 <a id="account-for-container-platform-behavior"></a>
 
-## 集装箱平台行为账户
+## 考虑容器平台的行为
 
-- 通常只对主机具有实际意义。 除非平台明确连接主机之间的线路, 否则不要在主机上进行广告宣传。
-- 所公布的端口只有在主机地址是可变的、制图是一个 silo独有和每个所需源网络的绘图工作的情况下才可用。
-- 在一个东道主上多个 silos 需要不同的广告 silo 和网关端口,只要它们共享主机地址。
-- 动态或共享的负载平衡映射, 可以选择任何复制品, 无法保存 silo 身份, 也不适合作为广告上的终点 。
+- 主机本地的桥接网络地址通常仅在该主机上有意义。除非平台明确支持在主机间路由该地址范围，否则不要跨主机通告此地址。
+- 已发布端口仅在主机地址可路由、映射仅对应一个 Silo，且该映射从所有必需的源网络均可访问时才可用。
+- 同一主机上的多个 Silo 共享主机地址时，必须具有不同的通告 Silo 端口及网关端口。
+- 可以任意选择副本的动态或共享负载均衡映射无法保留 Silo 标识，不适合作为通告终结点。
 
-对于多克引擎来说,用户定义的 [重叠网络](https://docs.docker.com/engine/network/drivers/overlay/) 可以提供跨主机集装箱连接;独立集装箱仍要求参与的东道方使用Swarm模式。 拥有一个主机桥和已公布的港口,明确刊登东道方私人地址和每个集装箱独特的已出版港口的广告。
+对于 Docker Engine，用户定义的 [覆盖网络](https://docs.docker.com/engine/network/drivers/overlay/) 可以提供跨主机容器连通性；独立容器仍要求参与主机处于 Swarm 模式。若使用主机桥接网络和已发布端口，应显式通告主机私有地址及每个容器唯一的发布端口。
 
-在亚马逊ECS, [`awsvpc` 任务联网](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking.html) 分配每一项任务,都指定了自己的网络接口和私人地址,这些地址与直接地址模式相匹配。其他网络模式要求明确验证主机-港口的独特性、路线安排和安全组规则。 DynamoDB 成员表可以在 AWS上发现 silos ,但并不能弥补无法触及的任务或主机端点。
+在 Amazon ECS 中，[`awsvpc` 任务网络](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking.html) 为每个任务分配自己的网络接口和私有地址，符合直接寻址模型。其他网络模式需要显式验证主机端口的唯一性、路由及安全组规则。DynamoDB 成员资格表可以在 AWS 上发现 Silo，但无法弥补任务或主机终结点不可达的问题。
 
-对于精心设计和管理的平台,还应审查 [平台要求](platform-guides.md)、 [东道主主 Orleans 日期 时 Kubernetes](kubernetes.md)和 [东道主主 Orleans 日期 时 Azure 集装箱集装箱](deploy-to-azure-container-apps.md)。
+对于编排平台和托管平台，还请参阅 [平台要求](platform-guides.md)、[在 Kubernetes 上托管 Orleans](kubernetes.md) 及 [在 Azure Container Apps 上托管 Orleans](deploy-to-azure-container-apps.md)。
 
 <a id="complete-platform-qualification"></a>
 
-## 完整的平台资格
+## 完成平台资格验证
 
-本页为集装箱平台建立端点和路线模式。 选定的管弦乐队或管理服务也需要提供其余的生产机制:
+本页确立了容器平台的终结点与路由模型。所选编排器或托管服务还需提供其余生产环境机制：
 
-- 工作量身份或管理下的秘密和证书交付。
-- 启动、准备、存活、依赖性健康,以及有节制的终止期限。
-- 资源政策、测试的最低 silo 计数、缩放控制和故障域定位。
-- 双环滚动替换或隔离的蓝色绿色集群,具有兼容的国家处理方式。
-- 中央日志、计量仪、跟踪、部署身份、供应商遥测和事故准入。
-- 具有可重复验证的已更新基础设施和工作量配置。
+- 工作负载标识，或受管理的机密及证书交付机制。
+- 启动、就绪、存活及依赖项健康检查，以及经过测量的终止期限。
+- 资源策略、经过测试的最少 Silo 数量、扩缩容控制及故障域放置。
+- 有明确边界的滚动替换，或具备兼容状态处理机制的隔离蓝绿集群。
+- 集中的日志、指标、跟踪、部署标识、提供程序遥测及事件处理访问能力。
+- 版本化的基础设施和工作负载配置，以及可重复执行的验证。
 
-使用 [选择部署目标](choose-deployment-target.md) 来维持目标导航。对于另一个管弦乐队,在生产流量之前完成 [所需平台](platform-guides.md) 和 [生产准备状态清单](production-readiness.md) 。
+参阅 [选择部署目标](choose-deployment-target.md) 中持续维护的目标平台指南。对于其他编排器，请在接入生产流量之前完成 [平台要求](platform-guides.md) 和 [生产就绪检查清单](production-readiness.md) 中的验证。
 
 <a id="diagnose-forwarding-loops-and-timeouts"></a>
 
-## 诊断性转发循环和超时
+## 诊断转发循环及超时
 
-不仅从会员提供健康开始,
+首先检查确切的终结点，而不是只检查成员资格提供程序的健康状况：
 
-1. 记录每个过程有效公布的 silo 端点、公布网关端点和收听端点。
-1. 检查成员记录,确认每个活跃行都有一个独特、预期的、可循的 silo 终点。
-1. 从每个 silo 集装箱测试TCP连接到每一个已公布活动的 silo 端点。从客户网络测试每一个已公布的网关端点。
-1. 比较集装箱目标港口、主机或平台制图、防火墙规则以及广告港口。
-1. 替换实例后发生相应的故障, 并仅在确认旧 silo 无法在分割区运行之后才能删除过期成员。
+1. 记录每个进程实际生效的通告 Silo 终结点、通告网关终结点及监听终结点。
+1. 检查成员资格记录，确认每条活动记录均包含唯一、符合预期且可路由的 Silo 终结点。
+1. 从每个 Silo 容器测试到所有活动的通告 Silo 终结点的 TCP 连通性。从客户端网络测试每个通告网关终结点。
+1. 对照容器目标端口、主机或平台映射、防火墙规则以及通告端口。
+1. 将故障与实例替换关联分析，并且仅在确认旧 Silo 不可能仍在某个网络分区中运行后，才移除过期成员资格记录。
 
-使用平台的 TCP 测试工具。 例如:
+使用平台提供的 TCP 测试工具。例如：
 
 ```bash
 nc -vz 10.0.8.24 21111
@@ -125,14 +125,14 @@ nc -vz 10.0.8.24 21111
 Test-NetConnection 10.0.8.24 -Port 21111
 ```
 
-共同指标包括:
+常见迹象包括：
 
-| 症状 | 可能终点问题 |
+| 症状 | 可能的终结点问题 |
 | --- | --- |
-| 会员身份是健康的,但电话在提出请求时暂停到期 | 发现成功,但广告上公布的运输终点被封锁或无法通行。 |
-| 日志或成员显示 `127.0.0.1`、主机-本地桥址或集装箱目标港口 | silo 公告其捆绑式地址或港口,而不是同行可达映射。 |
-| 多个活动 silos 广告用相同的地址和端口 | 共享负载平衡器或非独有主机映射无法选择要绘制的 silo。 |
-| 重复转发、连接尝试或超时信息,以代表当地或目的地的终点为目标 silo | 广告身份与该 silo的可达端点不符。 信件可以重新检索或转发, 而不能达到预定程序 。 |
-| TCP 连接成功, 但交通达到另一个复制 | 代理、 反向或负载平衡器正在将 Orleans 运输连接分布在复制品之间。 |
+| 成员资格正常，但调用在请求超时时间届满后失效 | 发现成功，但通告的传输终结点被阻止或不可路由。 |
+| 日志或成员资格记录显示 `127.0.0.1`、主机本地桥接地址或容器目标端口 | Silo 通告的是绑定侧地址或端口，而非其他参与方可访问的映射。 |
+| 多个活动 Silo 通告同一地址和端口 | 共享负载均衡器或不唯一的主机映射无法选中预期的 Silo。 |
+| 重复转发、连接尝试或超时消息指向本应代表本地或目标 Silo 的终结点 | 通告标识与该 Silo 的可达终结点不匹配。消息可能被重试或转发，却未能到达预期进程。 |
+| TCP 连接成功，但流量抵达其他副本 | 代理、入口或负载均衡器正在将 Orleans 传输连接分发到不同副本。 |
 
-首先纠正终点映射。 增加响应超时或改变集群提供者不会成为无法到达的广告终端路由表。 关于更广泛的事件分类,请见 [故障解决部署](troubleshooting-deployments.md)。
+首先纠正终结点映射。延长响应超时时间或更换集群成员资格提供程序，都无法使不可达的通告终结点变得可路由。有关更广泛的事件分诊，请参阅 [部署故障排查](troubleshooting-deployments.md)。

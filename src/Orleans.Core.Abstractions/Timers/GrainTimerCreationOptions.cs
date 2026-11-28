@@ -6,21 +6,21 @@ using Orleans.Concurrency;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// 创建 grain 计时器的选项。
+/// 用于创建 Grain 定时器的选项。
 /// </summary>
 public readonly struct GrainTimerCreationOptions() : IEquatable<GrainTimerCreationOptions>
 {
     /// <summary>
-    /// 初始化一个新的 <see cref="GrainTimerCreationOptions"/> 实例。
+    /// 初始化新的 <see cref="GrainTimerCreationOptions"/> 实例。
     /// </summary>
     /// <param name="dueTime">
-    /// <see cref="TimeSpan"/> 表示在使用 <see cref="IGrainTimer"/> 构建时指定的回调方法之前需要延迟的时间。
-    /// 指定 <see cref="Timeout.InfiniteTimeSpan"/> 以阻止计时器启动。
-    /// 指定 <see cref="TimeSpan.Zero"/> 立即开始计时器。
+    /// 一个 <see cref="TimeSpan"/>，表示调用创建 <see cref="IGrainTimer"/> 时指定的回调方法之前需要等待的时长。
+    /// 指定 <see cref="Timeout.InfiniteTimeSpan"/> 可阻止定时器启动。
+    /// 指定 <see cref="TimeSpan.Zero"/> 可立即启动定时器。
     /// </param>
     /// <param name="period">
-    /// 构建 <see cref="IGrainTimer"/> 时指定的回调方法的引用间隔时间。
-    /// 指定用于禁用定期信号的 <see cref="Timeout.InfiniteTimeSpan "/> 。
+    /// 创建 <see cref="IGrainTimer"/> 时指定的回调方法的调用时间间隔。
+    /// 指定 <see cref="Timeout.InfiniteTimeSpan "/> 可禁用周期性触发。
     /// </param>
     [SetsRequiredMembers]
     public GrainTimerCreationOptions(TimeSpan dueTime, TimeSpan period) : this()
@@ -30,39 +30,39 @@ public readonly struct GrainTimerCreationOptions() : IEquatable<GrainTimerCreati
     }
 
     /// <summary>
-    /// <see cref="TimeSpan"/> 表示在使用 <see cref="IGrainTimer"/> 构建时指定的回调方法之前需要延迟的时间。
-    /// 指定 <see cref="Timeout.InfiniteTimeSpan"/> 以阻止计时器启动。
-    /// 指定 <see cref="TimeSpan.Zero"/> 立即开始计时器。
+    /// 一个 <see cref="TimeSpan"/>，表示调用创建 <see cref="IGrainTimer"/> 时指定的回调方法之前需要等待的时长。
+    /// 指定 <see cref="Timeout.InfiniteTimeSpan"/> 可阻止定时器启动。
+    /// 指定 <see cref="TimeSpan.Zero"/> 可立即启动定时器。
     /// </summary>
     public required TimeSpan DueTime { get; init; }
 
     /// <summary>
-    /// 构建 <see cref="IGrainTimer"/> 时指定的回调方法的引用间隔时间。
-    /// 指定用于禁用定期信号的 <see cref="Timeout.InfiniteTimeSpan "/> 。
+    /// 创建 <see cref="IGrainTimer"/> 时指定的回调方法的调用时间间隔。
+    /// 指定 <see cref="Timeout.InfiniteTimeSpan "/> 可禁用周期性触发。
     /// </summary>
     public required TimeSpan Period { get; init; }
 
     /// <summary>
-    /// 获得一个值,以显示是否允许该计时器所排定的回调与其他计时器和 grain 通话间断执行。
-    /// 默认为 <see langword="false"/>。
+    /// 获取一个值，指示此定时器调度的回调是否允许与其他定时器及 Grain 调用交错执行。
+    /// 默认值为 <see langword="false"/>。
     /// </summary>
     /// <remarks>
-    /// 如果此值为 <see langword="false"/>,则定时器回调将被处理类似 grain 呼叫的调用。如果 grain 调度表是重新输入的,则该计时器将被重新输入
-    /// (i.e,它拥有 <see cref="ReentrantAttribute"/> 将允许回调时速
-    /// 与其他 grain 电话和计时器互连,而不论该属性的价值如何。
-    /// 如果该值是 <see langword="true"/>,则将允许计时器回调与其他定时器和 grain 调用中断。
+    /// 如果此值为 <see langword="false"/>，定时器回调将被视同 Grain 调用。如果调度此定时器的 Grain 可重入
+    /// （即其实现类应用了 <see cref="ReentrantAttribute"/> 特性），则定时器回调可以
+    /// 与其他 Grain 调用及定时器交错执行，而不受此属性值的限制。
+    /// 如果此值为 <see langword="true"/>，定时器回调可以与其他定时器及 Grain 调用交错执行。
     /// </remarks>
     public bool Interleave { get; init; }
 
     /// <summary>
-    /// 获得一个值,以显示该计时器所计划回调是否延长 grain 激活的寿命。
-    /// 默认为 <see langword="false"/>。
+    /// 获取一个值，指示此定时器调度的回调是否应延长 Grain 激活实例的生存期。
+    /// 默认值为 <see langword="false"/>。
     /// </summary>
     /// <remarks>
-    /// 如果此值为 <see langword="false"/>时针回调将不延 grain 激活的寿命。
-    /// 如果 grain 仅处理此计时器的回调,而没有其他消息,则 grain 将在其闲置收集期结束后被收归。
-    /// 如果该值是 <see langword="true"/>,则时针回调将延长一个 grain 激活的寿命。
-    /// 如果计时周期短于 grain闲置收集期,则由于空闲原因将不收取 grain 。
+    /// 如果此值为 <see langword="false"/>，定时器回调不会延长 Grain 激活实例的生存期。
+    /// 如果 Grain 仅处理此定时器的回调而未处理其他消息，则在空闲回收时间到期后会被回收。
+    /// 如果此值为 <see langword="true"/>，定时器回调将延长 Grain 激活实例的生存期。
+    /// 如果定时器周期短于 Grain 的空闲回收时间，则 Grain 不会因空闲而被回收。
     /// </remarks>
     public bool KeepAlive { get; init; }
 
@@ -80,12 +80,12 @@ public readonly struct GrainTimerCreationOptions() : IEquatable<GrainTimerCreati
     public override int GetHashCode() => HashCode.Combine(DueTime, Period, Interleave, KeepAlive);
 
     /// <summary>
-    /// 确定两个创建时间器选项是否相等。
+    /// 判断两个定时器创建选项是否相等。
     /// </summary>
     public static bool operator ==(GrainTimerCreationOptions left, GrainTimerCreationOptions right) => left.Equals(right);
 
     /// <summary>
-    /// 确定两个创建定时器选项是否不平等。
+    /// 判断两个定时器创建选项是否不相等。
     /// </summary>
     public static bool operator !=(GrainTimerCreationOptions left, GrainTimerCreationOptions right) => !left.Equals(right);
 }

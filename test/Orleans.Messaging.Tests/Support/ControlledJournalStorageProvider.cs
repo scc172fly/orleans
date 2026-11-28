@@ -81,7 +81,7 @@ public sealed class ControlledJournalStorageProvider : IJournalStorageProvider, 
         return new WriteBarrier(plan);
     }
 
-    /// <summary>无法读取日记的下一本 <paramref name="count"/> ,因为存储中断。</summary>
+    /// <summary>使接下来 <paramref name="count"/> 次日志读取失败，用于模拟存储服务中断。</summary>
     public void FailReads(JournalId journalId, int count)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);

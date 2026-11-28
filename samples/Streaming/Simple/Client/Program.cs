@@ -36,7 +36,7 @@ internal class Program
 
                     if (useEventHub)
                     {
-                        // 使用 Azure 事件枢纽流
+                        // 使用 Azure Event Hubs 流式传输。
                         client.AddEventHubStreams(
                             Constants.StreamProvider,
                             configurator => configurator.ConfigureEventHub(
@@ -51,8 +51,8 @@ internal class Program
                     }
                     else
                     {
-                        // 利用模拟流流促进地方发展
-                        // 内存流由 silo处理,客户只需要注册的供应商
+                        // 本地开发使用内存流。
+                        // 内存流由 Silo 处理，客户端只需注册提供程序。
                         client.AddMemoryStreams(Constants.StreamProvider);
                         Console.WriteLine("Using in-memory streaming (no Secrets.json found)");
                     }
@@ -65,21 +65,21 @@ internal class Program
 
             var clusterClient = host.Services.GetRequiredService<IClusterClient>();
 
-            // 使用连接的客户端请求 grain 开始制作事件
+            // 使用已连接的客户端，要求某个 Grain 开始生成事件。
             var key = Guid.NewGuid();
             var producer = clusterClient.GetGrain<IProducerGrain>("my-producer");
             await producer.StartProducing(Constants.StreamNamespace, key);
 
-            // 现在,你应该看到消费者 grain 在 silo上被激活,当它接收事件时正在伐木
+            // 现在应当能够看到一个消费者 Grain 在 Silo 上被激活，并在收到事件时记录日志。
 
-            // 客户端也可以订阅流
+            // 客户端也可以订阅流。
             var streamId = StreamId.Create(Constants.StreamNamespace, key);
             var stream = clusterClient
                 .GetStreamProvider(Constants.StreamProvider)
                 .GetStream<int>(streamId);
             await stream.SubscribeAsync(OnNextAsync);
 
-            // 现在客户也会记录收到事件
+            // 现在客户端也会记录收到的事件。
 
             if (useEventHub && args.Contains("--pause-after-checkpoint", StringComparer.OrdinalIgnoreCase))
             {
@@ -97,17 +97,17 @@ internal class Program
                     "Stream pulling agents are paused. The producer remains active; record the next ten event numbers from the silo log, then terminate the silo.");
             }
 
-            // 等待取消
+            // 等待取消。
             try
             {
                 await Task.Delay(Timeout.Infinite, cts.Token);
             }
             catch (OperationCanceledException)
             {
-                // 预预计按下 Ctrl+C 时
+                // 按 Ctrl+C 时出现的预期情况。
             }
 
-            // 停止生产
+            // 停止生成事件。
             Console.WriteLine("Stopping producer...");
             await producer.StopProducing();
 

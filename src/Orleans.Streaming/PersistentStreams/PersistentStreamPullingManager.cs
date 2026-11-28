@@ -27,7 +27,7 @@ namespace Orleans.Streams
         private readonly SystemTargetShared _systemTargetShared;
 
         private readonly StreamPullingAgentOptions options;
-        private readonly AsyncSerialExecutor nonReentrancyGuarantor; // 对于未重新执行队列更改通知 。
+        private readonly AsyncSerialExecutor nonReentrancyGuarantor; // 用于以不可重入的方式执行队列变化通知。
         private readonly ILogger logger;
         private int latestRingNotificationSequenceNumber;
         private int latestCommandNumber;
@@ -159,11 +159,11 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 队列分布因失败或合并而更改时要采取的行动 。
-        /// 由于这个拉拉管理器是系统目标, 队列分配变更通知
-        /// 通知以 grain 方法调用方式送交,通知不再重新提交。
-        /// 我们用不批准的方式, 连续地执行这些命令。 我们还禁止
-        /// 并且如果已经交付了新发的, 不要执行旧发的通知。
+        /// 队列分布因故障或新成员加入而发生变化时应采取的操作。
+        /// 由于此拉取管理器是系统目标，且队列分布变化通知
+        /// 以 Grain 方法调用的方式投递给它，因此通知不可重入。为简化
+        /// 通知处理，我们以不可重入的方式串行执行通知。如果已经收到较新的通知，
+        /// 则抑制较早的通知，不执行它。
         /// </summary>
         public Task QueueDistributionChangeNotification()
         {
@@ -177,12 +177,12 @@ namespace Orleans.Streams
             LogInfoGotQueueChangeNotification(notificationSeqNumber, managerState);
             if (managerState == RunState.AgentsStopped)
             {
-                return Task.CompletedTask; // 如果代理机构未运行, 则无需重新平衡其中的队列 。
+                return Task.CompletedTask; // 如果代理未运行，则无需在代理之间再均衡队列。
             }
 
             return nonReentrancyGuarantor.AddNext(() =>
             {
-                // 已经收到更新范围通知, 故跳过执行旧/ 前一次通知。
+                // 已收到较新的区间更新通知，因此跳过较早或先前的通知。
                 if (notificationSeqNumber < latestRingNotificationSequenceNumber)
                 {
                     LogInfoSkipQueueChangeNotification(notificationSeqNumber, latestRingNotificationSequenceNumber);
@@ -190,7 +190,7 @@ namespace Orleans.Streams
                 }
                 if (managerState == RunState.AgentsStopped)
                 {
-                    return Task.CompletedTask; // 如果代理机构未运行, 则无需重新平衡其中的队列 。
+                    return Task.CompletedTask; // 如果代理未运行，则无需在代理之间再均衡队列。
                 }
                 return QueueDistributionChangeNotification(notificationSeqNumber);
             });
@@ -198,7 +198,7 @@ namespace Orleans.Streams
 
         private async Task QueueDistributionChangeNotification(int notificationSeqNumber)
         {
-            // GetMyQueues 是非null, 所以 ToSet 不能返回无效 。
+            // GetMyQueues 不为 null，因此 ToSet 不会返回 null。
             HashSet<QueueId> currentQueues = queueBalancer.GetMyQueues().ToSet()!;
             IReadOnlyCollection<QueueId>? previousQueues = CaptureAgentQueuesIfDiagnosticsEnabled();
             LogInfoExecutingQueueChangeNotification(
@@ -262,21 +262,21 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 负责一组新队列,
-        /// 我们首先为每一个新队列创建一个拉动代理器, 然后把它们存储在内部数据结构中, 然后尝试初始化代理器。
-        /// 错误的手势:
-        ///     处理启动和关闭故障的责任在代理代码中。
-        ///     管理器将一次性调用初始化并登录错误。 它不会再次调用初始化, 并且假定初始化成功 。
-        ///     关闭同样适用。
+        /// 接管通过新区间分配给我的一组新队列。
+        /// 首先为每个新队列创建一个拉取代理并存入内部数据结构，然后尝试初始化代理。
+        /// 错误处理：
+        /// 处理初始化和关闭失败的责任由代理代码承担。
+        /// 管理器将调用 Initialize 一次并记录错误。它不会再次调用初始化，并将假定初始化已成功。
+        /// 关闭操作也是如此。
         /// </summary>
         /// <param name="myQueues"></param>
         /// <param name="failOnInit"></param>
         /// <returns></returns>
         private async Task AddNewQueues(IEnumerable<QueueId> myQueues, bool failOnInit, CancellationToken cancellationToken = default)
         {
-            // 创建我们尚未拥有的队列范围的代理器 。
-            // 首先创建并存储于本地 queuesToAgentsMap。
-            // 在那之后,才把它们都初始化
+            // 为区间内尚未拥有的队列创建代理。
+            // 先创建代理并存入本地 queuesToAgentsMap。
+            // 完成之后才初始化所有代理。
             var agents = new List<PersistentStreamPullingAgent>();
             foreach (var queueId in myQueues)
             {
@@ -292,7 +292,7 @@ namespace Orleans.Streams
                 }
                 else
                 {
-                    // 创建一个新的代理商 。
+                    // 创建新代理。
                     try
                     {
                         var agentIdNumber = Interlocked.Increment(ref nextAgentId);
@@ -319,8 +319,8 @@ namespace Orleans.Streams
                     catch (Exception exc)
                     {
                         LogErrorCreatingAgent(exc);
-                        // 我们该怎么办?这个错误无法恢复, 被认为是一个错误。 但我们不想把 silo 降下来 。
-                        // 如果这是 silo 启动时和代理正在初始化, 则无法启动 silo 启动。 否则, 只吞下去限制对其他接收器的影响 。
+                        // 应如何处理？此错误不可恢复，应视为程序缺陷。但我们不希望因此导致 Silo 停止运行。
+                        // 如果此时 Silo 正在启动且代理正在初始化，则使 Silo 启动失败。否则，忽略异常以限制对其他接收器的影响。
                         if (failOnInit) throw;
                     }
                 }
@@ -341,8 +341,8 @@ namespace Orleans.Streams
             }
             catch
             {
-                // 忽略这一例外,继续,仿佛初始化成功一样。
-                // 我们已经记录了个人通话的个别例外, 不需要再次登录 。
+                // 忽略此异常，继续执行，就好像 Initialize 已成功一样。
+                // 已记录各次 Initialize 调用的异常，无需再次记录。
             }
             if (agents.Count > 0)
             {
@@ -356,10 +356,10 @@ namespace Orleans.Streams
 
         private async Task InitAgent(PersistentStreamPullingAgent agent, CancellationToken cancellationToken)
         {
-            // 代理商只有在在当地注册后才入住。
+            // 仅在代理完成本地注册后才初始化它。
             var agentGrainRef = agent.AsReference<IPersistentStreamPullingAgent>();
 
-            // 需要把它称为 grain 参考。
+            // 必须通过 Grain 引用调用它。
             try
             {
                 await agentGrainRef.Initialize(cancellationToken);
@@ -380,7 +380,7 @@ namespace Orleans.Streams
             {
                 return;
             }
-            // 停止那些不属于我范围的队列的代理商。
+            // 停止负责已不在我的区间内的队列的代理。
             LogInfoRemovingAgents(queuesToRemove.Count, new(queuesToRemove));
             var agents = new List<PersistentStreamPullingAgent>(queuesToRemove.Count);
             var removeTasks = new List<Task>();
@@ -409,8 +409,8 @@ namespace Orleans.Streams
             }
             catch
             {
-                // 忽略这一例外,继续,仿佛初始化成功一样。
-                // 我们已经记录了个别电话的例外, 不需要再次登录。
+                // 忽略此异常，继续执行，就好像 Initialize 已成功一样。
+                // 已记录各次 Shutdown 调用的异常，无需再次记录。
             }
 
             if (agents.Count > 0)
@@ -466,14 +466,14 @@ namespace Orleans.Streams
             }
         }
 
-        // 启动和停止命令是需要多次旋转的复合命令。
-        // 而不是与 QueueDistributionChangeNotification。
-        // 因此,我们通过同样的 nonReentrancyGuarantor将所有这些方法相继编号。
+        // Start 和 Stop 是需要多个执行轮次的复合命令。
+        // 不希望这些命令与其他并发 Start/Stop 命令或 QueueDistributionChangeNotification 交错执行。
+        // 因此，通过同一个 nonReentrancyGuarantor 将它们全部串行化。
         private Task QueueCommandForExecution(PersistentStreamProviderCommand command, int commandSeqNumber, CancellationToken cancellationToken)
         {
             return nonReentrancyGuarantor.AddNext(() =>
             {
-                // 已经获得新命令, 故跳过执行旧/ 前一个命令 。
+                // 已收到较新的命令，因此跳过较早或先前的命令。
                 if (commandSeqNumber < latestCommandNumber)
                 {
                     LogInfoSkipCommandExecution(
@@ -495,7 +495,7 @@ namespace Orleans.Streams
 
         private static string PrintQueues(ICollection<QueueId> myQueues) => Utils.EnumerableToString(myQueues);
 
-        // 只需印出我们的队列任务期刊,以便于监测。
+        // 定期输出队列分配信息，便于监控。
         private Task AsyncTimerCallback(object? state)
         {
             LogInfoPeriodicPrint(NumberRunningAgents, streamProviderName, new(queuesToAgentsMap.Keys));
@@ -571,7 +571,7 @@ namespace Orleans.Streams
         )]
         private partial void LogInfoSkipQueueChangeNotification(int notificationSequenceNumber, int latestNotificationNumber);
 
-        //  “执行 QueueChangeNotification 编号{NotificationSequenceNumber}。 队列平衡器说, 我现在应该拥有 {QueueCount队列:\\ ues}
+        //  "Executing QueueChangeNotification number {NotificationSequenceNumber}. Queue balancer says I should now own {QueueCount} queues: {Queues}"
         [LoggerMessage(
             Level = LogLevel.Information,
             EventId = (int)ErrorCode.PersistentStreamPullingManager_06,

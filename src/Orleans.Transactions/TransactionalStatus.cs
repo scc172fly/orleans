@@ -5,82 +5,82 @@ namespace Orleans.Transactions
 {
 
     /// <summary>
-    /// 描述交易协议运作的结果。
+    /// 描述事务协议操作的结果。
     /// </summary>
     public enum TransactionalStatus
     {
         /// <summary>
-        /// 操作成功完成 。
+        /// 操作成功完成。
         /// </summary>
         Ok,
 
         /// <summary>
-        /// 交易经理没有在最后期限之前完成准备阶段。
+        /// 事务管理器未在截止时间之前完成准备阶段。
         /// </summary>
         PrepareTimeout,
 
         /// <summary>
-        /// 交易中止是因为它所依赖的交易中断。
+        /// 事务因其依赖的事务中止而中止。
         /// </summary>
         CascadingAbort,
 
         /// <summary>
-        /// 由于超时、货币仲裁或失败,交易失去了锁。
+        /// 事务因超时、并发仲裁或故障而失去锁。
         /// </summary>
         BrokenLock,
 
         /// <summary>
-        /// 执行期间记录的出入证与准备期间锁的锁不匹配。
+        /// 执行期间记录的访问情况与准备期间持有的锁不一致。
         /// </summary>
         LockValidationFailed,
 
         /// <summary>
-        /// 交易代理商超时等待只读交易参与者。
+        /// 事务代理等待只读事务参与者时超时。
         /// </summary>
         ParticipantResponseTimeout,
 
         /// <summary>
-        /// 交易代理商超时等待交易经理
+        /// 事务代理等待事务管理器时超时。
         /// </summary>
         TMResponseTimeout,
 
         /// <summary>
-        /// 交易存储被一个竞争性的 grain 激活修改。
+        /// 事务存储被另一个竞争的 Grain 激活实例修改。
         /// </summary>
         StorageConflict,
 
         /// <summary>
-        /// 交易经理没有交易记录,因此推定该交易被中止。
+        /// 事务管理器没有该事务的记录，因此推定该事务已中止。
         /// </summary>
         PresumedAbort,
 
         /// <summary>
-        /// 未分类的例外中断交易协议。
+        /// 未分类的异常中断了事务协议。
         /// </summary>
         UnknownException,
 
         /// <summary>
-        /// 内部交易协议的主张失败 。
+        /// 内部事务协议断言失败。
         /// </summary>
         AssertionFailed,
 
         /// <summary>
-        /// 无法进行交易。
+        /// 无法提交事务。
         /// </summary>
         CommitFailure,
     }
 
     /// <summary>
-    /// 提供解释交易状况的业务。
+    /// 提供解释事务状态的操作。
     /// </summary>
     public static class TransactionalStatusExtensions
     {
         /// <summary>
-        /// 确定状态是否保证交易中止。
+        /// 确定某个状态能否保证事务已中止。
         /// </summary>
-        /// <param name="status">交易状况。</param>
+        /// <param name="status">事务状态。</param>
         /// <returns>
-        /// <see langword="true"/> ,如果已知交易已经中止;否则, <see langword="false"/>。
+        /// <see langword="true"/>，如果确定事务已中止；否则为 <see langword="false"/>。
         /// </returns>
         public static bool DefinitelyAborted(this TransactionalStatus status)
         {
@@ -100,12 +100,12 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// 创建以故障状态为代表的用户端交易例外。
+        /// 创建由故障状态所表示的面向用户的事务异常。
         /// </summary>
-        /// <param name="status">交易失败状态</param>
-        /// <param name="transactionId">交易识别特征。</param>
-        /// <param name="exception">造成失败的例外,如果有的话。</param>
-        /// <returns>描述交易结果的例外。</returns>
+        /// <param name="status">事务失败状态。</param>
+        /// <param name="transactionId">事务标识符。</param>
+        /// <param name="exception">导致失败的异常（如果有）。</param>
+        /// <returns>描述事务结果的异常。</returns>
         public static OrleansTransactionException ConvertToUserException(this TransactionalStatus status, string transactionId, Exception? exception)
         {
             switch (status)

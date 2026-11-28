@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// 以Roslyn元数据名称和装配组件来识别一种类型。
+/// 通过 Roslyn 元数据名称及所在程序集标识类型。
 /// </summary>
 internal readonly record struct TypeMetadataIdentity
 {

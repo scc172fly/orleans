@@ -228,7 +228,7 @@ public sealed class TypedMessageHelperTests
         Assert.Equal(typeof(MessageType<string>), registration.ServiceType);
         Assert.Equal(ServiceLifetime.Singleton, registration.Lifetime);
 
-        // 添加连环机之前成功注册证明是懒惰的解答。
+        // 在添加序列化器之前成功注册，证明了延迟解析。
         services.AddSerializer();
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
@@ -706,8 +706,8 @@ public sealed class TypedMessageHelperTests
             calls++;
             return ValueTask.CompletedTask;
         });
-        // StringCodec.ReadRaw - > Reader.EnsureAvailable 拒绝宣布
-        // 长度超过剩余字节,不考虑主题路径。
+        // StringCodec.ReadRaw -> Reader.EnsureAvailable 拒绝声明的长度
+        // 超过剩余字节数的情况，与主题路由无关。
         Assert.Throws<IndexOutOfRangeException>(() => serializer.Deserialize(envelope.Payload));
 
         await Assert.ThrowsAsync<IndexOutOfRangeException>(
@@ -858,8 +858,8 @@ public sealed class TypedMessageHelperTests
         });
 
         var dispatch = dispatcher.HandleAsync(context, cancellation.Token);
-        // 记录受控制的不完全状态,然后释放并观察一次
-        // 在断言之前,即使声称失败也不能要求发货。
+        // 先记录受控的未完成状态，然后释放并观察一次，
+        // 再执行断言，以免即使断言失败也使分派一直挂起。
         var completedBeforeRelease = dispatch.IsCompleted;
         var completionsBeforeRelease = context.CompletionCount;
         completion.SetResult();
@@ -1206,7 +1206,7 @@ public sealed class TypedMessageHelperTests
         var context = new CountingInboxHandlerContext(envelope);
         var state = new HandlerState { Complete = complete };
         Action<string, HandlerState, IInboxHandlerContext> handler = ObserveState;
-        Assert.Null(handler.Target); // 命名静态方法, 不是捕获的测试结束 。
+        Assert.Null(handler.Target); // 有名称的静态方法，而非捕获测试状态的闭包。
         var dispatcher = new TestInbox();
         dispatcher.Register(type, state, handler);
 
@@ -1317,7 +1317,7 @@ public sealed class TypedMessageHelperTests
 
         var outcome = dispatcher.HandleAsync(context, cancellation.Token);
 
-        Assert.Equal(state.Outcome, outcome); // 没有自动调整器替换实际 ValueTask。
+        Assert.Equal(state.Outcome, outcome); // 不使用异步适配器替换实际的 ValueTask。
         Assert.False(outcome.IsCompleted);
         Assert.Equal("deferred state", state.Body);
         Assert.Same(state, state.Argument);
@@ -1340,7 +1340,7 @@ public sealed class TypedMessageHelperTests
         }
         else
         {
-            // 代表成功工作后取消不得改变其结果。
+            // 委托成功完成工作之后发生的取消，不得改变其结果。
             cancellation.Cancel();
             gate.SetResult();
             await outcome;
@@ -1571,8 +1571,8 @@ public sealed class TypedMessageHelperTests
             baseline.Register(type, baselineState, ObserveState);
             withStruct.Register(type, new StructHandlerState(structState, 731), ObserveStructAction);
         }
-        // 同一序列器/体积/直观、暖和路线和会场。
-        // 测量的循环内有同步延续、 时间或框框参数。
+        // 使用相同的序列化器、消息体和上下文，预热路由和会话池。测量循环内不包含断言、
+        // 异步延续、计时或装箱参数。
         MeasureDispatchAllocations(baseline, context, 64);
         MeasureDispatchAllocations(withStruct, context, 64);
         var referenceBytes = MeasureDispatchAllocations(baseline, context, 256);
@@ -1604,8 +1604,8 @@ public sealed class TypedMessageHelperTests
         var bindings = services.Where(descriptor => descriptor.IsKeyedService).ToArray();
         Assert.Equal(2, bindings.Length);
         Assert.All(bindings, descriptor => Assert.True(services.IndexOf(closed) < services.IndexOf(descriptor)));
-        // 在序列器基础设施存在之前,工厂登记成功:
-        // 合同必须懒惰,必须使用封闭合同,包括T节。
+        // 工厂注册在序列化器基础设施尚不存在时即成功：
+        // 必须采用延迟解析，并使用封闭泛型契约，包括 struct T。
         services.AddSerializer();
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
@@ -1650,8 +1650,8 @@ public sealed class TypedMessageHelperTests
         Assert.Same(original, Assert.Single(services, descriptor =>
             !descriptor.IsKeyedService && descriptor.ServiceType == typeof(Serializer<T>)));
         Assert.Equal(0, factoryCalls);
-        // 在此没有安装未输入的序列号服务。 替换此关闭的服务
-        // 默认工厂的自定义注册将无法解决。
+        // 此处没有安装非类型化 Serializer 服务。若将这个封闭泛型
+        // 自定义注册替换为默认工厂，则解析会失败。
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
         Assert.Same(custom, provider.GetRequiredService<Serializer<T>>());
@@ -1868,8 +1868,8 @@ public sealed class TypedMessageHelperTests
             [AllowNull] OwnedResource value) where TBufferWriter : IBufferWriter<byte>
         {
             ArgumentNullException.ThrowIfNull(value);
-            // 当地手工电线合同:资源名称使用真字符串
-            // 编码。没有全球登记或生成处置/复制行为。
+            // 手动定义的本地线协议契约：资源名称使用真正的字符串
+            // 编码。不进行全局注册，也不生成释放或复制行为。
             StringCodec.WriteField(ref writer, fieldIdDelta, value.Name);
         }
 
@@ -1946,7 +1946,7 @@ public sealed class TypedMessageHelperTests
         var exception = Assert.Throws<InvalidOperationException>(() =>
             dispatcher.HandleAsync(context, CancellationToken.None));
 
-        // 处理器与主题完全匹配, 所以缺少的主题与没有打字的操作器不匹配 。
+        // 处理程序精确匹配主题，因此缺失的主题不会匹配任何类型化处理程序。
         Assert.Contains("No handler is registered", exception.Message, StringComparison.Ordinal);
         Assert.Equal(0, probe.ReadCount);
         Assert.Equal(0, probe.WriteCount);
@@ -2086,7 +2086,7 @@ public sealed class TypedMessageHelperTests
         var bindingFactory = binding.KeyedImplementationFactory;
         Assert.NotNull(bindingFactory);
 
-        // 登记必须懒惰:连环器基础设施是稍后增加的。
+        // 注册必须是延迟解析的：序列化器基础设施稍后才添加。
         services.AddSerializer();
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
@@ -2106,8 +2106,8 @@ public sealed class TypedMessageHelperTests
         factoryProvider.Received(1).GetService(typeof(Serializer<GrainId>));
         factoryProvider.DidNotReceive().GetService(typeof(Serializer));
 
-        // 现有的封闭式连续机既可以发挥两种作用,又不能替换或取代
-        // 其工厂只运行过一次
+        // 一个现有的封闭泛型序列化器承担两个角色，不需要替换或
+        // 依赖非类型化 Serializer，而且其工厂只运行一次。
         using var codecServices = CreateServices();
         var (custom, probe) = CreateProbedSerializer<GrainId>(codecServices);
         var customServices = new ServiceCollection();

@@ -73,7 +73,7 @@ namespace Tester.Redis.Reminders
     }
 
     /// <summary>
-    /// 执行 Redis 提醒表测试。
+    /// 测试 Redis 提醒器表的实现。
     /// </summary>
     [TestCategory("Redis"), TestCategory("Reminders"), TestCategory("Functional")]
     [Collection(TestEnvironmentFixture.DefaultCollection)]

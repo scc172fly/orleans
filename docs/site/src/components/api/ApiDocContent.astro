@@ -104,7 +104,7 @@ function dedent(value: string) {
             case 'note':
               return (
                 <aside class:list={['api-doc-note', `api-doc-note--${node.value ?? 'note'}`]}>
-                  <strong>{node.value ?? 'Note'}</strong>
+                  <strong>{node.value ?? '备注'}</strong>
                   <Astro.self
                     content={node.children}
                     packages={packages}

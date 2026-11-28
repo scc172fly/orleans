@@ -15,9 +15,9 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// 可用于可实现序列值类型的序列器。
+    /// ISerializable 值类型的序列化器。
     /// </summary>
-    /// <typeparam name="T">该序列器可序列化的类型 。</typeparam>
+    /// <typeparam name="T">此序列化器能够序列化的类型。</typeparam>
     internal class ValueTypeSerializer<T> : ValueTypeSerializer where T : struct
     {
         public delegate void ValueConstructor(ref T value, SerializationInfo info, StreamingContext context);
@@ -128,7 +128,7 @@ namespace Orleans.Serialization
 
             _constructor(ref result, info, _streamingContext);
             _callbacks.OnDeserialized?.Invoke(ref result, _streamingContext);
-#pragma warning disable CA1508 // A closed struct T can implement IDeserializationCallback; the generic constraint does not require it.
+#pragma warning disable CA1508 // 封闭结构体 T 可以实现 IDeserializationCallback，但泛型约束并不要求它实现此接口。
             if (result is IDeserializationCallback callback)
 #pragma warning restore CA1508
             {

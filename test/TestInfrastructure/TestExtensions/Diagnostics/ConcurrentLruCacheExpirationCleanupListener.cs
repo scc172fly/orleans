@@ -3,7 +3,7 @@ using Orleans.Caching;
 namespace TestExtensions;
 
 /// <summary>
-/// 订阅 <see cref="ConcurrentLruCache{K, V}"/> 过期清理事件的测试助手。
+/// 订阅 <see cref="ConcurrentLruCache{K, V}"/> 过期清理事件的测试辅助工具。
 /// </summary>
 public sealed class ConcurrentLruCacheExpirationCleanupListener : IDisposable
 {
@@ -15,7 +15,7 @@ public sealed class ConcurrentLruCacheExpirationCleanupListener : IDisposable
     /// <summary>
     /// 初始化 <see cref="ConcurrentLruCacheExpirationCleanupListener"/> 类的新实例。
     /// </summary>
-    /// <param name="targetCache">要收听的缓存 。</param>
+    /// <param name="targetCache">要监听的缓存。</param>
     public ConcurrentLruCacheExpirationCleanupListener(object targetCache)
     {
         _targetCache = targetCache;
@@ -23,10 +23,10 @@ public sealed class ConcurrentLruCacheExpirationCleanupListener : IDisposable
     }
 
     /// <summary>
-    /// 等待下一次到期清理事件。
+    /// 等待下一次过期清理事件。
     /// </summary>
-    /// <param name="timeout">等待的最长时间。 默认为 10 秒 。</param>
-    /// <returns>清理后移除的项目数量。</returns>
+    /// <param name="timeout">最长等待时间，默认为 10 秒。</param>
+    /// <returns>此次清理移除的项数。</returns>
     public Task<int> WaitForCleanupAsync(TimeSpan? timeout = null)
     {
         lock (_events)

@@ -18,7 +18,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// 使用 <see cref="JsonSerializer"/>的序列编码。
+/// 使用 <see cref="JsonSerializer"/> 的序列化编解码器。
 /// </summary>
 [Alias(WellKnownAlias)]
 public class JsonCodec : IGeneralizedCodec, IGeneralizedCopier, ITypeFilter
@@ -29,16 +29,16 @@ public class JsonCodec : IGeneralizedCodec, IGeneralizedCopier, ITypeFilter
     private readonly JsonCodecOptions _options;
 
     /// <summary>
-    /// 这个代码码的已知型别名 。
+    /// 此编解码器的已知类型别名。
     /// </summary>
     public const string WellKnownAlias = "json";
 
     /// <summary>
     /// 初始化 <see cref="JsonCodec"/> 类的新实例。
     /// </summary>
-    /// <param name="serializableTypeSelectors">过滤器用于表示哪些类型应该由此编码器序列。</param>
-    /// <param name="copyableTypeSelectors">过滤器用于表示该编码器应复制的类型。</param>
-    /// <param name="options"> JSON 代码化选项。</param>
+    /// <param name="serializableTypeSelectors">用于指示此编解码器应序列化哪些类型的筛选器。</param>
+    /// <param name="copyableTypeSelectors">用于指示此编解码器应复制哪些类型的筛选器。</param>
+    /// <param name="options">JSON 编解码器选项。</param>
     public JsonCodec(
         IEnumerable<ICodecSelector> serializableTypeSelectors,
         IEnumerable<ICopierSelector> copyableTypeSelectors,
@@ -61,20 +61,20 @@ public class JsonCodec : IGeneralizedCodec, IGeneralizedCopier, ITypeFilter
             return;
         }
 
-        // 编序字段的序列式是代码的型号。
-        // 实际上,只要该编码器登记为处理器,它就可能是任何独特的类型。
-        // 通过对照 IsSupportedType的编码类型检查,编码也可以作为 IGenericCodec登记。
-        // 注意代码器负责对价值本身的类型进行序列整理。
+        // 序列化字段时，架构类型为该编解码器的类型。
+        // 实际上，只要此编解码器注册为处理程序，该类型可以是任何唯一的类型。
+        // 通过在 IsSupportedType 中检查编解码器类型，也可以只将该编解码器注册为 IGenericCodec。
+        // 注意，编解码器负责序列化值本身的类型。
         writer.WriteFieldHeader(fieldIdDelta, expectedType, SelfType, WireType.TagDelimited);
 
-        // 写入类型名称
+        // 写入类型名称。
         ReferenceCodec.MarkValueField(writer.Session);
         writer.WriteFieldHeaderExpected(0, WireType.LengthPrefixed);
         writer.Session.TypeCodec.WriteLengthPrefixed(ref writer, value.GetType());
 
-        // 编写序列式有效载荷
-        // 请注意,Utf8JsonWriter和 PooledBuffer 只要正确就可以集合起来
-        // 在每个使用结尾处重置 。
+        // 写入序列化后的有效载荷。
+        // 注意，只要 Utf8JsonWriter 和 PooledBuffer 在每次使用结束时都被正确
+        // 重置，就可以对它们使用池化机制。
         var bufferWriter = new BufferWriterBox<PooledBuffer>(new PooledBuffer());
         try
         {
@@ -208,8 +208,8 @@ public class JsonCodec : IGeneralizedCodec, IGeneralizedCopier, ITypeFilter
 
     private static bool IsNativelySupportedType(Type type)
     {
-        // 添加由 System.Text.Json支持的本地类型
-        // 发自 https://github.com/dotnet/runtime/blob/2c4d0df3b146f8322f676b83a53ca21a065bdfc7/src/libraries/System.Text.Json/gen/JsonSourceGenerator.Parser.cs#L1792-L1797
+        // 添加 System.Text.Json 原生支持的类型。
+        // 来源：https://github.com/dotnet/runtime/blob/2c4d0df3b146f8322f676b83a53ca21a065bdfc7/src/libraries/System.Text.Json/gen/JsonSourceGenerator.Parser.cs#L1792-L1797
         return type == typeof(JsonElement)
             || type == typeof(JsonDocument)
             || type == typeof(JsonArray)

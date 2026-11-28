@@ -1,45 +1,45 @@
 ---
-title: "ORLEANS0014:保留 grain 执行环境"
-description: "理解和决心 ORLEANS0014 何时 ConfigureAwait 可在 grain 执行。"
+title: "ORLEANS0014: 保留 Grain 执行上下文"
+description: 了解并解决 ConfigureAwait 可能使延续操作移出 Grain 执行上下文时出现的 ORLEANS0014。
 ms.date: 08/25/2026
 ms.topic: reference
 ---
 
 <a id="orleans0014-preserve-the-grain-execution-context"></a>
 
-# ORLEANS0014:保留 grain 执行环境
+# ORLEANS0014: 保留 Grain 执行上下文
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 类别类 | 用法 |
+| 类别 | 用法 |
 | 严重性 | 警告 |
-| 代码修正 | 可用 |
+| 代码修复 | 可用 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-grain 或系统目标方法使用 `ConfigureAwait(false)`,或使用 `ConfigureAwaitOptions` 而不使用 `ContinueOnCapturedContext`。
+Grain 或系统目标的方法使用 `ConfigureAwait(false)`，或者使用 `ConfigureAwaitOptions` 而未包含 `ContinueOnCapturedContext`。
 
 <a id="impact"></a>
 
-## 影响影响
+## 影响
 
-继续可以在 grain 排程器之外执行, 并失去激活的执行环境。 等待之后的代码会违反 Orleans的转折货币担保或遵守错误的 grain 背景。
+延续操作可能在 Grain 调度器之外执行，并丢失激活实例的执行上下文。await 之后的代码可能因此违反 Orleans 基于执行轮次的并发保证，或观察到错误的 Grain 上下文。
 
 <a id="how-to-fix"></a>
 
-## 如何修补
+## 修复方法
 
-偏向于普通 `await`。当需要 `ConfigureAwait` 时,使用 `ConfigureAwait(true)` 或包括 `ConfigureAwaitOptions.ContinueOnCapturedContext`。
+优先使用普通的 `await`。必须使用 `ConfigureAwait` 时，使用 `ConfigureAwait(true)` 或包含 `ConfigureAwaitOptions.ContinueOnCapturedContext`。
 
-代码将修改 `false` 改为 `true`,替换 `ConfigureAwaitOptions.None`,或在现有选项中添加 `ContinueOnCapturedContext` 。
+代码修复会将 `false` 改为 `true`、替换 `ConfigureAwaitOptions.None`，或者向现有选项添加 `ContinueOnCapturedContext`。
 
 <a id="suppress-the-diagnostic"></a>
 
 ## 抑制诊断
 
-只有在完全继续是故意的无背景状态且无法访问 grain 或运行时状态的情况下,才能抑制这一诊断。 在取消之前先审查等待后的全部路径 。
+仅在完整的延续操作被明确设计为不依赖上下文，且无法访问 Grain 或运行时状态时抑制此诊断。抑制之前请检查 await 之后的完整调用路径。
 
 ```ini
 [*.cs]

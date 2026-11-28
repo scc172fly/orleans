@@ -13,14 +13,14 @@ using System.Runtime.Loader;
 namespace Orleans.Serialization.Internal
 {
     /// <summary>
-    /// 发现含有 Orleans 序列应用程序部件的组件。
+    /// 发现包含 Orleans 序列化应用程序部件的程序集。
     /// </summary>
     public static class ReferencedAssemblyProvider
     {
         /// <summary>
-        /// 获取装有 Orleans 序列应用程序部件的已装入组件。
+        /// 获取已加载且包含 Orleans 序列化应用程序部件的程序集。
         /// </summary>
-        /// <returns>集会中包括: Orleans 申请的序列号部分。</returns>
+        /// <returns>包含 Orleans 序列化应用程序部件的程序集。</returns>
         public static IEnumerable<Assembly> GetRelevantAssemblies()
         {
             var parts = new HashSet<Assembly>();
@@ -49,11 +49,11 @@ namespace Orleans.Serialization.Internal
         }
 
         /// <summary>
-        /// 将组装及其引用的 Orleans 序列化应用程序部件添加到收藏中。
+        /// 将程序集及其引用的 Orleans 序列化应用程序部件添加到集合。
         /// </summary>
-        /// <param name="parts">收藏组, 以添加组件。</param>
-        /// <param name="assembly">检查的组装。</param>
-        /// <exception cref="ArgumentNullException"><paramref name="parts"/> 或 <paramref name="assembly"/> 是 <see langword="null"/>。</exception>
+        /// <param name="parts">要向其中添加程序集的集合。</param>
+        /// <param name="assembly">要检查的程序集。</param>
+        /// <exception cref="ArgumentNullException"><paramref name="parts"/> 或 <paramref name="assembly"/> 为 <see langword="null"/>。</exception>
         public static void AddAssembly(HashSet<Assembly> parts, Assembly assembly)
         {
             if (parts is null) throw new ArgumentNullException(nameof(parts));
@@ -72,7 +72,7 @@ namespace Orleans.Serialization.Internal
                 return;
             }
 
-            // 添加所有引用的申请部分。
+            // 添加所有被引用的应用程序部件。
             foreach (var referencedAsm in GetApplicationPartAssemblies(assembly))
             {
                 AddAssembly(parts, referencedAsm);
@@ -81,10 +81,10 @@ namespace Orleans.Serialization.Internal
 
 #if NETCOREAPP3_1_OR_GREATER
         /// <summary>
-        /// 将 Orleans 序列化应用程序部件从组装负荷上下文添加到收藏中。
+        /// 将程序集加载上下文中的 Orleans 序列化应用程序部件添加到集合。
         /// </summary>
-        /// <param name="parts">收藏组, 以添加组件。</param>
-        /// <param name="context">装配上载环境进行检查。</param>
+        /// <param name="parts">要向其中添加程序集的集合。</param>
+        /// <param name="context">要检查的程序集加载上下文。</param>
         public static void AddFromAssemblyLoadContext(HashSet<Assembly> parts, AssemblyLoadContext context)
         {
             if (context is null)
@@ -99,11 +99,11 @@ namespace Orleans.Serialization.Internal
         }
 
         /// <summary>
-        /// 将 Orleans 序列化应用程序部件从装配组件的负载上下文添加到收藏中。
+        /// 将包含指定程序集的加载上下文中的 Orleans 序列化应用程序部件添加到集合。
         /// </summary>
-        /// <param name="parts">收藏组, 以添加组件。</param>
+        /// <param name="parts">要向其中添加程序集的集合。</param>
         /// <param name="assembly">
-        /// 装载环境受到检查的组装,或使用含有这种类型的组装 <see langword="null"/> 。
+        /// 要检查其加载上下文的程序集；指定 <see langword="null"/> 时使用包含此类型的程序集。
         /// </param>
         public static void AddFromAssemblyLoadContext(HashSet<Assembly> parts, Assembly? assembly = null)
         {
@@ -112,7 +112,7 @@ namespace Orleans.Serialization.Internal
             var context = AssemblyLoadContext.GetLoadContext(assembly)!;
             foreach (var asm in context.Assemblies)
             {
-                // 跳过尚未执行代号代号的集会,
+                // 跳过未执行过代码生成的程序集以及已经遇到的程序集。
                 if (!asm.IsDefined(typeof(ApplicationPartAttribute)) || !assemblies.Add(asm))
                 {
                     continue;
@@ -124,11 +124,11 @@ namespace Orleans.Serialization.Internal
 #endif
 
         /// <summary>
-        /// 将 Orleans 序列化应用程序部件从组装的依附上下文添加到收藏中。
+        /// 将程序集依赖项上下文中的 Orleans 序列化应用程序部件添加到集合。
         /// </summary>
-        /// <param name="parts">收藏组, 以添加组件。</param>
+        /// <param name="parts">要向其中添加程序集的集合。</param>
         /// <param name="assembly">
-        /// 其附属关系受到检查的组装,或使用入场组装的 <see langword="null"/> 。
+        /// 要检查其依赖项上下文的程序集；指定 <see langword="null"/> 时使用入口程序集。
         /// </param>
         [RequiresAssemblyFiles("Dependency-context discovery reads assembly files. Use " + nameof(GetRelevantAssemblies) + " for single-file-compatible discovery.")]
         public static void AddFromDependencyContext(HashSet<Assembly> parts, Assembly? assembly = null)
@@ -199,7 +199,7 @@ namespace Orleans.Serialization.Internal
                 }
                 catch
                 {
-                    // 忽略在非明示装配装入时投放的任何例外。
+                    // 忽略非显式程序集加载过程中抛出的所有异常。
                 }
             }
         }

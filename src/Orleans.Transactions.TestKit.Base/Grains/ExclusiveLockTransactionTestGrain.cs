@@ -5,7 +5,7 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 执行交易整数状态操作,并专有锁定读数。
+    /// 实现读取时使用排他锁的事务整数状态操作。
     /// </summary>
     [Reentrant]
     public partial class ExclusiveLockTransactionTestGrain : Grain, IExclusiveLockTransactionTestGrain
@@ -14,15 +14,15 @@ namespace Orleans.Transactions.TestKit
         private readonly ILoggerFactory loggerFactory;
 
         /// <summary>
-        /// 启动 grain 的登录器 。
+        /// 此 Grain 激活实例的日志记录器。
         /// </summary>
         protected ILogger logger = null!;
 
         /// <summary>
         /// 初始化 <see cref="ExclusiveLockTransactionTestGrain"/> 类的新实例。
         /// </summary>
-        /// <param name="data">交易状态</param>
-        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="data">事务状态。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
         public ExclusiveLockTransactionTestGrain(
             [TransactionalState("data", TransactionTestConstants.TransactionStore)]
             ITransactionalState<GrainData> data,

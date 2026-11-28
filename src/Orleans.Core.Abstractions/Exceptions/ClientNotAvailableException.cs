@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 显示客户无法更长久地接触。
+    /// 指示客户端已无法访问。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -16,7 +16,7 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="ClientNotAvailableException"/> 类的新实例。
         /// </summary>
         /// <param name="clientId">
-        /// 客户身份
+        /// 客户端 ID。
         /// </param>
         internal ClientNotAvailableException(GrainId clientId)
             : base($"No activation for client {clientId}")
@@ -27,7 +27,7 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="ClientNotAvailableException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// 例外信息。
+        /// 异常消息。
         /// </param>
         internal ClientNotAvailableException(string message)
             : base(message)
@@ -38,10 +38,10 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="ClientNotAvailableException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// 信息
+        /// 消息。
         /// </param>
         /// <param name="innerException">
-        /// 内在的例外
+        /// 内部异常。
         /// </param>
         internal ClientNotAvailableException(string message, Exception innerException)
             : base(message, innerException)
@@ -52,10 +52,10 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="ClientNotAvailableException"/> 类的新实例。
         /// </summary>
         /// <param name="info">
-        /// 资料
+        /// 序列化信息。
         /// </param>
         /// <param name="context">
-        /// 背景。
+        /// 上下文。
         /// </param>
         [Obsolete]
         private ClientNotAvailableException(SerializationInfo info, StreamingContext context)

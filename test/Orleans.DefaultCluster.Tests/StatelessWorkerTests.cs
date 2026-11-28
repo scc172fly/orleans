@@ -11,12 +11,12 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// Orleans 无国籍工人 grains的测试。
-    /// 无国籍工人是一种特殊 grain 类型,可具有多重活化
-    /// 百分比/ 百 silo 用于平行处理。它们对于功能操作是理想的
-    /// 无法保持通话状态。 [StatelessWorker]属性
-    /// 允许水平
-    /// CPU 或 I/O 限制操作的 silo 范围内的缩放。
+    /// Orleans 无状态工作者 Grain 的测试。
+    /// 无状态工作者是一种特殊的 Grain 类型，每个 Silo 可以拥有多个激活实例，
+    /// 用于并行处理。它们适合
+    /// 不在调用之间维护状态的函数式操作。[StatelessWorker] 特性
+    /// 控制本地激活实例的最大数量，支持在 Silo 内部针对
+    /// CPU 密集型或 I/O 密集型操作进行水平扩展。
     /// </summary>
     [TestArea("Runtime")]
     public class StatelessWorkerTests : HostedTestClusterEnsureDefaultStarted
@@ -30,10 +30,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 建筑商抛出例外时测试无国籍工人的行为。
-        /// 证明向打电话者适当报告建筑失修情况
-        /// 并且即使工人未能即时地工作,这个制度也保持稳定。
-        /// 这确保了工人初始化时处理稳健错误。
+        /// 测试构造函数引发异常时无状态工作者的行为。
+        /// 验证构造失败能正确报告给调用方，
+        /// 且即使工作者实例化失败，系统也保持稳定。
+        /// 这确保工作者初始化期间的错误得到可靠处理。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -52,11 +52,11 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 证明无国籍工人启动的无国籍工人遵守了每个工人的最高限制 silo.
-        /// 测试,当同时向无国籍工人提出多重请求时,
-        /// 本地激活的数量不超过配置的最大数量 。
-        /// 这确保[StatelessWorker(maxLocalWorkers) 属性得到强制执行,
-        /// 防止资源耗竭,
+        /// 验证无状态工作者的激活实例遵守每个 Silo 的数量上限。
+        /// 测试针对无状态工作者发出多个并发请求时，
+        /// 本地激活实例数量不会超过配置的最大值。
+        /// 这确保强制实施 [StatelessWorker(maxLocalWorkers)] 特性的限制，
+        /// 防止无限并行导致资源耗尽。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -66,13 +66,13 @@ namespace DefaultCluster.Tests.General
             var cancellationToken = TestContext.Current.CancellationToken;
             var gatewayOptions = this.Fixture.Client.ServiceProvider.GetRequiredService<IOptions<StaticGatewayListProviderOptions>>();
             var gatewaysCount = gatewayOptions.Value.Gateways.Count;
-            // 额外调用触发本地 ExpectedMaxLocalActivations 启动
+            // 发起额外调用，以触发 ExpectedMaxLocalActivations 个本地激活实例的激活
             int numberOfCalls = ExpectedMaxLocalActivations * 3 * gatewaysCount;
 
             IStatelessWorkerGrain grain = this.GrainFactory.GetGrain<IStatelessWorkerGrain>(GetRandomGrainId());
             List<Task> promises = new List<Task>();
 
-            // 热暖和
+            // 预热
             for (int i = 0; i < gatewaysCount; i++)
                 promises.Add(grain.LongCall());
             await Task.WhenAll(promises);
@@ -92,7 +92,7 @@ namespace DefaultCluster.Tests.General
 
             var statsTasks = new List<Task<Tuple<Guid, string, List<Tuple<DateTime, DateTime>>>>>();
             for (int i = 0; i < numberOfCalls; i++)
-                statsTasks.Add(grain.GetCallStats());  // 正在收集统计数
+                statsTasks.Add(grain.GetCallStats());  // 收集统计信息
             await Task.WhenAll(statsTasks);
 
 #pragma warning disable xUnit1031 // Do not use blocking task operations in test method
@@ -107,7 +107,7 @@ namespace DefaultCluster.Tests.General
                 foreach (var response in siloGroup)
                 {
                     if (activations.Contains(response.Item1))
-                        continue; // 同一激活的重复响应
+                        continue; // 来自同一激活实例的重复响应
 
                     activations.Add(response.Item1);
 
@@ -122,21 +122,21 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试系统稳定性,在高通货率下与有限的工人活化作用进行。
-        /// 证明当同时援引时大大超过当地
-        /// 工人限制, 系统可以正确处理信件转发, 而没有
-        /// 失败。 这解决了有关过度信息前方问题的# 6795
-        /// 高通货货币之下。
+        /// 测试工作者激活实例受限时系统在高并发下的稳定性。
+        /// 验证并发调用数量远超本地工作者上限时，
+        /// 系统仍能正确处理消息转发而不发生
+        /// 失败。这针对问题 #6795，即高并发下
+        /// 消息转发次数过多。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
         [Fact, TestCategory("SlowBVT"), TestCategory("StatelessWorker")]
         public async Task ManyConcurrentInvocationsOnActivationLimitedStatelessWorkerDoesNotFail()
         {
-            // 问题#6795:比当地工人的限额多得多的同时从事的职业导致太多
-            // 向前传递信件。 当问题发生时, 此测试将会丢弃一个例外 。
+            // 问题 #6795：并发调用数量远超本地工作者上限，导致过多的
+            // 消息转发。该问题发生时，本测试会引发异常。
 
-            // 我们试图引发种族状况,需要不止一次努力可靠地复制这一问题。
+            // 我们试图触发竞态条件，需要多次尝试才能可靠复现问题。
             for (var attempt = 0; attempt < 100; attempt++)
             {
                 var grain = this.GrainFactory.GetGrain<IStatelessWorkerGrain>(attempt);
@@ -145,11 +145,11 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试多silo 部署中的无国籍工人行为。
-        /// 证明在多个 silos之间快速同时启动
-        /// 不会造成转发失败。 这可以确保负载分布
-        /// 当工人分布在组群中时, 工作正常。
-        /// 注:由于一个已知问题,现因已转交而跳过。
+        /// 测试多 Silo 部署中的无状态工作者行为。
+        /// 验证跨多个 Silo 快速并发激活
+        /// 不会导致转发失败。这确保工作者分布在集群中时，
+        /// 负载分布能够正常工作。
+        /// 注意：由于已知的转发问题，当前跳过此测试。
         /// </summary>
         [TestSuite("Functional")]
         [TestProvider("None")]
@@ -164,7 +164,7 @@ namespace DefaultCluster.Tests.General
                 throw Xunit.Sdk.SkipException.ForSkip("This test was created to run with more than 1 gateway. 2 is the default at the time of this writing");
             }
 
-            // 额外调用触发本地 ExpectedMaxLocalActivations 启动
+            // 发起额外调用，以触发 ExpectedMaxLocalActivations 个本地激活实例的激活
             int numberOfCalls = ExpectedMaxLocalActivations * 3 * gatewaysCount;
 
             IStatelessWorkerGrain grain = this.GrainFactory.GetGrain<IStatelessWorkerGrain>(GetRandomGrainId());
@@ -174,14 +174,14 @@ namespace DefaultCluster.Tests.General
                 promises.Add(grain.LongCall());
             await Task.WhenAll(promises);
 
-            // 不应提出过要求 ForwardingFailed 例外。
+            // 这些调用不应引发 ForwardingFailed 异常。
         }
 
         /// <summary>
-        /// 无国籍工人可以对具体方法MayInterleave进行测试。
-        /// 证明标有 MayInterleave 的方法可以同时处理
-        /// 即使在单一激活范围内,允许精制同价货币控制
-        /// 超过默认的转折模式的无国籍工人。
+        /// 测试无状态工作者能否对特定方法使用 [MayInterleave]。
+        /// 验证标记为 MayInterleave 的方法即使在同一个激活实例内，
+        /// 也能够并发处理，从而为无状态工作者提供超越默认基于执行轮次模型的
+        /// 细粒度并发控制。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -199,10 +199,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 检验 MayInterleave 上游情况是否为无国籍工人得到适当评估。
-        /// 当它被证实的时候, MayInterleave 自动返回假的上游回错,调用是
-        /// 不中断和按顺序执行, 维持 Orleans的转式
-        /// 即使是无国籍工人也用同种货币来响应这些具体呼唤。
+        /// 测试无状态工作者的 MayInterleave 谓词能否正确求值。
+        /// 验证 MayInterleave 谓词返回 false 时，调用不会交错执行，
+        /// 而是顺序执行，即使在无状态工作者中也为这些特定调用保持
+        /// Orleans 基于执行轮次的并发语义。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -233,10 +233,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 MayInterleave 允许在上游匹配时同时执行。
-        /// 证明如果 MayInterleave 上游返回为真时,多次调用
-        /// 在同一无国籍工人激活过程中可同时执行,
-        /// 使适当的作业具有最大限度的平行性。
+        /// 测试谓词匹配时 MayInterleave 是否允许并发执行。
+        /// 验证 MayInterleave 谓词返回 true 时，多个调用可以
+        /// 在同一无状态工作者激活实例内并发执行，
+        /// 使适合的操作达到最大的并发程度。
         /// </summary>
         [TestSuite("SlowBVT")]
         [TestProvider("None")]
@@ -251,7 +251,7 @@ namespace DefaultCluster.Tests.General
             var callbackReferences = callbacks.Select(c => GrainFactory.CreateObjectReference<ICallbackGrainObserver>(c)).ToList();
             var completion = Task.WhenAll(grain.GoFast(callbackReferences[0]), grain.GoFast(callbackReferences[1]), grain.GoFast(callbackReferences[2]));
 
-            // 等待所有的回调同时启动, 如果它们没有在超时前发出信号就放弃。
+            // 等待所有回调同时触发；如果它们未在超时前发出信号，则放弃等待。
             await Task.WhenAll(callbacks.Select(c => c.OnCallback)).WaitAsync(cts.Token);
             callbacks.ForEach(c => c.Signal());
 

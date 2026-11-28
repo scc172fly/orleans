@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.Tests
 {
     /// <summary>
-    /// 交易金路情景测试,同时进行存储。
+    /// 测试使用内存存储时事务正常成功路径的场景。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Transactions")]
     [TestSuite("BVT")]

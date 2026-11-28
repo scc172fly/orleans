@@ -4,13 +4,13 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests.FaultInjection;
 
 /// <summary>
-/// 在每个层次随机地按几个基础设施故障的时间表运行代表工作流程:日记。
-/// 写作、含糊不清的言语和读取;发箱交付,投放、失去响应或挂挂;收箱汇
-/// 扔球的操作器; 和失败的信息提醒。
+/// 在多个基础设施故障的随机调度下运行代表性工作流，故障覆盖每一层：日志
+/// 写入、提交结果不确定及读取；抛出异常、响应丢失或挂起的发件箱投递；抛出异常的收件箱接收处理器和
+/// 消息处理器；以及失败的消息传递唤醒。
 /// </summary>
 /// <remarks>
-/// 每一时间表必须保持安全合同的完整:无过失结果,每次效果一一,没有死亡
-/// 字母 CsCheck 将一个失败的列表缩到最小的列表,并报告其种子,再复制。
+/// 每种调度都必须保持安全契约不变：产生无故障时的结果，每个效果恰好执行一次，并且没有
+/// 死信。CsCheck 将失败的调度缩减到最小情形，并报告可重现该情形的随机种子。
 /// </remarks>
 public abstract class DurableTaskFaultSchedulePropertyTests(string journalFormatKey) : IAsyncLifetime
 {
@@ -52,21 +52,21 @@ public abstract class DurableTaskFaultSchedulePropertyTests(string journalFormat
             threads: 1,
             print: static schedule => schedule.ToString());
 
-    /// <summary>工作流程及其运行中的错误输入。</summary>
+    /// <summary>一个工作流及其一次运行所注入的故障。</summary>
     public sealed record FaultSchedule(FaultWorkflow Workflow, FaultSpec[] Faults)
     {
         public override string ToString() => $"{Workflow}: {string.Join(", ", Faults.Select(static fault => fault.ToString()))}";
     }
 }
 
-/// <summary>运行随机的错误计划,任务状态以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行随机故障调度测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("SlowBVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskFaultSchedulePropertyTests() : DurableTaskFaultSchedulePropertyTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行随机的错误时间表,任务状态以 Orleans 二进制日记格式存储。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行随机故障调度测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("SlowBVT")]
 [TestProvider("None")]

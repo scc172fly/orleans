@@ -1,13 +1,13 @@
 using Xunit.v3;
 
 /// <summary>
-/// 提供测试套件时遗留 xUnit <c>Category</c> 特性的兼容性桥桥
-/// 向头等舱 <see cref="TestSuiteAttribute"/>、 <see cref="TestProviderAttribute"/>和
+/// 在测试套件迁移到一等特征的过程中，为旧版 xUnit <c>Category</c> 特征提供兼容桥接，
+/// 迁移目标为 <see cref="TestSuiteAttribute"/>、<see cref="TestProviderAttribute"/> 和
 /// <see cref="TestAreaAttribute"/> 特征。
 /// </summary>
 /// <remarks>
-/// 新的试验应更倾向于第一等特征。
-/// <c>[TestCategory("BVT")]</c> 直到他们迁移。
+/// 新测试应优先使用这些一等特征。现有测试在完成迁移前仍可使用
+/// <c>[TestCategory("BVT")]</c>。
 /// </remarks>
 /// <example>
 /// <code>

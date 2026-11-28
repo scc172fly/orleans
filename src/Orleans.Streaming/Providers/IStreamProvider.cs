@@ -4,42 +4,42 @@ using System;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 向消费者和生产者提供流动资金的功能。
+    /// 提供向消费者和生产者提供流的功能。
     /// </summary>
     public interface IStreamProvider
     {
         /// <summary>
-        /// 获取流提供商的名称 。
+        /// 获取流提供程序的名称。
         /// </summary>
         /// <value>名称。</value>
         string Name { get; }
 
         /// <summary>
-        /// 获取有指定身份的流。
+        /// 获取具有指定标识的流。
         /// </summary>
-        /// <typeparam name="T">流体元素类型。</typeparam>
-        /// <param name="streamId">流体识别符号。</param>
+        /// <typeparam name="T">流元素类型。</typeparam>
+        /// <param name="streamId">流标识符。</param>
         /// <returns>流。</returns>
         IAsyncStream<T> GetStream<T>(StreamId streamId);
         /// <summary>
-        /// 获得一个值, 显示此是否是一个可回溯的提供者 - 支持创建可回溯流 
-        /// (允许从上一个时间点签名的流)。
+        /// 获取一个值，指示此提供程序是否支持回溯，即是否支持创建可回溯的流
+        /// （允许从过去的时间点开始订阅的流）。
         /// </summary>
-        /// <returns><see langword="true"/> 如果这是可变现的提供者, <see langword="false"/> 否则。</returns>
+        /// <returns>如果此提供程序支持回溯，则为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
         bool IsRewindable { get; }
     }
 
     /// <summary>
-    /// <see cref="IStreamProvider"/>的扩展期。
+    /// <see cref="IStreamProvider"/> 的扩展方法。
     /// </summary>
     public static class StreamProviderExtensions
     {
         /// <summary>
-        /// 获取有指定身份和命名空间的流。
+        /// 获取具有指定标识和命名空间的流。（译注：此重载使用 null 命名空间。）
         /// </summary>
-        /// <typeparam name="T">流体元素类型。</typeparam>
-        /// <param name="streamProvider">流源提供者。</param>
-        /// <param name="id">识别符号。</param>
+        /// <typeparam name="T">流元素类型。</typeparam>
+        /// <param name="streamProvider">流提供程序。</param>
+        /// <param name="id">标识符。</param>
         /// <returns>流。</returns>
         public static IAsyncStream<T> GetStream<T>(this IStreamProvider streamProvider, Guid id)
         {
@@ -48,12 +48,12 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 获取有指定身份和命名空间的流。
+        /// 获取具有指定标识和命名空间的流。
         /// </summary>
-        /// <typeparam name="T">流体元素类型。</typeparam>
-        /// <param name="streamProvider">流源提供者。</param>
+        /// <typeparam name="T">流元素类型。</typeparam>
+        /// <param name="streamProvider">流提供程序。</param>
         /// <param name="ns">命名空间。</param>
-        /// <param name="id">识别符号。</param>
+        /// <param name="id">标识符。</param>
         /// <returns>流。</returns>
         public static IAsyncStream<T> GetStream<T>(this IStreamProvider streamProvider, string ns, Guid id)
         {
@@ -62,11 +62,11 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 获取有指定身份和命名空间的流。
+        /// 获取具有指定标识和命名空间的流。（译注：此重载使用 null 命名空间。）
         /// </summary>
-        /// <typeparam name="T">流体元素类型。</typeparam>
-        /// <param name="streamProvider">流源提供者。</param>
-        /// <param name="id">识别符号。</param>
+        /// <typeparam name="T">流元素类型。</typeparam>
+        /// <param name="streamProvider">流提供程序。</param>
+        /// <param name="id">标识符。</param>
         /// <returns>流。</returns>
         public static IAsyncStream<T> GetStream<T>(this IStreamProvider streamProvider, string id)
         {
@@ -75,12 +75,12 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 获取有指定身份和命名空间的流。
+        /// 获取具有指定标识和命名空间的流。
         /// </summary>
-        /// <typeparam name="T">流体元素类型。</typeparam>
-        /// <param name="streamProvider">流源提供者。</param>
+        /// <typeparam name="T">流元素类型。</typeparam>
+        /// <param name="streamProvider">流提供程序。</param>
         /// <param name="ns">命名空间。</param>
-        /// <param name="id">识别符号。</param>
+        /// <param name="id">标识符。</param>
         /// <returns>流。</returns>
         public static IAsyncStream<T> GetStream<T>(this IStreamProvider streamProvider, string ns, string id)
         {
@@ -89,11 +89,11 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 获取有指定身份和命名空间的流。
+        /// 获取具有指定标识和命名空间的流。（译注：此重载使用 null 命名空间。）
         /// </summary>
-        /// <typeparam name="T">流体元素类型。</typeparam>
-        /// <param name="streamProvider">流源提供者。</param>
-        /// <param name="id">识别符号。</param>
+        /// <typeparam name="T">流元素类型。</typeparam>
+        /// <param name="streamProvider">流提供程序。</param>
+        /// <param name="id">标识符。</param>
         /// <returns>流。</returns>
         public static IAsyncStream<T> GetStream<T>(this IStreamProvider streamProvider, long id)
         {
@@ -102,12 +102,12 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 获取有指定身份和命名空间的流。
+        /// 获取具有指定标识和命名空间的流。
         /// </summary>
-        /// <typeparam name="T">流体元素类型。</typeparam>
-        /// <param name="streamProvider">流源提供者。</param>
+        /// <typeparam name="T">流元素类型。</typeparam>
+        /// <param name="streamProvider">流提供程序。</param>
         /// <param name="ns">命名空间。</param>
-        /// <param name="id">识别符号。</param>
+        /// <param name="id">标识符。</param>
         /// <returns>流。</returns>
         public static IAsyncStream<T> GetStream<T>(this IStreamProvider streamProvider, string ns, long id)
         {

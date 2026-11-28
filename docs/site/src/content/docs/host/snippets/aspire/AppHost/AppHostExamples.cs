@@ -3,8 +3,8 @@ using Aspire.Hosting.Azure;
 
 namespace Orleans.Docs.Snippets.Aspire;
 
-// 此文件包含 Orleans 请求整合文档示例。
-// 每个实例都以区域标记和汇编方法包扎。
+// 此文件包含 Orleans 与 Aspire 集成的文档示例。
+// 每个示例都包装在区域标记和方法中，以便编译。
 
 public static class AppHostExamples
 {
@@ -13,14 +13,14 @@ public static class AppHostExamples
     {
         var builder = DistributedApplication.CreateBuilder(args);
 
-        // 添加添加添加 Redis 用于 Orleans 组合
+        // 添加用于 Orleans 集群成员管理的 Redis。
         var redis = builder.AddRedis("orleans-redis");
 
-        // 定义 Orleans 资源,并使用 Redis 组合
+        // 定义使用 Redis 集群成员管理的 Orleans 资源。
         var orleans = builder.AddOrleans("cluster")
             .WithClustering(redis);
 
-        // 添加 Orleans silo 项目
+        // 添加 Orleans Silo 项目。
         builder.AddProject<Projects.Silo>("silo")
             .WithReference(orleans)
             .WaitFor(redis)
@@ -63,15 +63,15 @@ public static class AppHostExamples
             .WithClustering(redis)
             .WithGrainStorage("Default", redis);
 
-        // 后端 Orleans silo 群集
+        // 后端 Orleans Silo 集群。
         var silo = builder.AddProject<Projects.Silo>("backend")
             .WithReference(orleans)
             .WaitFor(redis)
             .WithReplicas(5);
 
-        // 前端网络项目 Orleans 客户端
+        // 作为 Orleans 客户端的前端 Web 项目。
         builder.AddProject<Projects.Client>("frontend")
-            .WithReference(orleans.AsClient())  // 仅客户端引用
+            .WithReference(orleans.AsClient())  // 仅客户端引用。
             .WaitFor(silo);
 
         builder.Build().Run();
@@ -83,9 +83,9 @@ public static class AppHostExamples
     {
         var builder = DistributedApplication.CreateBuilder(args);
 
-        // 添加 Azure 储存 Orleans
+        // 为 Orleans 添加 Azure Storage。
         var storage = builder.AddAzureStorage("orleans-storage")
-            .RunAsEmulator();  // 使用 Azurite 模拟器促进本地发展
+            .RunAsEmulator();  // 在本地开发中使用 Azurite 模拟器。
 
         var tables = storage.AddTables("orleans-tables");
 
@@ -109,7 +109,7 @@ public static class AppHostExamples
         var builder = DistributedApplication.CreateBuilder(args);
 
         var redis = builder.AddRedis("orleans-redis");
-        // Redis 集装箱在开发期间自动运行
+        // 开发期间自动运行 Redis 容器。
 
         builder.AddOrleans("cluster")
             .WithClustering(redis);
@@ -123,7 +123,7 @@ public static class AppHostExamples
     {
         var builder = DistributedApplication.CreateBuilder(args);
 
-        // 使用现有 Azure 缓存缓存的缓存 Redis
+        // 使用现有的 Azure Cache for Redis。
         var redis = builder.AddConnectionString("orleans-redis");
 
         builder.AddOrleans("cluster")
@@ -198,20 +198,20 @@ public static class AppHostExamples
     {
         var builder = DistributedApplication.CreateBuilder(args);
 
-        // 添加 SQL 服务器实例和数据库。
-        // 注: 远征从资源类别名称中引用 Orleans 提供者类型
-        // (SqlServerDatabaseResource → "SqlServerDatabase“)),但与
-        // Orleans 提供商名称 "AdoNet" 。
+        // 添加 SQL Server 实例及数据库。
+        // 注意：Aspire 根据资源类名推断 Orleans 提供程序类型
+        // （SqlServerDatabaseResource → "SqlServerDatabase"），它与
+        // Orleans 提供程序名称 "AdoNet" 不匹配。
         //
-        // 当前版本中没有公开的 API 推翻此推论
-        // Aspire.Hosting.Orleans。作为一种变通办法,配置 Orleans 提供者
-        // 中手动 silo 使用 UseOrleans(siloBuilder 并读取
-        // Iconfigation 的连接字符串。
+        // 当前版本的 Aspire.Hosting.Orleans 没有用于覆盖此推断的公开 API。
+        // 作为变通方法，可手动在 Silo 中配置 Orleans 提供程序，
+        // 使用 UseOrleans(siloBuilder => {...}) 并从
+        // IConfiguration 读取连接字符串。
         var sql = builder.AddSqlServer("sql");
         var db = sql.AddDatabase("orleans-db");
 
-        // 传递数据库资源, 从而快速输入 ConnectionStrings__orleans- db。
-        // 然后配置 Orleans 中手动 silo (见 silo 实例)
+        // 传入数据库资源，使 Aspire 注入 ConnectionStrings__orleans-db。
+        // 然后在 Silo 中手动配置 Orleans（参见 Silo 示例）。
         builder.AddProject<Projects.Silo>("silo")
             .WithReference(db)
             .WaitFor(sql);
@@ -247,10 +247,10 @@ public static class AppHostExamples
         var redis = builder.AddRedis("orleans-redis");
 
         var orleans = builder.AddOrleans("cluster")
-            // 设定滚动部署和交叉重新启动兼容性的稳定标识。
-            // 如果省略,则每次运行生成随机身份识别码—— 用于开发的罚款;
-            // 生产有问题,因为 silos 来自不同的运行
-            // 彼此不承认对方。
+            // 设置稳定的 ID，以支持滚动部署及跨重启兼容性。
+            // 如果省略，每次运行都会生成随机 ID。开发时没有问题，
+            // 但在生产环境中会造成问题，因为不同运行中的 Silo
+            // 将无法识别彼此。
             .WithClusterId("my-cluster")
             .WithServiceId("my-service")
             .WithClustering(redis);

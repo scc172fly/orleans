@@ -3,22 +3,22 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator.Diagnostics;
 
 /// <summary>
-/// 当 RPC 方法声明多个取消符号参数时,定义报告的诊断。
+/// 定义 RPC 方法声明多个取消令牌参数时报告的诊断。
 /// </summary>
 public static class MultipleCancellationTokenParametersDiagnostic
 {
     /// <summary>
-    /// 诊断识别器
+    /// 诊断标识符。
     /// </summary>
     public const string DiagnosticId = DiagnosticRuleId.MultipleCancellationTokenParameters;
 
     /// <summary>
-    /// 诊断标题
+    /// 诊断标题。
     /// </summary>
     public const string Title = "Grain method has multiple parameters of type CancellationToken";
 
     /// <summary>
-    /// 诊断信息格式
+    /// 诊断消息格式。
     /// </summary>
     public const string MessageFormat = "The type {0} contains method {1} which has multiple CancellationToken parameters. Only a single CancellationToken parameter is supported.";
 

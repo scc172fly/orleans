@@ -1473,7 +1473,7 @@ public sealed class RelationalOrleansQueriesUnitTests
             : null!);
         var address = SiloAddress.New(IPAddress.Loopback, 11111, 1);
         const string guidance = "Use ReadAllAsync and MembershipTableData.TryGet instead.";
-#pragma warning disable CS0618 // Verify both retired entrypoints and cancellation precedence.
+#pragma warning disable CS0618 // 验证两个已弃用的入口点以及取消操作的优先级。
         var legacy = table.ReadRow(address);
         var current = table.ReadRowAsync(address, TestContext.Current.CancellationToken);
         Assert.True(legacy.IsFaulted);

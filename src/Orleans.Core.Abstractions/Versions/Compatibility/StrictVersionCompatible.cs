@@ -3,13 +3,13 @@ using System;
 namespace Orleans.Versions.Compatibility
 {
     /// <summary>
-    /// grain 接口版本兼容性战略,它只处理与同等要求版本兼容的所有界面版本。
+    /// Grain 接口版本兼容性策略，仅当请求版本等于接口版本时才认为兼容。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable, SuppressReferenceTracking]
     public sealed class StrictVersionCompatible : CompatibilityStrategy
     {
         /// <summary>
-        /// 获得单吨的例子 这个类。
+        /// 获取此类的单例实例。
         /// </summary>
         public static StrictVersionCompatible Singleton { get; } = new StrictVersionCompatible();
     }

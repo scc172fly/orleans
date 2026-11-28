@@ -50,21 +50,21 @@ namespace UnitTests.General
     }
 
     /// <summary>
-    /// Orleans grain 调用过滤器(拦截器)的全面测试。
+    /// Orleans Grain 调用筛选器（拦截器）的全面测试。
     /// 
-    /// Grain 呼叫过滤器提供AOP式拦截 grain 方法呼叫的方法,使:
-    /// - 贯穿各领域的关切问题(博客、监测、安全)
-    /// - 请求/答复操纵
-    /// - 重试逻辑和错误处理
-    /// - 方法代号计量和追踪
+    /// Grain 调用筛选器以 AOP 风格拦截 Grain 方法调用，从而支持：
+    /// - 横切关注点（日志记录、监控、安全性）
+    /// - 请求/响应的修改
+    /// - 重试逻辑与错误处理
+    /// - 方法调用指标与跟踪
     /// 
-    /// Orleans 支持两个进取过滤器(在目标 grain/silo上执行)和
-    /// 退出过滤器( 在调用 grain/客户端时执行) 。 过滤器可以注册 :
-    /// - 全系统(所有 grains)
-    /// - 每一grain- 类型
+    /// Orleans 支持入站筛选器（在目标 Grain/Silo 上执行），也支持
+    /// 出站筛选器（在调用方 Grain/客户端上执行）。筛选器可以按以下范围注册：
+    /// - 系统范围（所有 Grain）
+    /// - 按 Grain 类型
     /// 
-    /// 这些测试核查过滤执行令、环境传播、例外处理等。
-    /// 与各种 Orleans 特征如流和观察员融合。
+    /// 这些测试验证筛选器执行顺序、上下文传播、异常处理，
+    /// 以及与流、观察者等 Orleans 功能的集成。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -87,7 +87,7 @@ namespace UnitTests.General
                 {
                     hostBuilder
                         .AddGrainExtension<IMyGrainExtension, MyGrainExtension>()
-                        // 全系统进入过滤器 - 全部执行 grain 要求这样做 silo
+                        // 系统范围入站筛选器：为此 Silo 上的所有 Grain 调用执行
                         .AddIncomingGrainCallFilter(context =>
                         {
                             Assert.NotNull(context);
@@ -100,24 +100,24 @@ namespace UnitTests.General
                             Assert.False(context.TargetId.IsDefault);
                             Assert.False(context.InterfaceType.IsDefault);
 
-                            // 测试1: 核查 RequestContext 通过过滤器的传播
-                            // 每个过滤器加一个数字来构建“ 1234”
+                            // 测试 1：验证 RequestContext 在筛选器间的传播
+                            // 每个筛选器添加一位数字，最终组成 "1234"
                             if (string.Equals(context.InterfaceMethod.Name, nameof(IGrainCallFilterTestGrain.GetRequestContext), StringComparison.Ordinal))
                             {
                                 if (RequestContext.Get(GrainCallFilterTestConstants.Key) != null) throw new InvalidOperationException();
                                 RequestContext.Set(GrainCallFilterTestConstants.Key, "1");
                             }
 
-                            // 测试2: 当过滤器不调用 context.Invoke() 时校验行为
-                            // 这样做应导致 InvalidOperationException 拨打电话者
+                            // 测试 2：验证筛选器不调用 context.Invoke() 时的行为
+                            // 这应该导致调用方收到 InvalidOperationException
                             if (string.Equals(context.InterfaceMethod.Name, nameof(IGrainCallFilterTestGrain.SystemWideCallFilterMarker), StringComparison.Ordinal))
                             {
-                                // 明确不继续呼叫
+                                // 显式停止继续调用 Invoke。
                                 return Task.CompletedTask;
                             }
 
-                            // 测试3:示范请求操作操纵 - 否定值
-                            // 此显示过滤器可以执行前修改方法参数
+                            // 测试 3：演示请求修改，将数值取反
+                            // 这说明筛选器可在执行方法之前修改方法参数
                             if (string.Equals(context.InterfaceMethod.Name, nameof(IMyGrainExtension.SetExtensionValue), StringComparison.Ordinal))
                             {
                                 context.Request.SetArgument(0, (int)context.Request.GetArgument(0)! * -1);
@@ -126,20 +126,20 @@ namespace UnitTests.General
                             return context.Invoke();
                         })
                         .AddIncomingGrainCallFilter<GrainCallFilterWithDependencies>()
-                        // 全系统外出过滤器 - 当此 silo 调用其它 grains时执行
+                        // 系统范围出站筛选器：在此 Silo 调用其他 Grain 时执行
                         .AddOutgoingGrainCallFilter(async ctx =>
                         {
-                            // 将字符串参数翻一番修改已发送 Echo 调用
+                            // 修改出站 Echo 调用，将字符串参数重复一遍
                             if (ctx.InterfaceMethod?.Name == "Echo")
                             {
-                                // 将输入内容集中到自己身上。
+                                // 将输入字符串与自身拼接。
                                 var orig = (string)ctx.Request.GetArgument(0)!;
                                 ctx.Request.SetArgument(0, orig + orig);
                             }
 
                             if (string.Equals(ctx.InterfaceMethod?.Name, nameof(IMethodInterceptionGrain.SystemWideCallFilterMarker), StringComparison.Ordinal))
                             {
-                                // 明确不继续呼叫
+                                // 显式停止继续调用 Invoke。
                                 return;
                             }
 
@@ -176,7 +176,7 @@ namespace UnitTests.General
 
                             if (string.Equals(context.InterfaceMethod.Name, nameof(IGrainCallFilterTestGrainObserver.SystemWideCallFilterMarker), StringComparison.Ordinal))
                             {
-                                // 明确不继续呼叫
+                                // 显式停止继续调用 Invoke。
                                 return Task.CompletedTask;
                             }
 
@@ -211,8 +211,8 @@ namespace UnitTests.General
                         })
                         .AddMemoryStreams<DefaultMemoryMessageBodySerializer>("MemoryStreamProvider");
 
-                    // 演示在离出过滤器中重新引用逻辑
-                    // 此过滤器重试修改参数, 无法调用
+                    // 演示出站筛选器中的重试逻辑
+                    // 此筛选器通过修改参数来重试失败的调用
                     static async Task RetryCertainCalls(IOutgoingGrainCallContext ctx)
                     {
                         var attemptsRemaining = 2;
@@ -226,7 +226,7 @@ namespace UnitTests.General
                             }
                             catch (ArgumentOutOfRangeException) when (attemptsRemaining > 1 && ctx.Grain is IOutgoingMethodInterceptionGrain)
                             {
-                                // 通过减少问题值重试
+                                // 将导致问题的值递减后重试
                                 if (string.Equals(ctx.InterfaceMethod?.Name, nameof(IOutgoingMethodInterceptionGrain.ThrowIfGreaterThanZero), StringComparison.Ordinal) && ctx.Request.GetArgument(0) is int value)
                                 {
                                     ctx.Request.SetArgument(0, value - 1);
@@ -241,9 +241,9 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 显示 grain 呼叫过滤器可使用依赖注射。
-        /// 此过滤器通过构建器注入接收 IGrainFactory ,
-        /// 显示过滤器是数据交换容器的全部参与者。
+        /// 演示 Grain 调用筛选器可以使用依赖注入。
+        /// 此筛选器通过构造函数注入接收 IGrainFactory，
+        /// 说明筛选器完全参与 DI 容器的工作。
         /// </summary>
         [SuppressMessage("ReSharper", "NotAccessedField.Local")]
         public class GrainCallFilterWithDependencies(IGrainFactory grainFactory) : IIncomingGrainCallFilter
@@ -251,7 +251,7 @@ namespace UnitTests.General
             public Task Invoke(IIncomingGrainCallContext context)
             {
                 Assert.NotNull(grainFactory);
-                // 继续构建 RequestContext 值: “ 1” - >“ 12”
+                // 继续构造 RequestContext 的值："1" -> "12"
                 if (string.Equals(context.ImplementationMethod?.Name, nameof(IGrainCallFilterTestGrain.GetRequestContext), StringComparison.Ordinal))
                 {
                     if (RequestContext.Get(GrainCallFilterTestConstants.Key) is string value)
@@ -272,12 +272,12 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 以请求/反应操作方式测试完整的离线过滤管道。
-        /// 证明:
-        /// 1. 客户外向过滤器将参数转换为大写:ab - > AB
-        /// 2. 谷物1外向过滤器将字符串翻倍:AB - > ABAB
-        /// 3. 谷物2进入过滤器逆向:ABAB - > BABA
-        /// 4. 返回途中拦截和修改反应
+        /// 测试具有请求/响应修改功能的完整出站筛选器管道。
+        /// 验证以下情况：
+        /// 1. 客户端出站筛选器将参数转换为大写：ab -> AB
+        /// 2. Grain1 出站筛选器将字符串重复一遍：AB -> ABAB
+        /// 3. Grain2 入站筛选器将其反转：ABAB -> BABA
+        /// 4. 响应在返回途中被拦截并修改
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Outgoing_Test()
@@ -285,38 +285,38 @@ namespace UnitTests.General
             var grain = this.fixture.GrainFactory.GetGrain<IOutgoingMethodInterceptionGrain>(Random.Shared.Next());
             var grain2 = this.fixture.GrainFactory.GetGrain<IMethodInterceptionGrain>(Random.Shared.Next());
 
-            // 此 grain 方法读取上下文并返回它
+            // 此 Grain 方法读取上下文并返回它。
             var result = await grain.EchoViaOtherGrain(grain2, "ab");
 
-            // 原始的股本应该是:
-            // 1. 离开客户时转换成大案: ab - > AB。
-            // 2. 出口粮食1:AB - > ABAB, 双倍。
-            // 3. 进入谷地的路上出现逆转:ABAB - > BABA。
+            // 原始参数应经过以下处理：
+            // 1. 从客户端发出时转换为大写：ab -> AB。
+            // 2. 从 grain1 发出时重复一遍：AB -> ABAB。
+            // 3. 进入 grain2 时反转：ABAB -> BABA。
             Assert.Equal("BABA", result["orig"] as string);
             Assert.NotNull(result["result"]);
             Assert.Equal("intercepted!", result["result"]);
         }
 
         /// <summary>
-        /// 验证多个已收件 grain 呼叫过滤器的执行命令。
-        /// RequestContext 的累计值应依以下顺序积累: “ 1” - > “ 12” - > “ 123” - > “ 1234”
-        /// 每一位数由管道中不同的过滤器添加。
+        /// 验证多个入站 Grain 调用筛选器的执行顺序。
+        /// RequestContext 应按顺序累积值："1" -> "12" -> "123" -> "1234"
+        /// 其中每位数字都由管道中的不同筛选器添加。
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Incoming_Order_Test()
         {
             var grain = this.fixture.GrainFactory.GetGrain<IGrainCallFilterTestGrain>(Random.Shared.Next());
 
-            // 此 grain 方法读取上下文并返回它
+            // 此 Grain 方法读取上下文并返回它。
             var context = await grain.GetRequestContext();
             Assert.NotNull(context);
             Assert.Equal("1234", context);
         }
 
         /// <summary>
-        /// 测试 grain 调用过滤器是否被适当用于流式情景。
-        /// 当一个 grain 接收流事件时, 输入的过滤器仍应执行,
-        /// 允许流事件操作或监测。
+        /// 测试流式处理场景中 Grain 调用筛选器能否正确执行。
+        /// 当 Grain 收到流事件时，入站筛选器仍应执行，
+        /// 使流事件可被修改或监控。
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Incoming_Stream_Test()
@@ -326,7 +326,7 @@ namespace UnitTests.General
             var stream = streamProvider.GetStream<int>("InterceptedStream", id);
             var grain = this.fixture.GrainFactory.GetGrain<IStreamInterceptionGrain>(id);
 
-            // 被截取的 grain 值应加倍于传递到流的值 。
+            // 被拦截的 Grain 应将传入流的值乘以二。
             const int testValue = 43;
             await stream.OnNextAsync(testValue);
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
@@ -341,9 +341,9 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 演示在输入过滤器中重新引用逻辑 。
-        /// 过滤器修改失败的参数值,以使调用成功。
-        /// 显示过滤器如何可以实施复原力模式。
+        /// 演示入站筛选器中的重试逻辑。
+        /// 筛选器修改导致调用失败的参数值，使调用成功。
+        /// 说明如何通过筛选器实现弹性模式。
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Incoming_Retry_Test()
@@ -357,7 +357,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试一个来电过滤器是否与 HashSet一起工作。
+        /// 测试传入调用筛选器与 HashSet 配合使用的行为。
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Incoming_HashSet_Test()
@@ -369,7 +369,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试一个即将退出的呼叫过滤器可以重新输入通话。
+        /// 测试出站调用筛选器能够重试调用。
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Outgoing_Retry_Test()
@@ -383,12 +383,12 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试 grain- 特定过滤器。
-        /// 这些过滤器只对特定类型 grain 执行,而不是全系统范围。
-        /// 演示:
-        /// - 采用习惯逻辑的方法拦截
-        /// - 选择性过滤(某些方法未拦截)
-        /// - 获得实施方法信息
+        /// 测试特定于 Grain 的筛选器。
+        /// 这些筛选器仅为特定 Grain 类型执行，而非系统范围执行。
+        /// 演示：
+        /// - 使用自定义逻辑拦截方法
+        /// - 选择性筛选（不拦截某些方法）
+        /// - 访问实现方法的元数据
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Incoming_GrainLevel_Test()
@@ -398,7 +398,7 @@ namespace UnitTests.General
             Assert.Equal("intercepted one with no args", result);
 
             result = await grain.Echo("stao erom tae");
-            Assert.Equal("eat more oats", result);// Grain 拦截器应接收执行的 MethodInfo ,而不是接口。
+            Assert.Equal("eat more oats", result);// Grain 拦截器应收到实现方法的 MethodInfo，而不是接口方法的 MethodInfo。
 
             result = await grain.NotIntercepted();
             Assert.Equal("not intercepted", result);
@@ -408,9 +408,9 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 证明 grain 调用过滤器在通用 grain 类型下正确工作。
-        /// 通用 grains 对基于反射的系统构成特殊挑战,
-        /// 这样,过滤器就能确保能够按照通用 grain 方法正确截取呼叫。
+        /// 验证 Grain 调用筛选器能够正确处理泛型 Grain 类型。
+        /// 泛型 Grain 给基于反射的系统带来了特殊挑战，
+        /// 因此此测试确保筛选器可以正确拦截泛型 Grain 方法的调用。
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Incoming_GenericGrain_Test()
@@ -425,7 +425,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试 grains 上安装多个相同通用界面的测试过滤器。
+        /// 测试实现同一泛型接口的多个构造类型的 Grain 上的筛选器。
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Incoming_ConstructedGenericInheritance_Test()
@@ -447,27 +447,27 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 演示 grain 调用过滤器中的例外处理。
-        /// 过滤器可以从 grain 方法中获取例外, 并 :
-        /// - 把它们变成不同的对策
-        /// - 日志和重试
-        /// - 转换为特定域的例外
-        /// 这一测试显示,将例外转化为成功响应。
+        /// 演示 Grain 调用筛选器中的异常处理。
+        /// 筛选器可以捕获 Grain 方法抛出的异常，并执行以下操作：
+        /// - 将异常转换为其他响应
+        /// - 记录日志并重新抛出
+        /// - 转换为特定领域的异常
+        /// 此测试演示将异常转换为成功响应。
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Incoming_ExceptionHandling_Test()
         {
             var grain = this.fixture.GrainFactory.GetGrain<IMethodInterceptionGrain>(Random.Shared.Next());
 
-            // 此 grain 方法投出, 但例外情况应该由过滤器之一处理并转换
-            // 进入特定信息。
+            // 此 Grain 方法会抛出异常，但其中一个筛选器应处理该异常并将其转换
+            // 为指定消息。
             var result = await grain.Throw();
             Assert.NotNull(result);
             Assert.Equal("EXCEPTION! Oi!", result);
         }
 
         /// <summary>
-        /// 测试 grain 调用过滤器可丢弃例外 。
+        /// 测试 Grain 调用筛选器能够抛出异常。
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Incoming_FilterThrows_Test()
@@ -480,24 +480,24 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试如果 grain 调用过滤器为 <see cref="Orleans.IGrainCallContext.Result"/>设置错误的结果类型,
-        /// 电话人被抛出例外。
+        /// 测试 Grain 调用筛选器为 <see cref="Orleans.IGrainCallContext.Result"/> 设置错误的结果类型时，
+        /// 调用方收到异常。
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Incoming_SetIncorrectResultType_Test()
         {
             var grain = this.fixture.GrainFactory.GetGrain<IMethodInterceptionGrain>(Random.Shared.Next());
 
-            // 此 grain 方法投出, 但例外情况应该由过滤器之一处理并转换
-            // 进入特定信息。
+            // 此 Grain 方法会抛出异常，但其中一个筛选器应处理该异常并将其转换
+            // 为指定消息。（译注：当前场景实际由筛选器设置错误类型的结果，并断言 InvalidCastException。）
             await Assert.ThrowsAsync<InvalidCastException>(() => grain.IncorrectResultType());
         }
 
         /// <summary>
-        /// 测试 grain 正确调用过滤器拦截呼叫到 grain 扩展。
-        /// Grain 扩展是在现有 grains中添加额外接口的一种方式。
-        /// 用于校验过滤器是否正确工作, 即使当方法被调用时
-        /// 通过扩展界面而不是主 grain 接口。
+        /// 测试 Grain 调用筛选器是否正确拦截对 Grain 扩展的调用。
+        /// Grain 扩展是一种为现有 Grain 添加附加接口的方式。
+        /// 此测试验证即使通过扩展接口而非主 Grain 接口调用方法，
+        /// 筛选器也能正确工作。
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_GrainExtension()
@@ -514,12 +514,12 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 当 grains 安装通用接口时,验证正确的方法分辨率。
-        /// 测试复杂的继承情景,其中:
-        /// - grain 实施多个通用界面
-        /// - 不同界面使用相同名称的方法
-        /// - 过滤器必须正确识别被称作哪个界面方法
-        /// 这对于需要应用特定接口逻辑的过滤器至关重要。
+        /// 验证 Grain 实现泛型接口时的方法解析正确性。
+        /// 测试以下复杂继承场景：
+        /// - Grain 实现多个泛型接口
+        /// - 不同接口中的方法具有相同名称
+        /// - 筛选器必须正确识别所调用的接口方法
+        /// 这对于需要应用特定接口逻辑的筛选器至关重要。
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Incoming_GenericInterface_ConcreteGrain_Test()
@@ -546,49 +546,49 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试如果 grain 调用过滤器不调用 <see cref="IGrainCallContext.Invoke"/>,
-        /// 电话人被抛出例外。
+        /// 测试 Grain 调用筛选器不调用 <see cref="IGrainCallContext.Invoke"/> 时，
+        /// 调用方收到异常。
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Incoming_SystemWideDoesNotCallContextInvoke_Test()
         {
             var grain = this.fixture.GrainFactory.GetGrain<IGrainCallFilterTestGrain>(Random.Shared.Next());
 
-            // 电话过滤器不能继续使用因伏克语链, 但错误状态应该被抛出为
-            // InvalidOperationException,不是 NullReferenceException。
+            // 调用筛选器未继续执行 Invoke 链，但错误状态应以
+            // InvalidOperationException 的形式抛出，而不是 NullReferenceException。
             await Assert.ThrowsAsync<InvalidOperationException>(() => grain.SystemWideCallFilterMarker());
         }
 
         /// <summary>
-        /// 测试如果 grain 调用过滤器不调用 <see cref="IGrainCallContext.Invoke"/>,
-        /// 电话人被抛出例外。
+        /// 测试 Grain 调用筛选器不调用 <see cref="IGrainCallContext.Invoke"/> 时，
+        /// 调用方收到异常。
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Incoming_GrainSpecificDoesNotCallContextInvoke_Test()
         {
             var grain = this.fixture.GrainFactory.GetGrain<IGrainCallFilterTestGrain>(Random.Shared.Next());
 
-            // 电话过滤器不能继续使用因伏克语链, 但错误状态应该被抛出为
-            // InvalidOperationException,不是 NullReferenceException。
+            // 调用筛选器未继续执行 Invoke 链，但错误状态应以
+            // InvalidOperationException 的形式抛出，而不是 NullReferenceException。
             await Assert.ThrowsAsync<InvalidOperationException>(() => grain.GrainSpecificCallFilterMarker());
         }
 
         /// <summary>
-        /// 测试如果即将退出 grain 的调用过滤器不调用 <see cref="IGrainCallContext.Invoke"/>,
-        /// 电话人被抛出例外。
+        /// 测试出站 Grain 调用筛选器不调用 <see cref="IGrainCallContext.Invoke"/> 时，
+        /// 调用方收到异常。
         /// </summary>
         [Fact]
         public async Task GrainCallFilter_Outgoing_SystemWideDoesNotCallContextInvoke_Test()
         {
             var grain = this.fixture.GrainFactory.GetGrain<IMethodInterceptionGrain>(Random.Shared.Next());
 
-            // 电话过滤器不能继续使用因伏克语链, 但错误状态应该被抛出为
-            // InvalidOperationException,不是 NullReferenceException。
+            // 调用筛选器未继续执行 Invoke 链，但错误状态应以
+            // InvalidOperationException 的形式抛出，而不是 NullReferenceException。
             await Assert.ThrowsAsync<InvalidOperationException>(() => grain.SystemWideCallFilterMarker());
         }
 
         /// <summary>
-        /// 确保以正确顺序在方法调用周围使用 grain 调用过滤器。
+        /// 确保 Grain 调用筛选器以正确顺序在方法调用前后执行。
         /// </summary>
         [Fact]
         public async Task Observer_GrainCallFilter_Incoming_Order_Test()
@@ -596,7 +596,7 @@ namespace UnitTests.General
             var observer = new GrainCallFilterTestGrainObserver();
             var grain = this.fixture.GrainFactory.CreateObjectReference<IGrainCallFilterTestGrainObserver>(observer);
 
-            // 此 grain 方法读取上下文并返回它
+            // 此 Grain 方法读取上下文并返回它。
             var context = await grain.GetRequestContext();
             Assert.NotNull(context);
             Assert.Equal("1234", context);
@@ -604,7 +604,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试一个输入的呼叫过滤器可以重新尝试调用到观察者。
+        /// 测试入站调用筛选器能够重试对观察者的调用。
         /// </summary>
         [Fact]
         public async Task Observer_GrainCallFilter_Incoming_Retry_Test()
@@ -620,7 +620,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试一个输入的呼叫过滤器对 HashSet观察者起作用。
+        /// 测试入站调用筛选器能够作用于使用 HashSet 的观察者。
         /// </summary>
         [Fact]
         public async Task Observer_GrainCallFilter_Incoming_HashSet_Test()
@@ -634,8 +634,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试如果 grain 调用过滤器不调用 <see cref="IGrainCallContext.Invoke"/>,
-        /// 电话人被抛出例外。
+        /// 测试 Grain 调用筛选器不调用 <see cref="IGrainCallContext.Invoke"/> 时，
+        /// 调用方收到异常。
         /// </summary>
         [Fact]
         public async Task Observer_GrainCallFilter_Incoming_SystemWideDoesNotCallContextInvoke_Test()
@@ -643,15 +643,15 @@ namespace UnitTests.General
             var observer = new GrainCallFilterTestGrainObserver();
             var grain = this.fixture.GrainFactory.CreateObjectReference<IGrainCallFilterTestGrainObserver>(observer);
 
-            // 电话过滤器不能继续使用因伏克语链, 但错误状态应该被抛出为
-            // InvalidOperationException,不是 NullReferenceException。
+            // 调用筛选器未继续执行 Invoke 链，但错误状态应以
+            // InvalidOperationException 的形式抛出，而不是 NullReferenceException。
             await Assert.ThrowsAsync<InvalidOperationException>(() => grain.SystemWideCallFilterMarker());
             GC.KeepAlive(observer);
         }
 
         /// <summary>
-        /// 测试如果 grain 调用过滤器不调用 <see cref="IGrainCallContext.Invoke"/>,
-        /// 电话人被抛出例外。
+        /// 测试 Grain 调用筛选器不调用 <see cref="IGrainCallContext.Invoke"/> 时，
+        /// 调用方收到异常。
         /// </summary>
         [Fact]
         public async Task Observer_GrainCallFilter_Incoming_GrainSpecificDoesNotCallContextInvoke_Test()
@@ -659,14 +659,14 @@ namespace UnitTests.General
             var observer = new GrainCallFilterTestGrainObserver();
             var grain = this.fixture.GrainFactory.CreateObjectReference<IGrainCallFilterTestGrainObserver>(observer);
 
-            // 电话过滤器不能继续使用因伏克语链, 但错误状态应该被抛出为
-            // InvalidOperationException,不是 NullReferenceException。
+            // 调用筛选器未继续执行 Invoke 链，但错误状态应以
+            // InvalidOperationException 的形式抛出，而不是 NullReferenceException。
             await Assert.ThrowsAsync<InvalidOperationException>(() => grain.GrainSpecificCallFilterMarker());
             GC.KeepAlive(observer);
         }
 
         /// <summary>
-        /// 仅在 grain 级别上测试过滤器。
+        /// 仅测试 Grain 级别的筛选器。
         /// </summary>
         [Fact]
         public async Task Observer_GrainCallFilter_Incoming_GrainLevel_Test()
@@ -677,7 +677,7 @@ namespace UnitTests.General
             Assert.Equal("intercepted one with no args", result);
 
             result = await grain.Echo("stao erom tae");
-            Assert.Equal("eat more oats", result);// Grain 拦截器应接收执行的 MethodInfo ,而不是接口。
+            Assert.Equal("eat more oats", result);// Grain 拦截器应收到实现方法的 MethodInfo，而不是接口方法的 MethodInfo。
 
             result = await grain.NotIntercepted();
             Assert.Equal("not intercepted", result);
@@ -688,7 +688,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 在通用 grains上测试过滤器。
+        /// 测试泛型 Grain 上的筛选器。
         /// </summary>
         [Fact]
         public async Task Observer_GrainCallFilter_Incoming_GenericGrain_Test()
@@ -705,7 +705,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试 grains 上安装多个相同通用界面的测试过滤器。
+        /// 测试实现同一泛型接口的多个构造类型的 Grain 上的筛选器。
         /// </summary>
         [Fact]
         public async Task Observer_GrainCallFilter_Incoming_ConstructedGenericInheritance_Test()
@@ -729,7 +729,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试 grain 调用过滤器可处理例外。
+        /// 测试 Grain 调用筛选器能够处理异常。
         /// </summary>
         [Fact]
         public async Task Observer_GrainCallFilter_Incoming_ExceptionHandling_Test()
@@ -737,8 +737,8 @@ namespace UnitTests.General
             var observer = new MethodInterceptionGrainObserver();
             var grain = this.fixture.GrainFactory.CreateObjectReference<IMethodInterceptionGrainObserver>(observer);
 
-            // 此 grain 方法投出, 但例外情况应该由过滤器之一处理并转换
-            // 进入特定信息。
+            // 此 Grain 方法会抛出异常，但其中一个筛选器应处理该异常并将其转换
+            // 为指定消息。
             var result = await grain.Throw();
             Assert.NotNull(result);
             Assert.Equal("EXCEPTION! Oi!", result);
@@ -746,7 +746,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试 grain 调用过滤器可丢弃例外 。
+        /// 测试 Grain 调用筛选器能够抛出异常。
         /// </summary>
         [Fact]
         public async Task Observer_GrainCallFilter_Incoming_FilterThrows_Test()
@@ -761,8 +761,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试如果 grain 调用过滤器为 <see cref="Orleans.IGrainCallContext.Result"/>设置错误的结果类型,
-        /// 电话人被抛出例外。
+        /// 测试 Grain 调用筛选器为 <see cref="Orleans.IGrainCallContext.Result"/> 设置错误的结果类型时，
+        /// 调用方收到异常。
         /// </summary>
         [Fact]
         public async Task Observer_GrainCallFilter_Incoming_SetIncorrectResultType_Test()
@@ -770,8 +770,8 @@ namespace UnitTests.General
             var observer = new MethodInterceptionGrainObserver();
             var grain = this.fixture.GrainFactory.CreateObjectReference<IMethodInterceptionGrainObserver>(observer);
 
-            // 此 grain 方法投出, 但例外情况应该由过滤器之一处理并转换
-            // 进入特定信息。
+            // 此 Grain 方法会抛出异常，但其中一个筛选器应处理该异常并将其转换
+            // 为指定消息。（译注：当前场景实际由筛选器设置错误类型的结果，并断言 InvalidCastException。）
             await Assert.ThrowsAsync<InvalidCastException>(() => grain.IncorrectResultType());
             GC.KeepAlive(observer);
         }

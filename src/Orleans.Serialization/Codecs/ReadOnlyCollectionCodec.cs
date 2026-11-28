@@ -7,22 +7,22 @@ using System.Collections.ObjectModel;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="ReadOnlyCollectionCodec{T}"/>所使用的代金矿类型。
+    /// <see cref="ReadOnlyCollectionCodec{T}"/> 所使用的代理类型。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [GenerateSerializer]
     public struct ReadOnlyCollectionSurrogate<T>
     {
         /// <summary>
-        /// 获取或设置值。
+        /// 获取或设置值集合。
         /// </summary>
-        /// <value>价值。</value>
+        /// <value>值集合。</value>
         [Id(0)]
         public List<T> Values;
     }
 
     /// <summary>
-    /// <see cref="ReadOnlyCollection{T}"/>的序列器。
+    /// <see cref="ReadOnlyCollection{T}"/> 的序列化器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
@@ -31,7 +31,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ReadOnlyCollectionCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">代孕序列器</param>
+        /// <param name="surrogateSerializer">代理类型序列化器。</param>
         public ReadOnlyCollectionCodec(IValueSerializer<ReadOnlyCollectionSurrogate<T>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -44,7 +44,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ReadOnlyCollection{T}"/>的复印机。
+    /// <see cref="ReadOnlyCollection{T}"/> 的复制器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
@@ -56,7 +56,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ReadOnlyCollectionCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="elementCopier">元素复印机。</param>
+        /// <param name="elementCopier">元素复制器。</param>
         public ReadOnlyCollectionCopier(IDeepCopier<T> elementCopier)
         {
             _elementCopier = elementCopier;
@@ -79,8 +79,8 @@ namespace Orleans.Serialization.Codecs
                 return context.DeepCopy(input);
             }
 
-            // 如果输入收藏的任何值能够参与循环参考, 此处就有可能无限重复。
-            // 将这种案件退回浅本,从而减轻这一负担。
+            // 如果输入集合中有任何值能够参与循环引用，则此处可能发生无限递归。
+            // 在这种情况下返回浅拷贝，以缓解该问题。
             context.RecordCopy(input, input);
 
             var tempResult = new T[input.Count];

@@ -1,22 +1,22 @@
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 创建日记国家管理器,用于独立识别的期刊,而无需启动 grain 。
+/// 为独立于 Grain 激活实例标识的日志创建日志状态管理器。
 /// </summary>
 public interface IJournaledStateManagerFactory
 {
     /// <summary>
-    /// 为提供的日记 ID 创建独立日记国家管理器 。
+    /// 为指定日志 ID 创建独立的日志状态管理器。
     /// </summary>
-    /// <param name="journalId">日记id。</param>
-    /// <returns>记事的国家经理。</returns>
+    /// <param name="journalId">日志 ID。</param>
+    /// <returns>日志状态管理器。</returns>
     /// <remarks>
-    /// 呼叫者建造国家机器,并使用
-    /// 启动管理器前<see cref="IJournaledStateManager.RegisterStateMachine"/> 。
-    /// 国家机器依赖性及其寿命由打电话者提供。
-    /// 每位管理人员拥有其日记处理和资源。
-    /// 打电话者必须启动和不同步处置返回的经理人,包括
-    /// 启动时从 grain 内创建它。
+    /// 调用方构造状态机，并在初始化管理器之前使用
+    /// <see cref="IJournaledStateManager.RegisterStateMachine"/> 注册它们。
+    /// 状态机依赖项及其生命周期由调用方提供。
+    /// 每个管理器负责自身的日志处理及资源。
+    /// 调用方必须初始化并异步释放返回的管理器，包括
+    /// 在 Grain 激活实例内部创建管理器的情况。
     /// </remarks>
     IJournaledStateManager CreateStandalone(JournalId journalId);
 }

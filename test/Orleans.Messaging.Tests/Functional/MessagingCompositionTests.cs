@@ -19,7 +19,7 @@ namespace Orleans.Durable.Messaging.Tests.Functional;
 [TestProvider("None")]
 [TestArea("Messaging")]
 /// <summary>
-/// A grain 通过解决其收件箱和发件箱,使信息能够发送。 其日记本显示该收件箱和发件箱与 grain的其他国家恢复了通信。
+/// Grain 通过解析其收件箱和发件箱启用消息传递，其日志化状态与 Grain 的其他状态一起恢复。
 /// </summary>
 public class MessagingCompositionTests : MessagingBehaviorTestBase
 {
@@ -246,7 +246,7 @@ public class MessagingCompositionTests : MessagingBehaviorTestBase
         var inbox = observation.Context.ActivationServices.GetRequiredService<Inbox>();
         Assert.Same(inbox, observation.Context.GetComponent<IMessagingExtension>());
 
-        // 控制器 grains没有登记处理器,因此扩展报告应明确列出。
+        // 对照 Grain 未注册处理程序，因此扩展会显式报告这一情况。
         var result = await grain.AsReference<IMessagingExtension>().DeliverAsync(CreateEnvelope(grain), Cancellation);
         DeliveryResultAssert.IsCase<DeliveryResult.HandlerNotFound>(result);
         Assert.False(observation.Context.Deactivated.IsCompleted);
@@ -269,7 +269,7 @@ public class MessagingCompositionTests : MessagingBehaviorTestBase
             Assert.Same(services.GetRequiredKeyedService<PlacementStrategy>(placementKey), placement);
         }
 
-        // 信息泵拒绝已解决的放置, grain 则解决其收件箱。
+        // Grain 解析其收件箱时，消息泵拒绝已解析的放置策略。
         var exception = await Assert.ThrowsAnyAsync<Exception>(() => grain.PingAsync());
         Assert.Contains("one activation", exception.ToString(), StringComparison.Ordinal);
         Assert.Contains(grain.GetGrainId().Type.ToString(), exception.ToString(), StringComparison.Ordinal);

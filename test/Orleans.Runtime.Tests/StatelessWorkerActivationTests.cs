@@ -8,18 +8,18 @@ using Xunit;
 namespace UnitTests.General;
 
 /// <summary>
-/// 无国籍工人的 grain 激活和调整行为测试。
+/// 测试无状态工作者 Grain 的激活及扩缩容行为。
 /// 
-/// 无国籍工人 grains 是一种特殊类型的 grain ,其属性[StatelessWorker]:
-/// - 在同一 silo 上(不超过 MaxLocalWorkers 限值)可有多个引爆装置
-/// - 根据负载自动缩放
-/// - 别保持通话状态
-/// - 适合可平行进行CPU密集或I/O-受限制的运行
+/// 无状态工作者 Grain 是一种标记了 [StatelessWorker] 特性的特殊 Grain，它具有以下特点：
+/// - 在同一 Silo 上可具有多个激活实例（最多达到 MaxLocalWorkers 限制）
+/// - 根据负载自动扩缩容
+/// - 不在调用之间保持状态
+/// - 非常适合可并行化的 CPU 密集型或 I/O 受限操作
 /// 
-/// 这些测试核实:
-/// - 负载低时单一激活行为
-/// - 自动在同时装载下提升至 MaxLocalWorkers
-/// - 解除引爆装置时适当清理
+/// 这些测试验证：
+/// - 低负载时的单一激活行为
+/// - 并发负载下自动扩容至 MaxLocalWorkers
+/// - 激活实例停用时正确清理
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -38,7 +38,7 @@ public class StatelessWorkerActivationTests : IClassFixture<StatelessWorkerActiv
         {
             public void Configure(ISiloBuilder hostBuilder)
             {
-                // 用于跟踪激活计数的测试 grains 所用的共享国家服务
+                // 测试 Grain 用于跟踪激活数量的共享状态服务
                 hostBuilder.Services.AddSingleton<StatelessWorkerScalingGrainSharedState>();
             }
         }
@@ -52,10 +52,10 @@ public class StatelessWorkerActivationTests : IClassFixture<StatelessWorkerActiv
     }
 
     /// <summary>
-    /// 证明无国籍工人 grain 保持单一的激活
-    /// 当请求相继( 没有同时装入) 时进行请求 。
-    /// 这证明 Orleans 不会不必要地创造多个
-    /// 不需要时启动
+    /// 验证无状态工作者 Grain 在请求顺序执行（没有并发负载）时
+    /// 仅保留一个激活实例。
+    /// 这说明 Orleans 不会在不需要时
+    /// 创建多个激活实例。
     /// </summary>
     [Fact, TestCategory("BVT"), TestCategory("StatelessWorker")]
     public async Task SingleWorkerInvocationUnderLoad()
@@ -75,22 +75,22 @@ public class StatelessWorkerActivationTests : IClassFixture<StatelessWorkerActiv
     }
 
     /// <summary>
-    /// 测试在同时负荷下自动提升无国籍工人的活化。
+    /// 测试并发负载下无状态工作者激活实例的自动扩容。
     /// 
-    /// 进程:
-    /// 1. 以单一启动开始
-    /// 2. 创建同时提出的(使用Wait ())块要求
-    /// 3. Orleans 检测阻断的启动并创建新的
-    /// 4. 提升继续到 MaxLocalWorkers [本测试中4]
+    /// 流程：
+    /// 1. 从一个激活实例开始
+    /// 2. 创建会阻塞的并发请求（使用 Wait()）
+    /// 3. Orleans 检测到激活实例被阻塞并创建新的实例
+    /// 4. 持续扩容直至 MaxLocalWorkers（本测试为 4）
     /// 
-    /// 这表明 Orleans有能力自动规模化无国籍
-    /// 工人根据实际负荷,而不仅仅是要求计数。
+    /// 这说明 Orleans 可以根据实际负载（而非仅根据请求数量）
+    /// 自动扩容无状态工作者。
     /// </summary>
     [Fact, TestCategory("BVT"), TestCategory("StatelessWorker")]
     public async Task MultipleWorkerInvocationUnderLoad()
     {
-        const int MaxLocalWorkers = 4;  // 最大激活量 silo
-        var waiters = new List<Task>();  // 音轨阻断呼叫
+        const int MaxLocalWorkers = 4;  // 每个 Silo 的最大激活数量
+        var waiters = new List<Task>();  // 跟踪阻塞调用
         var worker = _fixture.GrainFactory.GetGrain<IStatelessWorkerScalingGrain>(1);
         var primary = Assert.IsType<InProcessSiloHandle>(_fixture.HostedCluster.Primary);
         var sharedState = primary.SiloHost.Services.GetRequiredService<StatelessWorkerScalingGrainSharedState>();
@@ -98,11 +98,11 @@ public class StatelessWorkerActivationTests : IClassFixture<StatelessWorkerActiv
 
         try
         {
-            // 最初,只有一个激活装置
+            // 最初仅存在一个激活实例
             var activationCount = await worker.GetActivationCount();
             Assert.Equal(1, activationCount);
 
-            // 第一次屏蔽呼叫触发了第二次启动
+            // 第一个阻塞调用触发创建第二个激活实例
             waiters.Add(worker.Wait());
             await Until(
                 () => Task.FromResult(1 == sharedState.WaitingActivations[grainId]),
@@ -152,13 +152,13 @@ public class StatelessWorkerActivationTests : IClassFixture<StatelessWorkerActiv
     }
 
     /// <summary>
-    /// 测试无国籍工人的激活是否从目录中适当清理
-    /// 当被禁用时。 这对以下各方面很重要:
+    /// 测试无状态工作者激活实例停用时，是否从目录（Catalog）中
+    /// 正确清理。这对于以下事项很重要：
     /// - 防止内存泄漏
-    /// - 确保准确的启动计数
-    /// - 核查 grain 目录,适当跟踪无国籍工人
+    /// - 确保激活计数准确
+    /// - 验证 Grain 目录是否正确跟踪无状态工作者
     /// 
-    /// 强制激活收集与核查清理的用途管理 grain 。
+    /// 使用管理 Grain 强制回收激活实例并验证清理结果。
     /// </summary>
     [Fact, TestCategory("BVT"), TestCategory("StatelessWorker")]
     public async Task CatalogCleanupOnDeactivation()
@@ -171,7 +171,7 @@ public class StatelessWorkerActivationTests : IClassFixture<StatelessWorkerActiv
             TestContext.Current.CancellationToken);
         Assert.Equal(0, numActivations);
 
-        // 以一个假电话激活 grain
+        // 使用空操作调用激活 Grain
         await workerGrain.DummyCall();
 
         numActivations = await mgmt.GetGrainActivationCount(
@@ -179,11 +179,11 @@ public class StatelessWorkerActivationTests : IClassFixture<StatelessWorkerActiv
             TestContext.Current.CancellationToken);
         Assert.Equal(1, numActivations);
 
-        // 强制即时启动集合,以触发解除功能
-        // TimeSpan.Zero 是指立即收集所有闲置激活
+        // 强制立即执行激活实例回收以触发停用
+        // TimeSpan.Zero 表示立即回收所有空闲激活实例
         await mgmt.ForceActivationCollection(TimeSpan.Zero, TestContext.Current.CancellationToken);
 
-        // 无国籍工人的启动计数 grain 应再次成为 0
+        // 无状态工作者 Grain 的激活计数应重新变为 0
         await Until(
             async () => await mgmt.GetGrainActivationCount(
                 (GrainReference)workerGrain,
@@ -194,8 +194,8 @@ public class StatelessWorkerActivationTests : IClassFixture<StatelessWorkerActiv
     }
 
     /// <summary>
-    /// 帮助器方法, 等待一个同步状态变成真实 。
-    /// 用于处理引爆装置的产生/销毁方面最终的一致性。
+    /// 等待异步条件变为 true 的辅助方法。
+    /// 用于处理激活实例创建及销毁过程中的最终一致性。
     /// </summary>
     private static async Task Until(Func<Task<bool>> condition, string description, int maxTimeout = 40_000)
     {

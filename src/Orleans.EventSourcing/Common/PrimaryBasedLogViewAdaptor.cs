@@ -14,23 +14,23 @@ namespace Orleans.EventSourcing.Common
     }
 
     /// <summary>
-    /// 用于构建基于
-    /// a 依次读写初级初级读写。我们用此来构建 
-    /// 各种不同的对日一致提供商,都遵循相同的基本模式 
-    /// (从主读写到主读和写最新视图,并在书面后发出通知)。
+    /// 用于构建日志视图适配器的通用模板，这类适配器基于
+    /// 顺序读写的主存储。我们使用此模板构建
+    /// 多种日志一致性提供程序，它们均遵循同一基本模式：
+    /// 从主存储读取最新视图或向其写入最新视图，并在写入后发送通知。
     ///<para>
-    /// 请注意日志本身是短暂的, i.e.没有实际保存到存储中 - 只有最新的视图和一些 
-    /// 元数据(日志位置和写标记)存储在主数据中。 
-    /// 安全地将断开呼叫转到此调整器( 当然, 仅使用 grain 调度器) 。
+    /// 注意，日志本身是临时的，即实际不保存到存储中；主存储只保存最新视图和部分
+    /// 元数据（日志位置及写入标志）。
+    /// 可以安全地交错调用此适配器（当然，仅限使用 Grain 调度器）。
     /// </para>
     ///<para>
-    /// 子类取代 ReadAsync 和 WriteAsync 从/ 写入主字母读取 。
-    /// 电话号码是序列号, i.e.永不中断。
+    /// 子类重写 ReadAsync 和 WriteAsync，以读取或写入主存储。
+    /// 对主存储的调用按顺序执行，绝不会交错执行。
     /// </para>
     /// </summary>
-    /// <typeparam name="TLogView">对日志</typeparam>的自定义视图
-    /// <typeparam name="TLogEntry">日志条目类型</typeparam>
-    /// <typeparam name="TSubmissionEntry">储存在待决队列中的提交条目类型</typeparam>
+    /// <typeparam name="TLogView">用户定义的日志视图。</typeparam>
+    /// <typeparam name="TLogEntry">日志条目的类型。</typeparam>
+    /// <typeparam name="TSubmissionEntry">待处理队列中存放的提交条目的类型。</typeparam>
     public abstract class PrimaryBasedLogViewAdaptor<TLogView, TLogEntry, TSubmissionEntry> :
         ILogViewAdaptor<TLogView, TLogEntry>,
         ICancellationAwareLogViewAdaptor,
@@ -40,51 +40,51 @@ namespace Orleans.EventSourcing.Common
         where TSubmissionEntry : SubmissionEntry<TLogEntry>
     {
         /// <summary>
-        /// 设定已确认的视图初始值( 空日志的视图)
+        /// 将已确认视图设为初始值（空日志的视图）。
         /// </summary>
         protected abstract void InitializeConfirmedView(TLogView initialstate);
 
         /// <summary>
-        /// 读取隐藏全球状态 。
+        /// 读取缓存的全局状态。
         /// </summary>
         protected abstract TLogView LastConfirmedView();
 
         /// <summary>
-        /// 读取全球缓存状态版本 。
+        /// 读取缓存的全局状态的版本。
         /// </summary>
         protected abstract int GetConfirmedVersion();
 
         /// <summary>
-        /// 读取最新的初级状态。 必须屏蔽/ 回写直到成功 。
-        /// 绝不要加以例外,但你们应当记录在册上。 <see cref="LastPrimaryIssue"/>
+        /// 读取主存储中的最新状态。必须等待或重试，直到成功。
+        /// 不应抛出异常，而应将异常记录到 <see cref="LastPrimaryIssue"/> 中。
         /// </summary>
         /// <returns></returns>
         protected abstract Task ReadAsync();
 
         /// <summary>
-        /// 应用未完成的条目到主机。 必须块/ 回写直到成功 。 
-        /// 绝不要加以例外,但你们应当记录在册上。 <see cref="LastPrimaryIssue"/>
+        /// 将待处理条目应用到主存储。必须等待或重试，直到成功。
+        /// 不应抛出异常，而应将异常记录到 <see cref="LastPrimaryIssue"/> 中。
         /// </summary>
         protected abstract Task<int> WriteAsync();
 
         /// <summary>
-        /// 为提交的日志条目创建提交条目 。 
-        /// 使用类型参数, 这样我们就可以添加协议特定信息到此类 。
+        /// 为提交的日志条目创建一个提交条目。
+        /// 使用类型参数，以便向此类添加特定于协议的信息。
         /// </summary>
         /// <returns></returns>
         protected abstract TSubmissionEntry MakeSubmissionEntry(TLogEntry entry);
 
         /// <summary>
-        /// 此集是否支持提交更新
+        /// 此集群是否支持提交更新。
         /// </summary>
         protected virtual bool SupportSubmissions { get { return true; } }
 
         /// <summary>
-        /// 处理协议信息 。
+        /// 处理协议消息。
         /// </summary>
         protected virtual Task<ILogConsistencyProtocolMessage> OnMessageReceived(ILogConsistencyProtocolMessage payload)
         {
-            // 定义自定义协议消息的子类必须覆盖此子类
+            // 定义自定义协议消息的子类必须重写此方法。
             throw new NotImplementedException();
         }
 
@@ -95,7 +95,7 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <summary>
-        /// 完全清除持续日志流 。
+        /// 彻底清除已持久化的日志流。
         /// </summary>
         protected virtual Task ClearPrimaryLogAsync(CancellationToken cancellationToken)
         {
@@ -123,7 +123,7 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <summary>
-        /// 处理通知信息。 覆盖此选项可处理通知子类型 。
+        /// 处理通知消息。重写此方法以处理通知消息的子类型。
         /// </summary>
         protected virtual void OnNotificationReceived(INotificationMessage payload)
         {
@@ -143,17 +143,17 @@ namespace Orleans.EventSourcing.Common
                 return;
             }
 
-            // 子类应该已经在覆盖中处理此操作
+            // 子类应已在重写方法中处理此消息。
             throw new ProtocolTransportException(string.Format("message type {0} not handled by OnNotificationReceived", payload.GetType().FullName));
         }
 
         /// <summary>
-        /// 我们已获悉,我们最后的版本是
+        /// 已收到通知的最新版本号。
         /// </summary>
         private int lastVersionNotified;
 
         /// <summary>
-        /// 工人周期内储存的工艺通知处理程序,处理通知子类型。
+        /// 在工作循环中处理已保存的通知。重写此方法以处理通知消息的子类型。
         /// </summary>
         protected virtual void ProcessNotifications()
         {
@@ -165,7 +165,7 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <summary>
-        /// 合并两个通知信息,用于批量。覆盖处理通知子类型。
+        /// 合并两条通知消息以进行批处理。重写此方法以处理通知消息的子类型。
         /// </summary>
         protected virtual INotificationMessage Merge(INotificationMessage earliermessage, INotificationMessage latermessage)
         {
@@ -176,17 +176,17 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <summary>
-        /// 使用此适配器的 grain 。
+        /// 使用此适配器的 Grain。
         /// </summary>
         protected ILogViewAdaptorHost<TLogView, TLogEntry> Host { get; private set; }
 
         /// <summary>
-        /// 在不同的组别中执行 grain 通知之间时间服务。
+        /// 实现在不同集群的 Grain 实例之间发送通知所需的运行时服务。
         /// </summary>
         protected ILogConsistencyProtocolServices Services { get; private set; }
 
         /// <summary>
-        /// 构造给定参数的示例。
+        /// 根据给定参数构造实例。
         /// </summary>
         protected PrimaryBasedLogViewAdaptor(
             ILogViewAdaptorHost<TLogView, TLogEntry> host,
@@ -207,7 +207,7 @@ namespace Orleans.EventSourcing.Common
                 return;
             }
 
-            // JournaledGrain 在调整器建造后调用此功能;基础业务初始化了首次使用的直接开工道路。
+            // JournaledGrain 在构造适配器后调用此方法；基类操作会在首次使用时初始化直接构造的路径。
             InitializeConfirmedView(InitialState);
             confirmedViewInitialized = true;
         }
@@ -233,8 +233,8 @@ namespace Orleans.EventSourcing.Common
 
             Services.Log(LogLevel.Trace, "PreActivation Started");
 
-            // 表示我们还没有从存储中做起初始负荷
-            // 我们还没有对此采取行动,但等到用户完成后再行动 OnActivate 已经跑了。 
+            // 此标志表示尚未从存储中执行初始加载。
+            // 现在不处理此标志，而是等用户的 OnActivate 执行完毕后再处理。
             needInitialRead = true;
 
             Services.Log(LogLevel.Trace, "PreActivation Complete");
@@ -247,7 +247,7 @@ namespace Orleans.EventSourcing.Common
         {
             Services.Log(LogLevel.Trace, "PostActivation Started");
 
-            // 启动工人, 如果尚未发生的话
+            // 如果尚未启动工作程序，则启动它。
             if (needInitialRead)
                 worker.Notify();
 
@@ -277,74 +277,74 @@ namespace Orleans.EventSourcing.Common
         }
 
 
-        // 未经证实的条目。 
+        // 当前已提交但尚未确认的条目。
         private readonly List<TSubmissionEntry> pending = new List<TSubmissionEntry>();
 
 
-        /// 调用当前临时状态的 WriteAsync
+        /// 在 WriteAsync 开始时调用，以获取当前暂定状态。
         protected TLogView CopyTentativeState()
         {
             var state = TentativeView;
-            tentativeStateInternal = null; // 以避免别名
+            tentativeStateInternal = null; // 避免引用别名共享。
             return state;
         }
-        /// 调用当前批次更新的 WriteAsync 开始时
+        /// 在 WriteAsync 开始时调用，以获取当前批次的更新。
         protected TSubmissionEntry[] GetCurrentBatchOfUpdates()
         {
-            return pending.ToArray(); // 必须使用复制件
+            return pending.ToArray(); // 必须使用副本。
         }
-        /// 调用 WriteAsync 开始时,以获取当前待更新的数
+        /// 在 WriteAsync 开始时调用，以获取当前待处理更新的数量。
         protected int GetNumberPendingUpdates()
         {
             return pending.Count;
         }
 
         /// <summary>
-        ///  暂定状态:代表稳定国家+待更新的影响。
-        ///  低酸(未使用时不得使用)
+        /// 暂定状态：表示稳定状态与待处理更新产生的效果之和。
+        /// 延迟计算（未使用时为 null）。
         /// </summary>
         private TLogView? tentativeStateInternal;
 
         /// <summary>
-        /// 国旗向工人表明客户想更新国家
+        /// 此标志通知工作程序客户端希望刷新状态。
         /// </summary>
         private bool needRefresh;
 
         /// <summary>
-        /// 旗帜表明我们还没有读过全球国家,应该阅读
+        /// 此标志表示尚未读取过全局状态，因此应执行读取。
         /// </summary>
         private bool needInitialRead;
 
         /// <summary>
-        /// 工人提出有待处理的澄清申请。
+        /// 等待工作程序处理的清除日志请求。
         /// </summary>
         private TaskCompletionSource<bool>? clearLogRequest;
         private CancellationToken clearLogCancellationToken;
 
         /// <summary>
-        /// 向领导者不同步发送行动的背景工作者
+        /// 异步向领导者发送操作的后台工作程序。
         /// </summary>
         private readonly BatchWorker worker;
 
         private bool confirmedViewInitialized;
 
         /// <summary>
-        /// 初始化时使用的初始状态的缓存版本。 并用于重设 。
+        /// 初始状态的缓存版本，用于初始化和重置。
         /// </summary>
         protected TLogView InitialState { init; get => Services.DeepCopy(field); }
 
-        /// 统计正在收集。 除非启用数据库收藏, 否则无效 。
+        /// 统计数据收集。未启用统计数据收集时为 null。
         protected LogConsistencyStatistics? stats = null;
 
 
-        /// 用于协议。 确定该组是否是配置的多组集的一部分 。
+        /// 供协议使用。判断此集群是否属于已配置的多集群环境。
         protected bool IsMyClusterJoined()
         {
             return true;
         }
 
         /// <summary>
-        /// 块块, 直到此组被加入多组群 。
+        /// 等待此集群加入多集群环境。
         /// </summary>
         protected async Task EnsureClusterJoinedAsync()
         {
@@ -373,7 +373,7 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="logEntries"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="logEntries"/> 为 <see langword="null"/>。</exception>
         public void SubmitRange(IEnumerable<TLogEntry> logEntries)
         {
             ArgumentNullException.ThrowIfNull(logEntries);
@@ -416,7 +416,7 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="logEntries"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="logEntries"/> 为 <see langword="null"/>。</exception>
         public Task<bool> TryAppendRange(IEnumerable<TLogEntry> logEntries)
         {
             ArgumentNullException.ThrowIfNull(logEntries);
@@ -453,16 +453,16 @@ namespace Orleans.EventSourcing.Common
 
         private void SubmitInternal(DateTime time, TLogEntry logentry, int conditionalPosition = unconditional, TaskCompletionSource<bool>? resultPromise = null)
         {
-            // 创建提交条目
+            // 创建提交条目。
             var submissionentry = this.MakeSubmissionEntry(logentry);
             submissionentry.SubmissionTime = time;
             submissionentry.ResultPromise = resultPromise;
             submissionentry.ConditionalPosition = conditionalPosition;
 
-            // 将提交文件添加到队列
+            // 将提交条目加入队列。
             pending.Add(submissionentry);
 
-            // 如果我们有一个暂定使用状态, 请更新
+            // 如果正在使用暂定状态，则更新它。
             if (this.tentativeStateInternal != null)
             {
                 try
@@ -525,7 +525,7 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <summary>
-        /// 网络呼叫
+        /// 由网络调用。
         /// </summary>
         /// <param name="payLoad"></param>
         /// <returns></returns>
@@ -541,20 +541,20 @@ namespace Orleans.EventSourcing.Common
 
                 OnNotificationReceived(notificationMessage);
 
-                // 工人,所以它会处理通知
+                // 唤醒工作程序，使其处理这些通知。
                 worker.Notify();
 
                 return null;
             }
             else
             {
-                //这是协议信息
+                // 这是协议消息。
                 return await OnMessageReceived(payLoad);
             }
         }
 
         /// <summary>
-        /// 方法为虚拟,所以子类可以添加自己的事件
+        /// 此方法为虚方法，以便子类添加自己的事件。
         /// </summary>
         public virtual void EnableStatsCollection()
         {
@@ -581,7 +581,7 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <summary>
-        /// 禁用统计收藏
+        /// 禁用统计数据收集。
         /// </summary>
         public void DisableStatsCollection()
         {
@@ -589,7 +589,7 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <summary>
-        /// 获取状态
+        /// 获取统计信息。（译注：原文写作 states；方法实际返回 LogConsistencyStatistics。）
         /// </summary>
         /// <returns></returns>
         public LogConsistencyStatistics? GetStats()
@@ -600,10 +600,10 @@ namespace Orleans.EventSourcing.Common
         [MemberNotNull(nameof(tentativeStateInternal))]
         private void CalculateTentativeState()
         {
-            // 确认视图的复制件
+            // 复制已确认视图。
             this.tentativeStateInternal = Services.DeepCopy(GetInitializedConfirmedView());
 
-            // 现在应用所有待处理操作 
+            // 现在应用待处理队列中的所有操作。
             foreach (var u in this.pending)
                 try
                 {
@@ -616,7 +616,7 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <summary>
-        /// 清除待处理的操作并重设暂定状态。
+        /// 清除待处理操作并重置暂定状态。
         /// </summary>
         internal void ResetTentativeState()
         {
@@ -670,8 +670,8 @@ namespace Orleans.EventSourcing.Common
 
 
         /// <summary>
-        /// 批量工人的表演从全球状态开始,并写成全球状态。
-        /// 在任何时候,只有一个工作周期在运行。
+        /// 批处理工作程序负责读写全局状态。
+        /// 任意时刻最多只有一个工作循环处于活动状态。
         /// </summary>
         internal async Task Work()
         {
@@ -699,7 +699,7 @@ namespace Orleans.EventSourcing.Common
             {
                 if (haveToRead)
                 {
-                    needRefresh = needInitialRead = false; // 正在获取新版本
+                    needRefresh = needInitialRead = false; // 正在获取最新版本。
 
                     await ReadAsync();
 
@@ -708,7 +708,7 @@ namespace Orleans.EventSourcing.Common
 
                 if (haveToWrite)
                 {
-                    needRefresh = needInitialRead = false; // 正在获取新版本
+                    needRefresh = needInitialRead = false; // 正在获取最新版本。
 
                     await UpdatePrimary();
 
@@ -718,8 +718,8 @@ namespace Orleans.EventSourcing.Common
             }
             catch (Exception e)
             {
-                // 绝不应该发生这种情况——我们本该抓和储存例外 
-                // 正确地点(LastPrimaryException 或通知跟踪器)
+                // 此情况不应发生：我们本应捕获异常并将其记录
+                // 在正确的位置（LastPrimaryException 或通知跟踪器）中。
                 Services.ProtocolError($"Exception in Worker Cycle: {e}", true);
 
             }
@@ -729,8 +729,8 @@ namespace Orleans.EventSourcing.Common
 
 
         /// <summary>
-        /// 此函数将待决队列中的操作作为批次存储到主队列中 。
-        /// 重试,直到某批货物投入或没有更新。
+        /// 此函数将待处理队列中的操作作为一个批次写入主存储。
+        /// 持续重试，直到某个批次提交成功或没有剩余更新。
         /// </summary>
         internal async Task UpdatePrimary()
         {
@@ -740,18 +740,18 @@ namespace Orleans.EventSourcing.Common
             {
                 try
                 {
-                    // 查找已过期的有条件更新条件, 删除它们并通知服务员
+                    // 查找已失效的条件更新，将它们移除并通知等待者。
                     RemoveStaleConditionalUpdates();
 
                     if (pending.Count == 0)
-                        return; // 没有要写入的更新 。
+                        return; // 没有要写入的更新。
 
-                    // 尝试将更新作为批数写入
+                    // 尝试将更新作为一个批次写入。
                     var writeResult = await WriteAsync();
 
                     NotifyViewChanges(ref version, writeResult);
 
-                    // 如果批次写成因冲突而失败, 请重试 。
+                    // 如果批量写入因冲突而失败，则重试。
                     if (writeResult == 0)
                         continue;
 
@@ -764,10 +764,10 @@ namespace Orleans.EventSourcing.Common
                         Services.CaughtUserCodeException("OnViewChanged", nameof(UpdatePrimary), e);
                     }
 
-                    // 有条件更新成功通知通知了等待承诺
+                    // 通知等待中的 Promise 条件更新已成功。
                     NotifyPromises(writeResult, true);
 
-                    // 统计稳定时间
+                    // 记录稳定所需的时间，用于统计。
                     if (stats != null)
                     {
                         var timeNow = DateTime.UtcNow;
@@ -778,15 +778,15 @@ namespace Orleans.EventSourcing.Common
                         }
                     }
 
-                    // 从队列中删除已完成的更新
+                    // 从队列中移除已完成的更新。
                     pending.RemoveRange(0, writeResult);
 
                     return;
                 }
                 catch (Exception e)
                 {
-                    // 绝不应该发生这种情况——我们本该抓和储存例外 
-                    // 正确地点(LastPrimaryException 或通知跟踪器)
+                    // 此情况不应发生：我们本应捕获异常并将其记录
+                    // 在正确的位置（LastPrimaryException 或通知跟踪器）中。
                     Services.ProtocolError($"Exception in {nameof(UpdatePrimary)}: {e}", true);
                 }
             }
@@ -800,7 +800,7 @@ namespace Orleans.EventSourcing.Common
             bool confirmedChanged = (v != version);
             if (tentativeChanged || confirmedChanged)
             {
-                tentativeStateInternal = null; // 保守的。
+                tentativeStateInternal = null; // 采用保守策略。
                 try
                 {
                     Host.OnViewChanged(tentativeChanged, confirmedChanged);
@@ -814,8 +814,8 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <summary>
-        /// 存储在读取或更新小学时发生的最后一个问题。
-        /// 无效,如果成功。
+        /// 保存读取或更新主存储时最近发生的问题。
+        /// 成功时为 null。
         /// </summary>
         protected RecordedConnectionIssue LastPrimaryIssue;
 
@@ -859,7 +859,7 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <summary>
-        /// 发送失败通知
+        /// 发送失败通知。（译注：此方法也发送成功通知，结果由 success 参数决定。）
         /// </summary>
         protected void NotifyPromises(int count, bool success)
         {
@@ -872,7 +872,7 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <summary>
-        /// 检查更新并删除所有已经失败的有条件更新
+        /// 遍历更新并移除所有已经失败的条件更新。
         /// </summary>
         protected void RemoveStaleConditionalUpdates()
         {
@@ -909,22 +909,22 @@ namespace Orleans.EventSourcing.Common
     }
 
     /// <summary>
-    /// 存档文件条目的基础类,存储在待处理队列中。 
+    /// 待处理队列中的提交条目的基类。
     /// </summary>
-    /// <typeparam name="TLogEntry">提交材料条目类型</typeparam>
+    /// <typeparam name="TLogEntry">此次提交的条目类型。</typeparam>
     public class SubmissionEntry<TLogEntry>
     {
-        /// <summary> 提交的日志条目 。 </summary>
+        /// <summary>所提交的日志条目。</summary>
         [MaybeNull]
         public TLogEntry Entry;
 
-        /// <summary> 提交文件的时间戳 。 </summary>
+        /// <summary>此次提交的时间戳。</summary>
         public DateTime SubmissionTime;
 
-        /// <summary> 对于有条件更新,一旦知道更新是否成功就解决承诺问题。</summary>
+        /// <summary>对于条件更新，这是一个在确定更新成功与否后完成的 Promise。</summary>
         public TaskCompletionSource<bool>? ResultPromise;
 
-        /// <summary> 对于有条件更新,应应用此更新的日志位置。 </summary>
+        /// <summary>对于条件更新，这是应当应用该更新的日志位置。</summary>
         public int ConditionalPosition;
     }
 

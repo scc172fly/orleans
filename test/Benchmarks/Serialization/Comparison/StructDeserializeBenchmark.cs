@@ -15,7 +15,7 @@ using Benchmarks.Serialization.Utilities;
 namespace Benchmarks.Serialization.Comparison;
 
 /// <summary>
-/// 将 Orleans 的消毒性能与其他流行的制动器类中转器作比较。
+/// 比较 Orleans 与其他常用序列化器对结构体类型的反序列化性能。
 /// </summary>
 [Trait("Category", "Benchmark")]
 [TestSuite("Benchmark")]
@@ -122,7 +122,7 @@ public class StructDeserializeBenchmark
         return SumResult(HyperionSerializer.Deserialize<IntStruct>(HyperionInput, HyperionSession));
     }
 
-    //[基准]
+    //[Benchmark]
     public int ZeroFormatter() => SumResult(ZeroFormatterSerializer.Deserialize<IntStruct>(ZeroFormatterInput));
 
     [Benchmark]

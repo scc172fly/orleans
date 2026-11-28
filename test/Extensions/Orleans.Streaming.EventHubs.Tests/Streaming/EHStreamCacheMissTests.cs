@@ -10,7 +10,7 @@ using Xunit;
 namespace ServiceBus.Tests.StreamingTests
 {
     /// <summary>
-    /// 测试 EventHub 使用自定义流过滤器和缓存驱逐来流缓存误差情形。
+    /// 测试使用自定义流筛选器及缓存逐出时 Event Hub 流的缓存未命中场景。
     /// </summary>
     [TestCategory("EventHub"), TestCategory("Streaming"), TestCategory("Functional"), TestCategory("StreamingCacheMiss")]
     [TestSuite("Functional")]

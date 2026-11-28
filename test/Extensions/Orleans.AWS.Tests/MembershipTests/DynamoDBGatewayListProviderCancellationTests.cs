@@ -82,7 +82,7 @@ public class DynamoDBGatewayListProviderCancellationTests
             Options.Create(new ClusterOptions { ClusterId = "cluster" }), Options.Create(new GatewayOptions()));
         if (client is not null)
         {
-            // 与现有的 DynamoDB 测试SDK注入接缝匹配;没有增加用于试验的生产量 API 。
+            // 沿用现有 DynamoDB 测试的 SDK 注入点；不为测试新增生产 API。
             var storage = new DynamoDBStorage(NullLogger<DynamoDBStorage>.Instance, "http://localhost");
             var field = typeof(DynamoDBStorage).GetField("_ddbClient", BindingFlags.Instance | BindingFlags.NonPublic)!;
             Assert.IsAssignableFrom<IDisposable>(field.GetValue(storage)).Dispose();

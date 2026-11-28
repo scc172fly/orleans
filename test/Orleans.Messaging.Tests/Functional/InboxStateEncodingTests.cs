@@ -62,7 +62,7 @@ public sealed class InboxStateEncodingTests : MessagingBehaviorTestBase
         var journal = JournalId.FromGrainId(receiver.GetGrainId());
         var writes = Fixture.Storage.GetSuccessfulWriteCount(journal);
 
-        // 失败的尝试没有进入命令, 所以下一个是回收阶段的收费。
+        // 失败的尝试不会暂存收件箱命令，因此下一条命令是恢复过程为其暂存的计次命令。
         var faulting = (FaultingInboxCodecFixture)Fixture;
         faulting.NextFailure = new IOException("Interrupted attempt command failed.");
         handler.Release();
@@ -72,8 +72,8 @@ public sealed class InboxStateEncodingTests : MessagingBehaviorTestBase
         await context.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
         Assert.Equal(writes, Fixture.Storage.GetSuccessfulWriteCount(journal));
 
-        // 启动程序,其电荷未能编码 无法启动, 后一个 指控试图和重播
-        // 已接受消息, 成功的消息 。
+        // 计次记录编码失败的激活实例无法启动，后续激活实例计入该次尝试，并重放
+        // 已接受的消息，此次处理成功。
         var completed = await Fixture.WaitForEffectCountAsync(receiver, 1);
         Assert.False(faulting.FailedSnapshot);
         Assert.Null(faulting.NextFailure);
@@ -106,7 +106,7 @@ public sealed class InboxStateEncodingTests : MessagingBehaviorTestBase
         Assert.Equal(writes, Fixture.Storage.GetSuccessfulWriteCount(journal));
         if (snapshot)
         {
-            // 笔记本在接受后被编码时失败,所以放弃激活。
+            // 接受操作应用之后，快照在写入编码阶段失败，因此丢弃激活实例。
             Assert.Same(failure, await grain.DeactivationFailure.Task.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken));
             await context.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
             Assert.Equal(1, grain.GetSnapshotForTest().InboxCount);
@@ -119,7 +119,7 @@ public sealed class InboxStateEncodingTests : MessagingBehaviorTestBase
         }
         else
         {
-            // 命令在应用前就编码,所以被拒绝的接受使得激活状态保持不变。
+            // 命令在应用之前编码，因此接受操作被拒绝时，激活实例状态保持不变。
             Assert.False(grain.DeactivationFailure.Task.IsCompleted);
             var current = await receiver.GetSnapshotAsync();
             Assert.Equal(before.ActivationId, current.ActivationId);

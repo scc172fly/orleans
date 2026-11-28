@@ -10,7 +10,7 @@ using Orleans.Configuration;
 namespace Orleans.Clustering.Redis
 {
     /// <summary>
-    /// Redis 组合的选项。
+    /// Redis 集群成员管理选项。
     /// </summary>
     public class RedisClusteringOptions
     {
@@ -21,31 +21,31 @@ namespace Orleans.Clustering.Redis
         public ConfigurationOptions? ConfigurationOptions { get; set; }
 
         /// <summary>
-        /// 该代表用来创建 Redis 连接多路驱动器,并表明该多路转换器是否共享。
+        /// 用于创建 Redis 连接多路复用器并指明其是否共享的委托。
         /// </summary>
         /// <remarks>
-        /// 当 <c>IsShared</c> 是 <see langword="true"/>时,供应商将不处置返回的多路驱动器。
+        /// 当 <c>IsShared</c> 为 <see langword="true"/> 时，提供程序不会释放返回的连接多路复用器。
         /// </remarks>
         public Func<RedisClusteringOptions, Task<(IConnectionMultiplexer Multiplexer, bool IsShared)>> CreateMultiplexer { get; set; } = DefaultCreateMultiplexer;
 
         /// <summary>
-        /// 该代表用来为 RedisMembershipTable创建复盘键。
+        /// 用于为 RedisMembershipTable 创建 Redis 键的委托。
         /// </summary>
         public Func<ClusterOptions, RedisKey> CreateRedisKey { get; set; } = DefaultCreateRedisKey;
 
         /// <summary>
-        /// 获取或设定该小组成员的散列,在初始化表格版本时刷新。
-        /// 默认值为 <see langword="null"/>。配置短时间环境的过期,例如测试。
-        /// 过期失效取消表格版本和每个成员;随后的成员为缺表报告。
+        /// 获取或设置集群成员资格哈希表的过期时间；初始化表版本时会刷新该过期时间。
+        /// 默认值为 <see langword="null"/>。对于测试等临时环境，可配置过期时间。
+        /// 过期会删除表版本及所有成员；此后读取成员资格时会报告表不存在。
         /// </summary>
         public TimeSpan? EntryExpiry { get; set; } = null;
 
         /// <summary>
-        /// 默认的多路驱动器创建代表 。
+        /// 默认连接多路复用器创建委托。
         /// </summary>
-        /// <param name="options">下 Redis 组合组合选项。</param>
-        /// <returns>任务包含创建的多路驱动器,并含有一个数值,表明是否共享。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="options"/> 是 <see langword="null"/>.</exception>
+        /// <param name="options">Redis 集群成员管理选项。</param>
+        /// <returns>包含已创建的连接多路复用器及其是否共享的标志的任务。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="options"/> 为 <see langword="null"/>。</exception>
         public static async Task<(IConnectionMultiplexer Multiplexer, bool IsShared)> DefaultCreateMultiplexer(RedisClusteringOptions options)
         {
             ArgumentNullException.ThrowIfNull(options);
@@ -53,11 +53,11 @@ namespace Orleans.Clustering.Redis
         }
 
         /// <summary>
-        /// 创建默认创建默认 Redis 键的密钥用 <see cref="RedisMembershipTable"/>.
+        /// 为 <see cref="RedisMembershipTable"/> 创建默认 Redis 键。
         /// </summary>
-        /// <param name="clusterOptions">集群识别选项。</param>
-        /// <returns>下 Redis 成员表格键。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="clusterOptions"/> 是 <see langword="null"/>.</exception>
+        /// <param name="clusterOptions">集群标识选项。</param>
+        /// <returns>Redis 成员表键。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="clusterOptions"/> 为 <see langword="null"/>。</exception>
         public static RedisKey DefaultCreateRedisKey(ClusterOptions clusterOptions)
         {
             ArgumentNullException.ThrowIfNull(clusterOptions);
@@ -71,7 +71,7 @@ namespace Orleans.Clustering.Redis
     }
 
     /// <summary>
-    /// <see cref="RedisClusteringOptions"/>的配置验证符 。
+    /// <see cref="RedisClusteringOptions"/> 的配置验证器。
     /// </summary>
     public class RedisClusteringOptionsValidator : IConfigurationValidator
     {
@@ -80,7 +80,7 @@ namespace Orleans.Clustering.Redis
         /// <summary>
         /// 初始化 <see cref="RedisClusteringOptionsValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="options">验证的选项。</param>
+        /// <param name="options">要验证的选项。</param>
         [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "Microsoft.Extensions.DependencyInjection supplies the resolved options instance.")]
         public RedisClusteringOptionsValidator(IOptions<RedisClusteringOptions> options)
         {

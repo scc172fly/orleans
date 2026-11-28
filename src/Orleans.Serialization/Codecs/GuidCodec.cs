@@ -9,7 +9,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="Guid"/>的序列器。
+    /// <see cref="Guid"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class GuidCodec : IFieldCodec<Guid>
@@ -25,12 +25,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Guid value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(writer.Session);
@@ -44,12 +44,12 @@ namespace Orleans.Serialization.Codecs
         Guid IFieldCodec<Guid>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static Guid ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
@@ -67,7 +67,7 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入原始的 GUID 内容。
+        /// 写入 GUID 的原始内容。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteRaw<TBufferWriter>(ref Writer<TBufferWriter> writer, Guid value) where TBufferWriter : IBufferWriter<byte>
@@ -96,7 +96,7 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 读取原始的 GUID 内容。
+        /// 读取 GUID 的原始内容。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Guid ReadRaw<TInput>(ref Reader<TInput> reader)

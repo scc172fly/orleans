@@ -14,19 +14,19 @@ using System.Threading.Tasks;
 namespace Orleans.Serialization.UnitTests
 {
     /// <summary>
-    /// 测试 Orleans版本在序列化中的耐受能力。
+    /// Orleans 序列化版本容错能力测试。
     /// 
-    /// 版本容度是 Orleans 的关键特征,允许:
-    /// - 在不破坏现有序列数据的情况下,将新字段添加到类型中
-    /// - 优雅地删除字段(已移除字段的旧数据仍可被解密)
-    /// - 改变类型等级,同时保持兼容性
-    /// - 将升级的系统在分布式系统中进行,不中断
+    /// 版本容错是 Orleans 的关键功能，支持：
+    /// - 为类型添加新字段，而不破坏现有序列化数据
+    /// - 平滑移除字段（仍可反序列化含有已移除字段的旧数据）
+    /// - 在保持兼容性的前提下修改类型层次结构
+    /// - 在分布式系统中进行无停机滚动升级
     /// 
-    /// Orleans 通过以下方式实现版本容忍度:
-    /// - 实地序列化(不依赖订单)
-    /// - 各种版本保持稳定的明确字段身份
-    /// - 在解除航空化期间优异地处理未知领域
-    /// - 支持计划演变模式
+    /// Orleans 通过以下方式实现版本容错：
+    /// - 基于字段的序列化（不依赖字段顺序）
+    /// - 在不同版本间保持稳定的显式字段 ID
+    /// - 反序列化时妥善处理未知字段
+    /// - 支持架构演进模式
     /// </summary>
     [Trait("Suite", "BVT")]
     [Trait("Provider", "None")]
@@ -54,7 +54,7 @@ namespace Orleans.Serialization.UnitTests
                         configuration.AddSerializer(typeof(ObjectWithNewFieldTypeSerializer));
                         configuration.AddSerializer(typeof(ObjectWithoutNewFieldTypeSerializer));
 
-                        // 有意删除这些类型的序列器。 在测试时将添加到此上面 。
+                        // 有意移除这些类型的生成式序列化器。测试期间将重新添加。
                         configuration.Serializers.RemoveWhere(s => typeof(IFieldCodec<ObjectWithNewField>).IsAssignableFrom(s));
                         configuration.Serializers.RemoveWhere(s => typeof(IFieldCodec<ObjectWithoutNewField>).IsAssignableFrom(s));
                     });
@@ -172,7 +172,7 @@ namespace Orleans.Serialization.UnitTests
             _log.WriteLine($"Expect: {expected}\nActual: {actual}");
 
             Assert.Equal(expected.BaseTypeString, actual.BaseTypeString);
-            Assert.Null(actual.AddedLaterString); // 消毒剂不是“意识到”这个领域,
+            Assert.Null(actual.AddedLaterString); // 反序列化器不“知晓”这个后来添加的字段，这体现了版本容错能力。
             Assert.Equal(expected.String, actual.String);
             Assert.Equal(expected.Int, actual.Int);
             if (assertRef)
@@ -239,8 +239,8 @@ namespace Orleans.Serialization.UnitTests
             var expected = new ObjectWithNewField("blah", newField: "this field will not be manually serialized -- the binary will not have it!");
             var pipe = new Pipe();
 
-            // 使用无视 ObjectWithNewField.NewField的手工序列器
-            // 不对 NewField 进行序列化,以模拟从对象上一个版本创建的二进制
+            // 使用忽略 ObjectWithNewField.NewField 的手写序列化器。
+            // 不序列化 NewField，以模拟由该对象的旧版本生成的二进制数据。
             var objectWithNewFieldSerializer = _codecProvider.GetCodec<ObjectWithNewField>();
             var objectWithoutNewFieldSerializer = _codecProvider.GetCodec<ObjectWithoutNewField>();
             _ = Assert.IsType<ConcreteTypeSerializer<ObjectWithNewField, ObjectWithNewFieldTypeSerializer>>(objectWithNewFieldSerializer);
@@ -275,7 +275,7 @@ namespace Orleans.Serialization.UnitTests
                 GetGeneratedSerializer(out objectWithNewFieldSerializer);
                 Assert.IsNotType<ConcreteTypeSerializer<ObjectWithNewField, ObjectWithNewFieldTypeSerializer>>(objectWithNewFieldSerializer);
 
-                // 使用能解除音量的生成降序器 NewField 
+                // 使用能够反序列化 NewField 的生成式反序列化器。
                 var value = objectWithNewFieldSerializer.ReadValue(ref reader, initialHeader)!;
                 return (value, reader.Position, reader.Session.ReferencedObjects.CurrentReferenceId);
             }
@@ -288,7 +288,7 @@ namespace Orleans.Serialization.UnitTests
             Assert.Equal(expected.Blah, actual.Blah);
             objectWithNewFieldSerializer = _codecProvider.GetCodec<ObjectWithNewField>();
             objectWithoutNewFieldSerializer = _codecProvider.GetCodec<ObjectWithoutNewField>();
-            Assert.Null(actual.NewField); // 努尔,因为它不应该在二进制
+            Assert.Null(actual.NewField); // null，因为二进制数据中不应包含该字段。
             Assert.Equal(expected.Version, actual.Version);
             Assert.Equal(writerPosition, readerPosition);
             Assert.Equal(writerCurrentReferenceId, readerCurrentReferenceId);
@@ -307,8 +307,8 @@ namespace Orleans.Serialization.UnitTests
 
             var objectWithNewFieldSerializer = _codecProvider.GetCodec<ObjectWithNewField>();
             var objectWithoutNewFieldSerializer = _codecProvider.GetCodec<ObjectWithoutNewField>();
-            // 使用一个手工连环播放器, 以撰写新字段
-            // 正在对一个新字段进行序列序列操作以模拟从对象新版本中创建的二进制
+            // 使用会写入新字段的手写序列化器。
+            // 序列化新字段，以模拟由该对象的新版本生成的二进制数据。
             _ = Assert.IsType<ConcreteTypeSerializer<ObjectWithoutNewField, ObjectWithoutNewFieldTypeSerializer>>(objectWithoutNewFieldSerializer);
 
             var (writerPosition, writerCurrentReferenceId) = WriteToPipe();
@@ -341,7 +341,7 @@ namespace Orleans.Serialization.UnitTests
                 GetGeneratedSerializer(out objectWithoutNewFieldSerializer);
                 Assert.IsNotType<ConcreteTypeSerializer<ObjectWithoutNewField, ObjectWithoutNewFieldTypeSerializer>>(objectWithoutNewFieldSerializer);
 
-                // 使用生成的降序器,它无法将序列化的新字段降序
+                // 使用无法反序列化该已序列化新字段的生成式反序列化器。
                 var value = objectWithoutNewFieldSerializer.ReadValue(ref reader, initialHeader)!;
                 return (value, reader.Position, reader.Session.ReferencedObjects.CurrentReferenceId);
             }
@@ -392,12 +392,12 @@ namespace Orleans.Serialization.UnitTests
         {
             public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, ObjectWithNewField obj) where TBufferWriter : IBufferWriter<byte>
             {
-                // 不对 newField 进行序列化,以模拟从对象上一个版本创建的二进制
+                // 不序列化 newField，以模拟由该对象的旧版本生成的二进制数据。
                 StringCodec.WriteField(ref writer, 0, obj.Blah);
                 Int32Codec.WriteField(ref writer, 2, obj.Version);
             }
 
-            // 使用生成的去气分解器进行下气化
+            // 使用生成式反序列化器进行反序列化。
             public void Deserialize<TInput>(ref Reader<TInput> reader, ObjectWithNewField obj)
             {
             }
@@ -426,18 +426,18 @@ namespace Orleans.Serialization.UnitTests
             {
                 StringCodec.WriteField(ref writer, 0, obj.Blah);
                 Int32Codec.WriteField(ref writer, 1, obj.Version);
-                // 正在对一个新字段进行序列序列操作以模拟从对象新版本创建的二进制
+                // 序列化新字段，以模拟由该对象的新版本生成的二进制数据。
                 ObjectCodec.WriteField(ref writer, 6, "I will be stuck in binary limbo! (I shouldn't be part of the deserialized object)");
             }
 
-            // 使用生成的去气分解器进行下气化
+            // 使用生成式反序列化器进行反序列化。
             public void Deserialize<TInput>(ref Reader<TInput> reader, ObjectWithoutNewField obj)
             {
             }
         }
 
         /// <summary>
-        /// 注:这种类型的序列器是手动转盘。 <see cref="BaseTypeSerializer" />
+        /// 注意：该类型的序列化器是手写的。请参阅 <see cref="BaseTypeSerializer" />。
         /// </summary>
         public class BaseType : IEquatable<BaseType>
         {
@@ -456,7 +456,7 @@ namespace Orleans.Serialization.UnitTests
         }
 
         /// <summary>
-        /// 注:这种类型的序列器是手动转盘。 <see cref="SubTypeSerializer" />
+        /// 注意：该类型的序列化器是手写的。请参阅 <see cref="SubTypeSerializer" />。
         /// </summary>
         public class SubType : BaseType, IEquatable<SubType>
         {
@@ -480,7 +480,7 @@ namespace Orleans.Serialization.UnitTests
                     base.Equals(other)
                     && string.Equals(String, other.String, StringComparison.Ordinal)
                     && Int == other.Int
-                    // 圆桌的平等投入保留了参考文献是否存在。
+                    // 经过序列化往返的相等性比较输入会保留 Ref 是否存在的信息。
                     && (ReferenceEquals(Ref, other.Ref) || Ref!.Equals(other.Ref));
             }
 
@@ -494,7 +494,7 @@ namespace Orleans.Serialization.UnitTests
 
             public override int GetHashCode()
             {
-                // 避免堆叠溢出与这个奇怪的把戏。
+                // 用这个有些特别的小技巧避免堆栈溢出。
                 if (ReferenceEquals(Ref, this))
                 {
                     return HashCode.Combine(base.GetHashCode(), String, Int);
@@ -522,16 +522,16 @@ namespace Orleans.Serialization.UnitTests
             public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, SubType obj) where TBufferWriter : IBufferWriter<byte>
             {
                 _baseTypeSerializer.Serialize(ref writer, obj);
-                writer.WriteEndBase(); // 基对象已完成。
+                writer.WriteEndBase(); // 基类对象的写入已完成。
 
-                // 尽管该编码码支持了遗留的不可更改签名,但该编码码仍然支持空有效载荷。
+                // 尽管编解码器的旧版签名为不可空类型，但它支持 null 负载。
                 _stringCodec.WriteField(ref writer, 0, typeof(string), obj.String!);
                 _intCodec.WriteField(ref writer, 1, typeof(int), obj.Int);
                 _objectCodec.WriteField(ref writer, 1, typeof(object), obj.Ref!);
                 _intCodec.WriteField(ref writer, 1, typeof(int), obj.Int);
                 _intCodec.WriteField(ref writer, 409, typeof(int), obj.Int);
-                /*writer.WriteFieldHeader(届会, 1025, 类型( 指南) ) Guid.Empty.GetType(), WireType.Fixed128);
-                writer.WriteFieldHeader(会议,1020,类型(目标),类型(方案), WireType.Reference);*/
+                /*writer.WriteFieldHeader(session, 1025, typeof(Guid), Guid.Empty.GetType(), WireType.Fixed128);
+                writer.WriteFieldHeader(session, 1020, typeof(object), typeof(Program), WireType.Reference);*/
             }
 
             public void Deserialize<TInput>(ref Reader<TInput> reader, SubType obj)
@@ -570,7 +570,7 @@ namespace Orleans.Serialization.UnitTests
         {
             public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, BaseType obj) where TBufferWriter : IBufferWriter<byte>
             {
-                // 尽管该编码码支持了遗留的不可更改签名,但该编码码仍然支持空有效载荷。
+                // 尽管编解码器的旧版签名为不可空类型，但它支持 null 负载。
                 StringCodec.WriteField(ref writer, 0, obj.BaseTypeString!);
                 StringCodec.WriteField(ref writer, 234, obj.AddedLaterString!);
             }

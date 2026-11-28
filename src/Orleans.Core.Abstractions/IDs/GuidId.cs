@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 基于 <see cref="Guid"/>的独特标识符。
+    /// 基于 <see cref="Guid"/> 的唯一标识符。
     /// </summary>
     [Serializable]
     [Immutable]
@@ -18,7 +18,7 @@ namespace Orleans.Runtime
         private static readonly Interner<Guid, GuidId> guidIdInternCache = new Interner<Guid, GuidId>(InternerConstants.SIZE_LARGE);
 
         /// <summary>
-        /// 基本 <see cref="Guid"/>。
+        /// 底层 <see cref="Guid"/>。
         /// </summary>
         [Id(0)]
         public readonly Guid Guid;
@@ -27,7 +27,7 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="GuidId"/> 类的新实例。
         /// </summary>
         /// <param name="guid">
-        /// 基本 <see cref="Guid"/>。
+        /// 底层 <see cref="Guid"/>。
         /// </param>
         private GuidId(Guid guid)
         {
@@ -35,29 +35,29 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 返回新随机生成的 <see cref="GuidId"/>。
+        /// 返回新的随机生成的 <see cref="GuidId"/>。
         /// </summary>
-        /// <returns>一个新的随机生成的 <see cref="GuidId"/>。</returns>
+        /// <returns>新的随机生成的 <see cref="GuidId"/>。</returns>
         public static GuidId GetNewGuidId()
         {
             return FindOrCreateGuidId(Guid.NewGuid());
         }
 
         /// <summary>
-        /// 回返a <see cref="GuidId"/> 与所提供的对应的事例 <see cref="Guid"/>.
+        /// 返回一个 <see cref="GuidId"/> 实例，其对应提供的 <see cref="Guid"/>。
         /// </summary>
-        /// <param name="guid">缩略语。</param>
-        /// <returns>A <see cref="GuidId"/> 实例,与所提供的 <see cref="Guid"/>相对应。</returns>
+        /// <param name="guid">GUID。</param>
+        /// <returns><see cref="GuidId"/> 实例，其对应提供的 <see cref="Guid"/>。</returns>
         public static GuidId GetGuidId(Guid guid)
         {
             return FindOrCreateGuidId(guid);
         }
 
         /// <summary>
-        /// 回返a <see cref="GuidId"/> 与所提供的对应的事例 <see cref="Guid"/>.
+        /// 返回一个 <see cref="GuidId"/> 实例，其对应提供的 <see cref="Guid"/>。
         /// </summary>
-        /// <param name="guid">下 <see cref="Guid"/>.</param>
-        /// <returns>A <see cref="GuidId"/> 实例,与所提供的 <see cref="Guid"/>相对应。</returns>
+        /// <param name="guid"><see cref="Guid"/>。</param>
+        /// <returns><see cref="GuidId"/> 实例，其对应提供的 <see cref="Guid"/>。</returns>
         private static GuidId FindOrCreateGuidId(Guid guid)
         {
             return guidIdInternCache.FindOrCreate(guid, g => new GuidId(g));
@@ -79,23 +79,23 @@ namespace Orleans.Runtime
         public override string ToString() => Guid.ToString();
 
         /// <summary>
-        /// 与所提供的平等目标相比较。
+        /// 比较提供的操作数是否相等。
         /// </summary>
-        /// <param name="left">左侧操作。</param>
-        /// <param name="right">右侧操作。</param>
-        /// <returns><see langword="true"/> 如果规定的数值相等,否则 <see langword="false"/>。</returns>
+        /// <param name="left">左操作数。</param>
+        /// <param name="right">右操作数。</param>
+        /// <returns>如果提供的值相等，则返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
         public static bool operator ==(GuidId? left, GuidId? right) => ReferenceEquals(left, right) || (left?.Equals(right) ?? false);
 
         /// <summary>
-        /// 比较所提供的不平等域。
+        /// 比较提供的操作数是否不相等。
         /// </summary>
-        /// <param name="left">左侧操作。</param>
-        /// <param name="right">右侧操作。</param>
-        /// <returns><see langword="true"/> 如果所提供的数值不相等,否则 <see langword="false"/>.</returns>
+        /// <param name="left">左操作数。</param>
+        /// <param name="right">右操作数。</param>
+        /// <returns>如果提供的值不相等，则返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
         public static bool operator !=(GuidId? left, GuidId? right) => !(left == right);
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="info"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="info"/> 为 <see langword="null"/>。</exception>
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             ArgumentNullException.ThrowIfNull(info);
@@ -104,13 +104,13 @@ namespace Orleans.Runtime
 
         private GuidId(SerializationInfo info, StreamingContext context)
         {
-            // ! 这是旧式的, 与无效引用类型不兼容 。
+            // ! 这是较旧的模式，与可空引用类型不兼容。
             Guid = (Guid)info.GetValue("Guid", typeof(Guid))!;
         }
     }
 
     /// <summary>
-    /// 换算功能 <see cref="GuidId"/> 与从这些天起 JSON 代表。
+    /// 提供 <see cref="GuidId"/> 实例与其 JSON 表示形式之间的转换功能。
     /// </summary>
     public sealed class GuidIdConverter : JsonConverter<GuidId>
     {
@@ -119,7 +119,7 @@ namespace Orleans.Runtime
             => ReadCore(ref reader);
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 为 <see langword="null"/>。</exception>
         public override void Write(Utf8JsonWriter writer, GuidId value, JsonSerializerOptions options)
         {
             ArgumentNullException.ThrowIfNull(writer);
@@ -158,7 +158,7 @@ namespace Orleans.Runtime
         }
 
         /// <inheritdoc />
-        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="writer"/> 或 <paramref name="value"/> 为 <see langword="null"/>。</exception>
         public override void WriteAsPropertyName(Utf8JsonWriter writer, [DisallowNull] GuidId value, JsonSerializerOptions options)
         {
             ArgumentNullException.ThrowIfNull(writer);

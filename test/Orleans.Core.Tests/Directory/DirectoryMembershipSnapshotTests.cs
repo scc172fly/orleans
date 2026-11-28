@@ -16,7 +16,7 @@ using Xunit;
 namespace NonSilo.Tests.Directory;
 
 /// <summary>
-/// 测试名录成员快照功能,包括范围所有权和环覆盖验证。
+/// 测试目录成员资格快照功能，包括范围所有权及环覆盖范围验证。
 /// </summary>
 [TestCategory("BVT")]
 [TestSuite("BVT")]
@@ -61,7 +61,7 @@ public sealed class DirectoryMembershipSnapshotTests
     [Fact]
     public void GetOwnerTest()
     {
-        // 只要该组至少有一名成员,我们就应该能找到拥有者。
+        // 只要集群中至少有一个成员，就应能够找到所有者。
         Gen.Select(GenDirectoryMembershipSnapshot, Gen.UInt)
             .Sample((snapshot, hash) => Assert.Equal(snapshot.Members.Length > 0, snapshot.TryGetOwner(hash, out var owner, out _)));
     }
@@ -69,7 +69,7 @@ public sealed class DirectoryMembershipSnapshotTests
     [Fact]
     public void MembersDoNotIntersectTest()
     {
-        // 成员幅度不应相互交叉。
+        // 成员范围不应相交。
         GenDirectoryMembershipSnapshot.Where(s => s.Members.Length > 0)
             .Sample(snapshot =>
             {
@@ -288,7 +288,7 @@ public sealed class DirectoryMembershipSnapshotTests
             {
                 if (Interlocked.Increment(ref boundaryCalls) > 1)
                 {
-                    // 绕过回归, 重新订阅同一无效快照 。
+                    // 限制因回归问题而重复订阅同一无效快照的行为。
                     timeout.Cancel();
                 }
 
@@ -407,7 +407,7 @@ public sealed class DirectoryMembershipSnapshotTests
 
             var firstDisposal = directoryMembership.DisposeAsync().AsTask();
             var secondDisposal = directoryMembership.DisposeAsync().AsTask();
-            // 观察取消而不登记回调: CancelAsync的不回拨路径不能泄漏此控点 。
+            // 在不注册回调的情况下观察取消：CancelAsync 的无回调路径不得泄漏此句柄。
             Assert.True(await Task.Run(() => waitHandle.WaitOne(TimeSpan.FromSeconds(10)), timeout.Token).WaitAsync(timeout.Token));
             Assert.True(subscriptionToken.IsCancellationRequested);
             Assert.Same(waitHandle, subscriptionToken.WaitHandle);
@@ -445,7 +445,7 @@ public sealed class DirectoryMembershipSnapshotTests
                 yield return new ClusterMembershipSnapshot(
                     ImmutableDictionary<SiloAddress, ClusterMember>.Empty, new MembershipVersion(1));
                 processing.SetResult();
-                // 无论是分阶段障碍登记册还是物主标志。
+                // 两个阶段屏障都不会向所有者令牌注册。
                 await releaseProcessing.Task;
             }
             finally
@@ -633,7 +633,7 @@ public sealed class DirectoryMembershipSnapshotTests
     [Fact]
     public void ViewCoversRingTest()
     {
-        // 所有成员范围的联盟应覆盖整个环。
+        // 所有成员范围的并集应覆盖整个环。
         GenDirectoryMembershipSnapshot.Where(s => s.Members.Length > 0)
             .Sample(snapshot =>
             {
@@ -666,7 +666,7 @@ public sealed class DirectoryMembershipSnapshotTests
     [Fact]
     public void MemberRangesCoverRingTest()
     {
-        // 所有成员范围的联盟应覆盖整个环。
+        // 所有成员范围的并集应覆盖整个环。
         GenDirectoryMembershipSnapshot.Where(s => s.Members.Length > 0)
             .Sample(snapshot =>
             {

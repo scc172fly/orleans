@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Orleans.Durable.Analyzers.Tests;
 
-/// <summary>测试清除规则及代码设置,该规则及代码设置在任务取消后通过已经传递的标记。</summary>
+/// <summary>测试任务取消之后，清理操作传入已取消令牌的诊断规则和代码修复。</summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 public class DurableTaskCleanupTests
 {

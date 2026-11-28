@@ -41,7 +41,7 @@ namespace Tester
     }
 
     /// <summary>
-    /// 网关连接处理测试,包括再连接行为和群集错配情景。
+    /// 测试网关连接处理，包括重连行为及集群不匹配场景。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -118,15 +118,15 @@ namespace Tester
         [Fact, TestCategory("Functional")]
         public async Task NoReconnectionToGatewayNotReturnedByManager()
         {
-            // 使用短于 OpenConnectionTimeout (5s)的超时时间,以便调用
-            // 假的网关产生 TimeoutException,但足够长
-            // 使用慢速的光机的正当 grain 通话不会虚假超时。
+            // 使用短于 OpenConnectionTimeout（5 秒）的超时，确保
+            // 调用模拟网关时产生 TimeoutException，但超时时间也要足够长，
+            // 以免速度较慢的 CI 机器上正常的 Grain 调用出现误判超时。
             this.runtimeClient.SetResponseTimeout(TimeSpan.FromSeconds(3));
 
             var connectionCount = 0;
             var timeoutCount = 0;
 
-            // 集束拥有的分层机将港口保留到固定装置使用寿命期间。
+            // 由集群所有的分配器在测试夹具的整个生命周期内保留该端口。
             var (_, gatewayPort) = this.HostedCluster.PortAllocator.AllocateConsecutivePortPairs(1);
             var endpoint = new IPEndPoint(IPAddress.Loopback, gatewayPort);
             var evt = new SocketAsyncEventArgs();
@@ -144,7 +144,7 @@ namespace Tester
                 socket.Listen(1);
                 socket.AcceptAsync(evt);
 
-                // 添加假的网关,等待客户更新其网关列表。
+                // 添加模拟网关，等待客户端刷新网关列表。
                 gatewayManager.Gateways.Add(endpoint.ToGatewayUri());
                 var gatewayAddress = endpoint.ToGatewayUri().ToGatewayAddress()!;
                 await TestingUtils.WaitUntilAsync(
@@ -152,7 +152,7 @@ namespace Tester
                     TimeSpan.FromSeconds(3),
                     TimeSpan.FromMilliseconds(20), TestContext.Current.CancellationToken);
 
-                // 打电话打很多电话
+                // 发起一批调用
                 for (var i = 0; i < 100; i++)
                 {
                     try
@@ -168,7 +168,7 @@ namespace Tester
                 socket.Close();
             }
 
-            // 检查我们只连接一次到假GW
+            // 检查仅连接过模拟网关一次
             Assert.Equal(1, connectionCount);
             Assert.True(timeoutCount >= 1, $"Expected at least 1 timeout but got {timeoutCount}");
         }
@@ -176,8 +176,8 @@ namespace Tester
         [Fact, TestCategory("Functional")]
         public async Task ConnectionFromDifferentClusterIsRejected()
         {
-            // 分布
-            var gateways = await this.HostedCluster.Client!.ServiceProvider.GetRequiredService<IGatewayListProvider>().GetGateways(); // 固定装置会部署客户
+            // 准备测试
+            var gateways = await this.HostedCluster.Client!.ServiceProvider.GetRequiredService<IGatewayListProvider>().GetGateways(); // 测试夹具部署客户端。
             var gwEndpoint = gateways.First().ToIPEndPoint()!;
             var exceptions = new List<Exception>();
 

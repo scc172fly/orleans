@@ -29,7 +29,7 @@ internal interface IStreamMessageQueries
 }
 
 /// <summary>
-/// 接收来自 ADO.NET 提供者单列的批量信件。
+/// 从 ADO.NET 提供程序的单个队列接收消息批次。
 /// </summary>
 internal partial class AdoNetQueueAdapterReceiver(string providerId, string queueId, AdoNetStreamOptions streamOptions, ClusterOptions clusterOptions, SimpleQueueCacheOptions cacheOptions, IStreamMessageQueries queries, AdoNetStreamPositions positions, Serializer<AdoNetBatchContainer> serializer, ILogger<AdoNetQueueAdapterReceiver> logger) : IQueueAdapterReceiver
 {
@@ -58,7 +58,7 @@ internal partial class AdoNetQueueAdapterReceiver(string providerId, string queu
     public Task Initialize(TimeSpan timeout) => Task.CompletedTask;
 
     /// <summary>
-    /// 关闭接收、排水管接受操作和发布待发信息。
+    /// 关闭操作准入，等待已接受的操作处理完毕，并释放待处理消息。
     /// </summary>
     public async Task Shutdown(TimeSpan timeout)
     {
@@ -115,7 +115,7 @@ internal partial class AdoNetQueueAdapterReceiver(string providerId, string queu
             return [];
         }
 
-        // 酌情计入上限
+        // 适当限制最大数量。
         maxCount = Math.Min(maxCount, cacheOptions.CacheSize);
 
         try
@@ -131,7 +131,7 @@ internal partial class AdoNetQueueAdapterReceiver(string providerId, string queu
                 streamOptions.EvictionInterval.TotalSecondsCeiling(),
                 streamOptions.EvictionBatchSize);
 
-            // 队列缓存需要序列顺序符号, 且会增加符号的读数, 所以表示符号是指定的位置而不是信件标识符
+            // 队列缓存要求序列令牌在多次读取之间递增，因此为令牌分配位置而不是消息标识符。
             var dequeued = new List<(AdoNetStreamMessage Message, long Position)>(messages.Count);
             lock (_lock)
             {
@@ -149,7 +149,7 @@ internal partial class AdoNetQueueAdapterReceiver(string providerId, string queu
                 }
             }
 
-            // 将信息转换成标准批量容器
+            // 将消息转换为标准批次容器。
             return dequeued.Select(x => AdoNetBatchContainer.FromMessage(serializer, x.Message, x.Position)).Cast<IBatchContainer>().ToList();
         }
         catch (Exception ex)
@@ -162,7 +162,7 @@ internal partial class AdoNetQueueAdapterReceiver(string providerId, string queu
     /// <inheritdoc />
     public async Task MessagesDeliveredAsync(IList<IBatchContainer> messages)
     {
-        // 如果没有要发送的信件, 跳过工作
+        // 如果没有要投递的消息，则跳过处理。
         if (messages.Count == 0)
         {
             return;
@@ -174,8 +174,8 @@ internal partial class AdoNetQueueAdapterReceiver(string providerId, string queu
             return;
         }
 
-        // 释放留下暗藏处的邮件位置,并用最新收到的信件确认每封信一次,
-        // 因为再交付可以隐藏一些相同的电文尝试, 并且只有最新的收据匹配存储
+        // 释放已离开缓存的消息的位置，并使用各消息的最新回执对其进行一次确认，
+        // 因为重新投递可能在缓存中产生同一消息的多次尝试，而只有最新回执与存储匹配。
         var receipts = new Dictionary<long, int>(messages.Count);
         foreach (AdoNetBatchContainer message in messages)
         {

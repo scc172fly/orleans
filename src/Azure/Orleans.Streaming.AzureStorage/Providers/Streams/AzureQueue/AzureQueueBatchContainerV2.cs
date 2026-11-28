@@ -9,7 +9,7 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.AzureQueue
 {
     /// <summary>
-    /// AzureQueueBatchContainer第二版。本版本支持外部序列器(类似json)
+    /// AzureQueueBatchContainer 的第二版。此版本支持外部序列化器（例如 JSON）。
     /// </summary>
     [Serializable]
     [GenerateSerializer]

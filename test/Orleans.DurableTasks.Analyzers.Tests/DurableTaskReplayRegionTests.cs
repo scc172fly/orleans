@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Orleans.Durable.Analyzers.Tests;
 
-/// <summary>测试重播区域规则:状态、非确定性、外部等待和尾部的状态变化。</summary>
+/// <summary>测试重放区域规则：状态、非确定性、外部等待及尾部区域的状态变更。</summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 public class DurableTaskReplayRegionTests
 {

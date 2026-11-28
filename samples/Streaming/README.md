@@ -5,38 +5,38 @@ products:
 - dotnet
 - dotnet-orleans
 page_type: sample
-name: "Orleans Streaming sample apps"
+name: "Orleans 流示例应用"
 urlFragment: "orleans-streaming-samples"
-description: "一组 Orleans 样本应用软件,展示流能力。"
+description: "演示流处理能力的一组 Orleans 示例应用。"
 ---
 
 <a id="orleans-streaming-samples"></a>
 
-# Orleans 流式样品
+# Orleans 流示例
 
-该文件夹包含两个样本, 演示 Orleans 流 。
+此文件夹包含两个演示 Orleans Streams 的示例。
 
-第一个样本,在 `Simple` 文件夹中,使用 Azure 事件枢纽和一个隐含消费者来显示阴道/子集。
+第一个示例位于 `Simple` 文件夹中，演示使用 Azure Event Hub 和隐式消费者的发布/订阅模式。
 
-第二个样本,在 `CustomDataAdapter` 文件夹中,展示了如何配置自定义数据适配器,以便 Orleans 能够消耗并非来自 Orleans的流信息。
+第二个示例位于 `CustomDataAdapter` 文件夹中，演示如何配置自定义数据适配器，使 Orleans 能够消费并非源自 Orleans 的流消息。
 
 <a id="sample-prerequisites"></a>
 
-## 抽样的前提条件
+## 示例先决条件
 
-本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
+本示例使用 C# 编写，目标框架为 .NET 10。需要 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本。
 
 <a id="building-the-sample"></a>
 
-## 建立样本
+## 构建示例
 
-下载和运行样本时,请遵循以下步骤:
+按照以下步骤下载并运行示例：
 
-1. 下载并解开样本的平面
-2. 视觉演播室(2022年或以后):
-    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
-    2. 打开解压后的示例目录，再打开其中的 C# 项目文件（`.csproj`）。
-    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 直接运行。
-3. 从命令行 :
-   1. 导航到持有未设偏移样本代码的文件夹 。
-   2. 在命令行,类型 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
+1. 下载并解压示例。
+2. 在 Visual Studio（2022 或更高版本）中：
+    1. 在菜单栏中选择 **文件** > **打开** > **项目/解决方案**。
+    2. 导航到存放已解压示例代码的文件夹，并打开 C# 项目（.csproj）文件。
+    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 在不调试的情况下运行项目。
+3. 从命令行运行：
+   1. 导航到存放已解压示例代码的文件夹。
+   2. 在命令行输入 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。

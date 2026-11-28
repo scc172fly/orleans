@@ -1,7 +1,7 @@
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// 接收器监测器的聚合尺寸。
+    /// 接收器监视器的聚合维度。
     /// </summary>
     public class ReceiverMonitorDimensions
     {
@@ -24,11 +24,11 @@ namespace Orleans.Providers.Streams.Common
         /// <summary>
         /// 获取队列标识符。
         /// </summary>
-        public string QueueId { get; set; } = null!; // 由构建器或对象初始化器设置 。
+        public string QueueId { get; set; } = null!; // 由构造函数或对象初始化器设置。
     }
 
     /// <summary>
-    /// 缓存监视器的聚合维度
+    /// 缓存监视器的聚合维度。
     /// </summary>
     public class CacheMonitorDimensions : ReceiverMonitorDimensions
     {
@@ -36,7 +36,7 @@ namespace Orleans.Providers.Streams.Common
         /// 初始化 <see cref="CacheMonitorDimensions"/> 类的新实例。
         /// </summary>
         /// <param name="queueId">队列标识符。</param>
-        /// <param name="blockPoolId">块集合识别符号。</param>
+        /// <param name="blockPoolId">内存块池标识符。</param>
         public CacheMonitorDimensions(string queueId, string blockPoolId)
             : base(queueId)
         {
@@ -44,30 +44,30 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// 获取或设置街区池识别码。
+        /// 获取或设置内存块池标识符。
         /// </summary>
-        /// <value>块集合识别符号。</value>
+        /// <value>内存块池标识符。</value>
         public string BlockPoolId { get; set; }
     }
 
     /// <summary>
-    /// 区块池监测器的聚合尺寸。
+    /// 内存块池监视器的聚合维度。
     /// </summary>
     public class BlockPoolMonitorDimensions
     {
         /// <summary>
         /// 初始化 <see cref="BlockPoolMonitorDimensions"/> 类的新实例。
         /// </summary>
-        /// <param name="blockPoolId">块集合识别符号。</param>
+        /// <param name="blockPoolId">内存块池标识符。</param>
         public BlockPoolMonitorDimensions(string blockPoolId)
         {
             this.BlockPoolId = blockPoolId;
         }
 
         /// <summary>
-        /// 获取或设置街区池识别码。
+        /// 获取或设置内存块池标识符。
         /// </summary>
-        /// <value>块集合识别符号。</value>
+        /// <value>内存块池标识符。</value>
         public string BlockPoolId { get; set; }
     }
 }

@@ -4,16 +4,16 @@ using TestGrainInterfaces;
 namespace TestGrains
 {
     /// <summary>
-    /// 以一个计算统计数据的日记 grain 实例。
+    /// 进行统计计数的日志化 Grain 示例。
     /// 
-    /// 配置选项,请参见 CountersGrainVariations.cs中的衍生类别
+    /// 有关配置选项，请参阅 CountersGrainVariations.cs 中的派生类
     /// </summary>
     [GrainType("simple-counters-grain")]
     public class CountersGrain : JournaledGrain<CountersGrain.GrainState>, ICountersGrain
     {
         /// <summary>
-        /// 此 grain 状态是一本字典, 记录每个密钥的数。
-        /// 我们把它定义为一个嵌套型阶级, 只是为了方便范围。
+        /// 此 Grain 的状态为字典，保存每个键对应的计数。
+        /// 为了便于限定作用域，将其定义为嵌套类。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -43,7 +43,7 @@ namespace TestGrains
         }
 
         /// <summary>
-        /// 代表反更新的活动
+        /// 表示计数器更新的事件
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -56,7 +56,7 @@ namespace TestGrains
         }
 
         /// <summary>
-        /// 代表全部计数器重置的事件
+        /// 表示重置所有计数器的事件
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -66,7 +66,7 @@ namespace TestGrains
 
         public override Task OnActivateAsync(CancellationToken cancellationToken)
         {
-            // 激活时, 我们装入懒惰( 不要等待当前状态已装入) 。
+            // 激活时采用延迟加载（不等待当前状态加载完成）。
             return Task.CompletedTask;
         }
 
@@ -74,7 +74,7 @@ namespace TestGrains
         {
             RaiseEvent(new UpdatedEvent() { Key = key, Amount = amount });
 
-            // 可选, 等到事件持续存储后再继续
+            // 可选择等待事件持久化到存储
             if (wait_for_confirmation)
                 await ConfirmEvents();
         }
@@ -83,7 +83,7 @@ namespace TestGrains
         {
             RaiseEvent(new ResetAllEvent());
 
-            // 可选, 等到事件持续存储后再继续
+            // 可选择等待事件持久化到存储
             if (wait_for_confirmation)
                 await ConfirmEvents();
         }
@@ -110,7 +110,7 @@ namespace TestGrains
         }
 
 
-        // 有些提供者允许您查看事件日志
+        // 某些提供程序允许查看事件日志
         public Task<IReadOnlyList<object>> GetAllEvents()
         {
             return RetrieveConfirmedEvents(0, Version);

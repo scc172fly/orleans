@@ -15,10 +15,10 @@ using StackExchange.Redis;
 namespace Orleans.GrainDirectory.Redis
 {
     /// <summary>
-    /// 提供a grain 支持目录的 Redis.
+    /// 提供由 Redis 支持的 Grain 目录。
     /// </summary>
     /// <remarks>
-    /// 目录查询和登记更改使用主 Redis 。
+    /// 目录查找和注册变更操作使用 Redis 主节点。
     /// </remarks>
     public partial class RedisGrainDirectory : IGrainDirectory, ILifecycleParticipant<ISiloLifecycle>, IDisposable, IAsyncDisposable
     {
@@ -28,7 +28,7 @@ namespace Orleans.GrainDirectory.Redis
         private readonly RedisKey _keyPrefix;
         private readonly string _ttl;
 
-        // 这两种方法均在初始化方法中初始化。
+        // 两者均在 Initialize 方法中初始化。
         private IConnectionMultiplexer _redis = null!;
         private IDatabase _database = null!;
         private bool _redisIsShared;
@@ -38,11 +38,11 @@ namespace Orleans.GrainDirectory.Redis
         /// <summary>
         /// 初始化 <see cref="RedisGrainDirectory"/> 类的新实例。
         /// </summary>
-        /// <param name="directoryOptions"> Redis grain 目录选项。</param>
-        /// <param name="clusterOptions">组合组合选项。</param>
-        /// <param name="logger">日志器。</param>
+        /// <param name="directoryOptions">Redis Grain 目录选项。</param>
+        /// <param name="clusterOptions">集群选项。</param>
+        /// <param name="logger">日志记录器。</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="directoryOptions"/>、 <paramref name="clusterOptions"/>或 <paramref name="logger"/> 是 <see langword="null"/>。
+        /// <paramref name="directoryOptions"/>、<paramref name="clusterOptions"/> 或 <paramref name="logger"/> 为 <see langword="null"/>。
         /// </exception>
         public RedisGrainDirectory(
             RedisGrainDirectoryOptions directoryOptions,
@@ -61,10 +61,10 @@ namespace Orleans.GrainDirectory.Redis
         }
 
         /// <summary>
-        /// 查看一个 grain的登记激活。
+        /// 查找 Grain 的已注册激活实例。
         /// </summary>
-        /// <param name="grainId"> grain 标识符。</param>
-        /// <returns>登记 grain 地址,或 <see langword="null"/> 不存在登记。</returns>
+        /// <param name="grainId">Grain 标识符。</param>
+        /// <returns>已注册的 Grain 地址；如果没有注册，则为 <see langword="null"/>。</returns>
         public async Task<GrainAddress?> Lookup(GrainId grainId)
         {
             try
@@ -90,20 +90,20 @@ namespace Orleans.GrainDirectory.Redis
         }
 
         /// <summary>
-        /// 登记a grain 如果没有注册的激活 grain.
+        /// 如果 Grain 尚未注册，则注册其激活实例。
         /// </summary>
-        /// <param name="address">下 grain 注册地址。</param>
-        /// <returns>注册在目录中的 grain 地址。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="address"/> 是 <see langword="null"/>.</exception>
+        /// <param name="address">要注册的 Grain 地址。</param>
+        /// <returns>在目录中注册的 Grain 地址。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="address"/> 为 <see langword="null"/>。</exception>
         public Task<GrainAddress?> Register(GrainAddress address) => Register(address, null);
 
         /// <summary>
-        /// 登记一个 grain 激活,当指定以前的登记为当前时替换该登记。
+        /// 注册 Grain 激活实例，并在指定的先前注册仍为当前注册时将其替换。
         /// </summary>
-        /// <param name="address">下 grain 注册地址。</param>
-        /// <param name="previousAddress">替换先前的登记,或 <see langword="null"/> 需要空条目。</param>
-        /// <returns>注册在目录中的 grain 地址。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="address"/> 是 <see langword="null"/>.</exception>
+        /// <param name="address">要注册的 Grain 地址。</param>
+        /// <param name="previousAddress">要替换的先前注册；若要求条目为空，则为 <see langword="null"/>。</param>
+        /// <returns>在目录中注册的 Grain 地址。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="address"/> 为 <see langword="null"/>。</exception>
         public async Task<GrainAddress?> Register(GrainAddress address, GrainAddress? previousAddress)
         {
             ArgumentNullException.ThrowIfNull(address);
@@ -170,11 +170,11 @@ namespace Orleans.GrainDirectory.Redis
         }
 
         /// <summary>
-        /// 当存储的激活标识符与所提供地址匹配时,删除一个 grain 激活。
+        /// 当存储的激活实例标识符与传入地址匹配时，移除该 Grain 激活实例。
         /// </summary>
-        /// <param name="address">要删除的 grain 地址。</param>
-        /// <returns>代表操作的任务。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="address"/> 是 <see langword="null"/>.</exception>
+        /// <param name="address">要移除的 Grain 地址。</param>
+        /// <returns>表示该操作的任务。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="address"/> 为 <see langword="null"/>。</exception>
         public async Task Unregister(GrainAddress address)
         {
             ArgumentNullException.ThrowIfNull(address);
@@ -215,34 +215,34 @@ namespace Orleans.GrainDirectory.Redis
         }
 
         /// <summary>
-        /// 完成 silo 清除回调。 Redis 条目通过激活专用的未登记操作和可选过期失效程序清理。
+        /// 完成 Silo 清理回调。Redis 条目通过特定激活实例的注销操作及可选的过期机制进行清理。
         /// </summary>
-        /// <param name="siloAddresses">与清理回调相关的 silo 地址。</param>
-        /// <returns>一项已完成的任务。</returns>
+        /// <param name="siloAddresses">与清理回调关联的 Silo 地址。</param>
+        /// <returns>已完成的任务。</returns>
         public Task UnregisterSilos(List<SiloAddress> siloAddresses)
         {
             return Task.CompletedTask;
         }
 
         /// <summary>
-        /// 将 grain 目录订阅到 silo 生命周期。
+        /// 将 Grain 目录订阅到 Silo 生命周期。
         /// </summary>
-        /// <param name="lifecycle">下 silo 生命周期。</param>
+        /// <param name="lifecycle">Silo 生命周期。</param>
         public void Participate(ISiloLifecycle lifecycle)
         {
             lifecycle.Subscribe(nameof(RedisGrainDirectory), ServiceLifecycleStage.RuntimeInitialize, Initialize);
         }
 
         /// <summary>
-        /// 创建配置的 Redis 连接并选择数据库。
+        /// 创建配置的 Redis 连接，并选择其数据库。
         /// </summary>
-        /// <param name="ct">取消给发的邮记 silo 生命周期。</param>
-        /// <returns>一项代表初始化操作的任务。</returns>
+        /// <param name="ct">Silo 生命周期提供的取消令牌。</param>
+        /// <returns>表示初始化操作的任务。</returns>
         public async Task Initialize(CancellationToken ct = default)
         {
             (_redis, _redisIsShared) = await _directoryOptions.CreateMultiplexer(_directoryOptions);
 
-            // 配置记录
+            // 配置日志记录。
             _redis.ConnectionRestored += LogConnectionRestored;
             _redis.ConnectionFailed += LogConnectionFailed;
             _redis.ErrorMessage += LogErrorMessage;
@@ -252,7 +252,7 @@ namespace Orleans.GrainDirectory.Redis
         }
 
         /// <summary>
-        /// 发布事件订阅并处理供应商拥有的 Redis 连接。
+        /// 解除事件订阅，并释放由提供程序拥有的 Redis 连接。
         /// </summary>
         public void Dispose()
         {
@@ -280,9 +280,9 @@ namespace Orleans.GrainDirectory.Redis
         }
 
         /// <summary>
-        /// 发布事件订阅和不同步处置供应商拥有的 Redis 连接。
+        /// 解除事件订阅，并异步释放由提供程序拥有的 Redis 连接。
         /// </summary>
-        /// <returns>代表处置作业的价值任务。</returns>
+        /// <returns>表示释放操作的 ValueTask。</returns>
         public async ValueTask DisposeAsync()
         {
             _disposed = true;
@@ -395,7 +395,7 @@ namespace Orleans.GrainDirectory.Redis
         private partial void LogErrorInternalError(Exception? exception);
         #endregion
 
-        // 这些例外情形客户无法连号
+        // 客户端无法序列化这些异常。
         private static bool IsRedisException(Exception ex) => ex is RedisException || ex is RedisTimeoutException || ex is RedisCommandException;
     }
 }

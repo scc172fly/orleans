@@ -28,7 +28,7 @@ export default class CheckboxFilter extends React.Component<CheckboxFilterProps,
   }
 
   handleChangeFilter(e: React.MouseEvent<HTMLAnchorElement>) {
-    // 防止连接导航。
+    // 阻止链接导航。
     e.preventDefault();
 
     const hidden = (e.target as HTMLAnchorElement).getAttribute('name') === 'hidden';

@@ -3,22 +3,22 @@ using Microsoft.CodeAnalysis;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// 确定一种可援引的方法。
+/// 标识一个可调用方法。
 /// </summary>
 internal readonly struct InvokableMethodId(InvokableMethodProxyBase proxyBaseInfo, INamedTypeSymbol interfaceType, IMethodSymbol method) : IEquatable<InvokableMethodId>
 {
     /// <summary>
-    /// 获取该方法的代理服务器基信息(例如, GrainReference,是否为扩展名)。
+    /// 获取方法的代理基类信息（例如 GrainReference，以及它是否为扩展）。
     /// </summary>
     public InvokableMethodProxyBase ProxyBase { get; } = proxyBaseInfo;
 
     /// <summary>
-    /// 获得方法符号。
+    /// 获取方法符号。
     /// </summary>
     public IMethodSymbol Method { get; } = method;
 
     /// <summary>
-    /// 获得包含界面符号。
+    /// 获取包含该方法的接口符号。
     /// </summary>
     public INamedTypeSymbol InterfaceType { get; } = interfaceType;
 

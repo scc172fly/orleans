@@ -52,7 +52,7 @@ public class GenerateAliasAttributesAnalyzer : DiagnosticAnalyzer
     {
         var symbol = (INamedTypeSymbol)context.Symbol;
 
-        // 接口类型及其方法
+        // 接口类型及其方法。
         if (symbol.TypeKind == TypeKind.Interface)
         {
             if (!symbol.ExtendsGrainInterface())
@@ -96,7 +96,7 @@ public class GenerateAliasAttributesAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // 类型:类、结构、记录
+        // 其余类型：class、struct、record。
         if (symbol.TypeKind is TypeKind.Class or TypeKind.Struct)
         {
             if (symbol.DerivesFrom(grainSymbol))

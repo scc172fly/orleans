@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// 测试非返回状态下残疾呼叫链再反应行为 grains。
+    /// 测试非可重入 Grain 上禁用调用链重入时的行为。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

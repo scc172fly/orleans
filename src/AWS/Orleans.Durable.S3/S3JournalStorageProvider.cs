@@ -62,8 +62,8 @@ internal sealed class S3JournalStorageProvider : ILifecycleParticipant<ISiloLife
         if (string.IsNullOrWhiteSpace(listingPrefix) && (!identityMapping || _options.GetObjectKeyPrefix is not null)
             || !identityMapping && _options.GetObjectKeyPrefix is null && range.Prefix is null)
         {
-            // 从界限中推断出的共同前缀可以是白色空间,不能代表
-            // 是一个自定义映像器的 JournalId 。光是弹道也不需要前缀映像器。
+            // 从边界推断出的公共前缀可能仅包含空白字符，无法表示为
+            // 供自定义映射器使用的 JournalId。仅指定边界也不要求配置前缀映射器。
             listingPrefix = null;
         }
 
@@ -79,7 +79,7 @@ internal sealed class S3JournalStorageProvider : ILifecycleParticipant<ISiloLife
         if (ordered && identityMapping && range.LowerBound is { Length: > 0 } lowerBound
             && System.Text.Ascii.IsValid(lowerBound))
         {
-            // StartAfter 是排他性的:使用严格较早的密钥保留包容性下限。
+            // StartAfter 不包含指定键：使用严格小于下界的键，以保留下界的包含语义。
             var marker = S3JournalStorageOptions.GetDefaultWalObjectKey(lowerBound[..^1]);
             if (string.CompareOrdinal(marker, objectKeyPrefix) > 0)
             {
@@ -108,7 +108,7 @@ internal sealed class S3JournalStorageProvider : ILifecycleParticipant<ISiloLife
             _shared.Instruments.OnCatalogPage(response.S3Objects?.Count ?? 0);
 
             cancellationToken.ThrowIfCancellationRequested();
-            // AWS SDK v4 代表一个空列表页面, 含有无效收藏 。
+            // AWS SDK v4 使用 null 集合表示空的列表查询页面。
             foreach (var item in response.S3Objects ?? [])
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -119,7 +119,7 @@ internal sealed class S3JournalStorageProvider : ILifecycleParticipant<ISiloLife
 
                 if (TryGetJournalId(item.Key, range, out var id))
                 {
-                    // ListObjectsV2 无法在不单独请求的情况下预测完整的日记元数据 。
+                    // ListObjectsV2 无法在不发起单独请求的情况下返回完整的日志元数据。
                     _shared.Instruments.OnCatalogEntry();
                     yield return new JournalCatalogEntry(id);
                 }

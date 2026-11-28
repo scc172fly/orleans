@@ -162,7 +162,7 @@ internal static class GrainDirectoryEvents
     }
 
     /// <summary>
-    /// 当为死亡 silo设定安全租赁舱时,事件有效载荷。
+    /// 为已死亡的 Silo 创建安全租约保持约束时的事件数据。
     /// </summary>
     internal sealed class SiloLeaseHoldCreated(
         SiloAddress observerSiloAddress,
@@ -170,18 +170,18 @@ internal static class GrainDirectoryEvents
         DateTimeOffset expiration) : GrainDirectoryEvent(observerSiloAddress, partitionIndex: -1, default, RingRange.Empty)
     {
         /// <summary>
-        /// 死人 silo 其启动活动属于租赁持有范围。
+        /// 激活实例受租约保持约束覆盖的死亡 Silo。
         /// </summary>
         public readonly SiloAddress DeadSiloAddress = deadSiloAddress;
 
         /// <summary>
-        /// 租约到期时间。
+        /// 租约持有期限到期的时间。
         /// </summary>
         public readonly DateTimeOffset Expiration = expiration;
     }
 
     /// <summary>
-    /// 当为目录范围创建安全租赁区时, 事件有效载荷。
+    /// 为目录范围创建安全租约保持约束时的事件数据。
     /// </summary>
     internal sealed class RangeLeaseHoldCreated(
         SiloAddress observerSiloAddress,
@@ -189,13 +189,13 @@ internal static class GrainDirectoryEvents
         DateTimeOffset expiration) : GrainDirectoryEvent(observerSiloAddress, partitionIndex: -1, default, range)
     {
         /// <summary>
-        /// 租约到期时间。
+        /// 租约持有期限到期的时间。
         /// </summary>
         public readonly DateTimeOffset Expiration = expiration;
     }
 
     /// <summary>
-    /// 当登记因死亡 --silo 租赁搁置而延迟时,事件有效载荷。
+    /// 注册因死亡 Silo 的租约保持约束而延迟时的事件数据。
     /// </summary>
     internal sealed class RegistrationBlockedBySiloLease(
         SiloAddress observerSiloAddress,
@@ -205,28 +205,28 @@ internal static class GrainDirectoryEvents
         TimeSpan retryAfter) : GrainDirectoryEvent(observerSiloAddress, partitionIndex: -1, default, RingRange.Empty)
     {
         /// <summary>
-        /// 下 grain 登记被冻结。
+        /// 注册被阻止的 Grain。
         /// </summary>
         public readonly GrainId GrainId = grainId;
 
         /// <summary>
-        /// 死人 silo 租约冻结了登记
+        /// 其租约保持约束阻止注册的死亡 Silo。
         /// </summary>
         public readonly SiloAddress DeadSiloAddress = deadSiloAddress;
 
         /// <summary>
-        /// 租约到期时间。
+        /// 租约持有期限到期的时间。
         /// </summary>
         public readonly DateTimeOffset Expiration = expiration;
 
         /// <summary>
-        /// 应重新研究登记前的延误。
+        /// 重试注册之前应等待的时长。
         /// </summary>
         public readonly TimeSpan RetryAfter = retryAfter;
     }
 
     /// <summary>
-    /// 当登记因距离租赁搁置而推迟时,活动有效载荷。
+    /// 注册因范围租约保持约束而延迟时的事件数据。
     /// </summary>
     internal sealed class RegistrationBlockedByRangeLease(
         SiloAddress observerSiloAddress,
@@ -236,23 +236,23 @@ internal static class GrainDirectoryEvents
         TimeSpan retryAfter) : GrainDirectoryEvent(observerSiloAddress, partitionIndex: -1, default, range)
     {
         /// <summary>
-        /// 下 grain 登记被冻结。
+        /// 注册被阻止的 Grain。
         /// </summary>
         public readonly GrainId GrainId = grainId;
 
         /// <summary>
-        /// 租约到期时间。
+        /// 租约持有期限到期的时间。
         /// </summary>
         public readonly DateTimeOffset Expiration = expiration;
 
         /// <summary>
-        /// 应重新研究登记前的延误。
+        /// 重试注册之前应等待的时长。
         /// </summary>
         public readonly TimeSpan RetryAfter = retryAfter;
     }
 
     /// <summary>
-    /// 当 grain 目录操作因租赁持有活动而延迟时的事件有效载荷。
+    /// Grain 目录操作因租约保持约束有效而延迟时的事件数据。
     /// </summary>
     internal sealed class OperationDelayedByLeaseHold(
         SiloAddress observerSiloAddress,
@@ -261,17 +261,17 @@ internal static class GrainDirectoryEvents
         TimeSpan retryAfter) : GrainDirectoryEvent(observerSiloAddress, partitionIndex: -1, default, RingRange.Empty)
     {
         /// <summary>
-        /// 目录操作被延迟的 grain 。
+        /// 目录操作被延迟的 Grain。
         /// </summary>
         public readonly GrainId GrainId = grainId;
 
         /// <summary>
-        /// 延迟目录操作 。
+        /// 被延迟的目录操作。
         /// </summary>
         public readonly string Operation = operation;
 
         /// <summary>
-        /// 行动前的拖延应当重新研究。
+        /// 重试操作之前应等待的时长。
         /// </summary>
         public readonly TimeSpan RetryAfter = retryAfter;
     }

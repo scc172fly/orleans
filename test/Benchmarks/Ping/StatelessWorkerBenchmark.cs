@@ -6,7 +6,7 @@ using Orleans.Concurrency;
 namespace Benchmarks.Ping;
 
 /// <summary>
-/// 基准为无国籍工人 grain 业绩和适应性工人池管理。
+/// 对无状态工作者 Grain 的性能和自适应工作者池管理进行基准测试。
 /// </summary>
 public class StatelessWorkerBenchmark : IDisposable
 {
@@ -60,9 +60,9 @@ public class StatelessWorkerBenchmark : IDisposable
 
         for (var i = 0; i < ConcurrencyLevel; i++)
         {
-            // 以Poisson 进程(我们的情况是,任务/秒)计算,抵达时间为到达时间
-            // 服从指数分布，密度为 f(t) = λe^(-λt)，其中 t >= 0；到达间隔
-            // 时间可以生成为: @ t=- ln(U) /\\\\\, U 统一分布于 (0, 1)
+            // 对于速率为 λ 的泊松过程（本例中为每秒任务数），相邻两次到达之间的时间间隔
+            // 服从指数分布，其密度为 f(t) = λe^(-λt)，t >= 0；到达间隔
+            // 可通过 Δt = -ln(U) / λ 生成，其中 U 在 (0, 1) 上服从均匀分布。
 
             var u = Random.Shared.NextDouble();
             var delaySec = -Math.Log(u > 0 ? u : double.Epsilon) / Lambda;

@@ -6,7 +6,7 @@ public sealed class TrialGrain(IEmailSender email) : DurableGrain
     // <orleans0211_violation>
     public async DurableTask ExpireTrialAsync(string customer)
     {
-        // 等待生命在记忆中:失能会失去它,重播又再等待整整14天。
+        // 等待仅存在于内存：停用会使其丢失，重放将再次等待完整的 14 天。
         await Task.Delay(TimeSpan.FromDays(14));
         await Notify(customer, "Your trial has ended").WithId("expired");
     }
@@ -16,7 +16,7 @@ public sealed class TrialGrain(IEmailSender email) : DurableGrain
     // <orleans0211_fix_delay>
     public async DurableTask ExpireTrialDurablyAsync(string customer)
     {
-        // 运行时间记录了到期时间,而持久工作在到期时重新启动 grain 。
+        // 运行时记录到期时间，Durable Jobs 在到期时重新激活 Grain。
         await DurableTask.Delay(TimeSpan.FromDays(14)).WithId("trial");
         await Notify(customer, "Your trial has ended").WithId("expired");
     }
@@ -35,7 +35,7 @@ public sealed class TrialGrain(IEmailSender email) : DurableGrain
     {
         try
         {
-            // 而不是与 Task.Delay:一个从第一次运行起计数的耐久超时赛跑。
+            // 代替让工作与 Task.Delay 竞争：持久化超时从首次运行开始计时。
             await Notify(customer, "Your trial has ended").WaitAsync(TimeSpan.FromMinutes(5)).WithId("notify");
             return true;
         }

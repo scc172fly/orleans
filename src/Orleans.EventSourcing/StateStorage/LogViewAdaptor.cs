@@ -10,19 +10,19 @@ using Orleans.EventSourcing.Common;
 namespace Orleans.EventSourcing.StateStorage
 {
     /// <summary>
-    /// 环绕传统储存适配器并使用批量和电子标签的日志查看调整器
-    /// 键附加条目。
+    /// 封装传统存储适配器，并通过批处理与 ETag
+    /// 追加条目的日志视图适配器。
     ///<para>
-    /// 日志本身是短暂的, i.e.没有实际保存到存储中 - 只有最新的视图和一些
-    /// 元数据(日志位置和写标记)被存储。
+    /// 日志本身是临时的，即实际不保存到存储中；只保存最新视图及部分
+    /// 元数据（日志位置及写入标志）。
     /// </para>
     /// </summary>
-    /// <typeparam name="TLogView">日志视图类型</typeparam>
-    /// <typeparam name="TLogEntry">日志输入类型</typeparam>
+    /// <typeparam name="TLogView">日志视图的类型。</typeparam>
+    /// <typeparam name="TLogEntry">日志条目的类型。</typeparam>
     internal class LogViewAdaptor<TLogView, TLogEntry> : PrimaryBasedLogViewAdaptor<TLogView, TLogEntry, SubmissionEntry<TLogEntry>> where TLogView : class, new() where TLogEntry : class
     {
         /// <summary>
-        /// 初始化 StorageProviderLogViewAdaptor 类
+        /// 初始化 StorageProviderLogViewAdaptor 类的实例。
         /// </summary>
         public LogViewAdaptor(ILogViewAdaptorHost<TLogView, TLogEntry> host, TLogView initialState, IGrainStorage globalGrainStorage, string grainTypeName, ILogConsistencyProtocolServices services)
             : base(host, initialState, services)
@@ -34,7 +34,7 @@ namespace Orleans.EventSourcing.StateStorage
 
         private const int maxEntriesInNotifications = 200;
         private readonly IGrainStorage globalGrainStorage;
-        private readonly string grainTypeName;        // 包括元数据在内的已确认状态
+        private readonly string grainTypeName;        // 保存包含元数据的已确认状态。
         private GrainStateWithMetaDataAndETag<TLogView> GlobalStateCache = null!;
 
         /// <inheritdoc/>
@@ -62,7 +62,7 @@ namespace Orleans.EventSourcing.StateStorage
             return this.globalGrainStorage.ClearStateAsync(grainTypeName, Services.GrainId, GlobalStateCache);
         }
 
-        // 不需要特殊标签,因此我们创建了简单的提交条目
+        // 不需要特殊标记，因此创建普通的提交条目。
         /// <inheritdoc/>
         protected override SubmissionEntry<TLogEntry> MakeSubmissionEntry(TLogEntry entry)
         {
@@ -78,7 +78,7 @@ namespace Orleans.EventSourcing.StateStorage
             {
                 try
                 {
-                    // 供手工测试
+                    // 用于手动测试。
                     //await Task.Delay(5000);
 
                     var readState = new GrainStateWithMetaDataAndETag<TLogView>();
@@ -91,7 +91,7 @@ namespace Orleans.EventSourcing.StateStorage
 
                     LastPrimaryIssue.Resolve(Host, Services);
 
-                    break; // 成功
+                    break; // 成功。
                 }
                 catch (Exception e)
                 {
@@ -125,7 +125,7 @@ namespace Orleans.EventSourcing.StateStorage
 
             try
             {
-                // 供手工测试
+                // 用于手动测试。
                 //await Task.Delay(5000);
 
                 await globalGrainStorage.WriteStateAsync(grainTypeName, Services.GrainId, nextglobalstate);
@@ -147,7 +147,7 @@ namespace Orleans.EventSourcing.StateStorage
             {
                 Services.Log(LogLevel.Debug, "write apparently failed {0} {1}", nextglobalstate, LastPrimaryIssue);
 
-                while (true) // 顽固到我们看得懂为止
+                while (true) // 持续重试，直到能够读取存储中的内容。
                 {
 
                     await LastPrimaryIssue.DelayBeforeRetry();
@@ -170,7 +170,7 @@ namespace Orleans.EventSourcing.StateStorage
                     Services.Log(LogLevel.Debug, "read failed {0}", LastPrimaryIssue);
                 }
 
-                // 检查是否上次明显失败的写成功
+                // 检查上一次看似失败的写入实际上是否已成功。
 
                 if (writebit == GlobalStateCache.StateAndMetaData.GetBit(Services.MyClusterId))
                 {
@@ -190,7 +190,7 @@ namespace Orleans.EventSourcing.StateStorage
 
 
         /// <summary>
-        /// 描述更新主贮存时出现的连接问题。
+        /// 描述更新主存储时发生的连接问题。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -205,7 +205,7 @@ namespace Orleans.EventSourcing.StateStorage
 
 
         /// <summary>
-        /// 描述读取主贮存时出现的连接问题。
+        /// 描述读取主存储时发生的连接问题。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -220,7 +220,7 @@ namespace Orleans.EventSourcing.StateStorage
 
 
         /// <summary>
-        /// 在更新存储中的 grain 后,向远程实例发送通知信息。
+        /// 在存储中更新此 Grain 后发送给远程实例的通知消息。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -230,15 +230,15 @@ namespace Orleans.EventSourcing.StateStorage
             [Id(0)]
             public int Version { get; set; }
 
-            /// <summary> 进行更新的组群 </summary>
+            /// <summary>执行更新的集群。</summary>
             [Id(1)]
             public string Origin { get; set; } = null!;
 
-            /// <summary> 适用更新的清单 </summary>
+            /// <summary>已应用的更新列表。</summary>
             [Id(2)]
             public List<TLogEntry> Updates { get; set; } = null!;
 
-            /// <summary> 应用更新后存储的电子标签</summary>
+            /// <summary>应用更新后存储的 ETag。</summary>
             [Id(3)]
             public string? ETag { get; set; }
 
@@ -270,7 +270,7 @@ namespace Orleans.EventSourcing.StateStorage
                 };
 
             else
-                return base.Merge(earlierMessage, laterMessage); // 只保留版本号
+                return base.Merge(earlierMessage, laterMessage); // 仅保留版本号。
         }
 
         private readonly SortedList<long, UpdateNotificationMessage> notifications = new SortedList<long, UpdateNotificationMessage>();
@@ -288,20 +288,20 @@ namespace Orleans.EventSourcing.StateStorage
         /// <inheritdoc/>
         protected override void ProcessNotifications()
         {
-            // 已经确认的状态背后的废弃通知
+            // 丢弃落后于已确认状态的通知。
             while (notifications.Count > 0 && notifications.ElementAt(0).Key < GlobalStateCache.StateAndMetaData.GlobalVersion)
             {
                 Services.Log(LogLevel.Debug, "discarding notification {0}", notifications.ElementAt(0).Value);
                 notifications.RemoveAt(0);
             }
 
-            // 反映下一个全球版本的处理通知
+            // 处理反映下一个全局版本的通知。
             while (notifications.Count > 0 && notifications.ElementAt(0).Key == GlobalStateCache.StateAndMetaData.GlobalVersion)
             {
                 var updateNotification = notifications.ElementAt(0).Value;
                 notifications.RemoveAt(0);
 
-                // 应用所有待处理操作
+                // 应用待处理的所有操作。
                 foreach (var u in updateNotification.Updates)
                     try
                     {

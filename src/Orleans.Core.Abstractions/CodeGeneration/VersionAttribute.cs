@@ -6,7 +6,7 @@ using Orleans.Metadata;
 namespace Orleans.CodeGeneration
 {
     /// <summary>
-    /// VersionAttribute 允许指定接口的版本号
+    /// VersionAttribute 用于指定接口的版本号。
     /// </summary>
     [AttributeUsage(AttributeTargets.Interface)]
     public sealed class VersionAttribute : Attribute, IGrainInterfacePropertiesProviderAttribute
@@ -15,7 +15,7 @@ namespace Orleans.CodeGeneration
         /// 初始化 <see cref="VersionAttribute"/> 类的新实例。
         /// </summary>
         /// <param name="version">
-        /// 版本。
+        /// 版本号。
         /// </param>
         public VersionAttribute(ushort version)
         {
@@ -23,7 +23,7 @@ namespace Orleans.CodeGeneration
         }
 
         /// <summary>
-        /// 获得版本。
+        /// 获取版本号。
         /// </summary>
         public ushort Version { get; private set; }
 

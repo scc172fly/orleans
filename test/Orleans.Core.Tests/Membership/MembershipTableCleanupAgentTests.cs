@@ -15,7 +15,7 @@ using Xunit;
 namespace NonSilo.Tests.Membership
 {
     /// <summary>
-    /// 成员表格清理代理功能测试,包括启用/残疾假想和取消 silo 清除。
+    /// 测试成员资格表清理代理功能，包括启用、禁用场景及失效 Silo 清理。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Membership")]
     [TestSuite("BVT")]
@@ -158,12 +158,12 @@ namespace NonSilo.Tests.Membership
             var options = new ClusterMembershipOptions { DefunctSiloCleanupPeriod = null, MaxDefunctSiloEntries = 1 };
             var membershipManager = new TestMembershipManager();
 
-            // 这份记录最近报告自己还活着,但最近没有被怀疑。
+            // 此条目报告自身存活的时间最晚，但最近未被怀疑。
             var newerAliveEntry = Entry(Silo("127.0.0.1:500@100"), SiloStatus.Dead, now.AddHours(-3));
 
-            // 上一个条目早在很久以前就报告自己还活着,但最近(怀疑)被宣布死亡。
-            // 因此,它是最近期更新的过时的已过期条目,即使其
-            // IAmAliveTime 年龄最大
+            // 此条目上次报告自身存活已是很久以前，但最近才被宣告死亡（受到怀疑）。
+            // 因此它是最近更新的失效条目，应予以保留，即使它的
+            // IAmAliveTime 最早。
             var recentlySuspectedEntry = Entry(recentlySuspectedSilo, SiloStatus.Dead, now.AddHours(-10));
             recentlySuspectedEntry.AddSuspector(this.localSilo, now.AddHours(-2).UtcDateTime);
 
@@ -199,7 +199,7 @@ namespace NonSilo.Tests.Membership
             var expiredEntry = Entry(Silo("127.0.0.1:500@100"), SiloStatus.Dead, now - options.DefunctSiloMinimumRetention - TimeSpan.FromTicks(1));
             var recentEntry = Entry(Silo("127.0.0.1:600@100"), SiloStatus.Dead, now - options.DefunctSiloMinimumRetention);
 
-            // 很久以前加入但最近宣布死亡的 silo 保留。
+            // 很久以前加入但最近才被宣告死亡的 Silo 会被保留。
             var recentlyDeclaredDeadEntry = Entry(Silo("127.0.0.1:700@100"), SiloStatus.Dead, now.AddDays(-1));
             recentlyDeclaredDeadEntry.AddSuspector(this.localSilo, now.AddMinutes(-1).UtcDateTime);
             var table = new InMemoryMembershipTable(
@@ -273,7 +273,7 @@ namespace NonSilo.Tests.Membership
             await membershipManager.PublishAndWaitForProcessing(Snapshot(Entry(this.localSilo, SiloStatus.Active, now)), cancellationToken);
             table.ClearCalls();
 
-            // 条目超过 DefunctSiloExpiration ,但保留期最小值内不触发清理。
+            // 超过 DefunctSiloExpiration 但仍处于最短保留期内的条目不会触发清理。
             await membershipManager.PublishAndWaitForProcessing(Snapshot(
                 Entry(this.localSilo, SiloStatus.Active, now),
                 Entry(Silo("127.0.0.1:500@100"), SiloStatus.Dead, now.AddMinutes(-30))), cancellationToken);

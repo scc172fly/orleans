@@ -5,34 +5,34 @@ namespace Orleans.Docs.Snippets.Persistence;
 
 // <grain_storage_interface>
 /// <summary>
-/// 用于存储能够读写 Orleans grain 状态数据的存储,将实施接口。
+/// 能够读写 Orleans Grain 状态数据的存储必须实现此接口。
 /// </summary>
 public interface ICustomGrainStorage
 {
-    /// <summary>读取此存储实例的数据函数。</summary>
-    /// <param name="stateName">国家名称 grain</param>
-    /// <param name="grainId">Grain ID 身份</param>
-    /// <param name="grainState">为此要输入的州数据对象 grain.</param>
-    /// <typeparam name="T"> grain 状态类型。</typeparam>
-    /// <returns>特定 grain的读化操作的完成承诺。</returns>
+    /// <summary>此存储实例的数据读取方法。</summary>
+    /// <param name="stateName">此 Grain 的状态名称。</param>
+    /// <param name="grainId">Grain ID。</param>
+    /// <param name="grainState">用于接收读取到的此 Grain 状态数据的对象。</param>
+    /// <typeparam name="T">Grain 状态类型。</typeparam>
+    /// <returns>表示指定 Grain 读取操作完成的 异步任务。</returns>
     Task ReadStateAsync<T>(
         string stateName, GrainId grainId, IGrainState<T> grainState);
 
-    /// <summary>为此存储实例写入数据函数 。</summary>
-    /// <param name="stateName">国家名称 grain</param>
-    /// <param name="grainId">Grain ID 身份</param>
-    /// <param name="grainState">为此要写入的状态数据对象 grain.</param>
-    /// <typeparam name="T"> grain 状态类型。</typeparam>
-    /// <returns>指定写入操作的完成承诺 grain.</returns>
+    /// <summary>此存储实例的数据写入方法。</summary>
+    /// <param name="stateName">此 Grain 的状态名称。</param>
+    /// <param name="grainId">Grain ID。</param>
+    /// <param name="grainState">要为此 Grain 写入的状态数据对象。</param>
+    /// <typeparam name="T">Grain 状态类型。</typeparam>
+    /// <returns>表示指定 Grain 写入操作完成的 异步任务。</returns>
     Task WriteStateAsync<T>(
         string stateName, GrainId grainId, IGrainState<T> grainState);
 
-    /// <summary>删除/清除此存储实例的数据函数。</summary>
-    /// <param name="stateName">国家名称 grain</param>
-    /// <param name="grainId">Grain ID 身份</param>
-    /// <param name="grainState">本 grain的最后已知的状态数据对象副本。</param>
-    /// <typeparam name="T"> grain 状态类型。</typeparam>
-    /// <returns>特定 grain的删除操作的完成承诺。</returns>
+    /// <summary>此存储实例的数据删除或清除方法。</summary>
+    /// <param name="stateName">此 Grain 的状态名称。</param>
+    /// <param name="grainId">Grain ID。</param>
+    /// <param name="grainState">此 Grain 最后一次已知的状态数据对象的副本。</param>
+    /// <typeparam name="T">Grain 状态类型。</typeparam>
+    /// <returns>表示指定 Grain 删除操作完成的 异步任务。</returns>
     Task ClearStateAsync<T>(
         string stateName, GrainId grainId, IGrainState<T> grainState);
 }
@@ -60,10 +60,10 @@ public class InconsistentStateException : OrleansException
     {
     }
 
-    /// <summary>目前持续储存中的滞值。</summary>
+    /// <summary>当前保存在持久化存储中的 Etag 值。</summary>
     public string StoredEtag { get; }
 
-    /// <summary>目前存储在记忆中的牌值, 并试图更新。</summary>
+    /// <summary>当前保存在内存中并尝试更新的 Etag 值。</summary>
     public string CurrentEtag { get; }
 }
 // </inconsistent_state_exception>

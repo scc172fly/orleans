@@ -5,21 +5,21 @@ using Orleans.Concurrency;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// 能够接受持久工作职业的 grains 扩展界面。
+/// 用于可接收持久化作业调用的 Grain 的扩展接口。
 /// </summary>
 internal interface IDurableJobReceiverExtension : IGrainExtension
 {
     /// <summary>
-    /// 处理一项持久的工作,要么开始执行,要么检查仍在执行中的执行状况。
-    /// 同一工作同时分娩的同工同工同工同用。
-    /// 终端处置,较晚交货开始新的援引。
+    /// 通过启动执行或检查仍在运行的执行实例的状态来处理持久化作业。
+    /// 同一次作业执行尝试的并发投递共享当前活动调用。当一次调用达到
+    /// 终态后，后续投递将启动新的调用。
     /// </summary>
-    /// <param name="context">包含有关持久工作的信息的背景。</param>
+    /// <param name="context">包含持久化作业信息的上下文。</param>
     /// <param name="attemptCancellationToken">
-    /// 合作要求取消这一处决企图的象征。
-    /// 取消企图使持久工作有资格重新交付。
+    /// 用于协作式请求取消本次执行尝试的令牌。
+    /// 取消执行尝试后，持久化作业仍可再次投递。
     /// </param>
-    /// <returns>代表非同步操作并包含工作执行结果的任务。</returns>
+    /// <returns>表示异步操作并包含作业执行结果的任务。</returns>
     [AlwaysInterleave]
     ValueTask<DurableJobRunResult> HandleDurableJobAsync(IJobRunContext context, CancellationToken attemptCancellationToken);
 }
@@ -132,7 +132,7 @@ internal sealed partial class DurableJobReceiverExtension : IDurableJobReceiverE
         }
         catch (OperationCanceledException) when (attemptCancellationToken.IsCancellationRequested)
         {
-            // 取消企图使持久工作有资格重新交付。
+            // 取消执行尝试后，持久化作业仍可再次投递。
             tracker.AttemptCanceled();
             throw;
         }
@@ -151,13 +151,13 @@ internal sealed partial class DurableJobReceiverExtension : IDurableJobReceiverE
         bool newJob,
         CancellationToken attemptCancellationToken)
     {
-        // 取消是合作性的:只有最终任务国才有权决定工作结果。
+        // 取消是协作式的：只有任务的终态才是确定作业结果的权威依据。
         if (!state.Task.IsCompleted)
         {
             if (newJob)
             {
-                // 第一次尝试是减少RPC, 我们等待投票间隔或一半的响应超时完成任务。
-                // 这对于工作快速完成的常见情况省下后退。
+                // 对于首次尝试，为减少 RPC 次数，我们等待任务完成，等待时间为轮询间隔与响应超时的一半中的较小值。
+                // 这样可以在作业很快完成的常见情况下避免一次往返调用。
                 return LongPollGetJobStatusAsync(key, context, state, attemptCancellationToken);
             }
 

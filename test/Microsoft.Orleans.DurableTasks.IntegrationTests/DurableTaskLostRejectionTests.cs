@@ -12,13 +12,13 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// 证明一个启动点 目标拒绝的开始 仍然被拒绝 当启动器发件箱没有收到
-/// 故你应当再次拒绝祈祷。
+/// 验证目标拒绝启动后，即使启动方发件箱未收到
+/// 拒绝应答并重新传递调用，该启动仍保持被拒绝状态。
 /// </summary>
 /// <remarks>
-/// 启动器发件电话上的一个 <see cref="LostRejectionFilter"/> ,让目标拒绝援引,然后失败
-/// 启动者会把“持久工作”的交付重新发送。
-/// 时间, 测试的推进。 重试到达目标的收件箱, 它已经处理过请求 。
+/// 启动方传递调用上的 <see cref="LostRejectionFilter"/> 先让目标拒绝调用，再使
+/// 启动方的调用失败，以模拟应答丢失；因此启动方发件箱基于持久化作业
+/// 时钟重试传递，测试会推进该时钟。重试到达已处理过该调用的目标收件箱。
 /// </remarks>
 public abstract class DurableTaskLostRejectionTests : IAsyncLifetime
 {
@@ -52,8 +52,8 @@ public abstract class DurableTaskLostRejectionTests : IAsyncLifetime
         var workflow = await starter.StartAsync(target.GetPrimaryKey(), TakenRootId).WithId("workflow").ScheduleAsync(cancellationToken);
         var outcome = workflow.GetResponseAsync(cancellationToken);
 
-        // 目标拒绝冲突开始 但启动者不接受拒绝 所以它发件箱
-        // 重新安排援引时间。
+        // 目标拒绝冲突的启动请求，但启动方未收到拒绝应答，因此其发件箱
+        // 重新调度该调用的传递。
         var lost = await _deliveries.Lost.WaitAsync(Timeout, cancellationToken);
         Assert.Equal(DurableTaskRejectionCodes.Conflict, lost.Code);
         var retry = (MessagingEvents.OutboxRetryScheduled)(await events.WaitForEventAsync(
@@ -64,7 +64,7 @@ public abstract class DurableTaskLostRejectionTests : IAsyncLifetime
         Assert.Equal(target.GetGrainId(), retry.ReceiverId);
         Assert.False(outcome.IsCompleted);
 
-        // 目标以其最初的拒绝来回答重新交付的援引。
+        // 目标以最初的拒绝应答响应重新传递的调用。
         _fixture.JobClock.Advance(RetryDelay * 2);
         var retired = (MessagingEvents.OutboxMessageRetired)(await events.WaitForEventAsync(
             nameof(MessagingEvents.OutboxMessageRetired),
@@ -76,7 +76,7 @@ public abstract class DurableTaskLostRejectionTests : IAsyncLifetime
         var rejected = Assert.IsType<OutboxMessageRetirement.Rejected>(retired.Retirement.Value);
         Assert.Equal(DurableTaskRejectionCodes.Conflict, rejected.Code);
         Assert.Equal(lost.Reason, rejected.Reason);
-        // 每个答案都是目标拒绝的复印件, 工会案例通过参考比较, 从而比较内容。
+        // 每个应答都是目标拒绝结果的副本，联合类型的各分支按引用比较，因此比较其内容。
         Assert.Equal([(lost.Reason, lost.Code), (lost.Reason, lost.Code)], _deliveries.Answers.Select(answer => (answer.Reason, answer.Code)));
 
         var response = await outcome.WaitAsync(Timeout, cancellationToken);
@@ -85,18 +85,18 @@ public abstract class DurableTaskLostRejectionTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// 目标第一次拒绝后启动器失灵, 以失败的响应为例, 记录失败
-    /// 每一个拒绝,目标回答。
+    /// 在目标第一次拒绝后使启动方调用失败，以模拟应答丢失，并记录
+    /// 目标返回的每个拒绝结果。
     /// </summary>
     private sealed class LostRejectionFilter : IOutgoingGrainCallFilter
     {
         private readonly TaskCompletionSource<DeliveryResult.DeadLettered> _lost = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly List<DeliveryResult.DeadLettered> _answers = [];
 
-        /// <summary>获取拒绝, 其答案是过滤器从启动器中隐藏的 。</summary>
+        /// <summary>获取被筛选器对启动方隐藏应答的拒绝结果。</summary>
         public Task<DeliveryResult.DeadLettered> Lost => _lost.Task;
 
-        /// <summary>获得目标回答的拒绝,无论启动者是否收到。</summary>
+        /// <summary>获取目标返回的拒绝结果，不论启动方是否收到。</summary>
         public IReadOnlyList<DeliveryResult.DeadLettered> Answers
         {
             get
@@ -121,14 +121,14 @@ public abstract class DurableTaskLostRejectionTests : IAsyncLifetime
     }
 }
 
-/// <summary>运行丢失的拒绝覆盖,任务状态以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行拒绝应答丢失相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskLostRejectionTests() : DurableTaskLostRejectionTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行以 Orleans 二进制日记格式存储的任务状态的已丢失拒绝覆盖。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行拒绝应答丢失相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -144,7 +144,7 @@ public interface ILostRejectionTargetGrain : IGrainWithGuidKey
 {
     DurableTask<int> EchoAsync(int value);
 
-    /// <summary>回声通过另一种方法,因此任务与同一根ID下的回声相冲突。</summary>
+    /// <summary>通过另一个方法进行回显，因此其任务与相同根 ID 下的回显任务冲突。</summary>
     DurableTask<int> EchoAgainAsync(int value);
 }
 

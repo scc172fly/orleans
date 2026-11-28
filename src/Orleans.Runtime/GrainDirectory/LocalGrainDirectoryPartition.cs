@@ -32,7 +32,7 @@ namespace Orleans.Runtime.GrainDirectory
                     {
                         var delayparameter = lazyDeregistrationDelay;
                         if (delayparameter <= TimeSpan.Zero)
-                            return false; // 没有任何懒惰的注销登记
+                            return false; // 不执行延迟注销。
                         else
                             return (TimeCreated <= DateTime.UtcNow - delayparameter);
                     }
@@ -44,7 +44,7 @@ namespace Orleans.Runtime.GrainDirectory
 
         public GrainAddress TryAddSingleActivation(GrainAddress address, GrainAddress? previousAddress)
         {
-            // 如果现有地址与 "previousAddress" 不符,那么我们不能添加新地址。
+            // 如果已有地址且与 previousAddress 不匹配，则无法添加新地址。
             if (Activation is { } existing && (previousAddress is null || !previousAddress.Equals(existing)))
             {
                 return existing;
@@ -82,8 +82,8 @@ namespace Orleans.Runtime.GrainDirectory
             }
             else if (Activation is not null && otherActivation is not null)
             {
-                // Grain 应该是在单一启动模式, 但我们有两个激活!
-                // 最终我们应该把处理此事的委托给 silo, 但是现在,我们任意选择一个价值。
+                // Grain 本应处于单激活实例模式，但现在却有两个激活实例！
+                // 最终应以某种方式将此情况交由 Silo 处理，但目前任意选择其中一个值。
                 if (Activation.ActivationId.Key.CompareTo(otherActivation.ActivationId.Key) < 0)
                 {
                     var activationToDrop = Activation;
@@ -93,7 +93,7 @@ namespace Orleans.Runtime.GrainDirectory
                     return activationToDrop;
                 }
 
-                // 保持这个激活并摧毁另一个
+                // 保留此激活实例，并销毁另一个。
                 return otherActivation;
             }
 
@@ -103,11 +103,11 @@ namespace Orleans.Runtime.GrainDirectory
 
     internal sealed partial class LocalGrainDirectoryPartition
     {
-        // 我们应当将这一修改为 SortedList或 SortedDictionary 以便我们为全船运输 提取更多块
-        // 相对于跟随者分区的分区, 或者我们把它留作词典, 以获得 O(1) 而不是 O(log n) 的查看, 假设我们做了
-        // 还要多看一眼,所以可以定期整理?
+        // 是否应该将这里改为 SortedList<> 或 SortedDictionary，以便更好地分块向跟随节点传输完整
+        // 分区？还是应保留 Dictionary，以获得 O(1) 查找而非 O(log n) 查找，考虑到
+        // 查找次数远多于传输，因此可以定期排序？
         /// <summary>
-        /// 列表的版本(etag) 计数器包含从 grain 到其启动活动的清单的地图以及该列表的版本(etag) 计数器
+        /// 包含从 Grain 到其激活实例列表的映射，以及该列表的版本（ETag）计数器。
         /// </summary>
         private Dictionary<GrainId, GrainInfo> partitionData;
         private readonly object lockable;
@@ -138,7 +138,7 @@ namespace Orleans.Runtime.GrainDirectory
         }
 
         /// <summary>
-        /// 返回分区中存储的所有条目,作为可数收藏
+        /// 将分区中的所有条目作为可枚举集合返回。
         /// </summary>
         /// <returns></returns>
         public List<KeyValuePair<GrainId, GrainInfo>> GetItems()
@@ -150,9 +150,9 @@ namespace Orleans.Runtime.GrainDirectory
         }
 
         /// <summary>
-        /// 向目录分区添加新激活
+        /// 向目录分区添加新的激活实例。
         /// </summary>
-        /// <returns>登记 ActivationAddress 和与此目录映射相关的版本</returns>
+        /// <returns>此目录映射关联的已注册 ActivationAddress 及版本。</returns>
         internal AddressAndTag AddSingleActivation(GrainAddress address, GrainAddress? previousAddress)
         {
             LogTraceAddingSingleActivation(address.SiloAddress, address.GrainId, address.ActivationId);
@@ -173,7 +173,7 @@ namespace Orleans.Runtime.GrainDirectory
                 }
                 else
                 {
-                    // 如果现有条目指向无效的 silo ,则删除 
+                    // 如果已有条目指向无效的 Silo，则将其移除。
                     if (IsDefunctActivation(grainInfo.Activation))
                     {
                         partitionData[address.GrainId] = grainInfo = new GrainInfo();
@@ -185,11 +185,11 @@ namespace Orleans.Runtime.GrainDirectory
         }
 
         /// <summary>
-        /// 从分区中删除给定 grain 的激活
+        /// 从分区移除指定 Grain 的某个激活实例。
         /// </summary>
-        /// <param name="grain">身份的识别、 grain</param>
-        /// <param name="activation">激活的id</param>
-        /// <param name="cause">删除激活的理由</param>
+        /// <param name="grain">Grain 的标识。</param>
+        /// <param name="activation">激活实例的 ID。</param>
+        /// <param name="cause">移除激活实例的原因。</param>
         internal void RemoveActivation(GrainId grain, ActivationId activation, UnregistrationCause cause = UnregistrationCause.Force)
         {
             var wasRemoved = false;
@@ -197,7 +197,7 @@ namespace Orleans.Runtime.GrainDirectory
             {
                 if (partitionData.TryGetValue(grain, out var value) && value.RemoveActivation(activation, cause, this.grainDirectoryOptions.Value.LazyDeregistrationDelay, out wasRemoved))
                 {
-                    // 如果删除了 grain 的最后一次激活, 我们删除整个 grain 信息 
+                    // 如果移除了此 Grain 的最后一个激活实例，则移除整个 Grain 的信息。
                     partitionData.Remove(grain);
                 }
             }
@@ -206,7 +206,7 @@ namespace Orleans.Runtime.GrainDirectory
         }
 
         /// <summary>
-        /// 从目录中删除 grain (以及有效的所有激活)
+        /// 从目录移除 Grain（实际上也移除了其全部激活实例）。
         /// </summary>
         /// <param name="grain"></param>
         internal void RemoveGrain(GrainId grain)
@@ -240,8 +240,8 @@ namespace Orleans.Runtime.GrainDirectory
         }
 
         /// <summary>
-        /// 返回 grain激活列表的版本号。
-        /// 如果找不到 grain , -1 将被返回。
+        /// 返回该 Grain 的激活实例列表版本号。
+        /// 如果未找到 Grain，则返回 -1。
         /// </summary>
         /// <param name="grain"></param>
         /// <returns></returns>
@@ -254,11 +254,11 @@ namespace Orleans.Runtime.GrainDirectory
         }
 
         /// <summary>
-        /// 假设分割区断裂,将一个分割区合并为另一个分割区。
-        /// 当系统视图( 即时 silos集) 更改时, 手动管理器应该使用此方法更新分区 。
+        /// 将一个分区合并到另一个分区，假定这些分区互不相交。
+        /// 此方法供移交管理器在系统视图（存活 Silo 的集合）发生变化时更新分区。
         /// </summary>
         /// <param name="other"></param>
-        /// <returns>活动必须停止</returns>
+        /// <returns>必须停用的激活实例。</returns>
         internal Dictionary<SiloAddress, List<GrainAddress>>? Merge(LocalGrainDirectoryPartition other)
         {
             Dictionary<SiloAddress, List<GrainAddress>>? activationsToRemove = null;
@@ -286,12 +286,12 @@ namespace Orleans.Runtime.GrainDirectory
         }
 
         /// <summary>
-        /// 运行分区和移动/复制(取决于给定的旗帜)中的所有条目
-        /// 符合给定的上游线的条目进入新分区。
-        /// 当系统视图( 即时 silos集) 更改时, 手动管理器应该使用此方法更新分区 。
+        /// 遍历分区中的所有条目，并根据给定标志，将
+        /// 满足给定谓词的条目移动或复制到新分区中。
+        /// 此方法供移交管理器在系统视图（存活 Silo 的集合）发生变化时更新分区。
         /// </summary>
-        /// <param name="predicate">过滤器上游(通常是如果给定 grain 为特定 silo所有)</param>
-        /// <returns>符合给定的上游</returns>
+        /// <param name="predicate">筛选谓词（通常判断指定 Grain 是否由某个特定 Silo 拥有）。</param>
+        /// <returns>满足给定谓词的条目。</returns>
         internal List<GrainAddress> Split(Predicate<GrainId> predicate)
         {
             var result = new List<GrainAddress>();
@@ -319,22 +319,22 @@ namespace Orleans.Runtime.GrainDirectory
         }
 
         /// <summary>
-        /// 将内部分区字典设置为输入参数。
-        /// 手动管理器应该使用这种方法更新旧分区, 并使用新的分区 。
+        /// 将内部的分区字典设置为输入参数指定的字典。
+        /// 此方法供移交管理器用新分区更新旧分区。
         /// </summary>
-        /// <param name="newPartitionData">新的内部分区字典</param>
+        /// <param name="newPartitionData">新的内部分区字典。</param>
         internal void Set(Dictionary<GrainId, GrainInfo> newPartitionData)
         {
             partitionData = newPartitionData;
         }
 
         /// <summary>
-        /// 以新的三角形更改更新分区。
-        /// 手动管理器应该使用这种方法更新分区, 并进行一系列三角形更改 。
+        /// 使用新的增量变更更新分区。
+        /// 此方法供移交管理器使用一组增量变更来更新分区。
         /// </summary>
-        /// <param name="newPartitionDelta">字典中包含一组三角洲更新到此分区的 。
-        /// 如果三角形中给定密钥的值有效,则替换分区中的现有条目。
-        /// 否则, i.e.如果数值为无效,则删除相应的条目。
+        /// <param name="newPartitionDelta">包含此分区的一组增量更新的字典。
+        /// 如果增量中给定键的值有效，则替换分区中的现有条目；
+        /// 否则，即当该值为 null 时，移除相应条目。
         /// </param>
         internal void Update(Dictionary<GrainId, GrainInfo> newPartitionDelta)
         {

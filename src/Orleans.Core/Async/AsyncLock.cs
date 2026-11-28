@@ -5,29 +5,29 @@ using System.Threading.Tasks;
 namespace Orleans
 {
     /// <summary>
-    /// 一种相互排斥的结合机制,通过“使用”支持范围界定。
+    /// 一种异步互斥机制，支持通过 using 限定作用域。
     /// </summary>
     /// <remarks>
-    /// (编自 http://blogs.msdn.com/b/pfxteam/archive/2012/02/12/10266988.aspx)
+    /// （改编自 http://blogs.msdn.com/b/pfxteam/archive/2012/02/12/10266988.aspx）
     ///
-    /// 与 <b>亚同步</b>, 和 <b>锁定锁定</b> 关键字有问题:
+    /// 使用 <b>async</b> 编程时，<b>lock</b> 关键字存在以下问题：
     /// <list type="bullet">
-    ///     <item><description><b>锁</b> 将让线索在等待对代码关键部分的独家访问时被阻塞。</description></item>
-    ///     <item><description>下 <b>等待等待</b> 关键字不能在 <b>锁定锁定</b> 构造。</description></item>
+    /// <item><description><b>lock</b> 会阻塞线程，使其等待对代码临界区的独占访问权限。</description></item>
+    /// <item><description>在 <b>lock</b> 语句的作用域内不能使用 <b>await</b> 关键字。</description></item>
     /// </list>
     ///
-    /// 有时提供对代码关键部分的独家访问仍然有用。 AsyncLock 提供语义
-    /// 与(非递录性)哑音相对应,同时符合同步方案拟订原则。
+    /// 有时仍然需要独占访问代码临界区。AsyncLock 提供
+    /// 与（不可递归获取的）互斥锁相对应的语义，同时符合异步编程原则。
     /// </remarks>
     /// <example>
-    /// 以下例子执行一些需要锁在门下完成的工作:
+    /// 以下示例实现了一项需要在持有锁时执行的工作：
     /// <code>
     /// class Test
     /// {
     ///     private AsyncLock _initLock = new AsyncLock();
     ///     public async Task&lt;int> WorkUnderLock()
     ///     {
-    ///             using (await _initLock.LockAsync()) // 类似于 lock(_initLock)
+    ///             using (await _initLock.LockAsync()) // analogous to lock(_initLock)
     ///             {
     ///                  return await DoSomeWork();
     ///             }
@@ -36,14 +36,14 @@ namespace Orleans
     /// </code>
     /// </example>
     ///
-    /// 我们决定尽量保持执行的简单性,尽可能模仿普通哑音的语义。
-    /// 1) AsyncLock 不可工作,因为我们不想让开发者选择错误手动处理锁定
-    /// 可能有些未释放 LockReleasers。
-    /// 2) AsyncLock 不必执行最后处理功能。 SemaphoreSlim 的基本资源最终将由 .NET释放,
-    /// 何时 SemaphoreSlim 已完成。 AsyncLock 无法加速
-    /// 3) LockReleaser 是无法执行“使用”模式的。
-    /// LockReleaser 不需要执行最后处理功能。如果用户忘记丢弃 LockReleaser (与忘记释放哑巴相似)
-    /// AsyncLock 将仍然锁定, 这可能会导致僵局。 这是可以的, 因为这些都是非常普通的哑语语义学 - 如果忘记解锁哑语的话, 它会一直被锁住 。
+    /// 我们决定保持实现简单，并尽可能模拟普通互斥锁的语义。
+    /// 1) AsyncLock 不实现 IDisposable，因为我们不希望开发者
+    /// 在仍有未释放的 LockReleaser 时错误地手动释放锁。
+    /// 2) AsyncLock 无须实现终结器。SemaphoreSlim 的底层资源最终会由 .NET
+    /// 在 SemaphoreSlim 终结时释放。为 AsyncLock 添加终结器并不会加速这一过程。
+    /// 3) LockReleaser 实现 IDisposable，以支持 using 模式。
+    /// 4) LockReleaser 无须实现终结器。如果用户忘记对 LockReleaser 调用 Dispose（类似于忘记释放互斥锁），
+    /// AsyncLock 将保持锁定，可能导致死锁。这是可以接受的，因为它与普通互斥锁的语义完全一致：忘记解锁时，互斥锁仍然保持锁定。
     [System.Diagnostics.CodeAnalysis.SuppressMessage(
         "Design",
         "CA1001:Types that own disposable fields should be disposable",
@@ -61,9 +61,9 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 迅速获得锁
+        /// 异步获取锁。
         /// </summary>
-        /// <returns>解锁必须使用的 <see cref="IDisposable"/> 。</returns>
+        /// <returns>一个必须用于释放锁的 <see cref="IDisposable"/>。</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage(
             "Reliability",
             "CA2000:Dispose objects before losing scope",
@@ -101,14 +101,14 @@ namespace Orleans
                 if (target == null)
                     return;
 
-                // 首先是取消,下个释放, 所以即使发布扔了, 我们不再持有参考文献。
+                // 先将引用设为 null，再调用 Release，这样即使 Release 抛出异常，也不会继续持有该引用。
                 AsyncLock tmp = target;
                 target = null;
                 try
                 {
                     tmp.semaphore.Release();
                 }
-                catch (Exception) { } // 忽略例外
+                catch (Exception) { } // 直接忽略异常。
             }
         }
     }

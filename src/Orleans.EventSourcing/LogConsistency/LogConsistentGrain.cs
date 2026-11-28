@@ -11,26 +11,26 @@ using Orleans.Providers;
 namespace Orleans.EventSourcing
 {
     /// <summary>
-    /// 用于管理状态时使用日志一致性的所有 grains 基级。
-    /// 等于 <see cref="Grain{T}"/> 用于 grains 使用对数一致性。
-    /// (SiloAssemblyLoader 使用它提取类型)
+    /// 所有使用日志一致性管理状态的 Grain 的基类。
+    /// 对于使用日志一致性的 Grain，它相当于 <see cref="Grain{T}"/>。
+    /// （SiloAssemblyLoader 使用它提取类型。）
     /// </summary>
-    /// <typeparam name="TView">视图类型</typeparam>
+    /// <typeparam name="TView">视图的类型。</typeparam>
     public abstract class LogConsistentGrain<TView> : Grain, ILifecycleParticipant<IGrainLifecycle>
     {
         /// <summary>
-        /// 在 grain 建造后立即调用安装日志视图适配器
+        /// 在 Grain 构造完成后立即调用，以安装日志视图适配器。
         /// </summary>
-        /// <param name="factory"> 调适工厂使用 </param>
-        /// <param name="state"> 视图的初始状态 </param>
-        /// <param name="grainTypeName"> grain </param>的名称类型
-        /// <param name="grainStorage"> grain 储存,必要时储存 </param>
-        /// <param name="services"> 礼宾服务 </param>
+        /// <param name="factory">要使用的适配器工厂。</param>
+        /// <param name="state">视图的初始状态。</param>
+        /// <param name="grainTypeName">Grain 的类型名称。</param>
+        /// <param name="grainStorage">需要时使用的 Grain 存储。</param>
+        /// <param name="services">协议服务。</param>
         protected abstract void InstallAdaptor(ILogViewAdaptorFactory factory, object state, string grainTypeName, IGrainStorage? grainStorage, ILogConsistencyProtocolServices services);
 
         /// <summary>
-        /// 获取默认调整器厂用,如果没有默认使用则为无效
-        /// (在这种情况下用户必须配置一个一致性提供商)
+        /// 获取要使用的默认适配器工厂；如果不存在默认工厂，则为 null
+        /// （在这种情况下，用户必须配置一致性提供程序）。
         /// </summary>
         protected abstract ILogViewAdaptorFactory? DefaultAdaptorFactory { get; }
 
@@ -81,7 +81,7 @@ namespace Orleans.EventSourcing
             ILogViewAdaptorFactory factory,
             IGrainStorage? grainStorage)
         {
-            // 一致性适配器使用的装封运行时间服务
+            // 封装一致性适配器使用的运行时服务。
             ILogConsistencyProtocolServices svc = protocolServicesFactory(grainContext);
 
             TView state = (TView)Activator.CreateInstance(typeof(TView))!;
@@ -102,7 +102,7 @@ namespace Orleans.EventSourcing
                 throw new BadProviderConfigException(errMsg);
             }
 
-            // 如果找不到默认值, 则使用默认值
+            // 如果未找到，则使用默认值。
             defaultFactory = defaultFactory ?? this.DefaultAdaptorFactory;
             if (defaultFactory == null)
             {

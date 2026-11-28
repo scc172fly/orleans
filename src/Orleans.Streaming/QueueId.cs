@@ -3,8 +3,8 @@ using System;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 指定耐久的队列。
-    /// 使用 Orleans 流扩展。
+    /// 持久化队列的标识符。
+    /// 由 Orleans 流处理扩展使用。
     /// </summary>
     [Serializable]
     [Immutable]
@@ -19,11 +19,11 @@ namespace Orleans.Streams
         private readonly uint uniformHashCache;
 
         /// <summary>
-        /// 初始化 <see cref="QueueId"/> 类的新实例。
+        /// 初始化 <see cref="QueueId"/> 类的新实例。（译注：当前 QueueId 实际声明为只读结构体。）
         /// </summary>
         /// <param name="queuePrefix">队列前缀。</param>
-        /// <param name="id">识别符号。</param>
-        /// <param name="hash">杂草。</param>
+        /// <param name="id">标识符。</param>
+        /// <param name="hash">哈希值。</param>
         private QueueId(string queuePrefix, uint id, uint hash)
         {
             queueNamePrefix = queuePrefix ?? throw new ArgumentNullException(nameof(queuePrefix));
@@ -36,7 +36,7 @@ namespace Orleans.Streams
         /// </summary>
         /// <param name="queueName">队列名称。</param>
         /// <param name="queueId">队列标识符。</param>
-        /// <param name="hash">杂草。</param>
+        /// <param name="hash">哈希值。</param>
         /// <returns>队列标识符。</returns>
         public static QueueId GetQueueId(string queueName, uint queueId, uint hash) => new(queueName, queueId, hash);
 
@@ -47,16 +47,16 @@ namespace Orleans.Streams
         public string GetStringNamePrefix() => queueNamePrefix;
 
         /// <summary>
-        /// 获得数字识别码。
+        /// 获取数值标识符。
         /// </summary>
-        /// <returns>数字识别符号。</returns>
+        /// <returns>数值标识符。</returns>
         public uint GetNumericId() => queueId;
 
         /// <inheritdoc/>
         public uint GetUniformHashCode() => uniformHashCache;
 
         /// <summary>
-        /// 获得一个值,以显示此实例是否为默认实例。
+        /// 获取一个值，指示此实例是否为默认实例。
         /// </summary>
         public bool IsDefault => queueNamePrefix is null;
 
@@ -82,19 +82,19 @@ namespace Orleans.Streams
         public override int GetHashCode() => HashCode.Combine(queueId, uniformHashCache, queueNamePrefix);
 
         /// <summary>
-        /// 比较了两个队列平等标识符。
+        /// 比较两个队列标识符是否相等。
         /// </summary>
         /// <param name="left">第一个队列标识符。</param>
         /// <param name="right">第二个队列标识符。</param>
-        /// <returns><see langword="true"/> ,如果两个识别符号相等;否则, <see langword="false"/>。</returns>
+        /// <returns>如果两个标识符相等，则为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
         public static bool operator ==(QueueId left, QueueId right) => left.Equals(right);
 
         /// <summary>
-        /// 将不平等的队列识别码比作两个。
+        /// 比较两个队列标识符是否不相等。
         /// </summary>
         /// <param name="left">第一个队列标识符。</param>
         /// <param name="right">第二个队列标识符。</param>
-        /// <returns><see langword="true"/> ,如果识别符号不同;否则, <see langword="false"/>。</returns>
+        /// <returns>如果两个标识符不同，则为 <see langword="true"/>；否则为 <see langword="false"/>。</returns>
         public static bool operator !=(QueueId left, QueueId right) => !(left == right);
 
         /// <inheritdoc/>
@@ -128,9 +128,9 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 返回此实例的字符串表示, 包括统一的散列代码。
+        /// 返回此实例的字符串表示形式，其中包含均匀哈希码。
         /// </summary>
-        /// <returns>此实例的字符串表示, 包括统一的散列代码。</returns>
+        /// <returns>此实例的字符串表示形式，其中包含均匀哈希码。</returns>
         public string ToStringWithHashCode() => $"{this:H}";
     }
 }

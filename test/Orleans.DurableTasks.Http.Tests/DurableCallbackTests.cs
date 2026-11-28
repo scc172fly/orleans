@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Orleans.Durable.Http.Tests;
 
-/// <summary>运行可靠的回调:组公约的网络图和 Nexus 完成回调。</summary>
+/// <summary>验证可靠的回调：路由组约定的 Webhook 和 Nexus 完成回调。</summary>
 [Collection(DurableHttpCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -29,7 +29,7 @@ public sealed class DurableCallbackTests(DurableHttpFixture fixture)
         Assert.Equal(HttpStatusCode.Accepted, started.StatusCode);
         var location = Assert.Single(started.Headers.GetValues(DurableHttpHeaders.OperationLocation));
 
-        // 重新审判的开始记录着同样的回调, 一次发出。
+        // 重试启动操作会注册相同的回调，该回调仅投递一次。
         using (var retry = await StartWithWebhookAsync(new Uri(location).AbsolutePath[..^$"/operations/{key}".Length] + "/approval", key, name, cancellationToken))
         {
             Assert.Equal(HttpStatusCode.Accepted, retry.StatusCode);

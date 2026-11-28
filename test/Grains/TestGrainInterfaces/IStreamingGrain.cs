@@ -37,7 +37,7 @@ namespace UnitTests.GrainInterfaces
     }
 
 
-    //- - - - - - - - 国家接口
+    //------- 状态接口 ----//
 
     [Serializable]
     [GenerateSerializer]
@@ -65,7 +65,7 @@ namespace UnitTests.GrainInterfaces
         public List<IConsumerObserver>? Consumers { get; set; }
     }
 
-    //- - - - - - - - - - - - 用于实施实际测试逻辑的物体的 PCO界面
+    //------- 用于实现实际测试逻辑的对象的 POCO 接口 ----///
 
     public interface IProducerObserver
     {

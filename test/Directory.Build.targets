@@ -6,7 +6,7 @@
   
   <Import Project="$(_ParentDirectoryBuildTargetsPath)" Condition="Exists('$(_ParentDirectoryBuildTargetsPath)')"/>
 
-  <!-- 选择此工程不针对的框架的运行, 例如框架选择点网测试运行, 跳过它 。 -->
+  <!-- 如果某次运行选择了此项目未面向的框架（例如指定框架的 dotnet test 运行），则跳过此项目。 -->
   <PropertyGroup Condition="'$(TargetFramework)' != '' and '$(TargetFrameworks)' != '' and !$([System.String]::Copy(';$(TargetFrameworks);').Contains(';$(TargetFramework);'))">
     <IsTestProject>false</IsTestProject>
     <IsTestingPlatformApplication>false</IsTestingPlatformApplication>

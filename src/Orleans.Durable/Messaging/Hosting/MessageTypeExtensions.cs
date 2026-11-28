@@ -6,15 +6,15 @@ using Orleans.Serialization;
 
 namespace Orleans.Hosting;
 
-/// <summary>用于登记输入的耐久信息主题的扩展。</summary>
+/// <summary>用于注册强类型持久化消息主题的扩展方法。</summary>
 public static class MessageTypeExtensions
 {
-    /// <summary>登记单吨的受约束标,以其正态标为键。</summary>
-    /// <typeparam name="T">目标的载荷合同</typeparam>
-    /// <param name="services">服务收藏。</param>
-    /// <param name="subject">确切的应用程序协议主题。</param>
-    /// <returns>服务收藏。</returns>
-    /// <exception cref="InvalidOperationException">已经登记了约束标的。</exception>
+    /// <summary>注册单例主题绑定，以按序数比较的主题为键。</summary>
+    /// <typeparam name="T">主题的有效载荷契约。</typeparam>
+    /// <param name="services">服务集合。</param>
+    /// <param name="subject">精确的应用协议主题。</param>
+    /// <returns>服务集合。</returns>
+    /// <exception cref="InvalidOperationException">已注册该主题的绑定。</exception>
     public static IServiceCollection AddMessageType<T>(this IServiceCollection services, string subject)
     {
         ArgumentNullException.ThrowIfNull(services);

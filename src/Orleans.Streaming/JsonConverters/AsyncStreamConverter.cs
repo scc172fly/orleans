@@ -10,7 +10,7 @@ using Orleans.Streams;
 namespace Orleans.Streaming.JsonConverters
 {
     /// <summary>
-    /// A <see cref="JsonConverter{T}"/> 用于 <see cref="IAsyncStream"/> 类型。
+    /// 一种 <see cref="JsonConverter{T}"/>，适用于 <see cref="IAsyncStream"/> 类型。
     /// </summary>
     internal sealed class AsyncStreamConverter(IRuntimeClient runtimeClient) : JsonConverter<IAsyncStream>
     {

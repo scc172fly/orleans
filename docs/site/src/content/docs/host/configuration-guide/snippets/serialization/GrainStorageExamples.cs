@@ -4,7 +4,7 @@ using Orleans.Storage;
 
 namespace Orleans.Docs.Snippets.Serialization;
 
-// 为自定义序列器示例定义占位符类
+// 为自定义序列化器示例定义占位类。
 public class MyCustomSerializer : IGrainStorageSerializer
 {
     public BinaryData Serialize<T>(T? value) => throw new NotImplementedException();

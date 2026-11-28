@@ -4,7 +4,7 @@ namespace Orleans.Durable.Messaging.Tests.Support;
 
 internal static class InboxTestAccess
 {
-    /// <summary>用于记录电文的恢复原因 电文中被电到的尝试耗尽了重试窗口</summary>
+    /// <summary>对于已计入的尝试耗尽重试窗口的消息，恢复过程所记录的死信原因。</summary>
     public const string InterruptedAttemptReason = "The activation stopped without recording the outcome of an attempt.";
 
     public static IEnumerable<InboxMessage> Messages(this Inbox inbox) => inbox.MessageState.Values.Select(static entry => entry.Message);

@@ -3,30 +3,30 @@
 @inject PollService PollService
 @inject NavigationManager NavigationManager
 
-<h1>Create Poll</h1>
+<h1>创建投票</h1>
 
 <form @onsubmit="@(e => { })">
 	<div class="mb-3">
-		<label for="pollTitle" class="form-label">Poll Title</label>
+		<label for="pollTitle" class="form-label">投票标题</label>
 		<input type="text" class="form-control" id="pollTitle" @bind="@question">
-		<div id="pollTitleDescription" class="form-text">Enter the question you would like answered.</div>
+		<div id="pollTitleDescription" class="form-text">请输入你希望获得回答的问题。</div>
 	</div>
 	<div class="input-group mb-3">
-		<input type="text" class="form-control" placeholder="Option value" @bind="@newOption">
-		<button class="btn btn-outline-secondary" type="button" id="button-add" @onclick="AddOption">Add</button>
+		<input type="text" class="form-control" placeholder="选项内容" @bind="@newOption">
+		<button class="btn btn-outline-secondary" type="button" id="button-add" @onclick="AddOption">添加</button>
 	</div>
 	@foreach (var (index, option) in options.Select((name, index) => (index, name)))
 	{
 		<div class="input-group mb-3">
-			<input type="text" class="form-control" placeholder="Option value" value="@option" @onchange="@(e => RenameOption(index, (string?)e.Value ?? string.Empty))">
-			<button class="btn btn-outline-secondary" type="button" id="button-add" @onclick="@(e => DeleteOption(index))">Delete</button>
+			<input type="text" class="form-control" placeholder="选项内容" value="@option" @onchange="@(e => RenameOption(index, (string?)e.Value ?? string.Empty))">
+			<button class="btn btn-outline-secondary" type="button" id="button-add" @onclick="@(e => DeleteOption(index))">删除</button>
 		</div>
 	}
 
-  <button class="btn btn-primary" @onclick="CreatePollAsync">Create</button>
+  <button class="btn btn-primary" @onclick="CreatePollAsync">创建</button>
 </form>
 <br />
-<button class="btn btn-danger" @onclick="DemoAutofill">DEMO: auto-fill poll</button>
+<button class="btn btn-danger" @onclick="DemoAutofill">演示：自动填写投票</button>
 @code {
 
     private Guid ownerKey = Guid.NewGuid();

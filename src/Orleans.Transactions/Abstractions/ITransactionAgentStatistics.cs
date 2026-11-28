@@ -2,47 +2,47 @@
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// 跟踪交易代理活动。
+    /// 跟踪事务代理的活动。
     /// </summary>
     public interface ITransactionAgentStatistics
     {
         /// <summary>
-        /// 记录交易已经开始。
+        /// 记录事务已启动。
         /// </summary>
         void TrackTransactionStarted();
 
         /// <summary>
-        /// 获取已经开始的交易数量。
+        /// 获取已启动的事务数量。
         /// </summary>
         long TransactionsStarted { get; }
 
         /// <summary>
-        /// 交易成功完成的记录。
+        /// 记录事务已成功完成。
         /// </summary>
         void TrackTransactionSucceeded();
 
         /// <summary>
-        /// 获取成功完成的交易数量。
+        /// 获取已成功完成的事务数量。
         /// </summary>
         long TransactionsSucceeded { get; }
 
         /// <summary>
-        /// 记录交易失败的记录。
+        /// 记录事务失败。
         /// </summary>
         void TrackTransactionFailed();
 
         /// <summary>
-        /// 获取失败的交易数量。
+        /// 获取失败的事务数量。
         /// </summary>
         long TransactionsFailed { get; }
 
         /// <summary>
-        /// 交易因交易代理中断而被拒绝的记录。
+        /// 记录因事务代理限流而被拒绝的事务。
         /// </summary>
         void TrackTransactionThrottled();
 
         /// <summary>
-        /// 获得因交易代理中断而被拒绝的交易数量。
+        /// 获取因事务代理限流而被拒绝的事务数量。
         /// </summary>
         long TransactionsThrottled { get; }
     }

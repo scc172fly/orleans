@@ -76,7 +76,7 @@ internal sealed class ActivationSheddingToyHostedService(IGrainFactory grainFact
             return;
         }
 
-        // 计算和打印边存内用量 grain
+        // 计算并输出每个 Grain 的边际内存占用量。
         Console.WriteLine("Marginal memory usage per grain (bytes) between points:");
         for (int j = 1; j < stats.Count; j++)
         {

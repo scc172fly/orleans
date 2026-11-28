@@ -8,7 +8,7 @@ using Orleans.Runtime.Utilities;
 
 namespace Orleans.Runtime.GrainDirectory;
 
-// 仅读、 分类的非重叠范围收藏 。
+// 互不重叠的范围组成的只读有序集合。
 [GenerateSerializer, Immutable, Alias(nameof(RingRangeCollection))]
 internal readonly struct RingRangeCollection : IEquatable<RingRangeCollection>, ISpanFormattable, IEnumerable<RingRange>
 {
@@ -17,7 +17,7 @@ internal readonly struct RingRangeCollection : IEquatable<RingRangeCollection>, 
 #if DEBUG
         Debug.Assert(!ranges.IsDefault);
 
-        // 范围必须按分类顺序排列,不得相互重叠。
+        // 范围必须按顺序排列，且彼此不得重叠。
         for (var i = 1; i < ranges.Length; i++)
         {
             var prev = ranges[i - 1];
@@ -65,7 +65,7 @@ internal readonly struct RingRangeCollection : IEquatable<RingRangeCollection>, 
     public bool IsFull => Size == RingRange.Full.Size;
 
     /// <summary>
-    /// 获取互不重叠的范围所覆盖的总点数，取值为 0 到 2^32。
+    /// 获取互不重叠的范围所覆盖的点的总数，取值从零到 2 的 32 次方。
     /// </summary>
     public ulong Size
     {
@@ -155,11 +155,11 @@ internal readonly struct RingRangeCollection : IEquatable<RingRangeCollection>, 
 
     public RingRangeCollection Difference(RingRangeCollection previous)
     {
-        // 左侧的距离不得相互重叠。
-        // 右侧的距离不得相互重叠。
-        // 左右对等的幅度具有相同的起点。
-        // “ 区域” 或“previous.Ranges” 中的区域数为零, 或所配置的区域数,
-        // i.e.,如果两个收藏的幅度都超过零,则两者的幅度相同。
+        // left 中的范围不得相互重叠。
+        // right 中的范围不得相互重叠。
+        // left 和 right 中对应范围的起点相同。
+        // Ranges 和 previous.Ranges 中的范围数均为零或已配置的范围数量，
+        // 即如果两个集合都不为空，则它们的范围数量相同。
         var currentLength = Ranges.IsDefault ? 0 : Ranges.Length;
         var previousLength = previous.Ranges.IsDefault ? 0 : previous.Ranges.Length;
 
@@ -177,8 +177,8 @@ internal readonly struct RingRangeCollection : IEquatable<RingRangeCollection>, 
                 }
             }
 
-            // 如果最后的距离环绕着,但其扩展范围不环绕,则将其移到前面。
-            // 保存了秩序
+            // 如果最后一个范围是环绕范围，而其扩展出来的新增部分并不环绕，则将该新增部分移到最前面。
+            // 这样可以保持排序顺序。
             if (result.Count > 1 && result[^1].Start < result[^2].Start)
             {
                 var last = result[^1];

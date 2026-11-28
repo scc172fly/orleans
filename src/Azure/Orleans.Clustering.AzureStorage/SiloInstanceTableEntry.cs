@@ -16,21 +16,21 @@ namespace Orleans.AzureUtils
         public string? Port { get; set; }            // RowKey
         public string? Generation { get; set; }      // RowKey
 
-        public string? HostName { get; set; }        // 强制性
-        public string? Status { get; set; }          // 强制性
-        public string? ProxyPort { get; set; }       // 任择
+        public string? HostName { get; set; }        // 必填。
+        public string? Status { get; set; }          // 必填。
+        public string? ProxyPort { get; set; }       // 可选。
 
-        public string? RoleName { get; set; }        // 仅允许 - 只允许 Azure 角色
+        public string? RoleName { get; set; }        // 可选，仅用于 Azure 角色。
         public string? SiloName { get; set; }
-        public string? InstanceName { get; set; }    // 后向兼容性我们留下旧栏目 直到所有客户都更新代码到新版本
-        public string? UpdateZone { get; set; }         // 仅允许 - 只允许 Azure 角色
-        public string? FaultZone { get; set; }          // 仅允许 - 只允许 Azure 角色
+        public string? InstanceName { get; set; }    // 为保持向后兼容，在所有客户端更新到新版代码之前保留旧列。
+        public string? UpdateZone { get; set; }         // 可选，仅用于 Azure 角色。
+        public string? FaultZone { get; set; }          // 可选，仅用于 Azure 角色。
 
-        public string? SuspectingSilos { get; set; }          // 是为了生命
-        public string? SuspectingTimes { get; set; }          // 是为了生命
+        public string? SuspectingSilos { get; set; }          // 用于存活检测。
+        public string? SuspectingTimes { get; set; }          // 用于存活检测。
 
-        public string? StartTime { get; set; }          // 开始此时间 silo 。 对于诊断, 请使用它 。
-        public string? IAmAliveTime { get; set; }           // 此时此时间 silo 更新后它还活着,用于诊断
+        public string? StartTime { get; set; }          // 此 Silo 的启动时间，用于诊断。
+        public string? IAmAliveTime { get; set; }           // 此 Silo 最近一次更新存活状态的时间，用于诊断。
         public string? MembershipVersion { get; set; }
 
         public string PartitionKey { get; set; } = null!;
@@ -39,7 +39,7 @@ namespace Orleans.AzureUtils
         public ETag ETag { get; set; }
 
         internal const string TABLE_VERSION_ROW = "VersionRow";
-        // Azure 表查询按 RowKey排序。这些数值围绕每个 IPv4 和 IPv6 地址字符串排序。
+        // Azure Table 查询按 RowKey 排序。这些值的排序位置覆盖所有 IPv4 和 IPv6 地址字符串的两侧。
         internal const string TABLE_VERSION_ROW_MIN = "!Start";
         internal const string TABLE_VERSION_ROW_MAX = "~End";
         internal const char Seperator = '-';

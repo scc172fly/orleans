@@ -5,24 +5,24 @@ products:
 - dotnet
 - dotnet-orleans
 page_type: sample
-name: "Orleans BankAccount ACID transactions"
+name: "Orleans BankAccount ACID 事务"
 urlFragment: "orleans-bank-account-acid-transactions"
-description: "例如,使用ACID交易的 BankAccount 。"
+description: "使用 ACID 事务的 BankAccount 示例。"
 ---
 
 <a id="orleans-bank-account-with-acid-transactions"></a>
 
-# Orleans 与ACIDS交易的银行账户
+# Orleans 银行账户 ACID 事务
 
-本样本表明如何使用银行账户假想情况 Orleans 实施ACID交易。
-有两种 grains:
+本示例以银行账户为场景，演示如何使用 Orleans 实现 ACID 事务。
+其中有两种 Grain：
 
-![在终端运行的银行服务程序](./assets/BankClient.png)
+![在终端中运行的 BankClient 应用](./assets/BankClient.png)
 
-* `AccountGrain`执行 `IAccountGrain`,模拟银行账户的余额。
-* `AtmGrain`执行 `IAtmGrain`,模拟自动取款机,允许两个银行账户之间的转账。
+* `AccountGrain` 实现 `IAccountGrain`，模拟具有余额的银行账户。
+* `AtmGrain` 实现 `IAtmGrain`，模拟可以在两个银行账户之间转账的自动柜员机（ATM）。
 
-`AtmGrain` 具有此接口 :
+`AtmGrain` 具有以下接口：
 
 ```csharp
 public interface IAtmGrain : IGrainWithIntegerKey
@@ -32,7 +32,7 @@ public interface IAtmGrain : IGrainWithIntegerKey
 }
 ```
 
-`AccountGrain` 具有此接口 :
+`AccountGrain` 具有以下接口：
 
 ```csharp
 public interface IAccountGrain : IGrainWithGuidKey
@@ -48,10 +48,10 @@ public interface IAccountGrain : IGrainWithGuidKey
 }
 ```
 
-下 `[Transaction(option)]` 上 grain 方法告诉运行时间这些方法是交易的。
-`IAtmGrain.Transfer` 方法产生交易,而 `IAccountGrain.Withdraw` 方法和 `IAccountGrain.Deposit` 方法则必须在现有交易中使用。
+Grain 方法上的 `[Transaction(option)]` 特性告知运行时，这些方法具有事务语义。
+`IAtmGrain.Transfer` 方法创建事务，而 `IAccountGrain.Withdraw` 和 `IAccountGrain.Deposit` 方法必须在已有事务的上下文中调用。
 
-`AtmGrain.Transfer(...)` 执行情况如下:
+`AtmGrain.Transfer(...)` 的实现如下：
 
 ```csharp
 public async Task Transfer(
@@ -65,15 +65,15 @@ public async Task Transfer(
 }
 ```
 
-`Transfer` 方法从一个 `IAccountGrain` 中提取指定数额并将其存入另一个。 Orleans 确保交易中出现这种情况,以确保一致性。
+`Transfer` 方法从一个 `IAccountGrain` 中取出指定金额，并存入另一个账户。Orleans 确保该操作在事务上下文中进行，以保证一致性。
 
-`AccountGrain.Deposit` 方法使用 `ITransactionalState<T>.PerformUpdate` 方法将交存的金额加入账户余额:
+`AccountGrain.Deposit` 方法通过 `ITransactionalState<T>.PerformUpdate` 方法将存入金额增加到账户余额中：
 
 ```csharp
 public Task Deposit(uint amount) => _balance.PerformUpdate(x => x.Value += amount);
 ```
 
-实际银行允许超额放款账户,但本样本没有这样做。 `AccountGrain.Withdraw(uint amount)` 通过提出例外条款防止过度放款,导致交易中止:
+实际银行可能允许账户透支，但本示例不允许。`AccountGrain.Withdraw(uint amount)` 通过引发异常来防止透支，从而使事务中止：
 
 ```csharp
 public Task Withdraw(uint amount) => _balance.PerformUpdate(x =>
@@ -91,38 +91,38 @@ public Task Withdraw(uint amount) => _balance.PerformUpdate(x =>
 
 <a id="sample-prerequisites"></a>
 
-## 抽样的前提条件
+## 示例先决条件
 
-本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
+本示例使用 C# 编写，目标框架为 .NET 10。需要 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本。
 
 <a id="building-the-sample"></a>
 
-## 建立样本
+## 构建示例
 
-下载和运行样本时,请遵循以下步骤:
+按照以下步骤下载并运行示例：
 
-1. 下载并解开样本的平面
-2. 视觉演播室(2022年或以后):
-    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
-    2. 打开解压后的示例目录，再打开其中的 C# 项目文件（`.csproj`）。
-    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 直接运行。
-3. 从命令行 :
-   1. 导航到持有未设偏移样本代码的文件夹 。
-   2. 在命令行,类型 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
+1. 下载并解压示例。
+2. 在 Visual Studio（2022 或更高版本）中：
+    1. 在菜单栏中选择 **文件** > **打开** > **项目/解决方案**。
+    2. 导航到存放已解压示例代码的文件夹，并打开 C# 项目（.csproj）文件。
+    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 在不调试的情况下运行项目。
+3. 从命令行运行：
+   1. 导航到存放已解压示例代码的文件夹。
+   2. 在命令行输入 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
 
-开始 *BankServer* 进程
+首先启动 *BankServer* 进程：
 
 ``` bash
 dotnet run --project BankServer
 ```
 
-然后启动 *BankClient* 进程
+然后启动 *BankClient* 进程：
 
 ``` bash
 dotnet run --project BankClient
 ```
 
-客户端将循环在随机账户之间发布交易,打印结果。 例如 :
+客户端会循环在随机账户间发起事务，并输出结果。例如：
 
 ```console
 We transferred 100 credits from Pasqualino to Ida.
@@ -130,7 +130,7 @@ Pasqualino balance: 1500
 Ida balance: 1600
 ```
 
-当提取账户时会超支, 客户端将打印错误, 如:
+如果取款会导致账户透支，客户端会输出类似以下的错误：
 
 ```console
 Error transferring 100 credits from Derick to Xaawo: Transaction 2edc92f5-a94d-4167-9522-fa661cc030ff Aborted because of an unhandled exception in a grain method call. See InnerException for details.

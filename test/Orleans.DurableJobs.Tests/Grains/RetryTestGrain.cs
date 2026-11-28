@@ -32,14 +32,14 @@ public class RetryTestGrain : Grain, IRetryTestGrain, IDurableJobHandler
     {
         var jobId = ctx.Job.Id;
 
-        // 如果这是第一次尝试, 初始化跟踪
+        // 如果是首次执行尝试，则初始化跟踪状态。
         if (!_jobExecutionAttempts.ContainsKey(jobId))
         {
             _jobExecutionAttempts[jobId] = 0;
             _jobDequeueCountHistory[jobId] = new List<int>();
         }
 
-        // 跟踪此尝试
+        // 跟踪本次执行尝试。
         _jobExecutionAttempts[jobId]++;
         _jobDequeueCountHistory[jobId].Add(ctx.DequeueCount);
 
@@ -49,7 +49,7 @@ public class RetryTestGrain : Grain, IRetryTestGrain, IDurableJobHandler
             _jobExecutionAttempts[jobId],
             ctx.DequeueCount);
 
-        // 检查我们是否根据元数据失败
+        // 根据元数据检查是否应当失败。
         if (ctx.Job.Metadata is not null && ctx.Job.Metadata.TryGetValue("FailUntilAttempt", out var failUntilAttemptStr))
         {
             if (int.TryParse(failUntilAttemptStr, out var failUntilAttempt))
@@ -68,7 +68,7 @@ public class RetryTestGrain : Grain, IRetryTestGrain, IDurableJobHandler
             }
         }
 
-        // 任务成功成功
+        // 作业成功。
         _logger.LogInformation("Job {JobId} succeeded on attempt {Attempt}", jobId, _jobExecutionAttempts[jobId]);
         _finalJobContexts[jobId] = ctx;
         _jobSuccessStatus[jobId].SetResult();
@@ -96,7 +96,7 @@ public class RetryTestGrain : Grain, IRetryTestGrain, IDurableJobHandler
     {
         if (!_jobSuccessStatus.TryGetValue(jobId, out var tcs))
         {
-            // 可能没有安排此 grain上的工作
+            // 作业可能未在此 Grain 上调度。
             _jobSuccessStatus[jobId] = new TaskCompletionSource();
             tcs = _jobSuccessStatus[jobId];
         }

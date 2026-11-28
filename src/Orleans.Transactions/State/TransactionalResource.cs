@@ -21,7 +21,7 @@ namespace Orleans.Transactions.State
         public async Task<TransactionalStatus> CommitReadOnly(Guid transactionId, AccessCounter accessCount, DateTime timeStamp, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // 验证锁定
+            // 验证锁。
             var (status, record) = await this.queue.RWLock.ValidateLock(transactionId, accessCount).WaitAsync(cancellationToken);
             var valid = status == TransactionalStatus.Ok;
 
@@ -54,7 +54,7 @@ namespace Orleans.Transactions.State
         public async Task Abort(Guid transactionId, CancellationToken cancellationToken)
         {
             await this.queue.Ready(transactionId).WaitAsync(cancellationToken);
-            // 释放锁定
+            // 释放锁。
             this.queue.RWLock.Rollback(transactionId);
 
             this.queue.RWLock.Notify();

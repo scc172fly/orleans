@@ -23,7 +23,7 @@ using Orleans.Transactions.DynamoDB;
 namespace Orleans.Transactions.DynamoDB.TransactionalState;
 
 /// <summary>
-/// 提供 DynamoDB- 支持交易的国家储存。
+/// 提供由 DynamoDB 支持的事务状态存储。
 /// </summary>
 /// <typeparam name="TState">状态类型。</typeparam>
 public partial class DynamoDBTransactionalStateStorage<TState> : ITransactionalStateStorage<TState> where TState : class, new()
@@ -39,7 +39,7 @@ public partial class DynamoDBTransactionalStateStorage<TState> : ITransactionalS
     private readonly IGrainStorageSerializer serializer;
     private readonly ILogger<DynamoDBTransactionalStateStorage<TState>> logger;
 
-    // 装入了此存储实例的 Cache 数据
+    // 缓存此存储实例已加载的数据。
     private KeyEntity key = null!;
     private List<KeyValuePair<long, StateEntity>> states = null!;
     private bool requiresReload;
@@ -47,10 +47,10 @@ public partial class DynamoDBTransactionalStateStorage<TState> : ITransactionalS
     /// <summary>
     /// 初始化 <see cref="DynamoDBTransactionalStateStorage{TState}"/> 类的新实例。
     /// </summary>
-    /// <param name="storage">存储客户端 DynamoDB 。</param>
-    /// <param name="options">供应商选项。</param>
-    /// <param name="partitionKey">存储分区密钥。</param>
-    /// <param name="logger">日志器。</param>
+    /// <param name="storage">DynamoDB 存储客户端。</param>
+    /// <param name="options">提供程序选项。</param>
+    /// <param name="partitionKey">存储分区键。</param>
+    /// <param name="logger">日志记录器。</param>
     public DynamoDBTransactionalStateStorage(DynamoDBStorage storage, DynamoDBTransactionalStorageOptions options, string partitionKey, ILogger<DynamoDBTransactionalStateStorage<TState>> logger)
     {
         this.storage = storage;
@@ -72,7 +72,7 @@ public partial class DynamoDBTransactionalStateStorage<TState> : ITransactionalS
                 LogDebugLoadedV0Fresh(this.partitionKey);
                 this.requiresReload = false;
 
-                // 首次装载
+                // 首次加载。
                 return new TransactionalStorageLoadResponse<TState>();
             }
 
@@ -98,11 +98,11 @@ public partial class DynamoDBTransactionalStateStorage<TState> : ITransactionalS
             {
                 var kvp = states[i];
 
-                // 已经承诺交易的待处理状态可以忽略
+                // 可以忽略已提交事务对应的待提交状态。
                 if (kvp.Key <= key.CommittedSequenceId)
                     continue;
 
-                // 恢复后,当地非承付交易被视为中止
+                // 恢复时，将本地尚未提交的事务视为已中止。
                 if (kvp.Value.TransactionManager is null or { Length: 0 })
                     break;
 
@@ -118,11 +118,11 @@ public partial class DynamoDBTransactionalStateStorage<TState> : ITransactionalS
                 });
             }
 
-            // 不再需要,现在可以给GC
+            // 不再需要，可以进行垃圾回收。
             for (int i = 0; i < states.Count; i++)
             {
                 var entity = states[i].Value;
-                entity.State = []; // 清清国家以自由记忆
+                entity.State = []; // 清除状态以释放内存。
             }
 
             LogDebugLoadedPartitionKeyRows(this.partitionKey, this.key.CommittedSequenceId, new(states));
@@ -167,15 +167,15 @@ public partial class DynamoDBTransactionalStateStorage<TState> : ITransactionalS
                 : key.CommittedSequenceId;
             this.ValidateKeyItemSize(serializedMetadata, timestamp, committedSequenceId);
 
-            // 构建交易时存储缓存实体变换。 如果有任何操作,
-            // 失败, 装入必须恢复缓存, 否则此实例将再次使用 。
+            // Store 在构建事务时会修改缓存的实体。如果任何操作
+            // 失败，必须先通过 Load 恢复缓存，才能再次使用此实例。
             this.requiresReload = true;
 
-            // 将所有储存作业合并成一个批次
-            // 这些行动必须按顺序进行,但不一定是原子
-            // 以便我们分头处理
+            // 将全部存储操作组织为一个批次。
+            // 这些操作必须按顺序提交，但不必以原子方式整体提交，
+            // 因此可以在需要时拆分批次。
 
-            // 首先,清理已中止的记录
+            // 首先清理已中止的记录。
             if (abortAfter.HasValue && states.Count != 0)
             {
                 while (states.Count > 0 && states[states.Count - 1].Key > abortAfter)
@@ -206,7 +206,7 @@ public partial class DynamoDBTransactionalStateStorage<TState> : ITransactionalS
                 }
             }
 
-            // 第二,长期的不过期准备记录
+            // 其次持久化尚未过时的准备记录。
             var obsoleteBefore = commitUpTo ?? key.CommittedSequenceId;
             if (statesToPrepare != null)
                 foreach (var s in statesToPrepare)
@@ -215,7 +215,7 @@ public partial class DynamoDBTransactionalStateStorage<TState> : ITransactionalS
                     {
                         if (FindState(s.SequenceId, out var pos))
                         {
-                            // 覆盖新的待补状态
+                            // 使用新的待提交状态覆盖原有状态。
                             StateEntity existing = states[pos].Value;
                             var currentETag = GetRequiredETag(existing.ETag, existing.PartitionKey, existing.RowKey);
                             existing.TransactionId = s.TransactionId;
@@ -261,7 +261,7 @@ public partial class DynamoDBTransactionalStateStorage<TState> : ITransactionalS
                     }
                 }
 
-            // 第三个、持续元数据和承诺位置
+            // 第三步，持久化元数据及提交位置。
             key.Metadata = serializedMetadata;
             key.Timestamp = timestamp;
             key.CommittedSequenceId = committedSequenceId;
@@ -278,7 +278,7 @@ public partial class DynamoDBTransactionalStateStorage<TState> : ITransactionalS
                     metadata.CommitRecords.Count);
             }
 
-            // 第四,删除过时记录
+            // 第四步，删除过时的记录。
             if (states.Count > 0 && states[0].Key < obsoleteBefore)
             {
                 FindState(obsoleteBefore, out var pos);
@@ -348,7 +348,7 @@ public partial class DynamoDBTransactionalStateStorage<TState> : ITransactionalS
     }
 
     /// <summary>
-    /// 装入 KeyEntity 调自 DynamoDB.
+    /// 从 DynamoDB 加载 KeyEntity。
     /// </summary>
     private async Task<KeyEntity> LoadKeyEntityAsync()
     {
@@ -387,7 +387,7 @@ public partial class DynamoDBTransactionalStateStorage<TState> : ITransactionalS
     }
 
     /// <summary>
-    /// 装入全部未公布的 StateEntity 记录从 DynamoDB.
+    /// 从 DynamoDB 加载所有尚未发布的 StateEntity 记录。
     /// </summary>
     private async Task<List<KeyValuePair<long, StateEntity>>> LoadStateEntitiesAsync()
     {

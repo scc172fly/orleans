@@ -4,15 +4,15 @@ using System.Threading.Tasks;
 
 namespace Orleans.Durable.Messaging;
 
-/// <summary>注册输入了 <see cref="IInbox"/>的标处理器。</summary>
-/// <remarks>州级超负荷人口直接储存其论点,并支持静态代表。</remarks>
+/// <summary>向 <see cref="IInbox"/> 注册强类型主题处理器。</summary>
+/// <remarks>带状态的重载直接存储参数，并支持静态委托。</remarks>
 public static class InboxExtensions
 {
     /// <summary>注册同步主题处理器。</summary>
-    /// <typeparam name="T">体力合同。</typeparam>
+    /// <typeparam name="T">正文契约。</typeparam>
     /// <param name="inbox">收件箱。</param>
-    /// <param name="messageType">主题和序列装订。</param>
-    /// <param name="handler">同步体和背景代表</param>
+    /// <param name="messageType">主题与序列化器的绑定。</param>
+    /// <param name="handler">接收消息正文和上下文的同步委托。</param>
     /// <returns>收件箱。</returns>
     public static IInbox Register<T>(this IInbox inbox, MessageType<T> messageType, Action<T, IInboxHandlerContext> handler)
     {
@@ -22,15 +22,15 @@ public static class InboxExtensions
         return inbox.Register(new SynchronousHandler<T>(messageType, handler));
     }
 
-    /// <summary>注册同步主题处理器,并有明确的参数。</summary>
-    /// <typeparam name="T">体力合同。</typeparam>
-    /// <typeparam name="TArg">处理器参数类型。</typeparam>
+    /// <summary>注册带显式参数的同步主题处理器。</summary>
+    /// <typeparam name="T">正文契约。</typeparam>
+    /// <typeparam name="TArg">处理器参数的类型。</typeparam>
     /// <param name="inbox">收件箱。</param>
-    /// <param name="messageType">主题和序列装订。</param>
+    /// <param name="messageType">主题与序列化器的绑定。</param>
     /// <param name="argument">与处理器一起存储的参数。</param>
-    /// <param name="handler">同步体、辩论和背景代表。</param>
+    /// <param name="handler">接收正文、参数和上下文的同步委托。</param>
     /// <returns>收件箱。</returns>
-    /// <remarks>使用静态代表到通过州,而不进行记录关闭。</remarks>
+    /// <remarks>使用静态委托传递状态，无需捕获闭包。</remarks>
     public static IInbox Register<T, TArg>(
         this IInbox inbox, MessageType<T> messageType, TArg argument, Action<T, TArg, IInboxHandlerContext> handler)
     {
@@ -40,11 +40,11 @@ public static class InboxExtensions
         return inbox.Register(new SynchronousHandler<T, TArg>(messageType, argument, handler));
     }
 
-    /// <summary>登记一个主体处理器,支持非同步的准备工作。</summary>
-    /// <typeparam name="T">体力合同。</typeparam>
+    /// <summary>注册支持异步准备的主题处理器。</summary>
+    /// <typeparam name="T">正文契约。</typeparam>
     /// <param name="inbox">收件箱。</param>
-    /// <param name="messageType">主题和序列装订。</param>
-    /// <param name="handler">身体、背景和主动代表。</param>
+    /// <param name="messageType">主题与序列化器的绑定。</param>
+    /// <param name="handler">接收正文、上下文和尝试取消令牌的委托。</param>
     /// <returns>收件箱。</returns>
     public static IInbox Register<T>(
         this IInbox inbox, MessageType<T> messageType, Func<T, IInboxHandlerContext, CancellationToken, ValueTask> handler)
@@ -55,15 +55,15 @@ public static class InboxExtensions
         return inbox.Register(new AsynchronousHandler<T>(messageType, handler));
     }
 
-    /// <summary>登记一个非同步的主题处理器,并有明确的论点。</summary>
-    /// <typeparam name="T">体力合同。</typeparam>
-    /// <typeparam name="TArg">处理器参数类型。</typeparam>
+    /// <summary>注册带显式参数的异步主题处理器。</summary>
+    /// <typeparam name="T">正文契约。</typeparam>
+    /// <typeparam name="TArg">处理器参数的类型。</typeparam>
     /// <param name="inbox">收件箱。</param>
-    /// <param name="messageType">主题和序列装订。</param>
+    /// <param name="messageType">主题与序列化器的绑定。</param>
     /// <param name="argument">与处理器一起存储的参数。</param>
-    /// <param name="handler">身体、论点、背景和未遂代表。</param>
+    /// <param name="handler">接收正文、参数、上下文和尝试取消令牌的委托。</param>
     /// <returns>收件箱。</returns>
-    /// <remarks>使用静态代表到通过州,而不进行记录关闭。</remarks>
+    /// <remarks>使用静态委托传递状态，无需捕获闭包。</remarks>
     public static IInbox Register<T, TArg>(
         this IInbox inbox, MessageType<T> messageType, TArg argument,
         Func<T, TArg, IInboxHandlerContext, CancellationToken, ValueTask> handler)
@@ -82,7 +82,7 @@ public static class InboxExtensions
         public ValueTask HandleAsync(IInboxHandlerContext context, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // 该代表拥有该代号机构,包括在解码时取消的登记。
+            // 委托拥有已解码的正文，即使取消在解码期间到达也是如此。
             var body = messageType.Decode(context.Message.Envelope);
             return Invoke(body, context, cancellationToken);
         }

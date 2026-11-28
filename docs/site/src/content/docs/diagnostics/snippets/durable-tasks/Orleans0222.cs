@@ -6,7 +6,7 @@ public sealed class NewsletterGrain(IEmailSender email) : DurableGrain
     // <orleans0222_violation>
     public async DurableTask SubscribeAsync()
     {
-        // SendWelcome 返回时, 第一次等待后, 所以步骤记录在电子邮件发送前完成 。
+        // SendWelcome 在第一个 await 处返回，因此步骤在邮件发送前就记录了完成状态。
         await DurableTask.Run(SendWelcome).WithId("welcome");
     }
 
@@ -18,7 +18,7 @@ public sealed class NewsletterGrain(IEmailSender email) : DurableGrain
     // <orleans0222_fix_task>
     public async DurableTask SubscribeAndWelcomeAsync()
     {
-        // 返回的任务完成后, 电子邮件发送后, 步骤将完成 。
+        // 返回的任务完成时（即邮件发送后），该步骤才完成。
         await DurableTask.Run(SendWelcomeAsync).WithId("welcome");
     }
 

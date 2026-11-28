@@ -10,8 +10,8 @@ namespace Orleans.Transactions.TestKit.xUnit
         /// <summary>
         /// 初始化 <see cref="ConsistencyTransactionTestRunnerxUnit"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">下 grain 用于测试的工厂 grains.</param>
-        /// <param name="output"> xUnit 测试输出助手。</param>
+        /// <param name="grainFactory">用于访问测试 Grain 的 Grain 工厂。</param>
+        /// <param name="output">xUnit 测试输出助手。</param>
         public ConsistencyTransactionTestRunnerxUnit(IGrainFactory grainFactory, ITestOutputHelper output)
             : base(grainFactory, TestOutputHelperExtensions.GetWriteLine(output, nameof(output)))
         {
@@ -25,7 +25,7 @@ namespace Orleans.Transactions.TestKit.xUnit
 
         /// <inheritdoc cref="ConsistencyTransactionTestRunner.RandomizedConsistency(int, int, bool, bool, ReadWriteDetermination)"/>
         [Theory]
-        // 高拥挤率
+        // 高争用
         [InlineData(2, 2, true, true, ReadWriteDetermination.PerGrain)]
         [InlineData(2, 3, true, true, ReadWriteDetermination.PerGrain)]
         [InlineData(2, 4, true, true, ReadWriteDetermination.PerGrain)]
@@ -58,7 +58,7 @@ namespace Orleans.Transactions.TestKit.xUnit
         [InlineData(2, 3, false, false, ReadWriteDetermination.PerAccess)]
         [InlineData(2, 4, false, false, ReadWriteDetermination.PerAccess)]
         [InlineData(2, 5, false, false, ReadWriteDetermination.PerAccess)]
-        // 中中交通拥挤
+        // 中等争用
         [InlineData(30, 2, true, true, ReadWriteDetermination.PerGrain)]
         [InlineData(30, 3, true, true, ReadWriteDetermination.PerGrain)]
         [InlineData(30, 4, true, true, ReadWriteDetermination.PerGrain)]
@@ -87,7 +87,7 @@ namespace Orleans.Transactions.TestKit.xUnit
         [InlineData(30, 3, false, false, ReadWriteDetermination.PerAccess)]
         [InlineData(30, 4, false, false, ReadWriteDetermination.PerAccess)]
         [InlineData(30, 5, false, false, ReadWriteDetermination.PerAccess)]
-        // 低拥挤率
+        // 低争用
         [InlineData(1000, 2, false, true, ReadWriteDetermination.PerGrain)]
         [InlineData(1000, 3, false, true, ReadWriteDetermination.PerGrain)]
         [InlineData(1000, 4, false, true, ReadWriteDetermination.PerGrain)]

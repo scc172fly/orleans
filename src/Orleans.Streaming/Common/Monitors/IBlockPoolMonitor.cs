@@ -1,36 +1,36 @@
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// 与数据库有关的指标。 
+    /// 跟踪内存块池相关指标的监视器。缓存系统使用内存块池进行内存管理。
     /// </summary>
     public interface IBlockPoolMonitor
     {
         /// <summary>
-        /// 当缓存新分配内存时调用 。
+        /// 当缓存新分配内存时调用。
         /// </summary>
-        /// <param name="allocatedMemoryInBytes">分配的内存,以字节表示。</param>
+        /// <param name="allocatedMemoryInBytes">已分配的内存（字节）。</param>
         void TrackMemoryAllocated(long allocatedMemoryInBytes);
 
         /// <summary>
-        /// 缓存释放记忆时呼叫
+        /// 当缓存释放内存时调用。
         /// </summary>
-        /// <param name="releasedMemoryInBytes">释放的内存,以字节表示。</param>
+        /// <param name="releasedMemoryInBytes">已释放的内存（字节）。</param>
         void TrackMemoryReleased(long releasedMemoryInBytes);
 
         /// <summary>
-        /// 定期报告集体现金池状况
+        /// 定期报告内存块池状态。
         /// </summary>
-        /// <param name="totalSizeInByte">全部内存这个分配的区块集合。</param>
-        /// 可用于分配缓存的<param name="availableMemoryInByte">内存。</param>
-        /// <param name="claimedMemoryInByte">内存被缓存使用。</param>
+        /// <param name="totalSizeInByte">此内存块池分配的总内存。</param>
+        /// <param name="availableMemoryInByte">可分配给缓存的内存。</param>
+        /// <param name="claimedMemoryInByte">缓存正在使用的内存。</param>
         void Report(long totalSizeInByte, long availableMemoryInByte, long claimedMemoryInByte);
     }
 
     /// <summary>
-    /// ObjectPoolMonitor 报告 ObjectPool的度量,这些度量以天体数为基础。 BlockPoolMonitor 报告 BlockPool的度量,根据内存大小。 
-    /// 这两个监视器在 orleans 缓存基础设施中汇合,其中 ObjectPool 被用作分配内存的块状集合,每个对象代表一个内存块
-    /// 其大小为. ObjectPoolMonitorBridge 是这两个监测器在缓存基础设施中的桥梁。当 ObjectPoolMonitor 报告一个度时, 
-    /// 用户配置的 BlockPoolMonitor 将调用对应的方法,并根据数学报告: memoryInByte = objectCount*objectSizeInByte
+    /// ObjectPoolMonitor 按对象数量报告 ObjectPool 的指标；BlockPoolMonitor 按内存大小报告 BlockPool 的指标。
+    /// 这两种监视器在 Orleans 缓存基础设施中汇合：ObjectPool 用作内存块池，每个对象表示一块
+    /// 具有一定大小的内存。ObjectPoolMonitorBridge 在缓存基础设施中桥接两种监视器。当 ObjectPoolMonitor 报告指标时，
+    /// 用户配置的 BlockPoolMonitor 将调用对应方法，并按公式 memoryInByte = objectCount*objectSizeInByte 报告指标。
     /// </summary>
     public class ObjectPoolMonitorBridge : IObjectPoolMonitor
     {
@@ -40,8 +40,8 @@ namespace Orleans.Providers.Streams.Common
         /// <summary>
         /// 初始化 <see cref="ObjectPoolMonitorBridge"/> 类的新实例。
         /// </summary>
-        /// <param name="blockPoolMonitor">块集合监视器。</param>
-        /// <param name="blockSizeInBytes">区块大小以字节为单位。</param>
+        /// <param name="blockPoolMonitor">内存块池监视器。</param>
+        /// <param name="blockSizeInBytes">块大小（字节）。</param>
         public ObjectPoolMonitorBridge(IBlockPoolMonitor blockPoolMonitor, int blockSizeInBytes)
         {
             this.blockPoolMonitor = blockPoolMonitor;

@@ -13,7 +13,7 @@ namespace Orleans.GrainDirectory.AdoNet.Storage
 #elif TESTER_SQLUTILS
 namespace Orleans.Tests.SqlUtils
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 {
     internal class NoOpCommandInterceptor : ICommandInterceptor
@@ -27,7 +27,7 @@ namespace Orleans.Tests.SqlUtils
 
         public void Intercept(IDbCommand command)
         {
-            //NOP 国家
+            //NOP
         }
     }
 }

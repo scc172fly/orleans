@@ -7,10 +7,10 @@ using Xunit;
 
 namespace DependencyInjection.Tests.Autofac
 {
-    // 自动软件不支持键服务
+    // Autofac 尚不支持键控服务
 #if false
     /// <summary>
-    /// 使用Autofac作为 Orleans grains的识别数据交换容器测试依赖注射功能。
+    /// 测试使用 Autofac 作为 Orleans Grain 的 DI 容器时的依赖注入功能。
     /// </summary>
     [TestCategory("DI"), TestCategory("Functional")]
     [TestSuite("Functional")]
@@ -26,7 +26,7 @@ namespace DependencyInjection.Tests.Autofac
                 builder.AddSiloBuilderConfigurator<TestSiloBuilderConfigurator>();
                 builder.AddSiloBuilderConfigurator<SiloBuilderConfiguratorConfiguringAutofac>();
             }
-            //配置后将自动应用器作为 DI 容器
+            // 配置为使用 Autofac 作为 DI 容器
             private class SiloBuilderConfiguratorConfiguringAutofac : IHostConfigurator
             {
                 public void Configure(IHostBuilder hostBuilder)
@@ -43,7 +43,7 @@ namespace DependencyInjection.Tests.Autofac
     }
 
     /// <summary>
-    /// 测试 Orleans silos 在配置使用自动法作为数据交换容器时能够成功启动。
+    /// 测试配置为使用 Autofac 作为 DI 容器时，Orleans Silo 能否成功启动。
     /// </summary>
     [TestCategory("DI"), TestCategory("Functional")]
     [TestSuite("Functional")]
@@ -62,7 +62,7 @@ namespace DependencyInjection.Tests.Autofac
                 builder.AddSiloBuilderConfigurator<HostBuilderConfigurator>();
             }
 
-            //配置后将自动应用器作为 DI 容器
+            // 配置为使用 Autofac 作为 DI 容器
             private class HostBuilderConfigurator : IHostConfigurator
             {
                 public void Configure(IHostBuilder hostBuilder)

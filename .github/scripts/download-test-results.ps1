@@ -104,8 +104,8 @@ if ($partitions.Count -eq 0) {
     throw "No test result artifacts were found for run $RunId."
 }
 
-# 文物 API 有创建时间,但没有尝试字段。身份不是按时间顺序排列的。
-# 独立选择每个分区, 所以只运行失败的重新运行会保留其他分区 。
+# 构建产物 API 提供创建时间，但没有运行尝试次数字段。ID 不按时间排序。
+# 独立选择每个分区，以便仅重跑失败任务时保留其他分区的产物。
 $selected = @(
     foreach ($name in @($partitions.Keys | Sort-Object)) {
         $candidates = @($partitions[$name] | Sort-Object CreatedAt -Descending)

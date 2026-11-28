@@ -12,7 +12,7 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.AzureQueue
 {
     /// <summary>
-    /// 接收来自信件队列单个分区的批次信件 。
+    /// 从消息队列的单个分区接收消息批次。
     /// </summary>
     internal partial class AzureQueueAdapterReceiver : IQueueAdapterReceiver
     {
@@ -50,7 +50,7 @@ namespace Orleans.Providers.Streams.AzureQueue
 
         public Task Initialize(TimeSpan timeout)
         {
-            if (queue != null) // 以防我们已经关闭了
+            if (queue != null) // 检查是否已经关闭。
             {
                 return queue.InitQueueAsync();
             }

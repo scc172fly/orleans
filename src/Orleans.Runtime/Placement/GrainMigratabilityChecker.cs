@@ -14,8 +14,8 @@ internal sealed class GrainMigratabilityChecker(
     IClusterManifestProvider clusterManifestProvider,
     [FromKeyedServices(TimeProviderNames.ActivationManagement)] TimeProvider timeProvider)
 {
-    // 我们推翻平等和大麻法典,因为这种类型的文字典是用来作为字典的钥匙。
-    // 并使用默认等同比较器记录结构,对于一个极值来说,对性能而言,它并不那么好。
+    // 因为此类型用作字典的键，所以重写相等性比较和哈希码计算；
+    // 记录结构体使用默认相等性比较器，而该比较器对枚举而言性能不理想。
     private readonly record struct StatusKey(GrainType Type, ImmovableKind Kind) : IEquatable<StatusKey>
     {
         public bool Equals(StatusKey other) => Type == other.Type && Kind == other.Kind;
@@ -41,15 +41,15 @@ internal sealed class GrainMigratabilityChecker(
 
         bool IsMigratableRare(GrainType grainType, StatusKey statusKey)
         {
-            // 偏差类型是否为偏移型号,则每个类型 grain 都持有身份,因此我们可以快速查看。
-            // 因为我们预计不会有大量的 grain *类型*,
+            // _migratableStatuses 保存各 Grain 类型是否可迁移的状态，以便快速查找。
+            // 考虑到预计 Grain 类型的数量不会太多，使用此结构进行快速检查是合理的。
             if (!_migratableStatuses.TryGetValue(statusKey, out var isMigratable))
             {
                 isMigratable = !(grainType.IsClient() || grainType.IsSystemTarget() || grainType.IsGrainService() || IsStatelessWorker(grainType) || IsImmovable(grainType));
                 _migratableStatuses.TryAdd(statusKey, isMigratable);
             }
 
-            // 定期重新恢复缓存。
+            // 定期重新生成缓存。
             var currentTimestamp = _timeProvider.GetTimestamp();
             if (_timeProvider.GetElapsedTime(_lastRegeneratedCacheTimestamp, currentTimestamp) > TimeSpan.FromSeconds(5))
             {
@@ -67,27 +67,27 @@ internal sealed class GrainMigratabilityChecker(
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         bool IsImmovable(GrainType grainType)
         {
-            // 清单按未构建类型描述通用 grain 类,如 GrainPropertiesResolver 一样。
+            // 与 GrainPropertiesResolver 一样，清单使用未构造的类型描述泛型 Grain 类。
             var lookupKey = GenericGrainType.TryParse(grainType, out var generic) ? generic.GetUnconstructedGrainType().GrainType : grainType;
             if (_localManifest.Grains.TryGetValue(lookupKey, out var props))
             {
-                // 如果没有“不动产”,它就不是不动产。
+                // 如果没有 Immovable 属性，则该类型并非不可移动。
                 if (!props.Properties.TryGetValue(WellKnownGrainTypeProperties.Immovable, out var value))
                 {
                     return false;
                 }
 
-                // 如果数值无法分析, 假设它是不动产。
+                // 如果无法解析该值，则假定其不可移动。
                 if (!byte.TryParse(value, out var actualKindValue))
                 {
                     return true;
                 }
 
-                // 它是不动的, 但类型和参数匹配 。
+                // 该类型不可移动，但其类别是否与参数匹配？
                 return ((ImmovableKind)actualKindValue & expectedKind) == expectedKind;
             }
 
-            // 未知 grains 为不动产。
+            // 假定未知 Grain 不可移动。
             return true;
         }
     }

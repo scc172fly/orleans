@@ -10,7 +10,7 @@ namespace Orleans.Runtime.Placement
         {
             var compatibleSilos = context.GetCompatibleSilos(target);
 
-            // 如果指定了有效的放置提示, 请使用它 。
+            // 如果指定了有效的放置提示，则使用该提示。
             if (IPlacementDirector.GetPlacementHint(target.RequestContextData, compatibleSilos) is { } placementHint)
             {
                 return Task.FromResult(placementHint);

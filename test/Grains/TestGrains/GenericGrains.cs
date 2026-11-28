@@ -639,7 +639,7 @@ namespace UnitTests.Grains
         [MaybeNull]
         private T lastValue;
 
-#pragma warning disable CS0618 // Preserve the legacy token callback test implementation.
+#pragma warning disable CS0618 // 保留旧版令牌回调的测试实现。
         public async Task GrainCancellationTokenCallbackThrow(GrainCancellationToken ct, Guid callId, ILongRunningTaskObserver observer)
 #pragma warning restore CS0618
         {
@@ -679,7 +679,7 @@ namespace UnitTests.Grains
 
         public async Task<bool> CallOtherGrainCancellationTokenCallbackResolve(ILongRunningTaskGrain<T> target, Guid callId)
         {
-#pragma warning disable CS0618 // Exercise cancellation initiated by a legacy token source.
+#pragma warning disable CS0618 // 测试由旧版令牌源发起的取消。
             using var cts = new GrainCancellationTokenSource();
 #pragma warning restore CS0618
             var grainTask = target.GrainCancellationTokenCallbackResolve(cts.Token, callId);
@@ -688,7 +688,7 @@ namespace UnitTests.Grains
             return await grainTask;
         }
 
-#pragma warning disable CS0618 // Preserve the legacy token callback test implementation.
+#pragma warning disable CS0618 // 保留旧版令牌回调的测试实现。
         public Task<bool> GrainCancellationTokenCallbackResolve(GrainCancellationToken tc, Guid callId)
 #pragma warning restore CS0618
         {
@@ -750,7 +750,7 @@ namespace UnitTests.Grains
             return t;
         }
 
-#pragma warning disable CS0618 // Preserve grain-to-grain propagation of the legacy token.
+#pragma warning disable CS0618 // 保留旧版令牌在 Grain 之间的传播。
         public async Task CallOtherLongRunningTaskGrainCancellation(ILongRunningTaskGrain<T> target, GrainCancellationToken tc, TimeSpan delay, Guid callId)
 #pragma warning restore CS0618
         {
@@ -777,7 +777,7 @@ namespace UnitTests.Grains
 
         public async Task CallOtherLongRunningTaskWithLocalGrainCancellationToken(ILongRunningTaskGrain<T> target, TimeSpan delay, TimeSpan delayBeforeCancel, Guid callId)
         {
-#pragma warning disable CS0618 // Exercise cancellation initiated by a legacy token source.
+#pragma warning disable CS0618 // 测试由旧版令牌源发起的取消。
             using var cts = new GrainCancellationTokenSource();
 #pragma warning restore CS0618
             var task = target.LongWaitGrainCancellation(cts.Token, delay, callId);
@@ -786,7 +786,7 @@ namespace UnitTests.Grains
             await task;
         }
 
-#pragma warning disable CS0618 // Preserve the legacy token test implementations, including object-typed arguments.
+#pragma warning disable CS0618 // 保留旧版令牌的测试实现，包括声明为 object 类型的参数。
         public Task LongWaitGrainCancellationInterleaving(GrainCancellationToken tc, TimeSpan delay, Guid callId) => LongWaitGrainCancellation(tc, delay, callId);
 
         public Task LongWaitGrainCancellationAsObject(object tc, TimeSpan delay, Guid callId, ILongRunningTaskObserver observer)

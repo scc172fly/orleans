@@ -1,232 +1,232 @@
 ---
-title: "经常问到的问题"
-description: "对有关开发和运行 Orleans 应用程序的共同问题的答复。"
+title: 常见问题解答
+description: 解答 Orleans 应用开发与运维中的常见问题。
 ms.date: 08/12/2026
 ms.topic: faq
 ---
 
 <a id="frequently-asked-questions"></a>
 
-# 经常问到的问题
+# 常见问题解答
 
-对于基于症状的诊断,从 [解决症状目录中的麻烦](../host/monitoring/troubleshooting-symptom-catalog.md)开始,然后依 [事件运行手册](../host/monitoring/troubleshooting.md)。对于面向任务的设置和部署方法,见 [如何指导索引](../how-to/index.md)。
+按症状诊断时，请先查看[故障排查症状目录](../host/monitoring/troubleshooting-symptom-catalog.md)，再按照[事件处置手册](../host/monitoring/troubleshooting.md)操作。有关面向任务的配置和部署方法，请参阅[操作指南索引](../how-to/index.md)。
 
 <a id="availability-and-support"></a>
 
-## 可用性和支助
+## 可用性和支持
 
 <a id="can-i-use-orleans-in-my-project"></a>
 
-### 借我用用用 Orleans 在我的项目?
+### 我可以在自己的项目中使用 Orleans 吗？
 
-是。 Orleans 是 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下的开放源,正式的软件包在 [NuGet.org](https://www.nuget.org/profiles/Orleans)上公布。
+可以。Orleans 根据 [MIT 许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)开源，官方包发布在 [NuGet.org](https://www.nuget.org/profiles/Orleans) 上。
 
 <a id="is-orleans-production-ready"></a>
 
-### 是 Orleans 准备生产了吗?
+### Orleans 是否已达到生产就绪水平？
 
-是。 Orleans 始于 Microsoft 研究,自2011年起开始提供生产服务动力,该项目在 [dotnet/orleans](https://github.com/dotnet/orleans)开放时开发。
+是的。Orleans 起源于 Microsoft Research，自 2011 年起即为生产服务提供支持。该项目在 [dotnet/orleans](https://github.com/dotnet/orleans) 上公开开发。
 
 <a id="which-net-target-frameworks-does-orleans-support"></a>
 
-### 哪些 .NET 目标框架支持 Orleans ?
+### Orleans 支持哪些 .NET 目标框架？
 
-Orleans 图书馆目标 `net10.0` 和 `net11.0`。
+Orleans 库面向 `net10.0` 和 `net11.0`。
 
 <a id="where-do-i-get-help"></a>
 
-### 我哪里有帮助?
+### 在哪里获取帮助？
 
-使用 [GitHub 问题](https://github.com/dotnet/orleans/issues) 来复制错误和功能建议。 使用 [GitHub 讨论](https://github.com/dotnet/orleans/discussions) 或 [不一致](https://aka.ms/orleans-discord) 来提问和设计对话。
+对于可复现的缺陷和功能提议，请使用 [GitHub Issues](https://github.com/dotnet/orleans/issues)。对于问题咨询和设计讨论，请使用 [GitHub Discussions](https://github.com/dotnet/orleans/discussions) 或 [Discord](https://aka.ms/orleans-discord)。
 
 <a id="hosting"></a>
 
-## 东道主
+## 托管
 
 <a id="is-orleans-a-server-product"></a>
 
-### Orleans 服务器产品吗?
+### Orleans 是服务器产品吗？
 
-Orleans 是一套用于构建应用程序的 .NET 图书馆。一个应用程序在其部署和运行过程中,一个或多个程序主机是 Orleans silos 。
+Orleans 是一组用于构建应用的 .NET 库。应用在自己部署和运营的进程中托管一个或多个 Orleans Silo。
 
 <a id="where-can-orleans-run"></a>
 
-### Orleans 跑到哪里去?
+### Orleans 可以在哪里运行？
 
-Orleans 运行在其所支持的 .NET 目标运行的任何地点,包括Linux和Windows主机、集装箱、 Kubernetes服务、 Azure 服务、AWS、其他云层、房地环境和开发机。
+凡是能够运行其受支持 .NET 目标框架的环境，均可运行 Orleans，包括 Linux 和 Windows 主机、容器、Kubernetes、Azure 服务、AWS、其他云、本地部署环境及开发计算机。
 
 <a id="how-many-grains-or-silos-can-a-cluster-contain"></a>
 
-### 有多少 grains 或 silos 集群能包含吗?
+### 一个集群可以包含多少 Grain 或 Silo？
 
-Grain 指定一个虚拟地址空间, Orleans 激活 grains 现有各种需求 silos实际积极grain 和 silo 视工作量和部署环境而定。
+Grain 标识构成虚拟地址空间，Orleans 在可用 Silo 上按需激活 Grain。实际可承载的活跃 Grain 数量和 Silo 数量取决于工作负载及部署环境。
 
-使用类似生产能力测试来确定应用软件的性能和恢复目标的适当组群大小和顶部。 [能力规划和规模](../deployment/capacity-planning.md).
+使用类似生产环境的容量测试，确定满足应用性能及恢复目标的集群规模和余量。请参阅[容量规划与扩缩容](../deployment/capacity-planning.md)。
 
 <a id="is-orleans-tied-to-azure"></a>
 
-### 是 Orleans 绑结 Azure?
+### Orleans 是否绑定 Azure？
 
-Orleans 其提供方生态系统包括 Azure 关系数据库, DynamoDB, Redis卡珊德拉 领事 ZooKeeper、NATS、SQS和海关供应商。
+Orleans 可以跨云和托管环境运行。其提供程序生态包括 Azure 服务、关系数据库、DynamoDB、Redis、Cassandra、Consul、ZooKeeper、NATS、SQS 以及自定义提供程序。
 
 <a id="can-browsers-or-mobile-apps-connect-directly-to-silos"></a>
 
-### 浏览器或移动应用程序能否直接连接到 silos?
+### 浏览器或移动应用可以直接连接 Silo 吗？
 
-放置一个经认证的申请协议, 如 HTTPS, SignalR,或者 API 公共客户和 Orleans silo 或网关端点。
+应在公共客户端与 Orleans Silo 或网关终结点之间设置经过身份验证的应用协议，例如 HTTPS、SignalR 或其他 API 层。
 
-## Grains
+## Grain
 
 <a id="how-large-should-a-grain-be"></a>
 
-### grain 的大小应该有多大?
+### 一个 Grain 应该多大？
 
-模型 a grain 围绕一个域实体或一致性边界周围。 grain 如果一个密钥成为吞吐瓶颈或拥有过度状态,那么它可能太大。 如果一个操作需要多次交谈, 则该键会变得太小。 grains衡量代表的工作量,而不是依赖固定的州规模或每秒呼叫规则。
+围绕领域实体或一致性边界对 Grain 建模。如果一个键成为吞吐量瓶颈，或拥有过多状态，则 Grain 可能太大；如果一次操作需要在 Grain 之间频繁往返调用，则可能太小。应测量具有代表性的工作负载，而不是依赖固定的状态大小或每秒调用次数规则。
 
 <a id="does-orleans-replicate-grain-state-automatically"></a>
 
-### Orleans 自动复制 grain 状态吗?
+### Orleans 会自动复制 Grain 状态吗？
 
-普通状态 grain 通常在集束中有一个激活。 挥发性状态继而延续启动的寿命, 当激活停止、 迁移或失败时被丢弃。 一个配置好的存储提供者和成功的 grain 写道提供了耐久恢复。 应用程序设计和操作其工作量所需的复制品或缓存。
+普通有状态 Grain 通常在集群中只有一个激活实例。易失状态随该激活实例的生命周期存在，并在激活实例停用、迁移或发生故障时丢弃。配置存储提供程序并成功写入 Grain 状态，才能提供持久化恢复能力。应用应自行设计和运营工作负载所需的副本或缓存。
 
 <a id="how-do-i-avoid-hot-grains"></a>
 
-### 我该如何避免热 grains?
+### 如何避免热点 Grain？
 
-普通的 grain 激活程序默认时一次转,因此即使组群其余部分有能力,单个键也可能成为瓶颈。 隔开键盘、 使用分阶段或分级集聚、 批次呼叫或者利用无国籍工人进行合适的无国籍行动。 将启动转移到一个载量较少的主机或者更接近 grains 的地方可以减少争议、 RPC 间接费用和延缓度,从而改善吞吐量。 分割键会增加通货性 。
+普通 Grain 激活实例默认一次处理一个执行轮次，因此即使集群其余部分仍有容量，单个键也可能成为瓶颈。应跨键划分工作、使用分级或层次化聚合、批量执行调用，或为合适的无状态操作使用无状态工作者。将激活实例迁移到负载较低的主机，或迁移到更靠近其调用对象的位置，可以通过减少争用、RPC 开销和延迟提高吞吐量。对键进行分区则可增加并发度。
 
-例如,如果许多 grains 定期汇报反差或统计数据,则每个报告人就将稳定的钥匙放在一组受控制的中间聚合器 grains。每个中间 grain 合并更新并定期向最后汇总器发送部分结果。这分配了报告负荷,减少了中央 grain的转弯次数;如果某个阶段仍然收到太多的粉丝,又增加一个级别。选择从负载测试中进行硬计和报告音量,设计耐久性、不合格性,或者在丢失或重复更新时进行调节很重要。
+例如，如果许多 Grain 定期上报计数器或统计信息，可以对各上报者的稳定键进行哈希，将其分配到数量受控的一组中间聚合 Grain。各中间 Grain 合并更新并定期将部分结果发送给最终聚合 Grain。这会分散上报负载并减少中心 Grain 的执行轮次；若某一层仍接收过多汇聚请求，可再增加一层。根据负载测试选择分片数量及上报频率；如果丢失或重复更新会产生影响，还应设计持久化、幂等性或对账机制。
 
 <a id="can-i-choose-where-a-grain-activates"></a>
 
-### 我能选择一个 grain 激活器在哪里吗?
+### 我可以选择 Grain 在哪里激活吗？
 
-是。 Orleans 包括安置策略和支持自定安置。除非申请有衡量地点或资源要求,否则最好具有地点透明度,因为限制性安置可以减少在失败和规模扩大时的运行时间选择。
+可以。Orleans 内置放置策略，并支持自定义放置。除非应用具有经过测量确认的本地性或资源需求，否则应优先采用位置透明性，因为限制性放置会减少运行时在故障和扩缩容时的选择。
 
 <a id="how-do-i-deactivate-a-grain"></a>
 
-### 我该如何解除一个 grain?
+### 如何停用 Grain？
 
-通常, 请让 Orleans 停止闲置激活。 当一个 grain 知道它应该在当前转弯后被删除时, 它可以调用 <xref:Orleans.Grain.DeactivateOnIdle*>。
+通常应让 Orleans 自动停用空闲激活实例。当 Grain 知道自己应在当前执行轮次结束后移除时，可以调用 <xref:Orleans.Grain.DeactivateOnIdle*>。
 
 <a id="failures-and-calls"></a>
 
-## 失败和呼号
+## 故障与调用
 
 <a id="what-happens-when-a-silo-fails-during-a-call"></a>
 
-### 当一个 silo 在通话中失败时会发生什么?
+### 调用过程中 Silo 发生故障会怎样？
 
-调用失败或超时。 在集检测到失败后 silo,稍后的呼叫可以激活 grain 健康日的月经 silo。只有在操作安全可重试时才应当使用约束性回调。只有向可用的耐用提供者成功写下,才能使用持久性状态。
+调用可能失败或超时。集群检测到故障 Silo 后，后续调用可在健康的 Silo 上激活 Grain。调用方仅应在操作可以安全重试时执行有界重试。只有此前已成功写入可用的持久化提供程序，持久状态才可用。
 
 <a id="are-grain-calls-exactly-once"></a>
 
-### 是否为 grain 确切的通话一次?
+### Grain 调用具有恰好一次语义吗？
 
-Orleans 使用默认情况下最接近于一次发送信件的邮件。 网络故障可能会让呼叫者不确定操作是否运行, 所以可重新测试的操作应该是无能的或带有应用程序级重复身份 。
+Orleans 默认采用至多一次消息投递。网络故障可能导致调用方无法确定操作是否已执行，因此可重试操作应具有幂等性或携带应用层去重标识。
 
 <a id="what-happens-when-grain-code-runs-too-long"></a>
 
-### 当 grain 代码运行过长时会怎样?
+### Grain 代码运行时间过长会怎样？
 
-Orleans 使用合作排期。一个 grain 转弯,直到它产生或完成,而长期同步的工作会推迟该调度器的其他转弯。保持短跑,等待 I/O,并将大量的CPU定式工作移到适当的执行模式。
+Orleans 使用协作式调度。Grain 的执行轮次持续运行直至主动让出执行权或完成，长时间同步工作会延迟该调度器上的其他执行轮次。应保持执行轮次简短，异步等待 I/O，并将大量 CPU 密集型工作移交给适当的执行模型。
 
 <a id="how-do-i-upgrade-an-existing-application"></a>
 
-### 如何提升现有应用程序?
+### 如何升级已有应用？
 
-跟随包含版本特定升级历史的 [移徙指南](../migration-guide.md)。概念和教义文件描述支持的API, 而没有重复更新历史 。
+请遵循[迁移指南](../migration-guide.md)，其中包含各版本的升级历史。概念和教程文档说明受支持的 API，不重复升级历史。
 
 <a id="how-should-i-retry-failed-grain-calls"></a>
 
-### 我该如何重试失败 grain 打电话?
+### 如何重试失败的 Grain 调用？
 
-当操作为一无所有或带有应用程序级重复身份时, 重试瞬态故障。 将确定性验证、 序列化和同值货币错误直接发送到处理或对账路径上。 在适当的边界使用带回落和抖动的捆绑式重算预算。 超时或连接损失可能会让结果未知, 所以当重复执行不安全时会调和商业状态 。
+当操作具有幂等性或携带应用层去重标识时，可重试暂时性故障。确定性的验证、序列化及并发失败应直接进入相应处理或对账流程。在适当边界使用有限的重试预算以及退避和抖动策略。超时或连接丢失可能导致结果未知，因此在重复执行不安全时应核对业务状态。
 
 <a id="can-reentrancy-fix-a-grain-call-deadlock"></a>
 
-### 修复 a grain 要求陷入僵局?
+### 可重入性可以解决 Grain 调用死锁吗？
 
-当一个非复发 grain 等待最终返回该 grain的呼叫时,呼叫周期会暂停。再回调可以让回调运行并允许中断,因此 grain的状态变量必须覆盖这些过渡。删除同步阻塞、重新设计可避免循环,并在其内插功能被理解和测试的操作中使用 <xref:Orleans.Concurrency.ReentrantAttribute> 或 <xref:Orleans.Concurrency.AlwaysInterleaveAttribute> 。见 [长途或陷入僵局 grain](../host/monitoring/troubleshooting-symptom-catalog.md#long-running-or-deadlocked-grain-turns)。
+当不可重入的 Grain 等待一个最终又回到该 Grain 的调用时，调用环可能停滞。可重入性能够允许该回调运行，但同时允许交错执行，因此 Grain 的状态不变量必须覆盖这些状态转换。应消除同步阻塞、重新设计可避免的调用环，并仅对已理解并测试交错行为的操作使用 <xref:Orleans.Concurrency.ReentrantAttribute> 或 <xref:Orleans.Concurrency.AlwaysInterleaveAttribute>。请参阅[长时间运行或死锁的 Grain 执行轮次](../host/monitoring/troubleshooting-symptom-catalog.md#long-running-or-deadlocked-grain-turns)。
 
 <a id="operations"></a>
 
-## 业务业务业务
+## 运维
 
 <a id="how-many-silos-do-i-need"></a>
 
-### 我需要多少个 silos ?
+### 我需要多少个 Silo？
 
-生成来自顶点CPU、内存、连接和依赖预算的 silo 计数,计划失败-域损失,推出式激增和具有代表性的负载测试。用有代表性的钥匙分布、有效载荷、扇扇出、存储、流和故障回收等计量。见 [能力规划](../deployment/capacity-planning.md)。
+根据峰值 CPU、内存、连接及依赖项预算、计划应对的故障域损失、发布期间的额外容量，以及代表性负载测试确定 Silo 数量。测量时使用具有代表性的键分布、有效载荷、扇出、存储、流及故障恢复场景。请参阅[容量规划](../deployment/capacity-planning.md)。
 
 <a id="why-didnt-adding-silos-improve-throughput"></a>
 
-### 为什么没有增加 silos 改进输送量?
+### 为什么增加 Silo 后吞吐量没有提升？
 
-瓶颈可能是热 grain、限制性安置、共享存储或流源提供者、网关进入、网络带宽或其他依赖性。添加 silos 扩大了分布容量,而普通状态的 grain 保留了一个键的激活功能。在进一步扩展之前,比较每个silo 的使用、启动分配、拒绝、长线旋转和依赖性延缓等。
+瓶颈可能来自热点 Grain、限制性放置、共享存储或流提供程序、网关准入控制、网络带宽或其他依赖项。增加 Silo 会扩展分布式容量，但普通有状态 Grain 对同一键仍只有一个激活实例。进一步扩缩容前，应比较各 Silo 的利用率、激活实例分布、请求拒绝情况、长时间运行的执行轮次和依赖项延迟。
 
 <a id="what-determines-orleans-cost"></a>
 
-### 由什么决定 Orleans 成本?
+### 哪些因素决定 Orleans 的成本？
 
-Orleans 部署费用来自计算、记忆、网络交通、集群和持久性提供者、流、遥测和冗余。 Grain 影响成本的界限:silo 高心电感测可以控制着电话、大型连续有效载荷、频繁的州写作、高活化计数和高心智力遥测。 衡量具有代表性的工作量,包括故障余能、推出式激增、备份和可观察性保留。
+Orleans 使用 MIT 许可证。部署成本来自计算、内存、网络流量、集群与持久化提供程序、流、遥测以及冗余。Grain 边界会影响成本：频繁的跨 Silo 调用、大型序列化有效载荷、频繁写入状态、大量激活实例以及高基数遥测均可能成为主要成本来源。应测量具有代表性的工作负载，并计入故障域备用容量、发布期间额外容量、备份和可观测性数据保留成本。
 
 <a id="which-grain-storage-provider-should-i-choose"></a>
 
-### 我该选择哪个 grain 存储供应商?
+### 应选择哪种 Grain 存储提供程序？
 
-从耐久性、一致性/通货行为、延时、吞吐量和分割限值、区域可用性、备份/存储、安全性、操作熟悉性和成本中选择。组合、 grain 存储、提醒和流可以使用根据其访问模式选择的单独的后端。验证提供者的失败以及以您状态大小和关键分布进行抽动的行为 。
+应综合考虑持久性、一致性和并发行为、延迟、吞吐量及分区限制、区域可用性、备份与还原、安全性、运维熟悉程度和成本。集群成员资格、Grain 存储、提醒器及流可以根据各自的访问模式选择不同后端。使用实际状态大小及键分布验证提供程序的故障和限流行为。
 
 <a id="does-storage-throttling-only-affect-persistence-calls"></a>
 
-### 储存节流是否只影响持久性呼叫?
+### 存储限流只影响持久化调用吗？
 
-存储节流器会扩散到激活、 grain- 转、 排程器、 后端和请求延时。 延迟状态读取延迟激活; 延迟写作会保持 grain 转转; 重新输入消耗调度器和后端输出能力; 并由此导致的队列会生成请求超时。 Correlate 封存拉长、 节流、 重排、 启动速度以及请求延时 。 见 [储存节压](../host/monitoring/troubleshooting-symptom-catalog.md#storage-throttling)。
+存储限流的影响会传导至激活、Grain 执行轮次、调度器、后端及请求延迟。状态读取延迟会推迟激活；写入延迟会占用 Grain 执行轮次；重试消耗调度器和后端容量；由此产生的排队会导致请求超时。应关联分析存储延迟、限流、重试、激活速率和请求延迟。请参阅[存储限流](../host/monitoring/troubleshooting-symptom-catalog.md#storage-throttling)。
 
 <a id="can-one-orleans-cluster-span-multiple-regions"></a>
 
-### 一个 Orleans 组群能否跨越多个区域?
+### 一个 Orleans 集群可以跨多个区域吗？
 
-单一的集群要求 silos 之间及其成员和目录依赖者之间可靠、足够低的长距离连接。广域网增加了延迟和分割概率,并扩大了故障领域。 更可取的是具有明确应用级别路径、复制、所有权和语义不全的独立区域集群,除非测试证明一个扩展的集群符合应用程序的可用性和一致性要求。
+单个集群要求各 Silo 之间及其与成员资格和目录依赖项之间具有可靠且足够低延迟的连接。广域网会增加延迟和网络分区的概率，并扩大故障域。除非测试证明跨区域延伸的单一集群满足应用的可用性和一致性要求，否则优先使用独立区域集群，并明确应用层路由、复制、所有权及故障转移语义。
 
 <a id="how-do-i-prevent-split-brain"></a>
 
-### 我如何防止脑分裂?
+### 如何防止脑裂？
 
-使用每个分组的一个共享、持久成员提供方、稳定的集群身份、相互可达到的广告终端点、时钟同步以及能够在计划合并间隔内检测、隔离和终止破碎 silos 的基础设施。在可疑的分割期间,在编辑成员资格记录之前将老化成员孤立起来。需要跨区域生存的应用程序应界定所有制和跨组间对账。见 [成员和目录](../host/monitoring/troubleshooting-symptom-catalog.md#membership-and-directory-churn)。
+每个集群使用一个共享且持久化的成员资格提供程序、稳定的集群标识、互相可达的通告终结点、时钟同步，以及能在计划收敛时间内检测、隔离并终止失效 Silo 的基础设施。在疑似网络分区期间，先隔离失效成员，再编辑成员资格记录。需要跨区域存续的应用应定义跨集群的所有权和对账机制。请参阅[成员资格和目录频繁变动](../host/monitoring/troubleshooting-symptom-catalog.md#membership-and-directory-churn)。
 
 <a id="can-membership-churn-create-duplicate-grain-activations"></a>
 
-### 成员是否可创建重复的 grain 启动?
+### 成员资格频繁变动会产生重复的 Grain 激活实例吗？
 
-在检测失败和目录趋同期间,可发生短暂的重复激活。运行时间解决目录冲突,而应用程序则为外部副作用和自定义目录实施提供安全的语义。 Grain 存储同货币符号可以探测相互矛盾的储存写作和表面提供者冲突;应用程序提供对外部副作用的不便或减损。调查作为成员、网络或目录健康症状的重复重复。
+故障检测和目录收敛期间可能出现短暂的重复激活实例。运行时解决目录冲突，而应用需要为外部副作用和自定义目录实现提供安全语义。Grain 存储并发令牌可检测冲突的存储写入，并报告提供程序冲突；应用应为外部副作用提供幂等或去重机制。反复出现的重复激活应作为成员资格、网络或目录健康问题的症状进行调查。
 
 <a id="whats-the-difference-between-a-grain-timer-and-a-reminder"></a>
 
-### 和两个 grain 以计时和记念,
+### Grain 定时器与提醒器有什么区别？
 
-计时器提供激活范围范围的时间安排和结束启动该激活的结束。提醒通知通过配置的提醒提供者存储其时间表,并可以重新启动 grain a 之后 silo 或重新启动。 两者都提供最佳努力的预定回调, 应用程序工作应该容忍延迟和重复。 见 [提醒和计时时间](../host/monitoring/troubleshooting-symptom-catalog.md#reminder-and-timer-timing).
+定时器提供激活实例范围内的调度，并随该激活实例结束。提醒器通过配置的提醒器提供程序存储调度计划，并可在 Silo 或激活实例重启后重新激活 Grain。两者均以尽力而为的方式提供计划回调，应用工作应能容忍延迟和重复。请参阅[提醒器与定时器时序](../host/monitoring/troubleshooting-symptom-catalog.md#reminder-and-timer-timing)。
 
 <a id="why-did-reminders-or-timers-run-late"></a>
 
-### 为什么提醒或计时器迟到?
+### 为什么提醒器或定时器延迟执行？
 
-调度器压力、 CPU 或 GC 暂停, 需要超过其时间的回调, 重新启动 silo 、会籍变更和提醒提供者的延时性等, 都可以全部延迟回溯。 决定使用哪种机制, 将回溯期与周期进行比较, 以及时间与运行时间和提供者健康相关。 使用耐久应用状态来协调对时间敏感的商务工作 。
+调度器压力、CPU 或 GC 暂停、回调执行时间超过其周期、Silo 重启、成员资格变化以及提醒器提供程序延迟都可能导致回调推迟。应确定正在使用的机制，比较回调持续时间与周期，并将时序与运行时及提供程序健康状况关联分析。使用持久化应用状态对账处理时间敏感的业务工作。
 
 <a id="how-do-i-make-rolling-upgrades-safe"></a>
 
-### 我怎样才能安全地升级滚动升级?
+### 如何确保滚动升级安全？
 
-保持相邻版本在 grain 接口、 序列器、 存储状态、 排队/ 流载荷、 供应商系统图和配置的双向兼容性。 保存稳定的连续式成员身份和别名, 限制推出货币, 维持快速增速能力, 并在部署前定义回放 。 测试旧电话和新电话, 并读出现有数据 。 见 [优优优停机和升级](../deployment/upgrades.md)。
+确保相邻版本的 Grain 接口、序列化器、存储状态、队列或流中的有效载荷、提供程序架构及配置双向兼容。保留稳定的序列化成员 ID 和别名，限制发布并发度，维持额外容量，并在部署前定义回滚方案。测试从旧版到新版以及从新版到旧版的调用，并验证已有数据的读取。请参阅[优雅关闭与升级](../deployment/upgrades.md)。
 
 <a id="why-did-serialization-start-failing-after-deployment"></a>
 
-### 为什么连号化在部署后开始失效?
+### 为什么部署后序列化开始失败？
 
-混合版本可能会对类型合同、序列器注册、成员识别、别名或包件版本产生分歧,或者新版本可能无法读取持续数据或排队的旧数据。 保存失效的类型和有效载荷源,停止推出,在迁移数据前使用兼容的阅读器或回放。 见 [版本更改后发生串级失败](../host/monitoring/troubleshooting-symptom-catalog.md#serialization-failures-after-a-version-change)。
+混合版本可能在类型契约、序列化器注册、成员 ID、别名或包版本上存在分歧，也可能是新版本无法读取此前持久化或排队的旧数据。保留发生故障的类型和有效载荷来源，停止发布，并在迁移数据前使用兼容的读取器或执行回滚。请参阅[版本变更后的序列化失败](../host/monitoring/troubleshooting-symptom-catalog.md#serialization-failures-after-a-version-change)。
 
 <a id="what-should-i-collect-before-restarting-an-unhealthy-silo"></a>
 
-### 重开不健康的 silo前,我该收集什么?
+### 重启不健康的 Silo 前应该收集哪些信息？
 
-抓取统一时戳、部署和配置变化、 来自相关客户的日志和 silos、 跟踪、 度量、 会员观点、 广告告示端点、 提供者健康和平台事件。 对于调度器、 CPU 或记忆问题, 请在安全的情况下捕获连接的进程追踪或丢弃。 重命名机密和 grain 状态。 从 [Orleans 症状和信号目录](../host/monitoring/troubleshooting-symptom-catalog.md)开始 。
+收集 UTC 时间戳、部署与配置变更、相关客户端和 Silo 的日志、跟踪、指标、成员资格视图、通告终结点、提供程序健康状况及平台事件。对于调度器、CPU 或内存问题，在安全的情况下捕获范围受限的进程跟踪或转储。对机密和 Grain 状态进行脱敏。首先查阅 [Orleans 症状与信号目录](../host/monitoring/troubleshooting-symptom-catalog.md)。

@@ -10,7 +10,7 @@ using Xunit;
 namespace UnitTests.TimerTests;
 
 /// <summary>
-/// 共同的提醒服务-整个生命周期合同,但并不继承提供方的全套清理。
+/// 公开共享提醒器服务生命周期契约，但不继承提供程序整表清理行为。
 /// </summary>
 [Collection(TestEnvironmentFixture.DefaultCollection)]
 public abstract class ReminderServiceLifecycleTestsBase

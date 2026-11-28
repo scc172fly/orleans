@@ -1,4 +1,4 @@
-// 请注意,对于暴露在 grain 面部的特征,只需要抽象。
+// 请注意，对于以分面形式向 Grain 公开的功能，应只需要该功能的抽象定义。
 using Tester.StorageFacet.Abstractions;
 
 namespace Tester

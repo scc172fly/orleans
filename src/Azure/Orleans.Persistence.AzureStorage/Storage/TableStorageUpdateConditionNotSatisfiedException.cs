@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// 当储存提供者在试图进行 WriteStateAsync 操作时发现Etag不一致时,就提出例外。
+    /// 存储提供程序尝试执行 WriteStateAsync 操作时检测到 ETag 不一致所抛出的异常。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -13,7 +13,7 @@ namespace Orleans.Storage
         private const string DefaultMessageFormat = "Table storage condition not Satisfied.  GrainType: {0}, GrainId: {1}, TableName: {2}, StoredETag: {3}, CurrentETag: {4}";
 
         /// <summary>
-        /// 冷冻桌储存例外因更新条件不能满足而被扔出例外。
+        /// 在因不满足更新条件而抛出 Azure Table Storage 异常时抛出的异常。
         /// </summary>
         public TableStorageUpdateConditionNotSatisfiedException(
             string errorMsg,
@@ -31,7 +31,7 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// 冷冻桌储存例外因更新条件不能满足而被扔出例外。
+        /// 在因不满足更新条件而抛出 Azure Table Storage 异常时抛出的异常。
         /// </summary>
         public TableStorageUpdateConditionNotSatisfiedException(
             string grainType,
@@ -45,32 +45,32 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// grain日编号
+        /// Grain ID。
         /// </summary>
         [Id(0)]
         public string? GrainId { get; }
 
         /// <summary>
-        /// 丢弃此例外的 grain 类型
+        /// 抛出此异常的 Grain 类型。
         /// </summary>
         [Id(1)]
         public string? GrainType { get; }
 
         /// <summary>
-        /// Azure 表格名称
+        /// Azure Table 表名。
         /// </summary>
         [Id(2)]
         public string? TableName { get; }
 
         /// <summary>
-        /// 冷冻桌储存例外因更新条件不能满足而被扔出例外。
+        /// 在因不满足更新条件而抛出 Azure Table Storage 异常时抛出的异常。
         /// </summary>
         public TableStorageUpdateConditionNotSatisfiedException()
         {
         }
 
         /// <summary>
-        /// 冷冻桌储存例外因更新条件不能满足而被扔出例外。
+        /// 在因不满足更新条件而抛出 Azure Table Storage 异常时抛出的异常。
         /// </summary>
         public TableStorageUpdateConditionNotSatisfiedException(string msg)
             : base(msg)
@@ -78,7 +78,7 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// 冷冻桌储存例外因更新条件不能满足而被扔出例外。
+        /// 在因不满足更新条件而抛出 Azure Table Storage 异常时抛出的异常。
         /// </summary>
         public TableStorageUpdateConditionNotSatisfiedException(string msg, Exception exc)
             : base(msg, exc)
@@ -96,7 +96,7 @@ namespace Orleans.Storage
         }
 
         /// <summary>
-        /// 冷冻桌储存例外因更新条件不能满足而被扔出例外。
+        /// 在因不满足更新条件而抛出 Azure Table Storage 异常时抛出的异常。
         /// </summary>
         [Obsolete]
         protected TableStorageUpdateConditionNotSatisfiedException(SerializationInfo info, StreamingContext context)

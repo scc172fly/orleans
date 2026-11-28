@@ -8,7 +8,7 @@ using Orleans.Serialization.WireProtocol;
 
 namespace Orleans.Durable.Messaging.Tests.Support;
 
-// 路径和输入值属于该测试应用程序,而不是信息传输。
+// 路由和类型化值属于此测试应用程序，而非消息传递传输实现。
 [GenerateSerializer]
 public sealed record TestApplicationMessage(
     [property: Id(0)] string Route,

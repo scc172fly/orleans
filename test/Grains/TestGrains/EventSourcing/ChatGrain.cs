@@ -6,14 +6,14 @@ using TestGrainInterfaces;
 namespace TestGrains
 {
     /// <summary>
-    /// 例如,一个日记 grain 进行聊天的例子。
-    /// grain 状态为 XML 文档 (System.Xml.Linq.XDocument)。
+    /// 实现聊天功能的日志化 Grain 示例。
+    /// Grain 的状态为 XML 文档（System.Xml.Linq.XDocument）。
     ///
-    /// 配置后使用默认的存储提供者。
-    /// 配置后使用 LogStorage 一致性提供商。
+    /// 配置为使用默认存储提供程序。
+    /// 配置为使用 LogStorage 一致性提供程序。
     ///
-    /// 这意味着我们坚持所有事件; 因为当装入一个 grain 时, 事件会被重放
-    /// 以后再换XML的图案
+    /// 这意味着我们持久化所有事件；由于 Grain 加载时会重放事件，
+    /// 以后仍可以更改 XML 架构
     ///
     /// </summary>
 
@@ -21,18 +21,18 @@ namespace TestGrains
     [LogConsistencyProvider(ProviderName = "LogStorage")]
     public class ChatGrain : JournaledGrain<XDocument, IChatEvent>, IChatGrain
     {
-        // 我们希望确保聊天在首次使用时正确初始化
-        // 以在需要时插入创建事件
+        // 确保聊天室在首次使用时正确初始化
+        // 因此重写默认激活逻辑，在需要时插入创建事件
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
-            // 首先,等待所有事件从存储中装入, 所以我们会赶上最新的版本
+            // 首先，等待从存储加载所有事件，使当前版本追上最新版本
             await base.OnActivateAsync(cancellationToken);
 
-            // 如果聊天尚未初始化, 请现在就开始
+            // 如果聊天室尚未初始化，则现在进行初始化
             if (Version == 0)
             {
-                // 我们使用有条件的事件(如果创建与其他集群赛跑)
-                // (有条件的事件只有在版本尚未改变的情况下才会发生)
+                // 这里使用条件事件（以防创建操作与其他集群发生竞争）
+                // （只有版本在此期间尚未改变时，条件事件才会提交）
                 await RaiseConditionalEvent(new CreatedEvent()
                 {
                     Timestamp = DateTime.UtcNow,
@@ -42,9 +42,9 @@ namespace TestGrains
         }
 
         /// <summary>
-        /// 为了正确应用事件到 grain 状态,我们
-        /// 必须超越过渡函数
-        /// (因为 XDocument 对象没有应用功能)
+        /// 为了将事件正确应用于 Grain 状态，
+        /// 必须重写状态转换函数
+        /// （因为 XDocument 对象没有 Apply 函数）
         /// </summary>
         protected override void TransitionState(XDocument state, IChatEvent @event)
         {

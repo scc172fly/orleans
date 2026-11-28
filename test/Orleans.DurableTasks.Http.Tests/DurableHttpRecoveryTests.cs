@@ -9,9 +9,9 @@ using Xunit;
 namespace Orleans.Durable.Http.Tests;
 
 /// <summary>
-/// 将停止的弹射输入服务并调用HTTP操作的 grains :发送请求的任务,主机
-/// 操作和运行操作工作的 grain 。 符号是服务器对请求的数
-/// 应用了应急关键词和业务成果。
+/// 向提供和调用 HTTP 操作的 Grain 注入停用：发送过请求的任务、
+/// 保存操作的宿主，以及运行操作工作的 Grain。测试以服务器按幂等键统计已应用的请求数量
+/// 和各操作的结果作为正确性判据。
 /// </summary>
 [Collection(DurableHttpCollection.Name)]
 [TestSuite("BVT")]
@@ -31,8 +31,8 @@ public sealed class DurableHttpRecoveryTests(DurableHttpFixture fixture)
         var grain = fixture.Client.GetGrain<IDurableHttpTestGrain>(Guid.NewGuid().ToString("N"));
         await grain.ApplyEffectAsync(id).WithId("effect").ScheduleAsync(cancellationToken);
 
-        // 此步骤在服务器收到请求后即存在, 因为运行时间在运行前先登记一个步骤
-        // 。下一次激活重播任务,其步骤返回它记录的反应。
+        // 服务器收到步骤的请求时，该步骤已经存在，因为运行时在运行其
+        // 任务体前注册步骤。下一次激活会重放任务，其步骤返回记录的响应。
         await WaitUntilAsync(() => Requests(id).Length == 1, cancellationToken);
         var step = grain.GetDurableTask<DurableHttpResponse>(TaskId.CreateRoot("effect").Child("apply"));
         await step.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken);
@@ -52,8 +52,8 @@ public sealed class DurableHttpRecoveryTests(DurableHttpFixture fixture)
         var grain = fixture.Client.GetGrain<IDurableHttpTestGrain>(Guid.NewGuid().ToString("N"));
         await grain.ApplyEffectAsync(id).WithId("effect").ScheduleAsync(cancellationToken);
 
-        // 服务器应用了第一个请求, 而中止该步骤的取消会丢失响应, 作为 silo
-        // 关闭的会
+        // 服务器已应用首次请求，且中止步骤的停用使其响应丢失，类似于 Silo
+        // 关闭时的情况。
         await WaitUntilAsync(() => Requests(id).Length == 1, cancellationToken);
         var activation = DurableHttpTestGrain.Activations[grain.GetGrainId()];
         activation.Deactivate(new DeactivationReason(DeactivationReasonCode.ApplicationRequested, "The test interrupts the step."), cancellationToken);
@@ -76,7 +76,7 @@ public sealed class DurableHttpRecoveryTests(DurableHttpFixture fixture)
         var grain = fixture.Client.GetGrain<IDurableHttpTestGrain>(Guid.NewGuid().ToString("N"));
         await grain.RunRemoteOperationAsync("/held-jobs", value, DurableHttpWaitMode.Poll).WithId("job").ScheduleAsync(cancellationToken);
 
-        // 一次民意测验遵循了开始的记录, 下一次启动后又恢复了任务调查。
+        // 轮询发生在启动操作记录之后，下一次激活从该记录恢复任务的轮询。
         await WaitUntilAsync(() => DurableHttpFixture.HeldJobs.TryGetValue(value, out var job) && job.Polls > 0, cancellationToken);
         await DeactivateAsync(grain.GetGrainId(), cancellationToken);
         DurableHttpFixture.HeldJobs[value].Released.SetResult();
@@ -144,7 +144,7 @@ public sealed class DurableHttpRecoveryTests(DurableHttpFixture fixture)
         return (await response.Content.ReadFromJsonAsync<DurableOperation>(cancellationToken))!;
     }
 
-    /// <summary>返回 grain 哪个主机是匿名操作的所在地 <paramref name="key"/> 顺序。</summary>
+    /// <summary>返回托管该订单匿名操作 <paramref name="key"/> 的 Grain。</summary>
     private static GrainId HostId(string orderId, string key) =>
         GrainId.Create("orleans-durable-operation", TaskId.CreateRoot("orders").Child(orderId).Child("@").Child(key).ToString());
 

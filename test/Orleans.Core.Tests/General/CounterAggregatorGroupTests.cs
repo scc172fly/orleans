@@ -4,9 +4,9 @@ using Xunit;
 namespace UnitTests.General;
 
 /// <summary>
-/// CounterAggregatorGroup测试,这是 Orleans仪器和测量基础设施的一部分。
-/// 本构成部分汇总多个来源的对数值,在整个 Orleans 中用于收集
-/// 信息计数、启动计数和其他业务统计等业绩计量。
+/// 测试 CounterAggregatorGroup，它是 Orleans 检测与指标基础设施的一部分。
+/// 此组件聚合来自多个来源的计数器值，Orleans 广泛使用它来收集
+/// 消息数、激活数及其他运行统计等性能指标。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]
@@ -20,8 +20,8 @@ public class CounterAggregatorGroupTests
     }
 
     /// <summary>
-    /// 证明聚合器组缓存集合器实例以避免生成重复
-    /// 同一公号名称和标签组合。
+    /// 验证聚合器组缓存聚合器实例，避免为相同指标名称和标签组合
+    /// 创建重复实例。
     /// </summary>
     [Fact, TestCategory("Functional"), TestCategory("Aggregators")]
     public void ValidateAggregatorCache()
@@ -36,7 +36,7 @@ public class CounterAggregatorGroupTests
     }
 
     /// <summary>
-    /// 测试从该组内所有计数器中检索总综合指标值的收集机制。
+    /// 测试从组中所有计数器检索聚合指标值的收集机制。
     /// </summary>
     [Fact, TestCategory("Functional"), TestCategory("Aggregators")]
     public void Collect()
@@ -58,8 +58,8 @@ public class CounterAggregatorGroupTests
     }
 
     /// <summary>
-    /// 压力测试,以核实同时高负荷下反聚合物的线条安全。
-    /// 这确保了在 Orleans多轨运行环境中收集指标的工作仍然准确。
+    /// 通过压力测试验证高并发负载下计数器聚合器的线程安全性。
+    /// 这确保 Orleans 多线程运行时环境中的指标收集保持准确。
     /// </summary>
     [Fact, TestCategory("Functional"), TestCategory("Aggregators")]
     public void TestMultithreadedCorrectness()

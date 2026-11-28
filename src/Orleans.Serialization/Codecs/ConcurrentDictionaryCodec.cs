@@ -7,17 +7,17 @@ using System.Collections.Generic;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="ConcurrentDictionary{TKey, TValue}"/>的序列器。
+    /// <see cref="ConcurrentDictionary{TKey, TValue}"/> 的序列化器。
     /// </summary>
-    /// <typeparam name="TKey">t 密钥的类型。</typeparam>
-    /// <typeparam name="TValue">t 值的类型。</typeparam>
+    /// <typeparam name="TKey">键类型。</typeparam>
+    /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterSerializer]
     public sealed class ConcurrentDictionaryCodec<TKey, TValue> : GeneralizedReferenceTypeSurrogateCodec<ConcurrentDictionary<TKey, TValue>, ConcurrentDictionarySurrogate<TKey, TValue>> where TKey : notnull
     {
         /// <summary>
         /// 初始化 <see cref="ConcurrentDictionaryCodec{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">代孕序列器</param>
+        /// <param name="surrogateSerializer">代理类型序列化器。</param>
         public ConcurrentDictionaryCodec(IValueSerializer<ConcurrentDictionarySurrogate<TKey, TValue>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -36,26 +36,26 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ConcurrentDictionaryCodec{TKey, TValue}"/>所使用的代金矿类型。
+    /// <see cref="ConcurrentDictionaryCodec{TKey, TValue}"/> 所使用的代理类型。
     /// </summary>
-    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TKey">键类型。</typeparam>
     /// <typeparam name="TValue">值类型。</typeparam>
     [GenerateSerializer]
     public struct ConcurrentDictionarySurrogate<TKey, TValue> where TKey : notnull
     {
         /// <summary>
-        /// 获取或设置值。
+        /// 获取或设置值集合。
         /// </summary>
-        /// <value>价值。</value>
+        /// <value>值集合。</value>
         [Id(0)]
         public Dictionary<TKey, TValue> Values;
     }
 
     /// <summary>
-    /// <see cref="ConcurrentDictionary{TKey, TValue}"/>的复印机。
+    /// <see cref="ConcurrentDictionary{TKey, TValue}"/> 的复制器。
     /// </summary>
-    /// <typeparam name="TKey">t 密钥的类型。</typeparam>
-    /// <typeparam name="TValue">t 值的类型。</typeparam>
+    /// <typeparam name="TKey">键类型。</typeparam>
+    /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterCopier]
     public sealed class ConcurrentDictionaryCopier<TKey, TValue> : IDeepCopier<ConcurrentDictionary<TKey, TValue>>, IBaseCopier<ConcurrentDictionary<TKey, TValue>> where TKey : notnull
     {
@@ -66,8 +66,8 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ConcurrentDictionaryCopier{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="keyCopier">钥匙复印机。</param>
-        /// <param name="valueCopier">价值复印机。</param>
+        /// <param name="keyCopier">键复制器。</param>
+        /// <param name="valueCopier">值复制器。</param>
         public ConcurrentDictionaryCopier(IDeepCopier<TKey> keyCopier, IDeepCopier<TValue> valueCopier)
         {
             _keyCopier = keyCopier;

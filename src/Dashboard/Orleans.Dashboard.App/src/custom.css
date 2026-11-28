@@ -1,6 +1,6 @@
-/* Orleans Dashboard布局自定义样式 */
+/* Orleans Dashboard 布局的自定义样式 */
 
-/* AdminLTE 将侧边栏限制在视图端口高度。 滚动菜单的高度比它高 。 */
+/* AdminLTE 将侧边栏限制在视口高度内；超出高度的菜单应滚动显示。 */
 .app-sidebar {
   overflow-y: auto;
 }
@@ -9,7 +9,7 @@
   position: fixed;
 }
 
-/* 品牌标志符号 */
+/* 品牌标志样式 */
 .brand-logo {
   height: 45px;
   width: auto;
@@ -65,7 +65,7 @@
   margin-left: -420px;
 }
 
-/* 用于提醒的关闭按钮样式 */
+/* 警报关闭按钮样式 */
 .alert .close {
   position: relative;
   top: -2px;
@@ -141,7 +141,7 @@ h3 {
   font-weight: 100;
 }
 
-/* 固定信息框布局 */
+/* 修正信息框布局 */
 .info-box {
   display: flex;
   min-height: 80px;
@@ -191,7 +191,7 @@ h3 {
   text-decoration: none;
 }
 
-/* 贺卡/单板一致性 */
+/* 统一卡片与面板样式 */
 .card,
 .box {
   border-radius: .25rem;
@@ -215,7 +215,7 @@ h3 {
     --bs-gutter-x: 1rem;
 }
 
-/* 使牌在行中的高度相等 */
+/* 使同一行的卡片高度一致 */
 .row > [class*='col-'] {
   display: flex;
   flex-direction: column;
@@ -238,7 +238,7 @@ h3 {
   margin-top: auto !important;
 }
 
-/* 妥善确保侧边栏滚轴 */
+/* 确保侧边栏正常滚动 */
 .main-sidebar .sidebar {
   display: flex;
   flex-direction: column;
@@ -246,7 +246,7 @@ h3 {
   overflow-y: auto;
 }
 
-/* 固定在相同行上显示图标和文本的菜单项 */
+/* 修正菜单项，使图标与文本在同一行显示 */
 .nav-sidebar .nav-link {
   display: flex;
   align-items: center;

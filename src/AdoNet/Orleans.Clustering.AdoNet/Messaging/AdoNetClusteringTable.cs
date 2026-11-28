@@ -9,7 +9,7 @@ using Orleans.Configuration;
 namespace Orleans.Runtime.MembershipService
 {
     /// <summary>
-    /// 利用关系数据库落实 Orleans 分组成员资格。
+    /// 使用关系数据库实现 Orleans 集群成员资格。
     /// </summary>
     public partial class AdoNetClusteringTable : IMembershipTable
     {
@@ -22,10 +22,10 @@ namespace Orleans.Runtime.MembershipService
         /// <summary>
         /// 初始化 <see cref="AdoNetClusteringTable"/> 类的新实例。
         /// </summary>
-        /// <param name="serviceProvider">服务供应商。</param>
-        /// <param name="clusterOptions">集群识别选项。</param>
-        /// <param name="clusteringOptions">关联组合组合选项。</param>
-        /// <param name="logger">日志器。</param>
+        /// <param name="serviceProvider">服务提供程序。</param>
+        /// <param name="clusterOptions">集群标识选项。</param>
+        /// <param name="clusteringOptions">关系数据库集群成员管理选项。</param>
+        /// <param name="logger">日志记录器。</param>
         public AdoNetClusteringTable(
             IServiceProvider serviceProvider,
             IOptions<ClusterOptions> clusterOptions,
@@ -48,17 +48,17 @@ namespace Orleans.Runtime.MembershipService
             cancellationToken.ThrowIfCancellationRequested();
             LogTraceInitializeMembershipTable();
 
-            //使用众所周知的视图, 启动数据库中所有 Orleans 操作查询
-            //并假定数据库已经存在适当定义。
+            // 使用一个约定的视图从数据库初始化所有 Orleans 操作查询，
+            // 并假定具有相应定义的数据库已经存在。
             orleansQueries = await RelationalOrleansQueries.CreateInstance(
                 clusteringTableOptions.Invariant,
                 clusteringTableOptions.ConnectionString,
                 clusteringTableOptions.DataSource,
                 cancellationToken);
 
-            // 假若不是我创造了这个桌子,
-            // 尝试插入初始表格版本,如果它尚未存在的话;
-            // 因此我们总是有一个第一个表格版本行, 此时 silo 开始工作之前。
+            // 即使表不是由当前实例创建的，
+            // 如果尚不存在初始表版本，也要尝试插入它，
+            // 以确保在此 Silo 开始工作之前始终存在第一条表版本记录。
             if (tryInitTableVersion)
             {
                 var wasCreated = await InitTableAsync(cancellationToken);
@@ -111,11 +111,11 @@ namespace Orleans.Runtime.MembershipService
             cancellationToken.ThrowIfCancellationRequested();
             LogTraceInsertRow(entry, tableVersion);
 
-            //在插入一行时, "tableVersion" 参数应始终与 Init 一样存在
-            //已经被调用,会员的版本创建和阅读。
-            //无法通过所有路径到数据库以失败 Etag 有条件检查( 它确实
-            //成员议定书规定,为了稳健起见,存在 Orleans 成员资格议定书所规定的地位。
-            //同样,没有加入,就不可能更新。
+            // 插入行时应始终存在“tableVersion”参数，因为此时应已调用 Init，
+            // 并创建及读取了成员表版本。这是一项优化，旨在
+            // 避免一直访问到数据库层才因 ETag 条件检查失败（Orleans 成员资格协议要求此检查，
+            // 以确保健壮性）。
+            // 同样，不存在成员条目时也无法执行更新。
             if (entry == null)
             {
                 LogDebugInsertRowAbortedNullEntry();
@@ -148,11 +148,11 @@ namespace Orleans.Runtime.MembershipService
             cancellationToken.ThrowIfCancellationRequested();
             LogTraceUpdateRow(entry, etag, tableVersion);
 
-            //"tableVersion" 参数在更新一行时应始终如 Init 那样存在
-            //已经被调用,会员的版本创建和阅读。
-            //无法通过任何路径到数据库以失败有条件检查( 它会
-            //成员议定书规定,为了稳健起见,存在 Orleans 成员资格议定书所规定的地位。
-            //同样,没有加入或加入,就不可能更新。
+            // 更新行时应始终存在“tableVersion”参数，因为此时应已调用 Init，
+            // 并创建及读取了成员表版本。这是一项优化，旨在
+            // 避免一直访问到数据库层才因条件检查失败（Orleans 成员资格协议要求此检查，
+            // 以确保健壮性）。
+            // 同样，缺少成员条目或 ETag 时无法执行更新。
             if (entry == null)
             {
                 LogDebugUpdateRowAbortedNullEntry();
@@ -164,7 +164,7 @@ namespace Orleans.Runtime.MembershipService
                 throw new ArgumentNullException(nameof(tableVersion));
             }
 
-            // 关系读取时使用表格版本作为行 etag 。
+            // 关系数据库读取操作将表版本用作行 ETag。
             if (!string.Equals(etag, tableVersion.VersionEtag, StringComparison.Ordinal))
             {
                 return false;

@@ -27,7 +27,7 @@ static void ConfigureSilo(HostBuilderContext context, ISiloBuilder siloBuilder)
     var secrets = Secrets.TryLoadFromFile();
     if (secrets is not null)
     {
-        // 使用 Azure 事件枢纽流,与 Azure 表格存储器相 PubSub 和检查站
+        // 使用 Azure Event Hubs 流式传输，并使用 Azure Table Storage 存储发布订阅状态和检查点。
         siloBuilder
             .AddAzureTableGrainStorage(
                 "PubSubStore",
@@ -52,7 +52,7 @@ static void ConfigureSilo(HostBuilderContext context, ISiloBuilder siloBuilder)
     }
     else
     {
-        // 利用模拟流流促进地方发展
+        // 本地开发使用内存流。
         siloBuilder
             .AddMemoryGrainStorage("PubSubStore")
             .AddMemoryStreams(Constants.StreamProvider);

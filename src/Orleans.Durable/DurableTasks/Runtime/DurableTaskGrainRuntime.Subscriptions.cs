@@ -10,38 +10,38 @@ namespace Orleans.Durable.Tasks.Runtime;
 
 /// <remarks>
 /// <para>
-/// 订阅后,可以持续执行,等待任务的最终结果,但这项工作并非作为附件启动
-/// 以 子: 一项 <c>GetDurableTask</c> 所处理的现有援引任务,或执行开始的单独任务。
-/// 签名人 grain 被处决的儿童记录,其指纹为任务的名称 grain 和识别符号,以及
-/// 在同一日记的订阅中,分期订入:带有儿童电线识别器的援引信息,因此
-/// 既未要求任务,也未确认其打电话者的身份,而该人应履行一项单独任务的要求。
-/// 儿童是取消的叶子:它自己取消,它的祖先取消,它的树被中止或删除
-/// 其树树树在未完成任务的情况下将其终端化,并逐步取消订阅,即取消信件,命名
-/// 儿童。
+/// 订阅使持久化执行能够等待并非由自身作为附接子任务启动的任务的终态
+/// 结果：可以是通过 <c>GetDurableTask</c> 寻址的现有被调用任务，也可以是该执行启动的分离任务。
+/// 订阅方 Grain 记录执行实例的一个子任务，其指纹标识任务所属 Grain 和标识符，并且
+/// 在同一次日志写入中暂存订阅：调用消息携带子任务的传输标识符，因此它
+/// 既不声明任务的调用方身份，也不验证调用方，并携带分离任务的请求。与延迟操作类似，
+/// 子任务是取消传播的叶节点：其自身取消、祖先取消、任务树中止或删除
+/// 其执行树都会使子任务进入终态而不影响被订阅任务，并暂存取消订阅操作，即指定
+/// 该子任务的取消消息。
 /// </para>
 /// <para>
-/// 任务 grain 的任务将儿童增列入任务的完成目的地,与任务请求者一起,因此任务
-/// 其到达引言人手中时,即通过发箱,将任务保留到完成退休。
-/// 订阅终端任务即时发送完成的信号, 并发送给 grain 无法保留的任务
-/// 被引用的任务同时收到 <see cref="DurableTaskNotFoundException"/> 完成的完整。
-/// 长期执行可维持的,是指其 grain 已经接受的任务:客户的时间表、
-/// grain,或等待的持久处决,或处决本身开始的单独任务,其名称被援引
-/// 直接在任务状态下订阅同一 grain 的任务,并在撰写时填写完成
-/// 保存任务结果的 。
+/// 任务所属 Grain 将子任务与任务调用方一起添加到完成通知的目标集合，使该任务的
+/// 结果以与向调用方传递相同的方式到达订阅者：通过发件箱，并保留任务直到完成通知退役。
+/// 订阅终态任务会立即发送其完成通知；订阅 Grain 未作为
+/// 被调用任务保留的任务会立即收到携带 <see cref="DurableTaskNotFoundException"/> 的完成通知。持久化执行
+/// 可以持有的任务标识符指向其 Grain 已接受的任务：客户端、
+/// Grain 或持久化执行实例等待调度操作完成的任务，或者该执行实例自行启动的分离任务（其调用中指定了
+/// 该子任务）。同一 Grain 上任务的订阅直接在任务状态中暂存，并在
+/// 存储任务结果的同一次写入中完成。
 /// </para>
 /// </remarks>
 internal sealed partial class DurableTaskGrainRuntime
 {
-    // 执行树记录从“$”开始,所以订阅时绝不与请求指纹相撞。
+    // 执行树记录以 '$' 开头，所以订阅不会与请求指纹发生冲突。
     private const string SubscriptionFingerprintPrefix = "$subscribe:";
 
     /// <summary>
-    /// 阶段 : 在 <paramref name="taskId"/>下, 或进入其记录,不以书面形式填写, 并返回
-    /// 以及它是否进行了改变
+    /// 在 <paramref name="taskId"/> 下暂存订阅子任务，或访问其记录，而不执行写入，并返回
+    /// 它的句柄及是否暂存了变更。
     /// </summary>
     /// <remarks>
-    /// 记录及其订阅承诺以一份日记写入, 因此重放时发现该记录时不订阅
-    /// 还要等待早期尝试仍可等待的写作和记录的结果。
+    /// 记录及其订阅在一次日志写入中提交，因此找到记录的重放不会再次订阅；
+    /// 它等待该次写入（先前的执行尝试可能仍在等待），以及已记录的结果。
     /// </remarks>
     private StagedChild StageSubscription(TaskId taskId, IDurableTaskSubscription subscription, bool shielded)
     {
@@ -57,19 +57,19 @@ internal sealed partial class DurableTaskGrainRuntime
             return recorded;
         }
 
-        // 取消的祖先的订阅不会创建, 除非父子关系启动保护 。
+        // 不会为已取消的祖先创建订阅，除非父任务以屏蔽保护方式启动它。
         if (IsStartRefusedByAncestorCancellation(taskId, state: null, shielded))
         {
             return new(new CompletedTaskHandle(taskId, DurableTaskResponse.Canceled), RequiresWrite: false);
         }
 
-        // 留存在最后期限截止,所以订阅此 grain 的任务时不会发现保留结束的工作。
+        // 保留期在截止时间结束，因此对本 Grain 上任务的订阅不会找到保留期已结束的任务。
         DeleteExpiredTasks();
         DurableTaskResponse? response = null;
         if (subscription.Target == GrainId)
         {
-            // 儿童在被编组之前读取订阅结果,因此不再解码的结果不能
-            // 计划没有记录孩子
+            // 暂存子任务之前读取被订阅任务的结果，因此无法再解码的结果会使
+            // 调度失败，而不记录子任务。
             response = SubscribeLocal(subscription.Id, taskId);
         }
         else
@@ -81,14 +81,14 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// 返回 <paramref name="taskId"/>或 <see langword="null"/>下记录的订阅子目录的处理
-    /// 没有任何记录
+    /// 返回在 <paramref name="taskId"/> 下记录的订阅子任务的句柄；若没有记录，则返回 <see langword="null"/>，
+    /// 即空值。
     /// </summary>
     /// <remarks>
-    /// 记录有 <paramref name="kind"/>、订阅 <paramref name="subscribedId"/>时,该记录即为同一操作
-    /// 以 <paramref name="target"/>开始,对于独立启动,则开始 <paramref name="method"/>,不管其论点如何。
+    /// 如果记录的类型为 <paramref name="kind"/>，订阅 <paramref name="subscribedId"/>
+    /// 所标识、位于 <paramref name="target"/> 上的任务，并且对于分离启动，启动 <paramref name="method"/>，则为同一操作，与参数无关。
     /// </remarks>
-    /// <exception cref="DurableTaskDivergenceException">记录有另一个操作。</exception>
+    /// <exception cref="DurableTaskDivergenceException">记录保存的是另一项操作。</exception>
     private StagedChild? TryGetRecordedSubscription(
         TaskId taskId,
         DurableTaskRecordKind kind,
@@ -130,8 +130,8 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// 将 grain的孩子 <paramref name="subscriberId"/> 列入 grain的任务 <paramref name="taskId"/>,以及
-    /// 返回任务终端结果、未发现故障或任务尚未完成时的 <see langword="null"/> 。
+    /// 将本 Grain 的子任务 <paramref name="subscriberId"/> 订阅到本 Grain 的任务 <paramref name="taskId"/>，并
+    /// 返回任务的终态结果、未找到任务的失败结果，或在任务待处理时返回 <see langword="null"/>。
     /// </summary>
     private DurableTaskResponse? SubscribeLocal(TaskId taskId, TaskId subscriberId) =>
         Subscribe(taskId, new(GrainId, subscriberId)) switch
@@ -142,8 +142,8 @@ internal sealed partial class DurableTaskGrainRuntime
         };
 
     /// <summary>
-    /// 阶段订阅儿童的记录,在订阅任务完成时以 <paramref name="response"/> 填写
-    /// 是此 grain 并且将他的手柄还回去。
+    /// 暂存订阅子任务的记录；使用 <paramref name="response"/> 完成该子任务的条件是被订阅任务
+    /// 位于本 Grain 且具有结果；随后返回子任务的句柄。
     /// </summary>
     private IScheduledTaskHandle StageSubscriptionRecord(
         TaskId taskId,
@@ -166,10 +166,10 @@ internal sealed partial class DurableTaskGrainRuntime
         return handle;
     }
 
-    /// <summary>添加信箱将发送到任务完成目的地的用户。</summary>
+    /// <summary>将收件箱投递的订阅者添加到任务的完成通知目的地。</summary>
     /// <remarks>
-    /// 订阅终端任务即时发送完成的信号, 订阅一个未引用的存储任务
-    /// a 完成后 <see cref="DurableTaskNotFoundException"/>。重新交付的订阅不改变任何内容。
+    /// 订阅终态任务会立即发送其完成通知；订阅已存储但不是被调用任务的任务会发送
+    /// 携带 <see cref="DurableTaskNotFoundException"/> 的完成通知。重新投递的订阅不会产生任何变更。
     /// </remarks>
     internal void SubscribeFromInbox(TaskId taskId, DurableTaskSubscriber subscriber)
     {
@@ -180,7 +180,7 @@ internal sealed partial class DurableTaskGrainRuntime
                 $"Durable task '{subscriber.TaskId}' subscribes to a task of its own grain '{GrainId}' without durable messaging.");
         }
 
-        // 保留在最后期限结束 所以订阅不会发现一个任务 保留结束了
+        // 保留期在截止时间结束，因此订阅不会找到保留期已结束的任务。
         DeleteExpiredTasks();
         if (Subscribe(taskId, subscriber) == SubscriptionOutcome.NotFound)
         {
@@ -189,12 +189,12 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// 删除任务完成前结束的订阅者。终端任务的完成已经未完成,
-    /// 退休者按常例退休。
+    /// 移除在任务完成前已结束订阅的订阅者。终态任务的完成通知已经待处理，
+    /// 并照常退役。
     /// </summary>
     /// <remarks>
-    /// 发件箱独立提供订阅和结束。 到达的终点最先找不到用户, 所以没有用户
-    /// 之后的订阅得到完成,而终止的儿童忽略了该完成。
+    /// 发件箱独立投递订阅及其结束消息。先到达的结束消息找不到订阅者，因此
+    /// 紧随其后的订阅会收到完成通知，而已结束的子任务会忽略它。
     /// </remarks>
     internal void UnsubscribeFromInbox(TaskId taskId, DurableTaskSubscriber subscriber)
     {
@@ -202,13 +202,13 @@ internal sealed partial class DurableTaskGrainRuntime
         RemoveSubscriber(taskId, subscriber);
     }
 
-    /// <summary>添加 <paramref name="subscriber"/> 至 <paramref name="taskId"/>完成目的地,没有书面文字。</summary>
+    /// <summary>将 <paramref name="subscriber"/> 添加到 <paramref name="taskId"/> 的完成通知目的地，而不执行写入。</summary>
     /// <returns>
-    /// <see cref="SubscriptionOutcome.Pending"/> 当订阅者等待着任务结果的时候,
-    /// <see cref="SubscriptionOutcome.Terminal"/> 当任务储存其结果时,或
-    /// <see cref="SubscriptionOutcome.NotFound"/> 时, 如果此 grain 不保留该任务作为引用的任务。 订阅者
-    /// 在一个 grain 终端任务通过发件箱接收完成的结束任务;此任务的订阅者 grain 读取
-    /// 直接结果。
+    /// <see cref="SubscriptionOutcome.Pending"/>：订阅者等待任务结果；
+    /// <see cref="SubscriptionOutcome.Terminal"/>：任务已存储其结果；或
+    /// <see cref="SubscriptionOutcome.NotFound"/>：本 Grain 未作为被调用任务保留该任务。对于终态任务，位于其他 Grain 上的
+    /// 订阅者通过发件箱接收完成通知；本 Grain 上的订阅者直接读取
+    /// 结果。
     /// </returns>
     private SubscriptionOutcome Subscribe(TaskId taskId, DurableTaskSubscriber subscriber)
     {
@@ -238,8 +238,8 @@ internal sealed partial class DurableTaskGrainRuntime
         NotFound,
     }
 
-    /// <summary>删除一个任务订阅者, 即没有保存结果的任务, 不以书面形式保存 。</summary>
-    /// <remarks>任务引用器不是一个用户, 而一个不订阅的用户会删除它。</remarks>
+    /// <summary>移除尚未存储结果的任务的订阅者，而不执行写入。</summary>
+    /// <remarks>任务的调用方不属于取消订阅操作所移除的订阅者。</remarks>
     private void RemoveSubscriber(TaskId taskId, DurableTaskSubscriber subscriber)
     {
         if (!_storage.TryGetTask(taskId, out var state)
@@ -254,8 +254,8 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// 终止儿童订阅 <paramref name="subscriberId"/> 至 <paramref name="taskId"/> 联 年 月 日 月 日 月 月 日
-    /// <paramref name="target"/>,因为孩子没有工作结果就结束了,例如当任务被取消时。
+    /// 结束子任务 <paramref name="subscriberId"/> 对任务 <paramref name="taskId"/> 的订阅，该任务位于
+    /// <paramref name="target"/>；原因是子任务在未获得被订阅任务结果的情况下结束，例如被取消。
     /// </summary>
     private void Unsubscribe(GrainId target, TaskId taskId, TaskId subscriberId)
     {
@@ -270,10 +270,10 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// 储存 <paramref name="response"/>,由于订阅 <paramref name="sourceTaskId"/>的结果
-    /// 儿童 <paramref name="subscriberId"/>,在承诺后完成处理。
+    /// 将 <paramref name="response"/>（即 <paramref name="sourceTaskId"/> 的结果）存储为订阅
+    /// 子任务 <paramref name="subscriberId"/> 的结果，在提交后完成其句柄。
     /// </summary>
-    /// <remarks>以树木删除或已经结束的儿童忽略了结果。</remarks>
+    /// <remarks>已随任务树删除或已经结束的子任务会忽略该结果。</remarks>
     private void CompleteSubscription(TaskId subscriberId, TaskId sourceTaskId, DurableTaskResponse response)
     {
         if (!response.IsCompleted)
@@ -297,14 +297,14 @@ internal sealed partial class DurableTaskGrainRuntime
         DurableTaskResponse.FromException(new DurableTaskNotFoundException(taskId));
 
     /// <summary>
-    /// 返回任务是否是一个订阅子子进程,包括一个独立任务的记录及其所要执行的任务
-    /// 订阅。
+    /// 返回任务是否是订阅子任务（包括分离任务的记录），以及它所
+    /// 订阅的任务。
     /// </summary>
     private static bool TryGetSubscription(IDurableTaskState state, out GrainId target, out TaskId taskId) =>
         TryParseIdentity(SubscriptionFingerprintPrefix, state.RequestFingerprint, out target, out taskId)
         || TryGetDetachedTask(state, out target, out taskId);
 
-    /// <summary>格式格式a grain 任务 <c>{prefix}{grain length}:{grain}{task}</c>毫不含糊地解释</summary>
+    /// <summary>将 Grain 和任务格式化为 <c>{prefix}{grain length}:{grain}{task}</c>，可无歧义地解析。</summary>
     private static string FormatIdentity(string prefix, GrainId grain, TaskId taskId)
     {
         var grainId = grain.ToString();
@@ -337,7 +337,7 @@ internal sealed partial class DurableTaskGrainRuntime
     private static string DescribeSubscription(GrainId target, TaskId taskId) =>
         $"a subscription to task '{taskId}' on grain '{target}'";
 
-    /// <summary>描述用户 <paramref name="taskId"/>:其 grain,然后是它的任务 当它不是 引用者的。</summary>
+    /// <summary>描述 <paramref name="taskId"/> 的订阅者：先列出其 Grain；若其任务不同于调用方的任务，则随后列出其任务。</summary>
     private static string DescribeSubscriber(TaskId taskId, DurableTaskSubscriber subscriber) =>
         subscriber.TaskId == taskId ? subscriber.GrainId.ToString() : $"{subscriber.GrainId} {subscriber.TaskId}";
 }

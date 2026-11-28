@@ -27,7 +27,7 @@ public class CartItem
 }
 // </cart_state>
 
-// 用于 docs 中日期类型
+// 文档中使用的 Date 类型的占位实现。
 public struct Date
 {
     public int Year { get; set; }

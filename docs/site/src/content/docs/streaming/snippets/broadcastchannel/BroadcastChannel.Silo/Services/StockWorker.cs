@@ -21,22 +21,22 @@ internal sealed class StockWorker : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            // 捕获起始时间戳 。
+            // 记录起始时间戳。
             long startingTimestamp = Stopwatch.GetTimestamp();
 
-            // 获取所有更新的股票价值。
+            // 获取所有更新后的股票价格。
             Stock[] stocks = await Task.WhenAll(
                 tasks: _symbols.Select(selector: _stockClient.GetStockAsync));
 
-            // 获取实时库存心室广播频道。
+            // 获取实时股票行情广播通道。
             ChannelId channelId = ChannelId.Create(ChannelNames.LiveStockTicker, Guid.Empty);
             IBroadcastChannelWriter<Stock> channelWriter = _provider.GetChannelWriter<Stock>(channelId);
 
-            // 播放此频道上的所有库存更新信息 。
+            // 在此通道广播全部股票更新。
             await Task.WhenAll(
                 stocks.Where(s => s is not null).Select(channelWriter.Publish));
 
-            // 使用已过的时间计算15秒的延迟。
+            // 根据已用时间计算剩余延迟，以达到 15 秒的间隔。
             int elapsed = Stopwatch.GetElapsedTime(startingTimestamp).Milliseconds;
             int remaining = Math.Max(0, 15_000 - elapsed);
 

@@ -10,7 +10,7 @@ using Orleans.Connections.Transport.Streams;
 namespace Orleans.Connections.Transport.Security;
 
 /// <summary>
-/// 使用 TLS 加密和解密所有数据的<see cref="MessageTransport"/> 。
+/// 使用 TLS 加密和解密所有数据的 <see cref="MessageTransport"/>。
 /// </summary>
 internal abstract partial class TlsMessageTransport : StreamMessageTransport
 {
@@ -26,7 +26,7 @@ internal abstract partial class TlsMessageTransport : StreamMessageTransport
     private readonly TlsConnectionFeature _tlsConnectionFeature = new();
 
     /// <summary>
-    /// 初始化一个新的 <see cref="TlsMessageTransport"/> 实例。
+    /// 初始化新的 <see cref="TlsMessageTransport"/> 实例。
     /// </summary>
     /// <param name="transport"></param>
     /// <param name="options"></param>
@@ -88,7 +88,7 @@ internal abstract partial class TlsMessageTransport : StreamMessageTransport
     protected TlsOptions Options => _options;
 
     /// <summary>
-    /// 获取底部 <see cref="SslStream"/>。
+    /// 获取底层 <see cref="SslStream"/>。
     /// </summary>
     protected override SslStream Stream => _sslStream;
 
@@ -97,7 +97,7 @@ internal abstract partial class TlsMessageTransport : StreamMessageTransport
     /// <inheritdoc/>
     public override async ValueTask CloseAsync(Exception? closeException, CancellationToken cancellationToken = default)
     {
-        // 先关闭内运至的内端连接, 任何未解决 SslStream 立即解除路障。
+        // 先关闭内部传输层，使任何待完成的 SslStream I/O 及时解除阻塞。
         await _innerTransport.CloseAsync(closeException, cancellationToken).ConfigureAwait(false);
         await base.CloseAsync(closeException, cancellationToken).ConfigureAwait(false);
     }
@@ -206,10 +206,10 @@ internal abstract partial class TlsMessageTransport : StreamMessageTransport
     {
         await CloseAsync(null, CancellationToken.None).ConfigureAwait(false);
 
-        // SslStream 处理自 leaveInnerStreamOpen:假 [后 的 _网络运输系统:
+        // 由于 leaveInnerStreamOpen: false，SslStream 会释放 _networkTransportStream。
         await _sslStream.DisposeAsync().ConfigureAwait(false);
 
-        // 将内运最后
+        // 最后释放内部传输层。
         await _innerTransport.DisposeAsync().ConfigureAwait(false);
 
         await base.DisposeAsync().ConfigureAwait(false);

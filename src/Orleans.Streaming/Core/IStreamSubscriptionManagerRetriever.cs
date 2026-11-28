@@ -6,9 +6,9 @@ namespace Orleans.Streams.Core
     public interface IStreamSubscriptionManagerRetriever
     {
         /// <summary>
-        /// 接通了水流订阅经理
+        /// 获取流订阅管理器。
         /// </summary>
-        /// <returns>下 <see cref="IStreamSubscriptionManager"/>,或 <see langword="null"/> 如果流源提供者没有配置的订阅管理器( ) (O)e.g. 仅限注册的不公开订阅提供商)。</returns>
+        /// <returns><see cref="IStreamSubscriptionManager"/>；如果流提供程序未配置订阅管理器（例如仅支持隐式订阅的提供程序），则为 <see langword="null"/>。</returns>
         IStreamSubscriptionManager? GetStreamSubscriptionManager();
     }
 }

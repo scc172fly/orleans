@@ -22,7 +22,7 @@ namespace Orleans.Runtime.MembershipService
 {
     internal partial class MembershipTableManager : IMembershipManager, IHealthCheckParticipant, ILifecycleParticipant<ISiloLifecycle>, IDisposable
     {
-        private const int NUM_CONDITIONAL_WRITE_CONTENTION_ATTEMPTS = -1; // 无限制
+        private const int NUM_CONDITIONAL_WRITE_CONTENTION_ATTEMPTS = -1; // 不受限制。
         private const int NUM_CONDITIONAL_WRITE_ERROR_ATTEMPTS = -1;
         private static readonly TimeSpan EXP_BACKOFF_ERROR_MIN = TimeSpan.FromMilliseconds(1000);
         private static readonly TimeSpan EXP_BACKOFF_CONTENTION_MIN = TimeSpan.FromSeconds(2);
@@ -106,7 +106,7 @@ namespace Orleans.Runtime.MembershipService
 
         public SiloStatus CurrentStatus => Volatile.Read(ref _state).LocalSiloStatus;
 
-        // IMembershipManager 明确接口实施
+        // IMembershipManager 的显式接口实现。
         MembershipTableSnapshot IMembershipManager.CurrentSnapshot => Volatile.Read(ref _state).Snapshot;
         IAsyncEnumerable<MembershipTableSnapshot> IMembershipManager.MembershipUpdates => this.updates;
         SiloStatus IMembershipManager.LocalSiloStatus => this.CurrentStatus;
@@ -136,8 +136,8 @@ namespace Orleans.Runtime.MembershipService
 
             if (requireFresh)
             {
-                // 同时发表全视的作品也能满足这一围栏。
-                // 在此独立阅读,以使操作在不依赖其他活动的情况下取得进展。
+                // 并发写入若发布完整视图，也可以满足此屏障。在此发起
+                // 独立读取，使操作无需依赖其他活动即可推进。
                 await RefreshInternal(requireCleanup: false, _shutdownCts.Token).WaitAsync(waitCancellationToken);
                 if (!targetVersion.HasValue || this.MembershipTableSnapshot.Version >= targetVersion.Value)
                 {
@@ -152,7 +152,7 @@ namespace Orleans.Runtime.MembershipService
                 var pending = this.pendingRefresh;
                 if (pending is null || pending.IsCompleted)
                 {
-                    // 共有读取在关闭期间仍然可用;处置结束其寿命。
+                    // 关闭期间共享读取仍然可用；释放操作终止其生命周期。
                     pending = this.pendingRefresh = this.RefreshInternal(
                         requireCleanup: false,
                         _lifetimeCts.Token);
@@ -161,7 +161,7 @@ namespace Orleans.Runtime.MembershipService
 
                 await pending.WaitAsync(waitCancellationToken);
 
-                // 如果未指定目标版本, 一次刷新后退出
+                // 如果未指定目标版本，则刷新一次后退出。
                 if (!targetVersion.HasValue)
                 {
                     break;
@@ -176,7 +176,7 @@ namespace Orleans.Runtime.MembershipService
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            // 检查是否正在刷新
+            // 检查是否正在刷新。
             var pending = this.pendingRefresh;
             if (pending != null && !pending.IsCompleted)
             {
@@ -207,12 +207,12 @@ namespace Orleans.Runtime.MembershipService
                 LogWarningExceptionWhileCleaningUpTableEntries(this.log, exception);
             }
 
-            // 清理后公布,以便其他部件不观察到
-            // 即将被宣布为已死的新首条目 。
+            // 清理后再发布，避免其他组件观察到
+            // 即将被宣告死亡的前驱条目。
             cancellationToken.ThrowIfCancellationRequested();
             this.ProcessTableUpdate(table, "Refresh");
 
-            // 如果不需要清理,则忽略了清理结果。
+            // 如果不需要清理，则忽略清理结果。
             return !requireCleanup || success;
         }
 
@@ -223,10 +223,10 @@ namespace Orleans.Runtime.MembershipService
             {
                 LogInformationMembershipStarting(this.log, this.localSiloDetails.DnsHostName, this.myAddress, LogFormatter.PrintDate(this.siloStartTime));
 
-                // 加入成员名单。
+                // 初始化成员表。
                 await this.membershipTableProvider.InitializeMembershipTableAsync(true, cancellationToken);
 
-                // 执行初始表格已读
+                // 执行初始表读取。
                 var refreshed = await AsyncExecutorWithRetries.ExecuteWithRetries(
                     function: _ => this.RefreshInternal(requireCleanup: true, cancellationToken),
                     maxNumSuccessTries: NUM_CONDITIONAL_WRITE_CONTENTION_ATTEMPTS,
@@ -243,7 +243,7 @@ namespace Orleans.Runtime.MembershipService
                     throw new OrleansException("Failed to perform initial membership refresh and cleanup.");
                 }
 
-                // 阅读表格并查找我的节点迁移事件
+                // 读取表并查找本节点发生迁移的情况。
                 DetectNodeMigration(this.MembershipTableSnapshot, this.localSiloDetails.DnsHostName);
             }
             catch (Exception exception)
@@ -269,11 +269,11 @@ namespace Orleans.Runtime.MembershipService
         {
             string mySiloName = this.localSiloDetails.Name;
             MembershipEntry? mostRecentPreviousEntry = null;
-            // 寻找 silo 跟我一样的事例, 找到我面前的世代的最新消息。
+            // 查找与自身相同的 Silo 实例，找出 Generation 小于自身且最近的实例。
             foreach (var entry in snapshot.Entries.Select(entry => entry.Value).Where(data => mySiloName.Equals(data.SiloName, StringComparison.Ordinal)))
             {
                 bool iAmLater = myAddress.Generation.CompareTo(entry.SiloAddress.Generation) > 0;
-                // 较近期
+                // 更新近的实例。
                 if (iAmLater && (mostRecentPreviousEntry is null || entry.SiloAddress.Generation.CompareTo(mostRecentPreviousEntry.SiloAddress.Generation) > 0))
                     mostRecentPreviousEntry = entry;
             }
@@ -373,11 +373,11 @@ namespace Orleans.Runtime.MembershipService
                     counter => taskFunction(counter, cancellationToken),
                     NUM_CONDITIONAL_WRITE_CONTENTION_ATTEMPTS,
                     NUM_CONDITIONAL_WRITE_ERROR_ATTEMPTS,
-                    retryValueFilter,   // 无法更新争议 - 再试
+                    retryValueFilter,   // 如果因争用而更新失败，则重试。
                     (exc, i) => !cancellationToken.IsCancellationRequested,
                     timeout,
-                    new ExponentialBackoff(EXP_BACKOFF_CONTENTION_MIN, EXP_BACKOFF_CONTENTION_MAX, EXP_BACKOFF_STEP), // 成功重试间隔多长等待
-                    new ExponentialBackoff(EXP_BACKOFF_ERROR_MIN, EXP_BACKOFF_ERROR_MAX, EXP_BACKOFF_STEP),  // 错误重试间隔要等多久
+                    new ExponentialBackoff(EXP_BACKOFF_CONTENTION_MIN, EXP_BACKOFF_CONTENTION_MAX, EXP_BACKOFF_STEP), // 成功但需要重试时，两次尝试之间的等待时长。
+                    new ExponentialBackoff(EXP_BACKOFF_ERROR_MIN, EXP_BACKOFF_ERROR_MAX, EXP_BACKOFF_STEP),  // 出现错误时，两次重试之间的等待时长。
                     cancellationToken
             );
         }
@@ -394,13 +394,13 @@ namespace Orleans.Runtime.MembershipService
                 {
                     numCalls++;
                     LogDebugGoingToTryToUpdateMyStatusGlobalOnce(this.log, counter);
-                    return await TryUpdateMyStatusGlobalOnce(status, token);  // 复试的函数
+                    return await TryUpdateMyStatusGlobalOnce(status, token);  // 要重试的函数。
                 }
 
                 if (status.IsTerminating() && this.membershipTableProvider is SystemTargetBasedMembershipTable)
                 {
-                    // SystemTarget- 以成员制为基础的成员资格在现阶段可能无法进入,因此可以快速更新
-                    // 不论结果如何,在继续之前都须获得地位。
+                    // 基于 SystemTarget 的成员资格在此阶段可能无法访问，因此允许快速尝试一次更新
+                    // 状态，此后无论结果如何都继续。
                     using var timeout = new CancellationTokenSource(TimeSpan.FromMilliseconds(500), this.timeProvider);
                     using var updateCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
                     try
@@ -447,12 +447,12 @@ namespace Orleans.Runtime.MembershipService
             }
         }
 
-        // 表格
-        // 查找所有当前活动节点, 测试所有对它进行测试的 pings
-        //      尝试全部 ping 全部
-        //      如果所有 ping 都成功
-        //             尝试将我的身份更改为活动状态, 并在同一写入交易更新中更新
-        //      如果失败( ping 或写作例外或 etag) - 重试整个 AttemptToJoinActiveNodes
+        // 读取表。
+        // 查找当前所有活跃节点，并测试到各节点的 ping。
+        // 尝试 ping 所有节点。
+        // 如果所有 ping 均成功，
+        // 尝试将自身状态改为 Active，并在同一写事务中以两个 ETag 为条件更新成员表版本行。
+        // 如果失败（ping 失败、写入异常或 ETag 不匹配），则重试整个 AttemptToJoinActiveNodes。
         private async Task<bool> TryUpdateMyStatusGlobalOnce(SiloStatus newStatus, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -470,14 +470,14 @@ namespace Orleans.Runtime.MembershipService
             var (myEntry, myEtag) = this.GetOrCreateLocalSiloEntry(table, newStatus);
             var now = GetDateTimeUtcNow();
             if (newStatus == SiloStatus.Dead)
-                myEntry.AddSuspector(myAddress, now); // 将凶手(我自己)列入嫌疑犯名单,以便于日后进行诊断。
+                myEntry.AddSuspector(myAddress, now); // 将执行死亡宣告的 Silo（自身）加入怀疑列表，便于后续诊断。
 
             myEntry.Status = newStatus;
             myEntry.IAmAliveTime = now;
 
             bool ok;
             TableVersion next = table.Version.Next();
-            if (myEtag is not null) // 用于我条目 - > 的现有etag 。 < > 有上一个行,所以更新而不是插入 。
+            if (myEtag is not null) // 自身条目已有 ETag，说明先前存在该行，因此执行更新而非插入。
             {
                 ok = await membershipTableProvider.UpdateRowAsync(myEntry, myEtag, next, cancellationToken);
             }
@@ -561,7 +561,7 @@ namespace Orleans.Runtime.MembershipService
                     update.ObservedVersion),
                 (Manager: this, UpdateFunc: updateFunc, State: state, ObservedLocalStatus: observedLocalStatus, ObservedVersion: observedVersion));
 
-            // 截图合并包括延迟读写完成的读数和读数中死亡证据。
+            // 快照合并包含来自延迟读取及写入完成结果的死亡证据。
             this.CheckIfLocalSiloIsDead(caller);
             return wasPublished;
         }
@@ -573,8 +573,8 @@ namespace Orleans.Runtime.MembershipService
             MembershipVersion observedVersion)
         {
             Debug.Assert(candidate.Version >= published.Version, "Snapshot merging preserves the latest canonical membership view.");
-            // 压缩可以用年龄截止取代明确的登记/搬迁证据。
-            // 在适用预先登记年龄豁免之前,保留这一最终的当地决定。
+            // 压实可以用年龄截止值代替显式注册/移除证据。
+            // 应在应用注册前年龄豁免之前保留该本地终止判定。
             var hasLocalDeathEvidence = published.Entries.ContainsKey(this.myAddress)
                 ? candidate.Version > published.Version
                 : observedLocalStatus == SiloStatus.Dead
@@ -584,8 +584,8 @@ namespace Orleans.Runtime.MembershipService
                 Interlocked.Exchange(ref _state, new MembershipState(published, SiloStatus.Dead));
             }
 
-            // TODO:通过成员制和加入配有版本/ETag的围栏,集中确定下限。
-            // 超过退休年龄的写作,如果被归类为死亡,则在当地缺席后,可以作出其他选择。
+            // TODO：通过成员资格系统集中建立下限，并使用其版本/ETag 为准入设置屏障。
+            // 否则，停滞超过淘汰年龄的写入可能在本地已将缺失判定为死亡后提交。
             return candidate.RetireGenerations(this.timeProvider.GetUtcNow().UtcDateTime, this.clusterMembershipOptions.SiloGenerationRetirementAge);
         }
 
@@ -641,16 +641,16 @@ namespace Orleans.Runtime.MembershipService
 
                 LogDebugTemporalAnomalyDetected(this.log, myAddress, siloAddress);
 
-                // 时间上的矛盾现象 - 在成员表中有一个这个 silo 的老克隆
+                // 时间悖论：成员表中存在此 Silo 的较旧副本。
                 if (siloAddress.Generation < myAddress.Generation)
                 {
                     LogWarningDetectedOlder(this.log, myAddress, siloAddress, entry.ToString());
-                    // 宣布我为死老克隆人
+                    // 将自己的较旧副本宣告为 Dead。
                     silosToDeclareDead.Add(tuple);   //return DeclareDead(entry, eTag, tableVersion);
                 }
                 else if (siloAddress.Generation > myAddress.Generation)
                 {
-                    // 我是老的克隆人 新生版我应该活下来 我需要自杀
+                    // 自己是较旧副本：较新的自身实例应继续存活，因此必须终止自己。
                     LogWarningDetectedNewer(this.log, myAddress, siloAddress, entry.ToString());
                     var reason = $"Detected newer version of myself - I am the older clone so I will stop -- Current Me={myAddress} Newer Me={siloAddress}, Current entry={entry}";
                     try
@@ -662,7 +662,7 @@ namespace Orleans.Runtime.MembershipService
                         this.KillMyselfLocally(reason);
                     }
 
-                    return true; // 继续!
+                    return true; // 无需继续！
                 }
             }
 
@@ -670,7 +670,7 @@ namespace Orleans.Runtime.MembershipService
 
             LogDebugCleanupTableEntriesAboutToDeclareDead(this.log, silosToDeclareDead.Count, Utils.EnumerableToString(silosToDeclareDead.Select(tuple => tuple.Item1)));
 
-            // 共享阅读可超过维持寿命,
+            // 共享读取可能比维护流程存续更久，后者拥有确认清理的工作任务。
             using var cleanupCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _shutdownCts.Token);
             var completions = new List<Task>(silosToDeclareDead.Count);
             foreach (var siloData in silosToDeclareDead)
@@ -704,8 +704,8 @@ namespace Orleans.Runtime.MembershipService
         private void PublishSnapshot(MembershipTableSnapshot snapshot)
         {
             var previous = Volatile.Read(ref _state);
-            // 在登记之前,仅凭年龄无法确定当地死亡,包括没有退休年龄。
-            // 记录的死亡、迁移和继承证据仍然适用。
+            // 注册前，仅凭年龄不足以确定本地死亡，即使淘汰年龄为零也一样。
+            // 已记录的死亡、移除及后继证据仍然适用。
             var localSiloStatus = snapshot.GetSiloStatus(this.myAddress, includeRetirement: previous.LocalSiloStatus != SiloStatus.Created);
             if (previous.LocalSiloStatus == SiloStatus.Dead)
             {
@@ -943,7 +943,7 @@ namespace Orleans.Runtime.MembershipService
             var entry = tuple.Item1.Copy();
             string eTag = tuple.Item2;
 
-            // 检查表格是否已经知道此 silo 已死
+            // 检查成员表是否已经知道此 Silo 已死亡。
             if (entry.Status == SiloStatus.Dead)
             {
                 this.ProcessTableUpdate(table, nameof(InnerTryKill));
@@ -990,14 +990,14 @@ namespace Orleans.Runtime.MembershipService
             string eTag = tuple.Item2;
             LogDebugTryToSuspectOrKillCurrentStatus(this.log, entry.SiloAddress, entry.Status, entry.ToString());
 
-            // 检查表格是否已经知道此 silo 已死
+            // 检查成员表是否已经知道此 Silo 已死亡。
             if (entry.Status == SiloStatus.Dead)
             {
                 this.ProcessTableUpdate(table, "TrySuspectOrKill");
                 return true;
             }
 
-            // 获得所有有效(未过期)选票
+            // 获取全部有效（未过期）投票。
             var freshVotes = entry.GetFreshVotes(now, this.clusterMembershipOptions.DeathVoteExpirationTimeout);
             LogTraceCurrentNumberOfFreshVoters(this.log, silo, freshVotes.Count.ToString());
 
@@ -1008,11 +1008,11 @@ namespace Orleans.Runtime.MembershipService
                 return false;
             }
 
-            // 试着把我们的投票加到名单上,再计算一下新的投票。
+            // 尝试将自身投票添加到列表，并重新统计未过期票数。
             var prevList = entry.SuspectTimes?.ToList() ?? new List<Tuple<SiloAddress, DateTime>>();
             entry.AddOrUpdateSuspector(myAddress, now, clusterMembershipOptions.NumVotesForDeathDeclaration);
 
-            // 包含间接探测器 silo如果存在的话,也得投票
+            // 如果存在间接探测 Silo 的投票，也将其纳入。
             if (indirectProbingSilo is not null)
             {
                 entry.AddOrUpdateSuspector(indirectProbingSilo, now, clusterMembershipOptions.NumVotesForDeathDeclaration);
@@ -1020,8 +1020,8 @@ namespace Orleans.Runtime.MembershipService
 
             freshVotes = entry.GetFreshVotes(now, this.clusterMembershipOptions.DeathVoteExpirationTimeout);
 
-            // 确定是否有足够的选票可以驱离 silo。
-            // 当活动次数时处理角落的大小 silos 投票率只有1比2,
+            // 判断票数是否足以逐出 Silo。
+            // 处理活跃 Silo 数量非常少的边缘情况（此时仅自身一票即可）。
             int activeNonStaleSilos = table.Members.Count(kv =>
                 kv.Item1.Status == SiloStatus.Active &&
                 !kv.Item1.HasMissedIAmAlives(clusterMembershipOptions, now));
@@ -1034,14 +1034,14 @@ namespace Orleans.Runtime.MembershipService
 
             LogInformationVotingToEvictSilo(this.log, entry.SiloAddress, PrintSuspectList(prevList), PrintSuspectList(entry.SuspectTimes), eTag, PrintSuspectList(freshVotes));
 
-            // 如果我们不更新这里的更新,我们稍后再试。
+            // 如果此处更新失败，之后将重试。
             var ok = await membershipTableProvider.UpdateRowAsync(entry, eTag, table.Version.Next(), cancellationToken);
             if (ok)
             {
                 table = await membershipTableProvider.ReadAllAsync(cancellationToken);
                 this.ProcessTableUpdate(table, "TrySuspectOrKill");
 
-                // 使用本地 silo 身份,
+                // 使用本地 Silo 状态进行 Gossip 传播，因为此信息仅用于传播怀疑投票。
                 GossipToOthers(this.myAddress, this.CurrentStatus, GossipTimeout, cancellationToken).Ignore();
             }
 
@@ -1060,7 +1060,7 @@ namespace Orleans.Runtime.MembershipService
             {
                 entry = entry.Copy();
 
-                // 将凶手(我自己)列入嫌疑犯名单,以便日后更容易诊断。
+                // 将执行死亡宣告的 Silo（自身）添加到怀疑列表，便于后续诊断。
                 entry.AddSuspector(myAddress, time);
 
                 LogDebugGoingToDeclareDead(this.log, entry.SiloAddress, entry.ToString());
@@ -1109,7 +1109,7 @@ namespace Orleans.Runtime.MembershipService
                 this.membershipUpdateTimer.Dispose();
                 _shutdownCts.Cancel();
 
-                // 允许有一定的最少时间 优雅地关闭。
+                // 为优雅关闭预留最短时间。
                 var gracePeriod = Task.WhenAll(Task.Delay(ClusterMembershipOptions.ClusteringShutdownGracePeriod, CancellationToken.None), ct.WhenCancelled());
                 var completion = Task.WhenAll(tasks);
                 completion.Ignore();

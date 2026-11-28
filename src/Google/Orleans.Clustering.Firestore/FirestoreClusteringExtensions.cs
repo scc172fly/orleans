@@ -8,21 +8,21 @@ using Orleans.Clustering.Firestore;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// 提供谷歌消防站集群配置的扩展方法。
+/// 提供用于配置 Google Firestore 集群成员管理的扩展方法。
 /// </summary>
 public static class FirestoreClusteringExtensions
 {
     /// <summary>
-    /// 配置 silo ,使用 Google 消防站进行分组。
+    /// 配置 Silo 使用 Google Firestore 进行集群成员管理。
     /// </summary>
     /// <param name="builder">
-    /// 下 silo 建筑商
+    /// Silo 构建器。
     /// </param>
     /// <param name="configureOptions">
-    /// 组合代表
+    /// 配置委托。
     /// </param>
     /// <returns>
-    /// 提供 <see cref="ISiloBuilder"/>。
+    /// 提供的 <see cref="ISiloBuilder"/>。
     /// </returns>
     public static ISiloBuilder UseFirestoreClustering(
         this ISiloBuilder builder,
@@ -38,16 +38,16 @@ public static class FirestoreClusteringExtensions
     }
 
     /// <summary>
-    /// 配置 silo ,使用 Google 消防站进行分组。
+    /// 配置 Silo 使用 Google Firestore 进行集群成员管理。
     /// </summary>
     /// <param name="builder">
-    /// 下 silo 建筑商
+    /// Silo 构建器。
     /// </param>
     /// <param name="configureOptions">
-    /// 组合代表
+    /// 配置委托。
     /// </param>
     /// <returns>
-    /// 提供 <see cref="ISiloBuilder"/>。
+    /// 提供的 <see cref="ISiloBuilder"/>。
     /// </returns>
     public static ISiloBuilder UseFirestoreClustering(
         this ISiloBuilder builder,
@@ -67,16 +67,16 @@ public static class FirestoreClusteringExtensions
     }
 
     /// <summary>
-    /// 配置客户端使用 Google 消防商店进行分组。
+    /// 配置客户端使用 Google Firestore 进行集群连接。
     /// </summary>
     /// <param name="builder">
-    /// 客户的建设者
+    /// 客户端构建器。
     /// </param>
     /// <param name="configureOptions">
-    /// 组合代表
+    /// 配置委托。
     /// </param>
     /// <returns>
-    /// 提供 <see cref="IClientBuilder"/>。
+    /// 提供的 <see cref="IClientBuilder"/>。
     /// </returns>
     public static IClientBuilder UseFirestoreClustering(
         this IClientBuilder builder,
@@ -92,16 +92,16 @@ public static class FirestoreClusteringExtensions
     }
 
     /// <summary>
-    /// 配置客户端使用 Google 消防商店进行分组。
+    /// 配置客户端使用 Google Firestore 进行集群连接。
     /// </summary>
     /// <param name="builder">
-    /// 客户的建设者
+    /// 客户端构建器。
     /// </param>
     /// <param name="configureOptions">
-    /// 组合代表
+    /// 配置委托。
     /// </param>
     /// <returns>
-    /// 提供 <see cref="IClientBuilder"/>。
+    /// 提供的 <see cref="IClientBuilder"/>。
     /// </returns>
     public static IClientBuilder UseFirestoreClustering(
         this IClientBuilder builder,

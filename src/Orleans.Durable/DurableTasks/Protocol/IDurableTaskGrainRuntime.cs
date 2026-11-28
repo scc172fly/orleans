@@ -10,51 +10,51 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Tasks.Protocol;
 
 /// <remarks>
-/// 服务器操作操作阶段任务状态, 并不运行 grain 代码而执行该状态, 因此它们会与 grain的代码互换
-/// 包括其持久处决部分:取消执行部分待执行部分的
-/// 其它工作, 而时间表不会等待 grain执行处决 。
+/// 服务器的操作暂存任务状态并提交，而不运行 Grain 代码，因此它们与 Grain 的
+/// 请求（包括其持久化执行实例的各个执行片段）交错执行：即使某个执行实例的片段正在等待
+/// 其他工作，取消请求也能到达该执行实例，而调度操作不会等待 Grain 正在运行的执行实例。
 /// </remarks>
 [Alias("IDurableTaskServerGrainExtension")]
 internal interface IDurableTaskServer : IGrainExtension
 {
-    // 被 DurableTaskRequest.Invoke 调 [以确保安排任务
+    // 由 DurableTaskRequest.Invoke 调用，确保任务已被调度。
     [Alias("ScheduleAsync"), AlwaysInterleave]
     ValueTask<DurableTaskResponse> ScheduleAsync(TaskId taskId, IDurableTaskRequest request, CancellationToken cancellationToken = default);
 
-    // API 使用用 ScheduledTask/<T> 检查任务的结果。
-    // ScheduledTask 无法查阅原始请求,因此无法提交合理的 IDurableTaskRequest。
-    // 民意测验在等待结果时,不会改变状态,所以会间隔: grain 不断处理请求和(Q0Q]
-    // 完成任务的信息。
+    // ScheduledTask/<T> 用于检查任务结果的 API。
+    // ScheduledTask 无法访问原始请求，因此无法提交有意义的 IDurableTaskRequest。
+    // 轮询等待结果而不改变状态，所以可以交错执行：Grain 继续处理使任务完成的请求和
+    // 消息。
     [Alias("SubscribeOrPollAsync"), AlwaysInterleave]
     ValueTask<DurableTaskResponse> SubscribeOrPollAsync(TaskId taskId, SubscribeOrPollOptions options, CancellationToken cancellationToken = default);
 
     [Alias("CancelAsync"), AlwaysInterleave]
     ValueTask CancelAsync(TaskId taskId, CancellationToken cancellationToken = default);
 
-    /// <summary>可持久地请求取消此任务 grain,携带 <paramref name="reason"/>.</summary>
+    /// <summary>持久化地请求取消此 Grain 上的任务，并携带 <paramref name="reason"/>。</summary>
     /// <param name="taskId">任务标识符。</param>
     /// <param name="reason">
-    /// 任务 <see cref="DurableTaskContext.TaskCancellationReason"/> 报告的原因,或
-    /// <see langword="null"/> 毫无理由。
+    /// 任务的 <see cref="DurableTaskContext.TaskCancellationReason"/> 所报告的原因；若无原因，
+    /// 则为 <see langword="null"/>。
     /// </param>
-    /// <param name="cancellationToken">放弃等待请求承诺的符号。</param>
+    /// <param name="cancellationToken">用于放弃等待请求提交的令牌。</param>
     /// <remarks>
-    /// 第一次取消请求决定了原因。 请求执行本 grain 不保留丢弃的任务
-    /// <see cref="DurableTaskNotFoundException"/> 并存留任何物品。
+    /// 第一次取消请求决定原因。针对该 Grain 未保留的任务的请求会抛出
+    /// <see cref="DurableTaskNotFoundException"/>，且不存储任何内容。
     /// </remarks>
-    /// <exception cref="DurableTaskNotFoundException">这个 grain 不再保留任务。</exception>
+    /// <exception cref="DurableTaskNotFoundException">此 Grain 未保留该任务。</exception>
     [Alias("CancelWithReasonAsync"), AlwaysInterleave]
     ValueTask CancelAsync(TaskId taskId, string? reason, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 行政中止此 grain的任务 : 执行任务及其执行树失败, 执行任务
-    /// <see cref="DurableTaskAbortedException"/> 在一个字中写,停止运行尝试,不继续运行
+    /// 对此 Grain 上的任务执行管理性中止：在一次写入中将任务及其执行树以
+    /// <see cref="DurableTaskAbortedException"/> 作为失败结果提交，并停止它们正在运行的执行尝试，不再运行任何
     /// 任务代码。
     /// </summary>
     /// <param name="taskId">任务标识符。</param>
-    /// <param name="reason">中止的原因,记录为例外信息。</param>
-    /// <param name="cancellationToken">放弃等待中止执行的标记。</param>
-    /// <remarks>任务为终端,或此 grain 不保留的任务不变。</remarks>
+    /// <param name="reason">作为异常消息记录的中止原因。</param>
+    /// <param name="cancellationToken">用于放弃等待中止操作提交的令牌。</param>
+    /// <remarks>已处于终态的任务，或者此 Grain 未保留的任务，保持不变。</remarks>
     [Alias("AbortAsync"), AlwaysInterleave]
     ValueTask AbortAsync(TaskId taskId, string reason, CancellationToken cancellationToken = default);
 }
@@ -76,27 +76,27 @@ internal interface IDurableTaskGrainExtension : IGrainExtension, IDurableTaskSer
     [Alias("GetRunningTasksAsync"), AlwaysInterleave]
     IAsyncEnumerable<TaskId> GetRunningTasksAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>向所援引的任务发出信号 <paramref name="taskId"/> 中 的 grain.</summary>
-    /// <param name="taskId">所引用的任务识别符号。</param>
-    /// <param name="name">信号名。</param>
-    /// <param name="value">成功的响应 保持信号的价值。</param>
-    /// <param name="cancellationToken">放弃等待信号承诺的标记。</param>
-    /// <returns>一旦任务长期保持信号值, 即完成操作。</returns>
-    /// <exception cref="DurableTaskNotFoundException">下 grain 保留不引用任务 <paramref name="taskId"/>.</exception>
+    /// <summary>向此 Grain 上被调用的任务 <paramref name="taskId"/> 投递信号。</summary>
+    /// <param name="taskId">被调用任务的标识符。</param>
+    /// <param name="name">信号名称。</param>
+    /// <param name="value">包含信号值的成功响应。</param>
+    /// <param name="cancellationToken">用于放弃等待信号提交的令牌。</param>
+    /// <returns>在任务持久化保存信号值后完成的操作。</returns>
+    /// <exception cref="DurableTaskNotFoundException">Grain 未保留被调用任务 <paramref name="taskId"/>。</exception>
     /// <exception cref="InvalidOperationException">
-    /// 任务为终端,对信号没有价值,或者对信号持有不同的价值。
+    /// 任务已处于终态且没有该信号的值，或者已保存不同的信号值。
     /// </exception>
     [Alias("SignalAsync"), AlwaysInterleave]
     ValueTask SignalAsync(TaskId taskId, string name, DurableTaskResponse value, CancellationToken cancellationToken = default);
 
-    /// <summary>向所援引的任务发出信号 <paramref name="taskId"/> 中 的 grain,然后返回任务是如何处理的。</summary>
-    /// <param name="taskId">所引用的任务识别符号。</param>
-    /// <param name="name">信号名。</param>
-    /// <param name="value">成功的响应 保持信号的价值。</param>
-    /// <param name="cancellationToken">放弃等待信号承诺的标记。</param>
+    /// <summary>向此 Grain 上被调用的任务 <paramref name="taskId"/> 投递信号，并返回任务的处理结果。</summary>
+    /// <param name="taskId">被调用任务的标识符。</param>
+    /// <param name="name">信号名称。</param>
+    /// <param name="value">包含信号值的成功响应。</param>
+    /// <param name="cancellationToken">用于放弃等待信号提交的令牌。</param>
     /// <returns>
-    /// <see cref="DurableSignalResult.Accepted"/> 或 <see cref="DurableSignalResult.Duplicate"/> 任务一旦完成
-    /// 持有该值,或任务拒绝的原因,但不会改变任何内容。
+    /// 当任务持久化保存该值时返回 <see cref="DurableSignalResult.Accepted"/> 或 <see cref="DurableSignalResult.Duplicate"/>，
+    /// 否则返回任务拒绝该值的原因，而不产生任何变更。
     /// </returns>
     [Alias("TrySignalAsync"), AlwaysInterleave]
     ValueTask<DurableSignalResult> TrySignalAsync(TaskId taskId, string name, DurableTaskResponse value, CancellationToken cancellationToken = default);
@@ -113,61 +113,61 @@ internal struct DurableTaskDiagnosticState
     public DateTimeOffset? CompletedAt { get; set; }
 
     /// <summary>
-    /// 获取或设置诊断状态,或者当数值被默认初始化时 <see langword="null"/>
-    /// 或收到未提供该委员的版本。
+    /// 获取或设置诊断状态；值为 <see langword="null"/> 的情况包括默认初始化，
+    /// 或从不提供此成员的版本接收到该值。
     /// </summary>
     /// <remarks>
-    /// 含有存储结果的任务 <c>Completed</c>, <c>Faulted</c>, <c>Canceled</c>,或 <c>Unreadable</c> 讽 果结果
-    /// 不再解码。 没有代码的任务就是 <c>Canceling</c>, <c>Delayed</c>,或 <c>Pending</c>.
+    /// 已存储结果的任务为 <c>Completed</c>、<c>Faulted</c>、<c>Canceled</c>，或 <c>Unreadable</c>（结果
+    /// 无法再解码时）。未存储结果的任务为 <c>Canceling</c>、<c>Delayed</c> 或 <c>Pending</c>。
     /// </remarks>
     [Id(2)]
     public string? Status { get; set; }
 
-    /// <summary>获取或设置本地请求,格式化为方法调用。</summary>
+    /// <summary>获取或设置本地请求，其格式为方法调用。</summary>
     [Id(3)]
     public string? Request { get; set; }
 
     /// <summary>
-    /// 获取或设置存储结果的概要:其价值、例外或解码失败。 A
-    /// <c>Canceling</c> 或 <c>Canceled</c> 任务报告其取消理由,如果有的话。
+    /// 获取或设置已存储结果的摘要：其值、异常或解码失败信息。
+    /// <c>Canceling</c> 或 <c>Canceled</c> 状态的任务会报告取消原因（若有）。
     /// </summary>
     [Id(4)]
     public string? Response { get; set; }
 
     /// <summary>
-    /// 获取或设置诊断性完成服务服务员,或者当值为 <see langword="null"/> 时
-    /// 默认初始化或接收未提供该成员版本的版本。
+    /// 获取或设置诊断用的完成等待者；值为 <see langword="null"/> 的情况包括
+    /// 默认初始化，或从不提供此成员的版本接收到该值。
     /// </summary>
     [Id(5)]
     public List<string>? Waiters { get; set; }
 
-    /// <summary>获取或设定延迟的到期时间。</summary>
+    /// <summary>获取或设置待处理延迟的到期时间。</summary>
     [Id(6)]
     public DateTimeOffset? DueTime { get; set; }
 
-    /// <summary>获取或设置执行远程儿童任务的 grain 。</summary>
+    /// <summary>获取或设置执行远程子任务的 Grain。</summary>
     [Id(7)]
     public string? RemoteTarget { get; set; }
 
     public override readonly string ToString() => $"[{Status}, Created: {CreatedAt}, Completed: {CompletedAt}, Due: {DueTime}, Request: {Request}, Remote: {RemoteTarget}, Response: {Response}, Waiters: {string.Join(", ", Waiters ?? [])}]";
 }
 
-// 客户/ grains 至 DurableTasks的中间请求。
-// Orleans- 支持 DurableTasks 或其他持久任务。
-// 其部分原因是允许 Orleans 拦截请求,并确保将结果储存在当地。
-// 有两个执行:
-// 1. Grain 代理:本地存储结果,支持签名。只有 grain中存在。
-// 2. 客户代理:不存储本地结果,不支持签名。可在 grain上下文之外查阅。
+// 在客户端或 Grain 与 DurableTasks 之间中转请求。
+// 既支持以 Orleans 为后端的 DurableTasks，也支持其他持久化任务。
+// 此设计的部分目的是让 Orleans 能够拦截请求，并确保结果在本地存储。
+// 有两种实现：
+// 1. Grain 代理：在本地存储结果，支持订阅。仅在 Grain 的上下文中可用。
+// 2. 客户端代理：不在本地存储结果，不支持订阅。在 Grain 的上下文之外可用。
 internal interface IDurableTaskGrainRuntime
 {
     DateTimeOffset UtcNow { get; }
 
-    /// <summary>得到 grain 执行运行时间的行刑者</summary>
+    /// <summary>获取其执行实例由运行时运行的 Grain。</summary>
     GrainId GrainId { get; }
 
     /// <summary>
-    /// 启动或重新连接孩子 <paramref name="taskId"/>,等待日记写作。
-    /// 当设定 <paramref name="waitForAcceptance"/> 时,儿童宿主接受该宿主。
+    /// 启动或重新附接到子任务 <paramref name="taskId"/>，等待提交它的日志写入，并且
+    /// 设置 <paramref name="waitForAcceptance"/> 时，等待子任务的宿主接受该子任务。
     /// </summary>
     ValueTask<IScheduledTaskHandle> ScheduleChildAsync(
         TaskId taskId,
@@ -176,13 +176,13 @@ internal interface IDurableTaskGrainRuntime
         bool waitForAcceptance,
         CancellationToken cancellationToken);
 
-    /// <summary>启动时,儿童开始 <paramref name="taskId"/> ,没有书面。</summary>
+    /// <summary>暂存在激活实例上启动子任务 <paramref name="taskId"/> 的操作，不进行写入。</summary>
     IScheduledTaskHandle PostChild(TaskId taskId, DurableTask taskDefinition, bool shielded);
 
     /// <summary>
-    /// 启动 <paramref name="request"/> ,作为独立根任务 <paramref name="rootId"/>,记录并订阅于
-    /// <paramref name="recordId"/>,等待日记的开始和
-    /// <paramref name="waitForAcceptance"/> 是设置的,以接受任务 grain。
+    /// 将 <paramref name="request"/> 作为分离根任务 <paramref name="rootId"/> 启动，在
+    /// <paramref name="recordId"/> 下记录并订阅，等待提交启动操作的日志写入，并在
+    /// <paramref name="waitForAcceptance"/> 已设置时，等待任务所属 Grain 接受该任务。
     /// </summary>
     ValueTask<IScheduledTaskHandle> StartDetachedAsync(
         TaskId recordId,
@@ -193,22 +193,22 @@ internal interface IDurableTaskGrainRuntime
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// 独立根任务 <paramref name="rootId"/>的启动阶段,在
-    /// <paramref name="recordId"/>,在激活时,没有书面。
+    /// 在激活实例上暂存分离根任务 <paramref name="rootId"/> 的启动操作，在
+    /// <paramref name="recordId"/> 下记录并订阅，但不执行写入。
     /// </summary>
     IScheduledTaskHandle PostDetached(TaskId recordId, TaskId rootId, IDurableTaskRequest request, bool shielded);
 
     /// <summary>
-    /// 根任务 <paramref name="rootId"/>的起始阶段, 从耐久执行之外运行的代码开始 。
-    /// 启动,不写。启动承诺使用 grain的下一期日记写入 。
+    /// 在激活实例上暂存从持久化执行之外运行的代码启动根任务 <paramref name="rootId"/> 的操作，而不
+    /// 执行写入。启动操作随 Grain 的下一次日志写入提交。
     /// </summary>
     void PostRoot(TaskId rootId, IDurableTaskRequest request);
 
     ValueTask<DurableTaskResponse> ScheduleDelayAsync(TaskId taskId, DateTimeOffset dueTime, CancellationToken cancellationToken);
     ValueTask CancelRemoteAsync(TaskId taskId, GrainId target, string? reason, CancellationToken cancellationToken);
     /// <summary>
-    /// 返回先完成的候选者,或记录在
-    /// <paramref name="decisionId"/>,在等待时停车 <paramref name="attempt"/> 。
+    /// 返回最先完成的候选任务，或将最先完成的候选任务记录在
+    /// <paramref name="decisionId"/> 下，并在等待期间挂起 <paramref name="attempt"/>。
     /// </summary>
     ValueTask<TaskId> SelectCompletionAsync(
         GrainDurableTaskContext attempt,
@@ -218,101 +218,101 @@ internal interface IDurableTaskGrainRuntime
     IScheduledTaskHandle GetScheduledTaskHandle(TaskId taskId);
 
     /// <summary>
-    /// 返回其主机存储操作的任务的标识符 <paramref name="taskId"/> 排排排排
-    /// 开始执行或观察,当其他当事方处理任务时储存该执行的 grain 。
+    /// 返回执行实例中的操作 <paramref name="taskId"/> 所启动或观察的任务在其宿主上的存储标识符，以及
+    /// 在其他参与方寻址该任务时存储它的 Grain。
     /// </summary>
-    /// <param name="taskId">操作的识别符号。</param>
+    /// <param name="taskId">操作标识符。</param>
     /// <param name="addressedHost">
-    /// 存储一项分离或指定任务的 grain ,或用于执行该任务任务的 <see langword="default"/>
-    /// 树的树本身。
+    /// 存储分离任务或被订阅任务的 Grain；如果值为 <see langword="default"/>，则任务由
+    /// 执行实例的执行树拥有。
     /// </param>
     TaskId GetTargetTaskId(TaskId taskId, out GrainId addressedHost);
 
     /// <summary>
-    /// 返回所引用任务中执行树包含 <paramref name="executionId"/>的化身。
+    /// 返回被调用任务的运行世代标识，该任务的执行树包含 <paramref name="executionId"/>。
     /// </summary>
     Guid GetIncarnation(TaskId executionId);
 
-    /// <summary>返回时记录任务终端结果,或无 <see langword="null"/> 。</summary>
+    /// <summary>返回任务的终态结果记录时间；若无结果，则返回 <see langword="null"/>。</summary>
     DateTimeOffset? GetCompletedAt(TaskId taskId);
 
     /// <summary>
-    /// 返回先前尝试 <paramref name="executionId"/> 记录并重放的操作
-    /// 达到,如其儿童、标记和记录的效果,或无效果的 <see langword="null"/> 。
+    /// 返回 <paramref name="executionId"/> 先前执行尝试记录且会被重放
+    /// 到达的操作，例如其子任务、标记和已记录的效果；没有这些操作时返回 <see langword="null"/>。
     /// </summary>
-    /// <remarks>调用者拥有返回的集。</remarks>
+    /// <remarks>返回的集合归调用方所有。</remarks>
     HashSet<TaskId>? GetRecordedOperations(TaskId executionId) => null;
 
-    /// <summary>注意到有人企图 <paramref name="executionId"/> 重播其记录操作的运行运行</summary>
+    /// <summary>标记 <paramref name="executionId"/> 的执行尝试在重放已记录的操作后开始实时运行。</summary>
     void OnReplayEnded(TaskId executionId)
     {
     }
 
     /// <summary>
-    /// 返回先前尝试 <paramref name="executionId"/> 的取消点,该点首先被观察到
-    /// 任务取消,或无记录时的 <see langword="null"/> 。
+    /// 返回 <paramref name="executionId"/> 先前的执行尝试首次观察到其任务取消的取消点，
+    /// 若未记录，则返回 <see langword="null"/>。
     /// </summary>
     int? GetCancellationPoint(TaskId executionId) => null;
 
     /// <summary>
-    /// 阶段 记录 <paramref name="executionId"/> 首次遵守任务时的取消点
-    /// 取消, 不写 。
+    /// 暂存 <paramref name="executionId"/> 首次观察到其任务取消的取消点的记录，
+    /// 但不执行写入。
     /// </summary>
     void RecordCancellationPoint(TaskId executionId, int point)
     {
     }
 
     /// <summary>
-    /// 阶段 运行 <paramref name="context"/> 的机构从运行
-    /// 人体最后的代码 激活,没有写。
+    /// 在激活实例上运行主体最后一段代码的工作项中，暂存 <paramref name="context"/> 所运行主体的终态响应，
+    /// 但不执行写入。
     /// </summary>
     /// <remarks>
-    /// 答复随后承诺与该机构最终代码更改的日记状态进行联系。
-    /// 一旦身体运行时的反应返回它, 则保持一个已经分阶段的响应不变。 运行时间
-    /// 无法提前启动响应 来维持默认执行,这毫无用处。
+    /// 之后，响应会与主体最后一段代码修改的日志化状态一同提交。当主体运行返回响应后，执行尝试仍会提交
+    /// 此响应，此时已暂存的响应保持不变。不提前暂存响应的运行时
+    /// 保留此默认实现，其不执行任何操作。
     /// </remarks>
     void StageBodyResponse(GrainDurableTaskContext context, DurableTaskResponse response)
     {
     }
 
     /// <summary>
-    /// 返回 <paramref name="effectId"/> 记录或运行 <paramref name="effect"/> 和记录阶段的结果
-    /// 其结果,不以书面形式提出。
+    /// 返回 <paramref name="effectId"/> 记录的结果，或者运行 <paramref name="effect"/> 并暂存其结果的
+    /// 记录，但不执行写入。
     /// </summary>
     DurableTaskResponse RunEffect<TState>(TaskId effectId, TState state, Func<TState, DurableTaskResponse> effect) =>
         throw new NotSupportedException("The durable task runtime does not support recorded effects.");
 
     /// <summary>
-    /// 返回到版本 <paramref name="name"/> 减去 <paramref name="executionId"/> 或其最近的附件
-    /// 在同一次执行中记录或分阶段记录 <paramref name="version"/> 下
-    /// <paramref name="executionId"/>,不以书面形式返回。
+    /// 返回 <paramref name="name"/> 的版本，该版本由 <paramref name="executionId"/> 或同一被调用任务内最近的外层
+    /// 执行实例记录；如果未记录，则暂存 <paramref name="version"/> 的记录，位于
+    /// <paramref name="executionId"/> 下，而不执行写入，并返回该版本。
     /// </summary>
     int GetOrRecordVersion(TaskId executionId, string name, int version) =>
         throw new NotSupportedException("The durable task runtime does not support versions.");
 
     /// <summary>
-    /// 取消 <paramref name="context"/> 运行到 <paramref name="reason"/>的尝试,
+    /// 取消 <paramref name="context"/> 正在运行的执行尝试，取消原因为 <paramref name="reason"/>，即
     /// <see cref="DurableTaskAttemptCancellationReason.UnsupportedVersion"/> 或
-    /// <see cref="DurableTaskAttemptCancellationReason.Diverged"/>,将其任务留待日后启动再放。
+    /// <see cref="DurableTaskAttemptCancellationReason.Diverged"/>，使任务保持待处理状态，以供之后的激活实例重放。
     /// </summary>
     void StallAttempt(GrainDurableTaskContext context, DurableTaskAttemptCancellationReason reason, Exception exception) =>
         throw new NotSupportedException("The durable task runtime does not support stalled executions.");
 
     /// <summary>
-    /// 当早期运行记录到 a 时投 <c>DurableTask.RunInline</c> 有效 <paramref name="effectId"/>,而该
-    /// <paramref name="operationId"/>,例如一个命名的组合器输入,其组合器具有效果的名称。
+    /// 如果先前一次运行记录了 <c>DurableTask.RunInline</c> 效果，其标识符为 <paramref name="effectId"/>，而该标识符包含
+    /// <paramref name="operationId"/>（例如命名组合器的一个输入，且该组合器名称与效果名称相同），则抛出异常。
     /// </summary>
-    /// <param name="operationId">运行请求的操作。</param>
-    /// <param name="effectId">手术执行之前的祖先 效果会记录下来</param>
-    /// <param name="requested">请求的操作说明,以备错误。</param>
-    /// <exception cref="InvalidOperationException">先前的运行记录了 <paramref name="effectId"/>下的影响。</exception>
+    /// <param name="operationId">本次运行请求的操作。</param>
+    /// <param name="effectId">操作在其执行实例下的祖先（若为效果，则本应记录该祖先）。</param>
+    /// <param name="requested">所请求操作的描述，用于错误信息。</param>
+    /// <exception cref="InvalidOperationException">先前的运行在 <paramref name="effectId"/> 下记录了效果。</exception>
     void ThrowIfRecordedAsEffect(TaskId operationId, TaskId effectId, string requested)
     {
     }
 
     /// <summary>
-    /// 等待所引用任务中的执行树含有的信号 <paramref name="name"/>
-    /// <paramref name="executionId"/>,并返回其承诺值和记录时间。
+    /// 等待被调用任务的信号 <paramref name="name"/>，该任务的执行树包含
+    /// <paramref name="executionId"/>，并返回已提交的信号值及记录时间。
     /// </summary>
     ValueTask<(DurableTaskResponse Value, DateTimeOffset RecordedAt)> WaitForSignalAsync(
         GrainDurableTaskContext attempt,
@@ -322,10 +322,10 @@ internal interface IDurableTaskGrainRuntime
         throw new NotSupportedException("The durable task runtime does not support signals.");
 
     /// <summary>
-    /// 向引用的任务发送信号 <paramref name="taskId"/> 日期 时 <paramref name="target"/>下,记录发送
-    /// <paramref name="markerId"/>,等待日记写既承诺承诺也承诺承诺的日记。
+    /// 向 <paramref name="taskId"/> 所标识、位于 <paramref name="target"/> 上的被调用任务发送信号，将发送操作记录在
+    /// <paramref name="markerId"/> 下，并等待提交两者的日志写入。
     /// </summary>
-    /// <param name="throwOnRejection">是否因为某项任务而拒绝 grain 而不是被记录和归还。</param>
+    /// <param name="throwOnRejection">此 Grain 的任务拒绝信号时，是否抛出异常，而不是记录并返回拒绝结果。</param>
     ValueTask<DurableSignalResult> SendSignalAsync(
         TaskId markerId,
         GrainId target,
@@ -335,5 +335,5 @@ internal interface IDurableTaskGrainRuntime
         bool throwOnRejection,
         CancellationToken cancellationToken) =>
         throw new NotSupportedException("The durable task runtime does not support signals.");
-    //IScheduledTaskHandle OnCreateScheduledTaskHandle(IScheduledTaskHandle 处理);
+    //IScheduledTaskHandle OnCreateScheduledTaskHandle(IScheduledTaskHandle handle);
 }

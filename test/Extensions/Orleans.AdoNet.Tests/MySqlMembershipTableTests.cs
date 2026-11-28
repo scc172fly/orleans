@@ -14,7 +14,7 @@ using Xunit;
 namespace UnitTests.MembershipTests
 {
     /// <summary>
-    /// 试验试验的试验 Orleans 成员人数 MySQL
+    /// 使用 MySQL 测试 Orleans 成员资格表的操作。
     /// </summary>
     [TestCategory("Membership"), TestCategory("MySql"), TestCategory("Functional")]
     [TestSuite("Functional")]

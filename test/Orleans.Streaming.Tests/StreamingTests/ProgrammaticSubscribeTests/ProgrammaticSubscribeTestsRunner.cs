@@ -50,7 +50,7 @@ public abstract class ProgrammaticSubscribeTestsRunner
         var subscriptionManager = new SubscriptionManager(this.fixture.HostedCluster);
         var streamId = new FullStreamIdentity(Guid.NewGuid(), "EmptySpace", StreamProviderName);
         var rxStreamId = StreamId.Create(streamId.Namespace, streamId.Guid);
-        //为10名消费者设立订阅服务 grains
+        //为 10 个消费者 Grain 建立订阅。
         var subscriptions = await subscriptionManager.SetupStreamingSubscriptionForStream<IPassive_ConsumerGrain>(streamId, 10);
         var consumers = subscriptions.Select(sub => this.fixture.HostedCluster.GrainFactory!.GetGrain<IPassive_ConsumerGrain>(sub.GrainId)).ToList();
 
@@ -62,7 +62,7 @@ public abstract class ProgrammaticSubscribeTestsRunner
         await observer.WaitForItemDeliveryCountAsync(rxStreamId, EventCountPerPhase * consumers.Count, StreamProviderName, cts.Token);
         await AssertCountersAsync(new[] { producer }, consumers, this.fixture.Logger);
 
-        //清洁净化测试
+        // 清理测试资源。
         await Task.WhenAll(consumers.Select(consumer => consumer.StopConsuming()));
     }
 
@@ -74,7 +74,7 @@ public abstract class ProgrammaticSubscribeTestsRunner
         var subscriptionManager = new SubscriptionManager(this.fixture.HostedCluster);
         var streamId = new FullStreamIdentity(Guid.NewGuid(), "EmptySpace", StreamProviderName);
         var rxStreamId = StreamId.Create(streamId.Namespace, streamId.Guid);
-        //设置消费者订阅的订户 grains
+        //为消费者 Grain 建立订阅。
         var subscriptions = await subscriptionManager.SetupStreamingSubscriptionForStream<IPassive_ConsumerGrain>(streamId, 2);
 
         var producer = this.fixture.GrainFactory.GetGrain<ITypedProducerGrainProducingApple>(Guid.NewGuid());
@@ -87,9 +87,9 @@ public abstract class ProgrammaticSubscribeTestsRunner
             await phaseOneObserver.WaitForItemDeliveryCountAsync(rxStreamId, EventCountPerPhase * subscriptions.Count, StreamProviderName, cts.Token);
         }
 
-        //要删除的订阅
+        //要移除的订阅
         var subscription = subscriptions[0];
-        // 删除订阅
+        // 移除订阅。
         using (var removalObserver = StreamingDiagnosticObserver.Create(fixture.HostedCluster))
         {
             await subscriptionManager.RemoveSubscription(streamId, subscription.SubscriptionId);
@@ -98,7 +98,7 @@ public abstract class ProgrammaticSubscribeTestsRunner
 
         var consumerUnSub = this.fixture.GrainFactory.GetGrain<IPassive_ConsumerGrain>(subscription.GrainId);
         var consumerNormal = this.fixture.GrainFactory.GetGrain<IPassive_ConsumerGrain>(subscriptions[1].GrainId);
-        //消费者 grain's onAdd 被叫到Func
+        //断言消费者 Grain 的 onAdd 函数已被调用。
         Assert.True((await consumerUnSub.GetCountOfOnAddFuncCalled()) > 0);
 
         using (var phaseTwoObserver = StreamingDiagnosticObserver.Create(fixture.HostedCluster))
@@ -109,13 +109,13 @@ public abstract class ProgrammaticSubscribeTestsRunner
 
         await AssertCountersAsync(new[] { producer }, consumerNormal, this.fixture.Logger);
 
-        //消费低于生产量的未受订定的消费者
+        //断言已取消订阅的消费者消费的消息少于已生产的消息。
         var numProduced = await producer.GetNumberProduced();
         var numConsumed = await consumerUnSub.GetNumberConsumed();
         Assert.Equal(EventCountPerPhase, numConsumed);
         Assert.True(numConsumed < numProduced);
 
-        // 清洁净化测试
+        // 清理测试。
         await consumerNormal.StopConsuming();
         await consumerUnSub.StopConsuming();
     }
@@ -125,7 +125,7 @@ public abstract class ProgrammaticSubscribeTestsRunner
     {
         var subscriptionManager = new SubscriptionManager(this.fixture.HostedCluster);
         var streamId = new FullStreamIdentity(Guid.NewGuid(), "EmptySpace", StreamProviderName);
-        //设置订阅
+        //建立订阅。
         var expectedSubscriptions = await subscriptionManager.SetupStreamingSubscriptionForStream<IPassive_ConsumerGrain>(streamId, 2);
         var expectedSubscriptionIds = expectedSubscriptions.Select(sub => sub.SubscriptionId).ToSet();
         var subscriptions = await subscriptionManager.GetSubscriptions(streamId);
@@ -134,7 +134,7 @@ public abstract class ProgrammaticSubscribeTestsRunner
         Assert.NotNull(subscriptionIds);
         Assert.True(expectedSubscriptionIds.SetEquals(subscriptionIds));
 
-        //删除一个订阅
+        //移除一个订阅。
         await subscriptionManager.RemoveSubscription(streamId, expectedSubscriptions[0].SubscriptionId);
         expectedSubscriptions = expectedSubscriptions.GetRange(1, 1);
         subscriptions = await subscriptionManager.GetSubscriptions(streamId);
@@ -144,7 +144,7 @@ public abstract class ProgrammaticSubscribeTestsRunner
         Assert.NotNull(subscriptionIds);
         Assert.True(expectedSubscriptionIds.SetEquals(subscriptionIds));
 
-        // 清洁测试
+        // 清理测试。
     }
 
     [Fact]
@@ -152,27 +152,27 @@ public abstract class ProgrammaticSubscribeTestsRunner
     {
         var subscriptionManager = new SubscriptionManager(this.fixture.HostedCluster);
         var streamId = new FullStreamIdentity(Guid.NewGuid(), "EmptySpace", StreamProviderName);
-        //设置订阅
+        //建立订阅。
         await subscriptionManager.SetupStreamingSubscriptionForStream<IJerk_ConsumerGrain>(streamId, 10);
 
         using var observer = StreamingDiagnosticObserver.Create(fixture.HostedCluster);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         cts.CancelAfter(_timeout);
 
-        //制片人开始生产 
+        //生产者开始生产消息。
         var producer = this.fixture.GrainFactory.GetGrain<ITypedProducerGrainProducingInt>(Guid.NewGuid());
         cts.Token.ThrowIfCancellationRequested();
         await producer.BecomeProducer(streamId.Guid, streamId.Namespace, streamId.ProviderName);
 
         await ProduceExactCountAsync(producer, 1, cts.Token);
 
-        //等待消费者通过诊断性事件取消订阅
+        //通过诊断事件等待消费者取消订阅。
         var rxStreamId = StreamId.Create("EmptySpace", streamId.Guid);
         await observer.WaitForSubscriptionRemovedCountAsync(rxStreamId, 10, StreamProviderName, cts.Token);
 
         var subs = await subscriptionManager.GetSubscriptions(streamId);
         Assert.Empty(subs);
-        // 清洁测试
+        // 清理测试。
     }
 
 
@@ -185,7 +185,7 @@ public abstract class ProgrammaticSubscribeTestsRunner
         var subscriptionManager = new SubscriptionManager(this.fixture.HostedCluster);
         var streamId = new FullStreamIdentity(Guid.NewGuid(), "EmptySpace", StreamProviderName);
         var rxStreamId = StreamId.Create(streamId.Namespace, streamId.Guid);
-        //为10名消费者设立订阅服务 grains
+        //为 10 个消费者 Grain 建立订阅。
         var subscriptions = await subscriptionManager.SetupStreamingSubscriptionForStream<IPassive_ConsumerGrain>(streamId, 10);
         var consumers = subscriptions.Select(sub => this.fixture.GrainFactory.GetGrain<IPassive_ConsumerGrain>(sub.GrainId)).ToList();
 
@@ -193,14 +193,14 @@ public abstract class ProgrammaticSubscribeTestsRunner
         cts.Token.ThrowIfCancellationRequested();
         await producer.BecomeProducer(streamId.Guid, streamId.Namespace, streamId.ProviderName);
 
-        // 设置要订阅的新串行, 并产生字符串
+        // 设置要订阅的新流，该流生成字符串。
         var streamId2 = new FullStreamIdentity(Guid.NewGuid(), "EmptySpace2", StreamProviderName);
         var rxStreamId2 = StreamId.Create(streamId2.Namespace, streamId2.Guid);
         var producer2 = this.fixture.GrainFactory.GetGrain<ITypedProducerGrainProducingApple>(Guid.NewGuid());
         cts.Token.ThrowIfCancellationRequested();
         await producer2.BecomeProducer(streamId2.Guid, streamId2.Namespace, streamId2.ProviderName);
 
-        //向第二串流注册消费者 grain
+        //将消费者 Grain 注册到第二个流。
         var tasks = consumers.Select(consumer => subscriptionManager.AddSubscription<IPassive_ConsumerGrain>(streamId2, consumer.GetPrimaryKey())).ToList();
         await Task.WhenAll(tasks);
 
@@ -219,7 +219,7 @@ public abstract class ProgrammaticSubscribeTestsRunner
             observer.WaitForItemDeliveryCountAsync(rxStreamId2, (EventCountPerPhase - 2) * consumers.Count, StreamProviderName, cts.Token));
         await AssertCountersAsync(new ITypedProducerGrain[] { producer, producer2 }, consumers, this.fixture.Logger);
 
-        //清洁净化测试
+        // 清理测试资源。
         await Task.WhenAll(consumers.Select(consumer => consumer.StopConsuming()));
     }
 
@@ -232,7 +232,7 @@ public abstract class ProgrammaticSubscribeTestsRunner
         var subscriptionManager = new SubscriptionManager(this.fixture.HostedCluster);
         var streamId = new FullStreamIdentity(Guid.NewGuid(), "EmptySpace", StreamProviderName);
         var rxStreamId = StreamId.Create(streamId.Namespace, streamId.Guid);
-        //为10名消费者设立订阅服务 grains
+        //为 10 个消费者 Grain 建立订阅。
         var subscriptions = await subscriptionManager.SetupStreamingSubscriptionForStream<IPassive_ConsumerGrain>(streamId, 10);
         var consumers = subscriptions.Select(sub => this.fixture.GrainFactory.GetGrain<IPassive_ConsumerGrain>(sub.GrainId)).ToList();
 
@@ -240,14 +240,14 @@ public abstract class ProgrammaticSubscribeTestsRunner
         cts.Token.ThrowIfCancellationRequested();
         await producer.BecomeProducer(streamId.Guid, streamId.Namespace, streamId.ProviderName);
 
-        // 设置要订阅的新串行, 并产生字符串
+        // 设置要订阅的新流，该流生成字符串。
         var streamId2 = new FullStreamIdentity(Guid.NewGuid(), "EmptySpace2", StreamProviderName2);
         var rxStreamId2 = StreamId.Create(streamId2.Namespace, streamId2.Guid);
         var producer2 = this.fixture.GrainFactory.GetGrain<ITypedProducerGrainProducingApple>(Guid.NewGuid());
         cts.Token.ThrowIfCancellationRequested();
         await producer2.BecomeProducer(streamId2.Guid, streamId2.Namespace, streamId2.ProviderName);
 
-        //向第二串流注册消费者 grain
+        //将消费者 Grain 注册到第二个流。
         var tasks = consumers.Select(consumer => subscriptionManager.AddSubscription<IPassive_ConsumerGrain>(streamId2, consumer.GetPrimaryKey())).ToList();
         await Task.WhenAll(tasks);
 
@@ -266,11 +266,11 @@ public abstract class ProgrammaticSubscribeTestsRunner
             observer.WaitForItemDeliveryCountAsync(rxStreamId2, (EventCountPerPhase - 2) * consumers.Count, StreamProviderName2, cts.Token));
         await AssertCountersAsync(new ITypedProducerGrain[] { producer, producer2 }, consumers, this.fixture.Logger);
 
-        //清洁净化测试
+        // 清理测试资源。
         await Task.WhenAll(consumers.Select(consumer => consumer.StopConsuming()));
     }
 
-    //水电和静电测试
+    //测试实用工具及静态成员
     private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(30);
 
     private static async Task ProduceExactCountAsync(

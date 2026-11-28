@@ -3,47 +3,47 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 管理 grain的耐久状态,其命名组件与日记共享并写入确认边界。
+/// 管理 Grain 的持久化状态；各命名组件共享日志及写入确认边界。
 /// </summary>
 /// <remarks>
-/// 在启动前,在 grain 建造或同步启动装置期间宣布状态部件。
-/// 使用激活自控操作执行操作操作时运行的操作。
-/// 恢复完成后,即可启动和提供状态内容。
+/// 在初始化之前，即 Grain 构造或同步激活设置期间声明状态组件。
+/// 操作在所属激活实例的执行上下文中运行。初始化后可以检索现有组件，
+/// 恢复完成后即可访问状态内容。
 /// </remarks>
 public interface IDurableStateManager
 {
     /// <summary>
-    /// 获得现有的州组成部分,或利用登记执行的申请合同建立这一构成部分。
+    /// 获取现有状态组件，或使用其应用契约的已注册实现创建组件。
     /// </summary>
-    /// <typeparam name="TState">国家的申请合同</typeparam>
-    /// <param name="name">稳定, 例常, 体察到案件敏感的国名 。</param>
-    /// <returns>现有或新建的国家实例。</returns>
+    /// <typeparam name="TState">状态的应用契约。</typeparam>
+    /// <param name="name">稳定的状态名称，按字符编码值进行区分大小写的序数比较。</param>
+    /// <returns>现有或新创建的状态实例。</returns>
     /// <exception cref="InvalidOperationException">
-    /// 名称有不兼容的状态类型,合同没有登记,或初始化已经开始,国家不存在。
+    /// 名称对应不兼容的状态类型、契约未注册，或者初始化已经开始而状态不存在。
     /// </exception>
     TState GetOrAddState<TState>(string name) where TState : class;
 
     /// <summary>
-    /// 试图在不创建现有国家组成部分的情况下获取现有的州部分。
+    /// 尝试检索现有状态组件而不创建它。
     /// </summary>
-    /// <typeparam name="TState">国家的申请合同</typeparam>
-    /// <param name="name">稳定, 例常, 体察到案件敏感的国名 。</param>
-    /// <param name="state">找到时现有状态。</param>
-    /// <returns><see langword="true"/> 如果存在兼容状态;否则, <see langword="false"/>。</returns>
-    /// <exception cref="InvalidOperationException">名称有不兼容的状态类型。</exception>
+    /// <typeparam name="TState">状态的应用契约。</typeparam>
+    /// <param name="name">稳定的状态名称，按字符编码值进行区分大小写的序数比较。</param>
+    /// <param name="state">现有状态（如果找到）。</param>
+    /// <returns><see langword="true"/> 表示存在兼容状态；否则为 <see langword="false"/>。</returns>
+    /// <exception cref="InvalidOperationException">该名称对应不兼容的状态类型。</exception>
     bool TryGetState<TState>(string name, [NotNullWhen(true)] out TState? state) where TState : class;
 
     /// <summary>
-    /// 共享日记的更改前一直保留着 。
+    /// 将待提交的变更持久化到共享日志。
     /// </summary>
     /// <remarks>
-    /// 只有在确定它们可以安全承诺之后才发生突变。
-    /// 使用此管理器的所有间断调用者, 因此写作可以包含另一个调用者的更改 。
-    /// 保存确认确定耐久性。
-    /// 经理; 新的激活恢复了耐久状态。
-    /// 取消停止了呼叫者的等待; 已经排队的写作继续到存储结果 。
+    /// 仅在确认变更可安全提交之后才暂存变更。所有交错执行且使用此管理器的调用方
+    /// 共享待提交变更，因此一次写入可能包含其他调用方的变更。
+    /// 存储确认确立持久性。失败的日志操作永久隔离该
+    /// 管理器；由新的激活实例恢复持久化状态。
+    /// 取消操作停止调用方的等待；已排队的写入继续执行，直至产生存储结果。
     /// </remarks>
-    /// <param name="cancellationToken">取消调用者等候的标记。</param>
-    /// <returns>代表书面确认的任务。</returns>
+    /// <param name="cancellationToken">用于取消调用方等待的令牌。</param>
+    /// <returns>表示写入确认的任务。</returns>
     ValueTask WriteStateAsync(CancellationToken cancellationToken = default);
 }

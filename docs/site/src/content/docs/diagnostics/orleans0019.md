@@ -1,45 +1,45 @@
 ---
-title: "ORLEANS0019:已删除的 grain 接口未退出"
-description: "理解和决心 ORLEANS0019 何时 OrleansContracts.txt 包含一个源不再定义的活跃界面。"
+title: "ORLEANS0019: 已移除的 Grain 接口尚未标记为停用"
+description: 了解并解决 OrleansContracts.txt 中包含源码不再定义的活动接口时出现的 ORLEANS0019。
 ms.date: 08/27/2026
 ms.topic: reference
 ---
 
 <a id="orleans0019-removed-grain-interface-is-not-retired"></a>
 
-# ORLEANS0019:已删除的 grain 接口未退出
+# ORLEANS0019: 已移除的 Grain 接口尚未标记为停用
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 类别类 | 版本 |
+| 类别 | 版本控制 |
 | 严重性 | 警告 |
-| 代码修正 | 可用 |
+| 代码修复 | 可用 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-`OrleansContracts.txt` 中的有效接口声明与任何已编译的 grain 界面不匹配。
+`OrleansContracts.txt` 中的活动接口声明与任何已编译的 Grain 接口均不匹配。
 
 <a id="impact"></a>
 
-## 影响影响
+## 影响
 
-删除或身份改变改名不作为故意而记录,旧的接口身份以后可以意外地重新使用。
+删除或改变标识的重命名未被记录为有意变更，之后可能意外复用旧接口标识。
 
 <a id="how-to-fix"></a>
 
-## 如何修补
+## 修复方法
 
-如果删除接口是意外取消, 则恢复该界面。 否则应用 **标记为 *重新* 内 OrleansContracts.txt**保留退休声明作为合同历史。
+如果接口是意外移除的，请恢复接口；否则应用 **Mark as *RETIRED* in OrleansContracts.txt**。保留已停用的声明作为契约历史。
 
-应用 **Regenerate OrleansContracts.txt** 重建完整的项目清单,并留存所有没有来源的申报单。为每个合同项目分别运行再生程序,并利用 [合同兼容性指导](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)审查产生的 diff。
+应用 **Regenerate OrleansContracts.txt** 以重建完整项目清单，并将源码中不存在的所有声明标记为已停用。分别为各契约项目执行重新生成，并依据[契约兼容性指南](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)检查生成的差异。
 
 <a id="suppress-the-diagnostic"></a>
 
 ## 抑制诊断
 
-只有当清单中有意含有另一编集拥有的合同时,才适宜禁止。
+仅当清单明确包含由另一编译单元拥有的契约时才适合抑制。优先为每个项目使用单独的清单，使所有权保持明确。
 
 ```ini
 [*.cs]

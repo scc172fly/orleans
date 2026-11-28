@@ -14,7 +14,7 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions.AzureStorage
 {
     /// <summary>
-    /// 创建 Azure 表格存储支持的交易状态存储实例。
+    /// 创建以 Azure Table Storage 为后端的事务状态存储实例。
     /// </summary>
     public class AzureTableTransactionalStateStorageFactory : ITransactionalStateStorageFactory, ILifecycleParticipant<ISiloLifecycle>
     {
@@ -26,11 +26,11 @@ namespace Orleans.Transactions.AzureStorage
         private TableClient table = null!;
 
         /// <summary>
-        /// 创建交易性的国家储存工厂,使用注册的命名选项。
+        /// 根据已注册的命名选项创建事务状态存储工厂。
         /// </summary>
-        /// <param name="services">服务供应商。</param>
-        /// <param name="name">提供者名称。</param>
-        /// <returns>交易性国家储藏厂</returns>
+        /// <param name="services">服务提供程序。</param>
+        /// <param name="name">提供程序名称。</param>
+        /// <returns>事务状态存储工厂。</returns>
         public static ITransactionalStateStorageFactory Create(IServiceProvider services, string name)
         {
             var optionsMonitor = services.GetRequiredService<IOptionsMonitor<AzureTableTransactionalStateOptions>>();
@@ -40,11 +40,11 @@ namespace Orleans.Transactions.AzureStorage
         /// <summary>
         /// 初始化 <see cref="AzureTableTransactionalStateStorageFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="name">提供者名称。</param>
-        /// <param name="options">供应商选项。</param>
-        /// <param name="clusterOptions">组合组合选项。</param>
-        /// <param name="services">服务供应商。</param>
-        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="name">提供程序名称。</param>
+        /// <param name="options">提供程序选项。</param>
+        /// <param name="clusterOptions">集群选项。</param>
+        /// <param name="services">服务提供程序。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
         [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "ActivatorUtilities resolves the non-null IOptions<ClusterOptions> instance from dependency injection.")]
         public AzureTableTransactionalStateStorageFactory(string name, AzureTableTransactionalStateOptions options, IOptions<ClusterOptions> clusterOptions, IServiceProvider services, ILoggerFactory loggerFactory)
         {

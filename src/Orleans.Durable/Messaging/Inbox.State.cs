@@ -17,35 +17,35 @@ internal sealed partial class Inbox
     private readonly Dictionary<MessageId, InboxDeadLetterRecord> _deadLetters = [];
     private JournalStreamWriter _writer;
 
-    // 忘记一个身份需要持久的底线,排除其发送时间。
+    // 遗忘一个标识需要有持久化的下限，使其发送时间被排除在准入范围之外。
     private DateTimeOffset _admissionFloor = DateTimeOffset.MinValue;
     private DateTimeOffset _capturedAdmissionFloor = DateTimeOffset.MinValue;
     private DateTimeOffset _durableAdmissionFloor = DateTimeOffset.MinValue;
 
-    // 一旦完成的写作记录了其序列号,接受和完成是持久的。
+    // 接纳与完成操作在已完成的写入捕获其序列号后即已持久化。
     private long _lastSequence;
     private long _capturedSequence;
     private long _durableSequence;
     private long _lastCompletionSequence;
     private bool _capturedSnapshot;
 
-    // 日记中最后一个收件箱命令是否记录激活停止但未中断尝试。
+    // 日志中的最后一条收件箱命令是否记录了激活实例在没有中断尝试的情况下停止。
     private bool _stoppedCleanly;
 
-    // 激活是否完成回收簿, 停止可以记录为干净 。
+    // 此激活实例是否完成恢复记账，从而允许将其停止记录为干净停止。
     private bool _recovered;
 
-    // 上一次捕捉以来,在 " 持久工作钟 " 上,接收或重新输入的信息最早应到的时间。
+    // 自上次捕获以来暂存的已接纳或正在重试的消息中，按 Durable Jobs 时钟计算的最早到期时间。
     private DateTimeOffset? _stagedWakeup;
 
     private bool IsDurable(InboxEntry entry) => entry.Sequence <= _durableSequence;
 
-    // 每一份重复依赖的经过处理的记录是否都具有耐久性。
+    // 去重所依赖的每条已处理记录是否都已持久化。
     private bool AreCompletionsDurable => _lastCompletionSequence <= _durableSequence;
 
-    // 每份期刊的写作都准备每个州,所以在发布信息或登记工作之后进行写作就能确保
-    // 信息发送失败后,记忆状态可能引发一定不能改变的变化
-    // 进行, 如处理失败的操作器, 所以每以后写出失败, 并从日记开始回收 。
+    // 每次日志写入都会准备所有状态，因此使消息或已注册工作进入待处理状态的写入会在其持久化之前
+    // 确保相应唤醒。消息传递失败后，内存状态可能包含不得
+    // 提交的变更，例如失败处理器的变更，因此之后的每次写入均失败，并从日志开始恢复。
     ValueTask IStateMachine.PrepareWriteAsync(CancellationToken cancellationToken)
     {
         if (_pump.IsFailed)
@@ -76,7 +76,7 @@ internal sealed partial class Inbox
     {
         _durableSequence = _capturedSequence;
         _durableAdmissionFloor = _capturedAdmissionFloor;
-        // 仅限楼层的附件保持固定时间;照片在入场底之后重现历史,是耐久的。
+        // 仅追加下限的操作保持常数时间；快照在其准入下限持久化之后回收历史记录。
         if (_capturedSnapshot) CompactProcessed();
         _pump.Signal();
     }
@@ -131,7 +131,7 @@ internal sealed partial class Inbox
 
     void IStateMachine.OnRecoveryCompleted()
     {
-        // 接收确认所有信息, 并用自己的信息识别符重放每个条目的密钥 。
+        // 准入已验证每条消息，重放使用各条目的消息 ID 作为键。
         Debug.Assert(_messages.All(static pair => pair.Key == pair.Value.Message.Envelope.MessageId));
         Debug.Assert(_deadLetters.All(static pair => pair.Key == pair.Value.Message.Envelope.MessageId));
 
@@ -144,8 +144,8 @@ internal sealed partial class Inbox
 
     void IStateMachine.WriteSnapshot(JournalStreamWriter writer)
     {
-        // 地板和紧凑历史以原子形式进行。保存记忆记录直到确认,所以
-        // 交接交货仍然很复杂,
+        // 下限与压实后的历史记录原子提交。确认前保留内存中的记录，
+        // 以便在快照的准入下限尚未持久化时，交错执行的投递仍可去重。
         var floor = GetAdmissionFloor(Shared.JobTimeProvider.GetUtcNow());
         Shared.InboxCodec.WriteSet(new InboxCommand.Snapshot(
             _messages.Values.ToArray(),
@@ -165,7 +165,7 @@ internal sealed partial class Inbox
         {
             case InboxCommand.Accept { Message: var message }:
                 _messages.Add(message.Envelope.MessageId, new InboxEntry { Message = message, State = new(), Sequence = ++_lastSequence });
-                // 重新使用身份后,将启动新的命令,取代以前的命令记录。
+                // 复用的标识开始一个新命令，并替换先前命令的记录。
                 _processed.Remove(message.Envelope.MessageId);
                 _deadLetters.Remove(message.Envelope.MessageId);
                 ReportDepth(1);
@@ -219,10 +219,10 @@ internal sealed partial class Inbox
 
 }
 
-/// <summary>更改收件箱的日记状态。</summary>
+/// <summary>收件箱日志状态的一项变更。</summary>
 /// <remarks>
-/// 案件识别特征遵循申报顺序,是日记格式的一部分。 JSON,每个案件都与
-/// <c>kind</c>,其 <see cref="InboxCommandClassifier"/> 读作选择案件。
+/// 分支标识符遵循声明顺序，是日志格式的一部分。JSON 中的每个分支均以其
+/// <c>kind</c> 开头，<see cref="InboxCommandClassifier"/> 读取该值以选择分支。
 /// </remarks>
 [GenerateSerializer, Alias("Orleans.Durable.Messaging.InboxCommand")]
 [JsonUnion(TypeClassifier = typeof(InboxCommandClassifier))]
@@ -255,7 +255,7 @@ internal union InboxCommand(
         public string Kind => "retry";
     }
 
-    /// <summary>记录信息处理的结果 替换任何早期的记录和死亡的文字</summary>
+    /// <summary>记录消息的已处理结果，替换其此前的记录及死信。</summary>
     [GenerateSerializer, Alias("Orleans.Durable.Messaging.InboxCommand.Complete")]
     internal sealed class Complete(MessageId messageId, DateTimeOffset sentAt, InboxDeadLetterRecord? deadLetter, InboxRejection? rejection)
     {
@@ -277,7 +277,7 @@ internal union InboxCommand(
         public string Kind => "removeDeadLetters";
     }
 
-    /// <summary>替换收件箱状态。</summary>
+    /// <summary>替换收件箱的状态。</summary>
     [GenerateSerializer, Alias("Orleans.Durable.Messaging.InboxCommand.Snapshot")]
     internal sealed class Snapshot(InboxEntry[] messages, InboxProcessedEntry[] processed, InboxDeadLetterRecord[] deadLetters, DateTimeOffset admissionFloor, bool stoppedCleanly)
     {
@@ -300,7 +300,7 @@ internal union InboxCommand(
         public string Kind => "advanceAdmissionFloor";
     }
 
-    /// <summary>记录显示启动停止 没有操作器中断 所以恢复费没有</summary>
+    /// <summary>记录激活实例停止时未中断任何处理器尝试，因此恢复时不计入失败尝试。</summary>
     [GenerateSerializer, Alias("Orleans.Durable.Messaging.InboxCommand.CleanStop")]
     internal sealed class CleanStop
     {
@@ -310,7 +310,7 @@ internal union InboxCommand(
         public string Kind => "cleanStop";
     }
 
-    /// <summary>记录显示,一个回收的活化装置 消耗了一个干净的站 所以一个后来不干净的站点被充电</summary>
+    /// <summary>记录已恢复的激活实例消耗了干净停止记录，以便后续非干净停止计入失败尝试。</summary>
     [GenerateSerializer, Alias("Orleans.Durable.Messaging.InboxCommand.Resume")]
     internal sealed class Resume
     {
@@ -321,7 +321,7 @@ internal union InboxCommand(
     }
 }
 
-/// <summary>选择 <see cref="InboxCommand"/> 由 <c>kind</c> 中各 JSON 使用案件线索。</summary>
+/// <summary>选择一个 <see cref="InboxCommand"/> 分支，依据是每个 JSON 分支开头的 <c>kind</c>。</summary>
 internal sealed class InboxCommandClassifier : JsonTypeClassifierFactory
 {
     public override bool CanClassify(JsonTypeClassifierContext context) => context.DeclaringType == typeof(InboxCommand);
@@ -369,7 +369,7 @@ internal sealed class InboxProcessedEntry
     [JsonIgnore] public long Sequence { get; init; }
 }
 
-/// <summary>收件箱汇在发送时拒绝发来电时给出的答案。</summary>
+/// <summary>收件箱接收器在投递时拒绝消息所返回的答复。</summary>
 [GenerateSerializer, Alias("Orleans.Durable.Messaging.InboxRejection")]
 internal sealed class InboxRejection
 {

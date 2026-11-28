@@ -9,8 +9,8 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Analyzers;
 
 /// <summary>
-/// 分析器, 当 grain 代码使用 ConfigureAwait(假) 或 ConfigureAwait(ConfigureAwaitOptions) 时警告它
-/// 没有 ContinueOnCapturedContext 标志。
+/// 当 Grain 代码使用 ConfigureAwait(false) 或使用 ConfigureAwait(ConfigureAwaitOptions) 但
+/// 未指定 ContinueOnCapturedContext 标志时发出警告的分析器。
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
@@ -55,39 +55,39 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
     {
         var invocation = (InvocationExpressionSyntax)context.Node;
 
-        // 检查是否是 ConfigureAwait 调用
+        // 检查是否为 ConfigureAwait 调用。
         if (!IsConfigureAwaitCall(invocation, out var methodName))
         {
             return;
         }
 
-        // 检查此代码是否在 grain 类中
+        // 检查此代码是否位于 Grain 类内部。
         if (!IsInsideGrainClass(invocation, context.SemanticModel))
         {
             return;
         }
 
-        // 获取援引的符号来分析参数
+        // 获取调用的符号，以分析其参数。
         var symbolInfo = context.SemanticModel.GetSymbolInfo(invocation, context.CancellationToken);
         if (symbolInfo.Symbol is not IMethodSymbol methodSymbol)
         {
             return;
         }
 
-        // 只检查 ConfigureAwait 方法
+        // 仅检查 ConfigureAwait 方法。
         if (!string.Equals(methodSymbol.Name, "ConfigureAwait", StringComparison.Ordinal))
         {
             return;
         }
 
-        // 检查是否是类似任务类型的 ConfigureAwait 方法
+        // 检查是否为 Task 类似类型上的 ConfigureAwait 方法。
         var containingType = methodSymbol.ContainingType;
         if (!IsTaskLikeType(containingType))
         {
             return;
         }
 
-        // 获取参数
+        // 获取实参。
         var arguments = invocation.ArgumentList?.Arguments;
         if (arguments is null || arguments.Value.Count == 0)
         {
@@ -102,19 +102,19 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // 检查 ConfigureAwait(bool) 超载
+        // 检查 ConfigureAwait(bool) 重载。
         if (argumentType.SpecialType == SpecialType.System_Boolean)
         {
             var constantValue = context.SemanticModel.GetConstantValue(firstArgument.Expression, context.CancellationToken);
             if (constantValue.HasValue && constantValue.Value is false)
             {
-                // ConfigureAwait(假)不允许
+                // 不允许使用 ConfigureAwait(false)。
                 context.ReportDiagnostic(Diagnostic.Create(Rule, invocation.GetLocation()));
             }
             return;
         }
 
-        // 检查 ConfigureAwait(ConfigureAwaitOptions)超载
+        // 检查 ConfigureAwait(ConfigureAwaitOptions) 重载。
         if (IsConfigureAwaitOptionsType(argumentType))
         {
             if (!HasContinueOnCapturedContextFlag(firstArgument.Expression, context.SemanticModel, context.CancellationToken))
@@ -139,7 +139,7 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
 
     private static bool IsInsideGrainClass(SyntaxNode node, SemanticModel semanticModel)
     {
-        // 上到上找到包含声明的
+        // 向上遍历以查找包含此代码的类型声明。
         var current = node.Parent;
         while (current is not null)
         {
@@ -153,8 +153,8 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
             }
             else if (current is StructDeclarationSyntax or RecordDeclarationSyntax)
             {
-                // 如果我们在找到 grain 类之前打中断断或记录, 我们便不是在 grain
-                // (台词和记录不能是 grains)
+                // 如果在找到 Grain 类之前遇到结构体或 record，则当前代码不在 Grain 中
+                // （结构体和 record 不能作为 Grain）。
                 return false;
             }
 
@@ -173,7 +173,7 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
 
         var fullName = type.ToDisplayString(NullableFlowState.None);
 
-        // 检查具有 ConfigureAwait的通用任务类型
+        // 检查具有 ConfigureAwait 的常见 Task 类似类型。
         return fullName.StartsWith("System.Threading.Tasks.Task", StringComparison.Ordinal)
             || fullName.StartsWith("System.Threading.Tasks.ValueTask", StringComparison.Ordinal)
             || fullName.StartsWith("System.Runtime.CompilerServices.ConfiguredTaskAwaitable", StringComparison.Ordinal)
@@ -197,25 +197,25 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
 
     private static bool HasContinueOnCapturedContextFlag(ExpressionSyntax expression, SemanticModel semanticModel, System.Threading.CancellationToken cancellationToken)
     {
-        // ConfigureAwaitOptions.ContinueOnCapturedContext 值为 1
+        // ConfigureAwaitOptions.ContinueOnCapturedContext 的值为 1。
         const int ContinueOnCapturedContextValue = 1;
 
-        // 尝试获取常值
+        // 尝试获取常量值。
         var constantValue = semanticModel.GetConstantValue(expression, cancellationToken);
         if (constantValue.HasValue && constantValue.Value is int intValue)
         {
-            // 检查是否设置 ContinueOnCapturedContext 标志( 值 1)
+            // 检查是否设置了 ContinueOnCapturedContext 标志（值为 1）。
             return (intValue & ContinueOnCapturedContextValue) != 0;
         }
 
-        // 如果我们无法在编译时间确定值, 我们需要分析表达式
-        // 检查是否包含 ContinueOnCapturedContext
+        // 如果无法在编译时确定值，则需要分析表达式，
+        // 检查其中是否包含 ContinueOnCapturedContext。
         return ExpressionIncludesContinueOnCapturedContext(expression, semanticModel, cancellationToken);
     }
 
     private static bool ExpressionIncludesContinueOnCapturedContext(ExpressionSyntax expression, SemanticModel semanticModel, System.Threading.CancellationToken cancellationToken)
     {
-        // 处理成员访问像 ConfigureAwaitOptions.ContinueOnCapturedContext
+        // 处理 ConfigureAwaitOptions.ContinueOnCapturedContext 等成员访问表达式。
         if (expression is MemberAccessExpressionSyntax memberAccess)
         {
             var memberName = memberAccess.Name.Identifier.Text;
@@ -225,7 +225,7 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
             }
         }
 
-        // 处理二进制或表达式 ConfigureAwaitOptions.ContinueOnCapturedContext | ConfigureAwaitOptions.ForceYielding
+        // 处理 ConfigureAwaitOptions.ContinueOnCapturedContext | ConfigureAwaitOptions.ForceYielding 等二元按位或表达式。
         if (expression is BinaryExpressionSyntax binaryExpression &&
             binaryExpression.IsKind(SyntaxKind.BitwiseOrExpression))
         {
@@ -233,23 +233,23 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
                 || ExpressionIncludesContinueOnCapturedContext(binaryExpression.Right, semanticModel, cancellationToken);
         }
 
-        // 处理括号表达式
+        // 处理带括号的表达式。
         if (expression is ParenthesizedExpressionSyntax parenthesized)
         {
             return ExpressionIncludesContinueOnCapturedContext(parenthesized.Expression, semanticModel, cancellationToken);
         }
 
-        // 处理投石表达式
+        // 处理类型转换表达式。
         if (expression is CastExpressionSyntax castExpression)
         {
             return ExpressionIncludesContinueOnCapturedContext(castExpression.Expression, semanticModel, cancellationToken);
         }
 
-        // 如果我们遇到变数或方法的呼叫, 我们无法静态地确定国旗
-        // 在这种情况下,我们给出了怀疑的利弊 而不报告
+        // 若遇到变量或方法调用，则无法静态确定标志。
+        // 在这种情况下，不报告无法确认的问题。
         if (expression is IdentifierNameSyntax or InvocationExpressionSyntax)
         {
-            // 尝试将常值作为后退值
+            // 尝试获取常量值作为后备方案。
             var constantValue = semanticModel.GetConstantValue(expression, cancellationToken);
             if (constantValue.HasValue && constantValue.Value is int intValue)
             {
@@ -257,7 +257,7 @@ public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
                 return (intValue & ContinueOnCapturedContextValue) != 0;
             }
 
-            // 无法确定 - 不要报告假阳性
+            // 无法确定时不报告，以免误报。
             return true;
         }
 

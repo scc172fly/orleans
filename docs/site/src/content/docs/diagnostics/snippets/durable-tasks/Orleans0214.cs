@@ -10,7 +10,7 @@ public sealed class ContractGrain : DurableGrain
     {
         for (var round = 1; round <= rounds; round++)
         {
-            // 每一次迭代都回回第一次审查, 所以一个拒绝者立即拒绝每一轮。
+            // 每次迭代都返回第一次评审结果，因此一次拒绝会同时拒绝所有轮次。
             var review = await Reviewed.WaitAsync();
             if (review.Approved)
             {
@@ -28,7 +28,7 @@ public sealed class ContractGrain : DurableGrain
     {
         for (var round = 1; round <= rounds; round++)
         {
-            // 每轮等待自己的信号名:“经审查/回合1”、“经审查/回合2”等等。
+            // 每一轮等待各自的信号名称："reviewed/round-1"、"reviewed/round-2" 等。
             var review = await Reviewed.For($"round-{round}").WaitAsync();
             if (review.Approved)
             {

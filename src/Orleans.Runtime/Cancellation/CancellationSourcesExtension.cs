@@ -8,10 +8,10 @@ using Orleans.Serialization.Invocation;
 
 namespace Orleans.Runtime
 {
-#pragma warning disable CS0618 // This extension provides distributed cancellation for the legacy token.
+#pragma warning disable CS0618 // 此扩展为旧版令牌提供分布式取消功能。
     /// <summary>
-    /// 包含与此牌相对应的取消代号源列表
-    /// 传递到相关的 grain 激活。
+    /// 包含与令牌对应的取消令牌源列表，这些令牌
+    /// 被传递给相关 Grain 激活实例。
     /// </summary>
     internal partial class CancellationSourcesExtension : ICancellationSourcesExtension, IDisposable
     {
@@ -25,8 +25,8 @@ namespace Orleans.Runtime
         /// <summary>
         /// 初始化 <see cref="CancellationSourcesExtension"/> 类的新实例。
         /// </summary>
-        /// <param name="loggerFactory">伐木厂</param>
-        /// <param name="cancellationRuntime">取消运行时间。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
+        /// <param name="cancellationRuntime">取消运行时。</param>
         public CancellationSourcesExtension(ILoggerFactory loggerFactory, IGrainCancellationTokenRuntime cancellationRuntime)
         {
             _logger = loggerFactory.CreateLogger<CancellationSourcesExtension>();
@@ -43,7 +43,7 @@ namespace Orleans.Runtime
             {
                 LogCancellationFailed(tokenId);
 
-                // 无论如何记录取消,如果登记取消的电话仍未接到,则要记录取消。
+                // 仍然记录取消操作，以防原本会注册取消的调用仍处于待处理状态。
                 this.RecordCancellationToken(tokenId, isCancellationRequested: true);
                 return Task.CompletedTask;
             }
@@ -54,7 +54,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 将 <see cref="CancellationToken"/> 添加到 grain 扩展名中,以便通过远程呼叫 CancellationSourcesExtension取消该扩展名。
+        /// 将 <see cref="CancellationToken"/> 添加到 Grain 扩展，使其可通过远程调用 CancellationSourcesExtension 被取消。
         /// </summary>
         /// <param name="target"></param>
         /// <param name="request"></param>
@@ -78,7 +78,7 @@ namespace Orleans.Runtime
 
                 var cancellationExtension = (CancellationSourcesExtension)target.GetGrainExtension<ICancellationSourcesExtension>();
 
-                // 取代了当地完全创建的半份烤烤 GrainCancellationToken 。
+                // 将通过网络收到、尚未完整初始化的 GrainCancellationToken 替换为本地完整创建的实例。
                 request.SetArgument(i, cancellationExtension.RecordCancellationToken(grainToken.Id, grainToken.IsCancellationRequested));
             }
         }

@@ -43,7 +43,7 @@ runs:
       solution: ${{ inputs.solution }}
       coverage: ${{ runner.os == 'Linux' && inputs.framework == 'net11.0' }}
     env:
-      # The nested composite action supplies its own inputs context when continue-on-error is evaluated.
+      # 计算 continue-on-error 时，嵌套的组合 Action 会提供其自身的 inputs 上下文。
       ORLEANS_TEST_RETRY: ${{ inputs.retry }}
   - name: Retry tests
     id: retry

@@ -9,63 +9,63 @@ using Orleans.Timers;
 namespace Orleans;
 
 /// <summary>
-/// 获取 <see cref="Grain"/> 或 <see cref="IGrainBase"/> 执行过程中的提醒通知的扩展方法。
+/// 用于从 <see cref="Grain"/> 或 <see cref="IGrainBase"/> 的实现访问提醒器的扩展方法。
 /// </summary>
 public static class GrainReminderExtensions
 {
     /// <summary>
-    /// 登记一项持久可靠的催复通知,以便定期向 grain发出通知(提醒)。
-    /// 下 grain 执行必须: <c>Orleans.IRemindable</c> 界面,以及为此提醒 grain 发送到 <c>ReceiveReminder</c> 回调方法 。
-    /// 如果当定时器火灾时当前 grain 停止使用,将重新激活此 grain ,以接收提醒。
-    /// 如果已有一个名称相同的现有提醒,则该提醒将随此新的提醒而被覆盖。
-    /// 提醒总是通过激活一次收到,即使该 grain有多个启动 grain。
+    /// 注册一个持久化、可靠的提醒器，向 Grain 定期发送通知（提醒）。
+    /// Grain 必须实现 <c>Orleans.IRemindable</c> 接口，此 Grain 的提醒将发送至 <c>ReceiveReminder</c> 回调方法。
+    /// 如果定时器触发时当前 Grain 已停用，则创建该 Grain 的新激活实例以接收提醒。
+    /// 如果已存在同名提醒器，新提醒器将覆盖现有提醒器。
+    /// 即使此 Grain 存在多个激活实例，提醒也始终由其中一个激活实例接收。
     /// </summary>
-    /// <param name="grain"> grain 实例。</param>
-    /// <param name="reminderName">提醒通知的名称</param>
-    /// <param name="dueTime">提醒的到期时间。 <see cref="TimeSpan.Zero"/> 值立即将第一个勾选计数;负值、无限值或超过剩余 <see cref="DateTime"/> 范围的数值被否决。</param>
-    /// 此提醒的<param name="period">频率周期。 值必须至少为 <see cref="Orleans.Hosting.ReminderOptions.MinimumReminderPeriod"/>; 小数值和 <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> 被否决。</param>
-    /// <returns>承诺提醒处理器。</returns>
+    /// <param name="grain">Grain 实例。</param>
+    /// <param name="reminderName">此提醒器的名称。</param>
+    /// <param name="dueTime">此提醒器首次触发的等待时间。<see cref="TimeSpan.Zero"/> 表示立即调度首次触发；负值、无限值或超出 <see cref="DateTime"/> 剩余范围的值均会被拒绝。</param>
+    /// <param name="period">此提醒器的触发周期。该值必须至少为 <see cref="Orleans.Hosting.ReminderOptions.MinimumReminderPeriod"/>；更小的值和 <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> 均会被拒绝。</param>
+    /// <returns>用于获取提醒器句柄的异步操作。</returns>
     /// <remarks>
-    /// <paramref name="period"/>没有特殊的一次性提醒值。 登记一个有效的正数周期, 然后在第一次回调火灾时解除提醒 。
+    /// <paramref name="period"/> 没有用于单次提醒的特殊值。请注册一个有效的正数周期，然后在首次回调触发时注销提醒器。
     /// </remarks>
     public static Task<IGrainReminder> RegisterOrUpdateReminder(this Grain grain, string reminderName, TimeSpan dueTime, TimeSpan period)
         => RegisterOrUpdateReminder(grain is IRemindable, grain?.GrainContext, reminderName, dueTime, period, CancellationToken.None);
 
-    /// <summary>登记或更新催复通知。</summary>
-    /// <param name="grain"> grain 实例。</param>
-    /// <param name="reminderName">提醒的名称。</param>
-    /// <param name="dueTime">时机已到</param>
-    /// <param name="period">这段时间</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// 提醒<returns>。</returns>
+    /// <summary>注册或更新提醒器。</summary>
+    /// <param name="grain">Grain 实例。</param>
+    /// <param name="reminderName">提醒器名称。</param>
+    /// <param name="dueTime">首次触发的等待时间。</param>
+    /// <param name="period">周期。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>提醒器。</returns>
     public static Task<IGrainReminder> RegisterOrUpdateReminder(this Grain grain, string reminderName, TimeSpan dueTime, TimeSpan period, CancellationToken cancellationToken)
         => RegisterOrUpdateReminder(grain is IRemindable, grain?.GrainContext, reminderName, dueTime, period, cancellationToken);
 
     /// <summary>
-    /// 登记一项持久可靠的催复通知,以便定期向 grain发出通知(提醒)。
-    /// 下 grain 执行必须: <c>Orleans.IRemindable</c> 界面,以及为此提醒 grain 发送到 <c>ReceiveReminder</c> 回调方法 。
-    /// 如果当定时器火灾时当前 grain 停止使用,将重新激活此 grain ,以接收提醒。
-    /// 如果已有一个名称相同的现有提醒,则该提醒将随此新的提醒而被覆盖。
-    /// 提醒总是通过激活一次收到,即使该 grain有多个启动 grain。
+    /// 注册一个持久化、可靠的提醒器，向 Grain 定期发送通知（提醒）。
+    /// Grain 必须实现 <c>Orleans.IRemindable</c> 接口，此 Grain 的提醒将发送至 <c>ReceiveReminder</c> 回调方法。
+    /// 如果定时器触发时当前 Grain 已停用，则创建该 Grain 的新激活实例以接收提醒。
+    /// 如果已存在同名提醒器，新提醒器将覆盖现有提醒器。
+    /// 即使此 Grain 存在多个激活实例，提醒也始终由其中一个激活实例接收。
     /// </summary>
-    /// <param name="grain"> grain 实例。</param>
-    /// <param name="reminderName">提醒通知的名称</param>
-    /// <param name="dueTime">提醒的到期时间。 <see cref="TimeSpan.Zero"/> 值立即将第一个勾选计数;负值、无限值或超过剩余 <see cref="DateTime"/> 范围的数值被否决。</param>
-    /// 此提醒的<param name="period">频率周期。 值必须至少为 <see cref="Orleans.Hosting.ReminderOptions.MinimumReminderPeriod"/>; 小数值和 <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> 被否决。</param>
-    /// <returns>承诺提醒处理器。</returns>
+    /// <param name="grain">Grain 实例。</param>
+    /// <param name="reminderName">此提醒器的名称。</param>
+    /// <param name="dueTime">此提醒器首次触发的等待时间。<see cref="TimeSpan.Zero"/> 表示立即调度首次触发；负值、无限值或超出 <see cref="DateTime"/> 剩余范围的值均会被拒绝。</param>
+    /// <param name="period">此提醒器的触发周期。该值必须至少为 <see cref="Orleans.Hosting.ReminderOptions.MinimumReminderPeriod"/>；更小的值和 <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> 均会被拒绝。</param>
+    /// <returns>用于获取提醒器句柄的异步操作。</returns>
     /// <remarks>
-    /// <paramref name="period"/>没有特殊的一次性提醒值。 登记一个有效的正数周期, 然后在第一次回调火灾时解除提醒 。
+    /// <paramref name="period"/> 没有用于单次提醒的特殊值。请注册一个有效的正数周期，然后在首次回调触发时注销提醒器。
     /// </remarks>
     public static Task<IGrainReminder> RegisterOrUpdateReminder(this IGrainBase grain, string reminderName, TimeSpan dueTime, TimeSpan period)
         => RegisterOrUpdateReminder(grain is IRemindable, grain?.GrainContext, reminderName, dueTime, period, CancellationToken.None);
 
-    /// <summary>登记或更新催复通知。</summary>
-    /// <param name="grain"> grain 实例。</param>
-    /// <param name="reminderName">提醒的名称。</param>
-    /// <param name="dueTime">时机已到</param>
-    /// <param name="period">这段时间</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// 提醒<returns>。</returns>
+    /// <summary>注册或更新提醒器。</summary>
+    /// <param name="grain">Grain 实例。</param>
+    /// <param name="reminderName">提醒器名称。</param>
+    /// <param name="dueTime">首次触发的等待时间。</param>
+    /// <param name="period">周期。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>提醒器。</returns>
     public static Task<IGrainReminder> RegisterOrUpdateReminder(this IGrainBase grain, string reminderName, TimeSpan dueTime, TimeSpan period, CancellationToken cancellationToken)
         => RegisterOrUpdateReminder(grain is IRemindable, grain?.GrainContext, reminderName, dueTime, period, cancellationToken);
 
@@ -85,34 +85,34 @@ public static class GrainReminderExtensions
     }
 
     /// <summary>
-    /// 以往已登记的催复通知,如不登记,则不予登记。
+    /// 注销先前已注册的提醒器。
     /// </summary>
-    /// <param name="grain"> grain 实例。</param>
-    /// <param name="reminder">提醒不登记。</param>
-    /// <returns>这一行动的完成承诺。</returns>
+    /// <param name="grain">Grain 实例。</param>
+    /// <param name="reminder">要注销的提醒器。</param>
+    /// <returns>表示此操作完成情况的异步任务。</returns>
     public static Task UnregisterReminder(this Grain grain, IGrainReminder reminder) => UnregisterReminder(grain?.GrainContext, reminder, CancellationToken.None);
 
-    /// <summary>以往已登记的催复通知,如不登记,则不予登记。</summary>
-    /// <param name="grain"> grain 实例。</param>
-    /// 提醒<param name="reminder">。</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>代表操作的任务。</returns>
+    /// <summary>注销先前已注册的提醒器。</summary>
+    /// <param name="grain">Grain 实例。</param>
+    /// <param name="reminder">提醒器。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>表示该操作的任务。</returns>
     public static Task UnregisterReminder(this Grain grain, IGrainReminder reminder, CancellationToken cancellationToken)
         => UnregisterReminder(grain?.GrainContext, reminder, cancellationToken);
 
     /// <summary>
-    /// 以往已登记的催复通知,如不登记,则不予登记。
+    /// 注销先前已注册的提醒器。
     /// </summary>
-    /// <param name="grain"> grain 实例。</param>
-    /// <param name="reminder">提醒不登记。</param>
-    /// <returns>这一行动的完成承诺。</returns>
+    /// <param name="grain">Grain 实例。</param>
+    /// <param name="reminder">要注销的提醒器。</param>
+    /// <returns>表示此操作完成情况的异步任务。</returns>
     public static Task UnregisterReminder(this IGrainBase grain, IGrainReminder reminder) => UnregisterReminder(grain?.GrainContext, reminder, CancellationToken.None);
 
-    /// <summary>以往已登记的催复通知,如不登记,则不予登记。</summary>
-    /// <param name="grain"> grain 实例。</param>
-    /// 提醒<param name="reminder">。</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>代表操作的任务。</returns>
+    /// <summary>注销先前已注册的提醒器。</summary>
+    /// <param name="grain">Grain 实例。</param>
+    /// <param name="reminder">提醒器。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>表示该操作的任务。</returns>
     public static Task UnregisterReminder(this IGrainBase grain, IGrainReminder reminder, CancellationToken cancellationToken)
         => UnregisterReminder(grain?.GrainContext, reminder, cancellationToken);
 
@@ -123,34 +123,34 @@ public static class GrainReminderExtensions
     }
 
     /// <summary>
-    /// a 返回先前登记的催复通知。
+    /// 返回先前已注册的提醒器。
     /// </summary>
-    /// <param name="grain"> grain 实例。</param>
-    /// <param name="reminderName">提醒返回</param>
-    /// <returns>承诺提醒处理器。</returns>
+    /// <param name="grain">Grain 实例。</param>
+    /// <param name="reminderName">要返回的提醒器的名称。</param>
+    /// <returns>用于获取提醒器句柄的异步操作。</returns>
     public static Task<IGrainReminder?> GetReminder(this Grain grain, string reminderName) => GetReminder(grain?.GrainContext, reminderName, CancellationToken.None);
 
-    /// <summary>返回先前登记的提醒函。</summary>
-    /// <param name="grain"> grain 实例。</param>
-    /// <param name="reminderName">提醒的名称。</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// 提醒<returns>。</returns>
+    /// <summary>返回先前已注册的提醒器。</summary>
+    /// <param name="grain">Grain 实例。</param>
+    /// <param name="reminderName">提醒器名称。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>提醒器。</returns>
     public static Task<IGrainReminder?> GetReminder(this Grain grain, string reminderName, CancellationToken cancellationToken)
         => GetReminder(grain?.GrainContext, reminderName, cancellationToken);
 
     /// <summary>
-    /// a 返回先前登记的催复通知。
+    /// 返回先前已注册的提醒器。
     /// </summary>
-    /// <param name="grain">A grain.</param>
-    /// <param name="reminderName">提醒返回</param>
-    /// <returns>承诺提醒处理器。</returns>
+    /// <param name="grain">一个 Grain。</param>
+    /// <param name="reminderName">要返回的提醒器的名称。</param>
+    /// <returns>用于获取提醒器句柄的异步操作。</returns>
     public static Task<IGrainReminder?> GetReminder(this IGrainBase grain, string reminderName) => GetReminder(grain?.GrainContext, reminderName, CancellationToken.None);
 
-    /// <summary>返回先前登记的提醒函。</summary>
-    /// <param name="grain"> grain 实例。</param>
-    /// <param name="reminderName">提醒的名称。</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// 提醒<returns>。</returns>
+    /// <summary>返回先前已注册的提醒器。</summary>
+    /// <param name="grain">Grain 实例。</param>
+    /// <param name="reminderName">提醒器名称。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>提醒器。</returns>
     public static Task<IGrainReminder?> GetReminder(this IGrainBase grain, string reminderName, CancellationToken cancellationToken)
         => GetReminder(grain?.GrainContext, reminderName, cancellationToken);
 
@@ -163,30 +163,30 @@ public static class GrainReminderExtensions
     }
 
     /// <summary>
-    /// 返回 grain登记的所有提醒通知的清单。
+    /// 返回该 Grain 注册的所有提醒器的列表。
     /// </summary>
-    /// <param name="grain"> grain 实例。</param>
-    /// <returns>承诺提供为此登记了提醒措施清单 grain.</returns>
+    /// <param name="grain">Grain 实例。</param>
+    /// <returns>用于获取此 Grain 已注册提醒器列表的异步操作。</returns>
     public static Task<List<IGrainReminder>> GetReminders(this Grain grain) => GetReminders(grain?.GrainContext, CancellationToken.None);
 
-    /// <summary>返回 grain登记的所有提醒。</summary>
-    /// <param name="grain"> grain 实例。</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>提醒函。</returns>
+    /// <summary>返回该 Grain 注册的所有提醒器。</summary>
+    /// <param name="grain">Grain 实例。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>提醒器集合。</returns>
     public static Task<List<IGrainReminder>> GetReminders(this Grain grain, CancellationToken cancellationToken)
         => GetReminders(grain?.GrainContext, cancellationToken);
 
     /// <summary>
-    /// 返回 grain登记的所有提醒通知的清单。
+    /// 返回该 Grain 注册的所有提醒器的列表。
     /// </summary>
-    /// <param name="grain"> grain 实例。</param>
-    /// <returns>承诺提供为此登记了提醒措施清单 grain.</returns>
+    /// <param name="grain">Grain 实例。</param>
+    /// <returns>用于获取此 Grain 已注册提醒器列表的异步操作。</returns>
     public static Task<List<IGrainReminder>> GetReminders(this IGrainBase grain) => GetReminders(grain?.GrainContext, CancellationToken.None);
 
-    /// <summary>返回 grain登记的所有提醒。</summary>
-    /// <param name="grain"> grain 实例。</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>提醒函。</returns>
+    /// <summary>返回该 Grain 注册的所有提醒器。</summary>
+    /// <param name="grain">Grain 实例。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>提醒器集合。</returns>
     public static Task<List<IGrainReminder>> GetReminders(this IGrainBase grain, CancellationToken cancellationToken)
         => GetReminders(grain?.GrainContext, cancellationToken);
 

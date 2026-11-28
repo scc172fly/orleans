@@ -9,32 +9,32 @@ using Orleans.Placement.Repartitioning;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// 配置启动重新分配的扩展 。
+/// 用于配置激活实例重新分区的扩展方法。
 /// </summary>
 public static class ActivationRepartitioningExtensions
 {
     /// <summary>
-    /// 启用此 silo的激活重新分割。
+    /// 为此 Silo 启用激活实例重新分区。
     /// </summary>
     /// <remarks>
-    /// 重新激活尝试优化 grain 呼叫地点,办法是对频繁交流的启动装置进行拼接,
-    /// 将每个 silo 的激活数量大致保持相等。
+    /// 激活实例重新分区尝试将频繁通信的激活实例放置到同一位置，以优化 Grain 调用的局部性，
+    /// 同时保持每个 Silo 上的激活实例数量大致相等。
     /// </remarks>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <returns>提供的情况 silo 建筑商</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <returns>提供的 Silo 构建器。</returns>
     public static ISiloBuilder AddActivationRepartitioner(this ISiloBuilder builder)
         => builder.AddActivationRepartitioner<RebalancerCompatibleRule>();
 
     /// <summary>
-    /// 启用此 silo的激活重新分割。
+    /// 为此 Silo 启用激活实例重新分区。
     /// </summary>
     /// <remarks>
-    /// 重新激活尝试优化 grain 呼叫地点,办法是对频繁交流的启动装置进行拼接,
-    /// 将每个 silo 的激活数量大致保持相等。
+    /// 激活实例重新分区尝试将频繁通信的激活实例放置到同一位置，以优化 Grain 调用的局部性，
+    /// 同时保持每个 Silo 上的激活实例数量大致相等。
     /// </remarks>
-    /// <typeparam name="TRule">要使用的不平衡规则类型 。</typeparam>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <returns>提供的情况 silo 建筑商</returns>
+    /// <typeparam name="TRule">要使用的不均衡规则的类型。</typeparam>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <returns>提供的 Silo 构建器。</returns>
     public static ISiloBuilder AddActivationRepartitioner<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TRule>(
         this ISiloBuilder builder)

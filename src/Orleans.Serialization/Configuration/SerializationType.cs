@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Serialization.Configuration;
 
 /// <summary>
-/// 描述使用具体类型和实施通用参数的序列型号。
+/// 使用具体类型和实现的泛型参数描述序列化类型。
 /// </summary>
 public sealed class SerializationType
 {
@@ -74,17 +74,17 @@ public sealed class SerializationType
     }
 
     /// <summary>
-    /// 描述具体类型或通用定义及其说明。
+    /// 描述具体类型或泛型类型定义及其实参描述。
     /// </summary>
-    /// <param name="type">具体类型或通用定义。</param>
-    /// <param name="arguments">通用论点,按声明顺序排列。</param>
+    /// <param name="type">具体类型或泛型定义。</param>
+    /// <param name="arguments">按声明顺序排列的泛型实参。</param>
     /// <returns>类型描述。</returns>
     /// <remarks>
-    /// 通用定义,无说明说明而提供的一般定义使用执行说明
-    /// 目标匹配和可执行类型分辨率的宣布参数通用参数。
-    /// 提供参数说明,以约束某一子参数或重新排序参数。
-    /// 为此方法提供的数组类型必须关闭。 使用 <see cref="Array"/>
-    /// 来描述结构目标匹配模式与通用元素参数的对比。
+    /// 如果提供泛型定义时未提供实参描述，则使用该实现按声明顺序排列的
+    /// 泛型参数来匹配目标并解析可执行类型。
+    /// 提供实参描述可绑定部分形参或调整形参顺序。
+    /// 传给此方法的数组类型必须为封闭类型。使用 <see cref="Array"/>
+    /// 描述包含泛型元素参数的结构化目标匹配模式。
     /// </remarks>
     public static SerializationType Create(
 #if NET5_0_OR_GREATER
@@ -127,10 +127,10 @@ public sealed class SerializationType
     }
 
     /// <summary>
-    /// 描述执行的通用参数。
+    /// 描述实现的一个泛型参数。
     /// </summary>
-    /// <param name="index">零基参数指数,包括宣布类型的参数。</param>
-    /// <returns>参数说明。</returns>
+    /// <param name="index">从零开始的参数索引，包括声明类型的参数。</param>
+    /// <returns>参数描述。</returns>
     public static SerializationType Parameter(int index)
     {
         if (index < 0)
@@ -142,16 +142,16 @@ public sealed class SerializationType
     }
 
     /// <summary>
-    /// 描述匹配序列化合同目标的阵列形状。
+    /// 描述用于匹配序列化契约目标的数组形状。
     /// </summary>
     /// <param name="element">元素类型描述。</param>
-    /// <param name="rank">矩阵排序,从矢量的一开始。</param>
-    /// <returns>数组说明。</returns>
+    /// <param name="rank">数组的秩，从向量的秩 1 开始。</param>
+    /// <returns>数组描述。</returns>
     /// <remarks>
-    /// 匹配所请求的目标类型时, 矩阵描述将元素参数绑定 。
-    /// 可执行的分辨率类型需要使用源已知的封闭数组提供源名
-    /// <see cref="Create"/> 或封闭式转换器注册。解析数组形状
-    /// 是一个可执行文件类型, 在所有运行时投下 <see cref="NotSupportedException"/> 。
+    /// 匹配请求的目标类型时，数组描述会绑定元素参数。
+    /// 解析可执行类型需要使用以下方式提供源代码中已知的封闭数组类型：
+    /// <see cref="Create"/> 或封闭转换器注册。将数组形状
+    /// 解析为可执行类型，在所有运行时上都会抛出 <see cref="NotSupportedException"/>。
     /// </remarks>
     public static SerializationType Array(SerializationType element, int rank = 1)
     {

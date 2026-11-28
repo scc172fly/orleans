@@ -6,17 +6,17 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// Grain 测试界面 IAsyncEnumerable 活动追踪。
+    /// 用于测试 IAsyncEnumerable 活动跟踪的 Grain 接口。
     /// </summary>
     public interface IAsyncEnumerableActivityGrain : IGrainWithIntegerKey
     {
         /// <summary>
-        /// 将多个 ActivityData 项目作为可量化的同步项获取。
-        /// 每个项目在产出时捕捉当前活动的背景。
+        /// 以异步可枚举序列的形式获取多个 ActivityData 项。
+        /// 每一项均捕获 yield 返回时的当前 Activity 上下文。
         /// </summary>
-        /// <param name="count">生产项目数量。</param>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>项的相加数 ActivityData 项。</returns>
+        /// <param name="count">要返回的项数。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>ActivityData 项的异步可枚举序列。</returns>
         IAsyncEnumerable<ActivityData> GetActivityDataStream(int count, CancellationToken cancellationToken = default);
     }
 

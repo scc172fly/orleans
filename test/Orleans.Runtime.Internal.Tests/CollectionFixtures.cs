@@ -3,18 +3,18 @@ using Xunit;
 
 namespace UnitTests
 {
-    // 必须在每组集会中确定一次大会收藏的收藏
+    // 程序集集合必须在每个程序集中定义一次。
 
     /// <summary>
-    /// 定义需要默认 Orleans 组合集设置的测试收藏。
-    /// 这份收藏中的测试有一个单一组别实例,可以用来改进业绩。
+    /// 定义一个供需要默认 Orleans 集群配置的测试使用的测试集合。
+    /// 此集合中的测试共享一个集群实例，以提高性能。
     /// </summary>
     [CollectionDefinition("DefaultCluster")]
     public class DefaultClusterTestCollection : ICollectionFixture<DefaultClusterFixture> { }
 
     /// <summary>
-    /// 定义需要共享测试环境配置的测试集。
-    /// 为单位和集成测试提供内部 Orleans 测试环境设置。
+    /// 定义一个供需要共享测试环境配置的测试使用的测试集合。
+    /// 为单元测试和集成测试提供 Orleans 内部测试环境的设置。
     /// </summary>
     [CollectionDefinition(TestEnvironmentFixture.DefaultCollection)]
     public class TestEnvironmentFixtureCollection : ICollectionFixture<TestEnvironmentFixture> { }

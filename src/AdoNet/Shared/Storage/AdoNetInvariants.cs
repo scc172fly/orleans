@@ -15,20 +15,20 @@ namespace Orleans.GrainDirectory.AdoNet.Storage
 #elif TESTER_SQLUTILS
 namespace Orleans.Tests.SqlUtils
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 {
     /// <summary>
-    /// 拥有一个已知的,销售商特定连接器类变式名名的持有人。
+    /// 保存已知的各供应商专用连接器类的固定名称（invariant name）。
     /// </summary>
     internal static class AdoNetInvariants
     {
         /// <summary>
-        /// 支持的变量列表 。
+        /// 受支持的固定名称列表。
         /// </summary>
-        /// <remarks>这里的变量名称与命名空间不符, 通常公约也如此。
-        /// 目前的例外是 MySQL 使用与 MySQL 比较对比
-        /// 至正式甲骨文分布。</remarks>
+        /// <remarks>这里的固定名称不像通常的约定那样与命名空间一致。
+        /// 目前的例外是 MySQL Connector 库，它使用与 Oracle 官方发行版中的 MySQL 相同的
+        /// 固定名称。</remarks>
         public static ICollection<string> Invariants { get; } = new Collection<string>(new List<string>(new[]
         {
             InvariantNameMySql,
@@ -40,38 +40,38 @@ namespace Orleans.Tests.SqlUtils
         }));
 
         /// <summary>
-        /// Microsoft SQL 服务器变量名称字符串。
+        /// Microsoft SQL Server 固定名称字符串。
         /// </summary>
         public const string InvariantNameSqlServer = "Microsoft.Data.SqlClient";
 
         /// <summary>
-        /// Oracle 数据库服务器变量名称字符串。
+        /// Oracle Database 服务器固定名称字符串。
         /// </summary>
         public const string InvariantNameOracleDatabase = "Oracle.DataAccess.Client";
 
         /// <summary>
-        /// SQLite 变量名称字符串。
+        /// SQLite 固定名称字符串。
         /// </summary>
         public const string InvariantNameSqlLite = "System.Data.SQLite";
 
         /// <summary>
-        /// MySql 变量名称字符串。
+        /// MySQL 固定名称字符串。
         /// </summary>
         public const string InvariantNameMySql = "MySql.Data.MySqlClient";
 
         /// <summary>
-        /// PostgreSQL 变量名称字符串。
+        /// PostgreSQL 固定名称字符串。
         /// </summary>
         public const string InvariantNamePostgreSql = "Npgsql";
 
         /// <summary>
-        /// Dotnet 核心 Microsoft SQL 服务器变量名称字符串。
+        /// .NET Core Microsoft SQL Server 固定名称字符串。
         /// </summary>
         [Obsolete("Use InvariantNameSqlServer instead.")]
         public const string InvariantNameSqlServerDotnetCore = InvariantNameSqlServer;
 
         /// <summary>
-        /// 开源连接库的启用 MySQL 连接器库。
+        /// MySQL 连接器库的开源实现。
         /// </summary>
         public const string InvariantNameMySqlConnector = "MySql.Data.MySqlConnector";
     }

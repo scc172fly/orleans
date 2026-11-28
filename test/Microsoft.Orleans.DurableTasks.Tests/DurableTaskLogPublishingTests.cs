@@ -7,8 +7,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 持久任务如何将其进展公布在日志上:一个附于记录效果的条目,以及
-/// 向读者起草一个步骤流,并承诺在最后同步代码中执行。
+/// 验证持久化任务如何向由日志支持的持久化日志发布进度：在已记录效果中追加的条目，以及
+/// 步骤将数据流式传输给读取者并在最终同步代码中提交的草稿。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -32,8 +32,8 @@ public sealed class DurableTaskLogPublishingTests
             await activation.Grain.AtGate.WaitAsync(WaitTimeout, TestCancellation);
             Assert.Equal(0, activation.Grain.Log.CommittedSequence);
 
-            // 工作在工作流程等待时, 不相关的 grain 工作会写入日记; 将条目和
-            // 效果记录。
+            // 工作流等待期间，不相关的 Grain 工作写入日志；该写入将条目与
+            // 效果的记录一起收集。
             activation.Grain.RequestUnrelatedWrite();
             await activation.Grain.UnrelatedWrites;
 
@@ -44,7 +44,7 @@ public sealed class DurableTaskLogPublishingTests
             Assert.Equal(0L, GetTask(activation, effectId).Result!.GetResult<long>());
         }
 
-        // 重播返回已录制的序列,不附加 。
+        // 重放返回已记录的序号，不再追加条目。
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await replay.Grain.AtGate.WaitAsync(WaitTimeout, TestCancellation);
         replay.Grain.OpenGate();
@@ -76,8 +76,8 @@ public sealed class DurableTaskLogPublishingTests
         var first = await NextAsync(drafts);
         Assert.Equal((LogEventKind.DraftItem, 0L, 1), (first.Kind, first.Sequence, first.Item));
 
-        // 其他 grain 工作在步向流时写入日记。 草稿的项目变化不定, 所以写
-        // 任何人不做任何一件善功,而忠实的读者一无所获。
+        // 步骤进行流式传输期间，其他 Grain 工作写入日志。草稿的各项内容是易失性的，因此该写入
+        // 不会提交其中任何内容，读取已提交数据的读取者也不会收到任何内容。
         activation.Grain.RequestUnrelatedWrite();
         await activation.Grain.UnrelatedWrites;
         Assert.Equal(0, activation.Writes.Last().Entries);
@@ -89,8 +89,8 @@ public sealed class DurableTaskLogPublishingTests
         Assert.Equal((LogEventKind.DraftItem, 1L, 2, first.DraftId), (second.Kind, second.Sequence, second.Item, second.DraftId));
         Assert.False(nextCommitted.IsCompleted);
 
-        // 流结束, 因此步骤的最后同步代码 将显示草稿的输入并返回它的序列。
-        // 承诺的读者在记录步骤结果的写作为耐久性时收到该条目。
+        // 数据流结束，因此步骤的最终同步代码提交草稿条目并返回其序号。
+        // 记录步骤结果的写入持久化后，读取已提交数据的读取者便收到该条目。
         chunks.Writer.Complete();
         Assert.True(await nextCommitted.AsTask().WaitAsync(WaitTimeout, TestCancellation));
         Assert.Equal((LogEventKind.Entry, 0L, 3), (committed.Current.Kind, committed.Current.Sequence, committed.Current.Item));
@@ -119,12 +119,12 @@ public sealed class DurableTaskLogPublishingTests
             await activation.ScheduleAsync(WorkflowId, TestCancellation);
             Stream(chunks, 1, 2);
 
-            // 一旦记录该步骤结果的写作完成,工作流程就会从该步骤恢复。
+            // 记录步骤结果的写入提交后，工作流从该步骤恢复执行。
             await activation.Grain.AtGate.WaitAsync(WaitTimeout, TestCancellation);
             Assert.Equal(1, activation.Grain.Log.CommittedSequence);
         }
 
-        // 重播的流永远不会产生结果 所以再跑步就不会回来了
+        // 重放所用的流不会产生任何数据，因此若步骤再次运行，就不会返回。
         chunks = Channel.CreateUnbounded<int>();
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await replay.Grain.AtGate.WaitAsync(WaitTimeout, TestCancellation);
@@ -141,7 +141,7 @@ public sealed class DurableTaskLogPublishingTests
         replay.Grain.OpenGate();
         Assert.Equal("committed at 0", (await replay.GetResponseAsync(WorkflowId, TestCancellation)).GetResult<string>());
 
-        // 没有打开草稿, 因此读者没有东西可以交付 。
+        // 未打开草稿，因此读取者没有可投递的内容。
         Assert.False(next.IsCompleted);
         reading.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => next.AsTask());
@@ -162,7 +162,7 @@ public sealed class DurableTaskLogPublishingTests
             Assert.Equal(LogEventKind.DraftItem, (await NextAsync(drafts)).Kind);
         }
 
-        // 启动结束,而步骤流, 所以没有记录到一步, 重播又重新运行。
+        // 激活实例在步骤流式传输期间结束，因此步骤未被记录，重放会再次运行它。
         chunks = Channel.CreateUnbounded<int>();
         await using var replay = await harness.ActivateAsync(TestCancellation);
         Assert.Empty(replay.Grain.Log);
@@ -189,7 +189,7 @@ public sealed class DurableTaskLogPublishingTests
             chunks.Writer.TryWrite(1);
             Assert.Equal(LogEventKind.DraftItem, (await NextAsync(drafts)).Kind);
 
-            // 步骤承诺其草案并分阶段完成结果,而使两者都失败的写作。
+            // 步骤提交其草稿并暂存结果，但本应同时提交两者的写入失败。
             activation.FailWrites();
             Stream(chunks, 2);
             await activation.FailedWrite.WaitAsync(WaitTimeout, TestCancellation);
@@ -200,7 +200,7 @@ public sealed class DurableTaskLogPublishingTests
             Assert.DoesNotContain(activation.Writes, static write => write.Entries > 0);
         }
 
-        // 条目丢失了, 并记录了该步骤的纪录, 所以重放流 再次并承诺一次。
+        // 条目与步骤记录一同丢失，因此重放再次流式传输，并只提交一次。
         chunks = Channel.CreateUnbounded<int>();
         await using var replay = await harness.ActivateAsync(TestCancellation);
         Assert.Empty(replay.Grain.Log);
@@ -229,20 +229,20 @@ public sealed class DurableTaskLogPublishingTests
             var item = await NextAsync(drafts);
             Assert.Equal(LogEventKind.DraftItem, item.Kind);
 
-            // 河水失效,处理掉河口就放弃了
+            // 数据流失败，释放草稿即放弃该草稿。
             chunks.Writer.Complete(new InvalidOperationException("The model stopped responding."));
             var abandoned = await NextAsync(drafts);
             Assert.Equal(
                 (LogEventKind.DraftAbandoned, LogDraftAbandonReason.Disposed, item.DraftId),
                 (abandoned.Kind, abandoned.AbandonReason, abandoned.DraftId));
 
-            // 记录该步骤失败的写作一旦发生,工作流程就会从该步恢复。
+            // 记录步骤失败的写入提交后，工作流从该步骤恢复执行。
             await activation.Grain.AtGate.WaitAsync(WaitTimeout, TestCancellation);
             Assert.IsType<InvalidOperationException>(GetTask(activation, StepId).Result!.Exception);
             Assert.Empty(activation.Grain.Log);
         }
 
-        // 重播将记录到的失败重新扔入, 不再次流出 。
+        // 重放重新抛出已记录的失败异常，不再进行流式传输。
         chunks = Channel.CreateUnbounded<int>();
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await replay.Grain.AtGate.WaitAsync(WaitTimeout, TestCancellation);
@@ -271,8 +271,8 @@ public sealed class DurableTaskLogPublishingTests
             await activation.ScheduleAsync(WorkflowId, TestCancellation);
             await activation.Grain.AtGate.WaitAsync(WaitTimeout, TestCancellation);
 
-            // 与非关联的 grain 工作在步骤等待时写入日记;该写入将条目无记录
-            // 该步骤的。
+            // 步骤等待期间，不相关的 Grain 工作写入日志；该写入提交条目，但没有提交
+            // 步骤的记录。
             activation.Grain.RequestUnrelatedWrite();
             await activation.Grain.UnrelatedWrites;
 
@@ -282,7 +282,7 @@ public sealed class DurableTaskLogPublishingTests
                 write => Assert.DoesNotContain(stepId, write.Completed));
         }
 
-        // 重播再次运行此步, 并附加条目 。
+        // 重放再次运行该步骤，并再次追加条目。
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await replay.Grain.AtGate.WaitAsync(WaitTimeout, TestCancellation);
         Assert.Equal(2, harness.EffectRuns);
@@ -301,9 +301,9 @@ public sealed class DurableTaskLogPublishingTests
     });
 
     /// <summary>
-    /// 支持模型响应的流 <paramref name="chunks"/>,在 grain日志草案中加入
-    /// 等 grain门
-    /// 描述该步骤的结果。
+    /// 在步骤内，将代表模型响应的 <paramref name="chunks"/> 流式写入 Grain 日志的草稿，
+    /// 在步骤的最终同步代码中将其总和作为一个条目提交，随后在 Grain 的门控处等待，
+    /// 并描述该步骤的结果。
     /// </summary>
     private static async DurableTask<string> RespondAsync(ReplayGrain grain, ChannelReader<int> chunks)
     {

@@ -7,9 +7,9 @@ using TestExtensions;
 namespace Tester.EventSourcingTests
 {
     /// <summary>
-    /// 我们用特别固定装置来进行事件源测试 
-    /// 以便我们增加所需的日志一致性提供者, 
-    /// 做更多追踪
+    /// 对事件溯源测试使用专用测试夹具，
+    /// 以便添加所需的日志一致性提供程序，并
+    /// 执行更多跟踪记录
     /// </summary>
     public class EventSourcingClusterFixture : BaseTestClusterFixture
     {
@@ -22,14 +22,14 @@ namespace Tester.EventSourcingTests
         {
             public void Configure(ISiloBuilder hostBuilder)
             {
-                // 我们使用一个缓缓存储存储供应商
+                // 使用经过人为减速的内存存储提供程序
                 hostBuilder
                     .AddLogStorageBasedLogConsistencyProvider("LogStorage")
                     .AddStateStorageBasedLogConsistencyProvider("StateStorage")
                     .AddCustomStorageBasedLogConsistencyProvider("CustomStoragePrimaryCluster")
                     .ConfigureLogging(builder =>
                     {
-                        // 抓捕工人阶段、储存提供者入境和储存—— #11398的grain 收据。
+                        // 捕获工作者阶段、进入存储提供程序及存储 Grain 接收请求的事件，用于 #11398。
                         builder.AddFilter("Orleans.Runtime.LogConsistency", LogLevel.Debug);
                         builder.AddFilter(typeof(MemoryGrainStorage).Namespace, LogLevel.Trace);
                     })

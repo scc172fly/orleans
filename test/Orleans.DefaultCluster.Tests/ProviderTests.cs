@@ -8,11 +8,11 @@ using UnitTests.Grains;
 namespace DefaultCluster.Tests
 {
     /// <summary>
-    /// Orleans 提供者和 grain 扩展的测试。
-    /// 供应商是扩展 grain 功能的可插入组件,
-    /// 扩展 grain 允许 grains 暴露其他接口
-    /// 能够动态安装。这可以进行模块 grain 设计
-    /// 可根据需要添加任择功能。
+    /// Orleans 提供程序及 Grain 扩展测试。
+    /// 提供程序是扩展 Grain 功能的可插拔组件，
+    /// 而 Grain 扩展允许 Grain 公开可以动态安装的附加接口。
+    /// 这使 Grain 可以采用模块化设计，
+    /// 按需添加可选功能。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -43,12 +43,12 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试 grain 扩展安装和调用。
-        /// 证明:
-        /// - 调用未安装的扩展投出 GrainExtensionNotInstalledException
-        /// - 扩展可动态安装在 grains
-        /// - 可通过接口引用安装的扩展名
-        /// 这显示了 grain 延期的动态性质。
+        /// 测试 Grain 扩展的安装及调用。
+        /// 验证以下情况：
+        /// - 调用未安装的扩展会引发 GrainExtensionNotInstalledException
+        /// - 扩展可以动态安装到 Grain 上
+        /// - 已安装的扩展可以通过其接口调用
+        /// 这展示了 Grain 扩展的动态特性。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Providers")]
         public async Task Providers_TestExtensions()
@@ -65,14 +65,14 @@ namespace DefaultCluster.Tests
             }
             catch (GrainExtensionNotInstalledException)
             {
-                // 这是预期的行为
+                // 这是预期行为
             }
             catch (AggregateException ex)
             {
                 var baseEx = ex.GetBaseException();
                 if (baseEx is GrainExtensionNotInstalledException)
                 {
-                    // 这也是预期的行为
+                    // 这也是预期行为
                 }
                 else
                 {
@@ -116,20 +116,20 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试在通用 grain 界面上激活非遗传扩展。
-        /// 证明当通用 grain 具有非通用扩展,
-        /// grain 可通过扩展参比激活,而无需
-        /// 问题,证明扩展与通用 grains的兼容性。
+        /// 测试通过泛型 Grain 接口上的非泛型扩展进行激活。
+        /// 验证当泛型 Grain 具有非泛型扩展时，
+        /// 可以通过扩展引用顺利激活该 Grain，
+        /// 展示扩展与泛型 Grain 的兼容性。
         /// </summary>
         [Fact, TestCategory("Providers"), TestCategory("BVT"), TestCategory("Cast"), TestCategory("Generics")]
         public async Task Providers_ActivateNonGenericExtensionOfGenericInterface()
         {
             var grain = this.fixture.GrainFactory.GetGrain<IGenericGrainWithNonGenericExtension<int>>(GetRandomGrainId());
-            var extension = grain.AsReference<ISimpleExtension>(); //通用基底 grain 尚未激活 - 仅 virt refs
+            var extension = grain.AsReference<ISimpleExtension>(); //泛型基础 Grain 尚未激活，仅有虚拟引用
 
             try
             {
-                var res = await extension.CheckExtension_1(); //现发生激活,但有非遗传参考
+                var res = await extension.CheckExtension_1(); //现在发生激活，但通过非泛型引用进行
             }
             catch (Exception ex)
             {
@@ -140,16 +140,16 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 用于参考通用 grain 激活后非遗传扩展的测试。
-        /// 证明在一般 grain 正常激活后,
-        /// 其非基因延伸仍可被获取和援引,
-        /// 确保已激活的通用 grains扩展工作正确。
+        /// 测试泛型 Grain 激活后引用非泛型扩展。
+        /// 验证泛型 Grain 正常激活后，
+        /// 仍可以获取并调用其非泛型扩展，
+        /// 确保扩展与已激活的泛型 Grain 正常协作。
         /// </summary>
         [Fact, TestCategory("Providers"), TestCategory("BVT"), TestCategory("Cast"), TestCategory("Generics")]
         public async Task Providers_ReferenceNonGenericExtensionOfGenericInterface()
         {
             var grain = this.fixture.GrainFactory.GetGrain<IGenericGrainWithNonGenericExtension<int>>(GetRandomGrainId());
-            await grain.DoSomething(); //原通用 grain 在此激活
+            await grain.DoSomething(); //原始泛型 Grain 在此处激活
 
             var extension = grain.AsReference<ISimpleExtension>();
             try
@@ -165,11 +165,11 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试自动安装 grain 扩展。
-        /// 验证配置为 AddGrainExtension 的扩展名
-        /// 在 grains 上自动可用,无需手动安装,
-        /// 而在非配置扩展仍然需要安装明确装置。
-        /// 这显示了通用扩展的自动电线能力。
+        /// 测试自动安装 Grain 扩展。
+        /// 验证使用 AddGrainExtension 配置的扩展
+        /// 无需手动安装即可在 Grain 上自动使用，
+        /// 而未配置的扩展仍需显式安装。
+        /// 这展示了常用扩展的自动装配能力。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Providers")]
         public async Task Providers_AutoInstallExtensionTest()

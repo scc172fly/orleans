@@ -10,10 +10,10 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 证明一个无法解码的储存有效载荷 和无法存储的结果 只影响他们自己的任务
-/// 排 grain 启动、运行其他任务,并不断承诺。
+/// 验证无法解码的已存储有效载荷以及无法存储的结果仅影响各自所属的任务：
+/// Grain 仍能激活、运行其他任务并继续提交更改。
 /// </summary>
-/// <remarks>测试运行 grain日记上的运行时间,因此每个有效载荷都 Orleans- 与生产时一样序列。</remarks>
+/// <remarks>测试在 Grain 的日志上运行运行时，因此每个有效载荷均像生产环境一样经过 Orleans 序列化。</remarks>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
@@ -45,8 +45,8 @@ public sealed class DurableTaskStoredPayloadTests
             payload = ((DurableTaskState)stored).RequestPayload!;
         }
 
-        // 部署无法再解码存储的请求: grain 启动并运行其其他工作,
-        // 任务拖拉,其存储的请求不变。
+        // 部署后的代码无法再解码已存储的请求：Grain 仍能激活并运行其他工作，
+        // 而该任务停滞，且其已存储的请求保持不变。
         PoisonedRequest.DecodeFails = true;
         using (var stalls = new StallRecorder(poisonedId))
         {
@@ -65,7 +65,7 @@ public sealed class DurableTaskStoredPayloadTests
                 (await activation.Runtime.SubscribeOrPollAsync(poisonedId, new SubscribeOrPollOptions { PollTimeout = TimeSpan.Zero }, TestCancellation)).Status);
         }
 
-        // 用于解码请求的代码运行任务, 而不是存储的请求 。
+        // 能够解码请求的代码会从已存储的请求运行任务。
         PoisonedRequest.DecodeFails = false;
         PoisonedRequest.Release.SetResult();
         await using var recovered = await harness.ActivateAsync(TestCancellation);
@@ -93,8 +93,8 @@ public sealed class DurableTaskStoredPayloadTests
     });
 
     /// <summary>
-    /// 运行着操纵系统的工作流程, 完成的结果不连续排列, 并声称它的任务
-    /// 长期缺损, grain 以后的工作承诺。
+    /// 运行测试环境中的工作流，该工作流以无法序列化的结果完成，并断言其任务
+    /// 持久化地进入故障状态，同时 Grain 仍能提交后续工作。
     /// </summary>
     private static async Task AssertFaultsAndLaterWorkCommitsAsync(DurableTaskReplayHarness harness, string kind, Type type)
     {
@@ -110,7 +110,7 @@ public sealed class DurableTaskStoredPayloadTests
             Assert.Equal(5, (await activation.GetResponseAsync(laterId, TestCancellation)).GetResult<int>());
         }
 
-        // 错误像任何结果一样发生, 所以下一次激活会恢复它而不运行工作流程。
+        // 故障与其他结果一样得到提交，因此下一个激活实例无须再次运行工作流即可恢复该故障结果。
         await using var recovered = await harness.ActivateAsync(TestCancellation);
         AssertSerializationFault(await recovered.GetResponseAsync(faultedId, TestCancellation));
         Assert.Equal(5, (await recovered.GetResponseAsync(laterId, TestCancellation)).GetResult<int>());
@@ -124,10 +124,10 @@ public sealed class DurableTaskStoredPayloadTests
     }
 }
 
-/// <summary>一种没有编码的值,所以不序列。</summary>
+/// <summary>没有编解码器的类型的值，因此无法序列化。</summary>
 internal sealed class NoCodecValue;
 
-/// <summary>数值,该值的解码在 <see cref="PoisonedRequest.DecodeFails"/> 被设置时发生故障,而已删除的类型则被设定。</summary>
+/// <summary>当设置 <see cref="PoisonedRequest.DecodeFails"/> 时无法解码的值，模拟类型被移除的情况。</summary>
 internal sealed class PoisonValue(int value)
 {
     public int Value { get; } = value;
@@ -149,15 +149,15 @@ internal sealed class PoisonValueConverter : IConverter<PoisonValue, PoisonValue
     public PoisonValueSurrogate ConvertToSurrogate(in PoisonValue value) => new() { Value = value.Value };
 }
 
-/// <summary>其论据仅在时间解码的请求 <see cref="DecodeFails"/> 确是明确的,身体等待着的, <see cref="Release"/>.</summary>
+/// <summary>仅在 <see cref="DecodeFails"/> 未设置时才能解码其参数的请求，其任务体等待 <see cref="Release"/>。</summary>
 [GenerateSerializer]
 [Alias("Microsoft.Orleans.DurableTasks.Tests.PoisonedRequest")]
 internal sealed class PoisonedRequest : IDurableTaskRequest
 {
-    /// <summary>获取或设置请求解码失败与否。 只有 <see cref="DurableTaskStoredPayloadTests"/> 使用它。</summary>
+    /// <summary>获取或设置解码请求时是否失败。仅 <see cref="DurableTaskStoredPayloadTests"/> 使用此属性。</summary>
     public static bool DecodeFails { get; set; }
 
-    /// <summary>获取或设置请求方尸体等待的大门。</summary>
+    /// <summary>获取或设置请求任务体等待的同步关卡。</summary>
     public static TaskCompletionSource Release { get; set; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     [Id(0)]

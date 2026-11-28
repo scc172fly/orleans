@@ -15,20 +15,20 @@ using Xunit;
 namespace NonSilo.Tests
 {
     /// <summary>
-    /// 由下列机构进行的供应商发现测试 <see cref="ProviderRegistrationResolver"/>,使用共享接缝
-    /// 客户端 (<c>DefaultClientServices</c>) 和 silo (<c>DefaultSiloServices</c>配置。
-    /// 这些核查数据核实产生供应商元数据的元数据被消耗,由旧代码发电机制作的组件被消耗
-    /// (缺乏) <see cref="IProviderMetadataProvider"/>) 通过 <see cref="RegisterProviderAttribute"/>
-    /// 且在识别数据外发现该自定义类型的产品时,从未激活过。
+    /// 测试由 <see cref="ProviderRegistrationResolver"/> 执行的提供程序发现；该组件是
+    /// 客户端（<c>DefaultClientServices</c>）和 Silo（<c>DefaultSiloServices</c>）配置共享的接入点。
+    /// 验证生成的提供程序元数据被使用，并验证旧版代码生成器所生成的程序集
+    /// （缺少 <see cref="IProviderMetadataProvider"/>）仍能通过 <see cref="RegisterProviderAttribute"/>
+    /// 回退机制正常工作，并且自定义类型清单提供程序绝不会在 DI 之外的发现阶段被激活。
     /// </summary>
     [TestCategory("BVT")]
     [TestCategory("Providers")]
     public class ProviderRegistrationResolverTests
     {
         /// <summary>
-        /// 证明生成的供应商元数据(一种类型,标记为: OrleansCodeGen 执行
-        /// <see cref="IProviderMetadataProvider"/>)为客户和 silo 目标的发现所消耗,
-        /// 每个目标只收到所申报的登记。
+        /// 验证生成的提供程序元数据（由 OrleansCodeGen 标记为已生成、且实现
+        /// <see cref="IProviderMetadataProvider"/> 的类型）会在客户端和 Silo 两种目标的发现过程中使用，
+        /// 且每个目标仅接收为其声明的注册项。
         /// </summary>
         [Fact]
         public void GeneratedProviderMetadata_IsConsumedByClientAndSiloConfiguration()
@@ -39,19 +39,19 @@ namespace NonSilo.Tests
             var clientProviders = ProviderRegistrationResolver.GetRegisteredProviders(new[] { assembly }, "Client");
             var siloProviders = ProviderRegistrationResolver.GetRegisteredProviders(new[] { assembly }, "Silo");
 
-            // 客户发现仅接收生成的元数据中针对客户的登记。
+            // 客户端发现仅接收生成的元数据中面向客户端的注册项。
             Assert.Equal(typeof(ClientClusteringProviderBuilder), clientProviders[("Clustering", "UnitTestClustering")]);
             Assert.False(clientProviders.ContainsKey(("GrainStorage", "UnitTestStorage")));
 
-            // Silo 发现仅接收同一元数据的 silo- 目标登记。
+            // Silo 发现仅接收同一生成元数据中面向 Silo 的注册项。
             Assert.Equal(typeof(SiloStorageProviderBuilder), siloProviders[("GrainStorage", "UnitTestStorage")]);
             Assert.False(siloProviders.ContainsKey(("Clustering", "UnitTestClustering")));
         }
 
         /// <summary>
-        /// 证明由旧代码发电机制作的组装装置----其生成型号显示器供应商
-        /// 不执行 <see cref="IProviderMetadataProvider"/> - 仍然提供其供应商登记
-        /// 穿越遗留 <see cref="RegisterProviderAttribute"/> 客户端和 silo 目标。
+        /// 验证由旧版代码生成器生成的程序集，该程序集的生成类型清单提供程序
+        /// 未实现 <see cref="IProviderMetadataProvider"/>，仍会提供其注册项，
+        /// 通过旧版 <see cref="RegisterProviderAttribute"/> 回退机制，同时适用于客户端和 Silo 目标。
         /// </summary>
         [Fact]
         public void LegacyAssemblyWithoutProviderMetadata_UsesRegisterProviderAttributeFallback()
@@ -59,8 +59,8 @@ namespace NonSilo.Tests
             OldGeneratorMetadataProvider.InstantiationCount = 0;
 
             var assembly = CreateAssemblyWithAttributes(
-                // 旧的发电机仍发出生成型号显示器供应商,但日期早于
-                // 因此它没有执行IProviderMetadataProvider 。
+                // 旧版生成器仍会生成类型清单提供程序，但其出现早于
+                // IProviderMetadataProvider，因此未实现该接口。
                 TypeManifestProviderAttribute(typeof(OldGeneratorMetadataProvider)),
                 RegisterProviderAttribute("LegacyClustering", "Clustering", "Client", typeof(LegacyClientProviderBuilder)),
                 RegisterProviderAttribute("LegacyStorage", "GrainStorage", "Silo", typeof(LegacySiloProviderBuilder)));
@@ -68,20 +68,20 @@ namespace NonSilo.Tests
             var clientProviders = ProviderRegistrationResolver.GetRegisteredProviders(new[] { assembly }, "Client");
             var siloProviders = ProviderRegistrationResolver.GetRegisteredProviders(new[] { assembly }, "Silo");
 
-            // 客户目标遗留登记是通过 RegisterProviderAttribute 后退发现的。
+            // 通过 RegisterProviderAttribute 回退机制发现面向客户端的旧版注册项。
             Assert.Equal(typeof(LegacyClientProviderBuilder), clientProviders[("Clustering", "LegacyClustering")]);
             Assert.False(clientProviders.ContainsKey(("GrainStorage", "LegacyStorage")));
 
-            // silo-- -- 目标遗留登记是通过同样的后退路径发现的。
+            // 通过相同的回退路径发现面向 Silo 的旧版注册项。
             Assert.Equal(typeof(LegacySiloProviderBuilder), siloProviders[("GrainStorage", "LegacyStorage")]);
             Assert.False(siloProviders.ContainsKey(("Clustering", "LegacyClustering")));
             Assert.Equal(0, OldGeneratorMetadataProvider.InstantiationCount);
         }
 
         /// <summary>
-        /// 证明自定义类型的货物清单提供者----未以 OrleansCodeGen 生成的标记为标志 - 是
-        /// 用户发现供应商时从未进行即时同步。 只有 OrleansCodeGen- 生成的提供者在
-        /// 注射自给性注射;通过DI通过序列配置管道启动定制供应商。
+        /// 验证自定义类型清单提供程序（未被 OrleansCodeGen 标记为生成的提供程序）
+        /// 绝不会由提供程序发现过程实例化。只有 OrleansCodeGen 生成的提供程序才会在
+        /// 依赖注入之外激活；自定义提供程序由序列化配置管道通过 DI 激活。
         /// </summary>
         [Fact]
         public void CustomTypeManifestProvider_IsNotActivatedByProviderDiscovery()
@@ -94,34 +94,34 @@ namespace NonSilo.Tests
             var clientProviders = ProviderRegistrationResolver.GetRegisteredProviders(new[] { assembly }, "Client");
             var siloProviders = ProviderRegistrationResolver.GetRegisteredProviders(new[] { assembly }, "Silo");
 
-            // 自定义提供者不是 OrleansCodeGen- 生成的, 所以发现不能激活它 。
+            // 该自定义提供程序并非由 OrleansCodeGen 生成，因此发现过程不得激活它。
             Assert.Equal(0, CustomManifestProvider.InstantiationCount);
 
-            // 因为它从未启动过, 它没有帮助任何目标的注册。
+            // 且由于从未激活，它不会向任何一个目标提供注册项。
             Assert.Empty(clientProviders);
             Assert.Empty(siloProviders);
         }
 
         /// <summary>
-        /// 证明装配组装配时同时携带现代产生的供应商元数据(实施)
-        /// <see cref="IProviderMetadataProvider"/>和遗留 <see cref="RegisterProviderAttribute"/>,以及所生成的
-        /// 元数据优先, 遗留的后退被抑制。 这可以保护退出的行为
-        /// 仅对老发电机建造的组件适用。
+        /// 验证程序集同时带有现代的生成式提供程序元数据（实现
+        /// <see cref="IProviderMetadataProvider"/>）及旧版 <see cref="RegisterProviderAttribute"/> 时，生成的
+        /// 元数据具有优先权，旧版回退机制会被抑制。这确保回退机制的行为
+        /// 仅应用于较旧生成器构建的程序集。
         /// </summary>
         [Fact]
         public void GeneratedProviderMetadata_SuppressesRegisterProviderAttributeFallback()
         {
             var assembly = CreateAssemblyWithAttributes(
                 TypeManifestProviderAttribute(typeof(GeneratedMetadataProvider)),
-                // 一条由于生成元数据而必须忽略的条块 RegisterProviderAttribute 。
+                // 存在生成元数据，因此必须忽略这个过时的 RegisterProviderAttribute。
                 RegisterProviderAttribute("StaleClustering", "Clustering", "Client", typeof(LegacyClientProviderBuilder)));
 
             var clientProviders = ProviderRegistrationResolver.GetRegisteredProviders(new[] { assembly }, "Client");
 
-            // 只有生成的元数据登记存在。
+            // 仅存在生成的元数据注册项。
             Assert.Equal(typeof(ClientClusteringProviderBuilder), clientProviders[("Clustering", "UnitTestClustering")]);
 
-            // 遗留 RegisterProviderAttribute 登记被取缔,从不作出贡献。
+            // 旧版 RegisterProviderAttribute 注册项受到抑制，不会提供任何注册项。
             Assert.False(clientProviders.ContainsKey(("Clustering", "StaleClustering")));
             Assert.Single(clientProviders);
         }
@@ -265,8 +265,8 @@ namespace NonSilo.Tests
             return assemblyBuilder;
         }
 
-        // 模拟生成的元数据提供者:标记为 OrleansCodeGen 所产生并付诸实施
-        // IProviderMetadataProvider,所以发现它 激活并读取它的登记。
+        // 模拟生成式元数据提供程序：由 OrleansCodeGen 标记为已生成且实现
+        // IProviderMetadataProvider，因此发现过程会激活它并读取其注册项。
         [GeneratedCode("OrleansCodeGen", "1.0.0")]
         public sealed class GeneratedMetadataProvider : TypeManifestProviderBase, IProviderMetadataProvider
         {
@@ -281,8 +281,8 @@ namespace NonSilo.Tests
             }
         }
 
-        // 模拟旧生成器生成元数据提供者的仿真:标记为 OrleansCodeGen 生成,但
-        // 突变 IProviderMetadataProvider, 所以发现必须返回到 RegisterProviderAttribute。
+        // 模拟旧生成器生成的元数据提供程序：由 OrleansCodeGen 标记为已生成，但其生成时间
+        // 早于 IProviderMetadataProvider，因此发现过程必须回退到 RegisterProviderAttribute。
         [GeneratedCode("OrleansCodeGen", "1.0.0")]
         public sealed class OldGeneratorMetadataProvider : TypeManifestProviderBase
         {
@@ -298,9 +298,9 @@ namespace NonSilo.Tests
             }
         }
 
-        // 模拟用户自定义的自定义类型表提供商。它是一个有效的 ITypeManifestProvider (因此可以
-        // 引用引用 TypeManifestProviderAttribute),但并非 OrleansCodeGen- 产生,所以供应商的发现必须
-        // 即时计数器证明建筑工是否运行了
+        // 模拟用户编写的自定义类型清单提供程序。它是有效的 ITypeManifestProvider（因此可由
+        // TypeManifestProviderAttribute 引用），但并非由 OrleansCodeGen 生成，因此提供程序发现过程
+        // 绝不能构造它。实例化计数器可证明构造函数是否执行过。
         public sealed class CustomManifestProvider : TypeManifestProviderBase
         {
             public static int InstantiationCount;
@@ -315,7 +315,7 @@ namespace NonSilo.Tests
             }
         }
 
-        // 标记类型仅用作供应商登记值;发现类型存储,而不激活。
+        // 仅用作提供程序注册值的标记类型；发现过程存储 Type 而不激活该类型。
         public sealed class ClientClusteringProviderBuilder
         {
         }

@@ -5,7 +5,7 @@ using static Orleans.Durable.Journaling.Tests.ObservationTestHelpers;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// 测试仅附件的耐久日志:顺序、保留、承诺读作、草稿和回收。
+/// 测试仅追加的持久化日志：顺序编号、保留、已提交数据的读取、草稿和恢复。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -132,7 +132,7 @@ public class DurableLogTests : JournalingTestBase
         Assert.Equal(Entry(4, "e4"), await read.NextAsync());
         Assert.Equal(CaughtUp(5), await read.NextAsync());
 
-        // 读者若认为修剪耐久,
+        // 一旦裁剪操作已持久化，读取已提交数据的读取方就能观察到它。
         log.TrimBefore(4);
         var next = read.MoveNextAsync();
         Assert.False(next.IsCompleted);
@@ -140,7 +140,7 @@ public class DurableLogTests : JournalingTestBase
         Assert.True(await next);
         Assert.Equal(Trimmed(4), read.Current with { Epoch = 0 });
 
-        // 读者的注意力被缩小, 所以一个被抓住的读者观察每个剪辑。
+        // 到达读取方当前位置的裁剪操作会被报告，因此已追上日志末尾的读取方会观察到每次裁剪。
         log.TrimBefore(5);
         await sut.Manager.WriteStateAsync(CancellationToken);
         Assert.Equal(Trimmed(5), await read.NextAsync());
@@ -163,7 +163,7 @@ public class DurableLogTests : JournalingTestBase
         await using var read = log.ReadAsync(0, cancellationToken: CancellationToken).GetAsyncEnumerator(CancellationToken);
         Assert.Equal(Entry(0, "a"), await read.NextAsync());
 
-        // 剪短的条目是耐久的, 但剪长不是, 所以读者在剪短的写作之前 都没有报告。
+        // 被裁剪的条目已持久化，但裁剪操作尚未持久化，因此读取方在写入裁剪操作之前不会报告两者中的任何一个。
         log.TrimBefore(2);
         var next = read.MoveNextAsync();
         Assert.False(next.IsCompleted);
@@ -184,7 +184,7 @@ public class DurableLogTests : JournalingTestBase
         log.Append("b");
         await sut.Manager.WriteStateAsync(CancellationToken);
 
-        // 历史从未达到的位置属于另一个历史, 因此读者重新开始了这个位置 。
+        // 日志历史从未到达的位置属于另一段历史，因此读取方从头读取当前这段历史。
         await using var read = log.ReadAsync(100, cancellationToken: CancellationToken).GetAsyncEnumerator(CancellationToken);
         Assert.Equal(Reset(0), await read.NextAsync());
         Assert.Equal(Entry(0, "a"), await read.NextAsync());
@@ -237,12 +237,12 @@ public class DurableLogTests : JournalingTestBase
         Assert.Equal(Entry(1, "b"), await committed.NextAsync());
         Assert.Equal(CaughtUp(2), await committed.NextAsync());
 
-        // 清晰的消耗序列 2. 历史紧随其后
+        // 清空操作占用序列号 2，压实后的历史紧随其后。
         log.Clear();
         Assert.Equal((3L, 3L, 0), (log.FirstSequence, log.NextSequence, log.Count));
         Assert.Equal(3, log.Append("summary"));
 
-        // 读者观察清楚,一旦耐久,就更换。
+        // 一旦清空操作及替换后的内容均已持久化，读取方就能观察到它们。
         var next = committed.MoveNextAsync();
         Assert.False(next.IsCompleted);
         await sut.Manager.WriteStateAsync(CancellationToken);
@@ -250,7 +250,7 @@ public class DurableLogTests : JournalingTestBase
         Assert.Equal(Reset(3), committed.Current with { Epoch = 0 });
         Assert.Equal(Entry(3, "summary"), await committed.NextAsync());
 
-        // 位于或之前观察到的清晰替换历史的位置,包括以后激活。
+        // 位于清空操作处或之前的位置对应的是已被替换的历史，即使在后续激活实例中也是如此。
         var recovered = CreateSystem(storage);
         var recoveredLog = CreateLog(recovered.Manager);
         await recovered.Lifecycle.OnStart(CancellationToken);
@@ -266,7 +266,7 @@ public class DurableLogTests : JournalingTestBase
             Assert.Equal(Entry(3, "summary"), await resumed.NextAsync());
         }
 
-        // 仍报告,在清楚后进行修补是明确的立场。
+        // 对于清空操作之前的位置，清空后执行的裁剪仍会被报告为清空操作。
         recoveredLog.Append("next");
         recoveredLog.TrimBefore(4);
         storage.IsCompactionRequested = true;
@@ -295,12 +295,12 @@ public class DurableLogTests : JournalingTestBase
         await sut.Manager.WriteStateAsync(CancellationToken);
         log.Append("pending");
 
-        // 读取开始时未执行待读条目, 所以读者会赶上它。
+        // 读取开始时待处理的条目尚未提交，因此读取方会先追上该条目之前的日志末尾。
         await using var read = log.ReadAsync(0, cancellationToken: CancellationToken).GetAsyncEnumerator(CancellationToken);
         Assert.Equal(Entry(0, "a"), await read.NextAsync());
         Assert.Equal(CaughtUp(1), await read.NextAsync());
 
-        // 事后承诺的条目不再重复事件。
+        // 随后提交的条目不会导致该事件重复出现。
         await sut.Manager.WriteStateAsync(CancellationToken);
         Assert.Equal(Entry(1, "pending"), await read.NextAsync());
         log.Append("later");
@@ -336,7 +336,7 @@ public class DurableLogTests : JournalingTestBase
 
         Assert.Equal(Abandoned(draft.Id, LogDraftAbandonReason.Sealed), await drafts.NextAsync());
 
-        // 一旦封印持久 读者就会结束
+        // 一旦封存操作已持久化，读取方就会结束读取。
         var next = committed.MoveNextAsync();
         var draftsNext = drafts.MoveNextAsync();
         Assert.False(next.IsCompleted);
@@ -351,7 +351,7 @@ public class DurableLogTests : JournalingTestBase
         Assert.Equal(Sealed(1), await drafts.NextAsync());
         Assert.False(await drafts.MoveNextAsync());
 
-        // 密封的木头可以修剪,其封条是耐久的。
+        // 已封存的日志仍然可以裁剪，其封存状态也是持久化的。
         log.TrimBefore(1);
         await sut.Manager.WriteStateAsync(CancellationToken);
         var recovered = CreateSystem(storage);
@@ -364,7 +364,7 @@ public class DurableLogTests : JournalingTestBase
         Assert.Equal(Sealed(1), await late.NextAsync());
         Assert.False(await late.MoveNextAsync());
 
-        // 正在删除日记, 将日志解封 。
+        // 删除日志会解除其封存状态。
         await recovered.Manager.DeleteStateAsync(CancellationToken);
         Assert.False(recoveredLog.IsSealed);
         Assert.Equal(0, recoveredLog.Append("restarted"));
@@ -385,7 +385,7 @@ public class DurableLogTests : JournalingTestBase
         await sut.Manager.DeleteStateAsync(CancellationToken);
         Assert.Equal((0L, 0L), (log.NextSequence, log.CommittedSequence));
 
-        // 新的历史在读者恢复之前到达其位置, 并被作为重置报告 。
+        // 如果在读取方恢复读取之前，新历史已经到达它的位置，则会报告重置事件。
         log.Append("x");
         log.Append("y");
         await sut.Manager.WriteStateAsync(CancellationToken);
@@ -454,7 +454,7 @@ public class DurableLogTests : JournalingTestBase
         Assert.Throws<InvalidOperationException>(() => draft.Write("!"));
         Assert.Throws<InvalidOperationException>(() => draft.Commit("!"));
 
-        // 读者在记录可持久后,了解承诺及其进入。
+        // 一旦条目已持久化，读取方就会得知提交及其对应的条目。
         var draftsNext = drafts.MoveNextAsync();
         Assert.False(draftsNext.IsCompleted);
         Assert.False(committedNext.IsCompleted);
@@ -511,7 +511,7 @@ public class DurableLogTests : JournalingTestBase
         draft.Write("partial");
         Assert.Equal(DraftItem(draft.Id, 0, "partial"), await read.NextAsync());
 
-        // 使用声明或最后阻止放弃草案,而取消声明则不作改动。
+        // using 语句或 finally 块会放弃草稿，而取消操作仍原样传播。
         var canceled = new OperationCanceledException("The operation was canceled.");
         Assert.Same(canceled, Assert.Throws<OperationCanceledException>(CleanUp));
 
@@ -558,14 +558,14 @@ public class DurableLogTests : JournalingTestBase
         draft.Write("partial");
         Assert.Equal(DraftItem(draft.Id, 0, "partial"), await read.NextAsync());
 
-        // 取消后进行的清理会承诺完成草稿, 而下一期日记写记录了它的条目 。
+        // 取消之后运行的清理逻辑会提交草稿，下一次日志写入会记录该草稿的条目。
         Assert.Equal(0, draft.Commit("partial"));
         Assert.False(draft.IsOpen);
         await sut.Manager.WriteStateAsync(CancellationToken);
         Assert.Equal((1L, 1L), (log.NextSequence, log.CommittedSequence));
         Assert.Equal(["partial"], log);
 
-        // 下个启动程序 跟着承诺的启动程序
+        // 当前激活实例的下一个草稿紧接已提交的草稿之后。
         using var following = log.BeginDraft();
         Assert.Equal((draft.Id.InstanceId, draft.Id.Number + 1), (following.Id.InstanceId, following.Id.Number));
         following.Write("next");
@@ -594,7 +594,7 @@ public class DurableLogTests : JournalingTestBase
         draft.Write("Hel");
         Assert.Equal(DraftItem(draft.Id, 0, "Hel"), await read.NextAsync());
 
-        // 一旦条目可以持续,则随其输入报告承诺。
+        // 一旦条目已持久化，提交事件就会与该条目一起报告。
         draft.Commit("Hello");
         var next = read.MoveNextAsync();
         Assert.False(next.IsCompleted);
@@ -606,7 +606,7 @@ public class DurableLogTests : JournalingTestBase
         Assert.Equal(Entry(0, "question"), await read.NextAsync());
         Assert.Equal(Entry(1, "Hello"), await read.NextAsync());
 
-        // 写作不包含任何内容,却无济于事。
+        // 未提交任何条目的写入不会投递任何内容。
         next = read.MoveNextAsync();
         await sut.Manager.WriteStateAsync(CancellationToken);
         log.Append("later");
@@ -637,7 +637,7 @@ public class DurableLogTests : JournalingTestBase
         draft.Write("c");
         Assert.Equal(DraftItem(draft.Id, 2, "c"), await read.NextAsync());
 
-        // 忠实的读者不遵守草案。
+        // 读取已提交数据的读取方不会观察到草稿。
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken);
         await using var committed = log.ReadAsync(1, cancellationToken: cancellation.Token).GetAsyncEnumerator(CancellationToken);
         Assert.Equal(CaughtUp(1), await committed.NextAsync());
@@ -713,7 +713,7 @@ public class DurableLogTests : JournalingTestBase
         Assert.Equal(Abandoned(disposed.Id, LogDraftAbandonReason.Disposed), await ResumeAsync(disposed.Id));
         Assert.Equal(Abandoned(new(pending.Id.InstanceId, 99), LogDraftAbandonReason.Unknown), await ResumeAsync(new(pending.Id.InstanceId, 99)));
 
-        // 读者一旦其条目可以持久,就会知道承诺。
+        // 一旦提交所含条目已持久化，读取方就会得知这次提交。
         await using (var read = log.ReadAsync(1, includeDrafts: true, resumeDraftId: pending.Id, cancellationToken: CancellationToken).GetAsyncEnumerator(CancellationToken))
         {
             Assert.Equal(CaughtUp(1), await read.NextAsync());
@@ -726,7 +726,7 @@ public class DurableLogTests : JournalingTestBase
             Assert.Equal(Entry(2, "follow-up"), await read.NextAsync());
         }
 
-        // 日志保留了被弃置的草稿数量受限制的原因。 委托书仍保留在条目中 。
+        // 日志保留数量有限的已放弃草稿的原因；提交记录则随其对应条目一并保留。
         for (var i = 0; i < 16; i++)
         {
             log.BeginDraft().Abandon();
@@ -791,7 +791,7 @@ public class DurableLogTests : JournalingTestBase
         Assert.False(draft.IsOpen);
         Assert.Equal((1L, 1L), (log.NextSequence, log.CommittedSequence));
 
-        // 下次写入后, 记录可持久保存 。
+        // 下一次写入后，提交记录即已持久化。
         await sut.Manager.WriteStateAsync(CancellationToken);
         Assert.Equal(Committed(draft.Id, 1, 0), await read.NextAsync());
     });
@@ -832,7 +832,7 @@ public class DurableLogTests : JournalingTestBase
             await sut.Manager.WriteStateAsync(CancellationToken);
         }
 
-        // 将开始日志历史的附加件 失败而不启动 。
+        // 本应开启日志历史的追加操作失败，并未开启该历史。
         var expected = (log.Epoch, log.NextSequence);
         Assert.Throws<InvalidOperationException>(() => log.Append(PoisonLogCodec.Poison));
         Assert.Equal(expected, (log.Epoch, log.NextSequence));
@@ -862,7 +862,7 @@ public class DurableLogTests : JournalingTestBase
         Assert.Contains("journal was deleted", exception.Message);
         Assert.Contains(nameof(IDurableLogDraft<string>.IsOpen), exception.Message);
 
-        // 结束封闭式草案没有效果。
+        // 关闭已关闭的草稿不会产生任何影响。
         reset.Abandon();
         reset.Dispose();
     });
@@ -877,7 +877,7 @@ public class DurableLogTests : JournalingTestBase
         lostLog.Append("question");
         await lost.Manager.WriteStateAsync(CancellationToken);
 
-        // 启动失败中反应失败, 其草稿和未写条目丢失 。
+        // 激活实例在响应过程中发生故障，其草稿和尚未写入的条目丢失。
         var draft = lostLog.BeginDraft();
         draft.Write("partial answer");
         lostLog.Append("unwritten");
@@ -893,7 +893,7 @@ public class DurableLogTests : JournalingTestBase
         Assert.Equal(Abandoned(draft.Id, LogDraftAbandonReason.PreviousActivation), await read.NextAsync());
         Assert.Equal(CaughtUp(1), await read.NextAsync());
 
-        // 回收的激活从最后储存条目中重新生成了响应。
+        // 恢复后的激活实例从最后一个已存储的条目重新生成响应。
         using var retry = log.BeginDraft();
         Assert.NotEqual(draft.Id.InstanceId, retry.Id.InstanceId);
         retry.Write("full");
@@ -920,7 +920,7 @@ public class DurableLogTests : JournalingTestBase
         Assert.False(draft.IsOpen);
         Assert.Equal(Abandoned(draft.Id, LogDraftAbandonReason.JournalDeleted), await read.NextAsync());
 
-        // 日志没有历史, 因此读者没有发现删除时替换的条目 。
+        // 日志原本没有历史，因此读取方未观察到任何被此次删除操作替换的条目。
         Assert.Equal(0, read.Current.Epoch);
         log.Append("b");
         await sut.Manager.WriteStateAsync(CancellationToken);
@@ -945,7 +945,7 @@ public class DurableLogTests : JournalingTestBase
         log.Append("replacement");
         await sut.Manager.WriteStateAsync(CancellationToken);
 
-        // 删除时放弃了草案承诺的条目。 读者没有看到任何条目, 所以从零开始继续。
+        // 删除操作丢弃了草稿中已提交的条目。读取方此前没有观察到任何条目，因此从零继续读取。
         Assert.Equal(Abandoned(draft.Id, LogDraftAbandonReason.JournalDeleted), await read.NextAsync());
         Assert.Equal(Entry(0, "replacement"), await read.NextAsync());
     });
@@ -977,7 +977,7 @@ public class DurableLogTests : JournalingTestBase
         var oldEpoch = log.Epoch;
         Assert.NotEqual(0, oldEpoch);
 
-        // 客户端读取条目 0 到 9 断开。 grain 删除其日记并撰写更长的历史 。
+        // 已经读取条目 0 至 9 的客户端断开连接。Grain 删除其日志并写入一段更长的历史。
         await first.Manager.DeleteStateAsync(CancellationToken);
         Assert.Equal(0, log.Epoch);
         for (var i = 0; i < 15; i++)
@@ -994,7 +994,7 @@ public class DurableLogTests : JournalingTestBase
         await second.Lifecycle.OnStart(CancellationToken);
         Assert.Equal(newEpoch, recovered.Epoch);
 
-        // 客户端的位置属于被删除的历史, 因此流重新开始新历史 。
+        // 客户端的位置属于已删除的历史，因此流从头开始读取新历史。
         await using (var resumed = recovered.ReadAsync(10, oldEpoch, cancellationToken: CancellationToken).GetAsyncEnumerator(CancellationToken))
         {
             Assert.Equal(Reset(0), await resumed.NextAsync());
@@ -1002,7 +1002,7 @@ public class DurableLogTests : JournalingTestBase
             Assert.Equal(Entry(0, "new0"), await resumed.NextAsync());
         }
 
-        // 在当前历史上,它继续存在。
+        // 当前历史中的位置则继续读取该历史。
         await using (var resumed = recovered.ReadAsync(10, newEpoch, cancellationToken: CancellationToken).GetAsyncEnumerator(CancellationToken))
         {
             Assert.Equal(Entry(10, "new10"), await resumed.NextAsync());
@@ -1059,12 +1059,12 @@ public class DurableLogTests : JournalingTestBase
         var recovered = CreateLog(second.Manager);
         await second.Lifecycle.OnStart(CancellationToken);
 
-        // 日志记录与条目一起进行, 因此新激活报告它们。 未写的承诺丢失了 。
+        // 日志将提交记录及其条目一并保存，因此新的激活实例会报告这些提交。未写入的提交已丢失。
         Assert.Equal(Committed(committed.Id, 1, 1), await ResumeAsync(recovered, committed.Id));
         Assert.Equal(Committed(empty.Id, 2, 0), await ResumeAsync(recovered, empty.Id));
         Assert.Equal(Abandoned(unwritten.Id, LogDraftAbandonReason.PreviousActivation), await ResumeAsync(recovered, unwritten.Id));
 
-        // 承诺保留在第一个条目为时。
+        // 只要提交的首个条目仍被保留，就会保留该提交记录。
         recovered.TrimBefore(2);
         Assert.Equal(Abandoned(committed.Id, LogDraftAbandonReason.PreviousActivation), await ResumeAsync(recovered, committed.Id));
         Assert.Equal(Committed(empty.Id, 2, 0), await ResumeAsync(recovered, empty.Id));
@@ -1090,7 +1090,7 @@ public class DurableLogTests : JournalingTestBase
         draft.Write("a");
         Assert.Equal(DraftItem(draft.Id, 0, "a"), await read.NextAsync());
 
-        // 承诺开始于日志的历史, 因此在历史中报告其范围 。
+        // 此次提交开启了日志历史，因此会在这段历史中报告其范围。
         draft.Commit("answer");
         Assert.NotEqual(0, log.Epoch);
         await sut.Manager.WriteStateAsync(CancellationToken);
@@ -1114,7 +1114,7 @@ public class DurableLogTests : JournalingTestBase
         draft.Write("partial");
         Assert.Equal(DraftItem(draft.Id, 0, "partial"), await committed.NextAsync());
 
-        // 承诺在耐久尾巴上没有增加任何条目,所以只有其记录显示是否持久。
+        // 此次提交没有在持久化日志末尾添加任何条目，因此只有其提交记录能表明它是否已持久化。
         draft.Commit();
         var next = committed.MoveNextAsync();
         Assert.False(next.IsCompleted);
@@ -1147,7 +1147,7 @@ public class DurableLogTests : JournalingTestBase
         var write = sut.Manager.WriteStateAsync(CancellationToken).AsTask();
         await sut.Storage.WriteStarted.Task;
 
-        // 持有的写入捕捉到条目 0。 承诺的空范围将结束, 该输入的结尾 。
+        // 被暂挂的写入已捕获条目 0。提交的空范围终点与该次写入所含条目的终点相同。
         draft.Commit();
         sut.Storage.Release();
         await write;
@@ -1196,7 +1196,7 @@ public class DurableLogTests : JournalingTestBase
         Assert.Throws<InvalidOperationException>(
             () => Replay(writer => codec.WriteSnapshot(1, 0, 0, isSealed: false, ["a", "b"], [new(draftId, 1, 1), new(draftId, 0, 1)], writer)));
 
-        // 序列不能通过最大顺序:一个承诺在它之外结束,一个附件或清除的附加件是错误的。
+        // 序列号不能超过最大序列号：终点超过该值的提交，以及在该值处进行的追加或清空操作，均为无效格式。
         Assert.Throws<InvalidOperationException>(() => Replay(BeginHistory, writer => codec.WriteDraftCommit(draftId, long.MaxValue, ["a"], writer)));
         Assert.Throws<InvalidOperationException>(() => Replay(writer => codec.WriteSnapshot(1, long.MaxValue, 0, isSealed: false, ["a"], [], writer)));
         Assert.Throws<InvalidOperationException>(
@@ -1227,8 +1227,8 @@ public class DurableLogTests : JournalingTestBase
         await operations.SampleAsync(sequence => RunOnActivationSchedulerAsync(() => RunRecoveryModelAsync(sequence)), iter: 50);
     }
 
-    // 在每个写后,新的激活程序会恢复同样的日志,其读者看到相同的条目,并报告
-    // 保留草案承诺书。
+    // 每次写入后，新的激活实例都能恢复相同的日志，其读取方观察到相同的条目，并报告
+    // 仍保留的草稿的提交记录。
     private async Task RunRecoveryModelAsync((int Operation, int Argument)[] operations)
     {
         var storage = new GatedJournalStorage();
@@ -1286,7 +1286,7 @@ public class DurableLogTests : JournalingTestBase
                 (recovered.Epoch, recovered.FirstSequence, recovered.NextSequence, recovered.CommittedSequence, recovered.IsSealed));
             Assert.Equal(log, recovered);
 
-            // 历史一开始就读取任何一份日志的读者都收到保留条目及其序列号。
+            // 从历史起点读取任一日志的读取方，都会收到仍保留的条目及其序列号。
             Assert.Equal(await ReadCommittedAsync(log), await ReadCommittedAsync(recovered));
             Assert.Equal(Enumerable.Range(0, log.Count).Select(i => (log.FirstSequence + i, (string?)log[log.FirstSequence + i])), await ReadCommittedAsync(recovered));
 
@@ -1336,7 +1336,7 @@ public class DurableLogTests : JournalingTestBase
         Assert.False(LogDraftId.TryParse("not-a-guid.1", out _));
         Assert.False(LogDraftId.TryParse("0f8fad5bd9cb469fa16570867728950e.-1", out _));
 
-        // 每一个识别符号的圆形行程,因为数字草案从不负数。
+        // 每个标识符都能往返转换，因为草稿编号始终非负。
         Assert.Throws<ArgumentOutOfRangeException>(() => new LogDraftId(Guid.NewGuid(), -1));
     }
 
@@ -1404,7 +1404,7 @@ public class DurableLogTests : JournalingTestBase
     private OrleansBinaryDurableLogCommandCodec<string> CreateCodec() => new(CodecProvider.GetCodec<string>(), SessionPool);
 
     /// <summary>
-    /// 无法在写好它面前的项目后编码 <see cref="Poison"/> ,因为中命令失败的编码器会编码。
+    /// 写入 <see cref="Poison"/> 之前的各个条目后，对其编码失败，模拟编码器在编码命令过程中发生故障。
     /// </summary>
     private sealed class PoisonLogCodec(IDurableLogCommandCodec<string> inner) : IDurableLogCommandCodec<string>
     {

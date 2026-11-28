@@ -1,10 +1,10 @@
 namespace Orleans.CodeGenerator.Model;
 
 /// <summary>
-/// 被设计出来的可引用的口号 其代理发现不可引用的
+/// 生成的可调用对象声明的代码文本，在代理发现该可调用对象时规划。
 /// </summary>
 /// <remarks>
-/// 可删除的可引用文件有两个取消字段。 <see cref="Arguments"/> 列出每个方法参数,包括取消标记。
+/// 可取消的可调用对象同时具有两个取消字段。<see cref="Arguments"/> 列出所有方法参数，包括取消令牌。
 /// </remarks>
 internal sealed record InvokableEmissionPlan(
     string ClassName,
@@ -38,7 +38,7 @@ internal sealed record InvokableEmissionPlan(
     string InvokeArguments,
     bool OptOutOfGrainCancellationTokenScan)
 {
-    /// <summary>生成类型在 <paramref name="generatedNamespace"/>.</summary>
+    /// <summary>生成类型在 <paramref name="generatedNamespace"/> 中的元数据名称。</summary>
     public string GetMetadataName(string generatedNamespace)
     {
         var name = string.IsNullOrEmpty(generatedNamespace) ? ClassName : $"{generatedNamespace}.{ClassName}";

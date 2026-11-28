@@ -280,7 +280,7 @@ public partial class JournaledJobShardManagerTests
             DueTime = fixture.Now.AddMinutes(30)
         }, token);
         Assert.NotNull(job);
-        await shard.DisposeAsync(); // 崩溃: 不要优雅地发布元数据。
+        await shard.DisposeAsync(); // 模拟崩溃：不以正常关闭方式释放其元数据。
         fixture.Membership.SetSiloStatus(fixture.Silo, SiloStatus.Dead);
         var nextSilo = SiloAddress.New(new IPEndPoint(IPAddress.Loopback, 5111), 0);
         fixture.Membership.SetSiloStatus(nextSilo, SiloStatus.Active);
@@ -313,7 +313,7 @@ public partial class JournaledJobShardManagerTests
             DueTime = fixture.Now
         }, token);
         Assert.NotNull(job);
-        await original.DisposeAsync(); // 相同的 silo 身份重新启动, 且不优雅地释放 。
+        await original.DisposeAsync(); // 使用相同 Silo 标识重启，不执行正常释放操作。
         var id = ((JournaledJobShard)original).StorageId;
         fixture.ClearObservations();
 
@@ -593,7 +593,7 @@ public partial class JournaledJobShardManagerTests
             var options = new DurableJobsOptions { ActiveProviderName = write };
             if (drain is not null) options.DrainingProviderNames.Add(drain);
             var resolved = new DurableJobsJournalProviders(_registry, Options.Create(options));
-            // 使用再固定装订,以便测试能够确定身份,而不仅仅是供应商名称。
+            // 复用测试夹具的绑定，使测试能够断言对象标识，而不仅是提供程序名称。
             var bindings = new DurableJobsJournalProviders(resolved.Providers
                 .Select(binding => binding.Name == "A" ? BindingA : BindingB).ToArray());
             return new(new TestLocalSiloDetails(silo ?? Silo), bindings, Membership, _servicesB,

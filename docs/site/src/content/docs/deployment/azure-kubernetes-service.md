@@ -1,6 +1,6 @@
 ---
-title: "东道主主 Orleans 日期 时 Azure Kubernetes 服务处"
-description: "部署并运行一个 Orleans AKS组,直接建立舱面网络、工作量识别、区意识定位、自动升级和控制升级。"
+title: 在 Azure Kubernetes Service 上托管 Orleans
+description: 在 AKS 上部署和运维 Orleans 集群，使用 Pod 直接联网、工作负载标识、可用区感知放置、自动缩放和受控升级。
 ms.date: 08/21/2026
 ms.topic: how-to
 ms.custom: devops
@@ -8,178 +8,178 @@ ms.custom: devops
 
 <a id="host-orleans-on-azure-kubernetes-service"></a>
 
-# 东道主主 Orleans 日期 时 Azure Kubernetes 服务处
+# 在 Azure Kubernetes Service 上托管 Orleans
 
-Azure Kubernetes 服务(AKS)提供管理 Kubernetes 控制飞机操作期间 Orleans 运行为应用程序工作量。使用 silo 广告宣传由 Kubernetes 下下向 API,并使用外部生产集群提供商。
+Azure Kubernetes Service (AKS) 提供托管的 Kubernetes 控制平面运维，而 Orleans 作为应用程序工作负载运行。每个 Pod 运行一个 Silo，通告 Kubernetes Downward API 提供的 Pod IP，并使用外部生产级集群提供程序。
 
-以平台中中性开始 [Kubernetes 指南](kubernetes.md) 排排 Orleans `Deployment`,端点配置、探测器、资源、中断预算以及优雅的关闭基线。本指南适用于 Azure 网络建设、身份、可用性、规模、升级和遵守这一工作量。
+首先参阅与平台无关的 [Kubernetes 指南](kubernetes.md)，了解 Orleans `Deployment`、终结点配置、探针、资源、中断预算和优雅关闭的基本配置。本指南在此工作负载的基础上，介绍 Azure 网络、标识、可用性、缩放、升级和可观测性。
 
 <a id="choose-the-aks-operating-model"></a>
 
-## 选择 AKS AKS 操作模式
+## 选择 AKS 运维模式
 
-[AKS 自动自动](https://learn.microsoft.com/azure/aks/intro-aks-automatic) 提供网络化、节点集合、安保和升级方面的管理下生产缺省。 [AKS AKS标准](https://learn.microsoft.com/azure/aks/what-is-aks) 直接控制网络地址管理、节点集合、升级政策和集群特征。
+[AKS Automatic](https://learn.microsoft.com/azure/aks/intro-aks-automatic) 为网络、节点池、安全性和升级提供托管的生产级默认配置。[AKS Standard](https://learn.microsoft.com/azure/aks/what-is-aks) 则允许直接控制网络地址管理、节点池、升级策略及集群功能。
 
-当外部 Orleans 客户需要直接连接缓存IP的通道时,或者当工作量需要自定义节点库、网络或升级控制时,选择 AKS 标准。 请记录选定的集束模式和 Orleans- 特定设置,这些设置仍为应用程序所有:
+如果外部 Orleans 客户端需要直接路由到网关 Pod IP，或者工作负载需要自定义节点池、网络或升级控制，请选择 AKS Standard。记录选定的集群模式，以及仍由应用程序负责的 Orleans 专属设置：
 
-- 生产集群、 grain 储存、提醒、流和 grain-- -- 指令提供者。
-- 末点配置、集群身份、健康终点和停机行为
-- 资源请求、标定阈值、干扰政策和最低 silo 计数。
-- 应用兼容性、部署顺序、回落和灾后恢复。
+- 生产级集群、Grain 存储、提醒器、流和 Grain 目录提供程序。
+- Pod 终结点配置、集群标识、健康检查终结点和关闭行为。
+- 资源请求、缩放阈值、中断策略和最少 Silo 数量。
+- 应用程序兼容性、部署顺序、回滚和灾难恢复。
 
 <a id="choose-an-aks-network-model"></a>
 
-## 选择 AKSS 网络模式
+## 选择 AKS 网络模型
 
-Orleans silos 需要直接的舱到船的TCP连通性。 [Azure 丙烯基离子](https://learn.microsoft.com/azure/aks/azure-cni-powered-by-cilium) 支持此路径和强制执行 Kubernetes 网络政策。
+Orleans Silo 需要 Pod 之间的直接 TCP 连通性。[由 Cilium 提供支持的 Azure CNI](https://learn.microsoft.com/azure/aks/azure-cni-powered-by-cilium) 支持此通信路径，并强制实施 Kubernetes 网络策略。
 
-从 Orleans 客户端表 选择 IP 地址管理模式:
+根据 Orleans 客户端拓扑选择 IP 地址管理模型：
 
-| AKSAAKS网络模式 | Silo- 至-silo 路径 | Orleans 客户安置 |
+| AKS 网络模型 | Silo 间通信路径 | Orleans 客户端部署位置 |
 | --- | --- | --- |
-| [Azure CNI 重叠](https://learn.microsoft.com/azure/aks/concepts-network-azure-cni-overlay) | 使用舱载IP直接在集群覆盖上进行沟通。 | AKS 集群内的客户运行 Orleans 。 集群外的端点会达到应用程序入侵或 Kubernetes 服务, 而不是覆盖缓存IP 。 |
-| [Azure CNNI 水底网](https://learn.microsoft.com/azure/aks/concepts-network-azure-cni-pod-subnet) | 民意调查从授权的pod子网获得虚拟网络地址。 | 当同行虚拟网络或连接的房地网络中的受信任客户需要直接通往每一个广告网关IPIP的线路时,使用。 |
+| [Azure CNI Overlay](https://learn.microsoft.com/azure/aks/concepts-network-azure-cni-overlay) | Pod 使用 Pod IP 通过集群覆盖网络直接通信。 | 在 AKS 集群内部运行 Orleans 客户端。集群外部终结点访问应用程序入口或 Kubernetes 服务，而不是覆盖网络中的 Pod IP。 |
+| [Azure CNI Pod Subnet](https://learn.microsoft.com/azure/aks/concepts-network-azure-cni-pod-subnet) | Pod 从委派的 Pod 子网获取虚拟网络地址。 | 当对等虚拟网络或已连接的本地网络中的受信任客户端需要直接路由到每个已通告的网关 Pod IP 时使用。 |
 
-配置 silo 调自 `POD_NAME` 和 `POD_IP` 精确显示于 [东道主主 Orleans 日期 时 Kubernetes](kubernetes.md#configure-the-silo)。在广告中发布 IP , 在所有 IP 界面上收听 silo 和网关港口稳定 跨越舱。
+严格按照[在 Kubernetes 上托管 Orleans](kubernetes.md#configure-the-silo) 所示，使用 `POD_NAME` 和 `POD_IP` 配置 Silo。通告 Pod IP，在所有 Pod 网络接口上监听，并确保各 Pod 使用一致的 Silo 端口和网关端口。
 
-Kubernetes `Service`、入侵控制器或 [集装箱应用网关](https://learn.microsoft.com/azure/application-gateway/for-containers/overview) 可暴露 HTTP 或 gRPC 应用程序的流量。 Orleans 客户继续发现和拨打存储在其成员中的单个网关IP。
+Kubernetes `Service`、入口控制器或[适用于容器的应用程序网关](https://learn.microsoft.com/azure/application-gateway/for-containers/overview) 可以公开 HTTP 或 gRPC 应用程序流量。Orleans 客户端仍通过成员资格信息发现并直接连接各个网关 Pod IP。
 
 <a id="create-the-private-network-boundary"></a>
 
-## 创建私有网络边界
+## 创建专用网络边界
 
-[私营AKS 集束式](https://learn.microsoft.com/azure/aks/private-clusters) 给 Kubernetes API 服务器一个私有端点。 将私人控制平面与以下组合:
+[专用 AKS 集群](https://learn.microsoft.com/azure/aks/private-clusters) 为 Kubernetes API 服务器提供专用终结点。将专用控制平面与以下配置结合使用：
 
-- 私人节点和播客子网,其规模为普通规模、升级激增和故障恢复。
-- 空格、非重叠的播客、服务、节点、对等网络、VPN和 ExpressRoute 地址空间。
-- 私营端点或核准的集群、状态、提醒、流、登记、遥测和秘密依赖的转移路径。
-- 允许 silo-至silo TCP、客户端到开口TCP、DNS、健康探测和确切提供者离开目的地的网络政策。
-- 用于 API 服务器和每个私有 Azure 依赖的私钥 DNS 分辨率。
+- 按常规扩缩容、升级期间额外容量和故障恢复需求确定大小的专用节点子网及 Pod 子网。
+- 互不重叠的 Pod、服务、节点、对等网络、VPN 和 ExpressRoute 地址空间。
+- 用于集群、状态、提醒器、流、注册表、遥测和机密等依赖项的专用终结点或经批准的出站路径。
+- 允许 Silo 间 TCP、客户端到网关的 TCP、DNS、健康探针以及确切的提供程序出站目标的网络策略。
+- API 服务器和各个专用 Azure 依赖项的专用 DNS 解析。
 
-将 silo 端口限制在 Orleans 工作量和网关端口,使信任的客户能够使用 Orleans 。当网络边界需要工作量水平的认证和加密时,请使用 [Orleans 运输层安全](../host/transport-layer-security.md) 。
+将 Silo 端口限制为仅 Orleans 工作负载可访问，将网关端口限制为仅受信任的 Orleans 客户端可访问。当网络边界要求工作负载级别的身份验证和加密时，使用 [Orleans 传输层安全性](../host/transport-layer-security.md)。
 
-验证每个工作量身份和网络的有效政策。 网络政策可以允许舱面交通,而亚网安全规则、防火墙、私人端点政策或路线表则堵塞了相同的路径。
+从每个工作负载标识及网络验证实际生效的策略。网络策略可能允许 Pod 流量，而子网安全规则、防火墙、专用终结点策略或路由表却阻止同一通信路径。
 
 <a id="configure-workload-identity-and-dependencies"></a>
 
-## 配置工作量身份和依赖关系
+## 配置工作负载标识和依赖项
 
-[Microsoft 连载工作量识别码](https://learn.microsoft.com/azure/aks/workload-identity-overview) 将一个 Kubernetes 服务账户与 Microsoft Entra身份连接。 AKS自动预设了OIDC集群发行人和工作量识别能力。启用AKS标准的两个功能,然后为每个工作量角色指定一个专用服务账户。
+[Microsoft Entra Workload ID](https://learn.microsoft.com/azure/aks/workload-identity-overview) 将 Kubernetes 服务帐户与 Microsoft Entra 标识建立联合关系。AKS Automatic 预先配置集群 OIDC 颁发者和工作负载标识功能。在 AKS Standard 上启用这两项功能，然后为每种工作负载角色分配专用服务帐户。
 
-在允许不同的情况下, silos、客户和操作工作使用单独的运行时间身份。
+当 Silo、客户端和运维作业的权限不同时，为它们使用不同的运行时标识。为每个标识授予以下资源所需的最小范围数据平面角色：
 
-- 集群会员商店。
-- 命名为 grain 存储供应商。
-- 提醒和流源提供者。
-- 密钥地下秘密和证书
-- 当应用程序认证直接到目的地时, 遥测导出 。
+- 集群成员资格存储。
+- 命名 Grain 存储提供程序。
+- 提醒器和流提供程序。
+- Key Vault 机密和证书。
+- 应用程序直接向目标进行身份验证时所需的遥测导出权限。
 
-Azure 表格存储是一个常见的集群提供者。 ADO.NET 或 Redis 也可以适应现有的管理下的抚养战略。选择使用 [地形学、联网和集群](networking.md#choose-a-clustering-provider)的供应商,并独立配置耐久状态、提醒和流。健康的会员名单可以确定发现;每个应用程序数据依赖性都保留自己的持久性和恢复要求。
+Azure Table Storage 是常见的集群提供程序。ADO.NET 或 Redis 也可以纳入现有的托管依赖项策略。参照[拓扑、网络与集群](networking.md#choose-a-clustering-provider) 选择提供程序，并分别配置持久化状态、提醒器和流。健康的成员资格表能够支持集群发现，但每个应用程序数据依赖项仍有各自的持久性和恢复要求。
 
-使用密钥跳板引用、 秘密存储 CSI 驱动程序, 或者直接获取机密和证书的工作- 工作量识别权限。 设置旋转和过期警告并核实一个旋转值是否根据应用生命周期到达新的和现有的缓存舱。
+使用 Key Vault 引用、Secrets Store CSI Driver 或工作负载标识直接访问的方式获取机密和证书。设置轮换和过期警报，并验证轮换后的值能否按照应用程序生命周期传递给新建及现有 Pod。
 
-AKS在舱载工作量身份确定之前拉动容器图像。对于 Azure 集装箱登记,应允许使用存放处范围ABAC许可的登记册使用AKS kubelet 身份 `AcrPull`或 `Container Registry Repository Reader` 。见 [将 Azure 集装箱登记簿与AKS合并](https://learn.microsoft.com/azure/aks/cluster-container-registry-integration)。
+AKS 会在 Pod 工作负载标识可用之前拉取容器映像。对于 Azure Container Registry，为 AKS kubelet 标识授予 `AcrPull`；对于使用存储库范围 ABAC 权限的注册表，则授予 `Container Registry Repository Reader`。请参阅[将 Azure Container Registry 与 AKS 集成](https://learn.microsoft.com/azure/aks/cluster-container-registry-integration)。
 
 <a id="distribute-silos-across-failure-domains"></a>
 
-## 将 silos 分配到失败域
+## 将 Silo 分布在不同故障域中
 
-当孤立、 VM 缩放、缩放或维护政策与系统组件不同时,AKS为 Orleans 工作量创建一个专门的用户节点集合。 AKS为关键集束服务保留了一个Linux系统节点集合;应用程序用户集合可以使用单独的标签、污点和自动缩放界限。 见 [在 AKS 中创建节点集合](https://learn.microsoft.com/azure/aks/create-node-pools)。
+如果 Orleans 工作负载的隔离、虚拟机规格、缩放或维护策略与系统组件不同，请为其创建专用用户节点池。AKS 保留一个 Linux 系统节点池以运行关键集群服务；应用程序用户节点池可以使用独立的标签、污点和自动缩放范围。请参阅[在 AKS 中创建节点池](https://learn.microsoft.com/azure/aks/create-node-pools)。
 
-在 [AKS AKS 供应区支助](https://learn.microsoft.com/azure/aks/reliability-availability-zones-configure)区域:
+在[支持 AKS 可用区](https://learn.microsoft.com/azure/aks/reliability-availability-zones-configure) 的区域中：
 
-1. 创建跨越或与区域保持距离的用户节点集合,每个选定区都有 VM 大小。
-1. 至少跑三步 silo 当测试的可用性目标需要一个备就时复制 silo 每个区。
-1. 添加添加添加 `topologySpreadConstraints` 使用 `topology.kubernetes.io/zone` 和 `kubernetes.io/hostname`.
-1. 添加缓冲反亲和, 使调度器通过节点分配 silos 。
-1. 保持足够的配额、子网地址和快速增援能力,以取代节点,而一个区或节点库则无法使用。
+1. 创建跨可用区或与可用区对齐的用户节点池，使用所有选定可用区均可用的虚拟机规格。
+1. 当经过验证的可用性目标要求每个可用区有一个就绪 Silo 时，运行至少三个 Silo 副本。
+1. 添加 `topologySpreadConstraints`，使用 `topology.kubernetes.io/zone` 和 `kubernetes.io/hostname`。
+1. 添加 Pod 反亲和性，使调度器将 Silo 分散到不同节点。
+1. 保留足够的配额、子网地址和额外容量，以便在一个可用区或节点池不可用时替换节点。
 
-Kubernetes 时间安排方面的制约因素确定了在具备合格能力时所要求的分配。 核查部署后和节点池升级期间实际的对区位置。
+当存在符合条件的容量时，Kubernetes 调度约束会实现所要求的分布。部署后及节点池升级期间，验证 Pod 在各可用区的实际分布。
 
-跨区提供商完成设计。 配置组合、 状态、 提醒、 流、 注册、 密钥天体和遥测服务, 以相同可用目标为目的, 并在一个依赖区无法使用时测试应用程序的行为 。
+跨可用区的提供程序是此设计的另一必要组成部分。为集群、状态、提醒器、流、注册表、Key Vault 和遥测服务配置相同的可用性目标，并测试某个依赖项的一个可用区不可用时应用程序的行为。
 
 <a id="configure-health-shutdown-and-disruption-policy"></a>
 
-## 配置健康、关闭和干扰政策
+## 配置健康检查、关闭和中断策略
 
-使用 [东道主主 Orleans 日期 时 Kubernetes](kubernetes.md#health-probes)中的启动、准备和活性行为:
+采用[在 Kubernetes 上托管 Orleans](kubernetes.md#health-probes) 中的启动、就绪及存活行为：
 
-- 配置有效、听众受约束、所需初始化完成、 silo 加入预定组群后启动成功。
-- 关闭前以及申请无法安全接受新工作时,准备就绪情况都是假的。
-- 生命报告当地进程的进展,并且仍然独立于共同的偏远依赖性。
+- 配置有效、监听器已绑定、所需初始化完成且 Silo 加入目标集群后，启动检查成功。
+- 在关闭之前，以及应用程序无法安全接受新工作时，就绪状态变为 false。
+- 存活检查报告本地进程的运行进展，并且不依赖共享的远程依赖项。
 
-设定 `terminationGracePeriodSeconds` 时间超过所测量的 .NET 主机关闭超时。 AKS 节点排出和工作量替换后,主机有时间报告未准备情况、停止申请工作并让 Orleans 退出成员身份。
+将 `terminationGracePeriodSeconds` 设置为大于实测的 .NET 主机关闭超时。这样，AKS 排空节点和替换工作负载时，主机就有时间报告未就绪状态、停止应用程序工作，并让 Orleans 离开集群成员资格。
 
-A `PodDisruptionBudget` 保留了一种随时可用的silo 节点故障和区损失仍然是突发的断路,因此在事件发生后需要为集束提供大量服务。
+`PodDisruptionBudget` 限制同时发生的自愿驱逐次数。当有足够的可调度容量时，它在节点排空和升级期间维持就绪 Silo 数量下限。节点故障和可用区丢失仍属于突发故障，因此应根据这些事件发生后仍能承担负载的需求确定集群规模。
 
-使用与 `maxUnavailable: 0`、 捆绑式的激增和 `minReadySeconds` 相兼容版本的滚动更新。 进行时间、 进度最后期限、 PDB、 节点排出超时和主机关闭超时, 彼此一致, 所以每次推出时要么以能力推进, 要么明显暂停 。
+对于兼容版本，使用 `maxUnavailable: 0`、受限的额外副本数和 `minReadySeconds` 执行滚动更新。使探针时间参数、进度截止时间、PDB、节点排空超时及主机关闭超时相互协调，以便每次发布要么在有足够容量时继续推进，要么以可观察的方式暂停。
 
 <a id="scale-pods-and-nodes"></a>
 
-## 缩放缓冲和节点
+## 缩放 Pod 和节点
 
-Orleans 位置设置使用当前活跃的 silos 成员。应用程序或平台自动标定器会改变 silo 舱位的数量,当舱位变得无法排成或节点可以安全地排出时, [AKSAKS 集束自动自动标](https://learn.microsoft.com/azure/aks/cluster-autoscaler) 会增加或删除节点。
+Orleans 放置机制使用当前在成员资格中处于活动状态的 Silo。应用程序或平台自动缩放器改变 Silo Pod 数量；当 Pod 无法调度或可以安全排空节点时，[AKS 集群自动缩放器](https://learn.microsoft.com/azure/aks/cluster-autoscaler) 添加或移除节点。
 
-将两层配置在一起:
+协同配置这两个层级：
 
-- 在测试容量和冗余层保持最小 silo 复制数。
-- 应用信号的缩放 silo 舱,例如持续CPU、排队深度、要求延时率、拒绝率或捆绑定制度量。
-- 保持资源请求的代表性,以便等待的舱位准确信号节点需求。
-- 给节点集合自动标尺器足够的最大容量、配额和子网地址空间,以便进行恢复和推出。
-- 使用稳定窗口和逐步加入规模,从而成为成员、启动运动和提供者的负载在清除之间解决。
-- 保持系统和 Orleans 用户节点政策独立。
+- 将最少 Silo 副本数保持在经过测试的容量及冗余下限。
+- 根据持续 CPU 使用率、队列深度、请求延迟、拒绝率或有界自定义指标等应用程序信号缩放 Silo Pod。
+- 使资源请求能够反映实际需求，以便待调度 Pod 准确表示节点容量需求。
+- 为节点池自动缩放器提供足够的最大容量、配额和子网地址空间，以支持恢复和发布期间的额外容量。
+- 使用稳定窗口和渐进式缩容，使成员资格变化、激活迁移和提供程序负载能在每次移除之间趋于稳定。
+- 保持系统节点池与 Orleans 用户节点池策略相互独立。
 
-节点自动标尺器管理 AKS 虚拟机级定级能力。 保存对天平设置的拥有权, 而不是应用独立的虚拟机级定级自动缩放 。
+节点自动缩放器管理 AKS 虚拟机规模集的容量。应保留它对缩放设置的控制权，不要另外为虚拟机规模集配置独立的自动缩放。
 
-装入测试一个增加缓冲和节点的爆破、丢失一个 silo 和一个节点、控制比例尺和供应商减速。 确认该应用在序列中始终处于潜伏和拒绝目标范围之内。
+通过负载测试模拟需要增加 Pod 和节点的突发负载、丢失一个 Silo 和一个节点、受控缩容以及提供程序响应变慢。确认应用程序在整个过程中都符合延迟和拒绝率目标。
 
 <a id="plan-application-and-aks-upgrades"></a>
 
-## 计划应用程序和AKS升级
+## 规划应用程序与 AKS 升级
 
-应用程序滚动升级将新旧 silos 临时混合在一个组中。保持 grain 接口、序列器、持久性状态、提醒、流、供应商的图案和外部副作用的兼容性。使用单独的 `ClusterId` 和交通迁移来不兼容解密。
+应用程序滚动升级会让新旧 Silo 暂时共存于一个集群中。保持 Grain 接口、序列化器、持久化状态、提醒器、流、提供程序架构和外部副作用的兼容性。对于不兼容的版本，使用独立的 `ClusterId` 并迁移流量。
 
-AKSA还更新了 Kubernetes 控制平面和节点集合。使用 [AKSS升级选项](https://learn.microsoft.com/azure/aks/upgrade-options) 并计划进行以下维修:
+AKS 还会升级 Kubernetes 控制平面和节点池。使用 [AKS 升级选项](https://learn.microsoft.com/azure/aks/upgrade-options) 及计划维护来执行以下操作：
 
-1. 核实具有代表性的预生产组群中的 Kubernetes API 兼容性和 Orleans 工作量。
-1. 保留配额、子网地址和节点资源激增能力。
-1. 将若干条带界限的节点排入其中,而《公发数据库》和推出政策则保持待命状态 silos。
-1. 监测会员、重新启动负荷、供应商的延迟期、请求结果和舱位安排。
-1. 超过能力或应用阈值时暂停。
+1. 在具有代表性的预生产集群中验证 Kubernetes API 兼容性及 Orleans 工作负载。
+1. 保留配额、子网地址和节点池升级所需的额外容量。
+1. 排空有限数量的节点，同时通过 PDB 和发布策略保留就绪 Silo。
+1. 监控成员资格、重新激活负载、提供程序延迟、请求结果和 Pod 放置情况。
+1. 超过容量或应用程序阈值时暂停升级。
 
-测试回滚,同时存在混合应用程序版本和新版本的状态。对于无法倒回的组群级变化,请提供第二个AKS组,其中有一个单独的 Orleans `ClusterId`,验证它,并利用 [蓝绿色指导指南](upgrades.md#blue-green-upgrades)将应用流量迁移到别处。
+在应用程序新旧版本混合运行且存在新版本写入的状态时测试回滚。对于无法就地回滚的集群级变更，预配第二个 AKS 集群，使用不同的 Orleans `ClusterId`，验证后按照[蓝绿升级指南](upgrades.md#blue-green-upgrades) 迁移应用程序流量。
 
 <a id="configure-observability-and-incident-access"></a>
 
-## 配置可观察性和事故访问
+## 配置可观测性和事件处置访问权限
 
-出口出口出口 Orleans 原木, .NET 测量,分布的痕迹, Kubernetes 活动、集装箱日志和AKS控制飞机对中央系统的诊断。 [Azure 普罗米修斯监控管理服务](https://learn.microsoft.com/azure/azure-monitor/metrics/prometheus-metrics-overview) 和 [Azure 管理下的格拉法纳](https://learn.microsoft.com/azure/managed-grafana/overview) 能够提供 Azure- 管理公制路径
+将 Orleans 日志、.NET 指标、分布式跟踪、Kubernetes 事件、容器日志及 AKS 控制平面诊断信息导出到集中式系统。[Azure Monitor 的托管 Prometheus 服务](https://learn.microsoft.com/azure/azure-monitor/metrics/prometheus-metrics-overview) 和 [Azure Managed Grafana](https://learn.microsoft.com/azure/managed-grafana/overview) 可以提供 Azure 托管的指标监控路径。
 
-相关日期 :
+关联以下信息：
 
-- AKS 集束、 命名空间、 节点池、 节点、 区、 舱、 部署和复制组 。
-- Orleans 服务编号、集束识别码、 silo 名称、广告的终点和应用程序版本。
-- 集装箱图像摘要、部署作业、供应商请求和工作量身份。
+- AKS 集群、命名空间、节点池、节点、可用区、Pod、Deployment 和 ReplicaSet。
+- Orleans 服务 ID、集群 ID、Silo 名称、已通告的终结点及应用程序版本。
+- 容器映像摘要、部署操作、提供程序请求及工作负载标识。
 
-持续用户影响警报,减少即时-silo 计数、失败或封锁的推出、待决播客、节点压力、重新启动循环、成员数目、供应商抽打、证明过期和耗竭能力。
+针对持续的用户影响、就绪 Silo 数量下降、发布失败或阻塞、待调度 Pod、节点压力、循环重启、成员资格频繁变更、提供程序限流、凭据过期以及容量耗尽设置警报。
 
-保持通过私人集束边界随时提供事故进入通道。 `kubectl`检查会员资格,测试每个广告的终点、查询提供者,并在部分停产时检索以前的集装箱日志。 [故障解决部署](troubleshooting-deployments.md#kubernetes-checks).
+确保在专用集群边界内仍可访问系统进行事件处置。运维人员需要经过测试的访问路径，以便在部分服务中断时运行 `kubectl`、检查成员资格、测试每个已通告的终结点、查询提供程序并获取之前的容器日志。请参阅[排查部署故障](troubleshooting-deployments.md#kubernetes-checks)。
 
 <a id="validate-the-production-deployment"></a>
 
-## 核实生产部署情况
+## 验证生产部署
 
-在生产流通之前和材料网络、身份、节点或升级政策变化之后完成这些检查:
+在引入生产流量之前，以及网络、标识、节点池或升级策略发生实质性变更之后，完成以下检查：
 
-1. 确认每个活跃的 silo 成员行都包含预期的舱位IP和独特 silo 和网关港口。
-1. 测试 TCP 从每个 silo 舱到每一个广告的 silo 终点连接。
-1. 测试每个客户网络 Orleans 的每一个公布网关端点。
-1. 利用分配给 silos 和客户的工作量身份,核查网络政策执法和供应商准入情况。
-1. 确认实际的舱位分布 跨越节点和区。
-1. 替换一个 silo 舱,装载并核实优雅的会员离开和激活恢复。
-1. 将一个节点排入干燥处,并核实干扰预算、终止期限、更换时间表和能力底线。
-1. 行动舱规模扩大、节点规模扩大、逐步规模扩大和单区或一中点能力丧失。
-1. 执行兼容的滚动部署和回击
-1. 在一个孤立的集组中恢复耐用应用数据,并验证回收运行手册。
+1. 确认每个活动 Silo 的成员资格行都包含预期的 Pod IP，以及唯一的 Silo 和网关终结点对应的端口。
+1. 测试每个 Silo Pod 到所有已通告 Silo 终结点的 TCP 连通性。
+1. 从每个 Orleans 客户端网络测试所有已通告的网关终结点。
+1. 使用分配给 Silo 和客户端的工作负载标识，验证网络策略的实施情况以及提供程序访问权限。
+1. 确认 Pod 在各节点和可用区的实际分布。
+1. 在有负载时替换一个 Silo Pod，验证其优雅离开集群成员资格以及激活恢复。
+1. 排空一个节点，验证中断预算、终止截止时间、替换调度及容量下限。
+1. 演练 Pod 扩容、节点扩容、渐进式缩容，以及丢失一个可用区或节点池的容量。
+1. 执行一次兼容的滚动部署和回滚。
+1. 在隔离的集群中恢复持久化应用程序数据，并验证恢复操作手册。
 
-记录有效清单、集群网络模型、服务和舱载光数据数据库、节点组合、身份、角色分配、供应商命名空间、探测阈值、关闭最后期限、缩放界限以及操作命令。完成共享 [生产准备状态清单](production-readiness.md)。
+记录实际生效的清单、集群网络模型、服务和 Pod CIDR、节点池配置、标识、角色分配、提供程序命名空间、探针阈值、关闭截止时间、缩放范围和运维命令。完成通用的[生产就绪检查清单](production-readiness.md)。

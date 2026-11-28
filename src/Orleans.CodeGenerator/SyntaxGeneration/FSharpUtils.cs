@@ -169,12 +169,12 @@ internal static class FSharpUtilities
             public ISymbol Symbol => _field;
 
             /// <summary>
-            /// 获取设置字段的名称。
+            /// 获取 setter 字段名称。
             /// </summary>
             private string SetterFieldName => "setField" + FieldId;
 
             /// <summary>
-            /// 取得代表此字段类型的语法。
+            /// 获取表示此字段类型的语法。
             /// </summary>
             public TypeSyntax TypeSyntax => Type.TypeKind == TypeKind.Dynamic
                 ? PredefinedType(Token(SyntaxKind.ObjectKeyword))
@@ -246,20 +246,20 @@ internal static class FSharpUtilities
             public string FieldName => Property.Name + "@";
 
             /// <summary>
-            /// 获取设置字段的名称。
+            /// 获取 setter 字段名称。
             /// </summary>
             private string SetterFieldName => "setField" + FieldId;
 
             /// <summary>
-            /// 取得代表此字段类型的语法。
+            /// 获取表示此字段类型的语法。
             /// </summary>
             public TypeSyntax TypeSyntax => Type.TypeKind == TypeKind.Dynamic
                 ? PredefinedType(Token(SyntaxKind.ObjectKeyword))
                 : GetTypeSyntax(Type);
 
             /// <summary>
-            /// 获取此字段作为支持属性的 <see cref="Property"/> ,或者
-            /// <see langword="null" /> 如果这不是自动财产的支持字段 。
+            /// 获取由此字段支持的 <see cref="Property"/>；
+            /// 若此字段不是自动属性的后备字段，则返回 <see langword="null" />。
             /// </summary>
             private IPropertySymbol Property { get; } = property;
 

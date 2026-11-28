@@ -4,14 +4,14 @@ using StackExchange.Redis;
 
 namespace Timers;
 
-// 文件文件提醒配置示例
+// 文档所用的提醒器配置示例。
 
 public static class ReminderConfiguration
 {
     // <configure_azure_table>
     public static async Task ConfigureAzureTableAsync(string[] args)
     {
-        // 由连接字符串替换待办事宜
+        // TODO：替换为你的连接字符串。
         const string connectionString = "YOUR_CONNECTION_STRING_HERE";
 
         var builder = Host.CreateApplicationBuilder(args);
@@ -36,7 +36,7 @@ public static class ReminderConfiguration
         {
             siloBuilder.UseAdoNetReminderService(options =>
             {
-                options.ConnectionString = connectionString; // 被重编
+                options.ConnectionString = connectionString; // 已隐去。
                 options.Invariant = invariant;
             });
         });

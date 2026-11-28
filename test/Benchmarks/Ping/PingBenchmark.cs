@@ -9,7 +9,7 @@ using Orleans.Configuration;
 namespace Benchmarks.Ping;
 
 /// <summary>
-/// 基准 grain- -grain 通信时长和通过简单的平线操作输送。
+/// 使用简单的 Ping 操作对 Grain 间通信的延迟和吞吐量进行基准测试。
 /// </summary>
 [MemoryDiagnoser]
 public class PingBenchmark : IDisposable

@@ -1,19 +1,19 @@
-// 用于文件实例的 " 实绩 " 项目元数据分类。
-// 在真正的 Aspire 应用程序中, 这些是由 Aspire SDK 自动生成的
-// 由于我们的样本项目是图书馆,所以我们的项目属于 ProjectReference 项目。
-// (非可运行应用程序), 我们定义了可以编译的根条 。
+// 文档示例的项目元数据桩类。
+// 在真实的 Aspire 应用程序中，这些类由 Aspire SDK
+// 根据 ProjectReference 项自动生成。由于示例项目是类库
+// （而非可运行的应用程序），这里定义桩类以支持编译。
 
 using Aspire.Hosting;
 
 namespace Projects;
 
-// Silo 项目 stub
+// Silo 项目的桩类。
 public class Silo : IProjectMetadata
 {
     public string ProjectPath => "../Silo/Silo.csproj";
 }
 
-// 客户项目坚固
+// Client 项目的桩类。
 public class Client : IProjectMetadata
 {
     public string ProjectPath => "../Client/Client.csproj";

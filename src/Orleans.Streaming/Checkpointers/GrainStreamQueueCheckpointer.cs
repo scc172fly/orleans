@@ -7,7 +7,7 @@ using Orleans.Providers;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 使用 Orleans grains的常年排队检查站。
+    /// 使用 Orleans Grain 持久化流队列检查点。
     /// </summary>
     public class GrainStreamQueueCheckpointer : IStreamQueueCheckpointer<string>
     {
@@ -16,19 +16,19 @@ namespace Orleans.Streams
         private readonly StreamQueueCheckpointer _inner;
 
         /// <summary>
-        /// 初始化一个带有默认选项的新实例。
+        /// 使用默认选项初始化新实例。
         /// </summary>
-        /// <param name="grain">下 grain 用来长期设置检查站。</param>
+        /// <param name="grain">用于持久化检查点的 Grain。</param>
         public GrainStreamQueueCheckpointer(IStreamCheckpointerGrain grain)
             : this(grain, new GrainStreamQueueCheckpointerOptions())
         {
         }
 
         /// <summary>
-        /// 初始化一个新实例 。
+        /// 初始化新实例。
         /// </summary>
-        /// <param name="grain">下 grain 用来长期设置检查站。</param>
-        /// <param name="options">检查站选项。</param>
+        /// <param name="grain">用于持久化检查点的 Grain。</param>
+        /// <param name="options">检查点管理器选项。</param>
         public GrainStreamQueueCheckpointer(IStreamCheckpointerGrain grain, GrainStreamQueueCheckpointerOptions options)
         {
             ArgumentNullException.ThrowIfNull(grain);
@@ -61,14 +61,14 @@ namespace Orleans.Streams
         public bool CheckpointExists => _inner.CheckpointExists;
 
         /// <summary>
-        /// 创建并初始化一个 grain- 基于检查器, 带有默认选项。
+        /// 使用默认选项创建并初始化基于 Grain 的检查点管理器。
         /// </summary>
         [Obsolete("Use the overload which accepts a CancellationToken.")]
         public static async Task<IStreamQueueCheckpointer<string>> Create(string providerName, string partition, string serviceId, IClusterClient clusterClient)
             => await Create(providerName, partition, serviceId, clusterClient, CancellationToken.None);
 
         /// <summary>
-        /// 创建并初始化一个 grain- 基于检查器, 带有默认选项。
+        /// 使用默认选项创建并初始化基于 Grain 的检查点管理器。
         /// </summary>
         public static async Task<IStreamQueueCheckpointer<string>> Create(
             string providerName,
@@ -87,7 +87,7 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 创建并初始化一个 grain- 基于检查器。
+        /// 创建并初始化基于 Grain 的检查点管理器。
         /// </summary>
         [Obsolete("Use the overload which accepts a CancellationToken.")]
         public static async Task<IStreamQueueCheckpointer<string>> Create(
@@ -99,7 +99,7 @@ namespace Orleans.Streams
             => await Create(providerName, partition, serviceId, clusterClient, options, CancellationToken.None);
 
         /// <summary>
-        /// 创建并初始化一个 grain- 基于检查器。
+        /// 创建并初始化基于 Grain 的检查点管理器。
         /// </summary>
         public static async Task<IStreamQueueCheckpointer<string>> Create(
             string providerName,

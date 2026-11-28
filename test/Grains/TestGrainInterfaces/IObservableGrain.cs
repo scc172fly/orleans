@@ -3,7 +3,7 @@ using Orleans.Concurrency;
 namespace UnitTests.GrainInterfaces
 {
     /// <summary>
-    /// A grain 返回 IAsyncEnumerable
+    /// 返回 IAsyncEnumerable 的 Grain
     /// </summary>
     public interface IObservableGrain : IGrainWithGuidKey
     {

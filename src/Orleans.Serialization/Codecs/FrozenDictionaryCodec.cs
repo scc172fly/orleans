@@ -8,9 +8,9 @@ using System.Collections.Generic;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="FrozenDictionary{TKey, TValue}"/>的序列器。
+    /// <see cref="FrozenDictionary{TKey, TValue}"/> 的序列化器。
     /// </summary>
-    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TKey">键类型。</typeparam>
     /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterSerializer]
     public sealed class FrozenDictionaryCodec<TKey, TValue> : GeneralizedReferenceTypeSurrogateCodec<FrozenDictionary<TKey, TValue>, FrozenDictionarySurrogate<TKey, TValue>> where TKey : notnull
@@ -18,7 +18,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="FrozenDictionaryCodec{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">代孕序列器</param>
+        /// <param name="surrogateSerializer">代理类型序列化器。</param>
         public FrozenDictionaryCodec(IValueSerializer<FrozenDictionarySurrogate<TKey, TValue>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -36,32 +36,32 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="FrozenDictionaryCodec{TKey, TValue}"/>所使用的代金矿类型。
+    /// <see cref="FrozenDictionaryCodec{TKey, TValue}"/> 所使用的代理类型。
     /// </summary>
-    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TKey">键类型。</typeparam>
     /// <typeparam name="TValue">值类型。</typeparam>
     [GenerateSerializer]
     public struct FrozenDictionarySurrogate<TKey, TValue> where TKey : notnull
     {
         /// <summary>
-        /// 获取或设置值。
+        /// 获取或设置值集合。
         /// </summary>
-        /// <value>价值。</value>
+        /// <value>值集合。</value>
         [Id(0)]
         public List<KeyValuePair<TKey, TValue>> Values;
 
         /// <summary>
-        /// 获取或设置密钥比较器 。
+        /// 获取或设置键比较器。
         /// </summary>
-        /// <value>密钥比较器。</value>
+        /// <value>键比较器。</value>
         [Id(1)]
         public IEqualityComparer<TKey>? KeyComparer;
     }
 
     /// <summary>
-    /// <see cref="FrozenDictionary{TKey, TValue}"/>的复印机。
+    /// <see cref="FrozenDictionary{TKey, TValue}"/> 的复制器。
     /// </summary>
-    /// <typeparam name="TKey">密钥类型。</typeparam>
+    /// <typeparam name="TKey">键类型。</typeparam>
     /// <typeparam name="TValue">值类型。</typeparam>
     [RegisterCopier]
     public sealed class FrozenDictionaryCopier<TKey, TValue> : IDeepCopier<FrozenDictionary<TKey, TValue>>, IOptionalDeepCopier, IDerivedTypeCopier where TKey : notnull
@@ -73,8 +73,8 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="FrozenDictionaryCopier{TKey, TValue}"/> 类的新实例。
         /// </summary>
-        /// <param name="keyCopier">钥匙复印机。</param>
-        /// <param name="valueCopier">价值复印机。</param>
+        /// <param name="keyCopier">键复制器。</param>
+        /// <param name="valueCopier">值复制器。</param>
         public FrozenDictionaryCopier(IDeepCopier<TKey> keyCopier, IDeepCopier<TValue> valueCopier)
         {
             _keyCopier = OrleansGeneratedCodeHelper.UnwrapService(this, keyCopier);
@@ -98,8 +98,8 @@ namespace Orleans.Serialization.Codecs
             if (input.Count == 0 || IsShallowCopyable())
                 return input;
 
-            // 如果输入收藏的任何值能够参与循环参考, 此处就有可能无限重复。
-            // 将这种案件退回浅本,从而减轻这一负担。
+            // 如果输入集合中有任何值能够参与循环引用，则此处可能发生无限递归。
+            // 在这种情况下返回浅拷贝，以缓解该问题。
             context.RecordCopy(input, input);
 
             var shallowKeys = OrleansGeneratedCodeHelper.IsShallowCopyable(_keyCopier);

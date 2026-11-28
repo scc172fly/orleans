@@ -323,7 +323,7 @@ public sealed class S3JournalStorageTests : IAsyncLifetime
             string? prefix, string minId, string maxId, string nativePrefix, string? startAfter)
         {
             var cancellationToken = TestContext.Current.CancellationToken;
-            // 包括用作独家标记的较短的键、最小值本身和两个相邻的键。
+            // 包含用作排他游标的较短键、最小值本身以及两侧的相邻键。
             string[] objectKeys = [$"wal/{minId[..^1]}", $"wal/{minId[..^1]}!", $"wal/{minId}", $"wal/{minId}0", $"wal/{maxId}", $"wal/{maxId}0"];
             var requests = new List<ListObjectsV2Request>();
             var client = CreateTrackingClient();
@@ -840,7 +840,7 @@ public sealed class S3JournalStorageTests : IAsyncLifetime
             Assert.Equal($"wal/{baseKey}", requests[2].Key);
             Assert.Equal("etag-1", requests[2].IfMatch);
             Assert.Equal(requests[1].Key, requests[2].Metadata[S3JournalStorage.CheckpointMetadataKey]);
-            // S3 Express 刷新了 WAL 属性, 然后查询附加部分的计数 。
+            // S3 Express 刷新 WAL 属性，然后查询追加分片数。
             Assert.Collection(metadataRequests,
                 request => Assert.Null(request.PartNumber),
                 request => Assert.Equal(1, request.PartNumber));
@@ -864,7 +864,7 @@ public sealed class S3JournalStorageTests : IAsyncLifetime
                     Arg.Any<CancellationToken>())
                 .Returns(_ => Task.FromResult(new PutObjectResponse { ETag = $"etag-{requests.Count}" }));
             var storage = CreateStorage(client, new S3JournalStorageOptions { BucketName = BucketName });
-            // 创建日记可以建立写作的先决条件, 恢复未出现的日记可以这样做 。
+            // 创建日志会建立写入前置条件，与恢复不存在的日志时的行为一致。
             Assert.True(await storage.CreateIfNotExistsAsync(cancellationToken: CancellationToken.None));
 
             await storage.AppendAsync(new ReadOnlySequence<byte>([1, 2, 3]), CancellationToken.None);
@@ -1196,7 +1196,7 @@ public sealed class S3JournalStorageTests : IAsyncLifetime
                     BucketName = BucketName,
                     UseS3ExpressAppend = false,
                 });
-            // 创建日记可以建立写作的先决条件, 恢复未出现的日记可以这样做 。
+            // 创建日志会建立写入前置条件，与恢复不存在的日志时的行为一致。
             Assert.True(await storage.CreateIfNotExistsAsync(cancellationToken: CancellationToken.None));
 
             await storage.AppendAsync(new ReadOnlySequence<byte>([1, 2, 3]), CancellationToken.None);
@@ -1384,7 +1384,7 @@ public sealed class S3JournalStorageTests : IAsyncLifetime
                     Arg.Any<CancellationToken>())
                 .Returns(_ => Task.FromResult(new PutObjectResponse { ETag = $"etag-{requests.Count}" }));
             var storage = CreateStorage(client, new S3JournalStorageOptions { BucketName = BucketName });
-            // 创建日记可以建立写作的先决条件, 恢复未出现的日记可以这样做 。
+            // 创建日志会建立写入前置条件，与恢复不存在的日志时的行为一致。
             Assert.True(await storage.CreateIfNotExistsAsync(cancellationToken: CancellationToken.None));
             await storage.AppendAsync(new ReadOnlySequence<byte>([1, 2, 3]), CancellationToken.None);
 
@@ -1532,7 +1532,7 @@ public sealed class S3JournalStorageTests : IAsyncLifetime
                         return Task.FromResult(properties);
                     }
 
-                    // 回收观察了一部分;其他附件在元数据更新之前种植WAL。
+                    // 恢复时观察到一个分片；在元数据更新前，其他追加操作使 WAL 增长。
                     partsCountCalls++;
                     return Task.FromResult(new GetObjectMetadataResponse { ETag = "etag-1", PartsCount = partsCountCalls == 1 ? 1 : 9_801 });
                 });

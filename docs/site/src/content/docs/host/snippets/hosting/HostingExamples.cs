@@ -83,12 +83,12 @@ public static class HostingExamples
     {
         siloBuilder.Configure<EndpointOptions>(options =>
         {
-            // 地址是其他 silos 和客户所使用的地址。
+            // 其他 Silo 和客户端所使用的地址。
             options.AdvertisedIPAddress = IPAddress.Parse("172.16.0.42");
             options.SiloPort = 11_111;
             options.GatewayPort = 30_000;
 
-            // 软袜在这个工艺或容器内打开。
+            // 在此进程或容器内打开的套接字。
             options.SiloListeningEndpoint =
                 new IPEndPoint(IPAddress.Any, 40_000);
             options.GatewayListeningEndpoint =
@@ -341,7 +341,7 @@ public static class HostingExamples
     // <distributed_grain_directory>
     public static void ConfigureDistributedDirectory(ISiloBuilder siloBuilder)
     {
-#pragma warning disable ORLEANSEXP003 // The released package used by snippets still marks this API experimental.
+#pragma warning disable ORLEANSEXP003 // 代码片段所使用的已发布包仍将此 API 标记为实验性 API。
         siloBuilder.AddDistributedGrainDirectory();
 #pragma warning restore ORLEANSEXP003
     }
@@ -589,7 +589,7 @@ public sealed class UserSessionGrain : Grain, IUserSessionGrain
 {
     public Task ExpireAsync()
     {
-        // 在当前转弯完成后结束此激活 。
+        // 当前执行轮次完成后结束此激活实例。
         this.DeactivateOnIdle();
         return Task.CompletedTask;
     }

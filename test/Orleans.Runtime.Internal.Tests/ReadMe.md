@@ -2,15 +2,15 @@
 
 # TesterInternal 项目
 
-这个项目是用于 **white-box** 测试的试验和试验 Orleans 运行时间 
-包括内部 Orleans 运行时API测试。
+本项目用于对 Orleans 运行时进行**白盒**测试，
+包括对 Orleans 内部运行时 API 的测试。
 
-这个项目有“朋友”进入内部 API 和 Orleans 运行时间。
+本项目具有对 Orleans 运行时内部 API 的友元访问权限。
 
-下列项目使用 `[InternalsVisibleTo]` 组装属性给予测试项目的内部准入特权:
+以下项目使用 `[InternalsVisibleTo]` 程序集特性授予本测试项目内部访问权限：
 
 - `Orleans.dll`
 - `OrleansRuntime.dll`
 - `OrleansAzureUtils.dll`
 
-该项目可能包含单位和系统测试的混合体,包括开始试验 silos。
+本项目可能同时包含单元测试和系统测试，包括启动测试 Silo 的测试。

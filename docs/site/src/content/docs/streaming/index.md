@@ -1,51 +1,51 @@
 ---
-title: "与 Orleans串流"
-description: "理解 Orleans 流,选择一个 Orleans 应用程序的右线电文抽象。"
+title: 使用 Orleans 流
+description: 了解 Orleans 流，并为 Orleans 应用程序选择适当的消息传递抽象。
 ms.date: 08/02/2026
 ms.topic: overview
 ---
 
 <a id="streaming-with-orleans"></a>
 
-# 与 Orleans串流
+# 使用 Orleans 流
 
 <a id="why-should-i-care"></a>
 
-Orleans 流是输入的、符合逻辑的、多播频道。制片人和消费者用提供者的名称和 <xref:Orleans.Runtime.StreamId>来回答一个流,他们不需要相互引用。流可以有很多制作人和许多订阅者,每个已出版的项目都提供给该流上的每一个订阅者。
+Orleans 流是具有类型的逻辑多播通道。生产者和消费者通过提供程序名称和 <xref:Orleans.Runtime.StreamId> 寻址流，无需持有彼此的引用。一个流可以有多个生产者和多个订阅，每个发布的项都会被提供给该流上的每个订阅。
 
-流是一个虚拟地址。 它的传输、 保留、 重试行为、 命令和重播能力由配置 [串流提供商](stream-providers.md)提供。 流控单靠一个流控无法使数据持久 。
+流是一个虚拟地址。其传输方式、保留机制、重试行为、顺序及重放能力均由所配置的[流提供程序](stream-providers.md) 决定。仅有流句柄并不意味着数据具有持久性。
 
-当事件向独立管理的消费者传播时,当订阅时间比 grain 激活时间长时,或者当外部队列或事件日志应填入 grains时,使用流。对于请求/回复电话、特定的连接客户回击或低管理端最佳扇门外出,另一个 Orleans 短信抽象信息可能更合适。直接客户回调请见 [grain 观察员](../grains/observers.md) ,完整决定模型见 [选择 Orleans 短信抽象](streams-why.md) 。
+当事件需要分发给独立管理的消费者、订阅需要在 Grain 激活实例停用后仍然存在，或者需要由外部队列或事件日志向 Grain 提供数据时，请使用流。对于请求/响应调用、面向特定已连接客户端的回调，或低开销的尽力而为式扇出，其他 Orleans 消息传递抽象可能更适合。有关直接客户端回调，请参阅 [Grain 观察者](../grains/observers.md)；有关完整的选择依据，请参阅[选择 Orleans 消息传递抽象](streams-why.md)。
 
 <a id="programming-model"></a>
 
-## 方案拟订模式
+## 编程模型
 
-- <xref:Orleans.Runtime.StreamId> 由命名空间和密钥组成。服务商名称选择配置的运输方式。
-- <xref:Orleans.Streams.IAsyncStream`1> 既是一个生产者又是一个消费者的处理器。获得一个处理器是当地的业务;出版和订阅进行工作。
-- 串流是多播的。 多制片人可以发布到一个流, 每个活动订阅都接收每个项目 。
-- 订阅可以是 [明示或默示](streams-programming-apis.md#explicit-and-implicit-subscriptions)。
-- 交货担保、订购和重播是 [provider-specific](delivery-semantics.md)。
-- 只有在 `PubSubStore` 使用 [耐久 grain 储存](pubsub-storage.md)时,明确的订阅记录才能持久。
+- <xref:Orleans.Runtime.StreamId> 由命名空间和键组成。提供程序名称用于选择已配置的传输方式。
+- <xref:Orleans.Streams.IAsyncStream`1> 既是生产者句柄，也是消费者句柄。获取句柄是本地操作；发布和订阅则会执行实际工作。
+- 流采用多播方式。多个生产者可以向同一流发布消息，每个活动订阅都会接收每一项。
+- 订阅可以是[显式订阅或隐式订阅](streams-programming-apis.md#explicit-and-implicit-subscriptions)。
+- 投递保证、顺序和重放能力[取决于提供程序](delivery-semantics.md)。
+- 只有 `PubSubStore` 使用[持久化 Grain 存储](pubsub-storage.md) 时，显式订阅记录才具有持久性。
 
 <a id="get-started"></a>
 
-## 开始
+## 入门
 
 <a id="quick-start-sample"></a>
 <a id="stream-providers"></a>
 <a id="stream-semantics"></a>
 <a id="code-samples"></a>
 
-1. 与原始提供者一起追逐 [快速启动流](streams-quick-start.md) 。
-1. 学习流 [身份、生产、消费和订阅](streams-programming-apis.md)。
-1. 选择新的持续流订阅方式 [以现场或本地缓存信件开头](subscription-start-positions.md)。
-1. 选择所需的耐久性和重播行为 [提供商](stream-providers.md) 。
-1. [交付、订购、重放和回收](delivery-semantics.md)计划。
-1. 用于生产 的 配置 [PubSub 储存](pubsub-storage.md) 和 [业务业务](streaming-operations.md) 。
+1. 使用内存提供程序完成[流快速入门](streams-quick-start.md)。
+1. 了解[流标识、生产、消费和订阅 API](streams-programming-apis.md)。
+1. 选择新建持久化流订阅[从实时消息还是本地缓存消息开始](subscription-start-positions.md)。
+1. 根据所需的持久性和重放行为选择[提供程序](stream-providers.md)。
+1. 规划[投递、顺序、重放和恢复](delivery-semantics.md)。
+1. 为生产环境配置 [PubSub 存储](pubsub-storage.md) 和[运维](streaming-operations.md)。
 
-最佳努力不排队或重播,暗含的扇子外出,见 [广播频道](broadcast-channel.md)。
+有关无需排队或重放的尽力而为式隐式扇出，请参阅[广播通道](broadcast-channel.md)。
 
 <a id="streams-implementation"></a>
 
-持久性流后面的运行时结构见 [Orleans 流执行](../implementation/streams-implementation/index.md)。
+有关持久化流背后的运行时架构，请参阅 [Orleans 流的实现](../implementation/streams-implementation/index.md)。

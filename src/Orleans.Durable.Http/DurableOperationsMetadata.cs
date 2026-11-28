@@ -6,31 +6,31 @@ using Orleans.Durable.Tasks;
 
 namespace Orleans.Durable.Http;
 
-/// <summary>确定了一个终点的持久业务组,并得出了行动的关键和地点。</summary>
-/// <param name="scope">集团业务的范围。</param>
-/// <remarks>每个组都有自己的实例, 其状态端点的 <see cref="DurableOperationStatusEndpoint"/> 参考文献就是其中的一个。</remarks>
+/// <summary>标识端点所属的持久化操作组，并派生其操作的键及位置。</summary>
+/// <param name="scope">组内操作的作用域。</param>
+/// <remarks>每个组都有自己的实例，由其状态端点的 <see cref="DurableOperationStatusEndpoint"/> 引用。</remarks>
 internal sealed class DurableOperationsMetadata(string scope)
 {
     private RouteEndpoint? _operationEndpoint;
     private TemplateBinder? _operationBinder;
 
-    /// <summary>获得小组行动的范围</summary>
+    /// <summary>获取组内操作的作用域。</summary>
     public string Scope { get; } = scope;
 
-    /// <summary>返回请求的终点的持久操作组。</summary>
+    /// <summary>返回请求端点所属的持久化操作组。</summary>
     public static DurableOperationsMetadata Get(HttpContext context) =>
         context.GetEndpoint()?.Metadata.GetMetadata<DurableOperationsMetadata>()
         ?? throw new InvalidOperationException(
             $"Durable operation endpoints belong to a group which WithDurableOperations configures, but '{context.GetEndpoint()?.DisplayName}' doesn't.");
 
-    /// <summary>返回该组的状态端点,其路线模式包括该组的前缀。</summary>
+    /// <summary>返回组的状态端点，其路由模式包含组前缀。</summary>
     public RouteEndpoint GetOperationEndpoint(EndpointDataSource endpoints) => _operationEndpoint ??= endpoints.Endpoints
         .OfType<RouteEndpoint>()
         .Single(endpoint => ReferenceEquals(endpoint.Metadata.GetMetadata<DurableOperationStatusEndpoint>()?.Group, this));
 
     /// <summary>
-    /// 返回运行 <paramref name="operationId"/>状态监视器的路径路径,并随请求值返回
-    /// 组的路线参数。
+    /// 返回操作 <paramref name="operationId"/> 的状态监视器路径，使用请求中的
+    /// 组路由参数值。
     /// </summary>
     public string? GetOperationPath(HttpContext context, EndpointDataSource endpoints, TemplateBinderFactory binders, string operationId)
     {
@@ -48,12 +48,12 @@ internal sealed class DurableOperationsMetadata(string scope)
         return (_operationBinder ??= binders.Create(endpoint.RoutePattern)).BindValues(values);
     }
 
-    /// <summary>返回请求名称的操作 <paramref name="operationId"/> 的密钥。</summary>
+    /// <summary>返回请求指定的操作 <paramref name="operationId"/> 的键。</summary>
     /// <remarks>
-    /// 关键是集团的范围、请求中小组路线参数的值、调用者的范围,然后是
-    /// 运行标识符,每个部分。
-    /// 命令等前缀名称和调用对象的范围,因此两个资源或
-    /// 两名来电者, 命名两个操作。
+    /// 键由组作用域、请求的组路由参数值、调用方作用域，以及
+    /// 操作标识符组成，各自作为独立的段。路由参数值将操作限定到组前缀所指定的资源
+    /// （例如订单），调用方作用域将其限定到调用方，因此两个资源或
+    /// 两个调用方使用相同标识符时，也会指向两个不同的操作。
     /// </remarks>
     public string GetKey(HttpContext context, EndpointDataSource endpoints, DurableHttpOptions options, string operationId)
     {
@@ -76,22 +76,22 @@ internal sealed class DurableOperationsMetadata(string scope)
                 $"The request to '{context.GetEndpoint()?.DisplayName}' has no value for '{name}', a route parameter of its group's operations.");
 }
 
-/// <summary>使用其调用员的视野和识别资料完成操作的关键。</summary>
+/// <summary>将调用方作用域和操作标识符添加到操作键，形成完整的键。</summary>
 internal static class DurableOperationKeys
 {
-    /// <summary>控制调用者范围的关键段的前缀。</summary>
+    /// <summary>包含调用方作用域的键段前缀。</summary>
     private const char CallerPrefix = '@';
 
     /// <summary>
-    /// 返回 <paramref name="prefix"/> ,然后是请求者调用的段次
-    /// <see cref="DurableHttpOptions.GetCallerScope"/>和 <paramref name="operationId"/>的部分。
+    /// 返回 <paramref name="prefix"/>，其后为请求调用方对应的段（由
+    /// <see cref="DurableHttpOptions.GetCallerScope"/> 提供）及 <paramref name="operationId"/> 对应的段。
     /// </summary>
     /// <remarks>
-    /// 呼叫器的分段是 <c>@</c> 匿名的来电者, <c>@{scope}</c> 使用一个有范围、每个键的呼叫器。
-    /// 完全有一个电话段, <see cref="TaskId"/> 将每个段分离出来,因此不同的范围和识别符号
-    /// 永远不分享钥匙。
+    /// 匿名调用方的路径段为 <c>@</c>，有作用域的调用方则为 <c>@{scope}</c>。每个键
+    /// 恰好包含一个调用方段，且 <see cref="TaskId"/> 对各段进行转义，因此不同作用域和标识符
+    /// 不会共享同一个键。
     /// </remarks>
-    /// <exception cref="InvalidOperationException">认证的调用人没有范围,也没有空。</exception>
+    /// <exception cref="InvalidOperationException">已通过身份验证的调用方没有作用域，或其作用域为空。</exception>
     public static string Complete(TaskId prefix, HttpContext context, DurableHttpOptions options, string operationId) =>
         prefix.Child(GetCallerSegment(context, options)).Child(operationId).ToString();
 
@@ -112,6 +112,6 @@ internal static class DurableOperationKeys
     }
 }
 
-/// <summary>标记一个持久作业组的状态终点,该作业组负责确定该组的业务。</summary>
-/// <param name="Group">组。</param>
+/// <summary>标记持久化操作组的状态端点，该端点用于定位组内操作。</summary>
+/// <param name="Group">路由组。</param>
 internal sealed record DurableOperationStatusEndpoint(DurableOperationsMetadata Group);

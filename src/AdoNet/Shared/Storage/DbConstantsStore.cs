@@ -13,7 +13,7 @@ namespace Orleans.GrainDirectory.AdoNet.Storage
 #elif TESTER_SQLUTILS
 namespace Orleans.Tests.SqlUtils
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 {
     internal static class DbConstantsStore
@@ -46,7 +46,7 @@ namespace Orleans.Tests.SqlUtils
                                     unionAllSelectTemplate: " UNION ALL SELECT ",
                                     isSynchronousAdoNetImplementation: false,
                                     supportsStreamNatively: true,
-                                    supportsCommandCancellation: true, // 见 https://dev.mysql.com/doc/connector-net/en/connector-net-ref-mysqlclient-mysqlcommandmembers.html。
+                                    supportsCommandCancellation: true, // 参阅 https://dev.mysql.com/doc/connector-net/en/connector-net-ref-mysqlclient-mysqlcommandmembers.html。
                                     commandInterceptor: NoOpCommandInterceptor.Instance)
 
                 },
@@ -56,7 +56,7 @@ namespace Orleans.Tests.SqlUtils
                                     unionAllSelectTemplate: " FROM DUAL UNION ALL SELECT ",
                                     isSynchronousAdoNetImplementation: true,
                                     supportsStreamNatively: false,
-                                    supportsCommandCancellation: false, // 支持该词, 但这段话听起来很吓人: https://docs.oracle.com/cd/E11882_01/win.112/e23174/OracleCommandClass.htm#DAFIEHHG。
+                                    supportsCommandCancellation: false, // 支持此功能，但文档中的备注令人担忧：https://docs.oracle.com/cd/E11882_01/win.112/e23174/OracleCommandClass.htm#DAFIEHHG。
                                     commandInterceptor: OracleCommandInterceptor.Instance)
 
                 },
@@ -88,10 +88,10 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// 如果相关存储支持取消或不支持注销 。
+        /// 底层存储是否支持取消操作。
         /// </summary>
-        /// <param name="storage">使用的存储器。</param>
-        /// <returns><em>真实</em> 如果支持取消, 则支持取消 。 <em>平</em> 否则。</returns>
+        /// <param name="storage">使用的存储。</param>
+        /// <returns>如果支持取消，则为 <em>TRUE</em>；否则为 <em>FALSE</em>。</returns>
         public static bool SupportsCommandCancellation(this IRelationalStorage storage)
         {
             return SupportsCommandCancellation(storage.InvariantName);
@@ -99,10 +99,10 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// 如果提供商支持取消或不支持取消。
+        /// 提供程序是否支持取消操作。
         /// </summary>
-        /// <param name="adoNetProvider"> ADO.NET 提供方变量字符串。</param>
-        /// <returns><em>真实</em> 如果支持取消, 则支持取消 。 <em>平</em> 否则。</returns>
+        /// <param name="adoNetProvider">ADO.NET 提供程序的固定名称字符串。</param>
+        /// <returns>如果支持取消，则为 <em>TRUE</em>；否则为 <em>FALSE</em>。</returns>
         public static bool SupportsCommandCancellation(string adoNetProvider)
         {
             return GetDbConstants(adoNetProvider).SupportsCommandCancellation;
@@ -110,10 +110,10 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// 如果基底存储支持本地流。
+        /// 底层存储是否原生支持流式传输。
         /// </summary>
-        /// <param name="storage">使用的存储器。</param>
-        /// <returns><em>真实</em> 如果本地支持流 。 <em>平</em> 否则。</returns>
+        /// <param name="storage">使用的存储。</param>
+        /// <returns>如果原生支持流式传输，则为 <em>TRUE</em>；否则为 <em>FALSE</em>。</returns>
         public static bool SupportsStreamNatively(this IRelationalStorage storage)
         {
             return SupportsStreamNatively(storage.InvariantName);
@@ -121,10 +121,10 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// 如果提供商支持本地流。
+        /// 提供程序是否原生支持流式传输。
         /// </summary>
-        /// <param name="adoNetProvider"> ADO.NET 提供方变量字符串。</param>
-        /// <returns><em>真实</em> 如果本地支持流 。 <em>平</em> 否则。</returns>
+        /// <param name="adoNetProvider">ADO.NET 提供程序的固定名称字符串。</param>
+        /// <returns>如果原生支持流式传输，则为 <em>TRUE</em>；否则为 <em>FALSE</em>。</returns>
         public static bool SupportsStreamNatively(string adoNetProvider)
         {
             return GetDbConstants(adoNetProvider).SupportsStreamNatively;
@@ -132,21 +132,21 @@ namespace Orleans.Tests.SqlUtils
 
 
         /// <summary>
-        /// 如果基础 ADO.NET 执行已知同步。
+        /// 已知底层 ADO.NET 实现是否为同步实现。
         /// </summary>
-        /// <param name="storage">使用的存储器。</param>
+        /// <param name="storage">使用的存储。</param>
         /// <returns></returns>
         public static bool IsSynchronousAdoNetImplementation(this IRelationalStorage storage)
         {
-            //目前,假设只是零零零 MySQL 之外的所有假设。
+            // 目前假设除 MySQL 之外的所有实现均为异步实现。
             return IsSynchronousAdoNetImplementation(storage.InvariantName);
         }
 
 
         /// <summary>
-        /// 如果提供商支持取消或不支持取消。
+        /// 提供程序是否支持取消操作。
         /// </summary>
-        /// <param name="adoNetProvider"> ADO.NET 提供方变量字符串。</param>
+        /// <param name="adoNetProvider">ADO.NET 提供程序的固定名称字符串。</param>
         /// <returns></returns>
         public static bool IsSynchronousAdoNetImplementation(string adoNetProvider)
         {
@@ -162,32 +162,32 @@ namespace Orleans.Tests.SqlUtils
     internal class DbConstants
     {
         /// <summary>
-        /// 全部选择的组合查询模板
+        /// UNION ALL SELECT 查询模板。
         /// </summary>
         public readonly string UnionAllSelectTemplate;
 
         /// <summary>
-        /// 指示 ADO.net 提供者是否只支持同步操作。
+        /// 指示 ADO.NET 提供程序是否仅支持同步操作。
         /// </summary>
         public readonly bool IsSynchronousAdoNetImplementation;
 
         /// <summary>
-        /// 指示 ADO.net 提供者是否按本地进行流业务。
+        /// 指示 ADO.NET 提供程序是否原生支持流式操作。
         /// </summary>
         public readonly bool SupportsStreamNatively;
 
         /// <summary>
-        /// 指示 ADO.net 提供者是否支持取消命令。
+        /// 指示 ADO.NET 提供程序是否支持取消命令。
         /// </summary>
         public readonly bool SupportsCommandCancellation;
 
         /// <summary>
-        /// 字符,该字符表示保留单词的列和表格的起始跳出键。
+        /// 对名称为保留字的列和表进行转义时使用的起始转义字符。
         /// </summary>
         public readonly char StartEscapeIndicator;
 
         /// <summary>
-        /// 字符,该字符表示保留单词的列和表格的结尾跳出键。
+        /// 对名称为保留字的列和表进行转义时使用的结束转义字符。
         /// </summary>
         public readonly char EndEscapeIndicator;
 

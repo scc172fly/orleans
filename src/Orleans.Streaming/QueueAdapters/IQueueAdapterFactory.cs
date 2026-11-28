@@ -4,43 +4,43 @@ using System.Threading.Tasks;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 适配器工厂。 这应该从流提供商配置中创建一个适配器
+    /// 适配器工厂，应根据流提供程序配置创建适配器。
     /// </summary>
     public interface IQueueAdapterFactory
     {
         /// <summary>
         /// 创建队列适配器。
         /// </summary>
-        /// <returns>队列适配器</returns>
+        /// <returns>队列适配器。</returns>
         [Obsolete("Use the overload which accepts a CancellationToken.")]
         Task<IQueueAdapter> CreateAdapter();
 
         /// <summary>
         /// 创建队列适配器。
         /// </summary>
-        /// <param name="cancellationToken">取消牌。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
         /// <returns>队列适配器。</returns>
-#pragma warning disable CS0618 // Required for compatibility with providers which only implement the legacy overload.
+#pragma warning disable CS0618 // 为兼容仅实现旧版重载的提供程序而保留。
         Task<IQueueAdapter> CreateAdapter(CancellationToken cancellationToken) => CreateAdapter();
 #pragma warning restore CS0618
 
         /// <summary>
-        /// 创建队列信件缓存适配器。
+        /// 创建队列消息缓存适配器。
         /// </summary>
         /// <returns>队列适配器缓存。</returns>
         IQueueAdapterCache GetQueueAdapterCache();
 
         /// <summary>
-        /// 创建队列映射仪。
+        /// 创建队列映射器。
         /// </summary>
-        /// <returns>队列映像仪。</returns>
+        /// <returns>队列映射器。</returns>
         IStreamQueueMapper GetStreamQueueMapper();
 
         /// <summary>
-        /// 获取队列处理器的交付失败处理器
+        /// 获取队列的投递失败处理程序。
         /// </summary>
         /// <param name="queueId">队列标识符。</param>
-        /// <returns>流流处理器故障。</returns>
+        /// <returns>流故障处理程序。</returns>
         Task<IStreamFailureHandler> GetDeliveryFailureHandler(QueueId queueId);
     }
 }

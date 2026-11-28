@@ -1,6 +1,6 @@
 ---
-title: "Grain 计时器和提醒通知"
-description: "在激活范围之间选择 grain 和《可持久的催问和 催交的月时间和 月度的月 Orleans."
+title: "Grain 定时器与提醒器"
+description: "了解如何在 Orleans 中选择激活实例范围内的 Grain 定时器和持久化提醒器。"
 ms.date: 08/21/2026
 ms.topic: concept-article
 navigation: hidden
@@ -8,53 +8,53 @@ navigation: hidden
 
 <a id="grain-timers-and-reminders"></a>
 
-# Grain 计时器和提醒通知
+# Grain 定时器与提醒器
 
-Orleans 时间表定期 grain 通过两个机制开展工作,这两个机制具有不同的所有权和持久性保证:
+Orleans 通过两种机制调度周期性的 Grain 工作，它们具有不同的归属范围和持久性保证：
 
-| 机制机制机制 | 所有人 | 定期储存 | 激活行为 | 典型的连续 |
+| 机制 | 归属对象 | 调度计划存储位置 | 激活行为 | 典型执行频率 |
 |---|---|---|---|---|
-| [Grain 计时器](timers.md) | 1 grain 激活 | 激活内存 | 执行当前激活并结束此激活 | 激活活动时经常工作 |
-| [提醒提醒](reminders.md) | 一个逻辑 grain | 配置提醒服务提供方 | 执行时激活 grain ,当一个滴答交付并在集集恢复后恢复 | 以分钟、小时或天数计量的工作 |
+| [Grain 定时器](timers.md) | 单个 Grain 激活实例 | 激活实例的内存 | 在当前激活实例上执行，并随该实例的停用而终止 | 激活实例处于活动状态时频繁执行的工作 |
+| [提醒器](reminders.md) | 单个逻辑 Grain | 已配置的提醒器提供程序 | 投递触发事件时激活 Grain，并在集群恢复后继续调度 | 以分钟、小时或天为周期的工作 |
 
-当工作属于当前激活时选择 grain 计时器。 当时间表属于 grain 身份时选择提醒, 并且必须在激活和集束生命周期变化中生存下来 。
+当工作归属于当前激活实例时，选择 Grain 定时器。当调度计划归属于 Grain 标识，并且必须在激活实例及集群生命周期发生变化后继续存在时，选择提醒器。
 
 <a id="grain-timers"></a>
 
-## Grain 计时器
+## Grain 定时器
 
-Grain 计时器执行回调, 以一个激活时间打开 grain 。 运行时间安排在当前回调完成后下一个勾选, 因此计时器回调不会重叠 。
+Grain 定时器在单个激活实例上将回调作为 Grain 的执行轮次执行。运行时在当前回调完成后才调度下一次触发，因此同一定时器的回调绝不会与自身重叠执行。
 
-登记、回召时间安排、中继、启动寿命、取消和排除故障见 [Grain 计时器](timers.md) 。
+有关注册、回调调度、交错执行、激活实例生命周期、取消及故障排查，请参阅 [Grain 定时器](timers.md)。
 
 <a id="timer-behavior"></a>
 
-[时间器行为参考](timers.md#timer-behavior) 描述 <xref:Orleans.Runtime.GrainTimerCreationOptions>控制的担保。
+[定时器行为参考](timers.md#timer-behavior)介绍了由 <xref:Orleans.Runtime.GrainTimerCreationOptions> 控制的各项行为保证。
 
 <a id="reminders"></a>
 
-## 提醒提醒
+## 提醒器
 
-提醒始终是逻辑 grain的时间表。提醒发送遵循正常的 grain 请求时间表,必要时启动 grain 。在每次滴子生成和交付时,提供者保存该时间表。
+提醒器为一个逻辑 Grain 持久化调度计划。提醒器的投递遵循正常的 Grain 请求调度规则，并在需要时激活 Grain。提供程序保存调度计划，而每次触发事件由运行时生成并投递。
 
-登记、耐久时间安排、时间限制、供应商配置、误点调节和排除故障见 [提醒提醒](reminders.md) 。
+有关注册、持久化调度、时间约束、提供程序配置、遗漏触发事件的补偿处理及故障排查，请参阅[提醒器](reminders.md)。
 
 <a id="reminder-behavior"></a>
 
-[催发催发通知参考](reminders.md#reminder-behavior) 解释耐久定义、波动滴答交付、恢复和恢复。
+[提醒器投递行为参考](reminders.md#reminder-behavior)介绍了持久化的提醒器定义、非持久化的触发事件投递、重新激活及故障恢复。
 
 <a id="reminder-timing-constraints"></a>
 
-[提醒提醒时间限制](reminders.md#reminder-timing-constraints) 定义有效到期时间和期限。
+[提醒器时间约束](reminders.md#reminder-timing-constraints)定义了有效的首次触发延迟和执行周期。
 
 <a id="configure-reminder-storage"></a>
 
-## 配置提醒存储
+## 配置提醒器存储
 
-每个 silo 配置一个提醒提供者。关于生产提供者、开发配置和具体提供者指南,见 [配置提醒存储](reminders.md#configure-reminder-storage) 。
+每个 Silo 配置一个提醒器提供程序。有关生产环境提供程序、开发环境配置及特定提供程序的指导，请参阅[配置提醒器存储](reminders.md#configure-reminder-storage)。
 
 <a id="poco-grains"></a>
 
-## 波哥 grains
+## POCO Grain
 
-Grains 执行中 <xref:Orleans.IGrainBase> 直接使用同时间器和提醒扩展 APIs。 [grain 计时器](timers.md#poco-grains) 和 [提醒提醒](reminders.md#poco-grains) 说明通过依赖注射提供的较低级别的登记册。
+直接实现 <xref:Orleans.IGrainBase> 的 Grain 使用相同的定时器和提醒器扩展 API。[Grain 定时器](timers.md#poco-grains)和[提醒器](reminders.md#poco-grains)的专门页面介绍了可通过依赖注入获取的底层注册服务。

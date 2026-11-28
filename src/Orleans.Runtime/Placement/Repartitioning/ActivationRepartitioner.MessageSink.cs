@@ -10,8 +10,8 @@ internal sealed partial class ActivationRepartitioner : IMessageStatisticsSink
 {
     private readonly CancellationTokenSource _shutdownCts = new();
 
-    // 此过滤器包含 grain id, 它将锁定在当前 silo上。
-    // grain 被发现负转移分数时插入了日期。
+    // 此过滤器包含锚定到当前 Silo 的 Grain 标识。
+    // 当发现某个 Grain 的迁移评分为负时，将其标识插入过滤器。
     private readonly AnchoredGrainsFilter? _anchoredFilter;
     private Task? _processPendingEdgesTask;
 
@@ -51,7 +51,7 @@ internal sealed partial class ActivationRepartitioner : IMessageStatisticsSink
             {
                 foreach (var message in drainBuffer[..count])
                 {
-                    if (!IsFullyAddressed(message) || // silo 地址(目标可能)在稍后一段时间后被设为无效(在信件被记录后),这可能导致 NRE
+                    if (!IsFullyAddressed(message) || // Silo 地址（可能是目标地址）在消息记录后一段时间会被设为 null，这可能导致空引用异常。
                         !_messageFilter.IsAcceptable(message, out var isSenderMigratable, out var isTargetMigratable))
                     {
                         continue;
@@ -79,7 +79,7 @@ internal sealed partial class ActivationRepartitioner : IMessageStatisticsSink
 
                     if (!sourceVertex.IsMigratable && !destinationVertex.IsMigratable)
                     {
-                        // 忽略两个非移位 grains之间的边缘 。
+                        // 忽略两个不可迁移 Grain 之间的边。
                         continue;
                     }
 
@@ -110,13 +110,13 @@ internal sealed partial class ActivationRepartitioner : IMessageStatisticsSink
             return;
         }
 
-        // 分析必须有一个方向,
+        // 消息必须有方向，且不能是响应，否则会使分析产生偏差。
         if (message.Direction is Message.Directions.None or Message.Directions.Response)
         {
             return;
         }
 
-        // 发信人和目标需要完全可处理,才能知道向何处移动或走向何方。
+        // 发送方和目标必须具备完整的寻址信息，才能确定迁移到哪里或朝哪个方向迁移。
         if (!IsFullyAddressed(message))
         {
             return;

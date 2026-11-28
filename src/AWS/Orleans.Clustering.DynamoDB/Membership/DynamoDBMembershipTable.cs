@@ -72,12 +72,12 @@ namespace Orleans.Clustering.DynamoDB
                 },
                 cancellationToken: cancellationToken);
 
-            // 假若不是我创造了这个桌子,
-            // 尝试插入初始表格版本,如果它尚未存在的话;
-            // 因此我们总是有一个第一个表格版本行, 此时 silo 开始工作之前。
+            // 即使当前 Silo 不是创建此表的实例，
+            // 也尝试在初始表版本记录不存在时插入它，
+            // 确保当前 Silo 开始运行之前始终存在首条表版本记录。
             if (tryInitTableVersion)
             {
-                // 忽略返回值, 因为只要它在里面, 我们不在乎是否插入它。
+                // 忽略返回值：只要该记录存在，就不关心是否由当前实例插入。
                 bool created = await TryCreateTableVersionEntryAsync(cancellationToken);
                 if (created) LogInformationCreatedNewTableVersionRow();
             }
@@ -160,7 +160,7 @@ namespace Orleans.Clustering.DynamoDB
                     toDelete.Add(record.GetKeys());
                 }
 
-                // 抓取同步取消, 作为一项任务, 所以每个开始的批量仍为 WhenAll拥有 。
+                // 将同步取消捕获为任务，使所有已启动的批次仍由 WhenAll 统一管理。
                 await Task.WhenAll(toDelete.BatchIEnumerable(MAX_BATCH_SIZE)
                     .Select(async batch => await storage.DeleteEntriesAsync(this.options.TableName, batch, cancellationToken)));
             }
@@ -189,7 +189,7 @@ namespace Orleans.Clustering.DynamoDB
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                //首先只读一行版本, 这样我们就能检查版本的一致性
+                // 首先仅读取版本记录，以便检查版本一致性。
                 var versionEntryKeys = new Dictionary<string, AttributeValue>
                 {
                     { $"{SiloInstanceRecord.DEPLOYMENT_ID_PROPERTY_NAME}", new AttributeValue(this.clusterId) },
@@ -210,8 +210,8 @@ namespace Orleans.Clustering.DynamoDB
 
                     var queriedVersion = records.Find(record => record.SiloIdentity == SiloInstanceRecord.TABLE_VERSION_ROW)
                         ?? throw new KeyNotFoundException("No version row found for membership table");
-                    // 每个金刚石的写作都贴上其行并原创本预告表格。
-                    // 拒绝页面中含有比打开时更新、内容更一致的修改。
+                    // 每次规范写入都会为相应行设置标记，并原子地推进表版本。
+                    // 拒绝包含比初始强一致性读取更新的变更的页面。
                     if (queriedVersion.ETag != versionRow.ETag
                         || records.Exists(record => record.MembershipVersion > versionRow.MembershipVersion))
                     {
@@ -471,7 +471,7 @@ namespace Orleans.Clustering.DynamoDB
         {
             var parse = new MembershipEntry
             {
-                // 长期 silo 成员记录总是包含主机名。
+                // 持久化的 Silo 成员记录始终包含主机名。
                 HostName = tableEntry.HostName!,
                 Status = (SiloStatus)tableEntry.Status
             };
@@ -615,7 +615,7 @@ namespace Orleans.Clustering.DynamoDB
                     }
                     catch (ConditionalCheckFailedException)
                     {
-                        // 下次清理时,将重新审议修改后的行。
+                        // 已发生变更的记录将在下一次清理时重新评估。
                     }
                 }
             }

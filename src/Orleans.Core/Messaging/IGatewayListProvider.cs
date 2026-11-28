@@ -10,23 +10,23 @@ namespace Orleans.Messaging
     /// 提供 Orleans 网关信息的接口。
     /// </summary>
     /// <remarks>
-    /// 供应商采用取消通知的Async方法来取消其基本业务。
-    /// 默认执行支持现有提供者, 取消调用者的等待和
-    /// 观测无价操作完成情况。
+    /// 提供程序实现支持取消的 Async 方法，以取消其底层操作。
+    /// 默认实现通过取消调用方的等待并
+    /// 观察不带令牌的操作最终完成情况来支持现有提供程序。
     /// </remarks>
     public interface IGatewayListProvider
     {
         /// <summary>
-        /// 初始化提供商, 将被召集到所有其他方法之前 。
+        /// 初始化提供程序，此方法将在所有其他方法之前调用。
         /// </summary>
-        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
+        /// <returns>表示所执行工作的 <see cref="Task"/>。</returns>
         Task InitializeGatewayListProvider();
 
         /// <summary>
-        /// 在网关发现开始之前初始化提供者。
+        /// 在开始网关发现之前初始化提供程序。
         /// </summary>
-        /// <param name="cancellationToken">取消初始化所用的标记。</param>
-        /// <returns>一项代表初始化操作的任务。</returns>
+        /// <param name="cancellationToken">用于取消初始化的令牌。</param>
+        /// <returns>表示初始化操作的任务。</returns>
         async Task InitializeGatewayListProviderAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -36,17 +36,17 @@ namespace Orleans.Messaging
         }
 
         /// <summary>
-        /// 返回网关列表( 返回) (n)silos客户端可以连接到 Orleans 组。
-        /// 尤里语的形式是: "gwy.tcp/IP:port/Generation. " 关于尤里格式的更多详情,见 Utils.ToGatewayUri 和 Utils.ToSiloAddress 。
+        /// 返回客户端可用于连接 Orleans 集群的网关（Silo）列表。
+        /// URI 格式为“gwy.tcp://IP:port/Generation”。有关 URI 格式的更多详情，请参阅 Utils.ToGatewayUri 和 Utils.ToSiloAddress。
         /// </summary>
-        /// <returns>网关端点列表。</returns>
+        /// <returns>网关终结点列表。</returns>
         Task<IList<Uri>> GetGateways();
 
         /// <summary>
-        /// 获取客户可以连接到集群的网关端点。
+        /// 获取客户端可用于连接集群的网关终结点。
         /// </summary>
-        /// <param name="cancellationToken">用于取消网关发现时使用的标记。</param>
-        /// <returns>网关端点列表。</returns>
+        /// <param name="cancellationToken">用于取消网关发现的令牌。</param>
+        /// <returns>网关终结点列表。</returns>
         async Task<IList<Uri>> GetGatewaysAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -56,12 +56,12 @@ namespace Orleans.Messaging
         }
 
         /// <summary>
-        /// 可以在休息之间得到时间间隔。
+        /// 获取两次刷新之间的时间间隔。
         /// </summary>
         TimeSpan MaxStaleness { get; }
 
         /// <summary>
-        /// 获得一个值,显示该 IGatewayListProvider 是否刷新了它返回的信息,还是总是返回相同的网关列表。
+        /// 获取一个值，指示此 IGatewayListProvider 是否会刷新返回的信息，还是始终返回相同的网关列表。
         /// </summary>
         [Obsolete("This attribute is no longer used and all providers are considered updatable")]
         bool IsUpdatable { get; }

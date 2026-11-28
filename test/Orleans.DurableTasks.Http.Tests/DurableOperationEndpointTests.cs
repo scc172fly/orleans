@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Orleans.Durable.Http.Tests;
 
-/// <summary>开展针对HTTP的持久任务行动:一无所有者启动、状况监测员、长期民意调查、事件、取消和信号。</summary>
+/// <summary>通过 HTTP 验证持久化任务操作：幂等启动、状态监视器、长轮询、事件、取消和信号。</summary>
 [Collection(DurableHttpCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -37,21 +37,21 @@ public sealed class DurableOperationEndpointTests(DurableHttpFixture fixture)
         Assert.Equal("wait=30", Assert.Single(first.Headers.GetValues("Preference-Applied")));
         var location = GetOperationLocation(first);
 
-        // 引用的按结构键字段形式在相同的识别特征下确定同一操作。
+        // 带引号的结构化字段形式的键以相同标识符标识同一个操作。
         using var retry = await StartAsync(path, new EchoRequest("hello"), $"\"{key}\"", wait: 30, cancellationToken);
         Assert.Equal(HttpStatusCode.OK, retry.StatusCode);
         Assert.Equal("hello", await retry.Content.ReadFromJsonAsync<string>(cancellationToken));
         Assert.Equal(location, GetOperationLocation(retry));
 
-        // 行动状态监控其按客户钥匙命名的命令生活
+        // 操作的状态监视器位于所属订单下，以客户端的键命名。
         Assert.Equal($"{path[..^"/echo".Length]}/operations/{key}", location.AbsolutePath);
         var operation = await GetOperationAsync(location, wait: 0, cancellationToken);
         Assert.Equal(new DurableOperation(key, DurableOperationStatus.Succeeded, operation.Result), operation);
         Assert.Equal("hello", operation.Result?.GetString());
         Assert.Null(operation.Error);
 
-        // 重试其争论不同时的参数会执行相同的工作,同一方法对同一种工作的呼唤 grain,作为
-        // 持久任务运行时间确定行动,因此它能够进入行动;关键冲突下的其他工作。
+        // 尽管重试的参数不同，但它执行相同工作（在同一个 Grain 上调用同一个方法），根据
+        // 持久化任务运行时标识操作的方式，重试会到达同一个操作；使用同一键执行其他工作则会发生冲突。
         using var changed = await StartAsync(path, new EchoRequest("goodbye"), key, wait: 30, cancellationToken);
         Assert.Equal(HttpStatusCode.OK, changed.StatusCode);
         Assert.Equal("hello", await changed.Content.ReadFromJsonAsync<string>(cancellationToken));
@@ -76,8 +76,8 @@ public sealed class DurableOperationEndpointTests(DurableHttpFixture fixture)
         Assert.Equal("ada's", await ada.Content.ReadFromJsonAsync<string>(cancellationToken));
         var location = GetOperationLocation(ada);
 
-        // 经认证的用户业务属于用户范围,因此是另一个用户或匿名用户的等同钥匙。
-        // 请求, 开始自己的操作, 每一个都在同一地址读取自己的操作 。
+        // 已验证身份的用户的操作归属于该用户的作用域，因此另一用户或匿名
+        // 请求使用相同键会启动其自身的操作，并各自在相同 URL 读取其自身的操作。
         using var grace = await StartAsync(path, new EchoRequest("grace's"), key, wait: 30, cancellationToken, user: "grace");
         Assert.Equal(HttpStatusCode.OK, grace.StatusCode);
         Assert.Equal("grace's", await grace.Content.ReadFromJsonAsync<string>(cancellationToken));
@@ -102,8 +102,8 @@ public sealed class DurableOperationEndpointTests(DurableHttpFixture fixture)
         using var started = await StartAsync(path, new ApprovalRequest("widget"), key, wait: null, cancellationToken, user: "ada");
         var location = GetOperationLocation(started);
 
-        // 另一用户、匿名电话员和匿名打电话者,其关键内容包含Ada的名字,例如
-        // "Ada的手术都达不到"
+        // 另一用户、匿名调用者，以及在键中嵌入 ada 名称的匿名调用者（例如
+        // "{user}:{key}" 形式的映射），均无法到达 ada 的任何操作。
         foreach (var (user, operation) in new[] { ("grace", location), (null, location), (null, new Uri(location.AbsoluteUri.Replace($"/operations/{key}", $"/operations/ada:{key}", StringComparison.Ordinal))) })
         {
             foreach (var request in new[]
@@ -157,7 +157,7 @@ public sealed class DurableOperationEndpointTests(DurableHttpFixture fixture)
             }
         }
 
-        // 被拒绝的请求没有改变。
+        // 被拒绝的请求未产生任何变更。
         Assert.Equal(DurableOperationStatus.Running, (await GetOperationAsync(location, wait: 0, cancellationToken, user: "ada")).Status);
     }
 
@@ -173,7 +173,7 @@ public sealed class DurableOperationEndpointTests(DurableHttpFixture fixture)
         Assert.Equal(HttpStatusCode.Accepted, started.StatusCode);
         var location = GetOperationLocation(started);
 
-        // 行动信号达到它所认同的任务,其结果报告。
+        // 操作的信号传递到它所订阅的任务，操作报告该任务的结果。
         Assert.Equal(HttpStatusCode.NoContent, await SignalAsync(location, "ada", cancellationToken));
         var completed = await GetOperationAsync(location, wait: 30, cancellationToken);
         Assert.Equal("widget approved by ada", completed.Result?.GetString());
@@ -199,7 +199,7 @@ public sealed class DurableOperationEndpointTests(DurableHttpFixture fixture)
         var canceled = await GetOperationAsync(location, wait: 30, cancellationToken);
         Assert.Equal(DurableOperationStatus.Canceled, canceled.Status);
 
-        // 其他各方拥有的核准,继续并用自己的信号完成。
+        // 归其他方所有的审批继续运行，并通过其自身的信号完成。
         var approval = grain.GetDurableTask<string>(DurableHttpFixture.ApprovalRootId);
         Assert.Equal(DurableTaskStatus.Pending, await approval.GetStatusAsync(cancellationToken: cancellationToken));
         await grain.SignalDurableTaskAsync(DurableHttpFixture.ApprovalRootId, DurableHttpTestGrain.Approved, "ada", cancellationToken);
@@ -259,7 +259,7 @@ public sealed class DurableOperationEndpointTests(DurableHttpFixture fixture)
         Assert.Equal(DurableOperationStatus.Succeeded, completed.Status);
         Assert.Equal("widget approved by ada", completed.Result?.GetString());
 
-        // 已完成的操作仍然有信号,因此它的成功和另一个价值冲突都得到重试。
+        // 已完成的操作仍保存其信号，因此重试发送该信号会成功，而其他值会发生冲突。
         Assert.Equal(HttpStatusCode.NoContent, await SignalAsync(location, "ada", cancellationToken));
         Assert.Equal(HttpStatusCode.Conflict, await SignalAsync(location, "grace", cancellationToken));
 
@@ -305,7 +305,7 @@ public sealed class DurableOperationEndpointTests(DurableHttpFixture fixture)
             Assert.Equal(HttpStatusCode.BadRequest, bodyless.StatusCode);
         }
 
-        // 操作没有价值, 所以客户端发送的值会完成 。
+        // 操作尚未保存任何值，因此客户端随后发送的值使操作完成。
         Assert.Equal(DurableOperationStatus.Running, (await GetOperationAsync(location, wait: 0, cancellationToken)).Status);
         using (var confirmed = await Http.PostAsJsonAsync(signalUri, true, cancellationToken))
         {
@@ -395,7 +395,7 @@ public sealed class DurableOperationEndpointTests(DurableHttpFixture fixture)
         Assert.Equal(DurableOperationStatus.Canceled, canceled.Status);
         Assert.Equal(new DurableOperationError("Canceled", "widget was canceled: the buyer withdrew"), canceled.Error);
 
-        // 取消终端操作时,无论有无身体,均返回其状态不变。
+        // 取消已处于终态的操作时，无论是否携带请求体，均原样返回其状态。
         using var repeated = await Http.PostAsync(cancelUri, content: null, cancellationToken);
         Assert.Equal(HttpStatusCode.OK, repeated.StatusCode);
         Assert.Equal(canceled, await repeated.Content.ReadFromJsonAsync<DurableOperation>(cancellationToken));
@@ -454,7 +454,7 @@ public sealed class DurableOperationEndpointTests(DurableHttpFixture fixture)
             Assert.Equal("hello", single.Data.Result?.GetString());
         }
 
-        // A 音 A EventSource 与最后一个事件的身份识别符重新连接, 204无内容结束其再连接。
+        // EventSource 使用最后一个事件的标识符重新连接，而 204 No Content 会终止重连。
         using var reconnect = new HttpRequestMessage(HttpMethod.Get, eventsUri);
         reconnect.Headers.Add("Last-Event-ID", "Succeeded");
         using var reconnected = await Http.SendAsync(reconnect, cancellationToken);
@@ -469,7 +469,7 @@ public sealed class DurableOperationEndpointTests(DurableHttpFixture fixture)
         var key = Guid.NewGuid().ToString();
         using var started = await StartAsync($"{order}/echo", new EchoRequest("hello"), key, wait: 30, cancellationToken);
 
-        // 操作属于其命令, 识别符号比钥匙长, 永远不能命名操作 。
+        // 操作归属于其订单，长度超过键的限制的标识符无法标识任何操作。
         foreach (var operation in new[] { $"{order}/operations/not-an-operation", $"/orders/{Guid.NewGuid():N}/operations/{key}", $"{order}/operations/{new string('k', 256)}" })
         {
             using var status = await Http.GetAsync(operation, cancellationToken);
@@ -503,8 +503,8 @@ public sealed class DurableOperationEndpointTests(DurableHttpFixture fixture)
         var orderId = Guid.NewGuid().ToString("N");
         var key = Guid.NewGuid().ToString();
 
-        // 订单 grain 已经根据业务单位的工作将使用的根底,在另一个方法下有另外一种方法的任务,所以
-        // 拒绝行动
+        // 订单的 Grain 已经在此操作的工作将使用的根标识符下保存另一个方法的任务，因此
+        // 拒绝此操作的工作。
         var workRootId = TaskId.CreateRoot("orders").Child(orderId).Child("@").Child(key).ToString();
         await fixture.Client.GetGrain<IDurableHttpTestGrain>(orderId).EchoLaterAsync("other").WithId(workRootId).ScheduleAsync(cancellationToken);
 

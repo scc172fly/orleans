@@ -1,8 +1,8 @@
 namespace Presence.Grains;
 
 /// <summary>
-/// 定义一个用于发送二进制更新的界面,而不知道具体的游戏 ID 。
-/// 模拟游戏控制台在向云中发送数据时所做的一切。
+/// 定义无需知道具体游戏 ID 即可发送二进制更新的接口。
+/// 模拟游戏主机向云端发送数据的方式。
 /// </summary>
 public interface IPresenceGrain : IGrainWithIntegerKey
 {

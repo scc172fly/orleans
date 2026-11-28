@@ -465,7 +465,7 @@ public class HotReloadCodegenTests
     private static async Task<(int ExitCode, string Output, string Error)> RunHotReloadTestInEnabledProcess()
     {
         var assemblyPath = Assembly.GetExecutingAssembly().Location;
-        // 重新使用父母的宿主,使孩子保留其运行时间选择。
+        // 复用父级宿主，使子级保留其运行时选择。
         var startInfo = new ProcessStartInfo(Environment.ProcessPath!)
         {
             ArgumentList =

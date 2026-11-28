@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
-/// <summary>核证 <see cref="DurableTaskOptions"/>的审定。</summary>
+/// <summary>验证 <see cref="DurableTaskOptions"/> 的有效性检查。</summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]

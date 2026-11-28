@@ -16,8 +16,8 @@ using Xunit;
 namespace DurableOrderProcessing.Tests;
 
 /// <summary>
-/// 操场主机:运行订单工作流程的流程中集集和一个为 API服务的测试服务器
-/// 和模拟付款网关。 silo 通过支付客户端在测试服务器上调用网关。
+/// 托管 Playground：包含运行订单工作流的进程内集群，以及提供 API
+/// 和模拟支付网关的测试服务器。Silo 通过支付客户端调用测试服务器上的网关。
 /// </summary>
 public sealed class OrderProcessingFixture : IAsyncLifetime
 {
@@ -41,7 +41,7 @@ public sealed class OrderProcessingFixture : IAsyncLifetime
                 .ConfigureHttpClient(static client => client.BaseAddress = new Uri("http://localhost/gateway/"))
                 .ConfigurePrimaryHttpMessageHandler(() => new NetworkHandler(Server.CreateHandler())));
 
-            // 命令立即生效,等待付款直到测试取消为止。
+            // 订单立即通过验证，随后等待支付，直到测试取消支付。
             silo.Services.Configure<OrderingOptions>(static options =>
             {
                 options.GracePeriod = TimeSpan.Zero;
@@ -82,7 +82,7 @@ public sealed class OrderProcessingFixture : IAsyncLifetime
         Http = _app.GetTestClient();
     }
 
-    /// <summary>向买方篮子填充每件产品的一个单位。</summary>
+    /// <summary>将每种商品各一件添加到买家的购物篮。</summary>
     public async Task FillBasketAsync(string buyerId, params int[] productIds)
     {
         foreach (var productId in productIds)
@@ -92,7 +92,7 @@ public sealed class OrderProcessingFixture : IAsyncLifetime
         }
     }
 
-    /// <summary>发送买方篮子的支票作为订单 <paramref name="orderId"/> 姓名。</summary>
+    /// <summary>以 <paramref name="orderId"/> 指定的订单身份提交买家购物篮的结账请求。</summary>
     public Task<HttpResponseMessage> CheckoutAsync(string buyerId, Guid orderId, string cardNumber = "4111111111111111", bool loseResponse = false)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/orders") { Content = JsonContent.Create(Checkout(buyerId, cardNumber)) };
@@ -108,7 +108,7 @@ public sealed class OrderProcessingFixture : IAsyncLifetime
     public static CheckoutRequest Checkout(string buyerId, string cardNumber) =>
         new(buyerId, new Address("15703 NE 61st Ct", "Redmond", "WA", "U.S.", "98052"), cardNumber);
 
-    /// <summary>等待订单历史达到 <paramref name="status"/>,并返回快照。</summary>
+    /// <summary>等待订单历史达到 <paramref name="status"/>，并返回该快照。</summary>
     public async Task<OrderDetails> WaitForStatusAsync(Guid orderId, OrderStatus status)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
@@ -133,7 +133,7 @@ public sealed class OrderProcessingFixture : IAsyncLifetime
         throw new InvalidOperationException($"Order {orderId} ended as {last?.Order.Status} without reaching {status}.");
     }
 
-    /// <summary>命令的运行长时间直到它到达终点,并返回其状态监测器。</summary>
+    /// <summary>长轮询订单操作直至达到终态，并返回其状态监视器。</summary>
     public async Task<JsonElement> WaitForOperationAsync(Guid orderId)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -163,9 +163,9 @@ public sealed class OrderProcessingFixture : IAsyncLifetime
     }
 
     /// <summary>
-    /// 测试服务器的应用程序中止,而测试服务器与
-    /// <see cref="OperationCanceledException"/> 或 <see cref="IOException"/>,作为 <see cref="HttpRequestException"/>,
-    /// 当套接字处理器报告重置连接时, 付款客户端的复原力处理器将重新检修它 。
+    /// 将测试服务器应用程序中止的请求（测试服务器以
+    /// <see cref="OperationCanceledException"/> 或 <see cref="IOException"/> 表示失败）报告为 <see cref="HttpRequestException"/>，
+    /// 模拟套接字处理器报告连接重置的行为，从而使支付客户端的弹性处理器重试该请求。
     /// </summary>
     private sealed class NetworkHandler(HttpMessageHandler inner) : DelegatingHandler(inner)
     {

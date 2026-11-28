@@ -6,7 +6,7 @@ using Orleans.Utilities;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 表示使用类型参数参数参数参数参数的 <see cref="GrainInterfaceType"/> 。
+    /// 表示使用类型参数进行参数化的 <see cref="GrainInterfaceType"/>。
     /// </summary>
     [Immutable]
     public readonly struct GenericGrainInterfaceType
@@ -14,8 +14,8 @@ namespace Orleans.Runtime
         /// <summary>
         /// 初始化 <see cref="GenericGrainInterfaceType"/> 结构的新实例。
         /// </summary>
-        /// <param name="value">根本 grain 界面类型。</param>
-        /// <param name="arity">通用类型参数的数目。</param>
+        /// <param name="value">底层 Grain 接口类型。</param>
+        /// <param name="arity">泛型类型参数的数量。</param>
         private GenericGrainInterfaceType(GrainInterfaceType value, int arity)
         {
             Value = value;
@@ -23,22 +23,22 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 底 <see cref="GrainInterfaceType"/>
+        /// 底层 <see cref="GrainInterfaceType"/>。
         /// </summary>
         public GrainInterfaceType Value { get; }
 
         /// <summary>
-        /// 通用类型之间的异同性。
+        /// 泛型类型的类型参数数量。
         /// </summary>
         public int Arity { get; }
 
         /// <summary>
-        /// 如果此实例包含具体类型参数, 返回 <see langword="true" /> 。
+        /// 如果此实例包含具体类型参数，则返回 <see langword="true" />。
         /// </summary>
         public bool IsConstructed => TypeConverterExtensions.IsConstructed(this.Value.Value);
 
         /// <summary>
-        /// 返回与所提供的值相对应的通用界面代号。
+        /// 返回与所提供值对应的泛型接口 ID。
         /// </summary>
         public static bool TryParse(GrainInterfaceType grainType, out GenericGrainInterfaceType result)
         {
@@ -60,7 +60,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 返回此实例的非构建版本。
+        /// 返回此实例的未构造版本。
         /// </summary>
         public GenericGrainInterfaceType GetGenericGrainType()
         {
@@ -69,7 +69,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 返回此实例的构建版本。
+        /// 返回此实例的已构造版本。
         /// </summary>
         public GenericGrainInterfaceType Construct(TypeConverter formatter, params Type[] typeArguments)
         {
@@ -86,7 +86,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 返回此实例构建时的类型参数。
+        /// 返回构造此实例时使用的类型实参。
         /// </summary>
         public Type[] GetArguments(TypeConverter formatter)
         {
@@ -95,7 +95,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 返回当前实例的 UTF8 解释。
+        /// 返回当前实例的 UTF-8 字符串表示。
         /// </summary>
         public override string ToString() => Value.ToString();
 

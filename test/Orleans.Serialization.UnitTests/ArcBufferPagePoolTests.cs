@@ -79,7 +79,7 @@ public sealed class ArcBufferPagePoolTests
             pool.Return(page);
         }
 
-        // 最初的失手代表着日益增长的需求,并维护了新返回的工作环境。
+        // 最初的未命中反映了不断增长的需求，并保留新归还的工作集。
         pool.Evict();
         Assert.Equal(200, pool.RetainedPages);
         var held = pages[200..].ToList();

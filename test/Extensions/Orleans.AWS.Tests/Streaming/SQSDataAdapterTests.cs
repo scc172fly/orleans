@@ -82,21 +82,21 @@ public class SQSDataAdapterTests : IAsyncLifetime
         IQueueAdapter adapter = await adapterFactory.CreateAdapter(cancellationToken);
         IQueueAdapterCache cache = adapterFactory.GetQueueAdapterCache();
 
-        // 每个队列创建接收器
+        // 为每个队列创建接收器。
         IStreamQueueMapper mapper = adapterFactory.GetStreamQueueMapper();
         Dictionary<QueueId, IQueueAdapterReceiver> receivers = mapper.GetAllQueues().ToDictionary(queueId => queueId, adapter.CreateReceiver);
         Dictionary<QueueId, IQueueCache> caches = mapper.GetAllQueues().ToDictionary(queueId => queueId, cache.CreateQueueCache);
 
         await Task.WhenAll(receivers.Values.Select(receiver => receiver.Initialize(TimeSpan.FromSeconds(5))));
 
-        // 使用 2 流测试
+        // 使用两个流进行测试。
         Guid streamId1 = Guid.NewGuid();
         Guid streamId2 = Guid.NewGuid();
 
         int receivedBatches = 0;
         var streamsPerQueue = new ConcurrentDictionary<QueueId, HashSet<StreamId>>();
 
-        // 读者线(大多数为2个活动队列,因为只有两个串流)
+        // 读取线程（最多两个活动队列，因为只有两个流）。
         var work = new List<Task>();
         foreach (KeyValuePair<QueueId, IQueueAdapterReceiver> receiverKvp in receivers)
         {
@@ -125,8 +125,8 @@ public class SQSDataAdapterTests : IAsyncLifetime
                             });
                         output.WriteLine("Queue {0} received message on stream {1}", queueId,
                             message.StreamId);
-                        Assert.Equal(NumMessagesPerBatch / 2, message.GetEvents<int>().Count());  // "如果事件是半个"
-                        Assert.Equal(NumMessagesPerBatch / 2, message.GetEvents<string>().Count());  // "如果事情是串通的"
+                        Assert.Equal(NumMessagesPerBatch / 2, message.GetEvents<int>().Count());  // "一半的事件为 int 类型"
+                        Assert.Equal(NumMessagesPerBatch / 2, message.GetEvents<string>().Count());  // "一半的事件为 string 类型"
                     }
                     Interlocked.Add(ref receivedBatches, messages.Length);
                     qCache.AddToCache(messages);
@@ -135,7 +135,7 @@ public class SQSDataAdapterTests : IAsyncLifetime
             work.Add(task);
         }
 
-        // 发送事件
+        // 发送事件。
         List<object> events = CreateEvents(NumMessagesPerBatch);
         work.Add(Task.Run(async () =>
         {
@@ -152,13 +152,13 @@ public class SQSDataAdapterTests : IAsyncLifetime
         }, cancellationToken));
         await Task.WhenAll(work);
 
-        // 等待一切被消耗。
+        // 等待所有消息均被消费。
         await Task.Delay(QueuePollRate * 2, cancellationToken);
 
-        // 确保我们把寄送的东西都拿回来
+        // 确保收到我们发送的全部内容。
         Assert.Equal(NumBatches, receivedBatches);
 
-        // 检查是否所有事件都在缓存中, 我们可以通过它们来计算
+        // 检查所有事件是否都在缓存中，并且能否枚举它们。
         StreamSequenceToken firstInCache = new EventSequenceTokenV2(0);
         foreach (KeyValuePair<QueueId, HashSet<StreamId>> kvp in streamsPerQueue)
         {
@@ -167,7 +167,7 @@ public class SQSDataAdapterTests : IAsyncLifetime
 
             foreach (StreamId streamGuid in kvp.Value)
             {
-                // 读取流的缓存中的所有信件
+                // 读取缓存中属于此流的所有消息。
                 var cursorResult = qCache.TryGetCacheCursor(streamGuid, firstInCache);
                 Assert.Equal(QueueCacheCursorResultKind.Success, cursorResult.Kind);
                 var cursor = cursorResult.Cursor;
@@ -193,7 +193,7 @@ public class SQSDataAdapterTests : IAsyncLifetime
                 Assert.Equal(NumBatches / 2, messageCount);
                 Assert.NotNull(tenthInCache);
 
-                // 读取来自 第10次的所有消息
+                // 从第 10 条消息开始读取所有消息。
                 cursorResult = qCache.TryGetCacheCursor(streamGuid, tenthInCache);
                 Assert.Equal(QueueCacheCursorResultKind.Success, cursorResult.Kind);
                 cursor = cursorResult.Cursor;
@@ -204,7 +204,7 @@ public class SQSDataAdapterTests : IAsyncLifetime
                     messageCount++;
                 }
                 output.WriteLine("On Queue {0} we received a total of {1} message on stream {2}", kvp.Key, messageCount, streamGuid);
-                const int expected = NumBatches / 2 - 10 + 1; // 除前10名外,包括第10名(10+1)
+                const int expected = NumBatches / 2 - 10 + 1; // 除前 10 项之外的全部项，再计入第 10 项（10 + 1）。
                 Assert.Equal(expected, messageCount);
             }
         }
@@ -270,12 +270,12 @@ public class SQSDataAdapterTests : IAsyncLifetime
 
         public override IBatchContainer FromQueueMessage(Message sqsMessage, long sequenceId)
         {
-            // 示例将 StreamId 作为属性提取,而不是在正文中序列。
+            // 示例从属性中提取 StreamId，而不是将其序列化到消息体中。
             if (!sqsMessage.MessageAttributes.TryGetValue("StreamId", out var streamIdStr))
                 throw new DataException("SQS Message did not contain a StreamId attribute.");
             var streamId = StreamId.Parse(Encoding.UTF8.GetBytes(streamIdStr.StringValue));
 
-            // 创制的范例发送了引用的字符串,长于未引用的字符串。
+            // 此构造的示例将字符串加引号发送，而 long 值不加引号。
             var events = sqsMessage.Body.Split(Environment.NewLine)
                 .Select(x => (object)(x.StartsWith('"') ? x.Trim('"') : int.Parse(x)))
                 .ToList();
@@ -290,11 +290,11 @@ public class SQSDataAdapterTests : IAsyncLifetime
 
         public override Message ToQueueMessage<T>(StreamId streamId, IEnumerable<T> events, StreamSequenceToken? token, Dictionary<string, object>? requestContext)
         {
-            // 创制的范例发送了引用的字符串,长于未引用的字符串。
+            // 此构造的示例将字符串加引号发送，而 long 值不加引号。
             var serializedData = string.Join(Environment.NewLine,
                 events.Select(x => x is string ? $"\"{x}\"" : x?.ToString() ?? string.Empty));
 
-            // 示例包括作为属性的 StreamId 。
+            // 示例将 StreamId 作为属性包含在消息中。
             return new Message
             {
                 MessageAttributes = new()

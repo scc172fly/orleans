@@ -193,7 +193,7 @@ public class InterfaceCollectionRegressionTests
 
         var result = RoundTrip(original);
 
-        // 首发收藏由这回往返保存
+        // 本次序列化往返会保留已初始化的集合。
         Assert.Collection(result.Values!, value => Assert.Equal("a", value), value => Assert.Equal("b", value));
     }
 
@@ -205,7 +205,7 @@ public class InterfaceCollectionRegressionTests
         var result = Copy(original);
 
         Assert.NotSame(original, result);
-        // 初始化收藏由此副本保存 。
+        // 本次复制会保留已初始化的集合。
         Assert.Collection(result.Values!, value => Assert.Equal("a", value), value => Assert.Equal("b", value));
     }
 
@@ -323,7 +323,7 @@ public class InterfaceCollectionRegressionTests
 
         var result = RoundTrip(original);
 
-        // 初始化收藏由这次往返保存。
+        // 本次序列化往返会保留已初始化的各个集合。
         Assert.True(result.Set!.SetEquals(["a", "b"]));
         Assert.Equal(1, result.Dictionary!["a"]);
         Assert.Equal(2, result.Dictionary["b"]);

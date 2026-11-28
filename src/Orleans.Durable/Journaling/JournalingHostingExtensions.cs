@@ -10,21 +10,21 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 提供配置日记服务的扩展。
+/// 提供用于配置日志持久化服务的扩展方法。
 /// </summary>
 public static class JournalingHostingExtensions
 {
     /// <summary>
-    /// 添加日记所需的服务、耐久状态类型和日记格式。
+    /// 添加日志持久化所需的服务、持久化状态类型及日志格式。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <returns>下 silo 建筑商</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <returns>Silo 构建器。</returns>
     /// <remarks>
-    /// 解决标准 grain-范围 <see cref="IDurableStateManager"/> 将它纳入 grain 生命周期。
-    /// 其登记为可持久国家的国家在 <see cref="GrainLifecycleStage.SetupState"/>,之前 grain 启动
-    /// <see cref="JournalStorageProviderAttribute"/> 选择激活中所有耐久状态的提供者。
-    /// Grain 类型没有明确的选择使用 <see cref="ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME"/>。
-    /// 通过 <see cref="IJournaledStateManagerFactory"/> 创建的管理人员拥有呼叫者拥有的初始化和处置。
+    /// 解析标准 Grain 作用域的 <see cref="IDurableStateManager"/> 会将其加入 Grain 生命周期。
+    /// 其已注册持久化状态在 <see cref="GrainLifecycleStage.SetupState"/> 阶段恢复，早于 Grain 激活。
+    /// <see cref="JournalStorageProviderAttribute"/> 为激活实例中的所有持久化状态选择提供程序。
+    /// 没有显式选择的 Grain 类型使用 <see cref="ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME"/>。
+    /// 通过 <see cref="IJournaledStateManagerFactory"/> 创建的管理器由调用方负责初始化及释放。
     /// </remarks>
     public static ISiloBuilder AddJournaling(this ISiloBuilder builder)
     {
@@ -68,7 +68,7 @@ public static class JournalingHostingExtensions
             services.GetKeyedService<IJournaledStateManagerFactory>(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME)
                 ?? ActivatorUtilities.CreateInstance<JournaledStateManagerFactory>(services));
 
-        // 将 JSON 登记为默认格式的家族,并保持现有数据的 Orleans 二进制可用。
+        // 注册 JSON 为默认格式系列，并保留 Orleans 二进制格式供现有数据使用。
         builder.Services.AddJsonJournalFormat(tryAdd: true);
         TryAddOrleansBinaryJournalingFormat(builder.Services);
 
@@ -84,17 +84,17 @@ public static class JournalingHostingExtensions
     }
 
     /// <summary>
-    /// 登记一项自定耐用国家合同及其州机器实施。
+    /// 注册自定义持久化状态契约及其状态机实现。
     /// </summary>
-    /// <typeparam name="TState">申请国家合同</typeparam>
-    /// <typeparam name="TImplementation">国家机器的安装</typeparam>
-    /// <param name="services">服务收藏。</param>
-    /// <returns>服务收藏。</returns>
+    /// <typeparam name="TState">应用状态契约。</typeparam>
+    /// <typeparam name="TImplementation">状态机实现。</typeparam>
+    /// <param name="services">服务集合。</param>
+    /// <returns>服务集合。</returns>
     /// <remarks>
-    /// 需要 <see cref="AddJournaling"/>注册的日记服务。
-    /// 构造依赖性从 grain 激活的服务范围中解决。
-    /// 建筑需要国名时,使用工厂超负荷。
-    /// 管理人员登记了案件;其建造者无需自己登记。
+    /// 需要由 <see cref="AddJournaling"/> 注册的日志持久化服务。
+    /// 构造函数依赖项从 Grain 激活实例的服务作用域解析。
+    /// 构造需要状态名称时，使用工厂重载。
+    /// 管理器负责注册实例；其构造函数无需自行注册。
     /// </remarks>
     public static IServiceCollection AddStateMachine<TState, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(
         this IServiceCollection services)
@@ -107,17 +107,17 @@ public static class JournalingHostingExtensions
     }
 
     /// <summary>
-    /// 注册一家工厂,以签订耐用关税的国家合同。
+    /// 注册自定义持久化状态契约的工厂。
     /// </summary>
-    /// <typeparam name="TState">申请国家合同</typeparam>
-    /// <typeparam name="TImplementation">国家机器的安装</typeparam>
-    /// <param name="services">服务收藏。</param>
-    /// <param name="factory">使用激活的服务范围和稳定状态名称创建国家组成部分。</param>
-    /// <returns>服务收藏。</returns>
+    /// <typeparam name="TState">应用状态契约。</typeparam>
+    /// <typeparam name="TImplementation">状态机实现。</typeparam>
+    /// <param name="services">服务集合。</param>
+    /// <param name="factory">使用其激活实例的服务作用域和稳定状态名称创建状态组件。</param>
+    /// <returns>服务集合。</returns>
     /// <remarks>
-    /// 需要 <see cref="AddJournaling"/>注册的日记服务。
-    /// 注射键盘,经理回复同一案件 经理登记州政府
-    /// 工厂不能被援引为现有的兼容状态
+    /// 需要由 <see cref="AddJournaling"/> 注册的日志持久化服务。
+    /// 带键注入与管理器返回同一个命名实例。管理器注册状态，
+    /// 并由激活实例作用域释放它。对于现有兼容状态，不调用工厂。
     /// </remarks>
     public static IServiceCollection AddStateMachine<TState, TImplementation>(
         this IServiceCollection services,
@@ -145,25 +145,25 @@ public static class JournalingHostingExtensions
     }
 
     /// <summary>
-    /// 注册一个有名的日记存储供应商及其国家经理厂。
+    /// 注册命名日志存储提供程序及其日志状态管理器工厂。
     /// </summary>
-    /// <typeparam name="TProvider">提供方执行类型。</typeparam>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <param name="name">提供者名称。</param>
-    /// <param name="factory">制造单吨供应商的工厂</param>
-    /// <returns>下 silo 建筑商</returns>
+    /// <typeparam name="TProvider">提供程序实现类型。</typeparam>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <param name="name">提供程序名称。</param>
+    /// <param name="factory">创建单例提供程序的工厂。</param>
+    /// <returns>Silo 构建器。</returns>
     /// <remarks>
-    /// 如果 <typeparamref name="TProvider"/> 执行 <see cref="IJournalStorageCatalog"/> 或
-    /// <see cref="ILifecycleParticipant{TLifecycleObservable}"/>,这些服务是为同一供应商登记的。
-    /// 所有提供者都使用共享日记格式配置。
-    /// 约束性<see cref="ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME"/> 还提供无锁服务。
-    /// 默认约束性荣誉不设密钥单子 <see cref="IJournalStorageProvider"/> 自定义。 替换
-    /// 提供方必须执行 <typeparamref name="TProvider"/>申报的目录和生命周期合同。
-    /// 重复使用同名和执行型号的登记保留原工厂。
+    /// 如果 <typeparamref name="TProvider"/> 实现 <see cref="IJournalStorageCatalog"/> 或
+    /// <see cref="ILifecycleParticipant{TLifecycleObservable}"/>，则为同一个提供程序注册这些服务。
+    /// 所有提供程序使用共享的日志格式配置。
+    /// <see cref="ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME"/> 绑定还提供无键服务。
+    /// 默认绑定遵循无键单例 <see cref="IJournalStorageProvider"/> 的自定义配置。替换提供程序
+    /// 必须实现 <typeparamref name="TProvider"/> 所声明的目录及生命周期契约。
+    /// 使用相同名称和实现类型重复注册会保留原始工厂。
     /// </remarks>
-    /// <exception cref="ArgumentNullException">建筑工或工厂无效。</exception>
-    /// <exception cref="ArgumentException">服务商名称为空或空白。</exception>
-    /// <exception cref="InvalidOperationException">名称已经注册为另一类型供应商。</exception>
+    /// <exception cref="ArgumentNullException">构建器或工厂为 null。</exception>
+    /// <exception cref="ArgumentException">提供程序名称为空或仅包含空白字符。</exception>
+    /// <exception cref="InvalidOperationException">该名称已被其他提供程序类型注册。</exception>
     public static ISiloBuilder AddJournalStorage<TProvider>(
         this ISiloBuilder builder,
         string name,
@@ -244,38 +244,38 @@ public static class JournalingHostingExtensions
     }
 
     /// <summary>
-    /// 将不稳定的模拟日记存储作为默认提供者注册。
+    /// 将易失性内存日志存储注册为默认提供程序。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <returns>下 silo 建筑商</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <returns>Silo 构建器。</returns>
     public static ISiloBuilder AddVolatileJournalStorage(this ISiloBuilder builder)
         => builder.AddVolatileJournalStorage(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME);
 
     /// <summary>
-    /// 注册一个独立名称为不稳定的杂志存储供应商。
+    /// 注册独立的命名易失性内存日志存储提供程序。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <param name="name">提供者名称。</param>
-    /// <returns>下 silo 建筑商</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <param name="name">提供程序名称。</param>
+    /// <returns>Silo 构建器。</returns>
     public static ISiloBuilder AddVolatileJournalStorage(this ISiloBuilder builder, string name)
         => builder.AddVolatileJournalStorage(name, configureOptions: null);
 
     /// <summary>
-    /// 注册默认的波动日记提供商,并设定可配置快照阈值。
+    /// 注册具有可配置快照阈值的默认易失性日志提供程序。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <param name="configureOptions">配置供应商的快照阈值。</param>
-    /// <returns>下 silo 建筑商</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <param name="configureOptions">配置提供程序的快照阈值。</param>
+    /// <returns>Silo 构建器。</returns>
     public static ISiloBuilder AddVolatileJournalStorage(this ISiloBuilder builder, Action<VolatileJournalStorageOptions> configureOptions)
         => builder.AddVolatileJournalStorage(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME, configureOptions);
 
     /// <summary>
-    /// 注册一个名为波动性期刊供应商,可配置快报门槛。
+    /// 注册具有可配置快照阈值的命名易失性日志提供程序。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <param name="name">提供者名称。</param>
-    /// <param name="configureOptions">可选配置供应商的快照阈值。</param>
-    /// <returns>下 silo 建筑商</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <param name="name">提供程序名称。</param>
+    /// <param name="configureOptions">可选地配置提供程序的快照阈值。</param>
+    /// <returns>Silo 构建器。</returns>
     public static ISiloBuilder AddVolatileJournalStorage(
         this ISiloBuilder builder, string name, Action<VolatileJournalStorageOptions>? configureOptions)
     {

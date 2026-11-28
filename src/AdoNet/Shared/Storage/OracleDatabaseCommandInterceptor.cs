@@ -15,11 +15,11 @@ namespace Orleans.GrainDirectory.AdoNet.Storage
 #elif TESTER_SQLUTILS
 namespace Orleans.Tests.SqlUtils
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 {
     /// <summary>
-    /// 拦截器绕过甲骨文的某些细节
+    /// 此拦截器绕过某些 Oracle 特有行为。
     /// </summary>
     internal class OracleCommandInterceptor : ICommandInterceptor
     {
@@ -38,9 +38,9 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// 创建汇编的羊羔,设置 BindByName 财产在 OracleCommand 真实的。
+        /// 创建一个已编译的 Lambda 表达式，将 OracleCommand 的 BindByName 属性设为 true。
         /// </summary>
-        /// <returns>采取下列行动的行动: OracleCommand 年为 IDbCommand </returns>
+        /// <returns>以 IDbCommand 形式接收 OracleCommand 的操作。</returns>
         private Action<IDbCommand> BuildSetBindByNameAction()
         {
             var type = Type.GetType("Oracle.ManagedDataAccess.Client.OracleCommand, Oracle.ManagedDataAccess")!;
@@ -59,10 +59,10 @@ namespace Orleans.Tests.SqlUtils
         }
 
         /// <summary>
-        /// 创建汇编的羊羔,将 OracleDbType 属性设置为指定 <paramref name="enumName"/>
+        /// 创建一个已编译的 Lambda 表达式，将 OracleDbType 属性设置为指定的 <paramref name="enumName"/>。
         /// </summary>
-        /// <param name="enumName">字符串值为 OracleDbType enum 值。</param>
-        /// <returns>采取下列行动的行动: OracleParameter 年为 IDbDataParameter.</returns>
+        /// <param name="enumName">OracleDbType 枚举值的字符串表示。</param>
+        /// <returns>以 IDbDataParameter 形式接收 OracleParameter 的操作。</returns>
         private static Action<IDbDataParameter> BuildSetOracleDbTypeAction(string enumName)
         {
             var type = Type.GetType("Oracle.ManagedDataAccess.Client.OracleParameter, Oracle.ManagedDataAccess")!;
@@ -89,35 +89,35 @@ namespace Orleans.Tests.SqlUtils
         {
             foreach (IDbDataParameter commandParameter in command.Parameters)
             {
-                //默认情况下, 手动设置将参数以索引而不是名称绑定
-                //属性 BindByName 必须设置为真实以改变默认行为
+                // 默认情况下，Oracle 按索引而不是按名称绑定参数。
+                // 必须将 BindByName 属性设置为 true 才能更改默认行为。
                 setCommandBindByNameAction.Value(command);
 
-                //字符串参数被映射到 NVarChar2 OracleDbType ,该字符串限为4000字节
-                //将 OracleType 明确设置为 CLOB
+                // 字符串参数映射到 NVarChar2 OracleDbType，该类型限制为 4000 字节。
+                // 这会将 OracleType 显式设置为 CLOB。
                 if (commandParameter.ParameterName == "PayloadJson")
                 {
                     setClobOracleDbTypeAction.Value(commandParameter);
                     continue;
                 }
 
-                //与上列相同
+                // 与上面类似。
                 if (commandParameter.ParameterName == "PayloadXml")
                 {
                     setClobOracleDbTypeAction.Value(commandParameter);
                     continue;
                 }
 
-                //字节数组被映射为 RAW , 产生问题
-                //将 OracleDbType 明确设置为 Blob
+                // 字节数组映射为 RAW，这会导致问题。
+                // 这会将 OracleDbType 显式设置为 BLOB。
                 if (commandParameter.ParameterName == "PayloadBinary")
                 {
                     setBlobOracleDbTypeAction.Value(commandParameter);
                     continue;
                 }
 
-                //甲骨文不支持 DbType.Boolean,相反
-                //我们绘制这些位置到 DbType.Int32
+                // Oracle 不支持 DbType.Boolean，因此
+                // 将其映射为 DbType.Int32。
                 if (commandParameter.DbType == DbType.Boolean)
                 {
                     commandParameter.Value = commandParameter.ToString() == bool.TrueString ? 1 : 0;

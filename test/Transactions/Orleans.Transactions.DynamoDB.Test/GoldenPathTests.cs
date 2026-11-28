@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.DynamoDB.Tests
 {
     /// <summary>
-    /// 使用 DynamoDB测试交易金路图情景。
+    /// 测试使用 DynamoDB 时事务正常成功路径的场景。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("DynamoDB")]

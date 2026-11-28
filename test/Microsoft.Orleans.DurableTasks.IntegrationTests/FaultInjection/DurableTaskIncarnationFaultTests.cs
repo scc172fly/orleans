@@ -10,38 +10,38 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests.FaultInjection;
 
 /// <summary>
-/// 再次运行根任务ID, 其 grain 在结果保留结尾处删除了早期运行的种子, 远在
-/// 后一运行中有缺陷的破折处 检查后一运行完成
-/// 其结果本身,而早期的讯息没有影响它。
+/// 在 Grain 于结果保留期结束时删除先前的运行后，使用同一根任务 ID 再次运行，此时仍处于
+/// Messaging 的去重窗口内。对后一次运行的各个环节注入故障，验证后一次运行
+/// 以其自身结果完成，且先前运行的任何消息都不会影响它。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 根呼唤伙伴,它发出根的信号 等待这个信号
-/// 客户端的信号和长时间延迟。 双运行都发送相同的请求和相同的信号值, 所以只有每个
-/// 运行的化身,它的信息身份 隐藏了,保持后运行的信息不被复制
-/// 和前一跑的对
+/// 根任务调用伙伴 Grain，后者向根任务发回信号；根任务等待该信号，并使远程门控步骤与
+/// 来自客户端的信号以及一个长延迟进行竞争。两次运行发送相同的请求及相同的信号值，因此只有各自的
+/// 运行世代标识（包含在其消息标识中）才能确保后一次运行的消息不会被
+/// 当作先前运行的重复消息而被去重。
 /// </para>
 /// <para>
-/// 上一个运行的三种信息在后一个运行期间到达 grains :
+/// 后一次运行期间，来自先前运行的三类消息到达各 Grain：
 /// </para>
 /// <list type="bullet">
 /// <item>
-/// 早先的赛跑取消 失去比赛赛跑的门档级 之后,不管
-/// 合伙人删除了它 所以合伙人记录下来 请求尚未到场
+/// 先前运行中在竞争中落败的门控步骤的取消消息，在该步骤仍然完成且
+/// 伙伴 Grain 已删除该步骤之后到达，因此伙伴 Grain 将该消息记录为针对尚未到达的调用。
 /// </item>
 /// <item>
-/// 比赛取消的 早赛的延迟期恢复 后赛的延误期推迟
-/// 身份识别符和生成尚未确定。
+/// 先前运行中被竞争取消的延迟的恢复操作到期，此时后一次运行中具有相同
+/// 标识符和世代的延迟仍处于待处理状态。
 /// </item>
 /// <item>
-/// 网络提供早期运行的试运行、完成门阶和伴侣的
-/// 信号,其中的通信确认为重复。
+/// 网络投递先前运行中门控步骤调用及完成消息的副本，以及伙伴 Grain
+/// 所发信号的副本，Messaging 将其识别为重复消息。
 /// </item>
 /// </list>
 /// <para>
-/// 客户在每次处理后打开后跑门,所以后跑只赢得比赛
-/// 如果没有一个被他们取消,没有完成,也没有一个被他们取消,没有完成,或终止了延迟。结果与前一赛跑的不同。
-/// 数字,其中效果计数。
+/// 客户端仅在每条消息均已处理后才打开后一次运行的门，因此后一次运行的步骤只有在
+/// 这些消息均未取消它、使它完成或结束其延迟的情况下，才能赢得竞争。其结果与先前运行的结果相差
+/// 由效果计数得出的运行序号。
 /// </para>
 /// </remarks>
 public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) : IAsyncLifetime
@@ -67,10 +67,10 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
     [Fact]
     public Task LaterRunCompletesWithItsOwnResult() => RunTwiceAsync();
 
-    /// <summary>交货或日记的过错在后期只会延误其完成。</summary>
+    /// <summary>后一次运行中的投递或日志故障只会延迟其完成。</summary>
     /// <remarks>
-    /// 伙伴的第二次调试和工作流程的第二次完成是门阶梯;工作流程的第一个
-    /// 写入后一运行的时序并删除前一个运行, 伴侣的第一个写入接受其进程呼叫 。
+    /// 伙伴 Grain 的第二次调用和工作流的第二次完成均属于门控步骤；工作流的第一次
+    /// 写入调度后一次运行并删除先前运行，伙伴 Grain 的第一次写入接受对其处理方法的调用。
     /// </remarks>
     [Theory]
     [InlineData(FaultPoint.DeliveryThrows, FaultRole.Partner, 1, Invoke)]
@@ -96,9 +96,9 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
         var injector = _harness.Injector;
         injector.Reset();
 
-        // 较早的运行:客户的信号赢得比赛, 而合伙人持有取消门阶,
-        // 网络保存该步骤的调试和完成副本,
-        // 合伙人的信号
+        // 先前运行：客户端信号赢得竞争，伙伴 Grain 挂起门控步骤的取消消息；
+        // 该步骤在其门打开后完成。网络保留步骤调用与完成消息的副本，以及
+        // 伙伴 Grain 的信号副本。
         var heldCancellation = injector.Arm(FaultPoint.DeliveryHeldAtReceiver, partnerId, 0, Cancel);
         var cancellationDelivered = injector.Count(FaultPoint.DeliveryCompleted, partnerId, Cancel);
         InjectedFault[] copies =
@@ -122,8 +122,8 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
             _harness.Gates.Open(FaultWorkflowGrain.GetGateKey(workflowKey, 1));
             Assert.Equal("run=1;processed=20;ready=30;winner=1;outcome=1", await GetResultAsync(workflow));
 
-            // 一旦工作流程接受完成,该伙伴将删除该步骤,然后收到其取消通知。
-            // 记录它用来证明那一步的功过簿。
+            // 伙伴 Grain 在工作流接受该步骤的完成消息后将其删除，随后接收到该步骤的取消消息，
+            // 并将其记录为针对该步骤的调用。
             var step = await events.WaitForCallerChildAsync(partnerId, workflowId, TaskId.CreateRoot(RootId).Child("race").Child("0"));
             await events.WaitForDeletedAsync(partnerId, step);
             heldCancellation.Release();
@@ -133,7 +133,7 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
 
         Assert.All(copies, copy => Assert.NotNull(copy.Duplicate));
 
-        // 早期运行的保存结束, 因此下个根计划会删除它, 然后再次运行根 。
+        // 先前运行的保留期结束，因此下次调度根任务时将删除该运行并再次运行根任务。
         _harness.Fixture.JobClock.Advance(Retention + TimeSpan.FromMinutes(1));
         var armed = laterRunFaults
             .Select(fault => injector.Arm(fault.Point, grains[fault.Role].GetGrainId(), fault.Occurrence, fault.Subject))
@@ -144,7 +144,7 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
             await ScheduleAsync(workflow, partnerKey);
             var deadline = await WaitForRaceAsync(events, workflowKey, run: 2);
 
-            // 早期运行消息的复印件已送达,而后运行步骤和延迟则有待于处理。
+            // 先前运行的消息副本在后一次运行的步骤和延迟均处于待处理状态时到达。
             foreach (var copy in copies)
             {
                 var result = await _harness.CallAsync(
@@ -153,8 +153,8 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
                 Assert.True(result is DeliveryResult.Duplicate, $"The copy of {copy} was answered {result.Value}");
             }
 
-            // 较早的拖延期应在较晚的拖延期之前到期,但后期的拖延期仍未结束,因此,其恢复时间已发出
-            // 首先,处理者在发送时转而适用复发程序,因此后一电话会观察结果。
+            // 先前运行的延迟先于后一次运行的延迟到期（后者仍处于待处理状态），因此其恢复操作
+            // 首先被分派。消息处理器在分派恢复操作的同一轮执行中应用恢复，因此后续调用可观察到结果。
             _harness.Fixture.JobClock.Advance(FaultWorkflowGrain.RunDeadline - TimeSpan.FromMinutes(1));
             await resumes.WaitForMatchesAsync(1).WaitAsync(Timeout, CancellationToken);
             var delayStatus = (await GetTasksAsync(workflow)).GetValueOrDefault(deadline);
@@ -165,7 +165,7 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
 
         Assert.All(armed, fault => Assert.True(fault.HasFired, $"{fault} didn't fire."));
 
-        // 后期的延误,比赛取消了, 恢复了到期时间, 所以 grains 就没有发短信的工作。
+        // 后一次运行中被竞争取消的延迟在到期时恢复，此时各 Grain 不再持有消息传递工作。
         _harness.Fixture.JobClock.Advance(FaultWorkflowGrain.RunDeadline);
         await _harness.SettleAsync([workflowId, partnerId], CancellationToken);
         var violations = await FaultScenario.CheckGrainAsync(_harness, "workflow", workflow, new() { ["run"] = 2 });
@@ -178,7 +178,7 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
             token => workflow.RunAgainAsync(partnerKey, RootId).WithId(RootId).ScheduleAsync(token),
             CancellationToken);
 
-    /// <summary>等待跑步的门前步跑 比赛的延迟记录下来 然后返回延误</summary>
+    /// <summary>等待该次运行的门控步骤执行且其竞争中的延迟已记录，并返回该延迟。</summary>
     private async Task<TaskId> WaitForRaceAsync(DiagnosticEventCollector events, Guid workflowKey, int run)
     {
         var workflowId = _harness.Client.GetGrain<IFaultWorkflowGrain>(workflowKey).GetGrainId();
@@ -219,14 +219,14 @@ public abstract class DurableTaskIncarnationFaultTests(string journalFormatKey) 
         }, CancellationToken);
 }
 
-/// <summary>运行根重运行错误覆盖,任务状态以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行根任务再次执行的故障覆盖测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskIncarnationFaultTests() : DurableTaskIncarnationFaultTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行根重运行错误覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行根任务再次执行的故障覆盖测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

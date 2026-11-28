@@ -11,7 +11,7 @@ using Orleans.Configuration;
 namespace Orleans.Streaming.Kinesis.Tests
 {
     /// <summary>
-    /// 从 Orleans 客户角度测试Kinesis流功能,包括生产者辍学情景。
+    /// 从 Orleans 客户端角度测试 Kinesis 流功能，包括生产者退出的场景。
     /// </summary>
     [TestSuite("Functional")]
     [TestArea("Streaming")]

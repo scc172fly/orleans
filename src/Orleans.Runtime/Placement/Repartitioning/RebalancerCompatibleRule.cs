@@ -12,7 +12,7 @@ namespace Orleans.Runtime.Placement.Repartitioning;
 
 
 /// <summary>
-/// 宽容规则意识到集群规模,如果能够重新平衡,它会与集群失衡相适应。
+/// 考虑集群规模的容差规则；如果启用了再均衡器，容差会随集群的不均衡程度变化。
 /// </summary>
 /// <remarks>https://www.ledjonbehluli.com/posts/orleans_repartioner_rebalancer_coexistence/</remarks>
 internal class RebalancerCompatibleRule(IServiceProvider provider) :
@@ -23,7 +23,7 @@ internal class RebalancerCompatibleRule(IServiceProvider provider) :
     private readonly Dictionary<SiloAddress, SiloStatus> _silos = [];
 
     private uint _pairwiseImbalance;
-    private double _clusterImbalance; // 如果再平衡器没有注册,这对计算耐受度没有任何影响。
+    private double _clusterImbalance; // 如果未注册再均衡器，则此项对容差计算没有影响。
 
     private readonly ISiloStatusOracle _oracle = provider.GetRequiredService<ISiloStatusOracle>();
     private readonly IActivationRebalancer? _rebalancer = provider.GetService<IActivationRebalancer>();
@@ -61,7 +61,7 @@ internal class RebalancerCompatibleRule(IServiceProvider provider) :
         if (percentageOfBaseline < 10d) percentageOfBaseline = 10d;
 
         var pairwiseImbalance = (uint)Math.Round(10.1d * percentageOfBaseline, 0);
-        var toleranceFactor = Math.Cos(Math.PI * _clusterImbalance / 2);  // 如果再平衡器没有注册, 则总是 1 。
+        var toleranceFactor = Math.Cos(Math.PI * _clusterImbalance / 2);  // 如果未注册再均衡器，该值始终为 1。
 
         _pairwiseImbalance = (uint)Math.Max(pairwiseImbalance * toleranceFactor, 0);
     }

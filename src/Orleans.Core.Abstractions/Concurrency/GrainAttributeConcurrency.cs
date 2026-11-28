@@ -10,16 +10,16 @@ using System.Globalization;
 namespace Orleans.Concurrency
 {
     /// <summary>
-    /// ReadOnly 属性用于标记不修改 grain状态的方法。
+    /// ReadOnly 特性用于标记不修改 Grain 状态的方法。
     /// <para>
-    /// 标记方法 ReadOnly 使运行时系统能够进行若干优化
-    /// 申请后,您可大大改善申请的绩效。
+    /// 将方法标记为 ReadOnly 可使运行时执行多项优化，
+    /// 从而可能显著改善应用程序的性能。
     /// </para>
     /// </summary>
     /// <remarks>
-    /// 将此属性应用到 grain 接口方法声明。只读请求可与其他
-    /// 仅读只读请求。可写的请求等待所有当前只读只读请求完成后再提出,除非其他
-    /// 相互交错的政策允许它们重叠。
+    /// 将此特性应用于 Grain 接口的方法声明。只读请求可与其他
+    /// 只读请求交错执行。可写请求须等待所有正在处理的只读请求完成，除非其他
+    /// 交错执行策略允许它们交错执行。
     /// </remarks>
     [InvokableCustomInitializer(nameof(IRequest.AddInvokeMethodOptions), InvokeMethodOptions.ReadOnly)]
     [AttributeUsage(AttributeTargets.Method)]
@@ -28,11 +28,11 @@ namespace Orleans.Concurrency
     }
 
     /// <summary>
-    /// 重新输入属性用于标记 grain 执行类别,允许在任务内进行请求中断。
+    /// Reentrant 特性用于标记允许在任务执行期间交错处理请求的 Grain 实现类。
     /// <para>
-    /// 这是一个先进的特征,除非充分了解其影响,否则不应使用。
-    /// 尽管如此,允许请求相互互换使运行时系统能够进行一些优化
-    /// 申请后,您可大大改善申请的绩效。
+    /// 这是一项高级功能，必须充分了解其影响后再使用。
+    /// 不过，允许请求交错执行可使运行时执行多项优化，
+    /// 从而可能显著改善应用程序的性能。
     /// </para>
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
@@ -48,11 +48,11 @@ namespace Orleans.Concurrency
     }
 
     /// <summary>
-    /// 无顺序的属性用于标记 grain 接口,其中交付顺序
-    /// 信件不重要 。
+    /// Unordered 特性用于标记这样的 Grain 接口：
+    /// 消息的投递顺序并不重要。
     /// </summary>
     /// <remarks>
-    /// 这一属性没有效力,将来可予以删除。
+    /// 此特性不起作用，将来可能会被移除。
     /// </remarks>
     [AttributeUsage(AttributeTargets.Interface)]
     [Obsolete("Message ordering is not guaranteed regardless of whether this attribute is used. This attribute has no effect.")]
@@ -61,8 +61,8 @@ namespace Orleans.Concurrency
     }
 
     /// <summary>
-    /// StatelessWorker 属性用于标记无预期的 grain 类
-    /// 保留 grain 状态的请求与允许在运行时多次启动同一 grain 的状态之间。
+    /// StatelessWorker 特性用于标记这样的 Grain 类：不要求在请求之间保留 Grain 状态，
+    /// 并允许运行时为同一 Grain 创建多个激活实例。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class StatelessWorkerAttribute : PlacementAttribute, IGrainPropertiesProviderAttribute
@@ -70,7 +70,7 @@ namespace Orleans.Concurrency
         /// <summary>
         /// 初始化 <see cref="StatelessWorkerAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="maxLocalWorkers">当地工人最多。</param>
+        /// <param name="maxLocalWorkers">本地工作者的最大数量。</param>
         public StatelessWorkerAttribute(int maxLocalWorkers)
             : base(new StatelessWorkerPlacement(maxLocalWorkers))
         {
@@ -79,8 +79,8 @@ namespace Orleans.Concurrency
         /// <summary>
         /// 初始化 <see cref="StatelessWorkerAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="maxLocalWorkers">当地工人最多。</param>
-        /// <param name="removeIdleWorkers">表示是否删除闲置工人激活的值。</param>
+        /// <param name="maxLocalWorkers">本地工作者的最大数量。</param>
+        /// <param name="removeIdleWorkers">指示是否移除空闲工作者激活实例的值。</param>
         public StatelessWorkerAttribute(int maxLocalWorkers, bool removeIdleWorkers)
             : base(new StatelessWorkerPlacement(maxLocalWorkers, removeIdleWorkers))
         {
@@ -103,11 +103,11 @@ namespace Orleans.Concurrency
     }
 
     /// <summary>
-    /// AlwaysInterleaveAttribute 属性用于标示可以与任何方法交叉使用的方法,包括写(非 ReadOnly)请求。
+    /// AlwaysInterleaveAttribute 特性用于标记可与任意方法交错执行的方法，包括写入（非 ReadOnly）请求。
     /// </summary>
     /// <remarks>
-    /// 请注意,此属性适用于 grain 接口的方法声明,
-    /// 而不是执行舱本身的方法。
+    /// 请注意，应将此特性应用于 Grain 接口中的方法声明，
+    /// 而不是实现类本身的方法。
     /// </remarks>
     [InvokableCustomInitializer(nameof(IRequest.AddInvokeMethodOptions), InvokeMethodOptions.AlwaysInterleave)]
     [AttributeUsage(AttributeTargets.Method)]
@@ -116,12 +116,12 @@ namespace Orleans.Concurrency
     }
 
     /// <summary>
-    /// MayInterleaveAttribute 属性用于标记类
-    /// 想要控制请求通过提供的方法回调中断的连接。
+    /// MayInterleaveAttribute 特性用于标记希望通过
+    /// 给定的方法回调来控制请求交错执行的类。
     /// </summary>
     /// <remarks>
-    /// 回回调方法名称应指在同一类上宣布的公共静态函数
-    /// 具有以下签名: <c>public static bool MayInterleave(IInvokable req)</c>
+    /// 回调方法名称应指向同一类上声明的公共静态方法，
+    /// 其签名如下：<c>public static bool MayInterleave(IInvokable req)</c>
     /// </remarks>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class MayInterleaveAttribute : Attribute, IGrainPropertiesProviderAttribute
@@ -130,8 +130,8 @@ namespace Orleans.Concurrency
         /// 初始化 <see cref="MayInterleaveAttribute"/> 类的新实例。
         /// </summary>
         /// <param name="callbackMethodName">
-        /// 回调方法名称。 这应该用 
-        /// 以下签字: <c>public static bool NameOfMethod(IInvokable req)</c>
+        /// 回调方法的名称。它应解析为具有以下
+        /// 签名的方法：<c>public static bool NameOfMethod(IInvokable req)</c>
         /// </param>
         public MayInterleaveAttribute(string callbackMethodName)
         {
@@ -139,7 +139,7 @@ namespace Orleans.Concurrency
         }
 
         /// <summary>
-        /// 获取回调方法的名称
+        /// 获取回调方法的名称。
         /// </summary>
         internal string CallbackMethodName { get; private set; }
 
@@ -154,7 +154,7 @@ namespace Orleans.Concurrency
     }
 
     /// <summary>
-    /// 表示 grain 接口上的一种方法是单向的,不会将任何回复信息发送到呼叫者。
+    /// 指示 Grain 接口上的某个方法为单向方法，不会向调用方发送响应消息。
     /// </summary>
     [InvokableCustomInitializer(nameof(IRequest.AddInvokeMethodOptions), InvokeMethodOptions.OneWay)]
     [AttributeUsage(AttributeTargets.Method)]

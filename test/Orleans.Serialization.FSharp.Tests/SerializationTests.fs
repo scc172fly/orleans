@@ -8,25 +8,25 @@ open Xunit
 type DefaultClusterTestCollection() = interface ICollectionFixture<DefaultClusterFixture>;
 
 /// <summary>
-/// Tests for Orleans' F# language support in serialization.
+/// 测试 Orleans 对 F# 语言的序列化支持。
 /// 
-/// Orleans provides first-class support for F# types including:
-/// - Discriminated unions (both enum-style and data-carrying)
-/// - F# records with structural equality
-/// - Recursive discriminated unions
-/// - Generic discriminated unions
-/// - Option types and other F# core types
-/// - Unit type
+/// Orleans 为以下 F# 类型提供一等支持：
+/// - 可区分联合（包括枚举式联合和携带数据的联合）
+/// - 具有结构相等性的 F# 记录
+/// - 递归可区分联合
+/// - 泛型可区分联合
+/// - 选项类型及其他 F# 核心类型
+/// - unit 类型
 /// 
-/// The F# serialization support ensures:
-/// - Proper handling of F# type system features
-/// - Preservation of structural equality semantics
-/// - Efficient encoding of discriminated union cases
-/// - Support for F# collections (lists, sets, maps)
+/// F# 序列化支持确保：
+/// - 正确处理 F# 类型系统特性
+/// - 保持结构相等语义
+/// - 高效编码可区分联合的各个分支
+/// - 支持 F# 集合（列表、集合和映射）
 /// 
-/// This enables F# developers to use Orleans with idiomatic F# code,
-/// leveraging functional programming patterns while maintaining
-/// full compatibility with Orleans' distributed computing model.
+/// 这使 F# 开发者能够使用符合 F# 习惯的代码来使用 Orleans，
+/// 在运用函数式编程模式的同时，
+/// 保持与 Orleans 分布式计算模型完全兼容。
 /// </summary>
 [<TestSuite("BVT"); TestProvider("None"); TestArea("Serialization")>]
 type FSharpSerializationTests(fixture: DefaultClusterFixture) =
@@ -35,8 +35,8 @@ type FSharpSerializationTests(fixture: DefaultClusterFixture) =
     let cluster = fixture.HostedCluster
 
     /// <summary>
-    /// Tests serialization of F# unit type, which represents "no value" and is commonly
-    /// used in F# for side-effect-only operations.
+    /// 测试 F# unit 类型的序列化；该类型表示“无值”，通常
+    /// 用于 F# 中仅产生副作用的操作。
     /// </summary>
     [<Fact; TestCategory("BVT"); TestCategory("Serialization")>]
     let Serialization_Roundtrip_FSharp_Unit () =
@@ -46,8 +46,8 @@ type FSharpSerializationTests(fixture: DefaultClusterFixture) =
         Assert.Equal((), copy)
 
     /// <summary>
-    /// Tests enum-style discriminated unions (DUs without data), which are similar
-    /// to C# enums but with F# type safety and pattern matching support.
+    /// 测试枚举式可区分联合（不携带数据的 DU），这类联合类似于
+    /// C# 枚举，但具有 F# 类型安全性和模式匹配支持。
     /// </summary>
     [<Fact; TestCategory("BVT"); TestCategory("Serialization")>]
     let Serialization_Roundtrip_FSharp_EnumStyleDU () =
@@ -78,8 +78,8 @@ type FSharpSerializationTests(fixture: DefaultClusterFixture) =
         Assert.Equal(case2, copyCase2)
 
     /// <summary>
-    /// Tests recursive discriminated unions, which can contain references to themselves,
-    /// commonly used for tree structures and recursive data types in F#.
+    /// 测试可包含对自身引用的递归可区分联合，
+    /// 这类联合常用于 F# 中的树结构和递归数据类型。
     /// </summary>
     [<Fact; TestCategory("BVT"); TestCategory("Serialization")>]
     let Serialization_Roundtrip_FSharp_RecursiveDU () =

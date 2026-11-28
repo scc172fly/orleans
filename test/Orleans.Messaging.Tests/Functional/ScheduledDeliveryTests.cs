@@ -197,10 +197,10 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
             await DeliverAsync(receiver, Schedule(CreateEnvelope(receiver, NewMessage(80, "outage")), deliverAt)));
         await Fixture.CollectAsync(Fixture.GetGrainContext(receiver));
 
-        // 5次失败后, 持久工作放弃其他工作; 抽水机的工作持续经历长期停工。
+        // Durable Jobs 在其他作业运行失败 5 次后放弃；消息泵作业在更长的中断期间仍持续重试。
         const int failures = 7;
         Fixture.Storage.FailReads(journal, failures);
-        // 一旦《持久工作》记录了失败的运行,每件重试都会在“持久工作钟”上到期。
+        // Durable Jobs 记录失败的运行后，每次重试按 Durable Jobs 时钟到期。
         var reads = Fixture.Storage.GetReadCount(journal);
         await WaitUntilAsync(() =>
         {
@@ -220,7 +220,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         var receiver = NewGrain();
         _ = await receiver.GetSnapshotAsync();
 
-        // 没有任何信息通话达到启动时间,而且其警醒被抑制。
+        // 尚未有任何消息传递调用到达此激活实例，其唤醒已被抑制。
         Fixture.JobManagerProbe.SkipNext(MessagingPump.JobName);
         var staged = CreateEnvelope(receiver, NewMessage(83, "staged"));
         await Fixture.OnGrainAsync(receiver, () => InboxTestAccess.StageAcceptance(Fixture.GetInbox(receiver), staged));
@@ -241,8 +241,8 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
             DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, CreateEnvelope(receiver, NewMessage(81, "first"), HeldRoute)));
             await WaitForBarrierAsync(receiver, held);
 
-            // 现场循环运行时进行正常工作, 所以提醒是 RecheckDelay内到期的崩溃保险, 然后
-            // 写回再使用它。
+            // 活跃的处理循环执行到期工作，因此唤醒只是防崩溃的保障，在 RecheckDelay 内到期；后续
+            // 写入复用该唤醒。
             var jobs = Fixture.JobManagerProbe.GetScheduledJobs(MessagingPump.JobName, grainId);
             Assert.Equal(scheduled + 1, jobs.Count);
             Assert.Equal(now + MessagingPump.RecheckDelay, jobs[^1].DueTime);
@@ -333,7 +333,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
 
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, envelope));
 
-        // 接受时间是持久的, 但提前提醒大家不要等到时机,
+        // 接受记录已持久化，但到期前的唤醒会让消息保持挂起，并为其重新调度唤醒。
         await AssertWakeupAtAsync(receiver, deliverAt);
         await AssertWakeupAtAsync(receiver, deliverAt);
         var pending = await receiver.GetSnapshotAsync();
@@ -352,7 +352,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         Assert.Equal(1, Assert.Single(completed.Effects).Count);
         Assert.Equal(0, completed.InboxCount);
 
-        // 完成后,晚间和重复的唤醒和再放款都一无所获。
+        // 迟到的唤醒、重复唤醒以及完成后的重新投递均不改变任何状态。
         Assert.Equal(DurableJobRunStatus.Completed, (await Fixture.RunPumpAsync(receiver)).Status);
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await DeliverAsync(receiver, envelope));
         Assert.Equal(1, Assert.Single((await receiver.GetSnapshotAsync()).Effects).Count);
@@ -371,13 +371,13 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         var laterJob = Assert.Single(Fixture.JobManagerProbe.GetScheduledJobs(MessagingPump.JobName, grainId));
         Assert.Equal(later, laterJob.DueTime);
 
-        // 稍后的警醒并不包括先发电文,因此其接受时间为更早。
+        // 较晚的唤醒无法覆盖先到期的消息，因此接受该消息会调度更早的唤醒。
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, Schedule(CreateEnvelope(receiver, NewMessage(21, "earlier")), earlier)));
         var jobs = Fixture.JobManagerProbe.GetScheduledJobs(MessagingPump.JobName, grainId);
         Assert.Equal(2, jobs.Count);
         Assert.Equal(earlier, jobs[1].DueTime);
 
-        // 任何其他的觉醒都有利于最早的觉醒,因为最早的觉醒将重新安排剩余工作的时间安排。
+        // 其他唤醒均直接完成，由最早的唤醒负责处理；其运行会为剩余工作重新调度。
         Assert.Equal(DurableJobRunStatus.Completed, (await Fixture.RunDuplicatePumpAsync(receiver)).Status);
         await AssertWakeupAtAsync(receiver, earlier);
         JobClock.Advance(earlier - JobClock.GetUtcNow());
@@ -385,7 +385,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         Assert.Equal("earlier", Assert.Single((await Fixture.WaitForEffectCountAsync(receiver, 1)).Effects).Value);
         Assert.Equal(DurableJobRunStatus.Completed, (await Fixture.RunDuplicatePumpAsync(receiver)).Status);
 
-        // 工作时间晚于最早的觉醒时间表,再无进一步进展。
+        // 在最早唤醒之后到期的工作不会再调度新的唤醒。
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, Schedule(CreateEnvelope(receiver, NewMessage(22, "last")), later + Delay)));
         Assert.Equal(2, Fixture.JobManagerProbe.GetScheduledJobs(MessagingPump.JobName, grainId).Count);
         await AssertWakeupAtAsync(receiver, later);
@@ -419,7 +419,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         await AssertWakeupAtAsync(receiver, deliverAt);
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await DeliverAsync(receiver, envelope));
 
-        // 收回的预定信件计为 MaxCapacity (2)。
+        // 恢复的已调度消息计入 MaxCapacity (2)。
         var second = CreateEnvelope(receiver, NewMessage(4, "second"));
         using (var held = Fixture.HandlerProbe.Arm(receiver.GetGrainId(), HeldRoute))
         {
@@ -448,7 +448,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         _ = await receiver.GetSnapshotAsync();
         var deliverAt = JobClock.GetUtcNow() + Delay;
 
-        // MaxCapacity 是2,预定的邮件在等待期间保持着容量。
+        // MaxCapacity 为 2，已调度消息在等待期间占用容量。
         for (var sequence = 10; sequence < 12; sequence++)
         {
             var scheduled = Schedule(CreateEnvelope(receiver, NewMessage(sequence, $"scheduled-{sequence}")), deliverAt);
@@ -499,7 +499,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         Assert.Equal(DurableJobRunStatus.Completed, (await Fixture.RunPumpAsync(receiver)).Status);
         Assert.Equal(1, Assert.Single((await Fixture.WaitForEffectCountAsync(receiver, 1)).Effects).Count);
 
-        // 不论内容如何,填写完毕的身份证均予以废除。
+        // 已完成的 ID 无论内容如何都会去重。
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await DeliverAsync(receiver, Schedule(envelope, deliverAt + Delay)));
         Assert.Equal(1, Assert.Single((await receiver.GetSnapshotAsync()).Effects).Count);
     }
@@ -517,7 +517,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         await grain.StageOutputAsync(outgoing);
         await grain.RetryWriteStateAsync();
 
-        // grain自己的收件箱接受了该文中的电文,没有等待到到期时间。
+        // Grain 自身的收件箱在该次写入中接受消息，而不等待到期时间。
         var delivered = await Fixture.SnapshotProbe.WaitAsync(
             grain.GetGrainId(), static snapshot => snapshot.InboxCount == 1 && snapshot.OutboxCount == 0);
         Assert.Empty(delivered.Effects);
@@ -542,7 +542,7 @@ public sealed class ScheduledDeliveryTests() : MessagingBehaviorTestBase(new Sch
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, envelope));
         await AssertWakeupAtAsync(receiver, deliverAt);
 
-        // 晚些应完成的工作不能维持激活;持久觉醒可以恢复启动。
+        // 较晚到期的工作不使激活实例保持活动；持久化唤醒会重新激活它。
         var context = Fixture.GetGrainContext(receiver);
         await Fixture.CollectAsync(context);
 

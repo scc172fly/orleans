@@ -6,7 +6,7 @@ namespace Orleans.Transactions
 {
 
     /// <summary>
-    /// 单调地提供统一时制时间戳,并合并分布式参加者的时间标记。
+    /// 提供单调递增的 UTC 时间戳，并合并来自分布式参与者的时间戳。
     /// </summary>
     public class CausalClock
     {
@@ -17,16 +17,16 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="CausalClock"/> 类的新实例。
         /// </summary>
-        /// <param name="clock">生成时标所使用的下限物理钟。</param>
+        /// <param name="clock">用作生成时间戳下限的物理时钟。</param>
         public CausalClock(IClock clock)
         {
             this.clock = clock ?? throw new ArgumentNullException(nameof(clock));
         }
 
         /// <summary>
-        /// 获得一个UTC 时间戳, 时间戳比本例之前观察到的每次时间戳晚。
+        /// 获取晚于此实例之前观察到的所有时间戳的 UTC 时间戳。
         /// </summary>
-        /// <returns>一个单质增加的UTC 时间戳。</returns>
+        /// <returns>单调递增的 UTC 时间戳。</returns>
         public DateTime UtcNow()
         {
             lock (this.lockable)
@@ -37,10 +37,10 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// 将时间戳合并到这个时钟中。
+        /// 将时间戳合并到此时钟中。
         /// </summary>
-        /// <param name="timestamp">所要遵守的时间戳。</param>
-        /// <returns>该钟所观察到的最新时间戳。</returns>
+        /// <param name="timestamp">要观察的时间戳。</param>
+        /// <returns>此时钟观察到的最新时间戳。</returns>
         public DateTime Merge(DateTime timestamp)
         {
             lock (this.lockable)
@@ -51,10 +51,10 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// 使用当前 UTC 时间合并一个时间戳并提前这个时钟 。
+        /// 合并时间戳，并使用当前 UTC 时间推进此时钟。
         /// </summary>
         /// <param name="timestamp">推进时钟前要观察的时间戳。</param>
-        /// <returns>UTC 时间戳比提供的时间和以前观察到的时间戳晚。</returns>
+        /// <returns>晚于传入及先前观察到的时间戳的 UTC 时间戳。</returns>
         public DateTime MergeUtcNow(DateTime timestamp)
         {
             lock (this.lockable)

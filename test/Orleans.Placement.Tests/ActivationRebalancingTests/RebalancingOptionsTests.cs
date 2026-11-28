@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.ActivationRebalancingTests;
 
 /// <summary>
-/// 启动再平衡配置选项验证测试。
+/// 测试激活实例再均衡器配置选项的验证。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]

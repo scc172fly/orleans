@@ -7,8 +7,8 @@ using Orleans.CodeGenerator.Diagnostics;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// 核查 Orleans 源码生成器的增量缓存正确
-/// 投入未改变时,管道产出避免不必要的再生。
+/// 测试 Orleans 增量源码生成器能否在输入未改变时正确缓存
+/// 流水线输出，避免不必要的重新生成。
 /// </summary>
 public class IncrementalCachingTests
 {
@@ -50,7 +50,7 @@ public class IncrementalCachingTests
 
         Assert.Empty(first.Diagnostics);
         Assert.Empty(second.Diagnostics);
-        // 新的汇编仍在进行语义准备和源建构。
+        // 新的编译仍会执行语义准备及源码构建。
         Assert.All(second.TrackedSteps[OrleansSerializationSourceGenerator.PreparedProxyOutputsTrackingName]
             .SelectMany(static step => step.Outputs), static output => Assert.Equal(IncrementalStepRunReason.Unchanged, output.Reason));
         AssertGeneratedSourcesIdentical(first, second);
@@ -442,7 +442,7 @@ public class IncrementalCachingTests
 
         AssertAnyOutputModifiedOrNew(result2);
 
-        // 第二批应比第一批产生更多来源
+        // 第二次运行应比第一次生成更多源码
         Assert.True(
             result2.GeneratedSources.Length >= result1.GeneratedSources.Length,
             "Adding a new serializable type should produce at least as many generated sources.");

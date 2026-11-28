@@ -17,8 +17,8 @@ public sealed class ConversionGrain : DurableGrain
     {
         await Approve(amount).WithId("approve");
 
-        // 继续运行于线性球库:国家变化与 grain其他旋转的顺序相竞,并承诺
-        // 与结果分开。
+        // 延续操作在线程池上运行：状态变更与 Grain 的其他执行轮次竞争，并且
+        // 独立于结果提交。
         var rate = await _rates.GetRateAsync(currency, DurableTask.Current.CancellationToken).ConfigureAwait(false);
         _lastRate.Value = rate;
         return amount * rate;
@@ -31,7 +31,7 @@ public sealed class ConversionGrain : DurableGrain
     {
         await Approve(amount).WithId("approve");
 
-        // 继续返回激活的调度器, 国家变化也随之而来。
+        // 延续操作回到激活实例的调度器，状态变更与结果一同提交。
         var rate = await _rates.GetRateAsync(currency, DurableTask.Current.CancellationToken);
         _lastRate.Value = rate;
         return amount * rate;

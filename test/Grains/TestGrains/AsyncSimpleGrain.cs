@@ -4,7 +4,7 @@ using UnitTests.GrainInterfaces;
 namespace UnitTests.Grains
 {
     /// <summary>
-    /// 简单 grain ,它允许设置两个参数然后乘以它们。
+    /// 一个简单的 Grain，允许设置两个参数，然后将它们相乘。
     /// </summary>
     public class AsyncSimpleGrain : SimpleGrain, ISimpleGrainWithAsyncMethods
     {
@@ -16,35 +16,35 @@ namespace UnitTests.Grains
 
         public async Task<int> GetAxB_Async()
         {
-            await Task.Delay(1000); // 仅延迟履行为测试目的的许诺
+            await Task.Delay(1000); // 仅为测试目的延迟 Promise 的完成
             return await GetAxB();
         }
 
         public async Task<int> GetAxB_Async(int a, int b)
         {
-            await Task.Delay(1000); // 仅延迟履行为测试目的的许诺
+            await Task.Delay(1000); // 仅为测试目的延迟 Promise 的完成
             return await GetAxB(a, b);
         }
         public async Task SetA_Async(int a)
         {
-            await Task.Delay(1000); // 仅延迟履行为测试目的的许诺
+            await Task.Delay(1000); // 仅为测试目的延迟 Promise 的完成
             await SetA(a);
         }
         public async Task SetB_Async(int b)
         {
-            await Task.Delay(1000); // 仅延迟履行为测试目的的许诺
+            await Task.Delay(1000); // 仅为测试目的延迟 Promise 的完成
             await SetB(b);
         }
 
         public async Task IncrementA_Async()
         {
-            await Task.Delay(1000); // 仅延迟履行为测试目的的许诺
+            await Task.Delay(1000); // 仅为测试目的延迟 Promise 的完成
             await IncrementA();
         }
 
         public async Task<int> GetA_Async()
         {
-            await Task.Delay(1000); // 仅延迟履行为测试目的的许诺
+            await Task.Delay(1000); // 仅为测试目的延迟 Promise 的完成
             return await GetA();
         }
 

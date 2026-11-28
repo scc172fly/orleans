@@ -100,7 +100,7 @@ public class CatalogInstrumentsTests
             }
             else
             {
-                // 测量<T> 复制标签,但必须重新使用缓存的金刚石字符串。
+                // Measurement<T> 会复制标签，但必须复用缓存的规范化字符串。
                 var tag = Assert.Single(measurement.Tags.ToArray());
                 Assert.Equal("grain_type", tag.Key);
                 Assert.Same(metrics.GrainTypeTagValue, Assert.IsType<string>(tag.Value));
@@ -249,7 +249,7 @@ public class CatalogInstrumentsTests
         var tasks = new Task<GrainTypeMetrics>[workers];
         for (var i = 0; i < workers; i++)
         {
-            // 专职工人防止在第一用途屏障上出现线性饥荒。
+            // 专用工作线程可防止首次使用屏障处发生线程池饥饿。
             tasks[i] = Task.Factory.StartNew(() =>
             {
                 barrier.SignalAndWait(cancellationToken);
@@ -367,7 +367,7 @@ public class CatalogInstrumentsTests
         using var listener = fixture.Capture(observations);
         var tracker = WithDeactivationReason(CatalogInstruments.DeactivationMetricTracker.Start(fixture.Instruments, type), via);
         if (recordIfNeededFirst) tracker.RecordIfNeeded();
-        else tracker.Record(); // 有意忽略返回的建筑: 此本地必须仍然标记 。
+        else tracker.Record(); // 故意忽略返回的结构体：此局部变量仍必须被标记为已记录。
         tracker.Record();
         tracker.RecordIfNeeded();
         tracker = tracker.Migration();
@@ -395,7 +395,7 @@ public class CatalogInstrumentsTests
         using var listener = fixture.Listen<double>((instrument, value, tags, _) =>
         {
             observations.Add(new(instrument, value, tags.ToArray()));
-            // 重回,回归失败 事件计数,而不是堆叠溢出。
+            // 限制递归深度，使回归问题因事件数量不符而失败，而不是导致堆栈溢出。
             if (instrument.Name == InstrumentNames.CATALOG_ACTIVATION_LATENCY && observations.Count == 1)
             {
                 activation.Canceled();
@@ -471,7 +471,7 @@ public class CatalogInstrumentsTests
         using var fixture = new CatalogMetricFixture();
         var known = fixture.Instruments.GetGrainTypeMetrics(GrainType.Create("collection-orders"));
         var unknown = fixture.Instruments.GetGrainTypeMetrics(GrainType.Create("unknown"));
-        fixture.Instruments.ActivationShutdownViaCollection(); // 残疾人事件不重播。
+        fixture.Instruments.ActivationShutdownViaCollection(); // 禁用的事件不会重放。
         var observations = new List<RecordedMeasurement<int>>();
         using var listener = fixture.Capture(observations);
         Assert.Empty(observations);
@@ -830,7 +830,7 @@ public class CatalogInstrumentsTests
         directory.RecordNewTarget(loser);
 
         var observations = new List<RecordedMeasurement<int>>();
-        using var listener = fixture.Capture(observations); // 登记后故意附加。
+        using var listener = fixture.Capture(observations); // 故意在注册之后附加监听器。
         Assert.Same(first, directory.FindTarget(first.GrainId));
         Assert.Same(second, directory.FindTarget(second.GrainId));
         Assert.Same(other, directory.FindTarget(other.GrainId));
@@ -1015,7 +1015,7 @@ public class CatalogInstrumentsTests
         List<RecordedMeasurement<int>> observations,
         params (string Type, int Count)[] expected)
     {
-        observations.Clear(); // 刮痕是一瞬间,从来不是累积事件总数。
+        observations.Clear(); // 一次指标抓取是一个快照，绝不是累计事件总数。
         listener.RecordObservableInstruments();
         Assert.Equal(expected.Length, observations.Count);
         foreach (var (type, count) in expected)

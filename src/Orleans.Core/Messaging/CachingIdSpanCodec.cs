@@ -9,16 +9,16 @@ using Orleans.Caching;
 namespace Orleans.Runtime.Messaging
 {
     /// <summary>
-    /// <see cref="IdSpan"/> 的序列器,该序列器缓存值并避免重编码和不必要的分配。
+    /// 用于 <see cref="IdSpan"/> 的序列化器，可缓存值以避免重复编码和不必要的内存分配。
     /// </summary>
     internal sealed class CachingIdSpanCodec
     {
         private static readonly ConcurrentLruCache<IdSpan, IdSpan> SharedCache = new(capacity: 128_000);
 
-        // 清洗条目在两分钟内尚未进入。 
+        // 清除超过 2 分钟未访问的条目。
         private const long PurgeAfterMilliseconds = 2 * 60 * 1000;
 
-        // 每分钟过期的条目扫描
+        // 每分钟扫描一次过期条目。
         private const long GarbageCollectionIntervalMilliseconds = 60 * 1000;
 
         private readonly Dictionary<int, (byte[] Value, long LastSeen)> _cache = new();
@@ -55,15 +55,15 @@ namespace Orleans.Runtime.Messaging
             {
                 result = IdSpan.UnsafeCreate(payloadArray ?? payloadSpan.ToArray(), hashCode);
 
-                // 在给私人藏匿处添加这个价值并归还之前 通过共享的藏匿处进行内部实习 希望能减少重复
+                // 将此值添加到私有缓存并返回之前，通过共享缓存对其进行驻留（intern），以尽可能减少重复实例。
                 result = SharedCache.GetOrAdd(result, static (key, _) => key, (object?)null);
 
-                // 更新缓存。 如果发生散列碰撞, 最后一项会赢 。
+                // 更新缓存。如果发生哈希冲突，则以最后写入的条目为准。
                 cacheEntry.Value = IdSpan.UnsafeGetArray(result)!;
             }
             cacheEntry.LastSeen = currentTimestamp;
 
-            // 进行定期维护以防止未约束的内存泄漏。
+            // 定期执行维护，防止内存泄漏导致占用无限增长。
             if (currentTimestamp - _lastGarbageCollectionTimestamp > GarbageCollectionIntervalMilliseconds)
             {
                 PurgeStaleEntries();

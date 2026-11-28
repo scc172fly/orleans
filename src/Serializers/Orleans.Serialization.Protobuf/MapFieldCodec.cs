@@ -11,10 +11,10 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// <see cref="MapField{TKey,TValue}"/>的序列器。
+/// <see cref="MapField{TKey,TValue}"/> 的序列化器。
 /// </summary>
-/// <typeparam name="TKey">密钥类型。</typeparam>
-/// <typeparam name="TValue">值类型。</typeparam>
+/// <typeparam name="TKey">键类型。</typeparam>
+/// <typeparam name="TValue">值的类型。</typeparam>
 [RegisterSerializer]
 public sealed class MapFieldCodec<TKey, TValue> : IFieldCodec<MapField<TKey, TValue>>
 {
@@ -27,8 +27,8 @@ public sealed class MapFieldCodec<TKey, TValue> : IFieldCodec<MapField<TKey, TVa
     /// <summary>
     /// 初始化 <see cref="MapFieldCodec{TKey, TValue}"/> 类的新实例。
     /// </summary>
-    /// <param name="keyCodec">密钥编码器。</param>
-    /// <param name="valueCodec">值代码。</param>
+    /// <param name="keyCodec">键编解码器。</param>
+    /// <param name="valueCodec">值编解码器。</param>
     public MapFieldCodec(
         IFieldCodec<TKey> keyCodec,
         IFieldCodec<TValue> valueCodec)

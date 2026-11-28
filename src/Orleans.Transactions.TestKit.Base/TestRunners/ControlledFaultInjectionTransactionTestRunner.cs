@@ -9,7 +9,7 @@ using Orleans.Configuration;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 进行交易测试,在受控协议阶段输入缺陷并核实回收。
+    /// 执行在受控协议阶段注入故障并验证恢复行为的事务测试。
     /// </summary>
     public class ControlledFaultInjectionTransactionTestRunner : TransactionTestRunnerBase
     {
@@ -22,16 +22,16 @@ namespace Orleans.Transactions.TestKit
         /// <summary>
         /// 初始化 <see cref="ControlledFaultInjectionTransactionTestRunner"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">下 grain 用于测试的工厂 grains.</param>
+        /// <param name="grainFactory">用于访问测试 Grain 的 Grain 工厂。</param>
         /// <param name="output">用于写入测试输出的回调。</param>
         public ControlledFaultInjectionTransactionTestRunner(IGrainFactory grainFactory, Action<string> output)
          : base(grainFactory, output)
         { }
 
         /// <summary>
-        /// 证明在 grain 被停止使用和重新启动后,承诺值仍可读取。
+        /// 验证 Grain 停用并重新激活后，已提交的值仍可读取。
         /// </summary>
-        /// <returns>代表测试的任务。</returns>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task SingleGrainReadTransaction()
         {
             const int expected = 5;
@@ -46,9 +46,9 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 证明在[问题]解除和重新启动 grain 后仍有交易书写作。
+        /// 验证 Grain 停用并重新激活后，事务写入仍处于已提交状态。
         /// </summary>
-        /// <returns>代表测试的任务。</returns>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task SingleGrainWriteTransaction()
         {
             const int delta = 5;
@@ -62,11 +62,11 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 在选定的协议阶段给多grain 写字输入错误,并核实回收状态。
+        /// 在选定协议阶段向多 Grain 写入注入故障，并验证恢复后的状态。
         /// </summary>
-        /// <param name="injectionPhase">输入错误的交易协议阶段。</param>
-        /// <param name="injectionType">注射的过失类型。</param>
-        /// <returns>代表错误注射和回收测试的任务。</returns>
+        /// <param name="injectionPhase">要注入故障的事务协议阶段。</param>
+        /// <param name="injectionType">要注入的故障类型。</param>
+        /// <returns>表示故障注入与恢复测试的任务。</returns>
         public virtual async Task MultiGrainWriteTransaction_FaultInjection(TransactionFaultInjectPhase injectionPhase, FaultInjectionType injectionType)
         {
             const int setval = 5;

@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 系统状态值和当前登记册
+    /// 系统状态值及当前状态记录。
     /// </summary>
     internal sealed class SystemStatus : IEquatable<SystemStatus>
     {
@@ -20,35 +20,35 @@ namespace Orleans.Runtime
             Terminated,
         };
 
-        /// <summary>状态=未知</summary>
+        /// <summary>状态 = Unknown（未知）</summary>
         [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes")]
         public static readonly SystemStatus Unknown = new SystemStatus(InternalSystemStatus.Unknown);
 
-        /// <summary>状态=创建</summary>
+        /// <summary>状态 = Creating（正在创建）</summary>
         [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes")]
         public static readonly SystemStatus Creating = new SystemStatus(InternalSystemStatus.Creating);
 
-        /// <summary>状态=已创建</summary>
+        /// <summary>状态 = Created（已创建）</summary>
         [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes")]
         public static readonly SystemStatus Created = new SystemStatus(InternalSystemStatus.Created);
 
-        /// <summary>状态=开始</summary>
+        /// <summary>状态 = Starting（正在启动）</summary>
         [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes")]
         public static readonly SystemStatus Starting = new SystemStatus(InternalSystemStatus.Starting);
 
-        /// <summary>状态=运行中</summary>
+        /// <summary>状态 = Running（正在运行）</summary>
         [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes")]
         public static readonly SystemStatus Running = new SystemStatus(InternalSystemStatus.Running);
 
-        /// <summary>状态=停止</summary>
+        /// <summary>状态 = Stopping（正在停止）</summary>
         [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes")]
         public static readonly SystemStatus Stopping = new SystemStatus(InternalSystemStatus.Stopping);
 
-        /// <summary>状态= ShuttingDown</summary>
+        /// <summary>状态 = ShuttingDown（正在关闭）</summary>
         [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes")]
         public static readonly SystemStatus ShuttingDown = new SystemStatus(InternalSystemStatus.ShuttingDown);
 
-        /// <summary>状态=终止</summary>
+        /// <summary>状态 = Terminated（已终止）</summary>
         [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes")]
         public static readonly SystemStatus Terminated = new SystemStatus(InternalSystemStatus.Terminated);
 

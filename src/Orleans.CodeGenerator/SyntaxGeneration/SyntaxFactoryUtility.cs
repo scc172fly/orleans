@@ -11,13 +11,13 @@ internal static class SyntaxFactoryUtility
     /// 返回成员访问语法。
     /// </summary>
     /// <param name="instance">
-    /// 举个例子
+    /// 实例。
     /// </param>
     /// <param name="member">
     /// 成员。
     /// </param>
     /// <returns>
-    /// 结果的 <see cref="MemberAccessExpressionSyntax"/>。
+    /// 生成的 <see cref="MemberAccessExpressionSyntax"/>。
     /// </returns>
     public static MemberAccessExpressionSyntax Member(this ExpressionSyntax instance, string member) => instance.Member(member.ToIdentifierName());
 
@@ -25,18 +25,18 @@ internal static class SyntaxFactoryUtility
     /// 返回成员访问语法。
     /// </summary>
     /// <param name="instance">
-    /// 举个例子
+    /// 实例。
     /// </param>
     /// <param name="member">
     /// 成员。
     /// </param>
     /// <returns>
-    /// 结果的 <see cref="MemberAccessExpressionSyntax"/>。
+    /// 生成的 <see cref="MemberAccessExpressionSyntax"/>。
     /// </returns>
     public static MemberAccessExpressionSyntax Member(this ExpressionSyntax instance, IdentifierNameSyntax member) => MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, instance, member);
 
     /// <summary>
-    /// 返回每个类型参数的拼写限制,按声明顺序排列,并将类型参数重新命名为生成的名称。
+    /// 按声明顺序返回各类型参数约束的代码文本，其中类型参数重命名为生成后的名称。
     /// </summary>
     public static List<(string Name, List<string> Constraints)> GetTypeParameterConstraintTexts(List<(string Name, ITypeParameterSymbol Parameter)> typeParameters)
     {

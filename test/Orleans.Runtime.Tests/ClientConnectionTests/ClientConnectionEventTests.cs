@@ -7,7 +7,7 @@ using Xunit;
 namespace Tester;
 
 /// <summary>
-/// 客户连接事件的测试,包括集群断开和网关计数变化。
+/// 测试客户端连接事件，包括集群断开连接及网关数量变化。
 /// </summary>
 [TestSuite("SlowBVT")]
 [TestProvider("None")]
@@ -27,7 +27,7 @@ public class ClientConnectionEventTests
         await using var cluster = builder.Build();
         await cluster.DeployAsync(TestContext.Current.CancellationToken);
 
-        // 电话很多,要确定我们和所有 silos都连接了
+        // 集中发起大量调用，确保已连接到所有 Silo
         for (int i = 0; i < 100; i++)
         {
             var grain = cluster.Client!.GetGrain<ITestGrain>(i); // DeployAsync 初始化客户端。
@@ -69,7 +69,7 @@ public class ClientConnectionEventTests
 
         await cluster.RestartStoppedSecondarySiloAsync(silo.Name);
 
-        // 客户需要提前联系才能重新连接
+        // 需要发起操作来促使客户端重新连接。
         var remainingAttempts = 90;
         bool reconnected;
         do

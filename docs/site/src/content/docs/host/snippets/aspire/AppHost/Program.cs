@@ -1,2 +1,2 @@
-// 切入点 - 汇编时呼叫示例法
+// 入口点：调用示例方法以供编译。
 Orleans.Docs.Snippets.Aspire.AppHostExamples.BasicOrleansCluster(args);

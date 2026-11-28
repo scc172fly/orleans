@@ -7,7 +7,7 @@ using Orleans.Streams;
 namespace Orleans.Streaming.Redis;
 
 /// <summary>
-/// 代表 Redis 流条目中的一个职位和该条目内的一个事件。
+/// 表示 Redis 流条目的位置及该条目中事件的位置。
 /// </summary>
 [Serializable]
 [GenerateSerializer]
@@ -16,10 +16,10 @@ internal sealed class RedisStreamSequenceToken : EventSequenceTokenV2
     /// <summary>
     /// 初始化 <see cref="RedisStreamSequenceToken"/> 类的新实例。
     /// </summary>
-    /// <param name="entryId"> Redis 条目识别符号。</param>
-    /// <param name="sequenceNumber"> Redis 条目识别符号的毫秒部分。</param>
-    /// <param name="redisSequenceNumber">单毫米秒 Redis 序列号。</param>
-    /// <param name="eventIndex">活动的索引 Orleans 批量。</param>
+    /// <param name="entryId">Redis 条目标识符。</param>
+    /// <param name="sequenceNumber">Redis 条目标识符的毫秒部分。</param>
+    /// <param name="redisSequenceNumber">Redis 每毫秒内的序列号。</param>
+    /// <param name="eventIndex">事件在 Orleans 批次中的索引。</param>
     public RedisStreamSequenceToken(string entryId, long sequenceNumber, long redisSequenceNumber, int eventIndex)
         : base(sequenceNumber, eventIndex)
     {
@@ -42,7 +42,7 @@ internal sealed class RedisStreamSequenceToken : EventSequenceTokenV2
     public string EntryId { get; private set; } = string.Empty;
 
     /// <summary>
-    /// 获得每毫秒序列号 Redis 。
+    /// 获取 Redis 每毫秒内的序列号。
     /// </summary>
     [Id(3)]
     [JsonProperty]
@@ -52,10 +52,10 @@ internal sealed class RedisStreamSequenceToken : EventSequenceTokenV2
     protected override Type SequenceTokenCompatibilityDomain => typeof(RedisStreamSequenceToken);
 
     /// <summary>
-    /// 创建同一 Redis 项内的事件的代号。
+    /// 为同一个 Redis 条目中的某个事件创建令牌。
     /// </summary>
-    /// <param name="eventIndex">内天体 Orleans 批量。</param>
-    /// <returns>指定事件的一个标记。</returns>
+    /// <param name="eventIndex">事件在 Orleans 批次中的索引。</param>
+    /// <returns>指定事件的令牌。</returns>
     public override RedisStreamSequenceToken CreateSequenceTokenForEvent(int eventIndex)
         => new(EntryId, SequenceNumber, RedisSequenceNumber, eventIndex);
 

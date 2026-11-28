@@ -21,8 +21,8 @@ using Xunit;
 namespace UnitTests.ActivationsLifeCycleTests;
 
 /// <summary>
-/// 证明退休 silo 将一个已排队申请的启动与这些请求一起迁移,
-/// 以及那些要求变更申请的呼喊者,在退休时一直等待着。 silo 出发。
+/// 验证正在退役的 Silo 将具有排队请求的激活连同这些请求一起迁移，
+/// 并且这些已迁移请求的调用方在退役 Silo 离开后仍继续等待。
 /// </summary>
 [TestSuite("BVT"), TestProvider("None"), TestCategory("BVT")]
 public sealed class RetirementHandoffTests
@@ -58,7 +58,7 @@ public sealed class RetirementHandoffTests
             RequestContext.Remove(IPlacementDirector.PlacementHintKey);
         }
 
-        // 手持激活, 然后排队请求在运行后 。
+        // 占用激活，然后在正在运行的请求之后将一个请求入队。
         var running = grain.Block().AsTask();
         await state.BlockEntered.Task.WaitAsync(Timeout, Cancellation);
         var queued = grain.HoldThenGetLocation().AsTask();
@@ -69,8 +69,8 @@ public sealed class RetirementHandoffTests
         state.ReleaseBlock.TrySetResult();
         await running.WaitAsync(Timeout, Cancellation);
 
-        // 排队请求在新激活时运行。 请在退休 silo 离开前先暂停,
-        // 以便呼叫者的目标 -silo 故障扫描 如果没有重新锁定目标, 将会完成通话。
+        // 排队请求在新激活上运行。将其阻塞至退役 Silo 离开，
+        // 以便在调用未重定向时，调用方针对目标 Silo 的故障清理扫描会结束该调用。
         var destination = await state.HoldEntered.Task.WaitAsync(Timeout, Cancellation);
         Assert.NotEqual(retiring.SiloAddress, destination);
         await stopping.WaitAsync(Timeout, Cancellation);
@@ -91,11 +91,11 @@ public sealed class RetirementHandoffTests
         var checker = services.GetRequiredService<GrainMigratabilityChecker>();
         var grainFactory = services.GetRequiredService<IGrainFactory>();
 
-        // 构造的通用 grains 以未构建的类描述,此处偏移。
+        // 已构造的泛型 Grain 由未构造的泛型类描述，此处该类可迁移。
         Assert.True(checker.IsMigratable(grainFactory.GetGrain<IGenericRetirementHandoffGrain<int>>(Guid.NewGuid()).GetGrainId().Type, Orleans.Placement.ImmovableKind.Any));
         Assert.True(checker.IsMigratable(grainFactory.GetGrain<IGenericRetirementHandoffGrain<string>>(Guid.NewGuid()).GetGrainId().Type, Orleans.Placement.ImmovableKind.Any));
 
-        // 不可移动和无国籍工人 grains,和 grain 类型 silo 不知,不至于被贬低。
+        // 不可移动的 Grain、无状态工作者 Grain，以及此 Silo 未知的 Grain 类型仍不可迁移。
         Assert.True(checker.IsMigratable(grainFactory.GetGrain<IRetirementHandoffGrain>(Guid.NewGuid(), typeof(RetirementHandoffGrain).FullName).GetGrainId().Type, Orleans.Placement.ImmovableKind.Any));
         Assert.False(checker.IsMigratable(grainFactory.GetGrain<IImmovableRetirementHandoffGrain>(Guid.NewGuid()).GetGrainId().Type, Orleans.Placement.ImmovableKind.Any));
         Assert.False(checker.IsMigratable(grainFactory.GetGrain<IStatelessRetirementHandoffGrain>(Guid.NewGuid()).GetGrainId().Type, Orleans.Placement.ImmovableKind.Any));
@@ -113,7 +113,7 @@ public sealed class RetirementHandoffTests
         var grain = grainFactory.GetGrain<IGenericRetirementHandoffGrain<int>>(key);
         await PlaceOnAsync(retiring, () => grain.GetLocation());
 
-        // 构造的通用 grain 是偏差,除非其等级为不动产。
+        // 除非其类不可移动，否则已构造的泛型 Grain 可以迁移。
         Assert.True(retiring.ServiceProvider.GetRequiredService<GrainMigratabilityChecker>().IsMigratable(grain.GetGrainId().Type, Orleans.Placement.ImmovableKind.Any));
 
         var running = grain.Block().AsTask();
@@ -128,7 +128,7 @@ public sealed class RetirementHandoffTests
 
         try
         {
-            // 排队申请随着启动而迁移,其调用者在退休 silo 离开后继续等待。
+            // 排队请求随激活迁移，调用方在退役 Silo 离开后仍继续等待。
             var destination = await state.HoldEntered.Task.WaitAsync(Timeout, Cancellation);
             Assert.NotEqual(retiring.SiloAddress, destination);
             await stopping.WaitAsync(Timeout, Cancellation);
@@ -160,7 +160,7 @@ public sealed class RetirementHandoffTests
         var target = grainFactory.GetGrain<IRetirementHandoffGrain>(key, typeof(RetirementHandoffGrain).FullName);
         var sender = grainFactory.GetGrain<IRetirementHandoffCallerGrain>(Guid.NewGuid());
 
-        // 发送方和退休目标的东道主 silo。
+        // 将发送方和目标均托管在正在退役的 Silo 上。
         RequestContext.Set(IPlacementDirector.PlacementHintKey, retiring.SiloAddress);
         try
         {
@@ -182,8 +182,8 @@ public sealed class RetirementHandoffTests
         state.ReleaseBlock.TrySetResult();
         await running.WaitAsync(Timeout, Cancellation);
 
-        // 目标随队列请求迁移。 发送者仍在运行其请求, 等待着
-        // 迁移请求, 因此退休的 silo 将发送者及其待拨电话保留到回复到达时。
+        // 目标已连同排队请求迁移。发送方仍在运行等待
+        // 已迁移请求的请求，因此退役 Silo 保留发送方及其挂起调用，直到响应到达。
         var destination = await state.HoldEntered.Task.WaitAsync(Timeout, Cancellation);
         Assert.NotEqual(retiring.SiloAddress, destination);
         Assert.False(stopping.IsCompleted);
@@ -226,9 +226,9 @@ public sealed class RetirementHandoffTests
         var queued = grain.HoldThenGetLocation().AsTask();
         await WaitUntilAsync(() => GetWaitingCount(retiring, grain.GetGrainId()) == 1);
 
-        // 没有移民,排队的请求就会被转交,但其来电者没有重新定位。
-        // 当任满的 silo 在所提请求完成之前离开时,该电话迅速失灵,而不是
-        // 等待响应超时。 调用者的申请代码决定是否重试 。
+        // 不发生迁移时，排队的请求会被转发，但调用方不会被重定向。
+        // 若退役 Silo 在被转发请求完成之前离开，调用将立即失败，而不是
+        // 等待响应超时。调用方的应用代码决定是否重试。
         var stopping = cluster.StopSiloAsync(retiring, Cancellation);
         await WaitUntilAsync(() => FindActivation(retiring, grain.GetGrainId()) is ActivationData { State: ActivationState.Deactivating });
         state.ReleaseBlock.TrySetResult();
@@ -248,8 +248,8 @@ public sealed class RetirementHandoffTests
     [Fact]
     public async Task QueuedRequestFromCallerOnRetiringSilo_ReceivesCancellationAfterHandoff()
     {
-        // 等待确认后,发件人的请求一直持续到取消请求得到答复为止
-        // 故至退休的, silo 信号到达前不能离开,取消已离开的呼叫者的请求。
+        // 等待确认使发送方的请求保持运行，直到被取消的请求响应，
+        // 因此退役 Silo 无法在信号到达前离开，也就不会因调用方已离开而取消该请求。
         await using var cluster = await DeployAsync(builder => builder.ConfigureSilo((_, silo) =>
             silo.Configure<SiloMessagingOptions>(options => options.WaitForCancellationAcknowledgement = true)));
         var retiring = cluster.Silos[1];
@@ -271,8 +271,8 @@ public sealed class RetirementHandoffTests
         state.ReleaseBlock.TrySetResult();
         await running.WaitAsync(Timeout, Cancellation);
 
-        // 发送者尚未接到的电话与即将退休的启动队列分享其请求信息。
-        // 一旦结交完成,取消电话通知将发出新的 silo请求。
+        // 发送方的挂起调用与退役激活的队列共享其请求消息。
+        // 移交完成后，取消调用会向请求所在的新 Silo 发送取消信号。
         Assert.NotEqual(retiring.SiloAddress, await state.HoldEntered.Task.WaitAsync(Timeout, Cancellation));
         await WaitUntilAsync(() => FindActivation(retiring, target.GetGrainId()) is null);
         Assert.False(stopping.IsCompleted);
@@ -299,7 +299,7 @@ public sealed class RetirementHandoffTests
         var queued = grain.HoldThenGetLocation().AsTask();
         await WaitUntilAsync(() => GetWaitingCount(retiring, grain.GetGrainId()) == 1);
 
-        // 划手算前方,请求会保留队列,无法提交时被否决。
+        // 移交计为一次转发，因此请求保持排队；当无法继续转发时将被拒绝。
         var stopping = cluster.StopSiloAsync(retiring, Cancellation);
         await WaitUntilAsync(() => FindActivation(retiring, grain.GetGrainId()) is ActivationData { State: ActivationState.Deactivating });
         state.ReleaseBlock.TrySetResult();
@@ -307,7 +307,7 @@ public sealed class RetirementHandoffTests
 
         try
         {
-            // 拒绝和退休的 silo离任赛程都与呼叫者有关。无论哪种方式,通话在无别处运行的情况下迅速失败。
+            // 拒绝与退役 Silo 离开的通知竞争到达调用方。无论哪种情况，调用都会立即失败，不会在其他位置运行。
             await Assert.ThrowsAnyAsync<OrleansMessageRejectionException>(() => queued.WaitAsync(Timeout, Cancellation));
             await stopping.WaitAsync(Timeout, Cancellation);
             Assert.Equal(0, state.HoldCount);
@@ -356,7 +356,7 @@ public sealed class RetirementHandoffTests
         var deactivating = events.WaitForEventAsync(nameof(GrainLifecycleEvents.Deactivating),
             e => e.Payload is GrainLifecycleEvents.Deactivating d && ReferenceEquals(d.GrainContext, activation), Timeout, Cancellation);
 
-        // grain 随其排队请求而迁移,源头留在分组中。
+        // Grain 连同排队请求迁移，而源仍留在集群中。
         try
         {
             if (migrateDirectly)
@@ -382,7 +382,7 @@ public sealed class RetirementHandoffTests
         await queued.WaitAsync(Timeout, Cancellation);
         Assert.Equal(["queued"], state.Calls);
 
-        // 对迁移请求的响应 取代了呼叫者缓存中的旧激活, 所以它的下一个呼叫直接到新激活。
+        // 已迁移请求的响应会替换调用方缓存中的旧激活，因此其下一次调用直接发往新激活。
         Assert.True(locator.TryLookupInCache(grain.GetGrainId(), out cached));
         Assert.Equal(target.SiloAddress, cached.SiloAddress);
     }
@@ -401,7 +401,7 @@ public sealed class RetirementHandoffTests
         var grain = grainFactory.GetGrain<IRetirementHandoffGrain>(key, typeof(RetirementHandoffGrain).FullName);
         await PlaceOnAsync(first, () => grain.GetLocation());
 
-        // 第一次启动时, 有两个请求在运行中的请求后面排队 。
+        // 两个请求排在第一个激活正在运行的请求之后。
         var running = grain.Block().AsTask();
         await state.BlockEntered.Task.WaitAsync(Timeout, Cancellation);
         var hold = grain.HoldThenGetLocation().AsTask();
@@ -409,15 +409,15 @@ public sealed class RetirementHandoffTests
         var queued = grain.Record("queued").AsTask();
         await WaitUntilAsync(() => GetWaitingCount(first, grain.GetGrainId()) == 2);
 
-        // 两人都移居第二 silo,第一个跑步,另一个等待。
+        // 两者都迁移至第二个 Silo，其中第一个运行，而另一个等待。
         await grain.MigrateOnIdleTo(second.SiloAddress);
         state.ReleaseBlock.TrySetResult();
         await running.WaitAsync(Timeout, Cancellation);
         Assert.Equal(second.SiloAddress, await state.HoldEntered.Task.WaitAsync(Timeout, Cancellation));
         await WaitUntilAsync(() => GetWaitingCount(second, grain.GetGrainId()) == 1);
 
-        // 等待请求再次迁移,返回到第一个 silo,在那里启动时保持第三次激活,
-        // 以便其回应与第二次启动后的回应相继。
+        // 等待的请求再次迁移回第一个 Silo，第三个激活在激活过程中被阻塞，
+        // 使其响应在第二个激活的响应之后到达。
         state.HoldActivationOn = first.SiloAddress;
         await grain.MigrateOnIdleTo(first.SiloAddress);
         state.ReleaseHold.TrySetResult();
@@ -425,7 +425,7 @@ public sealed class RetirementHandoffTests
         Assert.True(locator.TryLookupInCache(grain.GetGrainId(), out var cached));
         Assert.Equal(second.SiloAddress, cached.SiloAddress);
 
-        // 只有响应的缓存更新才能重新传播呼叫者的缓存。
+        // 只有响应携带的缓存更新才能重新填充调用方缓存。
         locator.InvalidateCache(grain.GetGrainId());
         try
         {
@@ -436,7 +436,7 @@ public sealed class RetirementHandoffTests
             state.ReleaseActivation.TrySetResult();
         }
 
-        // 信件每 grain保存一个缓存更新, 第一次, 因此回复会将 grain初始激活的更新内容传送到第二个 。
+        // 一条消息针对每个 Grain 只保留首次缓存更新，因此响应携带从原始激活到第二个激活的更新。
         await queued.WaitAsync(Timeout, Cancellation);
         Assert.True(locator.TryLookupInCache(grain.GetGrainId(), out cached));
         Assert.Equal(second.SiloAddress, cached.SiloAddress);
@@ -445,7 +445,7 @@ public sealed class RetirementHandoffTests
     [Fact]
     public async Task MigrationWhoseAcknowledgementIsLost_RejectsItsRequestsWithoutResendingThem()
     {
-        // 目标接受移徙及其要求,但来源没有得到确认。
+        // 目标接受迁移及其请求，但源没有收到确认。
         var retargets = 0;
         await using var cluster = await DeployAsync(builder => builder.ConfigureSilo((_, silo) => silo.AddIncomingGrainCallFilter(async context =>
         {
@@ -479,13 +479,13 @@ public sealed class RetirementHandoffTests
         state.ReleaseBlock.TrySetResult();
         await running.WaitAsync(Timeout, Cancellation);
 
-        // 目标可能拥有请求权,因此来文方拒绝请求,而不是重新提出请求,并完成停止活动。
+        // 目标可能已取得请求所有权，因此源拒绝请求而不重新发送，并完成停用。
         await activation.Deactivated.WaitAsync(Timeout, Cancellation);
         Assert.Equal(0, activation.GetRequestCount());
 
         try
         {
-            // 目标已经开始执行,但还没有反应 所以消息源的拒绝必须完成
+            // 目标已开始执行但暂时无法响应，因此必须由源的拒绝结束调用。
             Assert.Equal(target.SiloAddress, await state.HoldEntered.Task.WaitAsync(Timeout, Cancellation));
             await Assert.ThrowsAsync<OrleansMessageRejectionException>(() => queued.WaitAsync(Timeout, Cancellation));
         }
@@ -494,7 +494,7 @@ public sealed class RetirementHandoffTests
             state.ReleaseHold.TrySetResult();
         }
 
-        // 来文方转交的请求将提前到目标地点,然后由消息来源再次打电话,并将先处理。
+        // 源转发的请求会先于源随后发出的调用到达目标，并首先运行。
         var fromSource = source.ServiceProvider.GetRequiredService<IGrainFactory>().GetGrain<IRetirementHandoffGrain>(key, typeof(RetirementHandoffGrain).FullName);
         Assert.Equal(target.SiloAddress, await fromSource.GetLocation().AsTask().WaitAsync(Timeout, Cancellation));
         Assert.Equal(1, state.HoldCount);
@@ -504,7 +504,7 @@ public sealed class RetirementHandoffTests
     [Fact]
     public async Task MigrationOutcome_IsAwaitedPastTheDeactivationTimeout()
     {
-        // 目标将让迁移经过源激活的关闭超时, 然后失败。
+        // 目标将迁移阻塞至超过源激活的停用超时，然后使迁移失败。
         var acceptArrived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var releaseFailure = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await using var cluster = await DeployAsync(builder => builder.ConfigureSilo((_, silo) =>
@@ -542,8 +542,8 @@ public sealed class RetirementHandoffTests
 
         try
         {
-            // 目标可以接受请求,直到其回应为止,因此源的激活在停止运行超时之后仍然留在目录中,
-            // 并且没有启动其他的 grain 启动程序。
+            // 目标在作出响应之前仍可能接管请求，因此源激活在停用超时后仍留在 Catalog 中，
+            // 且不会启动该 Grain 的其他激活。
             await acceptArrived.Task.WaitAsync(Timeout, Cancellation);
             await Task.Delay(DeactivationTimeout * 2, Cancellation);
             Assert.False(activation.Deactivated.IsCompleted);
@@ -556,7 +556,7 @@ public sealed class RetirementHandoffTests
             releaseFailure.TrySetResult();
         }
 
-        // 一旦移民失败,来文方拒绝没有运行的申请,因此其打电话者可以重新进行。
+        // 迁移失败后，源拒绝未执行的请求，以便调用方重试。
         await activation.Deactivated.WaitAsync(Timeout, Cancellation);
         await Assert.ThrowsAsync<OrleansMessageRejectionException>(() => queued.WaitAsync(Timeout, Cancellation));
         Assert.Equal(0, state.HoldCount);
@@ -627,7 +627,7 @@ public sealed class RetirementHandoffTests
             var package = await filterEntered.Task.WaitAsync(Timeout, Cancellation);
             var request = Assert.Single(package.Requests!);
 
-            // 完成泵的转弯,所以它的接受等待 武装在推进时钟前。
+            // 完成泵的本轮执行，使其接受等待已启动，然后推进其时钟。
             await manager.RunOrQueueTask(() => Task.CompletedTask);
             time.Advance(responseTimeout - TimeSpan.FromTicks(1));
             await manager.RunOrQueueTask(() => Task.CompletedTask);
@@ -680,7 +680,7 @@ public sealed class RetirementHandoffTests
         var original = CreateRequest(cluster, grainId, 1, CreatePooledBuffer(Enumerable.Repeat((byte)0x5A, 20_000).ToArray()));
         List<Message> requests = [original];
 
-        // 启动停止等待 经理发送迁移, 所以管理员不会发送它。
+        // 激活在管理器发送迁移之前停止等待，因此管理器不会发送迁移。
         using var canceled = new CancellationTokenSource();
         canceled.Cancel();
         var context = new MigrationContext(source.ServiceProvider.GetRequiredService<SerializerSessionPool>());
@@ -691,7 +691,7 @@ public sealed class RetirementHandoffTests
         Assert.Equal(0, Volatile.Read(ref migrationsReceived));
         Assert.Empty(context.Keys);
 
-        // 申请在启动后停止接收请求之前,仍保留到迁移期间,然后转交,不变。
+        // 请求随迁移保留，直到激活停止接收请求，随后原样转发。
         migration.Deliver();
         Assert.Same(original, Assert.Single(requests));
         Assert.Same(requests, migration.Package.Requests);
@@ -704,7 +704,7 @@ public sealed class RetirementHandoffTests
     [InlineData(true)]
     public async Task LateRequestsStayWithTheActivationAndFollowTheOriginalHandoff(bool acceptMigration)
     {
-        // 保持通过源启动的关闭超时的迁移
+        // 将迁移阻塞至超过源激活的停用超时。
         var acceptArrived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var releaseAcceptance = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         CorrelationId? carriedRequestId = null;
@@ -749,8 +749,8 @@ public sealed class RetirementHandoffTests
         Task later;
         try
         {
-            // 源激活解除超时后,来源 silo 的呼叫到达源激活,该启动仍在目录中,
-            // 而不是新的激活, 等待在那里等待 移民等待目标。
+            // 源激活停用超时后，来自源 Silo 的调用到达仍在 Catalog 中的源激活，
+            // 而非新激活，并在迁移等待目标时继续在那里等待。
             await acceptArrived.Task.WaitAsync(Timeout, Cancellation);
             Assert.Equal(requestId, carriedRequestId);
             await Task.Delay(DeactivationTimeout, Cancellation);
@@ -782,7 +782,7 @@ public sealed class RetirementHandoffTests
     [Fact]
     public async Task MigrationQueuedBehindABlockedBatch_IsCanceledWithoutBeingSent()
     {
-        // 目标持有第一批移民的批量, 所以移民经理的泵到目标等待它。
+        // 目标阻塞第一次迁移的批次，因此迁移管理器向目标发送的泵等待该批次。
         var acceptArrived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var releaseAccept = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var received = new ConcurrentQueue<GrainId>();
@@ -812,7 +812,7 @@ public sealed class RetirementHandoffTests
         var blocked = migrationManager.StartMigration(target.SiloAddress, CreateSourceAddress(source, blockedGrain), new MigrationContext(pool), [CreateOneWayRequest(blockedGrain, 1)], CancellationToken.None);
         await acceptArrived.Task.WaitAsync(Timeout, Cancellation);
 
-        // 第二次迁移等待第一个。它启动的最后期限在泵到达之前就过去了,所以完成时没有发送。
+        // 第二次迁移在第一次之后等待。泵处理它之前，激活的截止时间已过，因此迁移在未发送的情况下完成。
         using var deadline = new CancellationTokenSource();
         var queued = migrationManager.StartMigration(target.SiloAddress, CreateSourceAddress(source, queuedGrain), new MigrationContext(pool), [CreateOneWayRequest(queuedGrain, 2)], deadline.Token);
         try
@@ -833,7 +833,7 @@ public sealed class RetirementHandoffTests
     [Fact]
     public async Task AcceptedMigrationWhoseRetargetIsHeld_CompletesAtItsDeadline()
     {
-        // 目标接受移民的要求,而打电话者 silo 则保持其呼唤的重新目标。
+        // 目标接管迁移携带的请求，调用方所在的 Silo 阻塞这些调用的重定向。
         var retargetArrived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var releaseRetarget = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await using var cluster = await DeployAsync(builder => builder.ConfigureSilo((_, silo) => silo.AddIncomingGrainCallFilter(async context =>
@@ -860,7 +860,7 @@ public sealed class RetirementHandoffTests
             deadline.Token);
         try
         {
-            // 启动的最后期限在重新瞄准时过,目标拥有请求权,因此迁移完成,请求不受怨恨。
+            // 重定向被阻塞期间，激活的截止时间已过。目标拥有请求，因此迁移完成，请求不会重发。
             await retargetArrived.Task.WaitAsync(Timeout, Cancellation);
             deadline.Cancel();
             await migration.Completion.WaitAsync(Timeout, Cancellation);
@@ -875,7 +875,7 @@ public sealed class RetirementHandoffTests
     [Fact]
     public async Task FailedMigrationOfRequestFromCallerOnTheSource_IsRejectedToItsCaller()
     {
-        // 目标没有实现移民。
+        // 目标使迁移失败。
         await using var cluster = await DeployAsync(builder => builder.ConfigureSilo((_, silo) => silo.AddIncomingGrainCallFilter(async context =>
         {
             if (context.Request.GetMethodName() == nameof(IActivationMigrationManagerSystemTarget.AcceptMigratingGrains))
@@ -892,7 +892,7 @@ public sealed class RetirementHandoffTests
         var grain = source.ServiceProvider.GetRequiredService<IGrainFactory>().GetGrain<IRetirementHandoffGrain>(key, typeof(RetirementHandoffGrain).FullName);
         await PlaceOnAsync(source, () => grain.GetLocation());
 
-        // 源代码的调用者传递一个集合缓冲,其请求在迁移前维持到发送。发送时将缓冲存储返回其储量库。
+        // 源上的调用方传入池化缓冲区，请求持有它直到迁移发送请求。发送时将缓冲区的存储归还给池。
         var running = grain.Block().AsTask();
         await state.BlockEntered.Task.WaitAsync(Timeout, Cancellation);
         var payload = Enumerable.Repeat((byte)0x5A, 20_000).ToArray();
@@ -903,14 +903,14 @@ public sealed class RetirementHandoffTests
         state.ReleaseBlock.TrySetResult();
         await running.WaitAsync(Timeout, Cancellation);
 
-        // 请求没有运行, 因此源拒绝, 其调用者可以重新试镜 。
+        // 请求没有运行，因此源拒绝请求，调用方可以重试。
         await Assert.ThrowsAsync<OrleansMessageRejectionException>(() => echo.WaitAsync(Timeout, Cancellation));
     }
 
     [Fact]
     public async Task DestinationWithoutMigratedRequestSupport_ReceivesAnOrdinaryMigrationAndRequestsAreForwarded()
     {
-        // 来文方看到目标清单时没有接受请求的 IActivationMigrationManagerSystemTarget 版本,而接受较早版本的 silo 版本。
+        // 源看到的目标清单缺少支持接收请求的 IActivationMigrationManagerSystemTarget 版本，就像目标 Silo 运行较早版本一样。
         var earlierVersionSilos = new ConcurrentDictionary<SiloAddress, bool>();
         var calls = new ConcurrentQueue<string>();
         await using var cluster = await DeployAsync(builder => builder.ConfigureSilo((_, silo) =>
@@ -950,12 +950,12 @@ public sealed class RetirementHandoffTests
         var queued = grain.HoldThenGetLocation().AsTask();
         await WaitUntilAsync(() => GetWaitingCount(source, grain.GetGrainId()) == 1);
 
-        // grain 随普通程序迁移,无需其请求。
+        // Grain 使用普通协议迁移，不携带请求。
         await grain.MigrateOnIdleTo(target.SiloAddress);
         state.ReleaseBlock.TrySetResult();
         await running.WaitAsync(Timeout, Cancellation);
 
-        // 源码保持请求不变,并转发到迁移激活程序,其调用者没有重新锁定目标。
+        // 源保持请求不变并将其转发至迁移后的激活，不重定向调用方的挂起调用。
         Assert.Equal(target.SiloAddress, await state.HoldEntered.Task.WaitAsync(Timeout, Cancellation));
         state.ReleaseHold.TrySetResult();
         Assert.Equal(target.SiloAddress, await queued.WaitAsync(Timeout, Cancellation));
@@ -983,11 +983,11 @@ public sealed class RetirementHandoffTests
         var running = grain.Block().AsTask();
         await state.BlockEntered.Task.WaitAsync(Timeout, Cancellation);
 
-        // 电话的暗藏处 持有迁移启动的地址 移民取代了这个地址
+        // 调用方的缓存保存正在迁移的激活地址，该地址由迁移替换。
         var previousAddress = new GrainAddress { GrainId = grain.GetGrainId(), SiloAddress = previous.SiloAddress, ActivationId = ActivationId.NewId() };
         locator.UpdateCache(grain.GetGrainId(), previous.SiloAddress);
 
-        // 移徙抵达为时过晚,无法启动,因此现有启动在收到请求后即收到请求。
+        // 迁移到达得太晚，无法创建激活，因此现有激活像接收转发请求一样接收该请求。
         var request = CreateOneWayRequest(grain.GetGrainId(), 1);
         request.SendingSilo = caller.SiloAddress;
         var context = new MigrationContext(silo.ServiceProvider.GetRequiredService<SerializerSessionPool>());
@@ -1016,7 +1016,7 @@ public sealed class RetirementHandoffTests
         state.ReleaseBlock.TrySetResult();
         await running.WaitAsync(Timeout, Cancellation);
 
-        // 下个普通呼叫 修复老旧的路线 通过正常转运。
+        // 下一次普通调用通过正常转发修复过时路由。
         Assert.Equal(silo.SiloAddress, await grain.GetLocation().AsTask().WaitAsync(Timeout, Cancellation));
         Assert.True(locator.TryLookupInCache(grain.GetGrainId(), out var cached));
         Assert.Equal(silo.SiloAddress, cached.SiloAddress);
@@ -1035,7 +1035,7 @@ public sealed class RetirementHandoffTests
         var state = RetirementHandoffState.Create(key);
         var grainId = grainFactory.GetGrain<IRetirementHandoffGrain>(key, typeof(RetirementHandoffGrain).FullName).GetGrainId();
 
-        // 启动时新激活被搁置, 所以它承认的请求会留在队列内。
+        // 新激活在激活过程中被阻塞，因此其接纳的请求保持排队。
         state.HoldActivationOn = silo.SiloAddress;
         GrainMigrationPackage package = new()
         {
@@ -1046,10 +1046,10 @@ public sealed class RetirementHandoffTests
         var accepting = migrationManager.AcceptMigratingGrains([package], Cancellation).AsTask();
         try
         {
-            // 普通入学申请接受两项申请,硬性限制为一项,拒绝第三项。
+            // 普通接纳机制在硬性限制为 1 时接纳两个请求，并拒绝第三个。
             await state.ActivationHeld.Task.WaitAsync(Timeout, Cancellation);
             var activation = Assert.IsType<ActivationData>(FindActivation(silo, grainId));
-            // 启动前的入院完成,所以被保留启动提供了观察屏障。
+            // 接纳在调度激活之前完成，因此被阻塞的激活充当观察屏障。
             Assert.Equal(2, activation.WaitingCount);
         }
         finally
@@ -1091,7 +1091,7 @@ public sealed class RetirementHandoffTests
         RequestContext.Set(IPlacementDirector.PlacementHintKey, caller.SiloAddress);
         try
         {
-            // 如果目的地停止使用,普通转运将请求放在第三个 silo。
+            // 若目标停用，普通转发会将该请求发送到第三个 Silo。
             migrated = grain.Record("migrated").AsTask();
         }
         finally
@@ -1108,7 +1108,7 @@ public sealed class RetirementHandoffTests
             await running.WaitAsync(Timeout, Cancellation);
             var package = await arrived.Task.WaitAsync(Timeout, Cancellation);
 
-            // 在交付软件包之前独立创建目的地, 保留原始软件包的上下文 。
+            // 在迁移包投递前独立创建目标激活，并保留原始迁移包的上下文。
             Assert.True(package.MigrationContext.TryGetValue(ActivationData.GrainAddressMigrationContextKey, out GrainAddress? previous));
             var context = new MigrationContext(target.ServiceProvider.GetRequiredService<SerializerSessionPool>());
             Assert.True(context.TryAddValue(ActivationData.GrainAddressMigrationContextKey, previous));
@@ -1269,7 +1269,7 @@ public sealed class RetirementHandoffTests
                     {
                         case 1:
                             firstSubmitted.TrySetResult(batch);
-                            // 在RPC批量论证可以序列化之前,先封锁信头 。
+                            // 在 RPC 的批次参数可被序列化之前阻塞头部。
                             RequestContext.Set("migration-serialization-gate", gate);
                             try
                             {
@@ -1318,7 +1318,7 @@ public sealed class RetirementHandoffTests
             var carried = Assert.Single(Assert.Single(firstBatch).Requests!);
             Assert.IsType<Orleans.Runtime.Messaging.MessageReadRequest>(carried._bodyObject);
 
-            // 作者尚未声称该迁移的有效载荷。
+            // 写入器尚未取得迁移有效载荷的所有权。
             var remote = source.ServiceProvider.GetRequiredService<IInternalGrainFactory>()
                 .GetSystemTarget<IActivationMigrationManagerSystemTarget>(Constants.ActivationMigratorType, target.SiloAddress);
             FindPendingCallback(source, remote.GetGrainId()).OnTimeout();
@@ -1365,7 +1365,7 @@ public sealed class RetirementHandoffTests
         var queued = grain.Record("queued").AsTask();
         await WaitUntilAsync(() => GetWaitingCount(source, grain.GetGrainId()) == 1);
 
-        // grain 随其队列请求迁移,在登记到 grain 目录后,在激活时保留新的启动。
+        // Grain 连同排队请求迁移；新激活在 Grain 目录中注册后，于激活过程中被阻塞。
         state.HoldActivationOn = target.SiloAddress;
         await grain.MigrateOnIdleTo(target.SiloAddress);
         state.ReleaseBlock.TrySetResult();
@@ -1375,7 +1375,7 @@ public sealed class RetirementHandoffTests
         {
             await state.ActivationHeld.Task.WaitAsync(Timeout, Cancellation);
 
-            // 目标 silo 的呼叫通过 grain 目录找到新激活,所以直接到达新的激活。
+            // 来自目标 Silo 的调用通过 Grain 目录找到新激活，因此直接到达新激活。
             direct = target.ServiceProvider.GetRequiredService<IGrainFactory>()
                 .GetGrain<IRetirementHandoffGrain>(key, typeof(RetirementHandoffGrain).FullName).Record("direct").AsTask();
             await WaitUntilAsync(() => GetWaitingCount(target, grain.GetGrainId()) == 2);
@@ -1385,7 +1385,7 @@ public sealed class RetirementHandoffTests
             state.ReleaseActivation.TrySetResult();
         }
 
-        // 随附请求在目录登记前被接受,因此随后直接请求也随之提出。
+        // 迁移携带的请求在目录注册前被接纳，因此这个后到的直接请求排在其后。
         await Task.WhenAll(queued, direct).WaitAsync(Timeout, Cancellation);
         Assert.Equal(["queued", "direct"], state.Calls);
     }
@@ -1393,7 +1393,7 @@ public sealed class RetirementHandoffTests
     [Fact]
     public async Task MigrationRoutes_DoNotOverwriteALaterRetarget()
     {
-        // 等待目的地的确认,以便同一呼唤的后路到达,而移徙等待接受。
+        // 阻塞目标的确认，使同一调用的后续路由在迁移等待接受时到达。
         var accepted = new TaskCompletionSource<(GrainId SendingGrain, CorrelationId Id)>(TaskCreationOptions.RunContinuationsAsynchronously);
         var releaseAcceptance = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await using var cluster = await DeployAsync(builder => builder.ConfigureSilo((_, silo) => silo.AddIncomingGrainCallFilter(async context =>
@@ -1420,7 +1420,7 @@ public sealed class RetirementHandoffTests
         await PlaceOnAsync(retiring, () => target.GetLocation());
         await PlaceOnAsync(retiring, () => sender.GetLocation());
 
-        // 发送者与目标队列共享请求信息, 因为两人都在退休时运行 silo。
+        // 发送方和目标均运行于退役 Silo 上，因此发送方与目标队列共享请求消息。
         var running = target.Block().AsTask();
         await state.BlockEntered.Task.WaitAsync(Timeout, Cancellation);
         var call = sender.CallHoldThenGetLocation(key).AsTask();
@@ -1439,7 +1439,7 @@ public sealed class RetirementHandoffTests
             var destination = await state.HoldEntered.Task.WaitAsync(Timeout, Cancellation);
             laterTarget = cluster.Silos.Select(silo => silo.SiloAddress).First(silo => !silo.Equals(retiring.SiloAddress) && !silo.Equals(destination));
 
-            // 其后,同一请求的迁移,如按退休目的地的顺序计算,首先重新瞄准呼叫。
+            // 同一请求的后续迁移（例如目标继而退役）先完成调用重定向。
             var runtimeClient = retiring.ServiceProvider.GetRequiredService<InsideRuntimeClient>();
             callback = GetCallback(runtimeClient, request.SendingGrain, request.Id);
             runtimeClient.RetargetCallback(request.SendingGrain, request.Id, laterTarget, forwardCount: 2);
@@ -1449,7 +1449,7 @@ public sealed class RetirementHandoffTests
             releaseAcceptance.TrySetResult();
         }
 
-        // 早先的移民路线被取代了 所以这个电话保持了后来的目标
+        // 较早迁移的路由已被取代，因此调用保留较新的目标。
         try
         {
             await WaitUntilAsync(() => FindActivation(retiring, target.GetGrainId()) is null);
@@ -1493,15 +1493,15 @@ public sealed class RetirementHandoffTests
         await state.BlockEntered.Task.WaitAsync(Timeout, Cancellation);
         var stuck = Assert.IsType<ActivationData>(FindActivation(retiring, grain.GetGrainId()));
 
-        // 请求在运行中的请求超过其处理限度后提出,导致被卡住的激活被放弃。
-        // 延误只需要对请求的运行期限制较低即可。
+        // 正在运行的请求超过处理时限后到达的新请求，导致卡住的激活被放弃。
+        // 延迟只需构成正在运行的请求持续时间的下界。
         await Task.Delay(maxRequestProcessingTime * 2, Cancellation);
         await grain.GetLocation().AsTask().WaitAsync(Timeout, Cancellation);
         Assert.Equal(ActivationState.Deactivating, stuck.State);
 
         try
         {
-            // 被放弃的要求继续运行, 关闭超时超过测试的超时, 所以只有不等待废弃激活才能结束。
+            // 被放弃的请求持续运行，且关闭超时超过测试超时，因此只有不等待被放弃的激活，关闭才能完成。
             await cluster.StopSiloAsync(retiring, Cancellation).WaitAsync(Timeout, Cancellation);
         }
         finally
@@ -1513,7 +1513,7 @@ public sealed class RetirementHandoffTests
     [Fact]
     public async Task MigrationUnderwayWhenRetiring_CarriesQueuedRequests()
     {
-        // 保持目的地接受移民启动, 这样退休就会在移民进行期间开始。
+        // 阻塞目标对迁移中激活的接受，使退役在迁移过程中开始。
         var acceptArrived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var releaseAccept = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await using var cluster = await DeployAsync(builder => builder.ConfigureSilo((_, silo) => silo.AddIncomingGrainCallFilter(async context =>
@@ -1539,7 +1539,7 @@ public sealed class RetirementHandoffTests
         var queued = grain.HoldThenGetLocation().AsTask();
         await WaitUntilAsync(() => GetWaitingCount(retiring, grain.GetGrainId()) == 1);
 
-        // 正常的迁移在运行请求完成后开始,等待目的地接受激活。
+        // 正在运行的请求完成后，普通迁移开始，并等待目标接受激活。
         await grain.MigrateOnIdleTo(target.SiloAddress);
         state.ReleaseBlock.TrySetResult();
         await running.WaitAsync(Timeout, Cancellation);
@@ -1559,7 +1559,7 @@ public sealed class RetirementHandoffTests
 
         try
         {
-            // 排队请求随着激活而迁移,其调用者在退休 silo 离开后继续等待。
+            // 排队请求已随激活迁移，调用方在退役 Silo 离开后继续等待。
             Assert.Equal(target.SiloAddress, await state.HoldEntered.Task.WaitAsync(Timeout, Cancellation));
             await stopping.WaitAsync(Timeout, Cancellation);
             await cluster.WaitForLivenessToStabilizeAsync().WaitAsync(Timeout, Cancellation);
@@ -1577,7 +1577,7 @@ public sealed class RetirementHandoffTests
     [Fact]
     public async Task DeactivationUnderwayWhenRetiring_KeepsActivationInCatalogAndIsAwaited()
     {
-        // 不再排队的出场延误, 所有启动装置停止运行的阶段 就会在解除功能完成后立即结束
+        // 若没有出站队列延迟，停用所有激活的阶段在该停用操作完成后立即结束。
         await using var cluster = await DeployAsync(builder => builder.ConfigureSilo((_, silo) =>
             silo.Configure<SiloMessagingOptions>(options => options.WaitForMessageToBeQueuedForOutboundTime = TimeSpan.Zero)));
         var retiring = cluster.Silos[1];
@@ -1589,23 +1589,23 @@ public sealed class RetirementHandoffTests
         var activation = Assert.IsType<ActivationData>(FindActivation(retiring, grain.GetGrainId()));
         var catalog = retiring.ServiceProvider.GetRequiredService<ActivationDirectory>();
 
-        // 启动解除装置,并保留其处置。
+        // 激活执行停用，其资源释放被阻塞。
         await grain.DeactivateNow();
         await state.DisposeEntered.Task.WaitAsync(Timeout, Cancellation);
 
-        // 在其解除功能完成之前,激活将留在目录中,因此不会在本地生成其他 grain 启动。
+        // 在停用完成之前，激活仍留在 Catalog 中，因此不会创建该 Grain 的其他本地激活。
         Assert.Same(activation, FindActivation(retiring, grain.GetGrainId()));
 
         using var stages = new SiloStageObserver(retiring.SiloAddress, ServiceLifecycleStage.GrainDeactivation, state.ReleaseDispose.Task);
         var stopping = cluster.StopSiloAsync(retiring, Cancellation);
         try
         {
-            // 退休时停止在目录中的激活,其中包括正在解除的启动。
+            // 退役过程停用 Catalog 中的激活，包括正在停用的激活。
             await stages.Stopping.WaitAsync(Timeout, Cancellation);
             Assert.Same(activation, FindActivation(retiring, grain.GetGrainId()));
 
-            // 处置期间无法完成阶段,因此这一受约束的等待不会在等待退役时失效。
-            // 如果退休没有等待,那么这一阶段将在这个窗口内完成。
+            // 资源释放被阻塞时，该阶段无法完成，因此当退役等待停用时，此限时等待不会因阶段提前完成而失败。
+            // 若退役不等待停用，该阶段就会在此时间窗口内完成。
             var stoppedWhileHeld = await Task.WhenAny(stages.StoppedAfterRelease, Task.Delay(TimeSpan.FromSeconds(1), Cancellation));
             Assert.NotSame(stages.StoppedAfterRelease, stoppedWhileHeld);
         }
@@ -1614,7 +1614,7 @@ public sealed class RetirementHandoffTests
             state.ReleaseDispose.TrySetResult();
         }
 
-        // 停止所有引爆的阶段(GrainDeactivation只有在所处置的废物释放后才能完成。
+        // 停用所有激活的阶段（GrainDeactivation）仅在被阻塞的资源释放获准继续后完成。
         Assert.True(await stages.StoppedAfterRelease.WaitAsync(Timeout, Cancellation));
         await stopping.WaitAsync(Timeout, Cancellation);
         Assert.Null(catalog.FindTarget(grain.GetGrainId()));
@@ -1638,7 +1638,7 @@ public sealed class RetirementHandoffTests
         var call = grain.HoldUntilCanceled(CancellationToken.None).AsTask();
         await WaitUntilAsync(() => GetWaitingCount(source, grain.GetGrainId()) == 1);
 
-        // grain 随其排队请求迁移,在激活时保留新的启动程序,而请求排队。
+        // Grain 连同排队请求迁移，新激活在激活过程中被阻塞，请求保持排队。
         state.HoldActivationOn = target.SiloAddress;
         await grain.MigrateOnIdleTo(target.SiloAddress);
         state.ReleaseBlock.TrySetResult();
@@ -1650,12 +1650,12 @@ public sealed class RetirementHandoffTests
             var activation = Assert.IsType<ActivationData>(FindActivation(target, grain.GetGrainId()));
             Assert.Equal(1, activation.WaitingCount);
 
-            // 启动前, 新的激活队列会迁移到其它区域, 所以在启动之前取消它, 现在在运行前取消请求 。
+            // 新激活在激活前将迁移的请求入队，因此此时到达的取消信号会在请求运行前将其取消。
             await ((IGrainCallCancellationExtension)activation).CancelRequestAsync(sender, messageId, CancellationToken.None).AsTask().WaitAsync(Timeout, Cancellation);
             Assert.Equal(0, activation.WaitingCount);
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => call.WaitAsync(Timeout, Cancellation));
 
-            // 一旦激活,启动程序就没有任何运行请求。
+            // 激活完成后，该激活没有请求可运行。
             state.ReleaseActivation.TrySetResult();
             await WaitUntilAsync(() => activation.State is ActivationState.Valid);
             await activation.RunOrQueueTask(() => Task.CompletedTask);
@@ -1718,12 +1718,12 @@ public sealed class RetirementHandoffTests
         state.ReleaseBlock.TrySetResult();
         await running.WaitAsync(Timeout, Cancellation);
 
-        // 单向请求在新的 silo上运行,其呼叫者没有等待重新瞄准的电话。
+        // 单向请求在新 Silo 上运行，其调用方没有挂起调用需要重定向。
         var destination = await state.OneWayReceived.Task.WaitAsync(Timeout, Cancellation);
         Assert.NotEqual(source.SiloAddress, destination);
         if (!retireSource)
         {
-            // 下一个普通电话 修复了打电话者的老旧路线
+            // 源仍存活时，下一次普通调用会修复调用方的过时路由。
             Assert.Equal(destination, await grain.GetLocation().AsTask().WaitAsync(Timeout, Cancellation));
             Assert.Equal(target.SiloAddress, destination);
             Assert.True(locator.TryLookupInCache(grain.GetGrainId(), out cached));
@@ -1750,14 +1750,14 @@ public sealed class RetirementHandoffTests
         var grain = grainFactory.GetGrain<IRetirementHandoffGrain>(key, typeof(RetirementHandoffGrain).FullName);
         await PlaceOnAsync(source, () => grain.GetLocation());
 
-        // 每个请求都符合自己的信息,但不能与其他请求同时使用。
+        // 每个请求单独都能放入一条消息，但二者合在一起则不能。
         var running = grain.Block().AsTask();
         await state.BlockEntered.Task.WaitAsync(Timeout, Cancellation);
         var first = grain.GetLocationWithPayload(new byte[MaxMessageBodySize * 3 / 5]).AsTask();
         var second = grain.GetLocationWithPayload(new byte[MaxMessageBodySize * 3 / 5]).AsTask();
         await WaitUntilAsync(() => GetWaitingCount(source, grain.GetGrainId()) == 2);
 
-        // 下 grain 未经请求而迁移,源头会保留排队,然后转到移出激活。
+        // Grain 不携带这些请求进行迁移，源保留排队请求，随后将其转发至迁移后的激活。
         await grain.MigrateOnIdleTo(target.SiloAddress);
         state.ReleaseBlock.TrySetResult();
         await running.WaitAsync(Timeout, Cancellation);
@@ -1777,9 +1777,9 @@ public sealed class RetirementHandoffTests
         RetirementHandoffState.Create(key);
         var grain = grainFactory.GetGrain<IRetirementHandoffGrain>(key, typeof(RetirementHandoffGrain).FullName);
 
-        // 已经活动的目的地通过正常入境接收随身携带的请求。
+        // 已处于活跃状态的目标通过普通接纳机制接收迁移携带的请求。
         await PlaceOnAsync(target, () => grain.GetLocation());
-        // 规模保留了即将卸任的RPC的序列化状态。
+        // 大小计算保留出站 RPC 即将序列化的状态。
         var marker = new string('x', 10_000);
         var context = new MigrationContext(source.ServiceProvider.GetRequiredService<SerializerSessionPool>());
         Assert.True(context.TryAddValue("marker", marker));
@@ -1792,8 +1792,8 @@ public sealed class RetirementHandoffTests
             BodyObject = new byte[16],
         };
 
-        // 迁移管理员的泵在调度员的调度器上发送包裹,所以在发出包裹之前将申请包装完成。
-        // 软件包的大小不能消耗移民环境,因为目标的再水化 grain 来自移徙环境。
+        // 迁移管理器的泵在管理器调度器上发送迁移包，因此在那里打包请求的操作在发送迁移包之前完成。
+        // 计算迁移包大小不得消耗目标用来重建 Grain 的迁移上下文。
         ActivationMigration? migration = null;
         await migrationManager.RunOrQueueTask(() =>
         {
@@ -1821,12 +1821,12 @@ public sealed class RetirementHandoffTests
         RetirementHandoffState.Create(key);
         var grainId = grainFactory.GetGrain<IRetirementHandoffGrain>(key, typeof(RetirementHandoffGrain).FullName).GetGrainId();
 
-        // 请求,请按请求 silo 移徙背景本身就得到接受,适合信息本身,移徙环境也是如此,其规模大部分处于关键位置,但并非同时存在。
+        // 此 Silo 收到的请求单独可以放入一条消息，迁移上下文（大小主要来自其键）也可以，但二者不能合在一起。
         var context = new MigrationContext(source.ServiceProvider.GetRequiredService<SerializerSessionPool>());
         context.TryAddValue(new string('k', MaxMessageBodySize / 2), 0);
         using var request = CreateReceivedRequest(cluster, source, grainId, 1, MaxMessageBodySize * 3 / 5);
 
-        // 移徙的背景没有提出要求,而是提出要求。
+        // 迁移携带上下文而不携带请求，改为转发该请求。
         var migration = migrationManager.StartMigration(target.SiloAddress, CreateSourceAddress(source, grainId), context, [request], Cancellation);
         Assert.Null(migration.Package.Requests);
         await migration.Completion.WaitAsync(Timeout, Cancellation);
@@ -1862,7 +1862,7 @@ public sealed class RetirementHandoffTests
         RetirementHandoffState.Create(key);
         var grainId = grainFactory.GetGrain<IRetirementHandoffGrain>(key, typeof(RetirementHandoffGrain).FullName).GetGrainId();
 
-        // 该 silo 收到的请求将其序列式机构放在一个综合阅读请求中,其上下文不能序列化。
+        // 此 Silo 收到的请求在池化读取请求中持有其序列化消息体。其上下文无法序列化。
         using var request = CreateReceivedRequest(cluster, source, grainId, 1, 1);
         using var later = CreateReceivedRequest(cluster, source, grainId, 2, 20_000);
         var page = Assert.IsType<Orleans.Runtime.Messaging.MessageReadRequest>(later._bodyObject).Body.First!;
@@ -1879,7 +1879,7 @@ public sealed class RetirementHandoffTests
         var migrationContext = new MigrationContext(source.ServiceProvider.GetRequiredService<SerializerSessionPool>());
         Assert.True(migrationContext.TryAddValue("marker", new byte[20_000]));
 
-        // 移徙的信息不能连成系列,因此移徙失败。
+        // 迁移消息无法序列化，因此迁移失败。
         var migration = migrationManager.StartMigration(
             target.SiloAddress,
             CreateSourceAddress(source, grainId),
@@ -1890,7 +1890,7 @@ public sealed class RetirementHandoffTests
         await Assert.ThrowsAnyAsync<Exception>(() => migration.Completion.WaitAsync(Timeout, Cancellation));
         Assert.Null(FindActivation(target, grainId));
 
-        // 所有人释放了每一个携带的尸体,包括那些从未达到序列的遗体。
+        // 所有者释放携带的所有消息体，包括尚未进入序列化阶段的消息体。
         migration.Deliver();
         if (failure == "preparation")
         {
@@ -2001,7 +2001,7 @@ public sealed class RetirementHandoffTests
     [Fact]
     public async Task MigrationWithoutRequests_CompletesWithoutWaitingForAnotherGrainsRetargets()
     {
-        // 停止呼叫者重新瞄准目标,使被接受的 grain迁移无法完成。
+        // 阻塞调用方的重定向，使已被接受的 Grain 的迁移无法完成。
         var retargetArrived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var releaseRetarget = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await using var cluster = await DeployAsync(builder => builder.ConfigureSilo((_, silo) => silo.AddIncomingGrainCallFilter(async context =>
@@ -2027,7 +2027,7 @@ public sealed class RetirementHandoffTests
         var acceptedGrain = grainFactory.GetGrain<IRetirementHandoffGrain>(acceptedKey, typeof(RetirementHandoffGrain).FullName).GetGrainId();
         var otherGrain = grainFactory.GetGrain<IRetirementHandoffGrain>(otherKey, typeof(RetirementHandoffGrain).FullName).GetGrainId();
 
-        // 这两种移民在抽水前都排队在移民管理员的调度器上,所以他们只分批旅行。只有一种是请求。
+        // 两次迁移都在泵运行前进入迁移管理器的调度器队列，因此在一个批次中传输。仅其中一次携带请求。
         ActivationMigration? acceptedMigration = null;
         ActivationMigration? otherMigration = null;
         await migrationManager.RunOrQueueTask(() =>
@@ -2041,7 +2041,7 @@ public sealed class RetirementHandoffTests
 
         try
         {
-            // 虽然被接受的 grain调用者不承认其重新瞄准目标,但另一 grain的迁移已经完成,因此其来源可以完成停止活动。
+            // 在已被接受的 Grain 的调用方尚未确认重定向时，另一个 Grain 的迁移已完成，因此其源可以完成停用。
             await retargetArrived.Task.WaitAsync(Timeout, Cancellation);
             await otherMigration!.Completion.WaitAsync(Timeout, Cancellation);
             Assert.False(acceptedMigration!.Completion.IsCompleted);
@@ -2083,7 +2083,7 @@ public sealed class RetirementHandoffTests
         var state = RetirementHandoffState.Create(key);
         var grain = grainFactory.GetGrain<IRetirementHandoffGrain>(key, typeof(RetirementHandoffGrain).FullName);
 
-        // 激活在 OnActivateAsync中进行,请求排队在后面。
+        // 激活在 OnActivateAsync 中被阻塞，后面排队等待着一个请求。
         state.HoldActivationOn = retiring.SiloAddress;
         RequestContext.Set(IPlacementDirector.PlacementHintKey, retiring.SiloAddress);
         Task call;
@@ -2100,7 +2100,7 @@ public sealed class RetirementHandoffTests
         var activation = Assert.IsType<ActivationData>(FindActivation(retiring, grain.GetGrainId()));
         await WaitUntilAsync(() => activation.WaitingCount == 1);
 
-        // 退休中断了激活。 其状态可以部分初始化, 因此不会迁移, 排队的请求会像以前一样被转发或拒绝 。
+        // 退役中断激活。其状态可能仅完成部分初始化，因此不进行迁移，排队请求仍按原有机制转发或拒绝。
         var stopping = cluster.StopSiloAsync(retiring, Cancellation);
         await WaitUntilAsync(() => activation.State is ActivationState.Deactivating or ActivationState.Invalid);
         state.ReleaseActivation.TrySetResult();
@@ -2120,14 +2120,14 @@ public sealed class RetirementHandoffTests
         var grain = grainFactory.GetGrain<IExclusiveSectionRetirementGrain>(key);
         await PlaceOnAsync(retiring, grain.GetLocation);
 
-        // 开放部分没有电话链,但通常的要求被搁置,第二段等待第一个请求。
+        // 一个没有调用链的已打开区段阻挡普通请求，另一个区段在第一个之后等待。
         await grain.OpenSection().WaitAsync(Timeout, Cancellation);
         await grain.RequestSection().WaitAsync(Timeout, Cancellation);
         var held = grain.GetLocation().AsTask();
         await WaitUntilAsync(() => GetWaitingCount(retiring, grain.GetGrainId()) == 1);
 
-        // 停止活动不等待部分代码的发布 错误等候区断断 被搁置的请求会随着
-        // 激活,其新激活没有打开区域。
+        // 停用不等待区段中的代码，使等待的区段以异常结束，而被阻塞的请求随
+        // 激活迁移，新激活没有已打开的区段。
         var stopping = cluster.StopSiloAsync(retiring, Cancellation);
         Assert.IsType<InvalidOperationException>(await state.SectionWaitFault.Task.WaitAsync(Timeout, Cancellation));
         var destination = await held.WaitAsync(Timeout, Cancellation);
@@ -2157,7 +2157,7 @@ public sealed class RetirementHandoffTests
     }
 
     /// <summary>
-    /// 创建请求, 因为此 silo 收到请求时, 请求将保留其序列式机构 。
+    /// 创建一个如同由此 Silo 接收的请求，使其持有序列化消息体。
     /// </summary>
     private static Message CreateReceivedRequest(InProcessTestCluster cluster, InProcessSiloHandle silo, GrainId grainId, long id, int bodyLength)
     {
@@ -2394,7 +2394,7 @@ public sealed class RetirementHandoffTests
             control.OnCreate = null;
             Assert.Empty(package.Requests!);
 
-            // 补液拥有元数据错误,而现有的处理错误仍然允许激活运行。
+            // 状态重建负责处理元数据错误，其已有的错误处理仍允许 Activate 运行。
             var reason = Assert.IsType<GrainLifecycleEvents.Deactivating>((await deactivating).Payload).Reason;
             Assert.Equal("Destination activation failed.", Assert.IsType<InvalidOperationException>(reason.Exception).Message);
             await activation.Deactivated.WaitAsync(Timeout, Cancellation);
@@ -2594,7 +2594,7 @@ public sealed class RetirementHandoffTests
                 buffer.Reset();
             }
 
-            // 早期缓存信头可以将先前安装的邮件推到电线尺寸限制之外。
+            // 较早的缓存头部可能使原本符合大小限制的消息超过传输大小上限。
             Assert.True(frameLength * requests.Count < BodyLimit - 1024);
             foreach (var item in requests)
             {
@@ -2643,19 +2643,19 @@ public sealed class RetirementHandoffTests
         RetirementHandoffState.Create(key);
         var grainId = grainFactory.GetGrain<IRetirementHandoffGrain>(key, typeof(RetirementHandoffGrain).FullName).GetGrainId();
 
-        // 每项请求,其中 silo 被接受,适合自己的信息, 但不能与对方一起, 所以移徙是没有的。
+        // 此 Silo 收到的各个请求单独可以放入一条消息，但二者合在一起则不能，因此迁移不携带任何一个请求。
         using var first = CreateReceivedRequest(cluster, source, grainId, 1, MaxMessageBodySize * 3 / 5);
         using var second = CreateReceivedRequest(cluster, source, grainId, 2, MaxMessageBodySize * 3 / 5);
         var context = new MigrationContext(source.ServiceProvider.GetRequiredService<SerializerSessionPool>());
         var migration = migrationManager.StartMigration(target.SiloAddress, CreateSourceAddress(source, grainId), context, [first, second], Cancellation);
         Assert.Null(migration.Package.Requests);
 
-        // 下 grain 移徙时没有他们。
+        // Grain 不携带这些请求进行迁移。
         await migration.Completion.WaitAsync(Timeout, Cancellation);
     }
 
     /// <summary>
-    /// 将禁用和主机关闭超时提升到超过测试超时, 等待的工程被观察为永远无法完成 。
+    /// 将停用及主机关闭超时提高至测试超时之上，使等待这些超时的工作在测试中表现为始终未完成。
     /// </summary>
     private static void ExtendShutdownTimeouts(InProcessTestClusterBuilder builder)
     {
@@ -2823,8 +2823,8 @@ public sealed class StatelessRetirementHandoffGrain : Grain, IStatelessRetiremen
 }
 
 /// <summary>
-/// 提出一组清单,并附有 <see cref="IActivationMigrationManagerSystemTarget"/> 从选定国家的列表中删除 silos,
-/// 以 a 作为 silo 可见 silos 运行较早版本,但未版本接口。
+/// 提供集群清单，其中选定 Silo 的清单已移除 <see cref="IActivationMigrationManagerSystemTarget"/> 的版本信息，
+/// 以模拟 Silo 看到运行未对该接口进行版本标记的较早版本的 Silo。
 /// </summary>
 internal sealed class EarlierVersionManifestProvider(
     IClusterManifestProvider inner,
@@ -2885,7 +2885,7 @@ public sealed class DisposalHeldGrain : Grain, IDisposalHeldGrain, IAsyncDisposa
 }
 
 /// <summary>
-/// 当一个 silo 开始和完成时停止了一个生命周期阶段时,观察。
+/// 观察一个 Silo 开始和结束停止某个生命周期阶段的时机。
 /// </summary>
 internal sealed class SiloStageObserver : IObserver<Orleans.Runtime.Diagnostics.SiloLifecycleEvents.LifecycleEvent>, IDisposable
 {
@@ -2905,12 +2905,12 @@ internal sealed class SiloStageObserver : IObserver<Orleans.Runtime.Diagnostics.
     }
 
     /// <summary>
-    /// 当舞台第一位观察者停止运行时完成 。
+    /// 当该阶段的第一个观察者开始停止时完成。
     /// </summary>
     public Task Stopping => _stopping.Task;
 
     /// <summary>
-    /// 完成阶段停止后完成,说明释放任务到那时是否已经完成。
+    /// 阶段停止时完成，并指示释放任务届时是否已完成。
     /// </summary>
     public Task<bool> StoppedAfterRelease => _stopped.Task;
 
@@ -3044,7 +3044,7 @@ public class RetirementHandoffGrain : Grain, IRetirementHandoffGrain
         State.HoldEntered.TrySetResult(GrainContext.Address.SiloAddress!);
         try
         {
-            // 测试释放了一个从未取消的请求, 以便失败的测试不会拖住 silo关闭。
+            // 测试释放一个从未被取消的请求，以免测试失败时阻碍 Silo 关闭。
             await State.ReleaseHold.Task.WaitAsync(cancellationToken);
         }
         catch (OperationCanceledException)
@@ -3117,10 +3117,10 @@ public sealed class ExclusiveSectionRetirementGrain : Grain, IExclusiveSectionRe
 
     public ValueTask<SiloAddress> GetLocation() => new(GrainContext.Address.SiloAddress!);
 
-    // 请求完成后,这部分继续开放 因为代码不是请求
+    // 请求完成后区段仍保持打开，因为持有它的是非请求代码。
     public async Task OpenSection() => _section = await Admission.EnterExclusiveSectionAsync(CancellationToken.None);
 
-    // 等待结果一经完成就记录下来。
+    // 区段在已打开的区段之后等待；等待完成时记录其结果。
     public Task RequestSection()
     {
         var state = ExclusiveSectionRetirementState.Get(this.GetPrimaryKey());

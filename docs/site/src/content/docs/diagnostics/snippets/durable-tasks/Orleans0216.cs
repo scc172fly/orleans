@@ -4,7 +4,7 @@ namespace Documentation.Diagnostics.DurableTasks;
 // <orleans0216_violation>
 public sealed class CheckoutEndpoint(IOrderWorkflows orders)
 {
-    // 客户没有耐久发件箱,所以Post投出 InvalidOperationException。
+    // 客户端没有持久化发件箱，因此 Post 抛出 InvalidOperationException。
     public void Checkout(Guid orderId) =>
         orders.PlaceOrderAsync(orderId).WithId($"place-order-{orderId:N}").Post();
 }
@@ -14,7 +14,7 @@ public sealed class CheckoutEndpoint(IOrderWorkflows orders)
 // <orleans0216_fix_schedule>
 public sealed class ScheduledCheckoutEndpoint(IOrderWorkflows orders)
 {
-    // 一旦命令 grain 接受并存储任务,返回该返回。使用同一身份的重试将达到相同的任务 。
+    // 订单所属 Grain 接受并存储任务后即返回。使用相同 ID 重试会到达同一任务。
     public async Task<string> CheckoutAsync(Guid orderId)
     {
         var workflow = await orders.PlaceOrderAsync(orderId).WithId($"place-order-{orderId:N}").ScheduleAsync();
@@ -35,7 +35,7 @@ public sealed class BasketGrain : DurableGrain
         _checkedOut = StateManager.GetOrAddValue<Guid?>("checked-out");
     }
 
-    // 在耐用 grain中,“邮政”将启动在 grain发件箱中的起始阶段,并承诺进行 grain的国家变化。
+    // 在持久化 Grain 中，Post 将启动操作暂存到 Grain 的发件箱中，并与 Grain 状态变更一同提交。
     public async Task CheckoutAsync(Guid orderId)
     {
         _checkedOut.Value = orderId;

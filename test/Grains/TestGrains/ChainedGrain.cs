@@ -20,7 +20,7 @@ namespace UnitTests.Grains
     }
 
     /// <summary>
-    /// 简单 grain ,它允许设置两个参数然后乘以它们。
+    /// 一个简单的 Grain，允许设置两个参数，然后将它们相乘。
     /// </summary>
     [StorageProvider(ProviderName = "MemoryStore")]
     public class ChainedGrain : Grain<ChainedGrainState>, IChainedGrain
@@ -42,7 +42,7 @@ namespace UnitTests.Grains
         {
             if (State.Next == null)
             {/*
-                (日% 10 = 0)
+                if (Id % 10 != 0)
                 {
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine(String.Format("Id={0}, Next=null, X={1}", Id, X));

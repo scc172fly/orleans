@@ -9,7 +9,7 @@ using Orleans.Runtime;
 namespace Orleans.Metadata
 {
     /// <summary>
-    /// 关于通信界面的信息。
+    /// 有关通信接口的信息。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class GrainInterfaceProperties : IEquatable<GrainInterfaceProperties>
@@ -21,7 +21,7 @@ namespace Orleans.Metadata
         /// 初始化 <see cref="GrainInterfaceProperties"/> 类的新实例。
         /// </summary>
         /// <param name="values">
-        /// 界面属性值。
+        /// 接口属性值。
         /// </param>
         public GrainInterfaceProperties(ImmutableDictionary<string, string> values)
         {
@@ -32,7 +32,7 @@ namespace Orleans.Metadata
         }
 
         /// <summary>
-        /// 得到属性。
+        /// 获取属性。
         /// </summary>
         [Id(0)]
         public ImmutableDictionary<string, string> Properties { get; }
@@ -41,7 +41,7 @@ namespace Orleans.Metadata
         /// 返回此实例的详细字符串表示。
         /// </summary>
         /// <returns>
-        /// 此实例的详细、 字符串表示 。
+        /// 此实例的详细字符串表示。
         /// </returns>
         public string ToDetailedString()
         {
@@ -133,70 +133,70 @@ namespace Orleans.Metadata
     }
 
     /// <summary>
-    /// 众所周知的 grain 接口属性密钥。
+    /// 预定义的 Grain 接口属性键。
     /// </summary>
     /// <seealso cref="GrainInterfaceProperties"/>
     public static class WellKnownGrainInterfaceProperties
     {
         /// <summary>
-        /// 此界面的版本以小数整数编码。
+        /// 编码为十进制整数的接口版本号。
         /// </summary>
         public const string Version = "version";
 
         /// <summary>
-        /// 编码 <see cref="GrainType"/> 与接口的初始实施相对应。
-        /// 此选项用于从接口中解析 grain 类型。
+        /// 与接口的主实现对应的已编码 <see cref="GrainType"/>。
+        /// 用于根据接口解析 Grain 类型。
         /// </summary>
         public const string DefaultGrainType = "primary-grain-type";
 
         /// <summary>
-        /// 此接口类型的名称。 用于基于公约的初级执行匹配 。
+        /// 此接口的类型名称，用于按约定匹配主实现。
         /// </summary>
         public const string TypeName = "type-name";
     }
 
     /// <summary>
-    /// 提供 grain 属性。
+    /// 提供 Grain 属性。
     /// </summary>
     public interface IGrainInterfacePropertiesProvider
     {
         /// <summary>
-        /// 将 grain 接口属性添加到 <paramref name="properties"/>。
+        /// 向 <paramref name="properties"/> 添加 Grain 接口属性。
         /// </summary>
         /// <param name="interfaceType">
-        /// 界面类型。
+        /// 接口类型。
         /// </param>
         /// <param name="grainInterfaceType">
-        /// 界面类型 ID 。
+        /// 接口类型 ID。
         /// </param>
         /// <param name="properties">
-        /// 此方法所要求的属性收藏应该以空格形式显示 。
+        /// 调用此方法时应填充的属性集合。
         /// </param>
         void Populate(Type interfaceType, GrainInterfaceType grainInterfaceType, Dictionary<string, string> properties);
     }
 
     /// <summary>
-    /// <see cref="Attribute"/> 类的接口,该类别提供关于 grain 界面的信息。
+    /// 为 Grain 接口提供信息的 <see cref="Attribute"/> 类所实现的接口。
     /// </summary>
     public interface IGrainInterfacePropertiesProviderAttribute
     {
         /// <summary>
-        /// 将 grain 接口属性添加到 <paramref name="properties"/>。
+        /// 向 <paramref name="properties"/> 添加 Grain 接口属性。
         /// </summary>
         /// <param name="services">
-        /// 服务供应商。
+        /// 服务提供程序。
         /// </param>
         /// <param name="interfaceType">
-        /// 界面类型。
+        /// 接口类型。
         /// </param>
         /// <param name="properties">
-        /// 此方法所要求的属性收藏应该以空格形式显示 。
+        /// 调用此方法时应填充的属性集合。
         /// </param>
         void Populate(IServiceProvider services, Type interfaceType, Dictionary<string, string> properties);
     }
 
     /// <summary>
-    /// 提供 grain 来自执行属性的界面属性 <see cref="IGrainInterfacePropertiesProviderAttribute"/>.
+    /// 从实现 <see cref="IGrainInterfacePropertiesProviderAttribute"/> 的特性获取 Grain 接口属性。
     /// </summary>
     internal sealed class AttributeGrainInterfacePropertiesProvider : IGrainInterfacePropertiesProvider
     {
@@ -206,7 +206,7 @@ namespace Orleans.Metadata
         /// 初始化 <see cref="AttributeGrainInterfacePropertiesProvider"/> 类的新实例。
         /// </summary>
         /// <param name="serviceProvider">
-        /// 服务供应商。
+        /// 服务提供程序。
         /// </param>
         public AttributeGrainInterfacePropertiesProvider(IServiceProvider serviceProvider)
         {
@@ -227,7 +227,7 @@ namespace Orleans.Metadata
     }
 
     /// <summary>
-    /// 指定默认值 grain 构造 grain 此界面的引用引用, 无需指定 grain 类型。
+    /// 指定在未指定 Grain 类型的情况下，为此接口构造 Grain 引用时使用的默认 Grain 类型。
     /// </summary>
     [AttributeUsage(AttributeTargets.Interface, AllowMultiple = false)]
     public sealed class DefaultGrainTypeAttribute : Attribute, IGrainInterfacePropertiesProviderAttribute
@@ -238,7 +238,7 @@ namespace Orleans.Metadata
         /// 初始化 <see cref="DefaultGrainTypeAttribute"/> 类的新实例。
         /// </summary>
         /// <param name="grainType">
-        /// 类型 grain 。
+        /// Grain 类型。
         /// </param>
         public DefaultGrainTypeAttribute(string grainType)
         {

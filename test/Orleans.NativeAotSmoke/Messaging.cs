@@ -117,7 +117,7 @@ internal sealed class SmokeState(SmokeOutbox outbox, MessageType<string> replyTy
     public int Value { get; set; }
 }
 
-// 将每条信件发送到第一个注册的处理器, 和运行时间收件箱一样, 并接收它 。
+// 将每条消息分派给首个接受该消息的已注册处理器，与运行时收件箱的行为一致。
 internal sealed class SmokeInbox : IInbox
 {
     private readonly List<IInboxHandler> _handlers = [];

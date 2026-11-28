@@ -1,5 +1,5 @@
 version: 2
 
-# 正在禁用对 Azure DevOps 的自定义, 因为这是一个反射重写。 更新应该通过 Guthub 进行 。
+# 此仓库是镜像仓库，因此在 Azure DevOps 上禁用 Dependabot。更新应通过 GitHub 提交。
 enable-campaigned-updates: false
 enable-security-updates: false

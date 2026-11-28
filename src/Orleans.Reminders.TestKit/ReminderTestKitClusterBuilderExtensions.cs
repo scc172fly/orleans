@@ -6,29 +6,29 @@ using Orleans.TestingHost;
 namespace Orleans.Reminders.TestKit;
 
 /// <summary>
-/// 将 <see cref="IdealizedReminderTable"/> 或“关卡”安装到“ <see cref="InProcessTestCluster"/>”。
+/// 将 <see cref="IdealizedReminderTable"/> 参考实现安装到 <see cref="InProcessTestCluster"/> 中。
 /// </summary>
 /// <remarks>
-/// 组合体中每个 silo 都共享一个单一的甲骨文实例,这反映了流程中的集束份额的方式
-/// 单 grain 和成员表 silos共享一个实例,就是集群一级
-/// 明确可见的提醒行为:每个 silo提醒服务读写相同
-/// 内可预见状态和试验控制(阻挡门、注射失败、模拟停机和冻结)
-/// 在整个组别中统一适用。
+/// 集群内的每个 Silo 共享同一个参考实现实例，模拟进程内集群在各 Silo 间共享
+/// 一个 Grain 目录和一张成员资格表的方式。共享单个实例使集群级
+/// 提醒器行为能够被确定性地观测：每个 Silo 的提醒器服务均读写同一
+/// 可观测状态，且测试控制项（阻塞门控、注入故障、中断模拟及冻结
+/// 读取）统一作用于整个集群。
 /// </remarks>
 public static class ReminderTestKitClusterBuilderExtensions
 {
     /// <summary>
-    /// 安装一个共享的 <see cref="IdealizedReminderTable"/> 作为集件中每个 silo 的提醒表。
+    /// 安装共享的 <see cref="IdealizedReminderTable"/>，作为集群内每个 Silo 的提醒器表。
     /// </summary>
-    /// <param name="builder">测试组群构建器。</param>
-    /// <param name="table">安装的已有信箱,或创建一个 <see langword="null"/> 。</param>
+    /// <param name="builder">测试集群构建器。</param>
+    /// <param name="table">要安装的现有参考实现；使用 <see langword="null"/> 创建新实例。</param>
     /// <param name="reminderTimeProvider">
-    /// 以提醒子系统密钥注册的可选定时表
-    /// <see cref="TimeProvider"/> (<see cref="ReminderTimeProviderNames.Reminders"/>无关 silo 时间间隔
-    /// 使用环境提供者。
+    /// 可选的确定性时钟，注册为提醒器子系统的键控
+    /// <see cref="TimeProvider"/>（<see cref="ReminderTimeProviderNames.Reminders"/>）。无关的 Silo 定时器仍
+    /// 使用环境中已有的提供程序。
     /// </param>
-    /// <param name="configureReminderOptions">任选 <see cref="ReminderOptions"/> 后配置回调 。</param>
-    /// <returns>安装的触角,它暴露了确定性测试控制和反省。</returns>
+    /// <param name="configureReminderOptions">可选的 <see cref="ReminderOptions"/> 后配置回调。</param>
+    /// <returns>已安装的参考实现，它公开确定性测试控制项及内部状态观测能力。</returns>
     public static IdealizedReminderTable UseIdealizedReminderTable(
         this InProcessTestClusterBuilder builder,
         IdealizedReminderTable? table = null,
@@ -57,11 +57,11 @@ public static class ReminderTestKitClusterBuilderExtensions
     }
 
     /// <summary>
-    /// 安装所提供 <see cref="IdealizedReminderTable"/> 作为 silo的提醒表格。
+    /// 安装提供的 <see cref="IdealizedReminderTable"/>，作为此 Silo 的提醒器表。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <param name="table">装设神器</param>
-    /// <returns>用于链条的 silo 构建器。</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <param name="table">要安装的参考实现。</param>
+    /// <returns>用于链式调用的 Silo 构建器。</returns>
     public static ISiloBuilder UseIdealizedReminderTable(this ISiloBuilder builder, IdealizedReminderTable table)
     {
         ArgumentNullException.ThrowIfNull(builder);

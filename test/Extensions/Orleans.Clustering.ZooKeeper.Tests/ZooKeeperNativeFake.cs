@@ -79,7 +79,7 @@ internal sealed class ZooKeeperNativeFake
             await before(requests);
         }
 
-        // 申请副本时,当地的先决条件没有成功,因此,每次提前行动都要退缩。
+        // 在副本上执行操作，使原生前置条件不满足时能够回滚此前的所有操作。
         var next = new Dictionary<string, Node>(Nodes, StringComparer.Ordinal);
         foreach (var request in requests)
         {
@@ -137,7 +137,7 @@ internal sealed class ZooKeeperNativeFake
 
     private static Request ToRequest(Op operation)
     {
-        // ZooKeeperNetEx 只公开暴露了操作中心的型号和路径; 解码其有效载荷需要SDK接缝。
+        // ZooKeeperNetEx 仅公开 Op 的类型和路径；解码其有效载荷需要利用此 SDK 测试接入点。
         var result = GetValue<object>(operation, "toRequestRecord", visibility: BindingFlags.NonPublic);
         var path = GetValue<string>(result, "getPath");
         return result.GetType().Name switch

@@ -27,14 +27,14 @@ namespace Orleans.Runtime.ReminderService
         private readonly Dictionary<ReminderIdentity, LocalReminderData> localReminders = new();
         private readonly IReminderTable reminderTable;
         private readonly TaskCompletionSource<bool> startedTask;
-        private readonly IAsyncTimer listRefreshTimer; // 更新我们的提醒列表以反映全球提醒表的计时器
+        private readonly IAsyncTimer listRefreshTimer; // 刷新本地提醒器列表以反映全局提醒器表的定时器。
         private readonly GrainReferenceActivator _referenceActivator;
         private readonly GrainInterfaceType _grainInterfaceType;
         private readonly SiloStatusListenerManager _siloStatusListenerManager;
         private readonly TimeProvider _timeProvider;
         private readonly ReminderInstruments _reminderInstruments;
         private long localTableSequence;
-        // 测试屏障读出这个状态, 以保持可见性,
+        // 测试屏障在调度器之外读取此状态，使得服务繁忙时仍能观察该状态。
         private readonly object _reconciliationLock = new();
         private long reconciliationGeneration;
         private TaskCompletionSource reconciliationGenerationChanged = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -103,7 +103,7 @@ namespace Orleans.Runtime.ReminderService
                     using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                     cts.CancelAfter(this.reminderOptions.InitializationTimeout);
 
-                    // 确认它能够进入基础仓库,因为此后 ReminderService 将装载在背景中,而没有机会阻止 Silo 启动
+                    // 确认能够访问底层存储，因为此后 ReminderService 将在后台加载，无法再阻止 Silo 启动。
                     await reminderTable.StartAsync(cts.Token);
                 }
             }
@@ -199,7 +199,7 @@ namespace Orleans.Runtime.ReminderService
             {
                 await deliveryQuiesced;
 
-                // 停止所有提醒 。
+                // 停止所有提醒器。
                 var tasks = new List<Task>(localReminders.Count);
                 foreach (var reminderData in localReminders.Values)
                 {
@@ -221,8 +221,8 @@ namespace Orleans.Runtime.ReminderService
                 await task;
             }
 
-            // 顺利关闭,将提醒责任移交给新的业主,并更新 ReminderTable
-            // 目前,这项工作是通过定期阅读提醒表来完成的。
+            // 正常关闭时，还应将提醒器的负责权移交给新的负责方，并更新 ReminderTable。
+            // 当前通过定期读取提醒器表完成此工作。
         }
 
         public async Task<IGrainReminder> RegisterOrUpdateReminder(GrainId grainId, string reminderName, TimeSpan dueTime, TimeSpan period)
@@ -253,7 +253,7 @@ namespace Orleans.Runtime.ReminderService
             if (newEtag != null)
             {
                 entry.ETag = newEtag;
-                // 请求可以到达一个老旧的业主。 请在这里坚持, 但让当前所有人装载它 。
+                // 请求可能到达过时的负责方。在此处将其持久化，但让当前负责方加载它。
                 if (RingRange.InRange(grainId))
                 {
                     ReconcileLocalReminder(entry, _timeProvider.GetUtcNow().UtcDateTime);
@@ -273,7 +273,7 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// 停止本地端提醒, 从外部存储系统移除
+        /// 在本地停止提醒器，并从外部存储系统中移除它。
         /// </summary>
         /// <param name="reminder"></param>
         /// <returns></returns>
@@ -294,10 +294,10 @@ namespace Orleans.Runtime.ReminderService
             cancellationToken.ThrowIfCancellationRequested();
             await DoResponsibilitySanityCheck(grainId, "RemoveReminder").WaitAsync(cancellationToken);
 
-            // 可能发生我们在当地没有这个提醒... 即使这样,我们试图从提醒中去除提醒
-            // ...定期机制将停止在本地可能收到提醒通知的任何 silo LocalReminderService 中发出提醒
+            // 本地可能不存在此提醒器；即便如此，仍尝试将它从提醒器
+            // 表移除。定期刷新机制会在可能于本地持有该提醒器的任何 Silo 的 LocalReminderService 中停止它。
 
-            // 从持久性/模拟性存储中移除
+            // 从持久化或内存存储中移除。
             var success = await reminderTable.RemoveRow(grainId, reminderName, eTag, cancellationToken);
             if (!success)
             {
@@ -378,7 +378,7 @@ namespace Orleans.Runtime.ReminderService
         }
 
         /// <summary>
-        /// 试图从全球提醒表检索提醒提示
+        /// 尝试从全局提醒器表检索提醒器。
         /// </summary>
         private Task ReadAndUpdateReminders()
         {
@@ -389,9 +389,9 @@ namespace Orleans.Runtime.ReminderService
             var tasks = new List<Task>();
             RemoveOutOfRangeReminders(tasks);
 
-            // 刷新使用甚至序列值。 本地写入使用以下奇数值, 这样它们就可以取代
-            // 新的新进步有两个原因
-            // 所有旧的更新结果都丢弃。
+            // 刷新使用偶数序列值。本地写入使用紧随其后的奇数值，因此可以覆盖
+            // 此快照而不推进刷新世代。较新的刷新会将序列值增加 2，并使
+            // 所有较旧的刷新结果被丢弃。
             var cachedSequence = localTableSequence += 2;
             var rangeSerialNumberCopy = RangeSerialNumber;
             LogTraceRingRange(RingRange, RangeSerialNumber, localReminders.Count);
@@ -451,7 +451,7 @@ namespace Orleans.Runtime.ReminderService
 
                 LogTraceRemovingReminder(r.Value);
 
-                // 本地删除
+                // 在本地移除。
                 removedReminderTasks.Add(r.Value.StopAsync(ReminderEvents.LocalReminderStopReason.RemovedFromRange));
                 localReminders.Remove(r.Key);
             }
@@ -525,8 +525,8 @@ namespace Orleans.Runtime.ReminderService
         {
             while (true)
             {
-                // 新的跟踪刷新器后继更新 localTableSequence。后续
-                // 几代人和解,因此一个停滞不前的过时读作不会阻碍目前的读作。
+                // 较新且受跟踪的刷新通过 localTableSequence 取代较旧的结果。跟随
+                // 对账世代，确保停滞的过时读取不会阻塞当前读取。
                 long observedGeneration;
                 Task observedTask;
                 Task observedGenerationChanged;
@@ -547,8 +547,8 @@ namespace Orleans.Runtime.ReminderService
                     }
                 }
 
-                // 代代变革任务只有在代代进步之后才能完成,因此
-                // 观察到和解是完全的,其结果可以不加阻拦地阅读。
+                // 世代变更任务只能在世代推进后完成，因此
+                // 被观察的对账操作已完成，可以无阻塞地读取其结果。
                 await observedTask;
                 return;
             }
@@ -608,7 +608,7 @@ namespace Orleans.Runtime.ReminderService
         {
             CheckRuntimeContext();
 
-            // 在装载前观察环,以涵盖当前范围,包括读数的改动。
+            // 加载前观察哈希环，使就绪状态覆盖当前负责范围，包括读取期间的范围变化。
             SubscribeToRangeChangeEvents();
             await this.QueueAction(static _ => { }, state: 0);
             await DoInitialReadAndUpdateReminders();
@@ -664,16 +664,16 @@ namespace Orleans.Runtime.ReminderService
 
             try
             {
-                // 读取序列在任何区域被读取前被捕捉。
-                // 正在读取存储接收后序, 因此当此快照返回时会赢。
+                // 读取序列值在任何范围读取让出执行之前就已捕获。在
+                // 存储读取期间执行的本地变更会取得更大的序列值，因此在此快照返回时优先采用本地变更。
                 ReminderTableData? table = await reminderTable.ReadRows(
                     range.Begin,
                     range.End,
-                    StoppedCancellationTokenSource.Token); // 得到所有的提醒, 即使那些我们已经有
+                    StoppedCancellationTokenSource.Token); // 获取所有提醒器，包括本地已有的提醒器。
 
                 if (cachedSequence < localTableSequence)
                 {
-                    // 新的更新工作已经开始,因此这一结果不能再退伍或改变时间表。
+                    // 较新的刷新已开始，因此此结果不再有权清理删除标记或更改调度。
                     return;
                 }
 
@@ -685,11 +685,11 @@ namespace Orleans.Runtime.ReminderService
 
                 if (StoppedCancellationTokenSource.IsCancellationRequested) return;
 
-                // 与旧 Orleans 版本相配的供应商仍可返回无效。
+                // 针对较旧 Orleans 版本生成的提供程序仍可能返回 null。
                 if (table is null) return;
 
-                // 开始在此范围中每加载提醒, 然后在存储返回时删除身份 。
-                // 之后,从储存中删去了任何剩余物品,必须在当地拆除。
+                // 首先收集当前范围中所有已加载的提醒器标识，然后随存储返回的记录逐个移除对应标识。
+                // 最终剩余的提醒器已从存储中删除，也必须在本地移除。
                 var remindersNotInTable = new HashSet<ReminderIdentity>();
                 foreach (var key in localReminders.Keys)
                 {
@@ -701,7 +701,7 @@ namespace Orleans.Runtime.ReminderService
 
                 LogDebugReadRemindersFromTable(range, table.Reminders.Count, localTableSequence, cachedSequence);
                 var tasks = new List<Task>();
-                // 整个快照使用一个时间戳, 这样每行都用同一个装入窗口来评价 。
+                // 整个快照使用同一个时间戳，使每行均根据相同的加载时间窗口进行评估。
                 var now = _timeProvider.GetUtcNow().UtcDateTime;
                 foreach (var entry in table.Reminders)
                 {
@@ -712,8 +712,8 @@ namespace Orleans.Runtime.ReminderService
 
                 int remindersCountBeforeRemove = localReminders.Count;
 
-                // 更新本地最新更新更新的本地更新会赢得此快照。 否则, 提醒存储没有
-                // 返回不再是我们的计划。
+                // 较新的本地更新优先于此快照。否则，存储未
+                // 返回的提醒器不再由当前服务负责调度。
                 foreach (var key in remindersNotInTable)
                 {
                     if (!localReminders.TryGetValue(key, out var reminder))
@@ -754,8 +754,8 @@ namespace Orleans.Runtime.ReminderService
             var isWithinLoadingWindow = nextTick <= now.AddClamped(reminderOptions.ReminderLoadingWindow);
             if (!localReminders.TryGetValue(key, out var localReminder))
             {
-                // 远端提醒仍然完全存放在仓库中,直到稍后的更新再输入下次的选中
-                // 进入装货窗口。
+                // 距下次触发较远的提醒器仅保留在存储中，直到后续刷新使其下次触发时间
+                // 进入加载时间窗口。
                 if (isWithinLoadingWindow)
                 {
                     LogTraceInTableNotInLocal(entry);
@@ -766,8 +766,8 @@ namespace Orleans.Runtime.ReminderService
             }
 
             var state = localReminder.State;
-            // 读后完成的直接登记或更新比表格更新
-            // 即时快照,所以不要改变当地的时间表。
+            // 如果直接注册或更新在此次读取开始后才完成，则它比提醒器表
+            // 快照更新，因此保持其本地调度不变。
             if (tableSequence <= localReminder.LocalSequenceNumber)
             {
                 if (state is LocalReminderState.Running)
@@ -782,7 +782,7 @@ namespace Orleans.Runtime.ReminderService
                 return;
             }
 
-            // 保留标记,以防发生该车主在同一时间戳上开枪的事件。
+            // 如果当前负责方已在同一时间戳触发过该未改变的触发项，则保留对应标记。
             if (state is LocalReminderState.Tombstone
                 && localReminder.ShouldRetainFiredOccurrenceTombstone(entry, nextTick))
             {
@@ -831,8 +831,8 @@ namespace Orleans.Runtime.ReminderService
             }
             else
             {
-                // 更新后的时间安排是耐久的,但下一个时间太遥远,无法为保留一个
-                // 本地任务。保留一个已停止的序列带序条目,直到更新刷新时再观察此写入 。
+                // 更新后的调度已持久化，但距离下次触发过远，无需保留
+                // 本地任务。保留一个已停止且携带序列值的条目，直到较新的刷新观察到此次写入。
                 AddLocalReminderTombstone(entry, ReminderEvents.LocalReminderStopReason.OutsideLoadingWindow);
             }
         }
@@ -948,12 +948,12 @@ namespace Orleans.Runtime.ReminderService
             switch (Status)
             {
                 case GrainServiceStatus.Booting:
-                    // 如果服务没有完成初始负荷, 仍然可能正常装载或已经
-                    // 几次尝试失败, 不应等待完成时, 来电者应停止等待
+                    // 如果服务尚未完成初次加载，则可能仍在正常加载，或
+                    // 已有几次尝试失败，不应让调用方继续等待其完成。
                     var task = this.startedTask.Task;
                     if (task.IsCompleted)
                     {
-                        // 在检查范围之前先排除任何初始装载失败 。
+                        // 检查负责范围之前，先传播初次加载的失败异常（如果有）。
                         task.GetAwaiter().GetResult();
                         CheckRange();
                     }
@@ -964,7 +964,7 @@ namespace Orleans.Runtime.ReminderService
                         {
                             try
                             {
-                                // 等待初始负载任务完成( 暂停)
+                                // 等待初次加载任务完成（带超时限制）。
                                 await task.WaitAsync(InitialReadMaxWaitTimeForUpdates);
                             }
                             catch (TimeoutException ex)
@@ -994,13 +994,13 @@ namespace Orleans.Runtime.ReminderService
                 if (!RingRange.InRange(grainId))
                 {
                     LogWarningNotResponsible(debugInfo, grainId, RingRange);
-                    // 现今我们仍让电话人继续行动, 而不破一个例外... 定期机制会处理 错误登记提醒 silo
-                    // 否则,我们可以拒绝请求或改序请求的路线
+                    // 目前仍允许调用方继续，不抛出异常；定期刷新机制将处理提醒器注册到错误 Silo 的情况。
+                    // 否则可以拒绝请求，或重新路由请求。
                 }
             }
         }
 
-        // 注意:提醒通知清单的制作量可能很大!
+        // 注意：生产环境中的提醒器列表可能非常大！
         private void PrintReminders(string? msg = null)
         {
             if (!logger.IsEnabled(LogLevel.Trace)) return;
@@ -1020,7 +1020,7 @@ namespace Orleans.Runtime.ReminderService
                 throw new ArgumentOutOfRangeException(nameof(entry), entry.Period, "Reminder period must be greater than zero.");
             }
 
-            // 即使存储提供者丢失 DateTimeKind,提醒时间戳也代表UTC。
+            // 即使存储提供程序丢失 DateTimeKind，提醒器时间戳也表示 UTC 时间。
             var startAt = DateTime.SpecifyKind(entry.StartAt, DateTimeKind.Utc);
             if (now <= startAt)
             {
@@ -1069,8 +1069,8 @@ namespace Orleans.Runtime.ReminderService
 
             var entry = reminder.Entry;
             var key = new ReminderIdentity(entry.GrainId, entry.ReminderName);
-            // 只有作出驱逐决定的地方实例和时间表版本才能自行撤销。
-            // 同时更新提醒时,提醒内容就位,这样其运行循环就可以遵守新的时间表。
+            // 只有作出移除决定的本地实例及其调度版本才能执行自身移除。
+            // 并发更新会保留提醒器，以便其运行循环观察到新的调度。
             if (!localReminders.TryGetValue(key, out var current) || !ReferenceEquals(current, reminder))
             {
                 return true;
@@ -1082,7 +1082,7 @@ namespace Orleans.Runtime.ReminderService
                 return false;
             }
 
-            // 将被停止的物体保留为墓碑,直到看到新的表格时注意这一时间安排决定。
+            // 将已停止的对象保留为删除标记，直到较新的表读取观察到此调度决定。
             return true;
         }
 
@@ -1164,7 +1164,7 @@ namespace Orleans.Runtime.ReminderService
             }
 
             /// <summary>
-            /// 本地使用此选项解决定期表格阅读器与本地登记/未登记申请之间的竞争
+            /// 在本地使用此值解决定期读取提醒器表与并发本地注册、注销请求之间的竞态。
             /// </summary>
             public long LocalSequenceNumber
             {
@@ -1377,7 +1377,7 @@ namespace Orleans.Runtime.ReminderService
                                 LogErrorDeliveringReminderTick(_shared.logger, this, nextTick, exc);
                                 ReminderEvents.EmitTickFailed(entry.GrainId, entry.ReminderName, status, exc, _shared.Silo);
 
-                                // 与一再不发送提醒的滴答有什么关系?
+                                // 如何处理提醒器触发持续投递失败的情况？
                             }
                         }
                         catch (Exception exception)
@@ -1423,14 +1423,14 @@ namespace Orleans.Runtime.ReminderService
                     }
 
                     var now = _shared._timeProvider.GetUtcNow().UtcDateTime;
-                    // 锁定每个答题, 以锁定持续 StartAt + N * 周期间隔。 如果交付时间长,
-                    // 跳过未发生的事件, 而不是在交付完成后移动时间表 。
+                    // 将每次触发都锚定在持久化的 StartAt + N * Period 周期上。如果投递耗时过长，
+                    // 则跳过错过的触发，而不是根据投递完成时间改变调度节奏。
                     var tickTime = previousTickTime is { } previous && previousScheduleVersion == scheduleVersion
                         ? CalculateFollowingTickTime(entry, previous, now)
                         : CalculateNextTickTime(entry, now);
 
-                    // 下次的滴答离远时, 丢弃本地任务。 提醒时间仍然可持久, 且
-                    // 未来刷新表格会随着窗口的接近再加载。
+                    // 距下次触发较远时，丢弃本地任务。提醒器仍然持久化，
+                    // 当它接近加载时间窗口时，后续的表刷新会重新加载它。
                     if (tickTime > now.AddClamped(_shared.reminderOptions.ReminderLoadingWindow))
                     {
                         if (_shared.TryEvictLocalReminder(this, scheduleVersion, previousTickTime))
@@ -1444,9 +1444,9 @@ namespace Orleans.Runtime.ReminderService
                     using var waitCancellation = CancellationTokenSource.CreateLinkedTokenSource(_stopCancellation.Token, scheduleChangedToken);
                     try
                     {
-                        // 一次在现在或之前到期的滴答会得到最小的非同步延迟,以避免紧绕循环。
+                        // 到期时间不晚于当前时刻的触发使用最短的异步延迟，避免紧密循环。
                         var waitUntil = tickTime <= now ? now.AddClamped(MinimumReminderDueTime) : tickTime;
-                        // 即使存储提供者丢失 DateTimeKind,提醒时间戳也代表UTC。
+                        // 即使存储提供程序丢失 DateTimeKind，提醒器时间戳也表示 UTC 时间。
                         var delayTask = _shared._timeProvider.DelayUntilAsync(
                             new DateTimeOffset(waitUntil.Ticks, TimeSpan.Zero),
                             waitCancellation.Token);

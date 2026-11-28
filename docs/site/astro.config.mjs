@@ -31,7 +31,7 @@ export default defineConfig({
       },
       favicon: '/favicon.svg',
       customCss: ['./src/styles/custom.css'],
-      // 视觉工作室代码主题在 C# 中给出了不同颜色的类型、成员、本地人和关键词。
+      // Visual Studio Code 主题在 C# 中以不同颜色区分类型、成员、局部变量和关键字。
       expressiveCode: {
         themes: ['dark-plus', 'light-plus'],
       },

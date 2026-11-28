@@ -1,24 +1,24 @@
 ﻿@page "/weather"
 @inject WeatherForecastService ForecastService
-<PageTitle>Weather</PageTitle>
+<PageTitle>天气</PageTitle>
 
-<h1>Weather</h1>
+<h1>天气</h1>
 
-<p>This component demonstrates showing data.</p>
+<p>此组件演示如何显示数据。</p>
 
 @if (forecasts == null)
 {
-    <p><em>Loading...</em></p>
+    <p><em>正在加载……</em></p>
 }
 else
 {
     <table class="table">
         <thead>
             <tr>
-                <th>Date</th>
-                <th aria-label="Temperature in Celsius">Temp. (C)</th>
-                <th aria-label="Temperature in Farenheit">Temp. (F)</th>
-                <th>Summary</th>
+                <th>日期</th>
+                <th aria-label="摄氏温度">温度（C）</th>
+                <th aria-label="华氏温度">温度（F）</th>
+                <th>概况</th>
             </tr>
         </thead>
         <tbody>

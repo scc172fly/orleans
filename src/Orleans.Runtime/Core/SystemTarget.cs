@@ -8,9 +8,9 @@ using Orleans.Timers;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 各种系统服务的基础类,如 grain 目录、提醒服务等。
-    /// 公开制作 GrainService 继承它。
-    /// 可以在重新设定要素,从而消除继承关系之后,转为内部。
+    /// 各类系统服务的基类，例如 Grain 目录、提醒器服务等。
+    /// 声明为 public，以供 GrainService 继承。
+    /// 在通过重构消除继承关系之后，可改为 internal。
     /// </summary>
     public abstract partial class SystemTarget : ISystemTarget, ISystemTargetBase, IGrainContext, IGrainExtensionBinder, ISpanFormattable, IDisposable, IGrainTimerRegistry, IGrainCallCancellationExtension
     {
@@ -22,7 +22,7 @@ namespace Orleans.Runtime
         private readonly Dictionary<Type, object> _components = [];
 
 
-        /// 系统目标的<summary>Silo 地址。</summary>
+        /// <summary>系统目标的 Silo 地址。</summary>
         public SiloAddress Silo => _shared.SiloAddress;
         internal GrainAddress ActivationAddress { get; }
 
@@ -51,14 +51,14 @@ namespace Orleans.Runtime
         private RuntimeMessagingTrace MessagingTrace => _shared.MessagingTrace;
 
         /// <summary>
-        /// <see cref="SystemTarget"/>的废弃无参数构建器。
+        /// <see cref="SystemTarget"/> 已过时的无参数构造函数。
         /// <para>
-        /// <b>断开更改 :</b> 这个建筑工地已经过时, 将投 <see cref="NotSupportedException"/> 电话:
-        /// 使用该软件只是为了满足某些基于反思的设想,不应用于应用代码。
+        /// <b>破坏性变更：</b> 此构造函数已过时，调用时将抛出 <see cref="NotSupportedException"/>。
+        /// 它仅用于满足特定的基于反射的场景，不应在应用程序代码中使用。
         /// </para>
         /// <para>
-        /// 如果您使用需要无参数构造器的反射或序列框架,
-        /// 更新代码,使用参数构建器: <see cref="SystemTarget(SystemTargetGrainId, SystemTargetShared)"/>。
+        /// 如果使用要求无参数构造函数的反射或序列化框架，
+        /// 请更新代码，以使用带参数的构造函数：<see cref="SystemTarget(SystemTargetGrainId, SystemTargetShared)"/>。
         /// </para>
         /// </summary>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -97,10 +97,10 @@ namespace Orleans.Runtime
         public IWorkItemScheduler Scheduler => WorkItemGroup;
 
         /// <summary>
-        /// 获取指定类型部件的组件。
+        /// 获取指定类型的组件。
         /// </summary>
         /// <typeparam name="TComponent">组件类型。</typeparam>
-        /// <returns>带有指定类型的组成部分。</returns>
+        /// <returns>具有指定类型的组件。</returns>
         public TComponent? GetComponent<TComponent>()
         {
             TComponent? result;
@@ -153,7 +153,7 @@ namespace Orleans.Runtime
             }
             catch
             {
-                // 忽略。 忽略。
+                // 忽略。
             }
             finally
             {
@@ -170,21 +170,21 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 注册一个时间器, 以向此系统目标发送定期回调 。
+        /// 注册定时器，定期向此系统目标发送回调。
         /// </summary>
-        /// <param name="callback">计时器回调, 定时器到期后即会点火。</param>
-        /// <param name="state">国家对象传递到回调。</param>
+        /// <param name="callback">定时器回调，每当定时器到期时触发。</param>
+        /// <param name="state">传递给回调的状态对象。</param>
         /// <param name="dueTime">
-        /// 援引 <paramref name="callback"/> 之前的延误时间。
-        /// 指定 <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> 以阻止计时器启动。
-        /// 指定 <see cref="TimeSpan.Zero"/> 迅速调用回调。
+        /// 调用 <paramref name="callback"/> 前的延迟时长。
+        /// 指定 <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> 可阻止定时器启动。
+        /// 指定 <see cref="TimeSpan.Zero"/> 可尽快调用回调。
         /// </param>
         /// <param name="period">
-        /// <paramref name="callback"/>的引用之间的时间间隔。
-        /// 指定用于禁用定期信号的 <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> 。
+        /// <paramref name="callback"/> 的调用间隔。
+        /// 指定 <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> 可禁用周期性触发。
         /// </param>
         /// <returns>
-        /// <see cref="IDisposable"/> 对象,该对象将在处置时取消计时器。
+        /// 一个 <see cref="IDisposable"/> 对象，释放时将取消定时器。
         /// </returns>
         public IGrainTimer RegisterTimer(Func<object?, Task> callback, object? state, TimeSpan dueTime, TimeSpan period)
         {
@@ -195,20 +195,20 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 注册一个时间器, 以向此系统目标发送定期回调 。
+        /// 注册定时器，定期向此系统目标发送回调。
         /// </summary>
-        /// <param name="callback">计时器回调, 定时器到期后即会点火。</param>
+        /// <param name="callback">定时器回调，每当定时器到期时触发。</param>
         /// <param name="dueTime">
-        /// 援引 <paramref name="callback"/> 之前的延误时间。
-        /// 指定 <see cref="Timeout.InfiniteTimeSpan"/> 以阻止计时器启动。
-        /// 指定 <see cref="TimeSpan.Zero"/> 迅速调用回调。
+        /// 调用 <paramref name="callback"/> 前的延迟时长。
+        /// 指定 <see cref="Timeout.InfiniteTimeSpan"/> 可阻止定时器启动。
+        /// 指定 <see cref="TimeSpan.Zero"/> 可尽快调用回调。
         /// </param>
         /// <param name="period">
-        /// <paramref name="callback"/>的引用之间的时间间隔。
-        /// 指定用于禁用定期信号的 <see cref="Timeout.InfiniteTimeSpan"/> 。
+        /// <paramref name="callback"/> 的调用间隔。
+        /// 指定 <see cref="Timeout.InfiniteTimeSpan"/> 可禁用周期性触发。
         /// </param>
         /// <returns>
-        /// <see cref="IDisposable"/> 对象,该对象将在处置时取消计时器。
+        /// 一个 <see cref="IDisposable"/> 对象，释放时将取消定时器。
         /// </returns>
         public IGrainTimer RegisterGrainTimer(Func<CancellationToken, Task> callback, TimeSpan dueTime, TimeSpan period)
         {
@@ -220,22 +220,22 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 注册一个向此 grain发送定期回调的计时器。
-        /// 此计时器将防止当前 grain 被禁用 。
+        /// 注册定时器，定期向此 Grain 发送回调。
+        /// 此定时器会阻止当前 Grain 被停用。
         /// </summary>
-        /// <param name="callback">计时器回调, 定时器到期后即会点火。</param>
-        /// <param name="state">国家对象传递到回调。</param>
+        /// <param name="callback">定时器回调，每当定时器到期时触发。</param>
+        /// <param name="state">传递给回调的状态对象。</param>
         /// <param name="dueTime">
-        /// 援引 <paramref name="callback"/> 之前的延误时间。
-        /// 指定 <see cref="Timeout.InfiniteTimeSpan"/> 以阻止计时器启动。
-        /// 指定 <see cref="TimeSpan.Zero"/> 迅速调用回调。
+        /// 调用 <paramref name="callback"/> 前的延迟时长。
+        /// 指定 <see cref="Timeout.InfiniteTimeSpan"/> 可阻止定时器启动。
+        /// 指定 <see cref="TimeSpan.Zero"/> 可尽快调用回调。
         /// </param>
         /// <param name="period">
-        /// <paramref name="callback"/>的引用之间的时间间隔。
-        /// 指定用于禁用定期信号的 <see cref="Timeout.InfiniteTimeSpan"/> 。
+        /// <paramref name="callback"/> 的调用间隔。
+        /// 指定 <see cref="Timeout.InfiniteTimeSpan"/> 可禁用周期性触发。
         /// </param>
         /// <returns>
-        /// <see cref="IDisposable"/> 对象,该对象将在处置时取消计时器。
+        /// 一个 <see cref="IDisposable"/> 对象，释放时将取消定时器。
         /// </returns>
         public IGrainTimer RegisterGrainTimer<TState>(Func<TState, CancellationToken, Task> callback, TState state, TimeSpan dueTime, TimeSpan period)
         {
@@ -254,7 +254,7 @@ namespace Orleans.Runtime
         bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
             => destination.TryWrite($"[SystemTarget: {Silo}/{_id}{ActivationId}]", out charsWritten);
 
-        /// <summary>添加关于正在处理的信件的详情</summary>
+        /// <summary>添加当前正在处理的消息的详细信息。</summary>
         internal string ToDetailedString()
         {
             lock (_runningRequests)
@@ -405,14 +405,14 @@ namespace Orleans.Runtime
         /// <inheritdoc/>
         public void Rehydrate(IRehydrationContext context)
         {
-            // 移民得不到支持,但是如果有背景情况的话,我们需要处理它。
+            // 不支持迁移，但如果提供了上下文，则需要释放它。
             (context as IDisposable)?.Dispose();
         }
 
         /// <inheritdoc/>
         public void Migrate(Dictionary<string, object>? requestContext, CancellationToken cancellationToken)
         {
-            // 移民得不到支持,什么都不要做:合同是这种方式试图移徙,但不能保证移徙会发生。
+            // 不支持迁移。不执行任何操作：契约规定此方法会尝试迁移，但不保证迁移一定发生。
         }
 
         void IGrainTimerRegistry.OnTimerCreated(IGrainTimer timer) { lock (_timers) { _timers.Add(timer); } }
@@ -471,7 +471,7 @@ namespace Orleans.Runtime
             cancellationToken.ThrowIfCancellationRequested();
             if (!TryCancelRequest())
             {
-                // 正在取消的消息可能尚未到来, 所以重试几次 。
+                // 正在取消的消息可能尚未到达，因此重试数次。
                 return RetryCancellationAfterDelay();
             }
 
@@ -497,7 +497,7 @@ namespace Orleans.Runtime
 
                 lock (_runningRequests)
                 {
-                    // 检查运行中的请求 。
+                    // 检查正在运行的请求。
                     foreach (var runningRequest in _runningRequests.Keys)
                     {
                         if (runningRequest.Id == messageId && runningRequest.SendingGrain == senderGrainId)
@@ -517,7 +517,7 @@ namespace Orleans.Runtime
                     }
                     else
                     {
-                        // 假设请求无法撤销。
+                        // 假定请求不可取消。
                         didCancel = true;
                     }
                 }

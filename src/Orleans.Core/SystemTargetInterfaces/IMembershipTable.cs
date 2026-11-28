@@ -12,33 +12,33 @@ using Orleans.Runtime;
 namespace Orleans
 {
     /// <summary>
-    /// 成员界面表
+    /// 成员表接口。
     /// </summary>
     /// <remarks>
-    /// 供应商可以采用取消通知的自动合成方法,取消其基本业务。
-    /// 默认执行取消呼叫者等待, 而无一遗漏的操作完成时,
-    /// 并遵守该项行动的任何例外。
-    /// 承认取消RPC方法保留了现有的操作假名和序列应用论证。
-    /// 取消与这些论点分开宣传。
+    /// 提供程序可实现支持取消的 Async 方法，以取消其底层操作。
+    /// 默认实现取消调用方的等待，同时让不接受取消令牌的操作继续完成，
+    /// 并观察该操作产生的任何异常。
+    /// 支持取消的 RPC 方法保留现有操作别名和序列化的应用参数。
+    /// 取消信号独立于这些参数进行传播。
     /// </remarks>
     public interface IMembershipTable
     {
         /// <summary>
-        /// 将先要求采用其他所有方法,然后才请成员表格的初始化
+        /// 初始化成员表；此方法将在所有其他方法之前调用。
         /// </summary>
-        /// <param name="tryInitTableVersion">是否试图将基础表格入内</param>
-        /// <returns>一项代表初始化操作的任务。</returns>
+        /// <param name="tryInitTableVersion">是否尝试初始化底层表。</param>
+        /// <returns>表示初始化操作的任务。</returns>
         [Obsolete("Use InitializeMembershipTableAsync instead.")]
         Task InitializeMembershipTable(bool tryInitTableVersion);
 
         /// <inheritdoc cref="InitializeMembershipTable(bool)"/>
-        /// <param name="tryInitTableVersion">是否初始化基础表格版本。</param>
-        /// <param name="cancellationToken">取消操作的标记。</param>
+        /// <param name="tryInitTableVersion">是否初始化底层表版本。</param>
+        /// <param name="cancellationToken">用于取消该操作的令牌。</param>
         [Alias("FB89E5E9")]
         async Task InitializeMembershipTableAsync(bool tryInitTableVersion, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-#pragma warning disable CS0618 // Compatibility dispatch to existing tokenless providers.
+#pragma warning disable CS0618 // 为兼容现有不接受取消令牌的提供程序而转发调用。
             var operation = InitializeMembershipTable(tryInitTableVersion);
 #pragma warning restore CS0618
             operation.Ignore();
@@ -46,21 +46,21 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 删除给定 clusterId的所有表格条目
+        /// 删除指定 clusterId 的所有表条目。
         /// </summary>
-        /// <param name="clusterId">条目被删除的组群标识符。</param>
-        /// <returns>代表删除操作的任务。</returns>
+        /// <param name="clusterId">要删除其条目的集群标识符。</param>
+        /// <returns>表示删除操作的任务。</returns>
         [Obsolete("Use DeleteMembershipTableEntriesAsync instead.")]
         Task DeleteMembershipTableEntries(string clusterId);
 
         /// <inheritdoc cref="DeleteMembershipTableEntries(string)"/>
-        /// <param name="clusterId">条目被删除的组。</param>
-        /// <param name="cancellationToken">取消操作的标记。</param>
+        /// <param name="clusterId">要删除其条目的集群。</param>
+        /// <param name="cancellationToken">用于取消该操作的令牌。</param>
         [Alias("BF899C85")]
         async Task DeleteMembershipTableEntriesAsync(string clusterId, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-#pragma warning disable CS0618 // Compatibility dispatch to existing tokenless providers.
+#pragma warning disable CS0618 // 为兼容现有不接受取消令牌的提供程序而转发调用。
             var operation = DeleteMembershipTableEntries(clusterId);
 #pragma warning restore CS0618
             operation.Ignore();
@@ -68,21 +68,21 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 删除已死 silo 其上次已知更新先于此条目的条目 <paramref name="beforeDate"/>.
+        /// 移除最近已知更新时间早于 <paramref name="beforeDate"/> 的已死亡 Silo 条目。
         /// </summary>
-        /// <param name="beforeDate">条目最后一次更新时要删除的独家上下限。</param>
-        /// <returns>一项代表清理行动的任务。</returns>
+        /// <param name="beforeDate">待删除条目的最近已知更新时间的排他上界。</param>
+        /// <returns>表示清理操作的任务。</returns>
         [Obsolete("Use CleanupDefunctSiloEntriesAsync instead.")]
         Task CleanupDefunctSiloEntries(DateTimeOffset beforeDate);
 
         /// <inheritdoc cref="CleanupDefunctSiloEntries(DateTimeOffset)"/>
-        /// <param name="beforeDate">条目最后一次更新时要删除的独家上下限。</param>
-        /// <param name="cancellationToken">取消操作的标记。</param>
+        /// <param name="beforeDate">待删除条目最后更新时间的排他上界。</param>
+        /// <param name="cancellationToken">用于取消该操作的令牌。</param>
         [Alias("7A519C2E")]
         async Task CleanupDefunctSiloEntriesAsync(DateTimeOffset beforeDate, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-#pragma warning disable CS0618 // Compatibility dispatch to existing tokenless providers.
+#pragma warning disable CS0618 // 为兼容现有不接受取消令牌的提供程序而转发调用。
             var operation = CleanupDefunctSiloEntries(beforeDate);
 #pragma warning restore CS0618
             operation.Ignore();
@@ -90,28 +90,28 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 通过供应商的遗留行读取业务阅读会员信息。
+        /// 通过提供程序的旧版单行读取操作读取成员信息。
         /// </summary>
         /// <remarks>
-        /// 使用 <see cref="ReadAllAsync"/> 获取原子快照
-        /// <see cref="MembershipTableData.TryGet"/> 选择 silo 和实体标签。
-        /// 内置供应商报告 <see cref="NotSupportedException"/> 将行读取。
+        /// 使用 <see cref="ReadAllAsync"/> 获取原子快照，并使用
+        /// <see cref="MembershipTableData.TryGet"/> 选取某个 Silo 及其实体标记。
+        /// 内置提供程序在读取单行时报告 <see cref="NotSupportedException"/>。
         /// </remarks>
-        /// <param name="key">大会主席的地址 silo 需要阅读其成员资格信息。</param>
-        /// <returns>给定 silo: MembershipTableData 的成员资格信息,包括一个 MembershipEntry 条目和
-        /// TableVersion,从原子上读取。</returns>
+        /// <param name="key">需要读取成员信息的 Silo 地址。</param>
+        /// <returns>给定 Silo 的成员信息：由一个 MembershipEntry 条目与
+        /// TableVersion 组成的 MembershipTableData，二者以原子方式读取。</returns>
         [Obsolete("Use ReadAllAsync and MembershipTableData.TryGet instead.")]
         Task<MembershipTableData> ReadRow(SiloAddress key);
 
         /// <inheritdoc cref="ReadRow(SiloAddress)"/>
-        /// <param name="key">大会主席的地址 silo 改为。</param>
-        /// <param name="cancellationToken">取消操作的标记。</param>
+        /// <param name="key">要读取的 Silo 地址。</param>
+        /// <param name="cancellationToken">用于取消该操作的令牌。</param>
         [Obsolete("Use ReadAllAsync and MembershipTableData.TryGet instead.")]
         [Alias("D851FB33")]
         async Task<MembershipTableData> ReadRowAsync(SiloAddress key, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-#pragma warning disable CS0618 // Compatibility dispatch to existing tokenless providers.
+#pragma warning disable CS0618 // 为兼容现有不接受取消令牌的提供程序而转发调用。
             var operation = ReadRow(key);
 #pragma warning restore CS0618
             operation.Ignore();
@@ -119,22 +119,22 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 原子读取成员表的全部内容。
-        /// 返回的 MembershipTableData 包括所有 MembershipEntry 全部条目 silos 表中和表格中的 
-        /// 本表格的TableVersion 。 MembershipEntries 和 TableVersion 必须从原子角度阅读。
+        /// 以原子方式读取成员表的全部内容。
+        /// 返回的 MembershipTableData 包含表中所有 Silo 的全部 MembershipEntry 条目，以及
+        /// 此表的 TableVersion。MembershipEntry 条目与 TableVersion 必须以原子方式读取。
         /// </summary>
-        /// <returns>某一表格的成员信息: MembershipTableData ,包括多个 MembershipEntry 条目和
-        /// TableVersion全部从原子上读取</returns>
+        /// <returns>给定成员表的成员信息：由多个 MembershipEntry 条目和
+        /// TableVersion 组成的 MembershipTableData，全部以原子方式读取。</returns>
         [Obsolete("Use ReadAllAsync instead.")]
         Task<MembershipTableData> ReadAll();
 
         /// <inheritdoc cref="ReadAll()"/>
-        /// <param name="cancellationToken">取消操作的标记。</param>
+        /// <param name="cancellationToken">用于取消该操作的令牌。</param>
         [Alias("00BCE16F")]
         async Task<MembershipTableData> ReadAllAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-#pragma warning disable CS0618 // Compatibility dispatch to existing tokenless providers.
+#pragma warning disable CS0618 // 为兼容现有不接受取消令牌的提供程序而转发调用。
             var operation = ReadAll();
 #pragma warning restore CS0618
             operation.Ignore();
@@ -142,32 +142,32 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 原子试图插入(添加)一个新的 MembershipEntry ,一个 silo ,并更新 TableVersion。
-        /// 如果操作成功,将对表格作如下修改:
-        /// (1) 表格中将增加新的 MembershipEntry 。
-        /// 2) 新增的 MembershipEntry 将有一个由供应商定义的行 eTag。
-        /// 3) TableVersion.Version 表格中的表格将更新到新的 TableVersion.Version.
-        /// 4) TableVersion 表中的牌将更新到新的独有自动生成 eTag。
-        /// 所有对表格的修改,插入新行和更新表格版本及相关的标签,应原生化或原子衰落,无副作用。
-        /// 操作在下列每一条件下均应失败:
-        /// 1) A MembershipEntry 给定 silo 表格中已经存在
-        /// (2) TableVersion 更新失败,因为给定 TableVersion etag(按 TableVersion.VersionEtag 属性指定)与表中的 TableVersion etag不匹配。
+        /// 以原子方式尝试为一个 Silo 插入（添加）新的 MembershipEntry，同时更新 TableVersion。
+        /// 如果操作成功，则将对表进行以下更改：
+        /// 1) 新的 MembershipEntry 将被添加到表中。
+        /// 2) 新添加的 MembershipEntry 将具有由提供程序定义的行 ETag。
+        /// 3) 表中的 TableVersion.Version 将更新为新的 TableVersion.Version。
+        /// 4) 表中的 TableVersion ETag 将更新为自动生成的新的唯一 ETag。
+        /// 对表的这些变更，包括插入新行、更新表版本及相关 ETag，必须全部原子地发生，或原子地失败且不产生副作用。
+        /// 操作应在以下每种条件下失败：
+        /// 1) 表中已存在给定 Silo 的 MembershipEntry。
+        /// 2) 更新 TableVersion 失败，因为传入的 TableVersion ETag（由 TableVersion.VersionEtag 属性指定）与表中的 TableVersion ETag 不匹配。
         /// </summary>
-        /// <param name="entry">MembershipEntry 插入。</param>
-        /// <param name="tableVersion">本表格的新 TableVersion 及其表单。</param>
-        /// <returns>如果插入操作成功且以其他方式虚假, 则正确。</returns>
+        /// <param name="entry">要插入的 MembershipEntry。</param>
+        /// <param name="tableVersion">此表的新 TableVersion 及其 ETag。</param>
+        /// <returns>插入操作成功时为 true，否则为 false。</returns>
         [Obsolete("Use InsertRowAsync instead.")]
         Task<bool> InsertRow(MembershipEntry entry, TableVersion tableVersion);
 
         /// <inheritdoc cref="InsertRow(MembershipEntry, TableVersion)"/>
-        /// <param name="entry">插入成员条目。</param>
-        /// <param name="tableVersion">新表格版本及其预期的etag。</param>
-        /// <param name="cancellationToken">取消操作的标记。</param>
+        /// <param name="entry">要插入的成员条目。</param>
+        /// <param name="tableVersion">新的表版本及其预期 ETag。</param>
+        /// <param name="cancellationToken">用于取消该操作的令牌。</param>
         [Alias("FEF3AC5A")]
         async Task<bool> InsertRowAsync(MembershipEntry entry, TableVersion tableVersion, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-#pragma warning disable CS0618 // Compatibility dispatch to existing tokenless providers.
+#pragma warning disable CS0618 // 为兼容现有不接受取消令牌的提供程序而转发调用。
             var operation = InsertRow(entry, tableVersion);
 #pragma warning restore CS0618
             operation.Ignore();
@@ -175,42 +175,42 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 原子试图更新 MembershipEntry 一对一 silo 更新 TableVersion.
-        /// 如果操作成功,将对表格作如下修改:
-        /// (1) 与 MembershipEntry 为此 silo 将使用所提供的条目更新。
-        /// (2) 横 eTag 更新的《公约》和《公约》 MembershipEntry 将反映供应商的元数据或货币汇率政策。
-        /// 3) TableVersion.Version 表格中的表格将更新到新的 TableVersion.Version.
-        /// 4) TableVersion 表中的牌将更新到新的独有自动生成 eTag。
-        /// 所有对表格的修改、新行更新以及表格版本和相关星格的更新,都应原生化地进行,否则原子衰落,无副作用。
-        /// 操作在下列每一条件下均应失败:
-        /// 1) A MembershipEntry 给定 silo 表格中不存在
-        /// (2) TableVersion 更新失败,因为给定 TableVersion etag(按 TableVersion.VersionEtag 属性指定)与表中的 TableVersion etag不匹配。
-        /// (3) 供应商确认另外一种金币行同价证券,而所提供的同价证券与该货币牌不符。
+        /// 以原子方式尝试更新一个 Silo 的 MembershipEntry，同时更新 TableVersion。
+        /// 如果操作成功，则将对表进行以下更改：
+        /// 1) 使用提供的条目更新此 Silo 的 MembershipEntry。
+        /// 2) 更新后的 MembershipEntry 的行 ETag 将反映提供程序的元数据或并发令牌策略。
+        /// 3) 表中的 TableVersion.Version 将更新为新的 TableVersion.Version。
+        /// 4) 表中的 TableVersion ETag 将更新为自动生成的新的唯一 ETag。
+        /// 对表的这些变更，包括更新行、更新表版本及相关 ETag，必须全部原子地发生，或原子地失败且不产生副作用。
+        /// 操作应在以下每种条件下失败：
+        /// 1) 表中不存在给定 Silo 的 MembershipEntry。
+        /// 2) 更新 TableVersion 失败，因为传入的 TableVersion ETag（由 TableVersion.VersionEtag 属性指定）与表中的 TableVersion ETag 不匹配。
+        /// 3) 提供程序验证独立的规范行并发令牌，而所提供的 ETag 与之不匹配。
         /// </summary>
         /// <remarks>
-        /// 原生供应商要求现有一行并验证 <see cref="TableVersion.VersionEtag"/>。
-        /// 提供者可以使用行 eTag 作为额外的心心中中性同音符号,或者当
-        /// 表格-ETag 验证保护现有行更新。
-        /// 保持对先前读取的行和表格输入的验证
-        /// 时行存在,表格ETag仍然保持当前状态。
+        /// 提供程序以原子方式要求行存在并验证 <see cref="TableVersion.VersionEtag"/>。
+        /// 提供程序可以将行 ETag 用作不受心跳影响的额外并发令牌，也可在
+        /// 表 ETag 验证能够保护现有行的更新时忽略它。额外的行保护条件必须
+        /// 在仅有心跳活动时仍然成立；只要行存在且表 ETag 仍为当前值，
+        /// 就应保证先前读取的行和表输入仍可通过验证。
         /// </remarks>
-        /// <param name="entry">MembershipEntry 待更新。</param>
-        /// <param name="etag">从成员处获得的由供应商定义的行实体标记读取。</param>
-        /// <param name="tableVersion">本表格的新 TableVersion 及其表单。</param>
-        /// <returns>如果更新操作成功且以其他方式虚假, 则正确。</returns>
+        /// <param name="entry">要更新的 MembershipEntry。</param>
+        /// <param name="etag">从成员表读取操作中获得的、由提供程序定义的行实体标记。</param>
+        /// <param name="tableVersion">此表的新 TableVersion 及其 ETag。</param>
+        /// <returns>更新操作成功时为 true，否则为 false。</returns>
         [Obsolete("Use UpdateRowAsync instead.")]
         Task<bool> UpdateRow(MembershipEntry entry, string etag, TableVersion tableVersion);
 
         /// <inheritdoc cref="UpdateRow(MembershipEntry, string, TableVersion)"/>
-        /// <param name="entry">更新成员条目。</param>
-        /// <param name="etag">从成员处获得的由供应商定义的行实体标记读取。</param>
-        /// <param name="tableVersion">新表格版本及其预期的etag。</param>
-        /// <param name="cancellationToken">取消操作的标记。</param>
+        /// <param name="entry">要更新的成员条目。</param>
+        /// <param name="etag">从成员表读取操作中获得的、由提供程序定义的行实体标记。</param>
+        /// <param name="tableVersion">新的表版本及其预期 ETag。</param>
+        /// <param name="cancellationToken">用于取消该操作的令牌。</param>
         [Alias("E06D3DBC")]
         async Task<bool> UpdateRowAsync(MembershipEntry entry, string etag, TableVersion tableVersion, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-#pragma warning disable CS0618 // Compatibility dispatch to existing tokenless providers.
+#pragma warning disable CS0618 // 为兼容现有不接受取消令牌的提供程序而转发调用。
             var operation = UpdateRow(entry, etag, tableVersion);
 #pragma warning restore CS0618
             operation.Ignore();
@@ -218,28 +218,28 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 更新 IAmAliveTime 列一 MembershipEntry 为此 silo.
+        /// 更新此 Silo 的 MembershipEntry 的 IAmAliveTime 列。
         /// </summary>
         /// <remarks>
-        /// 每个 silo 都有心跳,并将所提供的时间戳直接写到其 IAmAliveTime 列。
-        /// 保留其他会员字段和表格版本,包括其ETag。
-        /// 返回的行ETag 可能反映后端管理的元数据,并随心跳变化。
-        /// 虽然行存在,表ETag仍然时尚,但只心跳活动在先前
-        /// 读取 <see cref="UpdateRowAsync"/>所使用的行和表格输入。
+        /// 每个 Silo 拥有自己的心跳，并将提供的时间戳直接写入其 IAmAliveTime 列。
+        /// 保留其他成员字段及表版本（包括其 ETag）。
+        /// 返回的行 ETag 可能反映后端管理的元数据，并随心跳变化。
+        /// 只要行仍存在且表 ETag 仍为当前值，仅有心跳活动时，之前
+        /// 读取的行和表输入仍可供 <see cref="UpdateRowAsync"/> 使用。
         /// </remarks>
-        /// <param name="entry">载有增订的 <see cref="MembershipEntry.IAmAliveTime"/> 值。</param>
-        /// <returns>代表更新操作的任务。</returns>
+        /// <param name="entry">包含更新后的 <see cref="MembershipEntry.IAmAliveTime"/> 值的成员条目。</param>
+        /// <returns>表示更新操作的任务。</returns>
         [Obsolete("Use UpdateIAmAliveAsync instead.")]
         Task UpdateIAmAlive(MembershipEntry entry);
 
         /// <inheritdoc cref="UpdateIAmAlive(MembershipEntry)"/>
-        /// <param name="entry">包含更新活度时间戳的会员条目。</param>
-        /// <param name="cancellationToken">取消操作的标记。</param>
+        /// <param name="entry">包含更新后存活时间戳的成员条目。</param>
+        /// <param name="cancellationToken">用于取消该操作的令牌。</param>
         [Alias("B1A52D2B")]
         async Task UpdateIAmAliveAsync(MembershipEntry entry, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-#pragma warning disable CS0618 // Compatibility dispatch to existing tokenless providers.
+#pragma warning disable CS0618 // 为兼容现有不接受取消令牌的提供程序而转发调用。
             var operation = UpdateIAmAlive(entry);
 #pragma warning restore CS0618
             operation.Ignore();
@@ -248,26 +248,26 @@ namespace Orleans
     }
 
     /// <summary>
-    /// 系统目标实施成员表接口。
+    /// 基于系统目标的实现所使用的成员表接口。
     /// </summary>
     public interface IMembershipTableSystemTarget : IMembershipTable, ISystemTarget
     {
     }
 
     /// <summary>
-    /// 表示成员表的版本和用于乐观货币的实体标记。
+    /// 表示成员表的版本及用于乐观并发控制的实体标记。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class TableVersion : ISpanFormattable, IEquatable<TableVersion>
     {
         /// <summary>
-        /// 此 TableVersion的版本部分。 单倍增长的数量 。
+        /// 此 TableVersion 的版本部分，是单调递增的数字。
         /// </summary>
         [Id(0)]
         public int Version { get; }
 
         /// <summary>
-        /// 用于验证表格更新操作的 TableVersion。
+        /// 此 TableVersion 的 ETag，用于验证表更新操作。
         /// </summary>
         [Id(1)]
         public string VersionEtag { get; }
@@ -276,7 +276,7 @@ namespace Orleans
         /// 初始化 <see cref="TableVersion"/> 类的新实例。
         /// </summary>
         /// <param name="version">成员表版本。</param>
-        /// <param name="eTag">用于验证本版本更新的实体标记。</param>
+        /// <param name="eTag">用于验证对此版本更新的实体标记。</param>
         public TableVersion(int version, string eTag)
         {
             Version = version;
@@ -284,10 +284,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 创建下一个会籍表版本,同时保留当前实体标签以进行同值货币验证。
+        /// 创建下一个成员表版本，同时保留当前实体标记以供并发验证。
         /// </summary>
-        /// <returns>下一份成员表版本。</returns>
-        /// <exception cref="OverflowException">成员表的版本已达到 <see cref="int.MaxValue"/>.</exception>
+        /// <returns>下一个成员表版本。</returns>
+        /// <exception cref="OverflowException">成员表版本已达到 <see cref="int.MaxValue"/>。</exception>
         public TableVersion Next() => new(checked(Version + 1), VersionEtag);
 
         /// <inheritdoc />
@@ -307,54 +307,54 @@ namespace Orleans
         public bool Equals(TableVersion? other) => other is not null && Version == other.Version && VersionEtag == other.VersionEtag;
 
         /// <summary>
-        /// 确定两个成员表格版本是否相等。
+        /// 判断两个成员表版本是否相等。
         /// </summary>
-        /// <param name="left">比较第一个成员表版本。</param>
-        /// <param name="right">比较第二个成员表版本。</param>
-        /// <returns><see langword="true"/> ,如果版本和实体标签相等;否则, <see langword="false"/>。</returns>
+        /// <param name="left">要比较的第一个成员表版本。</param>
+        /// <param name="right">要比较的第二个成员表版本。</param>
+        /// <returns><see langword="true"/> 表示版本与实体标记均相等；否则为 <see langword="false"/>。</returns>
         public static bool operator ==(TableVersion? left, TableVersion? right) => EqualityComparer<TableVersion>.Default.Equals(left, right);
 
         /// <summary>
-        /// 确定两个成员表格版本是否相等。
+        /// 判断两个成员表版本是否不相等。
         /// </summary>
-        /// <param name="left">比较第一个成员表版本。</param>
-        /// <param name="right">比较第二个成员表版本。</param>
-        /// <returns><see langword="true"/> ,如果版本或实体标签不同;否则, <see langword="false"/>。</returns>
+        /// <param name="left">要比较的第一个成员表版本。</param>
+        /// <param name="right">要比较的第二个成员表版本。</param>
+        /// <returns><see langword="true"/> 表示版本或实体标记不同；否则为 <see langword="false"/>。</returns>
         public static bool operator !=(TableVersion? left, TableVersion? right) => !(left == right);
     }
 
     /// <summary>
-    /// 代表成员条目和成员表版本的原子简况。
+    /// 表示成员条目及成员表版本的原子快照。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class MembershipTableData
     {
         /// <summary>
-        /// 获取会员条目及其供应商定义的行实体标签。
+        /// 获取成员条目及其由提供程序定义的行实体标记。
         /// </summary>
         [Id(0)]
         public IReadOnlyList<Tuple<MembershipEntry, string>> Members { get; private set; }
 
         /// <summary>
-        /// 获取会员表快照版本。
+        /// 获取成员表快照的版本。
         /// </summary>
         [Id(1)]
         public TableVersion Version { get; private set; }
 
         /// <summary>
-        /// 初始化多个会籍行的 <see cref="MembershipTableData"/> 类新实例。
+        /// 根据多个成员行初始化 <see cref="MembershipTableData"/> 类的新实例。
         /// </summary>
-        /// <param name="list">成员条目及其实体标签。</param>
-        /// <param name="version">成员表简况的版本。</param>
+        /// <param name="list">成员条目及其实体标记。</param>
+        /// <param name="version">成员表快照的版本。</param>
         public MembershipTableData(List<Tuple<MembershipEntry, string>> list, TableVersion version)
         {
-            // 死在尽头,只是用来伐木
+            // 将死亡条目置于末尾，仅用于日志记录。
             list.Sort(
                (x, y) =>
                {
-                   if (x.Item1.Status == SiloStatus.Dead) return 1; // 死尸在最后
-                   if (y.Item1.Status == SiloStatus.Dead) return -1; // 死尸在最后
+                   if (x.Item1.Status == SiloStatus.Dead) return 1; // 将死亡条目置于末尾。
+                   if (y.Item1.Status == SiloStatus.Dead) return -1; // 将死亡条目置于末尾。
                    return string.CompareOrdinal(x.Item1.SiloName, y.Item1.SiloName);
                });
             Members = list;
@@ -362,10 +362,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 从一排成员开始启用一个新的 <see cref="MembershipTableData"/> 等级实例。
+        /// 根据一个成员行初始化 <see cref="MembershipTableData"/> 类的新实例。
         /// </summary>
-        /// <param name="tuple">成员入境及其实体标签。</param>
-        /// <param name="version">成员表简况的版本。</param>
+        /// <param name="tuple">成员条目及其实体标记。</param>
+        /// <param name="version">成员表快照的版本。</param>
         public MembershipTableData(Tuple<MembershipEntry, string> tuple, TableVersion version)
         {
             Members = new[] { tuple };
@@ -375,7 +375,7 @@ namespace Orleans
         /// <summary>
         /// 初始化 <see cref="MembershipTableData"/> 类的空实例。
         /// </summary>
-        /// <param name="version">成员表简况的版本。</param>
+        /// <param name="version">成员表快照的版本。</param>
         public MembershipTableData(TableVersion version)
         {
             Members = Array.Empty<Tuple<MembershipEntry, string>>();
@@ -383,10 +383,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 查找指定 silo的会籍行。
+        /// 查找指定 Silo 的成员行。
         /// </summary>
-        /// <param name="silo">查找的 silo 地址。</param>
-        /// <returns>成员入境和实体标签,或 <see langword="null"/> 如果 silo 不存在。</returns>
+        /// <param name="silo">要查找的 Silo 地址。</param>
+        /// <returns>成员条目及实体标记；若 Silo 不存在，则为 <see langword="null"/>。</returns>
         public Tuple<MembershipEntry, string>? TryGet(SiloAddress silo)
         {
             foreach (var item in Members)
@@ -410,15 +410,15 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 创建成员表快照,只保留每个终点的最新死亡 silo 一代。
+        /// 创建成员表快照，其中每个端点仅保留最新的死亡 Silo 世代。
         /// </summary>
         /// <returns>
-        /// 一份成员表快照,其中列出所有非死条目和每个终点的最新死亡条目。
+        /// 包含所有非死亡条目及每个端点最新死亡条目的成员表快照。
         /// </returns>
         public MembershipTableData WithoutDuplicateDeads()
         {
             var dead = new Dictionary<IPEndPoint, Tuple<MembershipEntry, string>>();
-            // 仅选择每个实例的最新死亡
+            // 为每个实例仅选择最新的 Dead 条目。
             foreach (var next in Members.Where(item => item.Item1.Status == SiloStatus.Dead))
             {
                 var ipEndPoint = next.Item1.SiloAddress.Endpoint;
@@ -429,13 +429,13 @@ namespace Orleans
                 }
                 else
                 {
-                    // 之后就死了 已经死了
+                    // 更晚的死亡条目。
                     if (next.Item1.SiloAddress.Generation.CompareTo(prev.Item1.SiloAddress.Generation) > 0)
                         dead[ipEndPoint] = next;
                 }
             }
 
-            //现在将不死后添加到后面
+            // 现在重新加入非死亡条目。
             List<Tuple<MembershipEntry, string>> all = dead.Values.ToList();
             all.AddRange(Members.Where(item => item.Item1.Status != SiloStatus.Dead));
             return new MembershipTableData(all, Version);
@@ -456,75 +456,75 @@ namespace Orleans
     }
 
     /// <summary>
-    /// 代表 silo的会员记录。
+    /// 表示一个 Silo 的成员记录。
     /// </summary>
     [GenerateSerializer]
     [Serializable]
     public sealed class MembershipEntry : ISpanFormattable
     {
         /// <summary>
-        /// silo 独特身份(ip:port:epo:och),主要用于《成员议定书》。
+        /// Silo 的唯一标识（ip:port:epoch），主要由成员资格协议使用。
         /// </summary>
         [Id(0)]
         public SiloAddress SiloAddress { get; set; } = default!;
 
         /// <summary>
-        /// silo 状态。 由成员议定书管理。
+        /// Silo 状态，由成员资格协议管理。
         /// </summary>
         [Id(1)]
         public SiloStatus Status { get; set; }
 
         /// <summary>
-        /// 列表列表 silos 怀疑的 silo由《成员议定书》管理。
+        /// 怀疑此 Silo 的 Silo 列表，由成员资格协议管理。
         /// </summary>
         [Id(2)]
         public List<Tuple<SiloAddress, DateTime>>? SuspectTimes { get; set; }
 
         /// <summary>
-        /// Silo 至客户端 TCP 端口。 设置在 silo 启动上 。
+        /// Silo 面向客户端的 TCP 端口，在 Silo 启动时设置。
         /// </summary>    
         [Id(3)]
         public int ProxyPort { get; set; }
 
         /// <summary>
-        /// DNS silo主机名。 等于 Dns.GetHostName()。 设置在 silo 启动时 。
+        /// Silo 的 DNS 主机名，等于 Dns.GetHostName() 的返回值，在 Silo 启动时设置。
         /// </summary>
         [Id(4)]
         public string HostName { get; set; } = default!;
 
         /// <summary>
-        /// 组合体中具体 silo 实例的名称。 
-        /// 如果在 Azure 运行 - 此角色实例的名称。 设置为 silo 启动 。
+        /// 集群内此特定 Silo 实例的名称。
+        /// 若运行于 Azure，则为该角色实例的名称。在 Silo 启动时设置。
         /// </summary>
         [Id(5)]
         public string SiloName { get; set; } = default!;
 
         /// <summary>
-        /// 获取或设置与 silo相关的角色名称。
+        /// 获取或设置与 Silo 关联的角色名称。
         /// </summary>
         [Id(6)]
-        public string? RoleName { get; set; } // 仅允许 - 只允许 Azure 角色
+        public string? RoleName { get; set; } // 可选，仅适用于 Azure 角色。
 
         /// <summary>
-        /// 获取或设置 silo更新区域。
+        /// 获取或设置 Silo 的更新域。
         /// </summary>
         [Id(7)]
-        public int UpdateZone { get; set; }  // 仅允许 - 只允许 Azure 角色
+        public int UpdateZone { get; set; }  // 可选，仅适用于 Azure 角色。
 
         /// <summary>
-        /// 获取或设置 silo的断层区。
+        /// 获取或设置 Silo 的故障域。
         /// </summary>
         [Id(8)]
-        public int FaultZone { get; set; }   // 仅允许 - 只允许 Azure 角色
+        public int FaultZone { get; set; }   // 可选，仅适用于 Azure 角色。
 
         /// <summary>
-        /// 开始此 silo 时间。 只用于诊断和排除故障 。
+        /// 此 Silo 的启动时间，仅用于诊断与故障排查。
         /// </summary>
         [Id(9)]
         public DateTime StartTime { get; set; }
 
         /// <summary>
-        /// 最后一次 silo 报告它还活着。只用于诊断和排除故障。
+        /// 此 Silo 最后一次报告存活的时间，仅用于诊断与故障排查。
         /// </summary>
         [Id(10)]
         public DateTime IAmAliveTime { get; set; }
@@ -540,12 +540,12 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 获取已知此条目更新的最新时间。 这是最近
-        /// <see cref="EffectiveIAmAliveTime"/> 和最近的时间 silo 投票怀疑此事
-        /// silo (见 <see cref="SuspectTimes"/>). 宣布一个 silo 死亡记录了可疑投票,所以这个数值
-        /// 最近一次死亡申报表明,即使上次的 silo 报告是很久以前就活着的。
-        /// 用于在清理会籍表时保留最近期更新的已过期条目,所以
-        /// 成员照片中仍然可以看到最近宣布死亡的 silos 。
+        /// 获取此条目最近一次已知的更新时间，即以下两者中的较晚者：
+        /// <see cref="EffectiveIAmAliveTime"/> 与最近一次某个 Silo 投票怀疑此
+        /// Silo 的时间（参见 <see cref="SuspectTimes"/>）。宣告 Silo 死亡会记录一票怀疑票，因此此值
+        /// 即使在 Silo 很早之前就停止报告存活的情况下，也能反映近期的死亡宣告。
+        /// 清理成员表时，使用此值保留最近更新的失效条目，
+        /// 从而使近期被宣告死亡的 Silo 仍可在成员资格快照中看到。
         /// </summary>
         internal DateTime EffectiveUpdateTime
         {
@@ -569,29 +569,29 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 添加或更新 silo的投票,宣布该 silo 无法使用。
+        /// 添加或更新某个 Silo 宣告此 Silo 不可用的投票。
         /// </summary>
-        /// <param name="localSilo">下 silo 进行表决。</param>
+        /// <param name="localSilo">投票的 Silo。</param>
         /// <param name="voteTime">投票时间。</param>
-        /// <param name="maxVotes">保留票的上限。</param>
+        /// <param name="maxVotes">最多保留的投票数。</param>
         public void AddOrUpdateSuspector(SiloAddress localSilo, DateTime voteTime, int maxVotes)
         {
             var allVotes = SuspectTimes ??= new List<Tuple<SiloAddress, DateTime>>();
 
-            // 查找投票地点:
-            //      投票之前如果我投票,我投票将更新我的投票结果
-            //      或如果名单不满 -- -- 仅增加一票
-            //      或覆盖最古老的条目。
+            // 查找投票位置：
+            // 如果我之前投过票，则更新自己的投票；
+            // 否则，如果列表尚未满，直接添加新投票；
+            // 否则覆盖最早的条目。
             int indexToWrite = allVotes.FindIndex(voter => localSilo.Equals(voter.Item1));
             if (indexToWrite == -1)
             {
-                // 找到最过时的选票 如果名单满,并覆盖
-                if (allVotes.Count >= maxVotes) // 如果名单是完整
+                // 我的投票尚未记录。如果列表已满，找到最早的投票并覆盖它，
+                if (allVotes.Count >= maxVotes) // 条件是列表已满。
                 {
-                    // 列表已满, 请选择最过时的值来覆盖 。
+                    // 列表已满，因此选择最早的值覆盖。
                     DateTime minVoteTime = allVotes.Min(voter => voter.Item2);
 
-                    // 只有在地方时间超过目前最低投票时间时,才能覆盖现有投票。
+                    // 仅当本地时间大于当前最早的投票时间时，才覆盖现有投票。
                     if (voteTime >= minVoteTime)
                     {
                         indexToWrite = allVotes.FindIndex(voter => voter.Item2.Equals(minVoteTime));
@@ -611,9 +611,9 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 添加 silo的投票,宣布此 silo 不可用。
+        /// 添加某个 Silo 宣告此 Silo 不可用的投票。
         /// </summary>
-        /// <param name="suspectingSilo">下 silo 进行表决。</param>
+        /// <param name="suspectingSilo">投票的 Silo。</param>
         /// <param name="suspectingTime">投票时间。</param>
         public void AddSuspector(SiloAddress suspectingSilo, DateTime suspectingTime)
             => (SuspectTimes ??= new()).Add(Tuple.Create(suspectingSilo, suspectingTime));
@@ -659,13 +659,13 @@ namespace Orleans
 
             var result = ImmutableList.CreateBuilder<Tuple<SiloAddress, DateTime>>();
 
-            // 找到从疑犯时间和当地时间中 找到最新的时间
-            // 这使得当地时钟无法造成不同的新票计数。
+            // 在怀疑投票时间集合及本地时间中找到最新时间。
+            // 这可防止本地时钟偏差导致对未过期投票的计数结果不同。
             var recencyWindowEndTime = Max(now, SuspectTimes);
             foreach (var voter in this.SuspectTimes)
             {
-                // 如果现在小于 otherVoterTime,则比假设 otherVoterTime 新鲜。
-                // 如果时钟不同步,而其他选民的时钟比我提前,这种情况就可能发生。
+                // 如果 now 小于 otherVoterTime，则认为 otherVoterTime 对应的投票尚未过期。
+                // 当时钟未同步且其他投票方的时钟领先于本地时钟时，可能发生这种情况。
                 var suspectTime = voter.Item2;
                 if (recencyWindowEndTime.Subtract(suspectTime) < expiration)
                 {
@@ -697,9 +697,9 @@ namespace Orleans
             => destination.TryWrite($"SiloAddress={SiloAddress} SiloName={SiloName} Status={Status}", out charsWritten);
 
         /// <summary>
-        /// 返回成员条目的详细字符串代表。
+        /// 返回成员条目的详细字符串表示形式。
         /// </summary>
-        /// <returns>成员入会的详细字符串代表。</returns>
+        /// <returns>成员条目的详细字符串表示形式。</returns>
         public string ToFullString()
         {
             var suspecters = SuspectTimes == null ? null : Utils.EnumerableToString(SuspectTimes.Select(tuple => tuple.Item1));

@@ -25,7 +25,7 @@ public partial class DemoService
                 var optionId = random.Next(0, results.Options.Count);
                 await pollGrain.AddVote(optionId);
 
-                // 等会儿
+                // 等待一段时间。
                 await Task.Delay(random.Next(100, 1000));
             }
         }

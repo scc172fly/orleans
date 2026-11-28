@@ -12,17 +12,17 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// 测试自定义 grain 活化器,允许对 grain 即时和处置进行完全控制。
+    /// 测试自定义 Grain 激活器，它允许完全控制 Grain 实例化和释放。
     /// 
-    /// Orleans 使用 IGrainActivator 创建和销毁 grain 实例。默认情况下,它使用
-    /// 辅助注射,但应用可以提供定制的活性动力,用于下列情景:
-    /// - 将目标集中用于昂贵的 grain 案例
-    /// - 建筑商不能做到的自定义初始化逻辑
-    /// - 与第三方DI集装箱合并
-    /// - 期间专门化清理 grain 停止停用
+    /// Orleans 使用 IGrainActivator 创建和销毁 Grain 实例。默认情况下使用
+    /// 依赖注入，但应用可以为下列场景提供自定义激活器：
+    /// - 对创建成本较高的 Grain 实例进行对象池化
+    /// - 无法在构造函数中完成的自定义初始化逻辑
+    /// - 与第三方 DI 容器集成
+    /// - Grain 停用期间的专门清理工作
     /// 
-    /// 此测试显示, 使用完全绕过DI 的自定义活性器
-    /// 并跟踪已处理案件的数量。
+    /// 此测试演示如何实现完全绕过 DI 的自定义激活器，
+    /// 并跟踪已释放实例的数量。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -46,8 +46,8 @@ namespace UnitTests.General
                 {
                     hostBuilder.ConfigureServices(services =>
                     {
-                        // 注册我们的自定义 grain 激活器, 将其作为 grain 类型部件配置
-                        // 从而允许它有选择性地适用于特定 grain 类型
+                        // 将自定义 Grain 激活器注册为 Grain 类型组件配置器
+                        // 这样就可以有选择地将其应用于特定 Grain 类型
                         services.AddSingleton<IConfigureGrainTypeComponents, HardcodedGrainActivator>();
                         services.AddSingleton<IConfigureGrainContextProvider, ActivationOrderingConfiguratorProvider>();
                     });
@@ -61,9 +61,9 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 证明自定义 grain 启动器可在不使用DI的情况下创建 grain 实例。
-        /// 自定义活性器输入一个硬编码值,以证明它被使用
-        /// 的默认 DI 激活。
+        /// 验证自定义 Grain 激活器能够在不使用 DI 的情况下创建 Grain 实例。
+        /// 自定义激活器注入一个硬编码值，以证明使用了该激活器，
+        /// 而非默认的基于 DI 的激活机制。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task CanUseCustomGrainActivatorToCreateGrains()
@@ -74,10 +74,10 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试自定义 grain 启动器在 grains 被停用时收到处置通知。
-        /// 这对于资源清理方案至关重要,例如将对象退回集合体,
-        /// 测试验证处置清点
-        /// 明确停用后增加。
+        /// 测试 Grain 停用时自定义 Grain 激活器是否接收到释放通知。
+        /// 这对于资源清理场景至关重要，例如将对象归还对象池、
+        /// 关闭连接或更新指标。测试验证显式停用后
+        /// 释放计数是否增加。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task CanUseCustomGrainActivatorToReleaseGrains()
@@ -113,18 +113,18 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 自定义 grain 活动器,完全绕过依赖注射。
-        /// 既执行 IGrainActivator (用于创建/处置)又执行 IConfigureGrainTypeComponents
-        /// (登记具体 grain 类型)。
-        /// - 以自定义逻辑而不是DI 创建 grains
-        /// - 处理等轨道生命周期事件
-        /// - 选择性地适用于特定 grain 使用类型 grain 类图
+        /// 完全绕过依赖注入的自定义 Grain 激活器。
+        /// 同时实现 IGrainActivator（用于创建和释放）和 IConfigureGrainTypeComponents
+        /// （将自身注册到特定 Grain 类型）。此示例演示如何：
+        /// - 使用自定义逻辑而非 DI 来创建 Grain
+        /// - 跟踪释放等生命周期事件
+        /// - 使用 Grain 类映射有选择地应用于特定 Grain 类型
         /// </summary>
         private class HardcodedGrainActivator : IGrainActivator, IConfigureGrainTypeComponents
         {
             public const string HardcodedValue = "Hardcoded Test Value";
             private readonly GrainClassMap _grainClassMap;
-            private int _released;  // 处置 grain 实例的音轨数
+            private int _released;  // 跟踪已释放的 Grain 实例数量
 
             public HardcodedGrainActivator(GrainClassMap grainClassMap)
             {
@@ -133,8 +133,8 @@ namespace UnitTests.General
 
             public void Configure(GrainType grainType, GrainProperties properties, GrainTypeSharedContext shared)
             {
-                // 选择注册此激活器, 只为 ExplicitlyRegisteredSimpleDIGrain 类型
-                // grain 其它类型将继续使用默认的基于 DI 的驱动器
+                // 仅对 ExplicitlyRegisteredSimpleDIGrain 类型注册此激活器
+                // 其他 Grain 类型继续使用默认的基于 DI 的激活器
                 if (_grainClassMap.TryGetGrainClass(grainType, out var grainClass) && grainClass == typeof(ExplicitlyRegisteredSimpleDIGrain))
                 {
                     shared.SetComponent<IGrainActivator>(this);
@@ -145,16 +145,16 @@ namespace UnitTests.General
             {
                 ActivationOrderingState.Instance.ObserveConstruction(context);
 
-                // 自定义即时逻辑 - 创建 grain , 具有硬编码的依赖性
-                // 实际情况下,这可以从一个池子里得到物体, 进行复杂的工作
-                // 初始化或与外部系统整合
+                // 自定义实例化逻辑：使用硬编码依赖项创建 Grain
+                // 在实际场景中，这里可以从对象池获取对象、执行复杂的
+                // 初始化，或者与外部系统集成
                 return new ExplicitlyRegisteredSimpleDIGrain(new InjectedService(NullLoggerFactory.Instance), HardcodedValue, _released);
             }
 
             public ValueTask DisposeInstance(IGrainContext context, object instance)
             {
-                // 停止使用 grain 时调用,完全可以清理,可返回水池;
-                // 计算允许测试来核查处置情况。
+                // Grain 停用时调用：非常适合清理、归还对象池
+                // 或更新指标。计数使测试能够验证释放确已发生。
                 ++_released;
                 return default;
             }

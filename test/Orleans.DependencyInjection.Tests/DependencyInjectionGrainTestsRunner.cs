@@ -8,32 +8,32 @@ using Xunit;
 namespace DependencyInjection.Tests
 {
     /// <summary>
-    /// 测试 Orleans 依赖性注射综合测试的选手。
+    /// Orleans 依赖注入集成测试运行器。
     /// 
-    /// Orleans 与 Microsoft.Extensions.DependencyInjection 结合,以支持:
-    /// - grains中构造注入
-    /// - 范围服务(每启动 grain 一个实例)
-    /// - 单吨服务(分摊所有国家 grains)
-    /// - 与第三方DI集装箱合并
+    /// Orleans 集成 Microsoft.Extensions.DependencyInjection，以支持：
+    /// - Grain 的构造函数注入
+    /// - 作用域服务（每个 Grain 激活实例一个服务实例）
+    /// - 单例服务（由所有 Grain 共享）
+    /// - 与第三方 DI 容器集成
     /// 
-    /// 测试的关键概念:
-    /// - Grain 建筑商可采用依赖性注入
-    /// - 每一次 grain 启动都有其范围
-    /// - IGrainFactory 和 IGrainActivationContext 是自动可用的
-    /// - 通用 grains 可根据其类型参数具有依赖性
-    /// - 设计不支持在DI中明确 grain 注册的证明
+    /// 测试的关键概念：
+    /// - Grain 的构造函数可以注入依赖项
+    /// - 每个 Grain 激活实例拥有自己的作用域
+    /// - IGrainFactory 和 IGrainActivationContext 自动可用
+    /// - 泛型 Grain 可以根据类型参数获得相应的依赖项
+    /// - 按设计不支持在 DI 中显式注册 Grain
     /// 
-    /// 这个抽象的基级包含核心测试逻辑, 而混凝土
-    /// 测试不同的DI集装箱集成。
+    /// 此抽象基类包含核心测试逻辑，而具体
+    /// 实现用于测试与不同 DI 容器的集成。
     /// </summary>
     public abstract class DependencyInjectionGrainTestRunner : OrleansTestingBase
     {
         private readonly BaseTestClusterFixture fixture;
 
         /// <summary>
-        /// 配置辅助注射测试服务。
-        /// 这是在基础测试运行器里 因为所有DI测试都需要这些服务
-        /// 不同的 ServiceProviderFactory 设置在混凝土测试类中。
+        /// 为依赖注入测试配置服务。
+        /// 所有 DI 测试都需要这些服务，因此在基类测试运行器中配置；
+        /// 不同的 ServiceProviderFactory 则在具体测试类中设置。
         /// </summary>
         protected class TestSiloBuilderConfigurator : ISiloConfigurator
         {
@@ -46,10 +46,10 @@ namespace DependencyInjection.Tests
                     services.AddSingleton<IInjectedService, InjectedService>();
                     services.AddScoped<IInjectedScopedService, InjectedScopedService>();
 
-                    // 明确登记一个 grain 类,以测试它不会使用该注册。
-                    // Orleans 通过自己的激活系统而不是DI容器创建 grains 。
-                    // 本次注册是为了验证 Orleans 忽略了它, 并且失败
-                    // 尝试创建 grain (缺失构建参数)时。
+                    // 显式注册一个 Grain 类，以测试该注册不会被使用。
+                    // Orleans 通过自己的激活系统创建 Grain，而不是通过 DI 容器直接解析 Grain。
+                    // 此注册用于验证 Orleans 会忽略它，并在
+                    // 尝试创建该 Grain 时因缺少构造函数参数而失败。
                     services.AddTransient(
                         sp => new ExplicitlyRegisteredSimpleDIGrain(
                             sp.GetRequiredService<IInjectedService>(),
@@ -65,8 +65,8 @@ namespace DependencyInjection.Tests
         }
 
         /// <summary>
-        /// 基本测试,即 grains 可随着建筑商依赖而激活。
-        /// 这可以核实基本数据交换整合工作是否有效。
+        /// 验证具有构造函数依赖项的 Grain 能否激活的基础测试。
+        /// 此测试验证基本 DI 集成是否正常工作。
         /// </summary>
         [Fact]
         public async Task CanGetGrainWithInjectedDependencies()
@@ -76,22 +76,22 @@ namespace DependencyInjection.Tests
         }
 
         /// <summary>
-        /// 测试 IGrainFactory 自动用于注入。
-        /// IGrainFactory 是一个框架服务,允许 grains 创建其他 grains。
-        /// 注:不要自动登记您自己的 IGrainFactory - Orleans 。
+        /// 测试 IGrainFactory 是否自动可用于注入。
+        /// IGrainFactory 是一种框架服务，允许 Grain 创建其他 Grain 的引用。
+        /// 注意：不要注册自己的 IGrainFactory，Orleans 会自动提供它。
         /// </summary>
         [Fact]
         public async Task CanGetGrainWithInjectedGrainFactory()
         {
-            // 请不要在启动类中将 IGrainFactory 的安装投向DI容器, 
-            // 由于目前我们不支持替换 IGrainFactory 
+            // 请不要在 Startup 类中将自定义 IGrainFactory 实现注入 DI 容器，
+            // 因为当前不支持替换 IGrainFactory。
             IDIGrainWithInjectedServices grain = this.fixture.GrainFactory.GetGrain<IDIGrainWithInjectedServices>(GetRandomGrainId());
             _ = await grain.GetGrainFactoryId();
         }
 
         /// <summary>
-        /// 证明单吨服务在所有 grain 启动中共享。
-        /// 同一情况应注入不同的 grains。
+        /// 验证单例服务是否由所有 Grain 激活实例共享。
+        /// 不同 Grain 应注入相同的服务实例。
         /// </summary>
         [Fact]
         public async Task CanResolveSingletonDependencies()
@@ -99,7 +99,7 @@ namespace DependencyInjection.Tests
             var grain1 = this.fixture.GrainFactory.GetGrain<IDIGrainWithInjectedServices>(GetRandomGrainId());
             var grain2 = this.fixture.GrainFactory.GetGrain<IDIGrainWithInjectedServices>(GetRandomGrainId());
 
-            // 只有在注射服务相同的情况下, 才会返回相同的值
+            // 仅当服务为同一实例时，注入的服务才会返回相同的值
             Assert.Equal(
                 await grain1.GetInjectedSingletonServiceValue(),
                 await grain2.GetInjectedSingletonServiceValue());
@@ -109,9 +109,9 @@ namespace DependencyInjection.Tests
         }
 
         /// <summary>
-        /// 证明范围化的服务为每次启动 grain 创建了独特的实例。
-        /// 每个 grain 应获得自己范围服务的实例。
-        /// 这对于维持每个grain 状态的服务至关重要。
+        /// 验证作用域服务是否为每个 Grain 激活实例创建独立实例。
+        /// 每个 Grain 应获得自己的作用域服务实例。
+        /// 这对维护每个 Grain 独立状态的服务至关重要。
         /// </summary>
         [Fact]
         public async Task CanResolveScopedDependencies()
@@ -119,7 +119,7 @@ namespace DependencyInjection.Tests
             var grain1 = this.fixture.GrainFactory.GetGrain<IDIGrainWithInjectedServices>(GetRandomGrainId());
             var grain2 = this.fixture.GrainFactory.GetGrain<IDIGrainWithInjectedServices>(GetRandomGrainId());
 
-            // 只有在不同的注射情况下, 注入服务才会返回不同值
+            // 仅当服务为不同实例时，注入的服务才会返回不同的值
             Assert.NotEqual(
                 await grain1.GetInjectedScopedServiceValue(),
                 await grain2.GetInjectedScopedServiceValue());
@@ -129,9 +129,9 @@ namespace DependencyInjection.Tests
         }
 
         /// <summary>
-        /// 测试 IGrainActivationContext 是否可作为范围服务。
-        /// 每项 grain 启动都有与 grain具体信息有关的背景
-        /// 类似 GrainId,可通过DI进入。
+        /// 测试 IGrainActivationContext 是否可用作作用域服务。
+        /// 每个 Grain 激活实例都有自己的上下文，包含该 Grain 特有的信息，
+        /// 例如 GrainId，这些信息应可通过 DI 访问。
         /// </summary>
         [Fact]
         public async Task CanResolveScopedGrainActivationContext()
@@ -141,7 +141,7 @@ namespace DependencyInjection.Tests
             var grain1 = this.fixture.GrainFactory.GetGrain<IDIGrainWithInjectedServices>(id1);
             var grain2 = this.fixture.GrainFactory.GetGrain<IDIGrainWithInjectedServices>(id2);
 
-            // 只有在不同的注射情况下, 注入服务才会返回不同值
+            // 仅当服务为不同实例时，注入的服务才会返回不同的值
             Assert.Contains(id1.ToString("X"), await grain1.GetStringValue());
             Assert.Contains(id2.ToString("X"), await grain2.GetStringValue());
 
@@ -150,9 +150,9 @@ namespace DependencyInjection.Tests
         }
 
         /// <summary>
-        /// 证明在 grain 激活中,范围服务是安全的。
-        /// 多个同时调用到相同 grain 的多个调用应该使用相同的
-        /// 范围广泛的服务实例,因为 grains 流程按顺序要求。
+        /// 验证作用域服务在 Grain 激活实例内的线程安全性。
+        /// 对同一 Grain 的多个并发调用应使用相同的
+        /// 作用域服务实例，因为 Grain 按顺序处理请求。
         /// </summary>
         [Fact]
         public async Task ScopedDependenciesAreThreadSafe()
@@ -176,9 +176,9 @@ namespace DependencyInjection.Tests
         }
 
         /// <summary>
-        /// grains 可以通过 IServiceProvider进入DI容器的测试。
-        /// 直接由提供者解决的服务应与服务提供者提供的服务相匹配
-        /// 通过同一材料的制造器注入 grain 启动
+        /// 测试 Grain 能否通过 IServiceProvider 访问 DI 容器。
+        /// 对同一 Grain 激活实例而言，直接从服务提供程序解析的服务应与
+        /// 通过构造函数注入的服务一致。
         /// </summary>
         [Fact]
         public async Task CanResolveSameDependenciesViaServiceProvider()
@@ -194,8 +194,8 @@ namespace DependencyInjection.Tests
         }
 
         /// <summary>
-        /// 证明 IGrainFactory 已登记为单一吨。
-        /// 全部 grains 中在 silo 领取相同 IGrainFactory 实例。
+        /// 验证 IGrainFactory 是否注册为单例。
+        /// Silo 中的所有 Grain 应收到相同的 IGrainFactory 实例。
         /// </summary>
         [Fact]
         public async Task CanResolveSingletonGrainFactory()
@@ -203,17 +203,17 @@ namespace DependencyInjection.Tests
             var grain1 = this.fixture.GrainFactory.GetGrain<IDIGrainWithInjectedServices>(GetRandomGrainId());
             var grain2 = this.fixture.GrainFactory.GetGrain<IDIGrainWithInjectedServices>(GetRandomGrainId());
 
-            // 注射 grain 工厂只有在相同的情况下才会返回同值,
+            // 仅当注入的 Grain 工厂为同一实例时，它才会返回相同的值，
             Assert.Equal(
                 await grain1.GetGrainFactoryId(),
                 await grain2.GetGrainFactoryId());
         }
 
         /// <summary>
-        /// DI 中明确注册的 grain 类测试被忽略。
-        /// Orleans 必须通过其激活系统而不是DI, 创建 grains
-        /// 确保适当的生命周期管理和分布行为。
-        /// 这一检验标准核实明确注册是否未使用。
+        /// 测试 DI 中显式注册的 Grain 类是否被忽略。
+        /// Orleans 必须通过自身的激活系统创建 Grain，而不是由 DI 直接创建，
+        /// 以确保正确的生命周期管理和分布式行为。
+        /// 此测试验证显式注册未被使用。
         /// </summary>
         [Fact]
         public async Task CannotGetExplictlyRegisteredGrain()
@@ -225,9 +225,9 @@ namespace DependencyInjection.Tests
         }
 
         /// <summary>
-        /// 通用 grains 可根据其类型参数进行有依赖性注入的试验。
-        /// 例如,减税<TState, TAction> 不同时可采用不同的解决办法
-        /// 国家/行动组合,允许进行安全型号的自养注射。
+        /// 测试泛型 Grain 能否根据其类型参数注入相应的依赖项。
+        /// 例如，针对不同的 TState/TAction 组合，可以解析不同的
+        /// IReducer&lt;TState, TAction&gt; 实现，从而实现类型安全的依赖注入。
         /// </summary>
         [Fact]
         public async Task CanUseGenericArgumentsInConstructor()

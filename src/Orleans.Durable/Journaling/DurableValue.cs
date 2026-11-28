@@ -4,11 +4,11 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 表示在日记中记录变动的值。
+/// 表示一个值，其变更记录在持久化日志中。
 /// </summary>
-/// <typeparam name="T">数值的类型。</typeparam>
+/// <typeparam name="T">值的类型。</typeparam>
 /// <remarks>
-/// 值将拥有分配给它的每个数值的所有权, 而日记在被指定时记录该值。 要更改该值, 请指定一个新实例 。
+/// 此对象取得赋予它的每个值的所有权，并在赋值时将该值记入日志。若要改变值，请赋予新实例。
 /// </remarks>
 public interface IDurableValue<T>
 {
@@ -26,7 +26,7 @@ internal sealed class DurableValue<T> : IDurableValue<T>, IStateMachine, IDurabl
     private T? _value;
     private bool _isDirty;
 
-    // 飞行中的写入是否捕捉到值。 已完成的写只确认它捕捉的价值 。
+    // 在途写入是否捕获了该值。已完成的写入只确认它所捕获的值。
     private bool _isValueCaptured;
 
     public DurableValue(

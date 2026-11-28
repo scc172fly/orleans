@@ -191,10 +191,10 @@ public sealed class CompoundAliasArrayTests : IDisposable
 
     private void Check<T>(string name, T original, Action<T> assert, [CallerFilePath] string sourceFile = "")
     {
-        // 以未修改的 dotnet/orleans 主 9b7444ad5fe9bd0a5120f1b11c1d6b6f7a44f1捕获
-        // (重写稿 blob 8a7e9d2ef203 fbb0cdda27e32e2eb2ad7cb6dc095, Orleans.Serialization 10.0.0.0。
-        // 生产 SerializeToArray<T> 在 .NET 8和 .NET 10上排放了相同的定着物。
-        // 以下声明和这个测试组装的名称是固定型身份的一部分。
+        // 使用未经修改的 dotnet/orleans main 提交 9bb744ad5fe9bd0a512052f1b11c1d6b6f7a44f1 捕获
+        // （重写器 blob 为 8a7e9d2ef03fbbe0cdda27e322eb2ad7cb6dc095），Orleans.Serialization 10.0.0.0。
+        // 生产实现的 SerializeToArray<T> 在 .NET 8 和 .NET 10 上生成了完全相同的测试基准数据。
+        // 下方的声明及本测试程序集的名称均属于这些测试基准数据的类型标识的一部分。
         var serializer = _services.GetRequiredService<Serializer>();
         var path = Path.Combine(Path.GetDirectoryName(sourceFile)!, "snapshots", $"{nameof(CompoundAliasArrayTests)}.{name}.verified.hex.txt");
         var baseline = Convert.FromHexString(File.ReadAllText(path).Trim());

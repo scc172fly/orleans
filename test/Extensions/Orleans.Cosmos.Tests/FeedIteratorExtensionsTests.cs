@@ -12,26 +12,26 @@ using Xunit;
 namespace Tester.Cosmos.Reminders;
 
 /// <summary>
-/// <see cref="FeedIteratorExtensions.ToListAsync{T}"/>单位测试。这些测试验证
-/// 具体变异的细微变形, 一旦在
-/// <c>CosmosReminderTable.ReadRows</c>: <see cref="FeedIterator{T}"/> 可返回
-/// <see cref="FeedIterator.HasMoreResults"/> 仍然为 <c>true</c>时空页面
-/// (e.g.)。当上一页在扫描分区时用完RU预算时,
-/// 排水工具必须保持在空页面的重复。
+/// <see cref="FeedIteratorExtensions.ToListAsync{T}"/> 的单元测试。验证以下
+/// 特定的分页不变量，它曾在生产环境中触发
+/// <c>CosmosReminderTable.ReadRows</c> 的实际缺陷：<see cref="FeedIterator{T}"/> 可能返回
+/// 空页，而 <see cref="FeedIterator.HasMoreResults"/> 仍为 <c>true</c>
+/// （例如，上一页在扫描一个没有匹配项的分区时耗尽 RU 预算）。
+/// 用于读取全部结果的辅助方法必须跳过空页并继续迭代。
 ///
-/// 实时宇宙 DB (或模拟器) 无法可靠地复制此模式
-/// 以确定性的方式, 所以这些测试驱动辅助器 用记忆驱动
-/// 播放脚本序列的<see cref="FeedIterator{T}"/> 子类
-/// 包括空页。
+/// 运行中的 Cosmos DB（或模拟器）无法以确定性方式可靠地复现这种模式，
+/// 因此这些测试使用内存中的
+/// <see cref="FeedIterator{T}"/> 子类，按预设顺序返回
+/// 包含空页在内的各页结果，以驱动该辅助方法。
 /// </summary>
 public class FeedIteratorExtensionsTests
 {
     [Fact]
     public async Task ToListAsync_EmptyPageInMiddle_ContinuesIterating()
     {
-        // 模拟病理页面布局 修复卫兵对照: 结果,
-        // 然后是空页面,而 HasMoreResults 仍然真实,然后是更多结果。
-        // "破开第一页空纸"排水道会让后行倒下
+        // 模拟此次修复所防范的异常分页布局：先有结果，
+        // 再出现 HasMoreResults 仍为 true 的空页，随后还有更多结果。
+        // "遇到第一个空页就退出"的读取方式会丢弃后续行。
         var iterator = new FakeFeedIterator<int>(
             new[] { 1, 2, 3 },
             Array.Empty<int>(),
@@ -45,8 +45,8 @@ public class FeedIteratorExtensionsTests
     [Fact]
     public async Task ToListAsync_LeadingEmptyPage_ContinuesIterating()
     {
-        // 首页空空, HasMoreResults 事实依然如此。
-        // 即使有更进一步匹配,实施时将返回零行。
+        // 第一页为空，但 HasMoreResults 仍为 true。遇空页即退出的
+        // 实现会返回零行，即使后续页还存在匹配项。
         var iterator = new FakeFeedIterator<int>(
             Array.Empty<int>(),
             new[] { 1, 2, 3 });
@@ -92,10 +92,10 @@ public class FeedIteratorExtensionsTests
     }
 
     /// <summary>
-    /// 播放脚本页面列表的 <see cref="FeedIterator{T}"/> 。
-    /// <see cref="HasMoreResults"/> 保持真实的 <c>true</c> ,直到每个脚本页面
-    /// 以 <see cref="ReadNextAsync(CancellationToken)"/>方式消耗,所以空
-    /// 页面不会自动终止迭代。
+    /// 按预设列表依次返回各页的 <see cref="FeedIterator{T}"/>。
+    /// <see cref="HasMoreResults"/> 一直保持 <c>true</c>，直到所有预设页均已
+    /// 通过 <see cref="ReadNextAsync(CancellationToken)"/> 读取，因此空页
+    /// 本身绝不会终止迭代。
     /// </summary>
     private sealed class FakeFeedIterator<T> : FeedIterator<T>
     {
@@ -120,9 +120,9 @@ public class FeedIteratorExtensionsTests
     }
 
     /// <summary>
-    /// 将成员排水沟暴露在下水道的最小 <see cref="FeedResponse{T}"/> 根管上
-    /// 帮助符实际上读取 (<see cref="Count"/> 和计算器) 。
-    /// 其它返回安全默认,所以不丢弃非关联访问。
+    /// 最小化的 <see cref="FeedResponse{T}"/> 桩对象，仅公开读取全部结果的
+    /// 辅助方法实际读取的成员（<see cref="Count"/> 和枚举器）。其他成员
+    /// 均返回安全的默认值，因此访问无关成员时不会抛出异常。
     /// </summary>
     private sealed class FakeFeedResponse<T> : FeedResponse<T>
     {

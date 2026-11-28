@@ -37,8 +37,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 测试新添加 silos的测试布置行为。 grain 安置策略应有利于他们
-        /// 直到他们达到一个与另一个相似的负荷 silos.
+        /// 测试新增 Silo 的放置行为。Grain 放置策略应优先选择这些 Silo，
+        /// 直至其负载与其他 Silo 大致相同。
         /// </summary>
         [Fact(Skip = "https://github.com/dotnet/orleans/issues/4008"), TestCategory("Functional")]
         public async Task ElasticityTest_CatchingUp()
@@ -91,8 +91,8 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 评估安置策略的一举一动 silos 停止:战略应
-        /// 停止时的激活平衡 silo 其余的,相等于 silos.
+        /// 此测试评估 Silo 停止后的放置策略行为：策略应将
+        /// 已停止 Silo 上的激活实例均匀分配到其余 Silo。
         /// </summary>
         [Fact(Skip = "https://github.com/dotnet/orleans/issues/4008"), TestCategory("Functional")]
         public async Task ElasticityTest_StoppingSilos()
@@ -137,7 +137,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 万一所有 silos 都在100 CPU使用时, 不要点亮激活。
+        /// 当所有 Silo 的 CPU 利用率均为 100% 时，不应放置激活实例。
         /// </summary>
         [Fact(Skip = "https://github.com/dotnet/orleans/issues/4008"), TestCategory("Functional")]
         public async Task ElasticityTest_AllSilosCPUTooHigh()
@@ -156,7 +156,7 @@ namespace UnitTests.General
         }
 
         /// <summary>
-        /// 万一所有 silos 都在100个CPU使用状态或已设置过载的国旗, 不要启动激活 。
+        /// 当所有 Silo 均达到 100% CPU 利用率或设置了过载标志时，不应放置激活实例。
         /// </summary>
         [Fact(Skip = "https://github.com/dotnet/orleans/issues/4008"), TestCategory("Functional")]
         public async Task ElasticityTest_AllSilosOverloaded()
@@ -190,7 +190,7 @@ namespace UnitTests.General
         [Fact, TestCategory("Functional")]
         public async Task LoadAwareGrainShouldNotAttemptToCreateActivationsOnBusySilos()
         {
-            // a CPU100%的使用率将使 silo 无法获得新的 grains。
+            // CPU 使用率为 100% 的 Silo 将不具备接收新 Grain 的资格。
             await ElasticityGrainPlacementTest(
                 g =>
                     g.LatchCpuUsage(100.0f),
@@ -241,7 +241,7 @@ namespace UnitTests.General
                     n =>
                         this.GrainFactory.GetGrain<IActivationCountBasedPlacementTestGrain>(Guid.NewGuid()));
 
-            // 使 grain的 silo 对新的 grains不可取。
+            // 降低该 Grain 所在 Silo 对新 Grain 的放置吸引力。
             taint(taintedGrain).Wait();
             List<IPEndPoint> actual;
             try
@@ -253,7 +253,7 @@ namespace UnitTests.General
             }
             finally
             {
-                // 我不知道这是否必要 但为了安全 我会恢复 silo的可取性
+                // 不确定这是否必要，但为安全起见，恢复该 Silo 的放置吸引力。
                 logger.LogInformation("********************** Finalizing the test {Name} ******************************", name);
                 restore(taintedGrain).Wait();
             }
@@ -273,7 +273,7 @@ namespace UnitTests.General
             {
                 IActivationCountBasedPlacementTestGrain grain = this.GrainFactory.GetGrain<IActivationCountBasedPlacementTestGrain>(Guid.NewGuid());
                 this.grains.Add(grain);
-                // 确保我们启动 grain:
+                // 确保激活 Grain：
                 promises.Add(grain.Nop());
             }
             return Task.WhenAll(promises);

@@ -15,9 +15,9 @@ using Xunit;
 namespace DefaultCluster.Tests;
 
 /// <summary>
-/// 证明安排、执行、处理和持续持久工作都符合《公约》
-/// W3C 源调用器活动跟踪环境。 这些测试证明端对端的追踪
-/// 使"神像仪表板"能够浏览 持久工作。
+/// 验证持久化作业的调度、执行、处理和持久化均共享
+/// 原始调用者 Activity 的 W3C 跟踪上下文。这些测试验证端到端的跟踪
+/// 连续性，Aspire Dashboard 的持久化作业视图依赖于此。
 /// </summary>
 public class DurableJobsTracingTests : IClassFixture<DurableJobsTracingTests.Fixture>
 {
@@ -53,8 +53,8 @@ public class DurableJobsTracingTests : IClassFixture<DurableJobsTracingTests.Fix
     }
 
     /// <summary>
-    /// 反向 <see cref="DefaultClusterFixture"/> 但额外打开的组群固定值
-    /// 活动传播,以便时间-跟踪流动在接收器 grain RPC之间。
+    /// 与 <see cref="DefaultClusterFixture"/> 相同的集群测试夹具，但额外启用
+    /// Activity 传播，使调度时的跟踪上下文通过接收方 Grain RPC 传播。
     /// </summary>
     public class Fixture : BaseTestClusterFixture
     {
@@ -124,7 +124,7 @@ public class DurableJobsTracingTests : IClassFixture<DurableJobsTracingTests.Fix
         var handlerTraceId = await grain.GetJobTraceId(job.Id);
         Assert.Equal(expectedTraceId, handlerTraceId);
 
-        // 允许执行后后续存储写入( 默认)RemoveJob)在拍片前解决。
+        // 采集快照前，等待执行后的后续存储写入（RemoveJob）结束。
         await Task.Delay(250, testCancellationToken);
 
         var traceActivities = CapturedActivities

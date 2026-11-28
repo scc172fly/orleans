@@ -1,287 +1,287 @@
 ---
-title: "传递实用食谱"
-description: "实施库存保留、无能力支付、定单预测、持久通知溢出和预定工作流程步骤。"
+title: 消息传递实践示例
+description: 实现库存预留、幂等付款、有序投影、持久化通知扇出以及已调度的工作流步骤。
 ms.date: 10/10/2026
 ms.topic: how-to
 ---
 
 <a id="messaging-practical-recipes"></a>
 
-# 传递实用食谱
+# 消息传递实践示例
 
-这些汇编的例子使用普通 grains 输入
-<xref:Orleans.Durable.Messaging.IInbox> or <xref:Orleans.Durable.Messaging.IOutbox>, and named
-配置
-日报和持久工作及呼吁
-<xref:Orleans.Hosting.MessagingExtensions.AddMessaging*> 所示
-[通信通信](messaging.md#deployment-requirements).
-使用持续共享的供应商进行部署;模拟配置是
-适合当地执行。
+这些已编译的示例采用普通 Grain，注入
+<xref:Orleans.Durable.Messaging.IInbox> 或 <xref:Orleans.Durable.Messaging.IOutbox>，以及命名的
+日志状态。配置
+Journaling 和 Durable Jobs，并调用
+<xref:Orleans.Hosting.MessagingExtensions.AddMessaging*>，如
+[消息传递](messaging.md#deployment-requirements)中所示。
+部署时使用持久化共享提供程序；内存配置适合
+本地运行。
 
-所有处理示例都与本地操作完成验证和同步准备
-值,然后发送打印的邮件,应用业务更新,并调用 `Complete()`
-无法生效的投入用
-`Fail(reason)` 或以打印拒绝回复回答。
-等待结果的普通 grain 方法
-每个 grain 登记了输入的处理器
-<xref:Orleans.Durable.Messaging.InboxExtensions.Register*> 并直接注入发箱。
-Grains 申请表 `Messages` 类别,其
-装订物<xref:Orleans.Durable.Messaging.MessageType`1> 对每个对象都配有其体型。
+所有处理器示例均使用局部值完成验证和异步准备，
+随后发送强类型消息、应用业务更新并调用 `Complete()`，
+期间不执行 await。永远不可能变为有效的输入使用
+`Fail(reason)` 转入死信，或者以强类型拒绝回复应答。收件箱持久化该
+结果。普通 Grain 方法等待
+自身的日志写入。每个 Grain 使用
+<xref:Orleans.Durable.Messaging.InboxExtensions.Register*> 注册强类型处理器，并直接注入发件箱。
+Grain 注入应用的 `Messages` 类，其中的
+<xref:Orleans.Durable.Messaging.MessageType`1> 绑定将各主题与其正文类型配对。
 
 <a id="run-the-stock-reservation-sample"></a>
 
-## 运行储备样本
+## 运行库存预留示例
 
-下 [通信路中抽样](https://github.com/dotnet/orleans/tree/main/samples/Messaging)
-运行顺序 grain 和库存 grain 在一个本地主机中 silo三个独立的
-测试是否接受, 库存不足, 无效
-数量。命令 grain 通过其发件箱发送每个命令,等待
-库存 grain键入回复,该回复达到顺序 grain收件箱。
-每一个指挥官都得到自己的结果 拒绝命令的军令库存保持不变
-并且库存 grain 处理每个命令一次。
+[消息传递示例](https://github.com/dotnet/orleans/tree/main/samples/Messaging)
+在一个本地 Silo 中运行订单 Grain 与库存 Grain。三个独立的
+层次命令 ID 分别演示接受、库存不足和数量无效。
+订单 Grain 通过其发件箱发送每个命令，等待
+库存 Grain 的强类型回复，回复到达订单 Grain 的收件箱。宿主验证
+每条命令收到自身的结果、拒绝不会改变库存，
+并且库存 Grain 对每条命令仅完成一次处理。
 
-从仓库根 :
+从仓库根目录运行：
 
 ```powershell
 pwsh .\samples\Build-Samples.ps1 -SkipExternalAssets
 dotnet run --project .\samples\Messaging\Messaging.csproj --configuration Release --no-build
 ```
 
-样本使用当地包装的 Orleans 包,而这些API等待公布。
-其《检索、评估和监测和评价方法》还描述了自成一体的复制工作流程。
-以及模拟工作支持本地执行;配置持续共享的提供者
-恢复恢复。
+在这些 API 尚未发布期间，示例使用本地打包的 Orleans 软件包。
+其 README 也描述了独立复制运行的工作流。易失性日志
+和内存作业支持本地运行；要在重启后恢复，请配置持久化共享
+提供程序。
 
 <a id="reserve-inventory-once-per-order-line"></a>
 
-## 每个定单项目一次的储备库存
+## 每个订单行仅预留一次库存
 
-使用一个清单 grain 每租户/斯洛伐克克朗和 `available-stock`发送者来源
-信封的命令编号
-[OrderOperationKeys](messaging-idempotency.md#hierarchical-business-operation-keys),
-将数量和答复目的地放在 `ReserveStock`。
-[类型格式化的发送助手](messaging.md#encode-ordinary-application-values) 编码
-记录在信封 `inventory.reserve.v1` 主题下。
+使用 `available-stock`，为每个租户/SKU 设置一个库存 Grain。发送方使用
+以下方法派生信封的命令 ID：
+[OrderOperationKeys](messaging-idempotency.md#hierarchical-business-operation-keys)，
+并将数量与回复目标放入 `ReserveStock` 中。
+[强类型发送辅助方法](messaging.md#encode-ordinary-application-values)将记录编码到
+信封的 `inventory.reserve.v1` 主题下。
 
-清单登记册登记了两个打字处理器,
-<xref:Orleans.Durable.Messaging.InboxExtensions.Register*>: `inventory.reserve.v1` 解码
-`ReserveStock` 用于保留方法和 `inventory.restock.v1` 解码
-`Restock` 用于库存加固方法。每种方法都有其解码记录
-和处理器上下文。 grain 登记在
-<xref:Orleans.Grain.OnActivateAsync*>,在日记账恢复后恢复状态。
+库存 Grain 使用
+<xref:Orleans.Durable.Messaging.InboxExtensions.Register*> 注册两个强类型处理器：`inventory.reserve.v1` 为预留方法解码
+`ReserveStock`，而 `inventory.restock.v1` 为库存增加方法解码
+`Restock`。每个方法接收已解码的记录
+和处理器上下文。Grain 在
+<xref:Orleans.Grain.OnActivateAsync*> 中注册二者，此时日志恢复已恢复其状态。
 
 :::code source="../snippets/compiled-durable/Grains/MessagingRecipes.cs" id="messaging_inventory" language="csharp":::
 
-保留方法计算其下一个存量和本地结果。 `SendReply`
-编码和分级确定性 `result` 回复,然后该方法应用库存
-并同步完成。 第一命令 承诺库存减少,回答,
-和以内框一起完成。重复使用同一命令识别
-保留完成事实并保存原始处理器效果。
-序列式抽象 `ReservationResult` 来自 `OrderOutcome`;
-[密封的 `ReservationAccepted` 和 `ReservationRejected` 记录区分
-有效商业结果类型,并携带原数量和剩余库存。
-非正数发送 `ReservationRejected` ,并加上 `InvalidQuantity`;
-缺货时,会发送到 `InsufficientStock`。两者均完整无变化的库存。
-无效的不可更改的保留作为持久的商务拒绝,完全完整。
-最初的发件箱意向提供了答复
-在其配置的交付政策范围内。
+预留方法在本地计算下一库存值及结果。`SendReply`
+编码并暂存确定性的 `result` 回复，随后方法同步应用库存变更
+并完成处理。第一次命令将库存扣减、回复
+和收件箱完成操作一起提交。相同命令 ID 的重复提交会识别
+保留的完成记录，并保持原始处理器的效果不变。
+序列化的抽象 `ReservationResult` 派生自 `OrderOutcome`；
+密封的 `ReservationAccepted` 和 `ReservationRejected` 记录区分不同的有效
+业务结果类型，并携带原始数量及剩余库存。
+非正数数量发送 `ReservationRejected`，附带 `InvalidQuantity`；
+库存不足发送带有 `InsufficientStock` 的该结果。两者完成时库存均保持不变。
+无效的不可变预留命令以持久化业务拒绝结束。
+原始发件箱意图在其配置的投递策略范围内
+投递回复。
 
-对于非正向性加量 `Restock` ,处理人呼叫
-有充分理由的<xref:Orleans.Durable.Messaging.IInboxHandlerContext.Fail*>
-,在突变前返回,因为此命令永远不能生效。正
-突变前计算所检查的新股票值,然后承诺
-测试过溢出投出并跟随处理
-重试策略到 `InboxRetryTimeout`。
-使每个
-正在重新锁定自己的稳定命令编号。 该示例是 `SetAvailableAsync`
-行政绝对库存更新。
-命令工作流程,增加明确的确认、到期和发布政策
-保留保留时,保留保留和保留保留保留
-需要搜索操作。 例如, 给释放自己的叶子
-`{order}/inventory/{sku}/release`,并承诺其成果与恢复种群。
-授权股票管理并产生租户/SKU grain 身份识别点的识别特征
-应用程序信任的切入点 。
+对于非正数的 `Restock` 增量，处理器调用
+<xref:Orleans.Durable.Messaging.IInboxHandlerContext.Fail*> 并给出明确原因，
+在变更之前返回，因为该命令永远不可能变为有效。正数
+增量在变更之前通过 checked 运算计算新库存值，随后将该
+更新与收件箱完成操作一起提交。checked 溢出会抛出异常，遵循处理
+重试策略直至 `InboxRetryTimeout`。
+为每次不同的
+补货操作分配自身的稳定命令 ID。示例中的 `SetAvailableAsync`
+是管理用途的绝对库存更新。在
+订单工作流中，为已预留库存添加明确的确认、到期和释放策略；
+当这些操作需要查找时，保留以预留命令 ID 为索引的记录。
+为释放操作分配独立的叶子键，例如
+`{order}/inventory/{sku}/release`，并将其结果与库存恢复一起提交。
+在应用的受信任入口处授权库存管理，
+并派生租户/SKU 的 Grain 标识。
 
 <a id="charge-an-external-provider-with-a-stable-key"></a>
 
-## 用稳定的密钥向外部供应商收取费用
+## 使用稳定键通过外部提供程序收款
 
-注册 <xref:Microsoft.Extensions.DependencyInjection.IServiceCollection>
-其适配器绘制了执行该合同的关键
-供应商的应急信息主管或请求字段,执行供应商的成果
-和解议定书。
+在 <xref:Microsoft.Extensions.DependencyInjection.IServiceCollection> 中注册所示网关契约的
+实现。其适配器将键映射到
+提供程序的幂等标头或请求字段，并实现提供程序的结果
+对账协议。
 
 :::code source="../snippets/compiled-durable/Grains/MessagingRecipes.cs" id="messaging_payment" language="csharp":::
 
-处理器首先验证不可改变的命令。 数量、 货币或响应
-无法成为有效死字母的指定目标
-<xref:Orleans.Durable.Messaging.IInboxHandlerContext.Fail*>,在任何提供者呼叫之前。
-提供商在共享日记更改前先拨打服务。
-将标记传到网关, 之后取消方法检查
-等待 `SendReply` 和最终结果更新。一个供应商的错误抛出,所以
-以回落重写信件。 如果服务提供商成功并激活
-替换尝试使用同一供应商的钥匙,从而中断了当地承诺。
-罐装信封识别码也是供应商的应急钥匙。
-完成后, 框中确认保留期间重新提交。 结果查询
-状态,确定性回复, 和收件箱完成共享共享 单写。
+处理器首先验证不可变命令。永远不可能变为有效的金额、货币或回复
+目标会使用
+<xref:Orleans.Durable.Messaging.IInboxHandlerContext.Fail*> 将命令转入死信，此时尚未调用任何提供程序。
+提供程序调用先于共享日志状态的变更。异步处理器
+将其令牌传给网关，该方法在执行 await 后，且在
+`SendReply` 及最终结果更新之前检查取消。提供程序故障会抛出异常，因此
+消息采用退避策略重试。如果提供程序操作成功，但激活实例
+丢失导致本地提交中断，则新的尝试使用相同的提供程序键。
+规范化的信封 ID 同时也是提供程序幂等键。本地完成之后，
+收件箱在保留期间识别重复提交。结果查询
+状态、确定性回复和收件箱完成操作共用一次写入。
 
-货币正常化,指令编号的范围扩大到供应商账户和租户。
-将拒绝付款作为已完成成果处理;将模棱两可的供应商答复处理
-使用供应商的同一密钥重试或查询合同。 为此插入状态查询
-grain 确实如此,所以打电话者可以用同一个命令编号调节不确定的反应。
-保留供应商在全重试时的应急能力事实;使关键长度与
-当供应商需要时,确定性卡通钥匙大麻。
-见 [外部副作用](messaging-idempotency.md#external-side-effects)
-保留和调节责任。
+规范化货币，并将命令 ID 的作用域限定为提供程序账户及租户。
+将付款被拒绝视为已完成的结果；对于结果不明确的提供程序响应，
+根据提供程序的同键重试或查询契约进行处理。像此 Grain 一样公开状态
+查询，使调用方能够通过相同命令 ID 核实不确定的响应。
+在整个重试期限内保留提供程序幂等记录；提供程序有键长度限制时，
+使用确定性的规范键哈希进行适配。
+参见[外部副作用](messaging-idempotency.md#external-side-effects)
+中关于保留及对账职责的说明。
 
 <a id="converge-an-out-of-order-stock-projection"></a>
 
-## 预测出超序库存
+## 使乱序库存投影收敛
 
-仪表板或搜索投影可独立接受完整的库存快照
-权威的库存生产者指定单调式
-同一房客/SKU的增量版本。
+仪表板或搜索投影可以接收完整库存快照，而不依赖
+传输顺序。权威库存生产者为同一租户/SKU 分配单调
+递增的版本。
 
 :::code source="../snippets/compiled-durable/Grains/MessagingRecipes.cs" id="messaging_projection" language="csharp":::
 
-如果第12版在第11版本之前到达,则预测保留第12和
-完成第11版被取代。重复版本与原内容相关:
-以简单快照重新使用内容不同的版本或携带无效的
-以 `Fail(reason)`.
-版本和完整库存价值是一份持久记录。
-承认完成快照命令;域版命令不同
-快速命令 。
+如果版本 12 先于版本 11 到达，投影保留版本 12，
+并将版本 11 以已被取代的结果完成。重复使用的版本与其原始内容绑定：
+使用不同内容复用版本的快照，或包含无效
+版本或库存值的快照，会通过 `Fail(reason)` 转入死信。
+版本与完整库存值构成一条持久化记录。稳定的消息 ID
+识别已完成的快照命令；领域版本对不同的
+快照命令排序。
 
-本配方适用于 **完整替换快照**。
-或库存- delta 事件使用带有日记间距缓冲的连续序列政策
-以及一个域定义的失踪事件的恢复路径。
+本示例适用于**完整替换快照**。增量扣款、入账
+或库存变化事件需要采用连续序列策略，将缺口缓冲区记入日志，
+并为缺失事件定义领域恢复路径。
 
 <a id="publish-a-durable-notification-campaign"></a>
 
-## 发布一项持久通知运动
+## 发布持久化通知活动
 
-一种普通的方法可以按一个商业更新后, 使几个目的地进入多个目的地。
-a 运动稳定身份证明,因此,客户提交反复提交时,发现其记录的内容和
-接收方设置。
+普通方法可以在一次业务更新中为多个目标暂存消息。为
+通知活动分配稳定 ID，使重复的客户端提交能够找到已记录的内容及
+接收方集合。
 
 :::code source="../snippets/compiled-durable/Grains/MessagingRecipes.cs" id="messaging_fanout" language="csharp":::
 
-竞选记录和每个意图的输出都在同一发件人中记录
-写入日记日记写。 打字批次
-<xref:Orleans.Durable.Messaging.OutboxExtensions.Send*> 帮助者编码每个收件人
-在进行任何命令之前, 命令在任何开始前, 所以编码失败失败没有阶段, 然后在它们中进行
-运动记录在发送成功和重复发送之后添加
-提交文件使用相同的收件人指令身份和内容。
-每一目的地通过下列方式独立承诺:
-[通知处理器](messaging.md#deployment-requirements)每个信封
-ID 是运动根下稳定的接收儿童, 具有字面 grain 身份
-由钥匙厂处理的逃出 接收者保留了箱填好
-运动记录也支持
-`GetCampaignAsync` 查询。成功公布的答复
-意味着运动和意图是持久的;接受者完成后将是一个事件。
+活动记录与每个出站意图均在同一次发送方
+日志写入中捕获。强类型批量
+<xref:Orleans.Durable.Messaging.OutboxExtensions.Send*> 辅助方法会先对每条接收方
+命令编码，再暂存任何命令，因此编码失败时不暂存任何内容；编码完成后按顺序
+暂存。所有发送成功后添加活动记录，重复
+提交使用相同的接收方命令标识及内容。
+每个目标通过
+[通知处理器](messaging.md#deployment-requirements)独立提交。每个信封的
+ID 是活动根键下稳定的接收方子键，由键工厂负责对字面量 Grain 标识
+进行转义。接收方保留的收件箱完成
+记录识别该通知命令。活动记录也支持
+`GetCampaignAsync` 查询。成功的发布响应
+表示活动及其意图已持久化；接收方完成处理是之后的事件。
 
-根据日记,在您的入侵时, 检查接收人数和有效载荷大小
-对于规模较大的运动,坚持一个运动光标和
-释放受封的接收方块,将光标和每个块一起投入。
-如果需要确认交货,则接受方答复应附有关键结果;
-让运动 grain 保留竞选状态
-支持的接收方完成数据
-重新提交地平线。
+根据日志容量及延迟预算，在入口限制接收方数量和
+有效载荷大小。对于较大的活动，持久化活动游标并
+分批发出数量有界的接收方消息，将游标与每批一起提交。
+如果需要投递确认，使接收方回复带键的结果，并
+由活动 Grain 汇总这些结果。在提交及查询时限内保留活动状态，
+并在支持的重复提交时限内保留接收方的
+完成记录。
 
 <a id="combine-the-recipes-into-an-order-workflow"></a>
 
-## 将食谱合并到顺序工作流程
+## 将示例组合为订单工作流
 
-接受几个主题的协调员登记每个输入处理器一名
-本示例登记共享库存和付款结果处理人
-其确定性答复记录结果
-成果查询:
+接收多个主题的协调器为每个主题注册一个强类型处理器。
+此示例注册共用一个方法的库存及付款结果处理器，
+并按其确定性回复 ID 记录结果，以供进度及
+结果查询：
 
 :::code source="../snippets/compiled-durable/Grains/MessagingRecipes.cs" id="messaging_dispatcher" language="csharp":::
 
-每次登记都与注册主体的顺序一致,并用其编号和编号编码
-。每个处理器在状态更新时以相同的同步块完成。
-处理后,没有匹配的处理器就解码故障和对象
-重试和死字政策。
+每次注册按序数规则匹配其主题，使用相应绑定解码正文。
+每个处理器在同一同步操作块中更新状态并完成处理。
+解码失败及没有匹配处理器的主题遵循处理
+重试及死信策略。
 
-一名按级协调员坚持其预期的步骤关键和阶段,
-并提交库存和付款要求,然后完成启动指挥。
-将结果记录在对回应中,并在当地作出一项承诺。
-步骤已经成功,一个过渡发放 `shipment/create`。
+每个订单的协调器持久化预期步骤的键及阶段，发送
+库存和付款请求，随后完成发起命令。每条
+响应在一次本地提交中记录结果并完成处理。所有必需步骤
+成功后，一次状态转换发出 `shipment/create`。
 
-| 阶段 | 持久过渡 |
+| 阶段 | 持久化转换 |
 | --- | --- |
-| 提交提交 | 保存预期的叶钥匙,发放库存和付款请求。 |
-| 等待 | 保存每个相关参与者在回复编号下的结果; 信箱确认重复响应命令。 |
-| 准备就绪 | 记录备案阶段并发出单独配有钥匙的装运请求。 |
-| 被拒绝 | 记录业务拒绝,并发出已完成的参与人步骤释放/退款指令。 |
-| 完成已完成 | 记录装运或补偿结果,保留工作流量状态,以便查询和审计结果。 |
+| Submitted（已提交） | 保存预期叶子键并发出库存及付款请求。 |
+| Waiting（等待中） | 按回复 ID 保存每个关联的参与者结果；收件箱识别重复的回复命令。 |
+| Ready（就绪） | 记录就绪阶段并发出具有独立键的发货请求。 |
+| Rejected（已拒绝） | 记录业务拒绝，并为已完成的参与者步骤发出释放或退款命令。 |
+| Finished（已结束） | 记录发货或补偿结果，并保留工作流状态以供结果查询和审计。 |
 
-每个过渡都使用相同的准备-时同步-最终街区模式。
-工作流量状态中企业拒绝,
-`Fail(reason)`,以及临时准备失败的例外保留。
-记录了在停业期间回答状况查询的步骤结果。
+每次转换使用相同的先准备、再执行同步最终操作块的模式。将
+业务拒绝保留在工作流状态中，使用
+`Fail(reason)` 将永久无效输入转入死信，并仅将异常用于暂时性的准备阶段故障。使用
+已记录的步骤结果在服务中断期间应答状态查询。
 
 <a id="schedule-a-workflow-step"></a>
 
-## 安排工作流程步骤
+## 调度工作流步骤
 
-grain 稍后一步安排,以发一个 `deliverAt`电文的形式发送信息
-时间。本次退票确认的订单,除非宽限期已过,否则
-买方首先取消:
+Grain 通过向自身发送带有 `deliverAt`
+时间的消息来调度之后的步骤。此结算 Grain 在宽限期结束后确认订单，除非
+买家先取消：
 
 :::code source="../snippets/compiled-durable/Grains/MessagingRecipes.cs" id="messaging_grace_period" language="csharp":::
 
-取出从“ 持久工作钟” 中计算 `deliverAt` ,它输入该时钟作为
-键 <xref:System.TimeProvider> 的名称 `DurableJobTimeProviderNames.DurableJobs`。
-检出收件箱接受同一日记本中的 `GracePeriodElapsed` 消息
-写入文件提交文件,因此计划步骤在
-`Submitted` 状态确实。 计划信件的选中时间为退签
-`MaxCapacity` 直到它完成。信件在信件到期时唤醒 grain
-操作者对当前运行
-状态,所以取消的检出可以在不改变状态的情况下完成信件。
-信息代号是提交方的身份证的孩子,是重新提交的
-发现记录中的状况和时间表没有新情况。
+结算 Grain 根据 Durable Jobs 时钟计算 `deliverAt`，该时钟作为
+带键 <xref:System.TimeProvider> 注入，名称为 `DurableJobTimeProviderNames.DurableJobs`。
+结算 Grain 的收件箱在记录提交的同一次日志写入中接纳 `GracePeriodElapsed` 消息，
+因此已调度步骤与
+`Submitted` 状态同时存在。已调度消息计入结算 Grain 的
+`MaxCapacity`，直到处理完成。消息到期时，Messaging 唤醒 Grain，
+并按照收件箱重试策略运行其处理器。处理器依据当前
+状态执行操作，因此已取消的结算会在不改变状态的情况下完成消息。
+消息 ID 是提交 ID 的子键，重新投递的提交
+会找到已记录状态，不再调度新工作。
 
 <a id="choose-an-application-migration-pattern"></a>
 
-## 选择应用程序迁移模式
+## 选择应用迁移模式
 
-将现有应用责任移至操作器及其输入的有效载荷
-使用信箱/发件箱承诺输出意图的边界:
+将现有应用职责移入处理器及其强类型有效载荷
+记录，使用收件箱/发件箱的提交边界记录出站意图：
 
-| 现有应用模式 | 通信模式 |
+| 现有应用模式 | Messaging 模式 |
 | --- | --- |
-| 请求/答复 grain 方法 | 将稳定的指令编号和主体放入信封及其身体的响应目的地;处理者在完成后分级作出确定型号的答复。 |
-| 更新业务,随后是远程电话 | 与业务更新一起的离岸封套阶段;确认发送州驱动器交付和重试。 |
-| 外部供应商呼叫 | 使用语法指令代号来准备提供方的结果, 然后将其本地查询状态、回复和收件箱完成合并。 |
-| 通知循环 | 每个稳定的接收者身份都打 `Send` ,在成功进行后记录竞选活动,等待日记的写作。 |
-| 有关记录和附文 | 将应用程序记录和 `byte[]` 附件放在可连号信件中,使用打字发送和处理助手帮助器。 |
+| 请求/回复 Grain 方法 | 将稳定命令 ID 和主题放入信封，将回复目标放入正文；处理器在完成操作时暂存确定性的强类型回复。 |
+| 业务更新后进行远程调用 | 将出站信封与业务更新一起暂存；已确认的发件箱状态驱动投递和重试。 |
+| 外部提供程序调用 | 使用规范命令 ID 准备提供程序结果，再将其本地查询状态、回复及收件箱完成操作一起提交。 |
+| 通知循环 | 为每个稳定的接收方标识调用强类型 `Send`，成功暂存后记录活动，并等待日志写入。 |
+| 相关记录与附件 | 将应用记录及 `byte[]` 附件放入一条可序列化消息，使用强类型发送和处理器辅助方法。 |
 
-在移动应用程序工作流程时,保存命令身份和记录结果。
-申请者拥有标的合同、答复路线、授权和身份证施工。
-见见
+迁移应用工作流时保留命令标识及已记录结果。
+应用负责主题契约、回复路由、授权及 ID 构造。
+参见
 [应用有效载荷演进](messaging-operations.md#evolve-application-payload-records)
-用于滚动应用程序记录修改。
+中有关应用记录滚动变更的说明。
 
 <a id="verify-your-handlers"></a>
 
-## 验证您的处理器
+## 验证处理器
 
-几个缔约国 grains、待处理请求再利用的矛盾性,
-当地
-建立商业状态、查询结果和
-测试启动恢复和模糊
-对照部署中实际供应商,储存/供应结果。
+测试来自多个 Grain 的同 ID 重复提交、待处理请求复用冲突、
+不同的子命令、乱序到达及本地准备阶段的
+取消。一起断言业务状态、查询结果、
+出站信封及完成操作。使用部署实际采用的提供程序测试激活实例恢复及不确定的
+存储或提供程序结果。
 
-可执行文件实例对按等级划分的关键项进行分级隔离,
-零/负数量拒绝、短缺、
-往返多态结果 答录阶段失败 没有存货突变
-永久无效重新储存、支付无效和无用垃圾发光的死字母
-检查后退溢出量,提供商成功/当地取消再试,
-出局预测,输入多主题发送,运动批量编码
-持久工作时钟和普通综合信息
-核对原始答复的实际日记账确认和
-测试端对端重新提交时的确切完成-保留边界。
-运行期保证和操作控制,见
-[通信业务](messaging-operations.md).
+可执行文档示例测试层次键隔离、
+强类型预留接受、零或负数量拒绝、库存不足、
+多态结果往返、回复暂存失败且库存不变、
+永久无效补货、无效付款及无效快照转入死信、
+checked 补货溢出、提供程序成功后本地取消的重试、
+乱序投影、强类型多主题分派、活动批量编码、
+Durable Jobs 时钟上的已调度步骤及普通复合消息
+往返。在测试端到端重复提交时，验证原始回复的实际日志确认，
+以及完成记录保留期的精确边界。
+有关运行时保证与运维控制，参见
+[消息传递运维指南](messaging-operations.md)。

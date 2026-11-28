@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Serialization.Session
 {
     /// <summary>
-    /// 收集众所周知的类型。
+    /// 已知类型的集合。
     /// </summary>
     public sealed class WellKnownTypeCollection
     {
@@ -29,9 +29,9 @@ namespace Orleans.Serialization.Session
         }
 
         /// <summary>
-        /// 获取与所提供的类型识别符相应的类型。
+        /// 获取与给定类型标识符对应的类型。
         /// </summary>
-        /// <param name="typeId">类型识别符号。</param>
+        /// <param name="typeId">类型标识符。</param>
         /// <returns>类型。</returns>
         public Type? GetWellKnownType(uint typeId)
         {
@@ -44,11 +44,11 @@ namespace Orleans.Serialization.Session
         }
 
         /// <summary>
-        /// 尝试获取与所提供的类型识别符相应的类型。
+        /// 尝试获取与给定类型标识符对应的类型。
         /// </summary>
-        /// <param name="typeId">类型识别符号。</param>
+        /// <param name="typeId">类型标识符。</param>
         /// <param name="type">类型。</param>
-        /// <returns><see langword="true" /> 如果找到相应类型,则以其他方式 <see langword="false" /> 。</returns>
+        /// <returns><see langword="true" />，如果找到对应类型；否则为 <see langword="false" />。</returns>
         public bool TryGetWellKnownType(uint typeId, out Type? type)
         {
             if (typeId == 0)
@@ -61,11 +61,11 @@ namespace Orleans.Serialization.Session
         }
 
         /// <summary>
-        /// 尝试获得与所提供的类型相应的类型识别符。
+        /// 尝试获取与给定类型对应的类型标识符。
         /// </summary>
         /// <param name="type">类型。</param>
-        /// <param name="typeId">类型识别符号。</param>
-        /// <returns><see langword="true" /> 如果该类型有众所周知的识别符号, <see langword="false" /> 否则。</returns>
+        /// <param name="typeId">类型标识符。</param>
+        /// <returns><see langword="true" />，如果该类型具有已知标识符；否则为 <see langword="false" />。</returns>
         public bool TryGetWellKnownTypeId(Type type, out uint typeId) => _wellKnownTypeToIdMap.TryGetValue(type, out typeId);
     }
 }

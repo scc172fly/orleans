@@ -5,7 +5,7 @@ using Orleans.Connections.Transport.Security;
 namespace Orleans.Connections.Transport;
 
 /// <summary>
-/// 将 TLS 添加到全部的中元软件 <see cref="MessageTransport"/> 设置 <see cref="MessageTransportConnector"/>.
+/// 为所有 <see cref="MessageTransport"/> 实例添加 TLS 的中间件，这些实例由 <see cref="MessageTransportConnector"/> 创建。
 /// </summary>
 internal sealed class TlsMessageTransportConnectorMiddleware : IMessageTransportConnectorMiddleware
 {
@@ -23,7 +23,7 @@ internal sealed class TlsMessageTransportConnectorMiddleware : IMessageTransport
 }
 
 /// <summary>
-/// 将 TLS 添加到全部的中元软件 <see cref="MessageTransport"/> 设置 <see cref="MessageTransportListener"/>.
+/// 为所有 <see cref="MessageTransport"/> 实例添加 TLS 的中间件，这些实例由 <see cref="MessageTransportListener"/> 创建。
 /// </summary>
 internal sealed class TlsMessageTransportListenerMiddleware : IMessageTransportListenerMiddleware
 {

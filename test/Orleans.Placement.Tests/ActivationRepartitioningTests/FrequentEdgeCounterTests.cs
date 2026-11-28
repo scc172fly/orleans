@@ -21,7 +21,7 @@ public interface IMyActiveBalancingGrain<T> : IGrainWithStringKey
 }
 
 /// <summary>
-/// 用于跟踪激活重新分割过程中通信模式的常用边缘柜台测试。
+/// 测试激活实例重新分区中用于跟踪通信模式的高频边计数器。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]
@@ -82,7 +82,7 @@ public class FrequentEdgeCounterTests
         Assert.Equal(2, sink.Count);
 
         var edge3 = new Edge(new(Id_E, SiloAddress.Zero, true), new(Id_F, SiloAddress.Zero, true));
-        sink.Add(edge3);  // 最低限度对数(格格2)应去除,因为容量为2
+        sink.Add(edge3);  // 由于容量为 2，应移除计数最小的项（edge2）。
 
         var counters = sink.Elements.ToList();
 

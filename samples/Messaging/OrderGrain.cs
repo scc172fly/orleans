@@ -19,7 +19,7 @@ public sealed class OrderGrain : Grain, IOrderGrain
     private readonly StockMessages _messages;
     private readonly IDurableList<ReservationOutcome> _receipts;
 
-    // 请求等待结果。 Grain 代码一次运行一个转, 所以简单的字典就足够了。
+    // 等待结果的请求。Grain 代码一次只执行一个轮次，因此普通字典就足够了。
     private readonly Dictionary<MessageId, TaskCompletionSource<ReservationOutcome>> _waiters = [];
 
     public OrderGrain(IInbox inbox, IOutbox outbox, IDurableStateManager state, StockMessages messages)
@@ -41,7 +41,7 @@ public sealed class OrderGrain : Grain, IOrderGrain
     {
         _outbox.Send(_messages.Reserve, commandId, stock, new ReserveStock(quantity, this.GetGrainId()));
 
-        // 命令在写入可耐性后即执行。
+        // 本次写入完成持久化后，命令即可投递。
         await _state.WriteStateAsync();
     }
 
@@ -50,7 +50,7 @@ public sealed class OrderGrain : Grain, IOrderGrain
         var outcome = _receipts.FirstOrDefault(receipt => receipt.CommandId == commandId);
         if (outcome is null)
         {
-            // 等待同一命令的呼唤者 共享一个完成
+            // 等待同一命令的并发调用者共享一个完成对象。
             if (!_waiters.TryGetValue(commandId, out var waiter))
             {
                 waiter = new TaskCompletionSource<ReservationOutcome>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -60,7 +60,7 @@ public sealed class OrderGrain : Grain, IOrderGrain
             outcome = await waiter.Task;
         }
 
-        // 任何写作都包括答复处理人制作的收据,因此结果一旦返回即为持久。
+        // 任何写入都会包含回复处理程序暂存的回执，因此写入返回时，结果已持久化。
         await _state.WriteStateAsync();
         return outcome;
     }

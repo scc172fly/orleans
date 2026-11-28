@@ -9,63 +9,63 @@ using Orleans.Runtime;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// grain 状态序列器的共同界面。
+    /// Grain 状态序列化器的通用接口。
     /// </summary>
     public interface IGrainStorageSerializer
     {
         /// <summary>
-        /// 将对象输入分层。
+        /// 将输入对象序列化。
         /// </summary>
-        /// <param name="input">序列化对象。</param>
+        /// <param name="input">要序列化的对象。</param>
         /// <typeparam name="T">输入类型。</typeparam>
-        /// <returns>序列输入。</returns>
+        /// <returns>序列化后的输入。</returns>
         BinaryData Serialize<T>(T? input);
 
         /// <summary>
-        /// 使提供的数据降序。
+        /// 对所提供的数据进行反序列化。
         /// </summary>
-        /// <param name="input">用于解除序列的数据。</param>
+        /// <param name="input">要反序列化的数据。</param>
         /// <typeparam name="T">输出类型。</typeparam>
-        /// <returns>消毒物体</returns>
+        /// <returns>反序列化后的对象。</returns>
         T? Deserialize<T>(BinaryData input);
     }
 
     /// <summary>
-    /// grain 状态的基于流的可选序列转换器。
+    /// 可选的基于流的 Grain 状态序列化器。
     /// </summary>
     public interface IGrainStorageStreamingSerializer : IGrainStorageSerializer
     {
         /// <summary>
-        /// 将对象输入的序列化为流。
+        /// 将输入对象序列化到流中。
         /// </summary>
-        /// <param name="input">序列化对象。</param>
-        /// <param name="destination">目的地流。</param>
-        /// <param name="cancellationToken">取消牌。</param>
+        /// <param name="input">要序列化的对象。</param>
+        /// <param name="destination">目标流。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
         /// <typeparam name="T">输入类型。</typeparam>
         ValueTask SerializeAsync<T>(T? input, Stream destination, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// 将从流中提供的数据降序。
+        /// 从流中反序列化所提供的数据。
         /// </summary>
         /// <param name="input">输入流。</param>
-        /// <param name="cancellationToken">取消牌。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
         /// <typeparam name="T">输出类型。</typeparam>
-        /// <returns>消毒物体</returns>
+        /// <returns>反序列化后的对象。</returns>
         ValueTask<T?> DeserializeAsync<T>(Stream input, CancellationToken cancellationToken = default);
     }
 
     /// <summary>
-    /// <see cref="IGrainStorageSerializer"/>的扩展期。
+    /// <see cref="IGrainStorageSerializer"/> 的扩展方法。
     /// </summary>
     public static class GrainStorageSerializerExtensions
     {
         /// <summary>
-        /// 使提供的数据降序。
+        /// 反序列化所提供的数据。
         /// </summary>
-        /// <param name="serializer"> grain 状态序列器。</param>
-        /// <param name="input">用于解除序列的数据。</param>
+        /// <param name="serializer">Grain 状态序列化器。</param>
+        /// <param name="input">要反序列化的数据。</param>
         /// <typeparam name="T">输出类型。</typeparam>
-        /// <returns>消毒物体</returns>
+        /// <returns>反序列化后的对象。</returns>
         public static T? Deserialize<T>(this IGrainStorageSerializer serializer, ReadOnlyMemory<byte> input)
         {
             ArgumentNullException.ThrowIfNull(serializer);
@@ -74,18 +74,18 @@ namespace Orleans.Storage
     }
 
     /// <summary>
-    /// 由存储提供商选项实施接口。
+    /// 存储提供程序选项应实现的接口。
     /// </summary>
     public interface IStorageProviderSerializerOptions
     {
         /// <summary>
-        /// 获取或设置用于此存储提供者的序列器。
+        /// 获取或设置此存储提供程序使用的序列化器。
         /// </summary>
         IGrainStorageSerializer GrainStorageSerializer { get; set; }
     }
 
     /// <summary>
-    /// 提供 <see cref="IStorageProviderSerializerOptions.GrainStorageSerializer"/>的默认配置。
+    /// 为 <see cref="IStorageProviderSerializerOptions.GrainStorageSerializer"/> 提供默认配置。
     /// </summary>
     /// <typeparam name="TOptions">选项类型。</typeparam>
     public class DefaultStorageProviderSerializerOptionsConfigurator<TOptions> : IPostConfigureOptions<TOptions> where TOptions : class, IStorageProviderSerializerOptions
@@ -95,7 +95,7 @@ namespace Orleans.Storage
         /// <summary>
         /// 初始化 <see cref="DefaultStorageProviderSerializerOptionsConfigurator{TOptions}"/> 类的新实例。
         /// </summary>
-        /// <param name="serviceProvider">服务供应商。</param>
+        /// <param name="serviceProvider">服务提供程序。</param>
         public DefaultStorageProviderSerializerOptionsConfigurator(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
@@ -108,9 +108,9 @@ namespace Orleans.Storage
 
             if (options.GrainStorageSerializer == default)
             {
-                // 首先,尝试获得一个 IGrainStorageSerializer 注册的
-                // 与存储供应商同名
-                // 如果找不到,则返回到系统范围违约
+                // 首先尝试获取以与存储提供程序
+                // 相同的名称注册的 IGrainStorageSerializer。
+                // 如果未找到，则回退到系统范围内的默认实现。
                 options.GrainStorageSerializer = name is not null
                     ? _serviceProvider.GetKeyedService<IGrainStorageSerializer>(name) ?? _serviceProvider.GetRequiredService<IGrainStorageSerializer>()
                     : _serviceProvider.GetRequiredService<IGrainStorageSerializer>();

@@ -16,14 +16,14 @@ internal partial class JsonCodecTestJsonContext : JsonSerializerContext;
 internal sealed record JsonCodecTestValue(string Name, int Count);
 
 /// <summary>
-/// JSON- <see cref="Orleans.Durable.Journaling.Tests.JournalingSnapshotRecord"/>的侧面镜像:
-/// 快速测试使用两侧的逻辑-同声记录形状,使二进制和JSONL
-/// 覆盖面矩阵保持平行。
+/// <see cref="Orleans.Durable.Journaling.Tests.JournalingSnapshotRecord"/> 在 JSON 侧的对应实现：
+/// 快照测试在两侧使用逻辑上相同的记录结构，使二进制与 JSONL
+/// 覆盖矩阵保持一致。
 /// </summary>
 internal sealed record JournalingSnapshotRecord(string Name, int Count, JournalingSnapshotRecordTag Tag);
 
 /// <summary>
-/// JSON- <see cref="Orleans.Durable.Journaling.Tests.JournalingSnapshotRecordTag"/>的侧面镜像。
+/// <see cref="Orleans.Durable.Journaling.Tests.JournalingSnapshotRecordTag"/> 在 JSON 侧的对应实现。
 /// </summary>
 internal readonly record struct JournalingSnapshotRecordTag(string Label, int Code);
 

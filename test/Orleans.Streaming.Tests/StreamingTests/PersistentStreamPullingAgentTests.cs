@@ -17,7 +17,7 @@ using Orleans.Timers;
 using TestExtensions;
 using Xunit;
 
-#pragma warning disable CS0618 // Test doubles and compatibility scenarios exercise legacy cursor APIs.
+#pragma warning disable CS0618 // 测试替身和兼容性场景会使用旧版游标 API。
 
 namespace UnitTests.StreamingTests
 {
@@ -61,7 +61,7 @@ namespace UnitTests.StreamingTests
             var queueId = QueueId.GetQueueId("queue", 0u, 0u);
             var streamId = StreamId.Create("namespace", Guid.NewGuid());
             var receiver = Substitute.For<IQueueAdapterReceiver>();
-            // 使用 Arg.Any<int>() 来匹配 maxCacheAddCount 值。
+            // 使用 Arg.Any<int>() 进行匹配，不限制 maxCacheAddCount 的取值。
             receiver.GetQueueMessagesAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
                 .Returns(Task.FromResult<IList<IBatchContainer>>(
                 [
@@ -74,8 +74,8 @@ namespace UnitTests.StreamingTests
 
             var readTask = testAccessor.ReadFromQueue(queueId, receiver, 1);
 
-            // ReadFromQueue 同步添加流条目并跟踪飞行中
-            // 冷流的背景登记任务。
+            // ReadFromQueue 同步添加流条目，并跟踪
+            // 冷流正在进行的后台注册任务。
             var cache = await testAccessor.GetPubSubCache();
             Assert.Single(cache);
 
@@ -89,7 +89,7 @@ namespace UnitTests.StreamingTests
             Assert.False(await testAccessor.ReadFromQueue(queueId, receiver, 1));
             await receiver.Received(1).GetQueueMessagesAsync(Arg.Any<int>(), Arg.Any<CancellationToken>());
 
-            // 完成登记应解决跟踪任务并清除其内容。
+            // 完成注册应使被跟踪的任务完成，并将其清除。
             registration.SetResult(new HashSet<PubSubSubscriptionState>());
             await registrationTask;
             Assert.True(await testAccessor.ReadFromQueue(queueId, receiver, 1));
@@ -225,7 +225,7 @@ namespace UnitTests.StreamingTests
         {
             var queueId = QueueId.GetQueueId("queue", 0u, 0u);
             var receiver = Substitute.For<IQueueAdapterReceiver>();
-            // 在返回值被附加非无效值前编译的接收器二进制模拟。
+            // 模拟在返回值被标注为非 null 之前编译的接收器二进制文件。
             receiver.GetQueueMessagesAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
                 .Returns(Task.FromResult<IList<IBatchContainer>>(null!));
             var agent = CreateAgent(pubSub: null, queueId);
@@ -3380,8 +3380,8 @@ namespace UnitTests.StreamingTests
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public async Task RegisterStream_KeepsCacheEntryWhenSubscriberHandshakeFails()
         {
-            // 无法解决其 grain 参考文件(在测试设置中RuntimeClient 无效)的订阅者
-            // 模拟握手失败。 流条目必须生存 。
+            // 无法解析 Grain 引用的订阅者（测试设置中的 RuntimeClient 为 null）
+            // 用于模拟握手失败。流条目必须保留。
             var subscriptionId = GuidId.GetGuidId(Guid.NewGuid());
             var streamId = new QualifiedStreamId("provider", StreamId.Create("namespace", Guid.NewGuid()));
             var consumerGrainId = GrainId.Create("test", Guid.NewGuid().ToString());
@@ -3399,8 +3399,8 @@ namespace UnitTests.StreamingTests
             var testAccessor = (PersistentStreamPullingAgent.ITestAccessor)agent;
             await InitializeAgent(agent);
 
-            // RegisterStream 填写时不应扔掷,即使订阅者
-            // 将出现不和,NullReferenceException 从从公分 RuntimeClient).
+            // 即使订阅者的握手会失败（因 RuntimeClient 为 null 而引发
+            // NullReferenceException），RegisterStream 也应完成且不抛出异常。
             await testAccessor.RegisterStream(streamId, new EventSequenceTokenV2(1), DateTime.UtcNow);
 
             var cache = await testAccessor.GetPubSubCache();
@@ -4026,10 +4026,10 @@ namespace UnitTests.StreamingTests
             var testAccessor = (PersistentStreamPullingAgent.ITestAccessor)agent;
             await InitializeAgent(agent);
 
-            // 首个选中: 泵读取信息,
+            // 第一次计时器触发：消息泵读取消息，并启动冷流注册。
             await testAccessor.RunQueuePump(queueId, TestContext.Current.CancellationToken);
 
-            // 验证缓存是否已经注册了未定流 。
+            // 验证缓存中已注册待处理的流。
             var cache = await testAccessor.GetPubSubCache();
             Assert.Single(cache);
             var (_, streamData) = cache.Single();
@@ -4045,7 +4045,7 @@ namespace UnitTests.StreamingTests
             Assert.Empty(queueCache.DeliveryProgressTokens);
             Assert.Equal(0, queueCache.DeliveryProgressCallCount);
 
-            // 完全注册,关闭程序可以顺利进行。
+            // 完成注册，以便正常执行关闭流程。
             registration.SetResult(new HashSet<PubSubSubscriptionState>());
             await shutdownTask;
             Assert.True(receiverShutdownStarted.Task.IsCompletedSuccessfully);
@@ -4125,7 +4125,7 @@ namespace UnitTests.StreamingTests
 
             await testAccessor.Shutdown();
 
-            // 关闭应推倒最后交付进度快照,
+            // 关闭时应在拆除组件之前推送最终的投递进度快照。
             Assert.Single(queueCache.DeliveryProgressTokens);
         }
     }

@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// 提供功能,用于序列化和取消 grain 状态,授权优先和后备地实施 <see cref="IGrainStorageSerializer"/>。
+    /// 提供 Grain 状态的序列化和反序列化功能，委托给首选及回退的 <see cref="IGrainStorageSerializer"/> 实现。
     /// </summary>
     public class GrainStorageSerializer : IGrainStorageSerializer
     {
@@ -13,8 +13,8 @@ namespace Orleans.Storage
         /// <summary>
         /// 初始化 <see cref="GrainStorageSerializer"/> 类的新实例。
         /// </summary>
-        /// <param name="serializer">下 grain 存储序列器。</param>
-        /// <param name="fallbackDeserializer">存储序列器的后退 grain 存储序列器。</param>
+        /// <param name="serializer">Grain 存储序列化器。</param>
+        /// <param name="fallbackDeserializer">回退使用的 Grain 存储序列化器。</param>
         public GrainStorageSerializer(IGrainStorageSerializer serializer, IGrainStorageSerializer fallbackDeserializer)
         {
             _serializer = serializer;

@@ -1,43 +1,43 @@
 ---
-title: "ORLEANS0001:将 AlwaysInterleave 放在 grain 接口上"
-description: "理解和决心 ORLEANS0001 何时 AlwaysInterleave 适用于执行方法。"
+title: "ORLEANS0001: 将 AlwaysInterleave 放在 Grain 接口上"
+description: 了解并解决将 AlwaysInterleave 应用于实现方法时出现的 ORLEANS0001。
 ms.date: 08/25/2026
 ms.topic: reference
 ---
 
 <a id="orleans0001-place-alwaysinterleave-on-the-grain-interface"></a>
 
-# ORLEANS0001:将 AlwaysInterleave 放在 grain 接口上
+# ORLEANS0001: 将 AlwaysInterleave 放在 Grain 接口上
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 类别类 | 用法 |
-| 严重性 | 错误错误 |
-| 代码修正 | 不详 |
+| 类别 | 用法 |
+| 严重性 | 错误 |
+| 代码修复 | 不可用 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-`[AlwaysInterleave]` 适用于一个类别所申报的方法。属性定义了 grain 合同中的排期行为,属于相应的 grain- 界面方法。
+`[AlwaysInterleave]` 应用于类中声明的方法。此特性定义 Grain 契约上的调度行为，应放在相应的 Grain 接口方法上。
 
 <a id="impact"></a>
 
-## 影响影响
+## 影响
 
-执行注释并没有定义远程合同的时间安排行为。 电话不会像预期的那样中断,这可能造成生命或同货币问题。
+实现上的特性标注不会定义远程契约的调度行为。调用可能无法按预期交错执行，从而引发活性或并发问题。
 
 <a id="how-to-fix"></a>
 
-## 如何修补
+## 修复方法
 
-删除执行方法中的 `[AlwaysInterleave]` ,并将其应用到 grain 接口上的匹配方法。
+从实现方法中移除 `[AlwaysInterleave]`，并将它应用于 Grain 接口上的对应方法。
 
 <a id="suppress-the-diagnostic"></a>
 
 ## 抑制诊断
 
-仅对验证的检测器在不是 grain 执行的一部分的方法上虚正的反向分析器进行禁止。 最好删除无效属性 。
+仅在已确认分析器对不属于 Grain 实现的方法产生误报时，才抑制此诊断。优先移除无效的特性。
 
 ```ini
 [*.cs]

@@ -4,12 +4,12 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|--------------------
-ORLEANS0101 | Usage | Error | 带有物体的可序列属性必须固定为可排列
-ORLEANS0102 | Usage | Error | RPC 界面方法的无效返回类型
-ORLEANS0103 | Usage | Error | 出现了未处理源生成例外
-ORLEANS0104 | Usage | Error | 指定的代理基类不是有效的代理基类
-ORLEANS0105 | Usage | Error | RPC 接口不得包含属性
-ORLEANS0106 | Usage | Error | 错误正在防止隐含字段标识生成
-ORLEANS0107 | Usage | Error | 无法从生成代码获取可连序类型
-ORLEANS0108 | Usage | Error | 类型没有声明的组装, 类型已传递给 GenerateCodeForDeclaringAssemblyAttribute
+ORLEANS0101 | Usage | Error | Serializable properties with bodies must be settable
+ORLEANS0102 | Usage | Error | Invalid return type for RPC interface method
+ORLEANS0103 | Usage | Error | An unhandled source generation exception occurred
+ORLEANS0104 | Usage | Error | The proxy base class specified is not a valid proxy base class
+ORLEANS0105 | Usage | Error | RPC interfaces must not contain properties
+ORLEANS0106 | Usage | Error | An error is preventing implicit field identifier generation
+ORLEANS0107 | Usage | Error | Serializable type is not accessible from generated code
+ORLEANS0108 | Usage | Error | No declaring assembly for type passed to GenerateCodeForDeclaringAssemblyAttribute
 

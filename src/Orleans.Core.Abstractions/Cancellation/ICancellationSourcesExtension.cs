@@ -6,18 +6,18 @@ using Orleans.Concurrency;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// grain 取消运行时用于向 grains发布注销通知的扩展时间。
+    /// Grain 取消运行时使用此扩展向 Grain 传播取消通知。
     /// </summary>
     internal interface ICancellationSourcesExtension : IGrainExtension
     {
         /// <summary>
-        /// 表示取消一个标记已被取消 。
+        /// 指示取消令牌已取消。
         /// </summary>
         /// <param name="tokenId">
-        /// 象征性id。
+        /// 令牌 ID。
         /// </param>
         /// <returns>
-        /// 代表行动的一个 <see cref="Task"/> 。
+        /// 表示该操作的 <see cref="Task"/>。
         /// </returns>
         [AlwaysInterleave]
         [Alias("50F75C16")]

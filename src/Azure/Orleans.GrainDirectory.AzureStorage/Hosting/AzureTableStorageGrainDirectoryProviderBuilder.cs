@@ -28,12 +28,12 @@ internal sealed class AzureTableStorageGrainDirectoryProviderBuilder : IProvider
                 var serviceKey = configurationSection["ServiceKey"];
                 if (!string.IsNullOrEmpty(serviceKey))
                 {
-                    // 给客户取个名字
+                    // 按名称获取客户端。
                     options.TableServiceClient = services.GetRequiredKeyedService<TableServiceClient>(serviceKey);
                 }
                 else
                 {
-                    // 构造一个连接字符串中的表格服务客户端。
+                    // 根据连接字符串构造表服务客户端。
                     var connectionName = configurationSection["ConnectionName"];
                     var connectionString = configurationSection["ConnectionString"];
                     if (!string.IsNullOrEmpty(connectionName) && string.IsNullOrEmpty(connectionString))

@@ -1,5 +1,5 @@
-// 根据一项或多项协定获得 .NET 基金会许可证。
-// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -9,11 +9,11 @@ using System.Threading.Tasks.Sources;
 
 namespace Orleans.Connections.Transport.Sockets;
 
-// 缩微的 https://github.com/dotnet/runtime/blob/82ca681cbac89d813a3ce397e0c665e6c051ed67/src/libraries/System.Net.Sockets/src/System/Net/Sockets/Socket.Tasks.cs#L798 版本,
-// 1. 不支持除 PipeScheduler (不同步上下文,没有任务调度器) 以外的任何自定义列表
-// 2. 使用标记不进行 ValueTask 验证
-// 3. 不支持使用除Async/wait(不试图捕捉和恢复处决环境)以外的用途
-// 4. 不使用取消的牌子
+// 以下代码的精简版本：https://github.com/dotnet/runtime/blob/82ca681cbac89d813a3ce397e0c665e6c051ed67/src/libraries/System.Net.Sockets/src/System/Net/Sockets/Socket.Tasks.cs#L798，其特点如下：
+// 1. 不支持 PipeScheduler 以外的任何自定义调度（无同步上下文，无任务调度器）。
+// 2. 不使用令牌执行 ValueTask 验证。
+// 3. 不支持在 async/await 之外使用（不会尝试捕获和恢复执行上下文）。
+// 4. 不使用取消令牌。
 internal class SocketAwaitableEventArgs : SocketAsyncEventArgs, IValueTaskSource
 {
     private static readonly Action<object?> ContinuationCompleted = _ => { };
@@ -40,9 +40,9 @@ internal class SocketAwaitableEventArgs : SocketAsyncEventArgs, IValueTaskSource
         {
             var state = UserToken;
             UserToken = null;
-            _continuation = ContinuationCompleted; // 万一有人投票 IsCompleted
+            _continuation = ContinuationCompleted; // 以防有人轮询 IsCompleted。
 
-            // 执行续用内嵌 。
+            // 内联执行延续操作。
             continuation(state);
         }
     }
@@ -77,7 +77,7 @@ internal class SocketAwaitableEventArgs : SocketAsyncEventArgs, IValueTaskSource
         {
             UserToken = null;
 
-            // 执行续用内嵌 。
+            // 内联执行延续操作。
             continuation(state);
         }
     }

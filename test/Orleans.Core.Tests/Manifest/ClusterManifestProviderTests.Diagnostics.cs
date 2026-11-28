@@ -16,7 +16,7 @@ using Xunit;
 namespace UnitTests.Manifest;
 
 /// <summary>
-/// 包括最新诊断快照及其同时进行的状态过渡。
+/// 涵盖清单更新诊断快照及其并发状态转换。
 /// </summary>
 public partial class ClusterManifestProviderTests
 {
@@ -86,18 +86,18 @@ public partial class ClusterManifestProviderTests
         var attemptStartedAt = timeProvider.GetUtcNow().UtcDateTime;
         var update = UpdateManifestAsync(provider, snapshot, cancellationToken);
 
-        // 尝试启动快照在发送抓取前盖上印章。 失败的对等点抓取可能
-        // 观察发现该功能时已经完成并被移除(其失败是有效的)
-        // 也只有仍未结的慢端点才能保证保持可见度。
+        // 在分派获取操作前记录尝试开始的快照。失败对等节点的获取操作可能
+        // 在观察到此快照时已完成并被移除（其故障实际上是
+        // 同步的），因此此处只保证尚未完成的慢速对等节点仍可见。
         var started = provider.LastAttemptDiagnostics;
         Assert.NotNull(started);
         Assert.Equal(snapshot.Version, started!.MembershipVersion);
         Assert.Equal(attemptStartedAt, started.AttemptStartedAt);
         Assert.Contains(slowPeer, started.PendingSilos);
 
-        // 失败的同行点获取失败的对等点的抓取结果的 Poll 将得出结论。 这具体验证了橡胶桶的修复方法
-        // 发现先前仅对全部尝试(在 Task.WhenAll之后)一次更新的待决状态,
-        // 而不是随着每个个人获取的结束而逐步增加。
+        // 轮询等待失败对等节点的获取操作结束。这专门验证了橡皮鸭式代码审查所发现问题的修复：
+        // 此前，挂起状态仅在整次尝试结束后（Task.WhenAll 之后）更新一次，
+        // 而不是随着各个获取操作结束而增量更新。
         ManifestUpdateAttemptDiagnostics? diagnostics = null;
         var deadline = DateTime.UtcNow.AddSeconds(10);
         while (DateTime.UtcNow < deadline)
@@ -116,13 +116,13 @@ public partial class ClusterManifestProviderTests
         Assert.Equal(failure.Message, diagnostics.LastFailureMessage);
         Assert.NotNull(diagnostics.LastFailureAt);
 
-        // 失败的同侪取回结束( 从待处理部分移走), 而仍然未结的慢同侪取回
-        // 抓取没有: 等待状态反映每个抓取的完成情况, 不是整个尝试 。
+        // 失败对等节点的获取操作已结束（已从挂起集合移除），而尚未完成的慢速对等节点的
+        // 获取操作还未结束：挂起状态反映各自获取操作的完成情况，而非整次尝试。
         Assert.DoesNotContain(failingPeer, diagnostics.PendingSilos);
         Assert.Contains(slowPeer, diagnostics.PendingSilos);
 
-        // 完成慢端端点的抓取, 也从未处理中移除了它, 尽管整个尝试
-        // 整体而言,仍然失败(因为失败的同伴从未为这一尝试提供证明)。
+        // 完成慢速对等节点的获取操作也会将其从挂起集合移除，即使整次尝试
+        // 仍以失败告终（因为失败的对等节点从未为本次尝试生成清单）。
         slowFetch.SetResult(CreateGrainManifest());
         Assert.False(await update);
         var final = provider.LastAttemptDiagnostics;
@@ -152,7 +152,7 @@ public partial class ClusterManifestProviderTests
         var installAttempt = true;
         membership.CurrentSnapshot.Returns(_ =>
         {
-            // 将照片的诊断和表单之间 提前尝试和公布
+            // 在读取快照的诊断信息和清单之间推进尝试及发布操作。
             if (installAttempt)
             {
                 installAttempt = false;
@@ -222,7 +222,7 @@ public partial class ClusterManifestProviderTests
         var completePreviousFetch = true;
         timeProvider.GetUtcNow().Returns(_ =>
         {
-            // 读取诊断结果后完成旧的提取, 而新记录则被构建 。
+            // 在读取旧获取操作的诊断信息后、构造新记录期间，完成旧获取操作。
             if (completePreviousFetch)
             {
                 completePreviousFetch = false;

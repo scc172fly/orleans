@@ -24,38 +24,38 @@ namespace Orleans.Transactions.AzureStorage
 #elif ORLEANS_DIRECTORY
 namespace Orleans.GrainDirectory.AzureStorage
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 {
     /// <summary>
-    /// 配置访问 Azure 表存储表的配置。
+    /// 配置对 Azure Table Storage 表的访问。
     /// </summary>
     public class AzureStorageOperationOptions
     {
         private TableServiceClient? _tableServiceClient;
 
         /// <summary>
-        /// Azure 存储的表格名称
+        /// Azure Storage 表名。
         /// </summary>
         public virtual string TableName { get; set; } = null!;
 
         /// <summary>
-        /// Azure 储存政策选择
+        /// Azure Storage 策略选项。
         /// </summary>
         public AzureStoragePolicyOptions StoragePolicyOptions { get; } = new AzureStoragePolicyOptions();
 
         /// <summary>
-        /// 配置表格存储客户端时,或使用默认选项时使用的选项,或者 <see langword="null"/> 。
+        /// 配置 Table Storage 客户端时使用的选项，或使用 <see langword="null"/> 采用默认选项。
         /// </summary>
         public TableClientOptions? ClientOptions { get; set; }
 
         /// <summary>
-        /// 代表用来创建 <see cref="TableServiceClient"/> 实例。
+        /// 用于创建 <see cref="TableServiceClient"/> 实例的委托。
         /// </summary>
         internal Func<Task<TableServiceClient>> CreateClient { get; private set; } = null!;
 
         /// <summary>
-        /// 获取或设置用于访问 Azure 表服务的客户端。
+        /// 获取或设置用于访问 Azure Table 服务的客户端。
         /// </summary>
         [DisallowNull]
         public TableServiceClient? TableServiceClient
@@ -70,7 +70,7 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 使用连接字符串配置 <see cref="TableServiceClient"/> 。
+        /// 使用连接字符串配置 <see cref="TableServiceClient"/>。
         /// </summary>
         [Obsolete($"Set the {nameof(TableServiceClient)} property directly.")]
         public void ConfigureTableServiceClient(string connectionString)
@@ -79,7 +79,7 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 使用验证的服务 URI 配置 <see cref="TableServiceClient"/> 。
+        /// 使用经过身份验证的服务 URI 配置 <see cref="TableServiceClient"/>。
         /// </summary>
         [Obsolete($"Set the {nameof(TableServiceClient)} property directly.")]
         public void ConfigureTableServiceClient(Uri serviceUri)
@@ -88,7 +88,7 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 使用所提供的回调配置 <see cref="TableServiceClient"/> 。
+        /// 使用提供的回调配置 <see cref="TableServiceClient"/>。
         /// </summary>
         [Obsolete($"Set the {nameof(TableServiceClient)} property directly.")]
         public void ConfigureTableServiceClient(Func<Task<TableServiceClient>> createClientCallback)
@@ -97,7 +97,7 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 配置 <see cref="TableServiceClient"/> 使用认证服务 URI 和 a <see cref="Azure.Core.TokenCredential"/>.
+        /// 配置 <see cref="TableServiceClient"/>，使用经过身份验证的服务 URI 和 <see cref="Azure.Core.TokenCredential"/>。
         /// </summary>
         [Obsolete($"Set the {nameof(TableServiceClient)} property directly.")]
         public void ConfigureTableServiceClient(Uri serviceUri, TokenCredential tokenCredential)
@@ -106,7 +106,7 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 配置 <see cref="TableServiceClient"/> 使用认证服务 URI 和 a <see cref="Azure.AzureSasCredential"/>.
+        /// 配置 <see cref="TableServiceClient"/>，使用经过身份验证的服务 URI 和 <see cref="Azure.AzureSasCredential"/>。
         /// </summary>
         [Obsolete($"Set the {nameof(TableServiceClient)} property directly.")]
         public void ConfigureTableServiceClient(Uri serviceUri, AzureSasCredential azureSasCredential)
@@ -115,7 +115,7 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 配置 <see cref="TableServiceClient"/> 使用认证服务 URI 和 a <see cref="TableSharedKeyCredential"/>.
+        /// 配置 <see cref="TableServiceClient"/>，使用经过身份验证的服务 URI 和 <see cref="TableSharedKeyCredential"/>。
         /// </summary>
         [Obsolete($"Set the {nameof(TableServiceClient)} property directly.")]
         public void ConfigureTableServiceClient(Uri serviceUri, TableSharedKeyCredential sharedKeyCredential)
@@ -170,7 +170,7 @@ namespace Orleans.GrainDirectory.AzureStorage
 
         private static void ConfigureRetryOptions(RetryOptions retryOptions, AzureStoragePolicyOptions storagePolicyOptions)
         {
-            // 保持此对齐与 AzureStoragePolicyOptions 默认值, 对应 Azure 存储 SDK 重试设置 。
+            // 保持此处与 AzureStoragePolicyOptions 的默认值一致，后者与 Azure Storage SDK 的重试设置一致。
             var delay = storagePolicyOptions.PauseBetweenOperationRetries > TimeSpan.Zero
                 ? storagePolicyOptions.PauseBetweenOperationRetries
                 : TimeSpan.FromSeconds(0.8);
@@ -207,16 +207,16 @@ namespace Orleans.GrainDirectory.AzureStorage
     }
 
     /// <summary>
-    /// 验证 Azure 表格存储操作选项。
+    /// 验证 Azure Table Storage 操作选项。
     /// </summary>
-    /// <typeparam name="TOptions">验证的选项类型。</typeparam>
+    /// <typeparam name="TOptions">要验证的选项类型。</typeparam>
     public class AzureStorageOperationOptionsValidator<TOptions> : IConfigurationValidator where TOptions : AzureStorageOperationOptions
     {
         /// <summary>
         /// 初始化 <see cref="AzureStorageOperationOptionsValidator{TOptions}"/> 类的新实例。
         /// </summary>
-        /// <param name="options">验证的选项。</param>
-        /// <param name="name">配置的选项名称。</param>
+        /// <param name="options">要验证的选项。</param>
+        /// <param name="name">已配置的选项名称。</param>
         public AzureStorageOperationOptionsValidator(TOptions options, string? name = null)
         {
             Options = options;
@@ -224,12 +224,12 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 获取选项来验证 。
+        /// 获取要验证的选项。
         /// </summary>
         public TOptions Options { get; }
 
         /// <summary>
-        /// 获取配置的选项名称。
+        /// 获取已配置的选项名称。
         /// </summary>
         public string? Name { get; }
 

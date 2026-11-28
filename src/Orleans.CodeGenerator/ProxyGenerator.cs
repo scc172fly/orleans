@@ -11,7 +11,7 @@ using static Orleans.CodeGenerator.SerializerGenerator;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// 产生RPC代理人。
+/// 生成 RPC 代理。
 /// </summary>
 internal class ProxyGenerator(IGeneratorServices generatorServices, CopierGenerator copierGenerator)
 {
@@ -23,8 +23,8 @@ internal class ProxyGenerator(IGeneratorServices generatorServices, CopierGenera
     private LibraryTypes LibraryTypes => _generatorServices.LibraryTypes;
 
     /// <summary>
-    /// 界面的代理计划。 计划列出接口的方法, 发现它们被引用的可使用性
-    /// 和兼容性援引器,报告无效的方法。
+    /// 为接口规划代理。规划过程枚举接口的方法，由此发现其可调用对象
+    /// 和兼容性调用器，并报告无效的方法。
     /// </summary>
     public ProxyEmissionPlan CreatePlan(ProxyInterfaceDescription interfaceDescription)
     {
@@ -96,7 +96,7 @@ internal class ProxyGenerator(IGeneratorServices generatorServices, CopierGenera
     {
         var fields = new List<GeneratedFieldDescription>();
 
-        // 添加一个没有静态编码的方法参数的复印机字段。
+        // 为没有静态编解码器的每个方法参数添加复制器字段。
         var paramCopiers = interfaceDescription.Methods
             .Where(method => method.MethodTypeParameters.Count == 0)
             .SelectMany(method => method.GeneratedInvokable.Members);
@@ -310,13 +310,13 @@ internal class ProxyGenerator(IGeneratorServices generatorServices, CopierGenera
                 .Concat(_generatorServices.LibraryTypes.StaticCopiers)
                 .ToList();
 
-        // 从方法参数中设定对象字段。
+        // 根据方法参数设置请求对象字段。
         var parameterIndex = 0;
         var parameters = invokable.Members.OfType<MethodParameterFieldDescription>().Select(member => new SerializableMethodMember(member));
         var hasCopyContext = false;
         foreach (var parameter in parameters)
         {
-            // 只创建所需的复制上下文 。
+            // 仅在需要时创建复制上下文。
             if (!hasCopyContext && !parameter.IsShallowCopyable)
             {
                 statements.Add($"using var copyContext = base.{CopyContextPoolMemberName}.GetContext();");
@@ -351,22 +351,22 @@ internal class ProxyGenerator(IGeneratorServices generatorServices, CopierGenera
         var isVoid = methodReturnType.SpecialType is SpecialType.System_Void;
         if (namedMethodReturnType.TypeArguments.Length == 1)
         {
-            // 任务<T> / ValueTask<T>
+            // Task<T> / ValueTask<T>
             var resultType = namedMethodReturnType.TypeArguments[0];
             baseInvokeExpression = $"base.{CodeText.Identifier(invokeMethodName ?? "InvokeAsync")}<{CodeText.Type(resultType.ToTypeSyntax(methodDescription.TypeParameterSubstitutions))}>";
         }
         else if (isVoid)
         {
-            // 无效
+            // void
             baseInvokeExpression = $"base.{CodeText.Identifier(invokeMethodName ?? "Invoke")}";
         }
         else
         {
-            // 任务/ ValueTask
+            // Task / ValueTask
             baseInvokeExpression = $"base.{CodeText.Identifier(invokeMethodName ?? "InvokeAsync")}";
         }
 
-        // C: base.InvokeAsync<TReturn>(请求);
+        // C#: base.InvokeAsync<TReturn>(request);
         var invocationExpression = $"{baseInvokeExpression}(request)";
 
         var rt = namedMethodReturnType.ConstructedFrom;

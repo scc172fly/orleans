@@ -9,12 +9,12 @@ using Orleans.TestingHost;
 namespace TestExtensions;
 
 /// <summary>
-/// 订阅 Orleans 广播频道诊断事件并提供
-/// 选择了等待广播频道活动的方法
+/// 订阅 Orleans 广播通道诊断事件的测试辅助工具，提供
+/// 确定性等待广播通道事件的方法。
 /// </summary>
 /// <remarks>
-/// 用途 <c>System.Reactive</c> 操作操作符 <c>Replay()</c> ,这样, <c>WaitFor*</c> 方法
-/// 与过去和今后的事件相匹配,且无拖延、事件驱动的等待。
+/// 使用 <c>System.Reactive</c> 运算符及 <c>Replay()</c>，使 <c>WaitFor*</c> 方法
+/// 可匹配过去及未来的事件，采用零延迟的事件驱动等待。
 /// </remarks>
 public sealed class BroadcastChannelDiagnosticObserver : IDisposable
 {
@@ -22,7 +22,7 @@ public sealed class BroadcastChannelDiagnosticObserver : IDisposable
     private readonly IDisposable _connection;
 
     /// <summary>
-    /// 创建了一个新的观察者实例,并开始收听广播频道诊断事件。
+    /// 创建观察器的新实例，并开始监听广播通道诊断事件。
     /// </summary>
     public static BroadcastChannelDiagnosticObserver Create(TestCluster cluster) => new(DiagnosticObserverSiloScope.For(cluster));
 
@@ -35,7 +35,7 @@ public sealed class BroadcastChannelDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待某个项目发布到特定频道。
+    /// 等待某个项发布到指定通道。
     /// </summary>
     public async Task<BroadcastChannelEvents.ItemPublished> WaitForItemPublishedAsync(ChannelId channelId, string? providerName, CancellationToken cancellationToken)
     {
@@ -47,7 +47,7 @@ public sealed class BroadcastChannelDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待某项物品交付给特定频道用户。
+    /// 等待某个项投递给指定通道订阅者。
     /// </summary>
     public async Task<BroadcastChannelEvents.ItemDelivered> WaitForItemDeliveredAsync(ChannelId channelId, string? providerName, CancellationToken cancellationToken)
     {
@@ -59,7 +59,7 @@ public sealed class BroadcastChannelDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待在频道上交付的具体项目数量。
+    /// 等待指定数量的项通过某个通道投递。
     /// </summary>
     public async Task WaitForDeliveryCountAsync(ChannelId channelId, int expectedCount, string? providerName, CancellationToken cancellationToken)
     {
@@ -73,7 +73,7 @@ public sealed class BroadcastChannelDiagnosticObserver : IDisposable
     }
 
     /// <summary>
-    /// 等待向频道发布特定数量的项目。
+    /// 等待指定数量的项发布到某个通道。
     /// </summary>
     public async Task WaitForPublishCountAsync(ChannelId channelId, int expectedCount, string? providerName, CancellationToken cancellationToken)
     {

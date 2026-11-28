@@ -10,9 +10,9 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="Nullable{T}"/>的序列器。
+    /// <see cref="Nullable{T}"/> 的序列化器。
     /// </summary>
-    /// <typeparam name="T">元素类型。</typeparam>
+    /// <typeparam name="T">可空类型所包装的值类型。</typeparam>
     [RegisterSerializer]
     public sealed class NullableCodec<T> : IFieldCodec<T?> where T : struct
     {
@@ -22,7 +22,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="NullableCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldCodec">字段编码。</param>
+        /// <param name="fieldCodec">字段编解码器。</param>
         public NullableCodec(IFieldCodec<T> fieldCodec)
         {
             _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -32,14 +32,14 @@ namespace Orleans.Serialization.Codecs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] T? value) where TBufferWriter : IBufferWriter<byte>
         {
-            // 如果值为无效,请将其写成无效引用。
+            // 如果值为 null，则将其作为 null 引用写入。
             if (value is null)
             {
                 ReferenceCodec.WriteNullReference(ref writer, fieldIdDelta);
                 return;
             }
 
-            // 值不是空的。
+            // 该值不为 null。
             _fieldCodec.WriteField(ref writer, fieldIdDelta, CodecFieldType, value.GetValueOrDefault());
         }
 
@@ -48,7 +48,7 @@ namespace Orleans.Serialization.Codecs
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public T? ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
-            // 只有当数值为空时才会发生这种情况。
+            // 仅当值为 null 时，此条件才为 true。
             if (field.WireType == WireType.Reference)
             {
                 ReferenceCodec.MarkValueField(reader.Session);
@@ -57,7 +57,7 @@ namespace Orleans.Serialization.Codecs
                 return null;
             }
 
-            // 读取非无效值。
+            // 读取非 null 值。
             return _fieldCodec.ReadValue(ref reader, field);
         }
 
@@ -65,9 +65,9 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="Nullable{T}"/>的复印机。
+    /// <see cref="Nullable{T}"/> 的复制器。
     /// </summary>
-    /// <typeparam name="T">元素类型。</typeparam>
+    /// <typeparam name="T">可空类型所包装的值类型。</typeparam>
     [RegisterCopier]
     public sealed class NullableCopier<T> : IDeepCopier<T?>, IOptionalDeepCopier where T : struct
     {
@@ -77,7 +77,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="NullableCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier">复印机。</param>
+        /// <param name="copier">复制器。</param>
         public NullableCopier(IDeepCopier<T> copier)
             => _copier = OrleansGeneratedCodeHelper.UnwrapService(this, copier);
 

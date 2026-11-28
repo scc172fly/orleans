@@ -1,13 +1,13 @@
 namespace Orleans.Transactions;
 
 /// <summary>
-/// 用于解决按键依赖性交易子系统 <see cref="System.TimeProvider"/> 的事务关键
-/// 。请参见核心运行时间区域 <see cref="Orleans.Runtime.TimeProviderNames"/> 。
+/// 用于通过键控依赖注入解析事务子系统 <see cref="System.TimeProvider"/> 的服务键。
+/// 核心运行时各区域使用的服务键参见 <see cref="Orleans.Runtime.TimeProviderNames"/>。
 /// </summary>
 public static class TransactionTimeProviderNames
 {
     /// <summary>
-    /// 交易子系统所用的时钟。
+    /// 事务子系统使用的时钟。
     /// </summary>
     public const string Transactions = "Orleans.Transactions";
 }

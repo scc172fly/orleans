@@ -8,20 +8,20 @@ using Orleans.Hosting;
 namespace Orleans.Runtime.Hosting
 {
     /// <summary>
-    /// 用于登记 grain 目录实施情况的扩展方法,并使用 silo。
+    /// 用于向 Silo 注册 Grain 目录实现的扩展方法。
     /// </summary>
     public static class DirectorySiloBuilderExtensions
     {
         /// <summary>
-        /// 将 grain 目录提供者的实施添加到 silo。如果提供者类型执行 <see cref="ILifecycleParticipant{ISiloLifecycle}"/>
-        /// 它将自动参与 silo 生命周期。
+        /// 向 Silo 添加 Grain 目录提供程序实现。如果提供程序类型实现了 <see cref="ILifecycleParticipant{ISiloLifecycle}"/>，
+        /// 它将自动参与 Silo 生命周期。
         /// </summary>
-        /// <typeparam name="T">具体执行类型 grain 目录提供者。</typeparam>
-        /// <param name="builder">下 silo 建筑商</param>
-        /// <param name="name">要添加的 grain 目录的名称。</param>
-        /// <param name="implementationFactory">建造 grain 目录提供者。</param>
-        /// <returns>下 silo 建筑商</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 或 <paramref name="implementationFactory"/> 是 <see langword="null"/>。</exception>
+        /// <typeparam name="T">Grain 目录提供程序的具体实现类型。</typeparam>
+        /// <param name="builder">Silo 构建器。</param>
+        /// <param name="name">要添加的 Grain 目录的名称。</param>
+        /// <param name="implementationFactory">用于构建 Grain 目录提供程序的工厂。</param>
+        /// <returns>Silo 构建器。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 或 <paramref name="implementationFactory"/> 为 <see langword="null"/>。</exception>
         public static ISiloBuilder AddGrainDirectory<T>(this ISiloBuilder builder, string name, Func<IServiceProvider, string, T> implementationFactory)
             where T : class, IGrainDirectory
         {
@@ -31,15 +31,15 @@ namespace Orleans.Runtime.Hosting
         }
 
         /// <summary>
-        /// 将 grain 目录提供者的实施添加到 silo。如果提供者类型执行 <see cref="ILifecycleParticipant{ISiloLifecycle}"/>
-        /// 它将自动参与 silo 生命周期。
+        /// 向 Silo 添加 Grain 目录提供程序实现。如果提供程序类型实现了 <see cref="ILifecycleParticipant{ISiloLifecycle}"/>，
+        /// 它将自动参与 Silo 生命周期。
         /// </summary>
-        /// <typeparam name="T">具体执行类型 grain 目录提供者。</typeparam>
-        /// <param name="collection">服务收藏。</param>
-        /// <param name="name">要添加的 grain 目录的名称。</param>
-        /// <param name="implementationFactory">建造 grain 目录提供者。</param>
-        /// <returns>服务收藏。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="collection"/> 或 <paramref name="implementationFactory"/> 是 <see langword="null"/>。</exception>
+        /// <typeparam name="T">Grain 目录提供程序的具体实现类型。</typeparam>
+        /// <param name="collection">服务集合。</param>
+        /// <param name="name">要添加的 Grain 目录的名称。</param>
+        /// <param name="implementationFactory">用于构建 Grain 目录提供程序的工厂。</param>
+        /// <returns>服务集合。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="collection"/> 或 <paramref name="implementationFactory"/> 为 <see langword="null"/>。</exception>
         public static IServiceCollection AddGrainDirectory<T>(this IServiceCollection collection, string name, Func<IServiceProvider, string, T> implementationFactory)
             where T : class, IGrainDirectory
         {
@@ -64,11 +64,11 @@ namespace Orleans.Runtime.Hosting
             Func<IServiceProvider, string, T> implementationFactory)
             where T : class, IGrainDirectory
         {
-            // 注册 grain 目录名称,以便目录能够按名称列出。
+            // 注册 Grain 目录名称，使目录可以按名称枚举。
             var registration = new NamedService<IGrainDirectory>(name, typeof(T));
             collection.AddSingleton(registration);
 
-            // 登记 grain 目录实施情况。
+            // 注册 Grain 目录实现。
             collection.AddKeyedSingleton<IGrainDirectory>(name, (sp, _) => implementationFactory(sp, name));
             return registration;
         }

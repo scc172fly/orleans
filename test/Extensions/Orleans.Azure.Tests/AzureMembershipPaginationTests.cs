@@ -36,7 +36,7 @@ public class AzureMembershipPaginationTests
             NullLoggerFactory.Instance, Options.Create(new AzureStorageClusteringOptions()),
             Options.Create(new ClusterOptions { ClusterId = ClusterId }));
         const string guidance = "Use ReadAllAsync and MembershipTableData.TryGet instead.";
-#pragma warning disable CS0618 // Verify the retired compatibility entry points.
+#pragma warning disable CS0618 // 验证已停用的兼容性入口点。
         var legacy = table.ReadRow(null!);
         var asynchronous = table.ReadRowAsync(null!, TestContext.Current.CancellationToken);
         var token = new CancellationToken(canceled: true);

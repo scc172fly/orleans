@@ -4,7 +4,7 @@ namespace Orleans.Durable.Tasks;
 
 internal abstract class DeferredMethodInvocation : DurableTask
 {
-    // 当身体首次暂停时创建, 所以一个同步完成的机构不分配完整源 。
+    // 主体首次挂起时创建，因此同步完成的主体无需分配完成源。
     private TaskCompletionSource<DurableTaskResponse>? _completion;
     private DurableTaskContext? _context;
     private ExecutionContext? _executionContext;
@@ -14,7 +14,7 @@ internal abstract class DeferredMethodInvocation : DurableTask
 
     public Action MoveNextAction => _moveNextAction ??= MoveNext;
 
-    /// <summary>准备在等待不完全之后恢复尸体的安检:记录其执行背景和完成情况。</summary>
+    /// <summary>为主体在未完成的 await 后恢复做好准备：捕获其执行上下文，并准备完成通知。</summary>
     public void PrepareToSuspend()
     {
         _executionContext = ExecutionContext.Capture();
@@ -52,7 +52,7 @@ internal abstract class DeferredMethodInvocation : DurableTask
                 _executionContext = null;
                 ReleaseStateMachine();
 
-                // 完成国家机器的一步 运行了尸体的最终代码
+                // 完成状态机的步骤执行了主体的最后一段代码。
                 context.OnBodyCompleted(terminalResponse);
             }
         }
@@ -112,7 +112,7 @@ internal sealed class VoidDurableTaskMethodInvocation<TStateMachine> : VoidDurab
 
 internal abstract class DurableTaskMethodInvocation<TResult> : DurableTask<TResult>
 {
-    // 当身体首次暂停时创建, 所以一个同步完成的机构不分配完整源 。
+    // 主体首次挂起时创建，因此同步完成的主体无需分配完成源。
     private TaskCompletionSource<DurableTaskResponse>? _completion;
     private DurableTaskContext? _context;
     private ExecutionContext? _executionContext;
@@ -122,7 +122,7 @@ internal abstract class DurableTaskMethodInvocation<TResult> : DurableTask<TResu
 
     public Action MoveNextAction => _moveNextAction ??= MoveNext;
 
-    /// <summary>准备在等待不完全之后恢复尸体的安检:记录其执行背景和完成情况。</summary>
+    /// <summary>为主体在未完成的 await 后恢复做好准备：捕获其执行上下文，并准备完成通知。</summary>
     public void PrepareToSuspend()
     {
         _executionContext = ExecutionContext.Capture();
@@ -160,7 +160,7 @@ internal abstract class DurableTaskMethodInvocation<TResult> : DurableTask<TResu
                 _executionContext = null;
                 ReleaseStateMachine();
 
-                // 完成国家机器的一步 运行了尸体的最终代码
+                // 完成状态机的步骤执行了主体的最后一段代码。
                 context.OnBodyCompleted(terminalResponse);
             }
         }

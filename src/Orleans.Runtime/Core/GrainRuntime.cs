@@ -90,14 +90,14 @@ internal class GrainRuntime : IGrainRuntime
     {
         if (context is null)
         {
-            // 将例外情形移至本地函数,以帮助对这种方法进行排版。
+            // 将抛出异常的逻辑移到局部函数中，以帮助内联此方法。
             ThrowMissingContext();
             void ThrowMissingContext() => throw new InvalidOperationException("Activation access violation. A non-activation thread attempted to access activation services.");
         }
 
         if (context is ActivationData activation && activation.State == ActivationState.Invalid)
         {
-            // 将例外情形移至本地函数,以帮助对这种方法进行排版。
+            // 将抛出异常的逻辑移到局部函数中，以帮助内联此方法。
             ThrowInvalidActivation(activation);
             void ThrowInvalidActivation(ActivationData activationData) => throw new InvalidOperationException($"Attempt to access an invalid activation: {activationData}");
         }

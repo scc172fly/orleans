@@ -91,7 +91,7 @@ public class NatsStreamTests : TestClusterPerTest
         }
         catch (NatsJSApiException)
         {
-            // 忽略, 找不到流
+            // 忽略，未找到流。
         }
 
         try
@@ -102,7 +102,7 @@ public class NatsStreamTests : TestClusterPerTest
         }
         catch (NatsJSApiException)
         {
-            // 忽略, 找不到流
+            // 忽略，未找到流。
         }
 
         await base.InitializeAsync();
@@ -143,7 +143,7 @@ public class NatsStreamTests : TestClusterPerTest
         }
     }
 
-    ////------------------------ One to One ----------------------//
+    //// ------------------------ 一对一 ----------------------//
 
     [Fact]
     public async Task Nats_01_OneProducerGrainOneConsumerGrain()
@@ -169,7 +169,7 @@ public class NatsStreamTests : TestClusterPerTest
         await runner.StreamTest_04_OneProducerClientOneConsumerClient(TestContext.Current.CancellationToken);
     }
 
-    //和很多不同的人 grains ----------------------//
+    // ------------------------ 不同 Grain 的多对多测试 ----------------------//
 
     [Fact]
     public async Task Nats_05_ManyDifferent_ManyProducerGrainsManyConsumerGrains()
@@ -195,7 +195,7 @@ public class NatsStreamTests : TestClusterPerTest
         await runner.StreamTest_08_ManyDifferent_ManyProducerClientsManyConsumerClients(TestContext.Current.CancellationToken);
     }
 
-    //和... 和很多相同 grains ----------------------//
+    // ------------------------ 相同 Grain 的多对多测试 ----------------------//
     [Fact]
     public async Task Nats_09_ManySame_ManyProducerGrainsManyConsumerGrains()
     {
@@ -220,7 +220,7 @@ public class NatsStreamTests : TestClusterPerTest
         await runner.StreamTest_12_ManySame_ManyProducerClientsManyConsumerGrains(TestContext.Current.CancellationToken);
     }
 
-    //------------------------ MANY to Many producer consumer same grain ----------------------//
+    // ------------------------ 同一 Grain 中的多生产者、多消费者 ----------------------//
 
     [Fact]
     public async Task Nats_13_SameGrain_ConsumerFirstProducerLater()

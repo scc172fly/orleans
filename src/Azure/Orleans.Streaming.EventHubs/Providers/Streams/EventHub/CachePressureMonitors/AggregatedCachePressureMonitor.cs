@@ -7,19 +7,19 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// 累积缓存压力监测器
+    /// 聚合缓存压力监视器。
     /// </summary>
     public partial class AggregatedCachePressureMonitor : List<ICachePressureMonitor>, ICachePressureMonitor
     {
         private bool isUnderPressure;
         private readonly ILogger logger;
         /// <summary>
-        /// 用于报告缓存相关度量的缓存监测器
+        /// 用于报告缓存相关指标的缓存监视器。
         /// </summary>
         public ICacheMonitor? CacheMonitor { set; private get; }
 
         /// <summary>
-        /// 构造建构器
+        /// 构造函数。
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="monitor"></param>
@@ -31,7 +31,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 记录这个总密藏缓存监控组中每个监视器的缓存压力
+        /// 向此聚合缓存监视器组中的每个监视器记录缓存压力。
         /// </summary>
         /// <param name="cachePressureContribution"></param>
         public void RecordCachePressureContribution(double cachePressureContribution)
@@ -43,7 +43,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 添加一个监视器到此汇总缓存监测组
+        /// 将一个监视器添加到此聚合缓存监视器组。
         /// </summary>
         /// <param name="monitor"></param>
         public void AddCachePressureMonitor(ICachePressureMonitor monitor)
@@ -52,7 +52,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 如果这个总密藏监测组的任何监测员受到压力,那么返回真实
+        /// 如果聚合缓存监视器组中任一监视器处于压力状态，则返回 true。
         /// </summary>
         /// <param name="utcNow"></param>
         /// <returns></returns>

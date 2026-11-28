@@ -19,8 +19,8 @@ using Orleans.Serialization.Serializers;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Dymomo DB 存储供应商
-    /// 持久性 Grain 国家内一国 DynamoDB 表格,以 Json 或 Binary 格式。
+    /// DynamoDB 存储提供程序。
+    /// 以 JSON 或二进制格式将 Grain 状态持久化到 DynamoDB 表。
     /// </summary>
     public partial class DynamoDBGrainStorage : IGrainStorage, ILifecycleParticipant<ISiloLifecycle>
     {
@@ -40,7 +40,7 @@ namespace Orleans.Storage
         private DynamoDBStorage storage = null!;
 
         /// <summary>
-        /// 默认构造器
+        /// 默认构造函数。
         /// </summary>
         public DynamoDBGrainStorage(
             string name,
@@ -60,7 +60,7 @@ namespace Orleans.Storage
             lifecycle.Subscribe(OptionFormattingUtilities.Name<DynamoDBGrainStorage>(this.name), this.options.InitStage, Init, Close);
         }
 
-        /// <summary> 该存储提供者的初始化功能。 </summary>
+        /// <summary>此存储提供程序的初始化函数。</summary>
         public async Task Init(CancellationToken ct)
         {
             var stopWatch = Stopwatch.StartNew();
@@ -114,17 +114,17 @@ namespace Orleans.Storage
             }
         }
 
-        /// <summary> 关闭这个存储供应商。 </summary>
+        /// <summary>关闭此存储提供程序。</summary>
         public Task Close(CancellationToken ct) => Task.CompletedTask;
 
-        /// <summary> 为此存储提供者读取国家数据函数。 </summary>
+        /// <summary>此存储提供程序的状态数据读取方法。</summary>
         /// <see cref="IGrainStorage.ReadStateAsync{T}(string, GrainId, IGrainState{T})"/>
-        /// <exception cref="ArgumentNullException"><paramref name="grainType"/> 或 <paramref name="grainState"/> 无效。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grainType"/> 或 <paramref name="grainState"/> 为 null。</exception>
         public Task ReadStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
             => ReadStateAsync(grainType, grainId, grainState, CancellationToken.None);
 
         /// <inheritdoc/>
-        /// <exception cref="ArgumentNullException"><paramref name="grainType"/> 或 <paramref name="grainState"/> 无效。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grainType"/> 或 <paramref name="grainState"/> 为 null。</exception>
         public async Task ReadStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -167,14 +167,14 @@ namespace Orleans.Storage
             }
         }
 
-        /// <summary> 为此存储提供者写入状态数据函数 。 </summary>
+        /// <summary>此存储提供程序的状态数据写入方法。</summary>
         /// <see cref="IGrainStorage.WriteStateAsync{T}(string, GrainId, IGrainState{T})"/>
-        /// <exception cref="ArgumentNullException"><paramref name="grainType"/> 或 <paramref name="grainState"/> 无效。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grainType"/> 或 <paramref name="grainState"/> 为 null。</exception>
         public Task WriteStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
             => WriteStateAsync(grainType, grainId, grainState, CancellationToken.None);
 
         /// <inheritdoc/>
-        /// <exception cref="ArgumentNullException"><paramref name="grainType"/> 或 <paramref name="grainState"/> 无效。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grainType"/> 或 <paramref name="grainState"/> 为 null。</exception>
         public async Task WriteStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -278,19 +278,19 @@ namespace Orleans.Storage
             grainState.RecordExists = !clear;
         }
 
-        /// <summary> 清除/删除此存储提供者的状态数据函数。 </summary>
+        /// <summary>此存储提供程序的状态数据清除或删除操作。</summary>
         /// <remarks>
-        /// 如果 <c>DeleteStateOnClear</c> 被设为 <c>true</c> ,那么表格行
-        /// 此 grain 将会被删除/ 删除, 否则表格行将
-        /// 以默认/无效值覆盖清除。
+        /// 如果 <c>DeleteStateOnClear</c> 设置为 <c>true</c>，则
+        /// 删除此 Grain 对应的表记录；否则通过
+        /// 写入默认值或 null 值清除该记录。
         /// </remarks>
         /// <see cref="IGrainStorage.ClearStateAsync{T}(string, GrainId, IGrainState{T})"/>
-        /// <exception cref="ArgumentNullException"><paramref name="grainType"/> 或 <paramref name="grainState"/> 无效。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grainType"/> 或 <paramref name="grainState"/> 为 null。</exception>
         public Task ClearStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState)
             => ClearStateAsync(grainType, grainId, grainState, CancellationToken.None);
 
         /// <inheritdoc/>
-        /// <exception cref="ArgumentNullException"><paramref name="grainType"/> 或 <paramref name="grainState"/> 无效。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grainType"/> 或 <paramref name="grainState"/> 为 null。</exception>
         public async Task ClearStateAsync<T>(string grainType, GrainId grainId, IGrainState<T> grainState, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -394,7 +394,7 @@ namespace Orleans.Storage
         internal void ConvertToStorageFormat(object? grainState, GrainStateRecord entity)
         {
             int dataSize;
-            // 转换为二进制格式
+            // 转换为二进制格式。
             entity.State = this.options.GrainStorageSerializer.Serialize(grainState).ToArray();
             dataSize = BINARY_STATE_PROPERTY_NAME.Length + entity.State.Length;
 
@@ -477,16 +477,16 @@ namespace Orleans.Storage
     }
 
     /// <summary>
-    /// 创建已配置 <see cref="DynamoDBGrainStorage"/> 实例。
+    /// 创建已配置的 <see cref="DynamoDBGrainStorage"/> 实例。
     /// </summary>
     public static class DynamoDBGrainStorageFactory
     {
         /// <summary>
-        /// 创建有指定名称的 DynamoDB grain 存储提供者。
+        /// 创建具有指定名称的 DynamoDB Grain 存储提供程序。
         /// </summary>
-        /// <param name="services">服务供应商。</param>
-        /// <param name="name">存储提供者的名称。</param>
-        /// <returns>配置的 grain 存储提供者。</returns>
+        /// <param name="services">服务提供程序。</param>
+        /// <param name="name">存储提供程序名称。</param>
+        /// <returns>已配置的 Grain 存储提供程序。</returns>
         public static DynamoDBGrainStorage Create(IServiceProvider services, string name)
         {
             var optionsMonitor = services.GetRequiredService<IOptionsMonitor<DynamoDBStorageOptions>>();

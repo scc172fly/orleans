@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// <see cref="IAsyncObservable{T}"/>的推广方法。
+    /// <see cref="IAsyncObservable{T}"/> 的扩展方法。
     /// </summary>
     public static class AsyncObservableExtensions
     {
@@ -12,17 +12,17 @@ namespace Orleans.Streams
         private static readonly Func<Task> DefaultOnCompleted = () => Task.CompletedTask;
 
         /// <summary>
-        /// 使用指定的初始位置将消费者加入此可观测的位置。
+        /// 使用指定初始位置将消费者订阅到此可观察对象。
         /// </summary>
-        /// <typeparam name="T">可见观测到的物体类型。</typeparam>
-        /// <param name="obs">可见的。</param>
-        /// <param name="observer">无法同步的订阅观察员 。</param>
+        /// <typeparam name="T">可观察对象生成的对象类型。</typeparam>
+        /// <param name="obs">可观察对象。</param>
+        /// <param name="observer">要订阅的异步观察者。</param>
         /// <param name="startPosition">初始订阅位置。</param>
-        /// <param name="filterData">将传递到过滤器的数据对象。</param>
-        /// <returns>承诺 <see cref="StreamSubscriptionHandle{T}"/> 表示订阅。</returns>
+        /// <param name="filterData">传递给筛选器的数据对象。</param>
+        /// <returns>表示该订阅的 <see cref="StreamSubscriptionHandle{T}"/> 的异步获取任务。</returns>
         /// <remarks>
-        /// <see cref="StreamSubscriptionStartPosition.EarliestAvailable"/> 始于最早的给
-        /// 目标流目前保留在本地队列缓存中 。
+        /// <see cref="StreamSubscriptionStartPosition.EarliestAvailable"/> 从本地队列缓存当前为
+        /// 目标流保留的最早消息开始。
         /// </remarks>
         public static Task<StreamSubscriptionHandle<T>> SubscribeAsync<T>(
             this IAsyncObservable<T> obs,
@@ -48,18 +48,18 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 使用代表将消费者加入这一可观测到的用户。
-        /// 此方法为 IAsyncObservable.SubscribeAsync 的帮助器, 允许用户类插入 
-        /// 处理器方法,而不是要求使用 IAsyncObserver。
+        /// 使用委托将消费者订阅到此可观察对象。
+        /// 此方法是 IAsyncObservable.SubscribeAsync 的辅助方法，允许订阅类直接内联提供
+        /// 处理程序方法，而不必提供 IAsyncObserver 实例。
         /// </summary>
-        /// <typeparam name="T">可见观测到的物体类型。</typeparam>
-        /// <param name="obs">可见对象。</param>
-        /// <param name="onNextAsync">要求派出的代表 IAsyncObserver.OnNextAsync。</param>
-        /// <param name="onErrorAsync">要求派出的代表 IAsyncObserver.OnErrorAsync。</param>
-        /// <param name="onCompletedAsync">要求派出的代表 IAsyncObserver.OnCompletedAsync。</param>
-        /// <returns>承诺签署 StreamSubscriptionHandle ,表示订阅。
-        /// 消费者可以使用此把手取消订阅。
-        /// 只要不是明确未订阅,订阅活动就一直有效。</returns>
+        /// <typeparam name="T">可观察对象生成的对象类型。</typeparam>
+        /// <param name="obs">可观察对象。</param>
+        /// <param name="onNextAsync">在 IAsyncObserver.OnNextAsync 时调用的委托。</param>
+        /// <param name="onErrorAsync">在 IAsyncObserver.OnErrorAsync 时调用的委托。</param>
+        /// <param name="onCompletedAsync">在 IAsyncObserver.OnCompletedAsync 时调用的委托。</param>
+        /// <returns>表示该订阅的 StreamSubscriptionHandle 的异步获取任务。
+        /// 使用此句柄，消费者可以取消订阅。
+        /// 只要未显式取消订阅，订阅就会保持活动状态。</returns>
         public static Task<StreamSubscriptionHandle<T>> SubscribeAsync<T>(this IAsyncObservable<T> obs,
                                                                            Func<T, StreamSequenceToken?, Task> onNextAsync,
                                                                            Func<Exception, Task> onErrorAsync,
@@ -72,17 +72,17 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 使用代表将消费者加入这一可观测到的用户。
-        /// 此方法为 IAsyncObservable.SubscribeAsync 的帮助器, 允许用户类插入 
-        /// 处理器方法,而不是要求使用 IAsyncObserver。
+        /// 使用委托将消费者订阅到此可观察对象。
+        /// 此方法是 IAsyncObservable.SubscribeAsync 的辅助方法，允许订阅类直接内联提供
+        /// 处理程序方法，而不必提供 IAsyncObserver 实例。
         /// </summary>
-        /// <typeparam name="T">可见观测到的物体类型。</typeparam>
-        /// <param name="obs">可见对象。</param>
-        /// <param name="onNextAsync">要求派出的代表 IAsyncObserver.OnNextAsync。</param>
-        /// <param name="onErrorAsync">要求派出的代表 IAsyncObserver.OnErrorAsync。</param>
-        /// <returns>承诺签署 StreamSubscriptionHandle ,表示订阅。
-        /// 消费者可以使用此把手取消订阅。
-        /// 只要不是明确未订阅,订阅活动就一直有效。</returns>
+        /// <typeparam name="T">可观察对象生成的对象类型。</typeparam>
+        /// <param name="obs">可观察对象。</param>
+        /// <param name="onNextAsync">在 IAsyncObserver.OnNextAsync 时调用的委托。</param>
+        /// <param name="onErrorAsync">在 IAsyncObserver.OnErrorAsync 时调用的委托。</param>
+        /// <returns>表示该订阅的 StreamSubscriptionHandle 的异步获取任务。
+        /// 使用此句柄，消费者可以取消订阅。
+        /// 只要未显式取消订阅，订阅就会保持活动状态。</returns>
         public static Task<StreamSubscriptionHandle<T>> SubscribeAsync<T>(this IAsyncObservable<T> obs,
                                                                            Func<T, StreamSequenceToken?, Task> onNextAsync,
                                                                            Func<Exception, Task> onErrorAsync)
@@ -91,17 +91,17 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 使用代表将消费者加入这一可观测到的用户。
-        /// 此方法为 IAsyncObservable.SubscribeAsync 的帮助器, 允许用户类插入 
-        /// 处理器方法,而不是要求使用 IAsyncObserver。
+        /// 使用委托将消费者订阅到此可观察对象。
+        /// 此方法是 IAsyncObservable.SubscribeAsync 的辅助方法，允许订阅类直接内联提供
+        /// 处理程序方法，而不必提供 IAsyncObserver 实例。
         /// </summary>
-        /// <typeparam name="T">可见观测到的物体类型。</typeparam>
-        /// <param name="obs">可见对象。</param>
-        /// <param name="onNextAsync">要求派出的代表 IAsyncObserver.OnNextAsync。</param>
-        /// <param name="onCompletedAsync">要求派出的代表 IAsyncObserver.OnCompletedAsync。</param>
-        /// <returns>承诺签署 StreamSubscriptionHandle ,表示订阅。
-        /// 消费者可以使用此把手取消订阅。
-        /// 只要不是明确未订阅,订阅活动就一直有效。</returns>
+        /// <typeparam name="T">可观察对象生成的对象类型。</typeparam>
+        /// <param name="obs">可观察对象。</param>
+        /// <param name="onNextAsync">在 IAsyncObserver.OnNextAsync 时调用的委托。</param>
+        /// <param name="onCompletedAsync">在 IAsyncObserver.OnCompletedAsync 时调用的委托。</param>
+        /// <returns>表示该订阅的 StreamSubscriptionHandle 的异步获取任务。
+        /// 使用此句柄，消费者可以取消订阅。
+        /// 只要未显式取消订阅，订阅就会保持活动状态。</returns>
         public static Task<StreamSubscriptionHandle<T>> SubscribeAsync<T>(this IAsyncObservable<T> obs,
                                                                            Func<T, StreamSequenceToken?, Task> onNextAsync,
                                                                            Func<Task> onCompletedAsync)
@@ -110,16 +110,16 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 使用代表将消费者加入这一可观测到的用户。
-        /// 此方法为 IAsyncObservable.SubscribeAsync 的帮助器, 允许用户类插入 
-        /// 处理器方法,而不是要求使用 IAsyncObserver。
+        /// 使用委托将消费者订阅到此可观察对象。
+        /// 此方法是 IAsyncObservable.SubscribeAsync 的辅助方法，允许订阅类直接内联提供
+        /// 处理程序方法，而不必提供 IAsyncObserver 实例。
         /// </summary>
-        /// <typeparam name="T">可见观测到的物体类型。</typeparam>
-        /// <param name="obs">可见对象。</param>
-        /// <param name="onNextAsync">要求派出的代表 IAsyncObserver.OnNextAsync。</param>
-        /// <returns>承诺签署 StreamSubscriptionHandle ,表示订阅。
-        /// 消费者可以使用此把手取消订阅。
-        /// 只要不是明确未订阅,订阅活动就一直有效。</returns>
+        /// <typeparam name="T">可观察对象生成的对象类型。</typeparam>
+        /// <param name="obs">可观察对象。</param>
+        /// <param name="onNextAsync">在 IAsyncObserver.OnNextAsync 时调用的委托。</param>
+        /// <returns>表示该订阅的 StreamSubscriptionHandle 的异步获取任务。
+        /// 使用此句柄，消费者可以取消订阅。
+        /// 只要未显式取消订阅，订阅就会保持活动状态。</returns>
         public static Task<StreamSubscriptionHandle<T>> SubscribeAsync<T>(this IAsyncObservable<T> obs,
                                                                            Func<T, StreamSequenceToken?, Task> onNextAsync)
         {
@@ -128,22 +128,22 @@ namespace Orleans.Streams
 
 
         /// <summary>
-        /// 使用代表将消费者加入这一可观测到的用户。
-        /// 此方法为 IAsyncObservable.SubscribeAsync 的帮助器, 允许用户类插入 
-        /// 处理器方法,而不是要求使用 IAsyncObserver。
+        /// 使用委托将消费者订阅到此可观察对象。
+        /// 此方法是 IAsyncObservable.SubscribeAsync 的辅助方法，允许订阅类直接内联提供
+        /// 处理程序方法，而不必提供 IAsyncObserver 实例。
         /// </summary>
-        /// <typeparam name="T">可见观测到的物体类型。</typeparam>
-        /// <param name="obs">可见对象。</param>
-        /// <param name="onNextAsync">要求派出的代表 IAsyncObserver.OnNextAsync。</param>
-        /// <param name="onErrorAsync">要求派出的代表 IAsyncObserver.OnErrorAsync。</param>
-        /// <param name="onCompletedAsync">要求派出的代表 IAsyncObserver.OnCompletedAsync。</param>
-        /// <param name="token">用于抵消启动订阅的流序序列。</param>
-        /// <returns>承诺签署 StreamSubscriptionHandle ,表示订阅。
-        /// 消费者可以使用此把手取消订阅。
-        /// 只要不是明确未订阅,订阅活动就一直有效。
+        /// <typeparam name="T">可观察对象生成的对象类型。</typeparam>
+        /// <param name="obs">可观察对象。</param>
+        /// <param name="onNextAsync">在 IAsyncObserver.OnNextAsync 时调用的委托。</param>
+        /// <param name="onErrorAsync">在 IAsyncObserver.OnErrorAsync 时调用的委托。</param>
+        /// <param name="onCompletedAsync">在 IAsyncObserver.OnCompletedAsync 时调用的委托。</param>
+        /// <param name="token">用作订阅起始偏移位置的流序列令牌。</param>
+        /// <returns>表示该订阅的 StreamSubscriptionHandle 的异步获取任务。
+        /// 使用此句柄，消费者可以取消订阅。
+        /// 只要未显式取消订阅，订阅就会保持活动状态。
         /// </returns>
-        /// <exception cref="ArgumentException">如果所提供的流过滤功能不合适, 丢弃 。 
-        /// 通常这是因为这不是静态方法。 </exception>
+        /// <exception cref="ArgumentException">当提供的流筛选函数不适用时抛出。
+        /// 通常是因为该函数不是静态方法。</exception>
         public static Task<StreamSubscriptionHandle<T>> SubscribeAsync<T>(this IAsyncObservable<T> obs,
                                                                            Func<T, StreamSequenceToken?, Task> onNextAsync,
                                                                            Func<Exception, Task> onErrorAsync,
@@ -157,21 +157,21 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 使用代表将消费者加入这一可观测到的用户。
-        /// 此方法为 IAsyncObservable.SubscribeAsync 的帮助器, 允许用户类插入 
-        /// 处理器方法,而不是要求使用 IAsyncObserver。
+        /// 使用委托将消费者订阅到此可观察对象。
+        /// 此方法是 IAsyncObservable.SubscribeAsync 的辅助方法，允许订阅类直接内联提供
+        /// 处理程序方法，而不必提供 IAsyncObserver 实例。
         /// </summary>
-        /// <typeparam name="T">可见观测到的物体类型。</typeparam>
-        /// <param name="obs">可见对象。</param>
-        /// <param name="onNextAsync">要求派出的代表 IAsyncObserver.OnNextAsync。</param>
-        /// <param name="onErrorAsync">要求派出的代表 IAsyncObserver.OnErrorAsync。</param>
-        /// <param name="token">用于抵消启动订阅的流序序列。</param>
-        /// <returns>承诺签署 StreamSubscriptionHandle ,表示订阅。
-        /// 消费者可以使用此把手取消订阅。
-        /// 只要不是明确未订阅,订阅活动就一直有效。
+        /// <typeparam name="T">可观察对象生成的对象类型。</typeparam>
+        /// <param name="obs">可观察对象。</param>
+        /// <param name="onNextAsync">在 IAsyncObserver.OnNextAsync 时调用的委托。</param>
+        /// <param name="onErrorAsync">在 IAsyncObserver.OnErrorAsync 时调用的委托。</param>
+        /// <param name="token">用作订阅起始偏移位置的流序列令牌。</param>
+        /// <returns>表示该订阅的 StreamSubscriptionHandle 的异步获取任务。
+        /// 使用此句柄，消费者可以取消订阅。
+        /// 只要未显式取消订阅，订阅就会保持活动状态。
         /// </returns>
-        /// <exception cref="ArgumentException">如果所提供的流过滤功能不合适, 丢弃 。 
-        /// 通常这是因为这不是静态方法。 </exception>
+        /// <exception cref="ArgumentException">当提供的流筛选函数不适用时抛出。
+        /// 通常是因为该函数不是静态方法。</exception>
         public static Task<StreamSubscriptionHandle<T>> SubscribeAsync<T>(this IAsyncObservable<T> obs,
                                                                            Func<T, StreamSequenceToken?, Task> onNextAsync,
                                                                            Func<Exception, Task> onErrorAsync,
@@ -181,21 +181,21 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 使用代表将消费者加入这一可观测到的用户。
-        /// 此方法为 IAsyncObservable.SubscribeAsync 的帮助器, 允许用户类插入 
-        /// 处理器方法,而不是要求使用 IAsyncObserver。
+        /// 使用委托将消费者订阅到此可观察对象。
+        /// 此方法是 IAsyncObservable.SubscribeAsync 的辅助方法，允许订阅类直接内联提供
+        /// 处理程序方法，而不必提供 IAsyncObserver 实例。
         /// </summary>
-        /// <typeparam name="T">可见观测到的物体类型。</typeparam>
-        /// <param name="obs">可见对象。</param>
-        /// <param name="onNextAsync">要求派出的代表 IAsyncObserver.OnNextAsync。</param>
-        /// <param name="onCompletedAsync">要求派出的代表 IAsyncObserver.OnCompletedAsync。</param>
-        /// <param name="token">用于抵消启动订阅的流序序列。</param>
-        /// <returns>承诺签署 StreamSubscriptionHandle ,表示订阅。
-        /// 消费者可以使用此把手取消订阅。
-        /// 只要不是明确未订阅,订阅活动就一直有效。
+        /// <typeparam name="T">可观察对象生成的对象类型。</typeparam>
+        /// <param name="obs">可观察对象。</param>
+        /// <param name="onNextAsync">在 IAsyncObserver.OnNextAsync 时调用的委托。</param>
+        /// <param name="onCompletedAsync">在 IAsyncObserver.OnCompletedAsync 时调用的委托。</param>
+        /// <param name="token">用作订阅起始偏移位置的流序列令牌。</param>
+        /// <returns>表示该订阅的 StreamSubscriptionHandle 的异步获取任务。
+        /// 使用此句柄，消费者可以取消订阅。
+        /// 只要未显式取消订阅，订阅就会保持活动状态。
         /// </returns>
-        /// <exception cref="ArgumentException">如果所提供的流过滤功能不合适, 丢弃 。 
-        /// 通常这是因为这不是静态方法。 </exception>
+        /// <exception cref="ArgumentException">当提供的流筛选函数不适用时抛出。
+        /// 通常是因为该函数不是静态方法。</exception>
         public static Task<StreamSubscriptionHandle<T>> SubscribeAsync<T>(this IAsyncObservable<T> obs,
                                                                            Func<T, StreamSequenceToken?, Task> onNextAsync,
                                                                            Func<Task> onCompletedAsync,
@@ -205,20 +205,20 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 使用代表将消费者加入这一可观测到的用户。
-        /// 此方法为 IAsyncObservable.SubscribeAsync 的帮助器, 允许用户类插入 
-        /// 处理器方法,而不是要求使用 IAsyncObserver。
+        /// 使用委托将消费者订阅到此可观察对象。
+        /// 此方法是 IAsyncObservable.SubscribeAsync 的辅助方法，允许订阅类直接内联提供
+        /// 处理程序方法，而不必提供 IAsyncObserver 实例。
         /// </summary>
-        /// <typeparam name="T">可见观测到的物体类型。</typeparam>
-        /// <param name="obs">可见对象。</param>
-        /// <param name="onNextAsync">要求派出的代表 IAsyncObserver.OnNextAsync。</param>
-        /// <param name="token">用于抵消启动订阅的流序序列。</param>
-        /// <returns>承诺签署 StreamSubscriptionHandle ,表示订阅。
-        /// 消费者可以使用此把手取消订阅。
-        /// 只要不是明确未订阅,订阅活动就一直有效。
+        /// <typeparam name="T">可观察对象生成的对象类型。</typeparam>
+        /// <param name="obs">可观察对象。</param>
+        /// <param name="onNextAsync">在 IAsyncObserver.OnNextAsync 时调用的委托。</param>
+        /// <param name="token">用作订阅起始偏移位置的流序列令牌。</param>
+        /// <returns>表示该订阅的 StreamSubscriptionHandle 的异步获取任务。
+        /// 使用此句柄，消费者可以取消订阅。
+        /// 只要未显式取消订阅，订阅就会保持活动状态。
         /// </returns>
-        /// <exception cref="ArgumentException">如果所提供的流过滤功能不合适, 丢弃 。 
-        /// 通常这是因为这不是静态方法。 </exception>
+        /// <exception cref="ArgumentException">当提供的流筛选函数不适用时抛出。
+        /// 通常是因为该函数不是静态方法。</exception>
         public static Task<StreamSubscriptionHandle<T>> SubscribeAsync<T>(this IAsyncObservable<T> obs,
                                                                            Func<T, StreamSequenceToken?, Task> onNextAsync,
                                                                            StreamSequenceToken token)

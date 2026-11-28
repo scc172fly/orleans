@@ -9,7 +9,7 @@ using Xunit;
 namespace UnitTests.StreamingTests
 {
     /// <summary>
-    /// 测试内存流分批功能,配置成10个物品的批量集装箱尺寸。
+    /// 测试内存流批处理功能，将批次容器大小配置为 10 个条目。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -23,7 +23,7 @@ namespace UnitTests.StreamingTests
 
             protected override void ConfigureTestCluster(TestClusterBuilder builder)
             {
-                // 固定测试批量, 不是重新平衡。 请保留一个所有者来进行破坏性的模拟队列 。
+                // 此测试夹具验证批处理而非重新平衡。对于读取即移除消息的内存队列，保持单一所有者。
                 builder.Options.InitialSilosCount = 1;
                 builder.AddSiloBuilderConfigurator<MySiloBuilderConfigurator>();
                 builder.AddClientBuilderConfigurator<MyClientBuilderConfigurator>();

@@ -8,17 +8,17 @@ using Orleans.Configuration;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 提供扩大方法,用于配置和解决广播频道供应商。
+    /// 提供用于配置和解析广播通道提供程序的扩展方法。
     /// </summary>
     public static class ChannelHostingExtensions
     {
         /// <summary>
-        /// 在 silo中添加一个新的广播频道。
+        /// 向 Silo 添加新的广播通道。
         /// </summary>
-        /// <param name="this">建筑工。</param>
-        /// <param name="name">提供者的名称</param>
-        /// <param name="configureOptions">配置代表。</param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <param name="this">构建器。</param>
+        /// <param name="name">提供程序名称。</param>
+        /// <param name="configureOptions">配置委托。</param>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder AddBroadcastChannel(this ISiloBuilder @this, string name, Action<BroadcastChannelOptions> configureOptions)
         {
             ArgumentNullException.ThrowIfNull(@this, nameof(@this));
@@ -31,12 +31,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 在 silo中添加一个新的广播频道。
+        /// 向 Silo 添加新的广播通道。
         /// </summary>
-        /// <param name="this">建筑工。</param>
-        /// <param name="name">提供者的名称</param>
-        /// <param name="configureOptions">配置代表。</param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <param name="this">构建器。</param>
+        /// <param name="name">提供程序名称。</param>
+        /// <param name="configureOptions">配置委托。</param>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder AddBroadcastChannel(this ISiloBuilder @this, string name, Action<OptionsBuilder<BroadcastChannelOptions>>? configureOptions = null)
         {
             ArgumentNullException.ThrowIfNull(@this, nameof(@this));
@@ -48,11 +48,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 向客户添加一个新的广播频道。
+        /// 向客户端添加新的广播通道。
         /// </summary>
-        /// <param name="this">建筑工。</param>
-        /// <param name="name">提供者的名称</param>
-        /// <param name="configureOptions">配置代表。</param>
+        /// <param name="this">构建器。</param>
+        /// <param name="name">提供程序名称。</param>
+        /// <param name="configureOptions">配置委托。</param>
         /// <returns>客户端构建器。</returns>
         public static IClientBuilder AddBroadcastChannel(this IClientBuilder @this, string name, Action<BroadcastChannelOptions> configureOptions)
         {
@@ -65,11 +65,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 向客户添加一个新的广播频道。
+        /// 向客户端添加新的广播通道。
         /// </summary>
-        /// <param name="this">建筑工。</param>
-        /// <param name="name">提供者的名称</param>
-        /// <param name="configureOptions">配置代表。</param>
+        /// <param name="this">构建器。</param>
+        /// <param name="name">提供程序名称。</param>
+        /// <param name="configureOptions">配置委托。</param>
         /// <returns>客户端构建器。</returns>
         public static IClientBuilder AddBroadcastChannel(this IClientBuilder @this, string name, Action<OptionsBuilder<BroadcastChannelOptions>>? configureOptions = null)
         {
@@ -81,11 +81,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 得到了一个叫广播频道供应商。
+        /// 获取命名广播通道提供程序。
         /// </summary>
-        /// <param name="this">客户。</param>
-        /// <param name="name">提供者的名称</param>
-        /// <returns>名为广播频道供应商。</returns>
+        /// <param name="this">客户端。</param>
+        /// <param name="name">提供程序名称。</param>
+        /// <returns>命名广播通道提供程序。</returns>
         public static IBroadcastChannelProvider GetBroadcastChannelProvider(this IClusterClient @this, string name)
         {
             ArgumentNullException.ThrowIfNull(@this, nameof(@this));

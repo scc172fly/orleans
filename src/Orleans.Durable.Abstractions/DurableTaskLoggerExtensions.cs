@@ -2,19 +2,19 @@ using Microsoft.Extensions.Logging;
 
 namespace Orleans.Durable.Tasks;
 
-/// <summary>提供记录,报告每次持久任务事件一次。</summary>
+/// <summary>提供使持久化任务的每个事件只报告一次的日志记录功能。</summary>
 public static class DurableTaskLoggerExtensions
 {
     /// <summary>
-    /// 返回一个向 <paramref name="logger"/> 写入的对数日志,但调用代码重弹耐久任务时除外
-    /// 记录的业务。
+    /// 返回向 <paramref name="logger"/> 写入的日志记录器，但调用代码正在重放持久化任务的
+    /// 已记录操作期间除外。
     /// </summary>
-    /// <param name="logger">要写入的日志器。</param>
-    /// <returns>日志, 它在 <see cref="DurableTaskContext.IsReplaying"/> 是 <see langword="true"/>时跳过事件。</returns>
+    /// <param name="logger">接收日志的记录器。</param>
+    /// <returns>当 <see cref="DurableTaskContext.IsReplaying"/> 为 <see langword="true"/> 时跳过事件的日志记录器。</returns>
     /// <remarks>
-    /// 日志器读取每次事件被记录时运行的任务, 所以一个 grain 缓存一个任务并从耐久任务中使用它
-    /// 无论是机构还是普通的方法,除了持久的任务之外,它写每件事件。虽然任务重放,但它报告
-    /// 无法启用, 所以源生成的记录方法会跳过格式化信息。 范围总是从
+    /// 日志记录器在记录每个事件时读取正在运行的任务，因此 Grain 可以缓存一个记录器，并同时在持久化任务
+    /// 主体与普通方法中使用；在持久化任务之外，它会记录所有事件。任务重放期间，它报告
+    /// 日志记录未启用，因此源生成的日志方法不会格式化消息。日志作用域始终在下述日志记录器上启动：
     /// <paramref name="logger"/>.
     /// </remarks>
     public static ILogger ReplaySafe(this ILogger logger)

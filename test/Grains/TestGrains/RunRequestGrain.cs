@@ -69,7 +69,7 @@ public abstract class RunRequestGrainBase : Grain, IRunRequestGrain, IIncomingGr
             requests.Add(this.RunRequestAsync(static (state, _) => state.Grain._log.Add(state.Entry), (Grain: this, Entry: $"request-{i}"), new LocalRequestOptions { Interleave = true }));
         }
 
-        // 请求与这一等待他们,在排队时没有其他电话到来。
+        // 这些请求与本次调用交错执行，而本次调用会等待它们，因此在这些请求排队期间不会有其他调用进入。
         await Task.WhenAll(requests);
         return _log.Count;
     }
@@ -86,7 +86,7 @@ public abstract class RunRequestGrainBase : Grain, IRunRequestGrain, IIncomingGr
 
     public async Task<string> RunCustomRequestLifecycle()
     {
-        // 请求请假时请在休假期间运行,而此呼叫等待。
+        // 请求采用交错执行，因此能够在本次调用等待它时运行。
         var request = new CustomRequest("lifecycle");
         ((IGrainBase)this).GrainContext.ReceiveLocalRequest(request, new LocalRequestOptions { Interleave = true });
         var response = await request.Outcome.WaitAsync(TimeSpan.FromSeconds(10));
@@ -185,7 +185,7 @@ public abstract class RunRequestGrainBase : Grain, IRunRequestGrain, IIncomingGr
     }
 
     /// <summary>
-    /// 请求从激活之外提出保留实例的请求。
+    /// 从激活实例外部，在保留的实例上将请求加入队列。
     /// </summary>
     public static Task<string?> RunRequestOnRetainedInstance(Guid key) =>
         RetainedInstances[key].RunRequestAsync(
@@ -197,9 +197,9 @@ public abstract class RunRequestGrainBase : Grain, IRunRequestGrain, IIncomingGr
             RetainedInstances[key]);
 
     /// <summary>
-    /// 将保留案件在 <see cref="ILocalRequest.Complete"/>内提出第二次拒绝排队请求时,对保留案件的自定义请求排队。
+    /// 在保留的实例上将自定义请求排队；该请求被拒绝时，会在 <see cref="ILocalRequest.Complete"/> 内将第二个请求排队。
     /// </summary>
-    /// <returns>第一次请求完成次数和第二次请求答复次数。</returns>
+    /// <returns>第一个请求的完成次数及第二个请求的响应。</returns>
     public static async Task<(int FirstCompletions, Response SecondResponse)> QueueChainedRequestsOnRetainedInstance(Guid key)
     {
         var context = ((IGrainBase)RetainedInstances[key]).GrainContext;
@@ -213,7 +213,7 @@ public abstract class RunRequestGrainBase : Grain, IRunRequestGrain, IIncomingGr
 }
 
 /// <summary>
-/// 通过 <see cref="IGrainContext.ReceiveLocalRequest"/>提交的手写请求,记录其结果。
+/// 通过 <see cref="IGrainContext.ReceiveLocalRequest"/> 投递的手写请求，会记录其执行结果。
 /// </summary>
 internal sealed class CustomRequest(string value, Action<Response>? onComplete = null) : Request<string?>, ILocalRequest
 {
@@ -268,7 +268,7 @@ internal sealed class CustomRequest(string value, Action<Response>? onComplete =
 }
 
 /// <summary>
-/// 当地请求, 返回可变结果实例并记录收到的答复。
+/// 返回可变结果实例并记录所接收响应的本地请求。
 /// </summary>
 internal sealed class ResultInstanceRequest(List<string> result) : Request<List<string>>, ILocalRequest
 {
@@ -276,14 +276,14 @@ internal sealed class ResultInstanceRequest(List<string> result) : Request<List<
     private object? _grain;
 
     /// <summary>
-    /// 返回 <paramref name="grain"/> 的本地请求是否与它返回的结果实例相同。
+    /// 返回 <paramref name="grain"/> 上的本地请求是否使用其返回的同一个结果实例完成。
     /// </summary>
     public static async Task<bool> ReturnsResultInstanceAsync(IGrainBase grain)
     {
         var result = new List<string> { "mutable" };
         var request = new ResultInstanceRequest(result);
 
-        // 请求间断,以便在呼叫请求等待时继续运行。
+        // 请求采用交错执行，因此能够在调用请求等待它时运行。
         grain.GrainContext.ReceiveLocalRequest(request, new LocalRequestOptions { Interleave = true });
         var response = await request._outcome.Task.WaitAsync(TimeSpan.FromSeconds(10));
         return ReferenceEquals(result, response.Result);
@@ -338,7 +338,7 @@ public sealed class MayInterleaveRunRequestGrain : RunRequestGrainBase, IMayInte
 
     public async Task<string> RejectRequestsWithThrowingCompletion()
     {
-        // 两项请求都排成一行, 所以启动程序在上游投出时会把它们全部拒收。
+        // 两个请求在同一个执行轮次内排队，因此谓词抛出异常时，激活实例会同时拒绝它们。
         var context = ((IGrainBase)this).GrainContext;
         var first = new CustomRequest(RejectedValue, _ => throw new InvalidOperationException("Completion failed."));
         var second = new CustomRequest(RejectedValue);

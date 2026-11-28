@@ -4,8 +4,8 @@ using Xunit;
 namespace AWSUtils.Tests.StorageTests.AWSUtils
 {
     /// <summary>
-    /// 用于 DynamoDB 储存作业的测试。
-    /// 核证统一财务制度业务、有条件更新和基于货币的同价证券控制。
+    /// DynamoDB 存储操作测试。
+    /// 验证 CRUD 操作、条件更新及基于 ETag 的并发控制。
     /// </summary>
     [TestCategory("Storage"), TestCategory("AWS"), TestCategory("DynamoDb")]
     [TestSuite("Functional")]
@@ -31,8 +31,8 @@ namespace AWSUtils.Tests.StorageTests.AWSUtils
         }
 
         /// <summary>
-        /// 测试创建带有有条件检查的新项目以防止重复。
-        /// 证明有条件的表达方式防止现有物品被覆盖。
+        /// 测试创建新数据项时使用条件检查以防止重复。
+        /// 验证条件表达式能够防止覆盖现有数据项。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task DynamoDBDataManager_CreateItemAsync()
@@ -55,8 +55,8 @@ namespace AWSUtils.Tests.StorageTests.AWSUtils
         }
 
         /// <summary>
-        /// 测试上传项目(插入或更新)。
-        /// 证明可以创建物项,然后在以后的操作中更新。
+        /// 测试数据项的插入或更新（upsert）。
+        /// 验证数据项创建后能够在后续操作中更新。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task DynamoDBDataManager_UpsertItemAsync()
@@ -71,18 +71,18 @@ namespace AWSUtils.Tests.StorageTests.AWSUtils
             var persisted = await manager.ReadSingleEntryAsync(UnitTestDynamoDBStorage.INSTANCE_TABLE_NAME, GetKeys(toPersist), response => new UnitTestDynamoDBTableData(response));
             Assert.NotNull(persisted);
             Assert.Equal("Replaced", persisted.StringData);
-            Assert.True(persisted.ETag == 0); //是的,ETag没有改变 因为我们没有 
+            Assert.True(persisted.ETag == 0); //是的，ETag 没有改变，因为我们没有修改它。
 
             persisted.StringData = "Updated";
             var persistedEtag = persisted.ETag;
             expression = $"ETag = :OldETag";
-            persisted.ETag++; //增加数
+            persisted.ETag++; //递增 ETag
             var expValues = new Dictionary<string, AttributeValue> { { ":OldETag", new AttributeValue { N = persistedEtag.ToString() } } };
             await manager.UpsertEntryAsync(UnitTestDynamoDBStorage.INSTANCE_TABLE_NAME, GetKeys(persisted), GetValues(persisted), expression, expValues);
             persisted = await manager.ReadSingleEntryAsync(UnitTestDynamoDBStorage.INSTANCE_TABLE_NAME, GetKeys(toPersist), response => new UnitTestDynamoDBTableData(response));
             Assert.NotNull(persisted);
             Assert.Equal("Updated", persisted.StringData);
-            Assert.NotEqual(persistedEtag, persisted.ETag); //现在阿塔格改变了我们的原因
+            Assert.NotEqual(persistedEtag, persisted.ETag); //现在 ETag 已改变，因为我们手动修改了它。
 
             await Assert.ThrowsAsync<ConditionalCheckFailedException>(async () =>
             {

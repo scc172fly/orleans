@@ -6,7 +6,7 @@ using Xunit;
 namespace UnitTests.OrleansRuntime
 {
     /// <summary>
-    /// Orleans 例外序列和圆足测试的测试。
+    /// Orleans 异常序列化及往返测试。
     /// </summary>
     [Collection(TestEnvironmentFixture.DefaultCollection)]
     [TestSuite("Functional")]

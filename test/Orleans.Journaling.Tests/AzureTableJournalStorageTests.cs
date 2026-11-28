@@ -131,7 +131,7 @@ public sealed class AzureTableJournalStorageTests
         var storage = CreateStorage(store);
         await storage.ReadForWriteAsync();
 
-        // 完整行之后的一个字节在同一交易中强制输入第二个数据行。
+        // 比一个完整数据行多一个字节，迫使同一事务使用第二个数据行。
         var payload = CreatePayload(15 * 64 * 1024 + 1);
         await storage.AppendAsync(new ReadOnlySequence<byte>(payload), CancellationToken.None);
 
@@ -462,8 +462,8 @@ public sealed class AzureTableJournalStorageTests
 
         await storage.ReplaceAsync(new ReadOnlySequence<byte>([3, 4]), CancellationToken.None);
 
-        // 新一代的行是写字时不触动页眉,然后页眉翻转
-        // 将前几行删除。
+        // 写入新世代的数据行而不修改头部，然后通过切换头部，
+        // 以最后观测到的 ETag 为条件发布这些行，最后删除上一世代的数据行。
         var rowWrite = store.TransactionCalls[2];
         Assert.All(rowWrite, static action => Assert.Equal(TableTransactionActionType.Add, action.ActionType));
         var cleanup = store.TransactionCalls[3];
@@ -575,7 +575,7 @@ public sealed class AzureTableJournalStorageTests
         {
             if (rowKey == AzureTableJournalStorage.HeaderRowKey)
             {
-                // 模拟一个竞争中的作家在单数负载和翻转之间附加一个字节。
+                // 模拟竞争写入方在加载清单与切换之间追加一个字节。
                 store.BeforeUpdate = null;
                 store.PutEntity(TestPartitionKey, AzureTableJournalStorage.HeaderRowKey, new Dictionary<string, object>
                 {
@@ -613,7 +613,7 @@ public sealed class AzureTableJournalStorageTests
         await CreateStorage(store).ReadAsync(replacedConsumer, CancellationToken.None);
         Assert.Equal([7], replacedConsumer.Bytes.ToArray());
 
-        // 删除日记时报可删除信头和当前一代。
+        // 删除日志会移除头部和当前世代的数据。
         await freshStorage.DeleteAsync(CancellationToken.None);
         Assert.Null(await CreateStorage(store).GetMetadataAsync(TestContext.Current.CancellationToken));
         Assert.True(store.IsEmpty);
@@ -652,7 +652,7 @@ public sealed class AzureTableJournalStorageTests
         Assert.True(before.IsCompleted);
         if (!commitBeforeFailure)
         {
-            // 客户端完成故障处理后, 完成未满足的有条件请求 。
+            // 待客户端完成故障处理后，再完成尚未结束的条件请求。
             Assert.NotNull(publish);
             publish();
         }
@@ -737,7 +737,7 @@ public sealed class AzureTableJournalStorageTests
 
         await (await CreateStorage(store).ReadForWriteAsync()).DeleteAsync(CancellationToken.None);
 
-        // 阅读时注意到没有日记,删除后确认它仍然没有。
+        // 读取操作发现日志不存在，删除操作确认它仍然不存在。
         Assert.Equal(2, store.GetCalls.Count);
         Assert.Empty(store.DeleteCalls);
         Assert.Empty(store.TransactionCalls);
@@ -1155,7 +1155,7 @@ public sealed class AzureTableJournalStorageTests
             DeleteCalls.Add(new(partitionKey, rowKey, ifMatch));
             if (!_entities.TryGetValue((partitionKey, rowKey), out var stored))
             {
-                // 表格客户端吞了404个响应,以删除无能者。
+                // 表客户端忽略 404 响应，以使删除操作具有幂等性。
                 return Task.FromResult<Response>(new FakeResponse(eTag: default));
             }
 
@@ -1194,7 +1194,7 @@ public sealed class AzureTableJournalStorageTests
                 throw new RequestFailedException(500, "Transaction failed.");
             }
 
-            // 在应用任何交易前先验证每一项行动, 交易是原子的。
+            // 先验证全部操作，再应用其中任何一项，以保证事务的原子性。
             foreach (var action in actions)
             {
                 var key = (action.Entity.PartitionKey, action.Entity.RowKey);
@@ -1367,8 +1367,8 @@ public sealed class AzureTableJournalStorageTests
     }
 
     /// <summary>
-    /// 评估存储实施产生的 OData 过滤器:
-    /// <c>PartitionKey</c>/<c>RowKey</c> 与所引用字符串字典的比较。
+    /// 求值存储实现生成的 OData 筛选器，即下列比较条件的逻辑合取：
+    /// <c>PartitionKey</c>/<c>RowKey</c> 与带引号的字符串字面量之间的比较。
     /// </summary>
     private static class FilterParser
     {
@@ -1582,7 +1582,7 @@ public sealed class AzureTableJournalStorageTests
     {
         var store = new FakeTableStore();
         var payload = CreatePayload(15 * 64 * 1024 + 37);
-        // 64 KiB 块边界和15千米的行边界都属于各段。
+        // 64 KiB 的数据块边界和每 15 块的数据行边界都落在段的内部。
         var sequence = CreateMultiSegmentSequence(payload, 17, 100_000, 880_000, 3_060);
         Assert.False(sequence.IsSingleSegment);
 

@@ -9,7 +9,7 @@ using Orleans.Streams;
 
 namespace Orleans.Providers.Streams.AzureQueue
 {
-    /// <summary> 厂家类,用于 Azure 基于队列的流提供者。</summary>
+    /// <summary>基于 Azure Queue 的流提供程序工厂类。</summary>
     public class AzureQueueAdapterFactory : IQueueAdapterFactory
     {
         private readonly string providerName;
@@ -20,18 +20,18 @@ namespace Orleans.Providers.Streams.AzureQueue
         private readonly SimpleQueueAdapterCache adapterCache;
 
         /// <summary>
-        /// 应用级别故障处理器控制
+        /// 应用程序级故障处理程序的重写。
         /// </summary>
         protected Func<QueueId, Task<IStreamFailureHandler>> StreamFailureHandlerFactory { private get; set; } = null!;
 
         /// <summary>
         /// 初始化 <see cref="AzureQueueAdapterFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="name">流体提供者名称。</param>
-        /// <param name="options"> Azure 队列流提供者选项。</param>
+        /// <param name="name">流提供程序名称。</param>
+        /// <param name="options">Azure Queue 流提供程序选项。</param>
         /// <param name="cacheOptions">队列缓存选项。</param>
-        /// <param name="dataAdapter">用于在流批次和 Azure 排队消息。</param>
-        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="dataAdapter">用于在流批次与 Azure Queue 消息之间转换的适配器。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
         public AzureQueueAdapterFactory(
             string name,
             AzureQueueOptions options,
@@ -47,14 +47,14 @@ namespace Orleans.Providers.Streams.AzureQueue
             this.adapterCache = new SimpleQueueAdapterCache(cacheOptions, this.providerName, this.loggerFactory);
         }
 
-        /// <summary> 工厂开工了</summary>
+        /// <summary>初始化工厂。</summary>
         public virtual void Init()
         {
             this.StreamFailureHandlerFactory = this.StreamFailureHandlerFactory ??
                     ((qid) => Task.FromResult<IStreamFailureHandler>(new NoOpStreamDeliveryFailureHandler()));
         }
 
-        /// <summary>创建 Azure 队列基调适器。</summary>
+        /// <summary>创建基于 Azure Queue 的适配器。</summary>
         public virtual Task<IQueueAdapter> CreateAdapter()
         {
             var adapter = new AzureQueueAdapter(
@@ -72,14 +72,14 @@ namespace Orleans.Providers.Streams.AzureQueue
             return adapterCache;
         }
 
-        /// <summary>创建工厂流队列映像仪。</summary>
+        /// <summary>创建工厂使用的流队列映射器。</summary>
         public IStreamQueueMapper GetStreamQueueMapper()
         {
             return streamQueueMapper;
         }
 
         /// <summary>
-        /// 为指定的队列创建发送失败处理器 。
+        /// 为指定队列创建投递失败处理程序。
         /// </summary>
         /// <param name="queueId"></param>
         /// <returns></returns>
@@ -89,11 +89,11 @@ namespace Orleans.Providers.Streams.AzureQueue
         }
 
         /// <summary>
-        /// 利用指定的选项和服务创建和启动一个适应工厂。
+        /// 使用命名选项和服务创建并初始化适配器工厂。
         /// </summary>
-        /// <param name="services">服务供应商。</param>
-        /// <param name="name">流体提供者名称。</param>
-        /// <returns>初始化适配器厂。</returns>
+        /// <param name="services">服务提供程序。</param>
+        /// <param name="name">流提供程序名称。</param>
+        /// <returns>已初始化的适配器工厂。</returns>
         public static AzureQueueAdapterFactory Create(IServiceProvider services, string name)
         {
             var azureQueueOptions = services.GetOptionsByName<AzureQueueOptions>(name);

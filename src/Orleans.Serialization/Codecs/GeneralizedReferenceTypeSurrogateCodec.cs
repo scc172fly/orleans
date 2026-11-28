@@ -7,10 +7,10 @@ using System.Buffers;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <typeparamref name="TField"/> 和所有子类型的代用序列器。
+    /// <typeparamref name="TField"/> 及其所有派生类型的代理序列化器。
     /// </summary>
-    /// <typeparam name="TField">执行此类支持的类型。</typeparam>
-    /// <typeparam name="TSurrogate">代替代用类型 <typeparamref name="TField"/>.</typeparam>
+    /// <typeparam name="TField">此类的实现所支持的类型。</typeparam>
+    /// <typeparam name="TSurrogate">代替 <typeparamref name="TField"/> 进行序列化的代理类型。</typeparam>
     public abstract class GeneralizedReferenceTypeSurrogateCodec<TField, TSurrogate> : IFieldCodec<TField>, IDerivedTypeCodec where TField : class where TSurrogate : struct
     {
         private readonly Type CodecFieldType = typeof(TField);
@@ -19,7 +19,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="GeneralizedReferenceTypeSurrogateCodec{TField, TSurrogate}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">代孕序列器</param>
+        /// <param name="surrogateSerializer">代理类型序列化器。</param>
         protected GeneralizedReferenceTypeSurrogateCodec(IValueSerializer<TSurrogate> surrogateSerializer)
         {
             _surrogateSerializer = surrogateSerializer;
@@ -60,18 +60,18 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 将替代类型中的值转换为字段类型。
+        /// 将值从代理类型转换为字段类型。
         /// </summary>
-        /// <param name="surrogate">代孕人。</param>
-        /// <returns>数值。</returns>
+        /// <param name="surrogate">代理对象。</param>
+        /// <returns>值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public abstract TField ConvertFromSurrogate(ref TSurrogate surrogate);
 
         /// <summary>
-        /// 将一个值转换为代孕类型。
+        /// 将值转换为代理类型。
         /// </summary>
-        /// <param name="value">数值。</param>
-        /// <param name="surrogate">代孕人。</param>
+        /// <param name="value">值。</param>
+        /// <param name="surrogate">代理对象。</param>
         public abstract void ConvertToSurrogate(TField value, ref TSurrogate surrogate);
     }
 }

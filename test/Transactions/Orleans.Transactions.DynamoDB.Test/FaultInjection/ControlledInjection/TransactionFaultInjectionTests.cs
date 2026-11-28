@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.DynamoDB.Tests
 {
     /// <summary>
-    /// 在控制性排漏情况下对 DynamoDB的交易行为进行测试。
+    /// 测试使用 DynamoDB 时受控故障注入场景下的事务行为。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("DynamoDB")]

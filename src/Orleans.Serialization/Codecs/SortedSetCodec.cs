@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="SortedSet{T}"/>的序列器。
+    /// <see cref="SortedSet{T}"/> 的序列化器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
@@ -15,7 +15,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="SortedSetCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">代孕序列器</param>
+        /// <param name="surrogateSerializer">代理类型序列化器。</param>
         public SortedSetCodec(IValueSerializer<SortedSetSurrogate<T>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -32,21 +32,21 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="SortedSetCodec{T}"/>的代用类型。
+    /// <see cref="SortedSetCodec{T}"/> 的代理类型。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [GenerateSerializer]
     public struct SortedSetSurrogate<T>
     {
         /// <summary>
-        /// 获取或设置值。
+        /// 获取或设置值集合。
         /// </summary>
-        /// <value>价值。</value>
+        /// <value>值集合。</value>
         [Id(0)]
         public List<T> Values;
 
         /// <summary>
-        /// 设置比较器或获取比对器。
+        /// 获取或设置比较器。
         /// </summary>
         /// <value>比较器。</value>
         [Id(1)]
@@ -54,7 +54,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="SortedSet{T}"/>的复印机。
+    /// <see cref="SortedSet{T}"/> 的复制器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
@@ -66,7 +66,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="SortedSetCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="elementCopier">元素复印机。</param>
+        /// <param name="elementCopier">元素复制器。</param>
         public SortedSetCopier(IDeepCopier<T> elementCopier)
         {
             _elementCopier = elementCopier;

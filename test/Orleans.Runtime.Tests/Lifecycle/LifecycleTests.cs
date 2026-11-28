@@ -132,7 +132,7 @@ namespace Tester
 
         private static async Task<Dictionary<TestStages, List<Observer>>> RunLifecycle(Dictionary<TestStages, int> observerCountByStage, TestStages? failOnStart, TestStages? failOnStop)
         {
-            // 建立生命周期观察员
+            // 设置生命周期观察者
             var observersByStage = new Dictionary<TestStages, List<Observer>>();
             var lifecycle = new TestLifecycleSubject();
             foreach (KeyValuePair<TestStages, int> kvp in observerCountByStage)
@@ -145,7 +145,7 @@ namespace Tester
                 observers.ForEach(o => lifecycle.Subscribe((int)kvp.Key, o));
             }
 
-            // 运行生命周期
+            // 运行生命周期流程
             if (failOnStart.HasValue)
             {
                 await Assert.ThrowsAsync<Exception>(() => lifecycle.OnStart(TestContext.Current.CancellationToken));
@@ -202,7 +202,7 @@ namespace Tester
         }
 
         /// <summary>
-        /// 单一组成部分,在生命周期的多个阶段采取行动(最常见预期模式)
+        /// 在生命周期的多个阶段采取操作的单个组件（预期最常见的模式）
         /// </summary>
         private class MultiStageObserver : ILifecycleParticipant<ILifecycleObservable>
         {

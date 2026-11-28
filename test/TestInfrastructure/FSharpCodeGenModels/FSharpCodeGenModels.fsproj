@@ -9,7 +9,7 @@
     <Compile Include="Models.fs" />
     <ProjectReference Include="$(SourceRoot)src\Orleans.Serialization.Abstractions\Orleans.Serialization.Abstractions.csproj" />
     <PackageReference Include="FSharp.Core" />
-    <!-- 创制的C#服务使用内部F#工会型。 -->
+    <!-- 生成的 C# 服务会访问 F# 中内部可见的联合分支类型。 -->
     <InternalsVisibleTo Include="FSharpCodeGenServices" />
   </ItemGroup>
 </Project>

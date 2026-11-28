@@ -104,7 +104,7 @@ internal static class AzureJournalRunner
             using var cleanup = new CancellationTokenSource(TimeSpan.FromSeconds(options.CleanupTimeoutSeconds));
             try
             {
-                // 每一个工人在所有权清理之前都加入了,包括在电话取消后。
+                // 在清理所属资源之前，所有工作者都已退出并完成等待，即使调用方取消也是如此。
                 await scenario.CleanupAsync(cleanup.Token);
             }
             catch (Exception exception)
@@ -127,7 +127,7 @@ internal static class AzureJournalRunner
         var started = Stopwatch.GetTimestamp();
         try
         {
-            // 每名工人分配一项任务,而不是按要求每项行动分配一项任务。
+            // 为每个工作者分配一个任务，而不是为每个请求执行的操作分配一个任务。
             var workers = new Task[options.Concurrency];
             for (var worker = 0; worker < workers.Length; worker++)
             {

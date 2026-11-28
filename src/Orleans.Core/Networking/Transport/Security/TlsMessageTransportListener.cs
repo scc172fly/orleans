@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 namespace Orleans.Connections.Transport.Security;
 
 /// <summary>
-/// 配置 TLS 传输的邮件传送听众器。
+/// 用于为消息传输层配置 TLS 的消息传输侦听器。
 /// </summary>
 internal sealed partial class TlsMessageTransportListener(
     MessageTransportListener innerListener,

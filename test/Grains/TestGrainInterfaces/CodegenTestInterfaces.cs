@@ -22,10 +22,10 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// 回答 https://github.com/dotnet/orleans/issues/3713。
-    /// 具有相同名称和相同参数类型的多种方法
-    /// 名称将导致代码生成失败, 因为只有其中
-    /// 方法将在生成的 GrainReference中实施。
+    /// 复现 https://github.com/dotnet/orleans/issues/3713 中的问题。
+    /// 如果多个方法具有相同的方法名和参数类型
+    /// 名称，就会导致代码生成失败，因为生成的 GrainReference
+    /// 只会实现其中一个方法。
     /// </summary>
     internal interface ISameNameParameterTypeGrain : IGrainWithIntegerKey
     {
@@ -303,8 +303,8 @@ namespace UnitTests.GrainInterfaces
         public T Value { get; set; }
     }
 
-    // 此类不应有为其制作的序列器, 因为序列器无法访问
-    // 筑巢的私人阶级。
+    // 不应为此类生成序列化器，因为序列化器无法访问
+    // 其嵌套的私有类。
     [Serializable]
     public class ClassWithNestedPrivateClassInListField
     {
@@ -321,16 +321,16 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// https://github.com/dotnet/orleans/issues/5243的回归测试。
+    /// 针对 https://github.com/dotnet/orleans/issues/5243 的回归测试。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public readonly struct ReadOnlyStructWithReadOnlyArray
     {
-#pragma warning disable IDE0032 // Use auto property
+#pragma warning disable IDE0032 // 使用自动实现的属性
         [Id(0)]
         private readonly byte[] _value;
-#pragma warning restore IDE0032 // Use auto property
+#pragma warning restore IDE0032 // 使用自动实现的属性
 
         public ReadOnlyStructWithReadOnlyArray(byte[] value) => this._value = value;
 

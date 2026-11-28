@@ -2,44 +2,44 @@ using System;
 
 namespace Orleans.Configuration;
 
-/// <summary>配置耐久 grain RPC的保留和清理。</summary>
+/// <summary>配置持久化 Grain RPC 的保留与清理。</summary>
 public sealed class DurableTaskOptions
 {
-    /// <summary>获取或确定完成后投票时还有多长时间的终站答复。</summary>
+    /// <summary>获取或设置终态响应在完成后仍可供轮询的时长。</summary>
     /// <remarks>
-    /// 适用于没有 grain 调用器的任务,例如客户预定的任务,以及其完成信息
-    /// 任务被用死字母来写, 从废信件中测量。 当时间结束时, 任务会随着执行而删除
-    /// 树: 民意测验报告 <see cref="Orleans.Durable.Tasks.DurableTaskNotFoundException"/>,并安排相同任务
-    /// 标识符再次执行,因此任务识别符在完成后会更改此时期的进度表。
-    /// 时间段不与 <c>DeduplicationWindow</c>:任务标识符的每个运行都有自己的
-    /// 其信息所覆盖的内化,即其信息的身份所覆盖的内化,因此以后一期版本的信息将发送,对
-    /// 早跑还没到
-    /// 完成任务后,在服务结束后,将删除其调用 grain 。
+    /// 适用于没有 Grain 调用方的任务（例如客户端调度的任务），以及其完成消息
+    /// 已转为死信的任务；后一种情况从死信产生时起计时。保留期结束后，任务及其执行树将被删除，
+    /// 轮询报告 <see cref="Orleans.Durable.Tasks.DurableTaskNotFoundException"/>，而调度具有相同任务
+    /// 标识符的任务会再次执行它，因此任务标识符在完成后的此期间对调度进行去重。该
+    /// 保留期独立于 Messaging 的 <c>DeduplicationWindow</c>：同一任务标识符的每次运行都有自己的
+    /// 运行世代标识，且消息标识包含该标识，因此后续运行的消息会被投递，而发往
+    /// 先前运行的回复不会到达后续运行。
+    /// 若任务的完成通知已投递到其调用方 Grain，则在投递退役时删除任务。
     /// </remarks>
     public TimeSpan ResultRetentionPeriod { get; set; } = TimeSpan.FromDays(1);
 
     /// <summary>
-    /// 获取或设置 grain 使一个后期的启动重弹
-    /// 执行。
+    /// 获取或设置保存停滞执行实例的 Grain 的唤醒频率，以便后续激活实例重放该
+    /// 执行实例。
     /// </summary>
     /// <remarks>
-    /// 当运行中的代码无法重放时, 执行摊位会被重播: 它记录了一个版本, 而代码不支持它,
-    /// 或其记录有出入的代码。任务将等待完成, grain 在此间隔时保持警醒, 所以
-    /// 一旦其启动结束,例如部署停止时,即停止 silo, 和 grain 恢复和重放执行
-    /// 与新激活的代码运行。 间隔为正数; 默认值为1分钟 。
+    /// 当正在运行的代码无法重放某个执行实例时，该执行实例停滞：它记录了代码不支持的版本，
+    /// 或者代码与其记录发生分歧。任务保持待处理状态，Grain 按此间隔保留唤醒操作，因此
+    /// 当其激活实例结束时（例如部署导致其 Silo 停止），Grain 会重新激活，并使用新激活实例运行的
+    /// 代码重放执行实例。间隔必须为正值，默认一分钟。
     /// </remarks>
     public TimeSpan StalledExecutionRetryInterval { get; set; } = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// 获取或设定执行时在行刑后休眠时停止的 grain 多久才会被控制, 以便稍后激活
-    /// 恢复执行。
+    /// 获取或设置 Grain 在有执行实例运行时停止后多快唤醒，以便后续激活实例
+    /// 恢复执行实例。
     /// </summary>
     /// <remarks>
-    /// 而在 grain处决运行代码, grain 继续在此延误时提醒人们注意“持久工作”。 grain 减去
-    /// 延迟过后,会同时发生崩溃或停止作用,重新启动和重播处决。 grain
-    /// 活动,每次醒醒只重新安排时间本身,所以延迟也决定了发生频率。
-    /// 等待诸如呼叫结果等信息,不需要提醒:该信息重新启动 grain。延迟
-    /// 是正数;默认值为30秒。
+    /// Grain 的某个执行实例运行代码时，该 Grain 会按此延迟保持 Durable Jobs 唤醒操作。若 Grain
+    /// 在此期间崩溃或停用，延迟过去后会重新激活并重放该执行实例。Grain
+    /// 处于活动状态，则每次唤醒只会重新调度自身，因此该延迟也决定了重新调度的频率。已挂起的执行实例
+    /// 正在等待消息（例如调用结果）时，无需唤醒操作：消息会重新激活其 Grain。此延迟
+    /// 必须为正值，默认为 30 秒。
     /// </remarks>
     public TimeSpan RunnableExecutionWakeupDelay { get; set; } = TimeSpan.FromSeconds(30);
 }

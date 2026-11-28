@@ -7,57 +7,57 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.PersistentStreams
 {
     /// <summary>
-    /// 交付表存储实体。
+    /// 投递失败的表存储实体。
     /// </summary>
     public class StreamDeliveryFailureEntity : ITableEntity
     {
         /// <summary>
-        /// 获取或设置表格分区密钥, 以识别流提供方和部署 。
+        /// 获取或设置用于标识流提供程序和部署的表分区键。
         /// </summary>
         public string PartitionKey { get; set; } = null!;
 
         /// <summary>
-        /// 获取或设置表格行键,确定并订购交付失败。
+        /// 获取或设置用于标识投递失败记录并确定其顺序的表行键。
         /// </summary>
         public string RowKey { get; set; } = null!;
 
         /// <summary>
-        /// 获取或设置 Azure 表格服务所维护的时间戳。
+        /// 获取或设置由 Azure Table 服务维护的时间戳。
         /// </summary>
         public DateTimeOffset? Timestamp { get; set; }
 
         /// <summary>
-        /// 获取或设置用于乐观货币的实体标签。
+        /// 获取或设置用于乐观并发控制的实体标记。
         /// </summary>
         public ETag ETag { get; set; }
 
         /// <summary>
-        /// 发生交付失败的订阅日期的ID。
+        /// 发生此次投递失败的订阅 ID。
         /// </summary>
         public Guid SubscriptionId { get; set; }
 
         /// <summary>
-        /// 生成此失败的流源提供者的名称 。
+        /// 产生此次失败的流提供程序名称。
         /// </summary>
         public string StreamProviderName { get; set; } = null!;
 
         /// <summary>
-        /// 引导失败的河流
+        /// 发生失败的流的 GUID 标识符。
         /// </summary>
         public string StreamGuid { get; set; } = null!;
 
         /// <summary>
-        /// 失败发生时所在的流的命名空间 。
+        /// 发生失败的流的命名空间。
         /// </summary>
         public string? StreamNamespace { get; set; }
 
         /// <summary>
-        /// 无法交付的事件的序列符号 。
+        /// 投递失败事件的序列化序列令牌。
         /// </summary>
         public byte[]? SequenceToken { get; set; }
 
         /// <summary>
-        /// 在持续调用前设定分区密钥 。
+        /// 在持久化调用前设置分区键。
         /// </summary>
         public virtual void SetPartitionKey(string deploymentId)
         {
@@ -65,7 +65,7 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// 默认分区密钥
+        /// 默认分区键。
         /// </summary>
         public static string MakeDefaultPartitionKey(string streamProviderName, string deploymentId)
         {
@@ -73,7 +73,7 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// 在持续调用前设定行键
+        /// 在持久化调用前设置行键。
         /// </summary>
         public virtual void SetRowkey()
         {
@@ -81,7 +81,7 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// 设置序列符号, 将其序列序列编号为属性 。
+        /// 将序列令牌序列化到属性中以设置序列令牌。
         /// </summary>
         /// <param name="serializer"></param>
         /// <param name="token"></param>
@@ -92,7 +92,7 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// 将序列符号从属性中解密, 以获取顺序符。
+        /// 通过从属性反序列化获取序列令牌。
         /// </summary>
         /// <returns></returns>
         public virtual StreamSequenceToken? GetSequenceToken(Serializer<StreamSequenceToken> serializer)
@@ -102,13 +102,13 @@ namespace Orleans.Providers.Streams.PersistentStreams
         }
 
         /// <summary>
-        /// 返回从现在( UTC) 到9683年的秒数。
+        /// 返回从当前 UTC 时间到公元 9683 年之间的计时单位数（ticks）。
         /// </summary>
         /// <remarks>
-        /// 用于在分区起始时排序最近的失败。 虽然有用, 但可以
-        ///  高故障负荷下,在重负载下,这可能导致
-        ///  表格中。这不是预期发生的情况,但如果发生了,我们建议对您的行进行分解
-        ///  键,使用其他字段(流命名空间?) 。
+        /// 这有助于将最近发生的失败排在分区开头。虽然它有利于高效的
+        /// 表存储查询，但在大量失败的负载下，可能会导致表中出现
+        /// 热点。这不是预期情况，但如果发生，建议使用其他字段进一步细分
+        /// 行键（例如流命名空间）。
         /// </remarks>
         /// <returns></returns>
         protected static long ReverseOrderTimestampTicks()

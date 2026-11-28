@@ -24,7 +24,7 @@ internal class MetadataGenerator(
     private readonly string _assemblyName = assemblyName ?? "Assembly";
     private readonly bool _supportsModuleInitializers = supportsModuleInitializers;
 
-    /// <summary>生成元数据提供者类的简单名称。</summary>
+    /// <summary>生成的元数据提供程序类的简单名称。</summary>
     public string ClassName => "Metadata_" + SyntaxGeneration.Identifier.SanitizeIdentifierName(_assemblyName);
 
     public void WriteMetadata(SourceWriter writer)
@@ -204,7 +204,7 @@ internal class MetadataGenerator(
         }
         else
         {
-            // 每个键节点都消耗识别符号,包括宣布不当地使用的叶子。
+            // 每个具有键的节点均占用一个标识符，包括未声明局部变量的叶节点。
             node = $"n{++nodeId}";
             var invocation = new StringBuilder();
             invocation.Append(tree).Append(aliases.HasValue ? ".Add(" : ".GetOrAdd(").Append(CreateCompoundAliasArgument(aliases.Key));
@@ -632,8 +632,8 @@ internal class MetadataGenerator(
     }
 
     /// <summary>
-    /// 写入一个注册块 <paramref name="type"/> 用于 <paramref name="key"/> 内 <paramref name="dictionary"/>,
-    /// 当另一类型已经注册到密钥时失败 。
+    /// 写入一个代码块，将 <paramref name="type"/> 为 <paramref name="key"/> 注册到 <paramref name="dictionary"/> 中，
+    /// 若该键已注册其他类型，则失败。
     /// </summary>
     internal static void WriteTypeMetadataRegistration(SourceWriter writer, string dictionary, string key, string type)
     {

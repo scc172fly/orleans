@@ -19,7 +19,7 @@ using Orleans.Streams;
 namespace Orleans.Streaming.Kinesis
 {
     /// <summary>
-    /// 队列适配器工厂,允许 PersistentStreamProvider 使用 AWS Kinesis 数据流作为其后端持久性事件队列。
+    /// 队列适配器工厂，使 PersistentStreamProvider 能够使用 AWS Kinesis Data Streams 作为后端持久化事件队列。
     /// </summary>
     internal class KinesisAdapterFactory : IQueueAdapterFactory, IQueueAdapter, IDisposable
     {

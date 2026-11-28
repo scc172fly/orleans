@@ -10,9 +10,9 @@ namespace Orleans.Transactions.TestKit.xUnit
         /// <summary>
         /// 初始化 <see cref="ScopedTransactionsTestRunnerxUnit"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">下 grain 用于测试的工厂 grains.</param>
-        /// <param name="transactionFrame">用于创建交易范围客户端。</param>
-        /// <param name="output"> xUnit 测试输出助手。</param>
+        /// <param name="grainFactory">用于访问测试 Grain 的 Grain 工厂。</param>
+        /// <param name="transactionFrame">用于创建事务作用域的客户端。</param>
+        /// <param name="output">xUnit 测试输出助手。</param>
         protected ScopedTransactionsTestRunnerxUnit(IGrainFactory grainFactory, ITransactionClient transactionFrame, ITestOutputHelper output)
         : base(grainFactory, transactionFrame, TestOutputHelperExtensions.GetWriteLine(output, nameof(output))) { }
 

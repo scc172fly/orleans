@@ -19,22 +19,22 @@ using Orleans.Statistics;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// 活动中心分区设置
+    /// Event Hub 分区设置。
     /// </summary>
     public class EventHubPartitionSettings
     {
         /// <summary>
-        /// 偶形设置
+        /// Event Hub 设置。
         /// </summary>
         public EventHubOptions Hub { get; set; } = null!;
 
         /// <summary>
-        /// 获取或设置控制从分区接收事件选项。
+        /// 获取或设置控制从分区接收事件的选项。
         /// </summary>
         public EventHubReceiverOptions ReceiverOptions { get; set; } = null!;
 
         /// <summary>
-        /// 分区名称
+        /// 分区名称。
         /// </summary>
         public string Partition { get; set; } = null!;
     }
@@ -61,7 +61,7 @@ namespace Orleans.Streaming.EventHubs
         private IStreamQueueCheckpointer<string>? checkpointer;
         private AggregatedQueueFlowController flowController = null!;
 
-        // 接收者生命周期
+        // 接收器生命周期。
         private int receiverState = ReceiverShutdown;
 
         private const int ReceiverShutdown = 0;
@@ -116,7 +116,7 @@ namespace Orleans.Streaming.EventHubs
         {
             LogInfoInitializingEventHubPartition(this.settings.Hub.EventHubName, this.settings.Partition);
 
-            // 如果接收器已经在运行, 什么都不做
+            // 如果接收器已在运行，则不执行任何操作。
             if (ReceiverRunning == Interlocked.Exchange(ref this.receiverState, ReceiverRunning))
             {
                 return;
@@ -127,8 +127,8 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// EventHub 接收器的初始化是在适配器接收器初始化时进行的,但如果它失败了,
-        ///  当信件被请求时, 将会重新处理它
+        /// 在适配器接收器初始化期间初始化 Event Hub 接收器；如果初始化失败，
+        /// 则在请求消息时重试。
         /// </summary>
         /// <returns></returns>
         private async Task Initialize(CancellationToken cancellationToken)
@@ -178,14 +178,14 @@ namespace Orleans.Streaming.EventHubs
                 return new List<IBatchContainer>();
             }
 
-            // 如果接收初始化失败, 重试
+            // 如果接收器初始化失败，则重试。
             if (this.receiver == null)
             {
                 LogWarningRetryingInitializationOfEventHubPartition(this.settings.Hub.EventHubName, this.settings.Partition);
                 await Initialize(cancellationToken);
                 if (this.receiver == null)
                 {
-                    // 不应该来这里,应该扔过来,但只是以防万一。
+                    // 理论上不应执行到这里，而应抛出异常；此处仅作为防御性处理。
                     return new List<IBatchContainer>();
                 }
             }
@@ -194,7 +194,7 @@ namespace Orleans.Streaming.EventHubs
             try
             {
 
-                // 与旧版本 Orleans 相配的接收器仍可返回无效。
+                // 针对旧版 Orleans 构建的接收器仍可能返回 null。
                 messages = (await this.receiver.ReceiveAsync(
                     maxCount,
                     ReceiveTimeout,
@@ -218,7 +218,7 @@ namespace Orleans.Streaming.EventHubs
                 return batches;
             }
 
-            // 监视显示电文时间
+            // 监控消息已存在的时长。
             var dequeueTimeUtc = DateTime.UtcNow;
 
             DateTime oldestMessageEnqueueTime = messages[0].EnqueuedTime.UtcDateTime;
@@ -236,15 +236,15 @@ namespace Orleans.Streaming.EventHubs
 
         public void AddToCache(IList<IBatchContainer> messages)
         {
-            // 什么都不做,我们直接把数据添加到缓存中。
+            // 不执行任何操作。数据直接添加到缓存中，不需要代理参与。
         }
 
         public bool TryPurgeFromCache([MaybeNullWhen(false)] out IList<IBatchContainer> purgedItems)
         {
             purgedItems = null;
 
-            //如果压力不强,请信号缓存进行基于时间的清洗
-            //如果在压力下, 意味着消费速度低于生产速度, 那么不应该清洗, 不要读更多的信息进入缓存
+            // 如果没有压力，则通知缓存执行基于时间的清除操作。
+            // 如果处于压力状态，即消费速度低于生产速度，则不应清除，也不应继续将消息读入缓存。
             if (!this.IsUnderPressure())
                 this.cache!.SignalPurge();
 
@@ -274,7 +274,7 @@ namespace Orleans.Streaming.EventHubs
         private QueueCacheCursorResult<IQueueCacheCursor> WrapCursorResult(QueueCacheCursorResult<object> result)
             => result.Kind switch
             {
-#pragma warning disable CA2000 // The successful result transfers this cursor to the caller for disposal.
+#pragma warning disable CA2000 // 成功结果将此游标的所有权移交给调用方，由调用方负责释放。
                 QueueCacheCursorResultKind.Success => QueueCacheCursorResult<IQueueCacheCursor>.FromCursor(new Cursor(this.cache!, result.Cursor!)),
 #pragma warning restore CA2000
                 QueueCacheCursorResultKind.CacheMiss => QueueCacheCursorResult<IQueueCacheCursor>.FromCacheMiss(result.CacheMiss!.Value),
@@ -306,7 +306,7 @@ namespace Orleans.Streaming.EventHubs
             var watch = Stopwatch.StartNew();
             try
             {
-                // 如果接收器已经关闭, 什么都不做
+                // 如果接收器已关闭，则不执行任何操作。
                 if (ReceiverShutdown == Interlocked.Exchange(ref this.receiverState, ReceiverShutdown))
                 {
                     return;
@@ -318,8 +318,8 @@ namespace Orleans.Streaming.EventHubs
 
                 try
                 {
-                    // 冲淡检查站,然后处置缓存或关闭接收器,
-                    // ,所以最新的处理偏移会持续进行,在重新启动时不会重播。
+                    // 在释放缓存或关闭接收器之前刷新检查点，
+                    // 以便持久化最新已处理偏移量，避免重启后重放这些数据。
                     if (this.checkpointer != null)
                     {
                         using var flushCancellation = timeout == Timeout.InfiniteTimeSpan ? null : new CancellationTokenSource(timeout);
@@ -331,12 +331,12 @@ namespace Orleans.Streaming.EventHubs
                     shutdownExceptions.Add(ex);
                 }
 
-                // 清除缓存和接收器
+                // 清除缓存和接收器。
                 IEventHubQueueCache? localCache = Interlocked.Exchange(ref this.cache, null);
 
                 var localReceiver = Interlocked.Exchange(ref this.receiver, null);
 
-                // 开始关闭接收器
+                // 开始关闭接收器。
                 Task closeTask = Task.CompletedTask;
                 using var closeCancellation = timeout == Timeout.InfiniteTimeSpan ? null : new CancellationTokenSource(timeout);
                 var closeCancellationToken = closeCancellation?.Token ?? CancellationToken.None;
@@ -352,7 +352,7 @@ namespace Orleans.Streaming.EventHubs
                     shutdownExceptions.Add(ex);
                 }
 
-                // 处置缓存
+                // 释放缓存。
                 try
                 {
                     localCache?.Dispose();
@@ -362,7 +362,7 @@ namespace Orleans.Streaming.EventHubs
                     shutdownExceptions.Add(ex);
                 }
 
-                // 完成返回接收器的返回接收器结束任务
+                // 完成并返回接收器关闭任务。
                 try
                 {
                     await closeTask.WaitAsync(closeCancellationToken);
@@ -404,7 +404,7 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 用于测试目的。 ConfigureDataGeneratorForStream 将为流源配置数据生成器
+        /// 用于测试。ConfigureDataGeneratorForStream 将为流配置数据生成器。
         /// </summary>
         /// <param name="streamId"></param>
         internal void ConfigureDataGeneratorForStream(StreamId streamId)
@@ -444,7 +444,7 @@ namespace Orleans.Streaming.EventHubs
             public Cursor(IEventHubQueueCache cache, StreamId streamId, StreamSequenceToken? token)
             {
                 this.cache = cache;
-#pragma warning disable CS0618 // Preserve the exact legacy exception and cursor behavior.
+#pragma warning disable CS0618 // 保留完全一致的旧版异常和游标行为。
                 this.cursor = cache.GetCursor(streamId, token);
 #pragma warning restore CS0618
             }
@@ -468,7 +468,7 @@ namespace Orleans.Streaming.EventHubs
             [Obsolete("Use MoveNextWithResult instead.")]
             public bool MoveNext()
             {
-#pragma warning disable CS0618 // Preserve the exact legacy exception and cursor behavior.
+#pragma warning disable CS0618 // 保留完全一致的旧版异常和游标行为。
                 if (!this.cache.TryGetNextMessage(this.cursor, out var next))
 #pragma warning restore CS0618
                 {

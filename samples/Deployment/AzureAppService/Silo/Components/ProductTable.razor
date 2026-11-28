@@ -4,7 +4,7 @@
         <MudSpacer />
         @ChildContent
         <MudPaper Outlined="true" Class="flex-grow-1 pa-2 ma-3">
-            <MudTextField @bind-Value="_filter" Placeholder="Search products"
+            <MudTextField @bind-Value="_filter" Placeholder="搜索商品"
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search"
                           IconSize="Size.Medium" Class="d-flex justify-center"
@@ -14,37 +14,37 @@
     <MudTable Items="@Products" Hover="true" Breakpoint="Breakpoint.Sm"
               AllowUnsorted="true" Filter="@OnFilter"
               Context="product" Dense="true" FixedHeader="true" RowsPerPage="10"
-              SortLabel="Sort By" Outlined="true">
+              SortLabel="排序依据" Outlined="true">
         <HeaderContent>
             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<ProductDetails, object>(p => p.Name!))">
-                    Name
+                    名称
                 </MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<ProductDetails, object>(p => p.Description!))">
-                    Description
+                    描述
                 </MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<ProductDetails, object>(p => p.Quantity))">
-                    Quantity
+                    数量
                 </MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<ProductDetails, object>(p => p.UnitPrice))">
-                    Price
+                    价格
                 </MudTableSortLabel>
             </MudTh>
-            <MudTh>Actions</MudTh>
+            <MudTh>操作</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Name">@product.Name</MudTd>
-            <MudTd DataLabel="Description">@product.Description</MudTd>
-            <MudTd DataLabel="Quantity">@product.Quantity.ToString("N0")</MudTd>
-            <MudTd DataLabel="Price">@product.UnitPrice.ToString("C2")</MudTd>
-            <MudTd DataLabel="Actions">
-                <MudTooltip Text="Edit product">
+            <MudTd DataLabel="名称">@product.Name</MudTd>
+            <MudTd DataLabel="描述">@product.Description</MudTd>
+            <MudTd DataLabel="数量">@product.Quantity.ToString("N0")</MudTd>
+            <MudTd DataLabel="价格">@product.UnitPrice.ToString("C2")</MudTd>
+            <MudTd DataLabel="操作">
+                <MudTooltip Text="编辑商品">
                     <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                    Color="Color.Primary"
                                    OnClick="@(() => EditProduct.InvokeAsync(product))" />

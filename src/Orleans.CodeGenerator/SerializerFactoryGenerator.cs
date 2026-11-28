@@ -10,7 +10,7 @@ namespace Orleans.CodeGenerator;
 
 internal static class SerializerFactoryGenerator
 {
-    // 配置语句是使用上下文的局部类和配置方法撰写的。
+    // 配置语句写在上下文的分部类和配置方法内部。
     private const int ContextStatementIndentation = 2;
 
     internal sealed class Registration(ITypeSymbol type, bool isProvided = false)
@@ -87,7 +87,7 @@ internal static class SerializerFactoryGenerator
                     return false;
                 }
 
-                // 不断检查那些即使没有运行时的元数据也可提供类型合同。
+                // 即使运行时元数据被省略，也继续检查类型可用的契约。
                 failure ??= new(type, reason, RequiresImplementation: true);
             }
             registrations.Add(type, registration);
@@ -377,9 +377,9 @@ internal static class SerializerFactoryGenerator
             return $"type '{named}' cannot be named unambiguously from generated code";
         }
         var library = LibraryTypes.FromCompilation(implementationCompilation, services.Options);
-        // 环境仅检查所保留的示范头/基底事实;所有以下的序列式依赖关系
-        // 由完整生成的 C# 服务产生。 这也包括 F# 模型参考图像,
-        // 其汇编者省略 ReferenceAssemblyAttribute ,同时保留这些声明的事实。
+        // 上下文仅检查保留的模型头部及基类型信息；下方所有序列化依赖项
+        // 均来自完整生成的 C# 服务。这也涵盖 F# 模型的引用程序集映像，
+        // 其编译器省略 ReferenceAssemblyAttribute，但保留这些声明信息。
         if (SerializableSourceOutputGenerator.HasReferenceAssemblyAttribute(named.ContainingAssembly))
         {
             return "provide full implementation metadata for external serializer-context generation";
@@ -534,7 +534,7 @@ internal static class SerializerFactoryGenerator
                 if (AppendTypeMetadata(result, argument, library, visited, depth + 1) is { } argumentFailure) return argumentFailure;
             }
         }
-        // 只有元数据源类型需要公开拼写;预定义类型没有通用定义可拼写。
+        // 只有包含元数据的类型才需要开放类型的代码文本；预定义类型没有需要生成文本的泛型定义。
         string? openTypeText = null;
         string OpenType() => openTypeText ??= CodeText.Type(type.ToOpenTypeSyntax());
         if (type.HasAttribute(library.AliasAttribute) || type.HasAttribute(library.CompoundTypeAliasAttribute)
@@ -589,7 +589,7 @@ internal static class SerializerFactoryGenerator
         Dictionary<ITypeSymbol, Registration> registrations, HashSet<ITypeSymbol> visited)
     {
         if (SymbolEqualityComparer.Default.Equals(current.Type, target)) return true;
-        // 链接的图表不透明。 封闭式持单人保护建筑安全, 跨越隐藏的后方。
+        // 链接图是不透明的。封闭的持有类型可以在存在隐藏反向边时保持构造安全性。
         if (current.IsProvided) return true;
         if (!visited.Add(current.Type)) return false;
         return current.Dependencies.Any(dependency =>

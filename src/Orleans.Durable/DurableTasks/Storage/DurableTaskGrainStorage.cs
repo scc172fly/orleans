@@ -12,23 +12,23 @@ using Orleans.Serialization;
 namespace Orleans.Durable.Tasks.Storage;
 
 /// <summary>
-/// 储存 grain日记中的耐久任务状态。
+/// 将持久化任务状态存储在 Grain 的日志中。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 每次更新都重新写入任务状态, 因此请求和结果有效载荷将分别进行日记: 每一个有效载荷
-/// 回收状态的有效载荷附于
-/// 第一次储存暴露它。
+/// 每次更新都会重新写入任务状态，因此请求和结果的有效载荷单独写入日志：每个有效载荷
+/// 在存储时只写入一次，并在任务删除时移除。恢复状态的有效载荷在
+/// 存储首次公开该状态时附接。
 /// </para>
 /// <para>
-/// 任务等级以内存为索引。该索引是根据第一次使用时回收的任务构建的,然后加以维护
-/// 当任务被创建和删除时; 日记每激活一次恢复一次, 在运行时间使用存储前 。
+/// 任务层次结构在内存中建立索引。首次使用时根据已恢复的任务构建索引，之后在
+/// 创建和删除任务时维护索引；日志在每个激活实例上仅恢复一次，且先于运行时使用存储。
 /// </para>
 /// <para>
-/// 每个存储的结果都标记为下一个完成序列。 最后的顺序没有日记: 它是导出
-/// 首期使用时回收的任务, 作为其最高顺序, 所以印章不花费自己日记的输入。
-/// 删除终端执行树可降低衍生值,但只比较序列的组合器
-/// 比较运行中执行的任务,这些任务仍然保存。
+/// 每个已存储的结果都标记下一个完成序列号。最后一个序列号不写入日志：首次使用时根据
+/// 已恢复任务的最高序列号派生，因此序列号标记不需要单独的日志条目。
+/// 删除终态执行树可能降低派生值，但比较序列号的组合器仅比较
+/// 正在运行的执行实例的任务，这些任务仍保留在存储中。
 /// </para>
 /// </remarks>
 internal sealed class DurableTaskGrainStorage : IDurableTaskGrainStorage
@@ -175,8 +175,8 @@ internal sealed class DurableTaskGrainStorage : IDurableTaskGrainStorage
     }
 
     /// <remarks>
-    /// 记录在添加前已经完整, 因此日记有一个国家条目和一个国家条目
-    /// 有效载荷。结果不会在任何事情发生之前, 将抛出物序列化 。
+    /// 记录在添加之前已具有完整的状态，所以日志仅保存一个状态条目及一个
+    /// 结果有效载荷条目。如果结果无法序列化，则在暂存任何内容之前抛出异常。
     /// </remarks>
     public IDurableTaskState AddRecord(TaskId taskId, DurableTaskRecordKind kind, string fingerprint, DurableTaskResponse response)
     {

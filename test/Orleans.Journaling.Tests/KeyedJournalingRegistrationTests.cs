@@ -340,7 +340,7 @@ public sealed class KeyedJournalingRegistrationTests : JournalingTestBase
             await manager.WriteStateAsync(token);
         }
 
-        // 两个物理命名空间的同一身份不得与工厂共用。
+        // 两个物理命名空间中的相同标识不得共享工厂的存储。
         await using (var manager = factoryA.CreateStandalone(id))
         {
             var value = new DurableValue<int>("value", manager, codec);
@@ -407,7 +407,7 @@ public sealed class KeyedJournalingRegistrationTests : JournalingTestBase
                 return factoryB;
             };
         });
-        builder.AddAzureBlobJournalStorage("jobs-A", configure: null); // 不得重复进行重复性复读,以免重复生命周期的参与。
+        builder.AddAzureBlobJournalStorage("jobs-A", configure: null); // 重复注册不得造成重复参与生命周期。
         await using var services = builder.Services.BuildServiceProvider();
         var a = services.GetRequiredKeyedService<IJournalStorageProvider>("jobs-A");
         var b = services.GetRequiredKeyedService<IJournalStorageProvider>("jobs-B");

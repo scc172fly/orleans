@@ -6,9 +6,9 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// 描述一种可引用的方法。
-/// 这是定义它的一个原始界面的方法 。
-/// 相比之下, <see cref="ProxyMethodDescription"/> 则描述一个界面上的一种方法,该接口是生成替代工具时使用的,有类型的参数替代等。
+/// 描述可调用方法。
+/// 这是最初定义该方法的原始接口上的方法。
+/// 相比之下，<see cref="ProxyMethodDescription"/> 描述正在为其生成代理的接口上的方法，包括类型实参替换等信息。
 /// </summary>
 internal sealed class InvokableMethodDescription : IEquatable<InvokableMethodDescription>
 {
@@ -28,7 +28,7 @@ internal sealed class InvokableMethodDescription : IEquatable<InvokableMethodDes
 
         MethodTypeParameters = new List<(string Name, ITypeParameterSymbol Parameter)>();
 
-        // 设置接口类型中的默认值。
+        // 根据接口类型设置默认值。
         var invokableBaseTypes = new Dictionary<INamedTypeSymbol, INamedTypeSymbol>(SymbolEqualityComparer.Default);
         foreach (var pair in ProxyBase.InvokableBaseTypes)
         {
@@ -53,7 +53,7 @@ internal sealed class InvokableMethodDescription : IEquatable<InvokableMethodDes
                     var invokableBaseType = (INamedTypeSymbol)ctorArgs[2].Value!;
                     if (!SymbolEqualityComparer.Default.Equals(ProxyBase.ProxyBaseType, proxyBaseType))
                     {
-                        // 此属性不适用于该特定援引者, 因为它是针对不同的代理基类型 。
+                        // 此特性不适用于当前调用器，因为它针对不同的代理基类型。
                         continue;
                     }
 
@@ -70,12 +70,12 @@ internal sealed class InvokableMethodDescription : IEquatable<InvokableMethodDes
                     TypedConstant methodArgument;
                     if (attr.ConstructorArguments.Length == 2)
                     {
-                        // 直接从属性中取出值。
+                        // 直接从特性取得值。
                         methodArgument = attr.ConstructorArguments[1];
                     }
                     else
                     {
-                        // 从此属性所附属性中取值。
+                        // 从附加了此特性的特性取得值。
                         if (TryGetNamedArgument(attr.NamedArguments, "AttributeArgumentName", out var argNameArg)
                             && TryGetNamedArgument(methodAttr.NamedArguments, (string?)argNameArg.Value, out var namedArgument))
                         {
@@ -156,7 +156,7 @@ internal sealed class InvokableMethodDescription : IEquatable<InvokableMethodDes
     }
 
     /// <summary>
-    /// 获取代理代用生成背景 。
+    /// 获取代理生成上下文。
     /// </summary>
     public ProxyGenerationContext GenerationContext => ProxyBase.GenerationContext;
 
@@ -166,27 +166,27 @@ internal sealed class InvokableMethodDescription : IEquatable<InvokableMethodDes
     public InvokableMethodId Key { get; }
 
     /// <summary>
-    /// 获取该方法的代理服务器基信息(例如, GrainReference,是否为扩展名)。
+    /// 获取方法的代理基类信息（例如 GrainReference，以及它是否为扩展）。
     /// </summary>
     public InvokableMethodProxyBase ProxyBase => Key.ProxyBase;
 
     /// <summary>
-    /// 获得方法符号。
+    /// 获取方法符号。
     /// </summary>
     public IMethodSymbol Method => Key.Method;
 
     /// <summary>
-    /// 获取可引用基型类型的词典。这表示何为可引用基类(例如, ValueTaskRequest)应该用于给定的返回类型(例如, ValueTask).
+    /// 获取可调用对象基类型字典。它指示给定返回类型（例如 ValueTask）应使用哪个可调用对象基类型（例如 ValueTaskRequest）。
     /// </summary>
     public IReadOnlyDictionary<INamedTypeSymbol, INamedTypeSymbol> InvokableBaseTypes { get; }
 
     /// <summary>
-    /// 如果设置, 则会获得响应超时滴答。
+    /// 获取响应超时时间的计时单位数（ticks），如果已设置。
     /// </summary>
     public long? ResponseTimeoutTicks { get; }
 
     /// <summary>
-    /// 获取自定义初始化器方法名称及其相应参数列表。
+    /// 获取自定义初始化器方法名称及其对应参数的列表。
     /// </summary>
     public List<(string MethodName, TypedConstant MethodArgument)> CustomInitializerMethods { get; } = new();
 
@@ -201,7 +201,7 @@ internal sealed class InvokableMethodDescription : IEquatable<InvokableMethodDes
     public string MethodId { get; }
 
     /// <summary>
-    /// 获取该方法的数值识别码所声称的生成的方法识别符号。
+    /// 获取此方法的数值标识符所占用的生成方法标识符（如果存在）。
     /// </summary>
     public string? ClaimedGeneratedMethodId { get; }
 
@@ -210,17 +210,17 @@ internal sealed class InvokableMethodDescription : IEquatable<InvokableMethodDes
     public Dictionary<ITypeParameterSymbol, string> TypeParameterSubstitutions { get; }
 
     /// <summary>
-    /// 获得一个值, 显示该方法是否有别名 。
+    /// 获取一个值，指示此方法是否具有别名。
     /// </summary>
     public bool HasAlias => !string.Equals(MethodId, GeneratedMethodId, StringComparison.Ordinal);
 
     /// <summary>
-    /// 获取该类型所含的界面。
+    /// 获取包含此类型的接口。
     /// </summary>
     public INamedTypeSymbol ContainingInterface { get; }
 
     /// <summary>
-    /// 获得一个值,以显示该方法是否可被删除。
+    /// 获取一个值，指示此方法是否可取消。
     /// </summary>
     public bool IsCancellable => Method.Parameters.Any(parameterSymbol => SymbolEqualityComparer.Default.Equals(GenerationContext.LibraryTypes.CancellationToken, parameterSymbol.Type));
 

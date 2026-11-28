@@ -18,11 +18,11 @@ namespace Orleans.Transactions.AzureStorage
 #elif ORLEANS_DIRECTORY
 namespace Orleans.GrainDirectory.AzureStorage
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 {
     /// <summary>
-    /// 配置 Azure 表存储操作的批量、重试和超时行为。
+    /// 配置 Azure Table Storage 操作的批处理、重试及超时行为。
     /// </summary>
     public class AzureStoragePolicyOptions
     {
@@ -31,33 +31,33 @@ namespace Orleans.GrainDirectory.AzureStorage
         private TimeSpan? maxPauseBetweenOperationRetries;
 
         /// <summary>
-        /// 获取或设定批量更新或删除操作中包含的实体的最大数量。
+        /// 获取或设置批量更新或删除操作中包含的最大实体数量。
         /// </summary>
         public int MaxBulkUpdateRows { get; set; } = 100;
 
         /// <summary>
-        /// 获取或设置用于计算默认 <see cref="CreationTimeout"/>的创建遗产重试数。
+        /// 获取或设置用于计算默认 <see cref="CreationTimeout"/> 的旧版创建重试次数。
         /// </summary>
         public int MaxCreationRetries { get; set; } = 60;
 
-        // 默认值匹配 Azure 存储 SDK 重试设置 。
+        // 默认值与 Azure Storage SDK 的重试设置一致。
         /// <summary>
-        /// 最大操作次数重试尝试。
+        /// 操作的最大重试次数。
         /// </summary>
         public int MaxOperationRetries { get; set; } = 5;
 
         /// <summary>
-        /// 获取或设置用于计算默认 <see cref="CreationTimeout"/>的创建遗留数据的延迟时间。
+        /// 获取或设置用于计算默认 <see cref="CreationTimeout"/> 的旧版创建重试延迟。
         /// </summary>
         public TimeSpan PauseBetweenCreationRetries { get; set; } = TimeSpan.FromSeconds(1);
 
         /// <summary>
-        /// 基数的延迟 Azure SDK指数重试政策
+        /// Azure SDK 指数重试策略使用的基础延迟。
         /// </summary>
         public TimeSpan PauseBetweenOperationRetries { get; set; } = TimeSpan.FromSeconds(0.8);
 
         /// <summary>
-        /// 使用的最大延迟时间 Azure SDK指数重试政策
+        /// Azure SDK 指数重试策略使用的最大延迟。
         /// </summary>
         public TimeSpan MaxPauseBetweenOperationRetries
         {
@@ -73,10 +73,10 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 获取或设定包含在创建表格超时诊断中的超时值。
+        /// 获取或设置表创建超时诊断信息中包含的超时值。
         /// </summary>
         /// <remarks>
-        /// 默认值是 <see cref="PauseBetweenCreationRetries"/> 和 <see cref="MaxCreationRetries"/>产物的三倍。
+        /// 默认值为 <see cref="PauseBetweenCreationRetries"/> 与 <see cref="MaxCreationRetries"/> 乘积的三倍。
         /// </remarks>
         public TimeSpan CreationTimeout
         {
@@ -85,7 +85,7 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 获取或设置表格操作报告缓慢的时间段。
+        /// 获取或设置超过此时长后将表操作报告为慢操作的时间阈值。
         /// </summary>
         public TimeSpan OperationTimeout
         {

@@ -4,7 +4,7 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// 测试允许在非返回时使用调用链再充电情景 grains。
+    /// 测试非可重入 Grain 上允许调用链重入的场景。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -29,42 +29,42 @@ namespace UnitTests.General
             };
         }
 
-        // (1) 允许保留A、A
+        // 1）允许重入 A, A。
         [Fact, TestCategory("Functional"), TestCategory("Deadlock")]
         public async Task DeadlockDetection_1()
         {
             await _testHelper.CallChainReentrancy_1();
         }
 
-        // (2) 允许非再生 grains A、B、A
+        // 2）允许非可重入 Grain 上的重入 A, B, A。
         [Fact, TestCategory("Functional"), TestCategory("Deadlock")]
         public async Task CallChainReentrancy_2()
         {
             await _testHelper.CallChainReentrancy_2();
         }
 
-        // (3) 允许再充电 X、A、X、A
+        // 3）允许重入 X, A, X, A。
         [Fact, TestCategory("Functional"), TestCategory("Deadlock")]
         public async Task CallChainReentrancy_3()
         {
             await _testHelper.CallChainReentrancy_3();
         }
 
-        // (4) 无死锁X, X
+        // 4）无死锁 X, X。
         [Fact, TestCategory("Functional"), TestCategory("Deadlock")]
         public async Task CallChainReentrancy_4()
         {
             await _testHelper.CallChainReentrancy_4();
         }
 
-        // (5) 无死锁X、A、X
+        // 5）无死锁 X, A, X。
         [Fact, TestCategory("Functional"), TestCategory("Deadlock")]
         public async Task CallChainReentrancy_5()
         {
             await _testHelper.CallChainReentrancy_5();
         }
 
-        // 允许非再入 grains A、B、C、A
+        // 6）允许非可重入 Grain 上的重入 A, B, C, A。
         [Fact, TestCategory("Functional"), TestCategory("Deadlock")]
         public async Task CallChainReentrancy_6()
         {

@@ -7,38 +7,38 @@ using Orleans.Runtime;
 namespace Orleans.Internal
 {
     /// <summary>
-    /// 此类是一个方便的通用类, 用来执行某些与回溯( Restri) 相近函数,
-    /// 允许指定自定义的再试过滤器和政策。
+    /// 此类是一个便捷工具，用于执行可重试的异步函数，
+    /// 并允许指定自定义的重试筛选器和策略。
     /// </summary>
     public static class AsyncExecutorWithRetries
     {
         /// <summary>
-        /// 用于要求无限次重试的常数。
+        /// 用于请求无限次重试的常量。
         /// </summary>
         public static readonly int INFINITE_RETRIES = -1;
 
         /// <summary>
-        /// 根据重试配置参数执行给定函数多次 。
+        /// 根据重试配置参数执行给定函数若干次。
         /// </summary>
         /// <param name="action">
-        /// 要执行的动作 。
+        /// 要执行的操作。
         /// </param>
         /// <param name="maxNumErrorTries">
         /// 最大重试次数。
         /// </param>
         /// <param name="retryExceptionFilter">
-        /// 重试例外过滤器 。
+        /// 重试异常筛选器。
         /// </param>
         /// <param name="maxExecutionTime">
         /// 最长执行时间。
         /// </param>
         /// <param name="onErrorBackOff">
-        /// 后退供应商
+        /// 退避策略提供程序。
         /// </param>
         /// <returns>
-        /// 代表行动的一个 <see cref="Task"/> 。
+        /// 表示该操作的 <see cref="Task"/>。
         /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="action"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="action"/> 为 <see langword="null"/>。</exception>
         public static Task ExecuteWithRetries(
             Func<int, Task> action,
             int maxNumErrorTries,
@@ -62,30 +62,30 @@ namespace Orleans.Internal
         }
 
         /// <summary>
-        /// 根据重试配置参数执行给定函数多次 。
+        /// 根据重试配置参数执行给定函数若干次。
         /// </summary>
         /// <param name="function">
-        /// 执行代表。
+        /// 要执行的委托。
         /// </param>
         /// <param name="maxNumErrorTries">
         /// 最大重试次数。
         /// </param>
         /// <param name="retryExceptionFilter">
-        /// 重试例外过滤器 。
+        /// 重试异常筛选器。
         /// </param>
         /// <param name="maxExecutionTime">
         /// 最长执行时间。
         /// </param>
         /// <param name="onErrorBackOff">
-        /// 后退供应商
+        /// 退避策略提供程序。
         /// </param>
         /// <param name="cancellationToken">
-        /// 取消标记 。
+        /// 取消令牌。
         /// </param>
         /// <returns>
-        /// 成功援引所提供的函数后返回的值。
+        /// 所提供函数成功调用后返回的值。
         /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="function"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="function"/> 为 <see langword="null"/>。</exception>
         public static Task<T> ExecuteWithRetries<T>(
             Func<int, Task<T>> function,
             int maxNumErrorTries,
@@ -107,44 +107,44 @@ namespace Orleans.Internal
         }
 
         /// <summary>
-        /// 根据重试配置参数执行给定 <paramref name="function"/> 多次。
+        /// 根据重试配置参数执行给定的 <paramref name="function"/> 若干次。
         /// </summary>
         /// <typeparam name="T">
-        /// 基本返回类型 <paramref name="function"/>。
+        /// <paramref name="function"/> 的底层返回类型。
         /// </typeparam>
         /// <param name="function">
-        /// 要执行的函数
+        /// 要执行的函数。
         /// </param>
         /// <param name="maxNumSuccessTries">
-        /// 成功执行尝试的最大数量。 <see cref="ExecuteWithRetries"/> 将尝试重新执行给定 <paramref name="function"/> 如经指示,如经 <paramref name="retryValueFilter"/> .
-        /// 设置为 <c>-1</c> ,用于不限制数量的成功重试,直到满足 <paramref name="retryValueFilter"/> 。设为 <c>0</c> ,仅一次成功尝试,这将导致 <paramref name="retryValueFilter"/>
-        /// 被忽略,在第一次成功之前只执行过一次给定的 <paramref name="function"/> 。
+        /// 成功执行尝试的最大次数。<see cref="ExecuteWithRetries"/> 会在给定的 <paramref name="function"/> 满足 <paramref name="retryValueFilter"/> 指定的重试条件时尝试再次执行。
+        /// 设置为 <c>-1</c> 表示不限成功后的重试次数，直到满足 <paramref name="retryValueFilter"/>；设置为 <c>0</c> 表示只允许一次成功，此时 <paramref name="retryValueFilter"/> 将被
+        /// 忽略，给定的 <paramref name="function"/> 仅执行到首次成功为止。
         /// </param>
         /// <param name="maxNumErrorTries">
-        /// 由于错误而执行尝试的最大次数。 设置为 - 1, 用于无限的错误重写, 直到 <paramref name="retryExceptionFilter"/> 得到满足 。
+        /// 因错误而执行的最大尝试次数。设置为 -1 表示不限错误重试次数，直到满足 <paramref name="retryExceptionFilter"/>。
         /// </param>
         /// <param name="retryValueFilter">
-        /// 过滤器 <paramref name="function"/> 以显示是否要重新尝试成功执行。 设置为 <see langword="null"/> 以禁用成功重试 。
+        /// 用于指示 <paramref name="function"/> 成功执行后是否重试的筛选器。设置为 <see langword="null"/> 可禁用成功后的重试。
         /// </param>
         /// <param name="retryExceptionFilter">
-        /// 过滤器 <paramref name="function"/> 以表明是否应该重新检查错误执行。 设置为 <see langword="null"/> 以禁用错误重写 。
+        /// 用于指示 <paramref name="function"/> 执行失败后是否重试的筛选器。设置为 <see langword="null"/> 可禁用错误重试。
         /// </param>
         /// <param name="maxExecutionTime">
-        /// <see cref="ExecuteWithRetries"/> 函数的最大执行时间。
+        /// <see cref="ExecuteWithRetries"/> 函数的最长执行时间。
         /// </param>
         /// <param name="onSuccessBackOff">
-        /// 后端提供者对象, 它决定成功重试之间要等待多少时间 。
+        /// 退避策略提供程序对象，用于确定两次成功重试之间的等待时间。
         /// </param>
         /// <param name="onErrorBackOff">
-        /// 后卸提供者对象, 确定错误重试之间要等多少
+        /// 退避策略提供程序对象，用于确定两次错误重试之间的等待时间。
         /// </param>
         /// <param name="cancellationToken">
-        /// 取消标记 。
+        /// 取消令牌。
         /// </param>
         /// <returns>
-        /// 成功援引 <paramref name="function"/>后返回的值。
+        /// <paramref name="function"/> 成功调用后返回的值。
         /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="function"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="function"/> 为 <see langword="null"/>。</exception>
         public static Task<T> ExecuteWithRetries<T>(
             Func<int, Task<T>> function,
             int maxNumSuccessTries,
@@ -170,45 +170,45 @@ namespace Orleans.Internal
         }
 
         /// <summary>
-        /// 根据重试配置参数执行给定 <paramref name="function"/> 多次。
+        /// 根据重试配置参数执行给定的 <paramref name="function"/> 若干次。
         /// </summary>
         /// <typeparam name="T">
-        /// 基本返回类型 <paramref name="function"/>。
+        /// <paramref name="function"/> 的底层返回类型。
         /// </typeparam>
         /// <param name="function">
-        /// 要执行的功能 。
+        /// 要执行的函数。
         /// </param>
         /// <param name="maxNumSuccessTries">
-        /// 成功执行尝试的最大数量。 <see cref="ExecuteWithRetries"/> 将尝试重新执行给定 <paramref name="function"/> 如经指示,如经 <paramref name="retryValueFilter"/> .
-        /// 设置为 <c>-1</c> ,用于不限制数量的成功重试,直到满足 <paramref name="retryValueFilter"/> 。设为 <c>0</c> ,仅一次成功尝试,这将导致 <paramref name="retryValueFilter"/>
-        /// 被忽略,在第一次成功之前只执行过一次给定的 <paramref name="function"/> 。
+        /// 成功执行尝试的最大次数。<see cref="ExecuteWithRetries"/> 会在 <paramref name="function"/> 所示函数满足 <paramref name="retryValueFilter"/> 指定的重试条件时尝试再次执行该函数。
+        /// 设置为 <c>-1</c> 表示不限成功后的重试次数，直到满足 <paramref name="retryValueFilter"/>；设置为 <c>0</c> 表示只允许一次成功，此时 <paramref name="retryValueFilter"/> 将被
+        /// 忽略，给定的 <paramref name="function"/> 仅执行到首次成功为止。
         /// </param>
         /// <param name="maxNumErrorTries">
-        /// 由于错误而执行尝试的最大次数。 设置为 - 1, 用于无限的错误重写, 直到 <paramref name="retryExceptionFilter"/> 得到满足 。
+        /// 因错误而执行的最大尝试次数。设置为 -1 表示不限错误重试次数，直到满足 <paramref name="retryExceptionFilter"/>。
         /// </param>
         /// <param name="maxExecutionTime">
-        /// <see cref="ExecuteWithRetries"/> 函数的最大执行时间。
+        /// <see cref="ExecuteWithRetries"/> 函数的最长执行时间。
         /// </param>
         /// <param name="startExecutionTime">
-        /// 处决开始的时间。
+        /// 开始执行的时间。
         /// </param>
         /// <param name="retryValueFilter">
-        /// 过滤器 <paramref name="function"/> 以显示是否要重新尝试成功执行。 设置为 <see langword="null"/> 以禁用成功重试 。
+        /// 用于指示 <paramref name="function"/> 成功执行后是否重试的筛选器。设置为 <see langword="null"/> 可禁用成功后的重试。
         /// </param>
         /// <param name="retryExceptionFilter">
-        /// 过滤器 <paramref name="function"/> 以表明是否应该重新检查错误执行。 设置为 <see langword="null"/> 以禁用错误重写 。
+        /// 用于指示 <paramref name="function"/> 执行失败后是否重试的筛选器。设置为 <see langword="null"/> 可禁用错误重试。
         /// </param>
         /// <param name="onSuccessBackOff">
-        /// 后端提供者对象, 它决定成功重试之间要等待多少时间 。
+        /// 退避策略提供程序对象，用于确定两次成功重试之间的等待时间。
         /// </param>
         /// <param name="onErrorBackOff">
-        /// 后卸提供者对象, 确定错误重试之间要等多少
+        /// 退避策略提供程序对象，用于确定两次错误重试之间的等待时间。
         /// </param>
         /// <param name="cancellationToken">
-        /// 取消标记 。
+        /// 取消令牌。
         /// </param>
         /// <returns>
-        /// 成功援引 <paramref name="function"/>后返回的值。
+        /// <paramref name="function"/> 成功调用后返回的值。
         /// </returns>
         private static async Task<T> ExecuteWithRetriesHelper<T>(
             Func<int, Task<T>> function,
@@ -258,7 +258,7 @@ namespace Orleans.Internal
                     result = await function(counter);
                     lastExceptionInfo = null;
 
-                    if (callCounter < maxNumSuccessTries || maxNumSuccessTries == INFINITE_RETRIES) // - 无限重试的 1
+                    if (callCounter < maxNumSuccessTries || maxNumSuccessTries == INFINITE_RETRIES) // -1 表示无限次重试。
                     {
                         if (retryValueFilter != null)
                             retry = retryValueFilter(result, counter);
@@ -305,20 +305,20 @@ namespace Orleans.Internal
     }
 
     /// <summary>
-    /// 确定连续操作尝试之间要等多久的职能。
+    /// 用于确定连续操作尝试之间等待时间的功能。
     /// </summary>
     public interface IBackoffProvider
     {
         /// <summary>
-        /// 返回在尝试后续操作前等待的时间。
+        /// 返回尝试后续操作之前需要等待的时间。
         /// </summary>
-        /// <param name="attempt">企图行动的次数。</param>
-        /// <returns>尝试随后的操作前等待的时间。</returns>
+        /// <param name="attempt">已经进行的操作尝试次数。</param>
+        /// <returns>尝试后续操作前需要等待的时间。</returns>
         TimeSpan Next(int attempt);
     }
 
     /// <summary>
-    /// 固定期限后卸执行, 总是返回配置的延迟 。
+    /// 固定时长退避实现，始终返回配置的延迟。
     /// </summary>
     public class FixedBackoff : IBackoffProvider
     {
@@ -343,9 +343,9 @@ namespace Orleans.Internal
     }
 
     /// <summary>
-    /// 指数反向后卸执行, 最初返回配置最小延迟的初始值
-    /// 并迅速增加其延迟时间, 两次升到尝试号的能量
-    /// 最大回撤延迟已达。
+    /// 指数退避实现，最初返回配置的最小延迟，
+    /// 随后按 2 的尝试次数次幂指数级增加延迟，直到
+    /// 达到最大退避延迟。
     /// </summary>
     internal class ExponentialBackoff : IBackoffProvider
     {
@@ -357,16 +357,16 @@ namespace Orleans.Internal
         /// 初始化 <see cref="ExponentialBackoff"/> 类的新实例。
         /// </summary>
         /// <param name="minDelay">
-        /// 最小的延迟。
+        /// 最小延迟。
         /// </param>
         /// <param name="maxDelay">
-        /// 最大延迟时间。
+        /// 最大延迟。
         /// </param>
         /// <param name="step">
-        /// 将该步骤乘以两次,再加到尝试号的功率上,并加上最短的延迟,以计算每次迭代的延迟。
+        /// 步长：将其乘以 2 的尝试次数次幂，再加上最小延迟，即可计算每次迭代的延迟。
         /// </param>
         /// <exception cref="ArgumentOutOfRangeException">
-        /// 一个或多个参数值超出其有效范围。
+        /// 一个或多个参数值超出有效范围。
         /// </exception>
         public ExponentialBackoff(TimeSpan minDelay, TimeSpan maxDelay, TimeSpan step)
         {
@@ -387,7 +387,7 @@ namespace Orleans.Internal
             try
             {
                 long multiple = checked(1 << attempt);
-                currMax = minDelay + step.Multiply(multiple); // 键可投 OverflowException
+                currMax = minDelay + step.Multiply(multiple); // 可能引发 OverflowException。
                 if (currMax <= TimeSpan.Zero)
                 {
                     throw new OverflowException();

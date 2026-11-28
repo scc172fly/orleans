@@ -1,20 +1,20 @@
 <a id="deploy-an-orleans-cluster-on-azure-container-apps"></a>
 
-# 部署 a Orleans 组群一一 Azure 集装箱集装箱
+# 在 Azure Container Apps 上部署 Orleans 集群
 
 > [!NOTE]
-> 该样本存在于 [`dotnet/orleans` 仓库](https://github.com/dotnet/orleans/tree/main/samples/Deployment/AzureContainerApps)中。它从 [`Azure-Samples/Orleans-Cluster-on-Azure-Container-Apps`](https://github.com/Azure-Samples/Orleans-Cluster-on-Azure-Container-Apps)进口,其麻省理工学院许可证在本目录中保留。
+> 本示例位于 [`dotnet/orleans` 仓库](https://github.com/dotnet/orleans/tree/main/samples/Deployment/AzureContainerApps)中，从 [`Azure-Samples/Orleans-Cluster-on-Azure-Container-Apps`](https://github.com/Azure-Samples/Orleans-Cluster-on-Azure-Container-Apps) 导入，并在本目录保留其 MIT 许可证。
 
-样本显示一个多构件 Orleans 申请在 Azure 集装箱装货容器
+本示例演示 Azure Container Apps 上的多组件 Orleans 应用：
 
-- 两个专用 silo 集装箱应用程序。
-- A 音 A Orleans 机头板程序 silo.
-- 最小 API Orleans 客户端,有一条连接的问讯线-grain 路线。
-- 工人 Orleans 客户端,可生成模拟传感器交通。
-- A gRPC 研究KEDA合同的外部标尺服务。
-- Azure 表格存储集、应用程序透视和 Azure 监测日志。
+- 两个专用 Silo Container App。
+- 同时作为 Silo 运行的 Orleans Dashboard 进程。
+- 一个 Minimal API Orleans 客户端，提供键范围受限的 hello Grain 路由。
+- 一个生成模拟传感器流量的工作服务 Orleans 客户端。
+- 一个用于研究 KEDA 契约的 gRPC 外部缩放器服务。
+- Azure Table Storage 集群成员资格管理、Application Insights 及 Azure Monitor 日志。
 
-Bicep 部署使用内部、虚拟网络一体化集装箱应用环境以及连接的私营 DNS 区。每个 Orleans 服务器都在一个单独的容器应用程序中运行,有一个完全复制的版本。每个服务器都为该环境的私人静态IP和独特的 silo/门口端对做广告,并不取决于无文件记录的重复地址。
+Bicep 部署使用与虚拟网络集成的内部 Container Apps 环境及关联的专用 DNS 区域。每个 Orleans 服务器在单独的 Container App 中运行，且恰好只有一个副本。每个服务器通告环境的专用静态 IP 地址及一对唯一的 Silo/网关端口，不依赖未公开文档的每副本地址。
 
 ```mermaid
 flowchart LR
@@ -52,47 +52,47 @@ flowchart LR
 
 ## 重要边界
 
-- Azure 表格储存仅用于 **组成员**。样本 grains 是无国籍的,没有耐用 grain- 存储提供者登记。
-- 外部缩放器已部署,但有意不附于 silo 缩放规则。一个容器 App 中的缩放多个 silo 复制件没有为每个复制提供有文件记录的独有地址。
-- 仪表板和 API 内出因是内部的集装箱应用环境,因此是私人的。从虚拟网络或连接的私营网络接触它们。
-- 样本对所有运行时应用程序使用一个用户指定的管理型身份。 在登记册上有一个 `AcrPull` ,在成员表中有一个 `Storage Table Data Contributor` 。
-- 登记册和储存数据端点仍然公开,因此 GitHub-- -- 接收的运行员和集装箱应用程序可以到达它们,但它们需要 Microsoft Entra认证。当公共端点无法接受时,样本将使用私人端点和一个私人端点。
-- 工作流程更新现有应用程序。 集装箱应用程序可以在评估准备状态时重复旧的和新的修改。 对于生产升级,用未使用的港口安装一个替代的一次性 silo 应用程序,等待它加入,然后排水并删除旧应用程序。
+- Azure Table Storage **仅用于集群成员资格管理**。示例中的 Grain 无状态，未注册持久化 Grain 存储提供程序。
+- 已部署外部缩放器，但有意不将其关联到 Silo 缩放规则。在同一个 Container App 内将 Silo 扩展为多个副本，并不能为每个副本提供有文档支持的唯一地址。
+- Dashboard 和 API 的入口是私有的，因为 Container Apps 环境为内部环境。请从虚拟网络或与其连接的专用网络访问。
+- 示例中的所有运行时应用共用一个用户分配的托管标识，该标识在注册表上具有 `AcrPull`，在成员资格表上具有 `Storage Table Data Contributor`。
+- 注册表和存储数据终结点仍是公开的，以便 GitHub 托管运行器和 Container Apps 访问，但需要 Microsoft Entra 身份验证。如果不能接受公共终结点，请改用专用终结点与私有运行器。
+- 工作流就地更新现有应用。Container Apps 可能在评估就绪状态时同时运行新旧修订版。在生产环境升级时，应部署一个使用未占用端口的替换 Silo 应用（一个副本），等待其加入集群，再排空并移除旧应用。
 
-生产表层、升级和验收试验指导见 [东道主主 Orleans 日期 时 Azure 集装箱集装箱](https://dotnet.github.io/orleans/docs/deployment/deploy-to-azure-container-apps/) 。
+有关生产拓扑、升级及验收测试指南，请参阅[在 Azure Container Apps 上托管 Orleans](https://dotnet.github.io/orleans/docs/deployment/deploy-to-azure-container-apps/)。
 
 <a id="project-layout"></a>
 
 ## 项目布局
 
-| 路径路径路径 | 目的目的宗旨 |
+| 路径 | 用途 |
 | --- | --- |
-| `Abstractions` | Grain 接口和序列传感器合同。 |
-| `Grains` | 你好和传感器 grain 实施和样本安置政策。 |
-| `Silo` | 专用 Orleans silo 主机 。 |
-| `Dashboard` | Orleans 板在不同的 silo内。 |
-| `Clients.MinimalApi` | HTTP API 由 Orleans 客户端支持。 |
-| `Clients.WorkerService` | 模拟传感器工作量和调查终点。 |
-| `Scaler` | 外部比缩表器 gRPC 服务。 |
-| `Infrastructure` | 共享遥测、身份、储存和终端配置。 |
-| `Azure` | 基础、特权靴子、环境和集装箱应用Bicep模块。 |
-| `deployment/deploy.yml` | OIDC经认证的建设和部署工作流程。 |
+| `Abstractions` | Grain 接口及可序列化的传感器契约。 |
+| `Grains` | hello 和传感器 Grain 实现及示例放置策略。 |
+| `Silo` | 专用 Orleans Silo 主机。 |
+| `Dashboard` | 在独立 Silo 中托管的 Orleans Dashboard。 |
+| `Clients.MinimalApi` | 以 Orleans 客户端作为后端的 HTTP API。 |
+| `Clients.WorkerService` | 模拟传感器工作负载和探针终结点。 |
+| `Scaler` | 外部缩放器 gRPC 服务。 |
+| `Infrastructure` | 共享遥测、标识、存储及终结点配置。 |
+| `Azure` | 基础设施、特权引导、环境和 Container App Bicep 模块。 |
+| `deployment/deploy.yml` | 通过 OIDC 进行身份验证的构建与部署工作流。 |
 
 <a id="run-locally"></a>
 
-## 本地运行本地
+## 在本地运行
 
-开发配置只接受 Azurite 快捷键 `UseDevelopmentStorage=true`。 生产不会返回到连接字符串 。
+Development 配置只接受 Azurite 快捷连接字符串 `UseDevelopmentStorage=true`。生产环境不会回退到连接字符串。
 
-1. 安装 [.NET SDK 选择 `global.json`](https://dotnet.microsoft.com/download)。抽样项目的目标 `net10.0`。
-1. 开始 [紫紫](https://learn.microsoft.com/azure/storage/common/storage-use-azurite)。
-1. 构建样本 :
+1. 安装[由 `global.json` 选定的 .NET SDK](https://dotnet.microsoft.com/download)。示例项目以 `net10.0` 为目标。
+1. 启动 [Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite)。
+1. 构建示例：
 
    ```powershell
    dotnet build .\samples\Deployment\AzureContainerApps\HelloOrleans.sln -c Release
    ```
 
-1. 启动 `Silo`,然后在不同的终端中启动任何客户端、仪表板和天平缩放器:
+1. 启动 `Silo`，再在独立终端中启动所需客户端、Dashboard 和缩放器：
 
    ```powershell
    dotnet run --project .\samples\Deployment\AzureContainerApps\Silo
@@ -102,9 +102,9 @@ flowchart LR
    dotnet run --project .\samples\Deployment\AzureContainerApps\Scaler
    ```
 
-每个发射简介都设置开发环境。如果没有发射简介,请设定 `DOTNET_ENVIRONMENT=Development`。
+每个启动配置文件都会设置 Development 环境。如果不使用启动配置文件，请设置 `DOTNET_ENVIRONMENT=Development`。
 
-最小 API 路径 `GET /hello/{grain}` 只接受 0 到 255 之间的整数键。 `GET /providers` 返回活动 hello -grain 键作为数字。 非活动的 Hello grains 收集时间为两分钟。
+Minimal API 路由 `GET /hello/{grain}` 仅接受 0 至 255 的整数键。`GET /providers` 将活动 hello Grain 的键以数值形式返回。不活动 hello Grain 的回收期限为两分钟。
 
 <a id="deploy-to-azure"></a>
 
@@ -114,18 +114,18 @@ flowchart LR
 
 ### 先决条件
 
-- 订阅和有Bicep支持的 Azure 和 [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) 。
-- A GitHub 已启用动作的叉子 。
-- A GitHub OIDC 应用程序或用户指定身份,其联合证书仅限该存储库和 `azure-container-apps` 环境。 [配置 OpenID 连接在 Azure](https://learn.microsoft.com/azure/developer/github/connect-from-azure-openid-connect).
-- 校长,允许为一次性的靴子布设角色分配。
+- Azure 订阅以及支持 Bicep 的 [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)。
+- 已启用 Actions 的 GitHub 分支仓库（fork）。
+- GitHub OIDC 应用或用户分配的标识，其联合凭据限定于本仓库和 `azure-container-apps` 环境。请参阅[在 Azure 中配置 OpenID Connect](https://learn.microsoft.com/azure/developer/github/connect-from-azure-openid-connect)。
+- 一个有权为一次性引导操作创建角色分配的主体。
 
-在部署前审查 `Azure/bootstrap.bicep` 中的角色范围。 陷阱设置只允许抽样资源组使用工作流程本位 `Contributor` ,而只有样本登记册使用工作流程本位 `AcrPush` 。常规工作流程不能创建角色分配。
+部署前请检查 `Azure/bootstrap.bicep` 中的角色范围。引导仅在示例资源组上向工作流主体授予 `Contributor`，仅在示例注册表上授予 `AcrPush`。日常工作流无法创建角色分配。
 
 <a id="run-the-privileged-bootstrap"></a>
 
-### 运行特权靴套
+### 运行特权引导
 
-以特权靴杆操作员身份签名,选择一个小写基号,并提供工作流程服务本金的 **对象编号** :
+以特权引导操作员身份登录，选择简短的小写基础名称，并提供工作流服务主体的**对象 ID**：
 
 ```bash
 RESOURCE_GROUP="my-orleans-aca"
@@ -159,95 +159,95 @@ az deployment group create \
     "deploymentPrincipalId=$DEPLOYMENT_PRINCIPAL_OBJECT_ID"
 ```
 
-供应商登记是订阅范围广的,必须由特权皮靴操作员进行。
+提供程序注册的范围是订阅，必须由特权引导操作员完成。随后引导会创建注册表、成员资格存储及表、运行时标识，并分配：
 
-- `AcrPull` 至运行时身份。
-- `Storage Table Data Contributor` 至成员表范围内的运行时间身份。
-- `Contributor` 至抽样资源组范围的工作流程本。
-- `AcrPush` 至登记册范围工作流程本。
+- 向运行时标识授予 `AcrPull`。
+- 在成员资格表范围内，向运行时标识授予 `Storage Table Data Contributor`。
+- 在示例资源组范围内，向工作流主体授予 `Contributor`。
+- 在注册表范围内，向工作流主体授予 `AcrPush`。
 
-抽样登记册选择 **RBAC登记处允许**,因此适用 `AcrPull` 和 `AcrPush` 的作用。如果将其转换为 **RBAC登记处+ABAC仓库权限**,则用存储器范围广的读者和作者任务取代这些作用。
+示例注册表选择 **RBAC Registry Permissions**（RBAC 注册表权限），因此 `AcrPull` 和 `AcrPush` 角色适用。如果切换为 **RBAC Registry + ABAC Repository Permissions**（RBAC 注册表及 ABAC 仓库权限），请将这些角色替换为仓库范围的读取者和写入者角色分配。
 
-仅通过管理的行政手续来运行这些皮靴,以便贵组织享有特权。
+只能通过组织用于特权访问的受治理管理流程执行引导。
 
 <a id="configure-and-run-the-workflow"></a>
 
-### 配置并运行工作流程
+### 配置并运行工作流
 
-1. 复制 `deployment/deploy.yml` 到叉子中的 `.github/workflows/deploy-orleans-container-apps.yml`
-1. 创建受保护的 GitHub 命名环境 `azure-container-apps`.
-1. 添加这些环境变量:
+1. 在自己的分支仓库中，将 `deployment/deploy.yml` 复制为 `.github/workflows/deploy-orleans-container-apps.yml`。
+1. 创建名为 `azure-container-apps` 的受保护 GitHub 环境。
+1. 添加以下环境变量：
 
-   | 变量 | 价值值值 |
+   | 变量 | 值 |
    | --- | --- |
-   | `AZURE_CLIENT_ID` | GitHub OIDC 登录所使用的客户端代号。 |
-   | `AZURE_TENANT_ID` | Microsoft 房客身份证 |
-   | `AZURE_SUBSCRIPTION_ID` | Azure 订阅身份证。 |
-   | `AZURE_RESOURCE_GROUP` | 现有装备齐全的资源小组。 |
-   | `AZURE_BASE_NAME` | 同样的基名传到靴子陷阱上 |
+   | `AZURE_CLIENT_ID` | GitHub OIDC 登录使用的客户端 ID。 |
+   | `AZURE_TENANT_ID` | Microsoft Entra 租户 ID。 |
+   | `AZURE_SUBSCRIPTION_ID` | Azure 订阅 ID。 |
+   | `AZURE_RESOURCE_GROUP` | 已完成引导的现有资源组。 |
+   | `AZURE_BASE_NAME` | 与传入引导操作的基础名称相同。 |
 
-1. 增加环境方面所需的审评员和部门限制。
-1. 手动运行工作流程,或将样本/源变化推进到 `deploy` 分支。
+1. 添加环境要求的审核者及分支限制。
+1. 手动运行工作流，或将示例/源码变更推送到 `deploy` 分支。
 
-工作流程没有客户端秘密。 它使用 OIDC 签名, 以最能干的方式更新基金会, 用 Git- SHA 标签建立五张图像, 使用 Microsoft Entra 认证推动它们, 并通过摘要方式部署图像。 容器应用程序将每个图像拖过运行时管理的身份 。
+工作流不使用客户端机密。它使用 OIDC 登录，以幂等方式更新基础设施，构建五个带 Git SHA 标签的镜像，使用 Microsoft Entra 身份验证推送镜像，并按摘要部署镜像。Container Apps 通过运行时托管标识拉取各镜像。
 
 <a id="deployed-topology"></a>
 
-## 部署的地形
+## 部署拓扑
 
-环境私有静态IP在负载平衡边界上共享,但每个 Orleans 过程都有独特的对端左端端端:
+环境的专用静态 IP 地址在负载均衡器边界共享，但每个 Orleans 进程拥有唯一的暴露端口对：
 
-| 集装箱装箱 | Silo 端口 | Gateget 端口 | 复制范围 |
+| Container App | Silo 端口 | 网关端口 | 副本范围 |
 | --- | ---: | ---: | ---: |
 | `silo-a` | 11111 | 30000 | 1–1 |
 | `silo-b` | 11112 | 30001 | 1–1 |
 | `dashboard` | 11113 | 30002 | 1–1 |
 
-下 silo 集装箱Apps绘制了每个应用程序独特的暴露港口与这些目标港口之间的独特接触点。 `external: true`环境是内部的,所以入侵方IP仍然保持隐私。
+Silo 容器监听端口 11111 和 30000。Container Apps 将各应用独有的暴露端口映射到这些目标端口。虽然 TCP 入口使用 `external: true`，但由于环境是内部环境，入口 IP 仍然是专用地址。
 
-所有应用软件都有明确的启动、准备和活性探测器,无零复制层以及60秒终止宽限期。 健康端点可以在 .NET 主机启动后达到;生产应用程序应该扩大准备状态以反映其自身的交通排减和依赖要求。
+所有已部署应用均显式设置启动、就绪和存活探针，副本数下限非零，并具有 60 秒的终止宽限期。.NET 主机启动后可访问运行状况终结点；生产应用应扩展就绪检查，以反映自身流量排空和依赖项要求。
 
-要添加分组能力,请声明另一个一个复制 silo 应用程序,配有一个新的环境独 silo/开关对。不要在 silo 应用程序上加一个最大复制数。
+若要增加集群容量，请声明另一个只有一个副本的 Silo 应用，使用一对在环境中唯一的新 Silo/网关端口。不要将 Silo 应用的最大副本数提高到一以上。
 
 <a id="storage-and-identity"></a>
 
-## 储存和身份识别
+## 存储与标识
 
-`AzureTable:ServiceUri` 设置为 Azure 表格服务 URI。 `DefaultAzureCredential` 使用 `AZURE_CLIENT_ID`选定的用户指定身份。存储账户上禁用共享密钥访问,并禁用登记册管理员证书。
+`AzureTable:ServiceUri` 设置为 Azure Table 服务 URI。`DefaultAzureCredential` 使用通过 `AZURE_CLIENT_ID` 选定的、已部署的用户分配标识。存储账户禁用共享密钥访问，注册表禁用管理员凭据。
 
-要保持 grain 状态,请明确添加和配置一个 grain- 储存提供者,在可行的情况下单独提供一家国家仓库,并只赋予所需的数据机作用。不要将成员表视为耐久的 grain 状态。
+若要持久化 Grain 状态，请显式添加并配置 Grain 存储提供程序，在可行时预配独立的状态存储，并且只授予所需的数据平面角色。不要将成员资格表当作持久化 Grain 状态存储。
 
 <a id="explore-the-deployed-sample"></a>
 
-## 探索部署的样本
+## 探索已部署示例
 
-Bicep 部署输出私人环境 IP 加上仪表板、 API和缩放主机名称。 从环境虚拟网络中的机器连接。 对于同行网络, 在使用所排放的主机名之前,还将集装箱应用专用 DNS 区与该虚拟网络连接起来或配置等效分辨率为 Azure DNS 私有解析器。 然后 :
+Bicep 部署会输出专用环境 IP 及 Dashboard、API 和缩放器主机名。请从环境所在虚拟网络中的计算机连接。如果使用对等互连网络，在使用输出的主机名前，还需要将 Container Apps 专用 DNS 区域关联到该虚拟网络，或使用 Azure DNS Private Resolver 配置等效的解析功能。然后：
 
-1. 打开仪表板,并核实 `Silo-A`、 `Silo-B`和 `Dashboard` 是否活动。
-1. 调用 `GET /hello/0` 和 `GET /hello/255`;两个有界 grain 身份都应成功。
-1. 确认 `GET /hello/-1` 和 `GET /hello/256` 返回 HTTP 400,非整数路径不匹配。
-1. 调用 `GET /providers` 并核实是否以数字形式返回活动 Hello -grain 键。
-1. 观察工人客户创建一组封闭的模拟传感器身份,并在专用 silos中发送电话。
+1. 打开 Dashboard，确认 `Silo-A`、`Silo-B` 和 `Dashboard` 都处于活动状态。
+1. 调用 `GET /hello/0` 和 `GET /hello/255`；这两个边界范围内的 Grain 标识都应调用成功。
+1. 确认 `GET /hello/-1` 和 `GET /hello/256` 返回 HTTP 400，且非整数路由不会匹配。
+1. 调用 `GET /providers` 并确认活动 hello Grain 的键以数值形式返回。
+1. 观察工作服务客户端创建一组数量受限的模拟传感器标识，并将调用分配到各专用 Silo。
 
 <a id="add-cluster-capacity"></a>
 
-### 增加分组能力
+### 增加集群容量
 
-不要增加 silo 添加另一个条目到 `siloDefinitions` 内 `Azure/main.bicep` 带有独一的应用程序后缀, silo 名称, 曝光 silo 和暴露的网关端口。重新配置,等待新的成员行开始活动,并核查每个现有的 silo 客户可以达到其广告的终点。
+不要增加 Silo 应用的副本数。在 `Azure/main.bicep` 的 `siloDefinitions` 中添加另一个条目，使用唯一的应用后缀、Silo 名称、暴露的 Silo 端口及网关端口。重新部署，等待新成员资格记录变为活动状态，并验证所有已有 Silo 和客户端都能访问其通告的终结点。
 
-要去除能力,首先停止该 silo的新申请工作,允许 Orleans 在终止宽限期内退出成员资格,一次删除一个应用程序。测试突然终止是因为优雅的关闭得不到保证。
+若要缩减容量，请先停止向该 Silo 提交新的应用工作，让 Orleans 在终止宽限期内退出成员资格，并每次仅移除一个应用。优雅关闭并非一定能完成，因此还应单独测试突然终止。
 
 <a id="study-the-external-scaler"></a>
 
 ### 研究外部缩放器
 
-gRPC 缩放器仍留在解决方案中,以便您能够研究 Orleans 管理统计和 [KEDA 外部标标算协议](https://keda.sh/docs/latest/concepts/external-scalers/)。它没有附在 silo 应用程序上,因为容器应用软件不会为每个缩放应用程序复制版本发布一个支持的独特地址。使用测量的平台度量或应用程序所属部署控制器来添加并删除整个一版 silo 应用程序;不要将抽样阈值用作生产能力指导。
+gRPC 缩放器仍保留在解决方案中，以便研究 Orleans 管理统计信息及 [KEDA 外部缩放器协议](https://keda.sh/docs/latest/concepts/external-scalers/)。它未关联到 Silo 应用，因为 Container Apps 不会为已扩展应用的每个副本公布受支持的唯一地址。使用实测的平台指标或应用自身控制的部署控制器，以完整的单副本 Silo 应用为单位增删容量；不要将示例阈值作为生产容量规划依据。
 
 <a id="inspect-health-and-revisions"></a>
 
-### 检查健康和修订
+### 检查运行状况及修订版
 
-使用集装箱应用程序修订和复制命令,将图像摘要、准备状态和重新启动与 Orleans 成员相连接:
+使用 Container Apps 修订版及副本命令，将镜像摘要、就绪状态及重启情况与 Orleans 成员资格关联起来：
 
 ```bash
 az containerapp revision list \
@@ -262,13 +262,13 @@ az containerapp replica list \
   --output table
 ```
 
-准备状态从新的反向选择中移除唯一的复制, 但并不关闭已有的 Orleans 协调准备、应用排水、成员离职和东道国关闭。
+就绪状态会将唯一副本从新入站流量的选择范围中移除，但本身不会关闭已有 Orleans TCP 连接，也不会更新成员资格。请协调就绪状态、应用排空、成员资格退出及主机关闭。
 
 <a id="clean-up"></a>
 
 ## 清理
 
-完成时删除专用资源组 :
+完成后删除专用资源组：
 
 ```bash
 az group delete --name "$RESOURCE_GROUP"

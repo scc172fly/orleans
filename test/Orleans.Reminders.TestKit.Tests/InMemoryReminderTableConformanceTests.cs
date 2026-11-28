@@ -5,7 +5,7 @@ using Xunit;
 namespace Orleans.Reminders.TestKit.Tests;
 
 /// <summary>
-/// 部署内置的记忆( 内部) (O)grain提醒在程序内集群中的提供者。
+/// 在进程内集群中部署内置的内存（基于 Grain）提醒器提供程序。
 /// </summary>
 public sealed class InMemoryReminderTableFixture : ReminderTableTestFixture, IAsyncLifetime
 {
@@ -21,12 +21,12 @@ public sealed class InMemoryReminderTableFixture : ReminderTableTestFixture, IAs
 }
 
 /// <summary>
-/// 运行共享的直接兼容套件,与内置的记忆提醒提供商相对应。
+/// 对内置内存提醒器提供程序运行共享的直接一致性测试套件。
 /// </summary>
 /// <remarks>
-/// 这是唯一一个内置提醒提供人,无需外部服务即可使用,因此,它就是
-/// 和《京都议定书》 TestKit。其他内置提供商通过自己的服务来采用相同的套件套件
-/// 一旦它们有后援服务,就立即提供固定装置。
+/// 它是唯一无需外部服务即可测试的内置提醒器提供程序，因此是
+/// TestKit 的参考集成方式。其他内置提供程序在其后端服务可用时，
+/// 通过各自的测试夹具采用同一套件。
 /// </remarks>
 [TestSuite("BVT")]
 [TestProvider("None")]

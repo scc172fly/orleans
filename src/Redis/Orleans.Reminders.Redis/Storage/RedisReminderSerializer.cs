@@ -8,7 +8,7 @@ internal static class RedisReminderSerializer
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        // 保存遗产 Newtonsoft.Json 用于 Redis 地名录范围。
+        // 保留用于 Redis 字典序范围的旧版 Newtonsoft.Json 转义方式。
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         WriteIndented = false
     };

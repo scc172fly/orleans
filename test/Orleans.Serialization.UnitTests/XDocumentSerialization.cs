@@ -7,7 +7,7 @@ using Orleans.Serialization.Serializers;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// 用于测试的XML文件序列和深底复制。
+/// 为测试序列化并深度复制 XML 文档。
 /// </summary>
 [RegisterSerializer]
 [RegisterCopier]

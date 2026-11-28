@@ -7,7 +7,7 @@ using Tester.StorageFacet.Implementations;
 namespace Tester
 {
     /// <summary>
-    /// 测试储存面基础设施,并采用多个存储实施(布和表),以证明可扩展的存储模式。
+    /// 测试具有多个存储实现（Blob 和 Table）的存储分面基础设施，演示可扩展存储模式。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -29,21 +29,21 @@ namespace Tester
                 {
                     // 设置存储功能基础设施。
                     // - 设置基础设施。
-                    // - 设定默认特性执行 - 可选
+                    // - 设置默认功能实现（可选）
 
-                    // 基础设施设置
+                    // 设置基础设施
                     hostBuilder.UseExampleStorage();
-                    // 默认存储特性工厂 - 可选
+                    // 默认存储功能工厂（可选）
                     hostBuilder.UseAsDefaultExampleStorage<TableExampleStorageFactory>();
 
-                    // 服务需要添加要用于收藏的种类
-                    // - 向每个执行大会发出推广职能通知,登记其班级。
+                    // 服务需要将希望使用的类型添加到集合中
+                    // - 调用各实现程序集的扩展函数，注册其类。
 
-                    // Blob - 来自 blob 扩展组件
+                    // Blob：来自 Blob 扩展程序集
                     hostBuilder.UseBlobExampleStorage("Blob");
-                    // 表 - 从表延期组装件
+                    // Table：来自 Table 扩展程序集
                     hostBuilder.UseTableExampleStorage("Table");
-                    // 布拉格 - 来自朗朗朗扩展组装
+                    // Blarg：来自 Blarg 扩展程序集
                     //builder.UseBlargExampleStorage("Blarg");
                 }
             }

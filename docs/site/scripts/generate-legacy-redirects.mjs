@@ -114,11 +114,11 @@ for (const legacyPath of new Set([...legacyPaths, ...Object.keys(allRedirects)])
     <meta charset="utf-8">
     <meta http-equiv="refresh" content="0; url=${target}">
     <link rel="canonical" href="https://scc172fly.github.io${target}">
-    <title>Orleans documentation moved</title>
+    <title>Orleans 文档已迁移</title>
     <script>location.replace(${JSON.stringify(target + '#legacy-redirect')}.replace('#legacy-redirect', location.hash));</script>
   </head>
   <body>
-    <p>This page moved to <a href="${target}">${target}</a>.</p>
+    <p>此页面已迁移至 <a href="${target}">${target}</a>。</p>
   </body>
 </html>
 `;

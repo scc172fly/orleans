@@ -10,7 +10,7 @@ using static System.String;
 namespace Tester.AdoNet.GrainDirectory;
 
 /// <summary>
-/// 集束试验 ADO.NET Grain 对照 SQL 服务器
+/// 针对 SQL Server 的 ADO.NET Grain 目录集群测试。
 /// </summary>
 [TestCategory("SqlServer"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
 [TestProvider("SqlServer")]
@@ -20,7 +20,7 @@ public class SqlServerAdoNetGrainDirectoryClusterTests() : AdoNetGrainDirectoryC
 }
 
 /// <summary>
-/// ADO.NET Grain 目录对 PostgreSQL的集束测试。
+/// 针对 PostgreSQL 的 ADO.NET Grain 目录集群测试。
 /// </summary>
 [TestCategory("PostgreSql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
 [TestProvider("PostgreSql")]
@@ -34,7 +34,7 @@ public class PostgreSqlAdoNetGrainDirectoryClusterTests : AdoNetGrainDirectoryCl
 }
 
 /// <summary>
-/// ADO.NET Grain 目录对 MySQL的集束测试。
+/// 针对 MySQL 的 ADO.NET Grain 目录集群测试。
 /// </summary>
 [TestCategory("MySql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
 [TestProvider("MySql")]
@@ -48,7 +48,7 @@ public class MySqlAdoNetGrainDirectoryClusterTests : AdoNetGrainDirectoryCluster
 }
 
 /// <summary>
-/// ADO.NET Grain 目录的集束测试基类。
+/// ADO.NET Grain 目录集群测试的基类。
 /// </summary>
 [TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("GrainDirectory")]
 [TestSuite("Functional")]
@@ -67,7 +67,7 @@ public abstract class AdoNetGrainDirectoryClusterTests : MultipleGrainDirectorie
 
     public override async ValueTask InitializeAsync()
     {
-        // 在基初始化前设置 adonet 环境
+        // 在基类初始化之前设置 ADO.NET 环境。
         _testing = await RelationalStorageForTesting.SetupInstance(
             _invariant,
             TestDatabaseName,
@@ -75,7 +75,7 @@ public abstract class AdoNetGrainDirectoryClusterTests : MultipleGrainDirectorie
 
         Assert.SkipWhen(IsNullOrEmpty(_testing.CurrentConnectionString), $"Database '{TestDatabaseName}' not initialized");
 
-        // 初始化必须在上述时间之后才开始
+        // 基类初始化必须在上述操作完成之后进行。
         await base.InitializeAsync();
         if (!PreconditionsMet)
         {

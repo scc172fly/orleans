@@ -7,7 +7,7 @@ using System.Reflection;
 namespace Orleans.Serialization.TypeSystem
 {
     /// <summary>
-    /// 缓存结果的类型解析器 。
+    /// 缓存解析结果的类型解析器。
     /// </summary>
     public sealed class CachedTypeResolver : TypeResolver
     {
@@ -36,7 +36,7 @@ namespace Orleans.Serialization.TypeSystem
         }
 
         /// <summary>
-        /// 获取缓存组装名称 。
+        /// 获取缓存的程序集名称。
         /// </summary>
         public static string GetName(Assembly assembly) => _assemblyNameCache.GetOrAdd(assembly, static a => a.GetName().Name!);
 

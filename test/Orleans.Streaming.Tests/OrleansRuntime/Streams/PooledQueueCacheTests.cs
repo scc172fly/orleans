@@ -5,7 +5,7 @@ using Orleans.Runtime;
 using Orleans.Streams;
 using Xunit;
 
-#pragma warning disable CS0618 // This suite verifies compatibility of the legacy cursor APIs alongside their replacements.
+#pragma warning disable CS0618 // 此测试套件验证旧版游标 API 与其替代 API 并存时的兼容性。
 
 namespace UnitTests.OrleansRuntime.Streams
 {
@@ -103,7 +103,7 @@ namespace UnitTests.OrleansRuntime.Streams
         {
             public IBatchContainer GetBatchContainer(ref CachedMessage cachedMessage)
             {
-                //降低有效载荷的序列化
+                //反序列化有效负载
                 int readOffset = 0;
                 ArraySegment<byte> payload = SegmentBuilder.ReadNextBytes(cachedMessage.Segment, ref readOffset);
 
@@ -159,14 +159,14 @@ namespace UnitTests.OrleansRuntime.Streams
                 // 序列化有效载荷
                 int size = SegmentBuilder.CalculateAppendSize(queueMessage.Data);
 
-                // 获取当前块的段
+                // 从当前缓冲块获取片段
                 ArraySegment<byte> segment;
                 if (currentBuffer == null || !currentBuffer.TryGetSegment(size, out segment))
                 {
-                    // 没有块或整块, 获得新块并再次试
+                    // 没有块或块已满，获取新块并重试。
                     var newBuffer = bufferPool.Allocate();
-                    // 如果此失败与干净块块失败, 那么请求的大小太大; 返回
-                    // 现金池的未用块块,但失败了,而不是漏出一个从未承诺的块。
+                    // 如果使用空缓冲块仍然失败，则请求的大小过大；将
+                    // 未使用的缓冲块归还给池并报告失败，避免泄漏永远不会提交的缓冲块。
                     if (!newBuffer.TryGetSegment(size, out segment))
                     {
                         newBuffer.Dispose();
@@ -175,10 +175,10 @@ namespace UnitTests.OrleansRuntime.Streams
                         throw new ArgumentOutOfRangeException(nameof(queueMessage), errmsg);
                     }
                     currentBuffer = newBuffer;
-                    //[调用 EvictionStrategy的 OnBlockAllocated 方法
+                    // 调用 EvictionStrategy 的 OnBlockAllocated 方法。
                     this.evictionStrategy.OnBlockAllocated(currentBuffer);
                 }
-                // 编码名称空间、 偏移、 分割键、 属性和有效载荷等元件
+                // 将命名空间、偏移量、分区键、属性及有效载荷编码到分段中。
                 int writeOffset = 0;
                 SegmentBuilder.Append(segment, ref writeOffset, queueMessage.Data);
                 return segment;
@@ -186,10 +186,10 @@ namespace UnitTests.OrleansRuntime.Streams
         }
 
         /// <summary>
-        /// 填充缓存中两个流。
-        /// 获取有效的光标以启动每个流 。
-        /// 每个光标走过每个光标,直到没有关于每一流的数据。
-        /// 将信件添加到缓存和行走光标的替代信息 。
+        /// 使用两个流填充缓存。
+        /// 获取指向每个流起始位置的有效游标。
+        /// 遍历每个游标，直到相应流不再有数据。
+        /// 交替向缓存添加消息和遍历游标。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public void GoldenPathTest()
@@ -205,8 +205,8 @@ namespace UnitTests.OrleansRuntime.Streams
         }
 
         /// <summary>
-        /// 运行正常的金色路径测试, 然后清理缓存, 然后再运行另一个金色路径测试 。  
-        /// 目标是确保当所有数据被清理时, 缓存会得到正确清除 。
+        /// 运行正常路径测试，然后清除缓存，再次运行正常路径测试。
+        /// 目标是确保清除全部数据后，缓存能够正确清理资源。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public void CacheDrainTest()
@@ -398,15 +398,15 @@ namespace UnitTests.OrleansRuntime.Streams
         }
 
         /// <summary>
-        /// https://github.com/dotnet/orleans/issues/10263的回归测试。
-        /// 批次在被装入缓冲器之前,先编码成集合缓冲器。
-        /// 批量横跨多个 <see cref="FixedSizeBuffer"/> ,而缓存为空,
-        /// 驱逐战略不得再利用仍然维持在飞行中的缓冲带(未承付)
-        /// 此前曾有:缓冲剂还给了LIFO
-        /// 在同一批下一批的下一个分配款 直接倒过来,并翻了
-        /// 先前从 mof 0 上发出的信息, 静悄悄地腐蚀其有效载荷( 稍后作为
-        /// ArgumentOutOfRangeException 的同时解码。 本测试写有不同的有效载荷和
-        /// 声称每个人都能活下来 加上一个空缓存
+        /// 针对 https://github.com/dotnet/orleans/issues/10263 的回归测试。
+        /// 在提交到缓存之前，将批次编码到池化缓冲区中。当这样的
+        /// 批次在缓存为空时跨越多个 <see cref="FixedSizeBuffer"/>，
+        /// 逐出策略不得回收仍保存同一批次中正在处理（尚未提交）
+        /// 的片段的缓冲区。此前会发生这种情况：缓冲区被归还给后进先出（LIFO）
+        /// 池，同一批次中的下一次分配立即取回该缓冲区，并从偏移量 0 开始覆盖
+        /// 先前的消息，导致其有效负载被悄然损坏（之后表现为解码时的
+        /// ArgumentOutOfRangeException）。此测试写入不同的有效负载，并
+        /// 断言将一个跨多个缓冲区的批次添加到空缓存后，每条消息均保持完好。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public void MultiBufferBatchFromEmptyCacheKeepsPayloadsIntact()
@@ -419,7 +419,7 @@ namespace UnitTests.OrleansRuntime.Streams
             var converter = new CachedMessageConverter(bufferPool, evictionStrategy);
 
             const int startSequenceNumber = 42;
-            // 足够在一组内覆盖多个缓冲线的讯息。
+            // 消息数量足以让单个批次跨越多个缓冲区。
             const int messageCount = MessagesPerBuffer * 5;
             var stream = StreamId.Create(TestStreamNamespace, Guid.NewGuid());
 
@@ -432,13 +432,13 @@ namespace UnitTests.OrleansRuntime.Streams
                 })
                 .ToList();
 
-            // 将整批货物编码为集合缓冲器,然后承诺 - 与实际的顺序相同
-            // EventHub/记忆/发电机缓存手段的使用以及触发腐败的命令。
+            // 先将整个批次编码到池化缓冲区，再提交——这与实际
+            // EventHub、Memory 和 Generator 缓存采用的顺序相同，也正是触发数据损坏的顺序。
             var utcNow = DateTime.UtcNow;
             var cachedMessages = messages.Select(m => converter.ToCachedMessage(m, utcNow)).ToList();
             cache.Add(cachedMessages, utcNow);
 
-            // 读回每条信息 并声明它的载荷 正是我们写的东西。
+            // 回读每条消息，并断言其有效负载与写入的内容完全相同。
             var cursor = cache.GetCursor(stream, new EventSequenceTokenV2(startSequenceNumber));
             for (int i = 0; i < messageCount; i++)
             {
@@ -452,7 +452,7 @@ namespace UnitTests.OrleansRuntime.Streams
             static byte[] CreatePayload(int index)
             {
                 var payload = new byte[MessageSize];
-                // 不同的,依指数为主的模式,因此任何交叉信息覆盖符都可以被检测到。
+                // 使用取决于索引的不同模式，以便检测任何跨消息的覆盖。
                 for (int j = 0; j < payload.Length; j++)
                 {
                     payload[j] = (byte)((index + j) & 0xFF);
@@ -462,9 +462,9 @@ namespace UnitTests.OrleansRuntime.Streams
         }
 
         /// <summary>
-        /// 无法永远融入集合缓冲的过于大的信息必须失败,而不泄露缓冲。
-        /// 无法分配的区块必须返回到重复过大尺寸( poison) 的池内
-        /// 信息再利用一个区块,而不是增加保留部分,不设约束。
+        /// 大小超过池化缓冲区容量的消息必须在不泄漏缓冲区的情况下失败。
+        /// 失败的分配必须将缓冲块归还给池，使反复出现的超大（毒性）
+        /// 消息能够复用同一个缓冲块，而不是导致保留的缓冲块集合无限增长。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public void OversizedMessageDoesNotLeakBuffers()
@@ -482,7 +482,7 @@ namespace UnitTests.OrleansRuntime.Streams
             var converter = new CachedMessageConverter(bufferPool, evictionStrategy);
 
             var stream = StreamId.Create(TestStreamNamespace, Guid.NewGuid());
-            // 大于整个缓冲的有效载荷永远无法编码成一个单一的段。
+            // 大于整个缓冲区的有效负载不可能编码到单个片段中。
             var oversized = new TestQueueMessage
             {
                 StreamId = stream,
@@ -495,8 +495,8 @@ namespace UnitTests.OrleansRuntime.Streams
                 Assert.Throws<ArgumentOutOfRangeException>(() => converter.ToCachedMessage(oversized, DateTime.UtcNow));
             }
 
-            // 每次尝试失败都返回池塘, 所以只有一个街区是永远
-            // 在修复之前,每次尝试都漏出一个块(buffersCreated = 5)。
+            // 每次失败尝试均将缓冲块归还给池，因此始终只
+            // 创建并复用一个缓冲块。修复前每次尝试都泄漏一个缓冲块（buffersCreated == 5）。
             Assert.Equal(1, buffersCreated);
         }
 
@@ -533,7 +533,7 @@ namespace UnitTests.OrleansRuntime.Streams
         {
             var bufferPool = new ObjectPool<FixedSizeBuffer>(() => new FixedSizeBuffer(PooledBufferSize));
             var dataAdapter = new TestCacheDataAdapter();
-            // 禁用清理元数据复制光标比缓存数据及其象征性元数据活得快。
+            // 禁用清除元数据，以重现游标的生命周期同时超出缓存数据及其令牌元数据生命周期的情况。
             var cache = new PooledQueueCache(dataAdapter, NullLogger.Instance, null, null);
             var evictionStrategy = new ChronologicalEvictionStrategy(NullLogger.Instance, new TimePurgePredicate(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(10)), null, null);
             evictionStrategy.PurgeObservable = cache;
@@ -605,11 +605,11 @@ namespace UnitTests.OrleansRuntime.Streams
             var converter = new CachedMessageConverter(bufferPool, evictionStrategy);
             var stream = StreamId.Create(TestStreamNamespace, Guid.NewGuid());
 
-            // 将一个未设定的光标定位在未来仍然与缓存相对的标记上。
+            // 将尚未定位的游标定位到相对于缓存仍处于未来的令牌。
             AddMessage(1);
             var cursor = cache.GetCursor(stream, new EventSequenceTokenV2(5));
 
-            // 以旧的标记刷新时, 不能在光标请求启动后倒回光标 。
+            // 使用较旧的令牌刷新时，不得将游标回退到其请求的起始位置之前。
             cache.Refresh(cursor, new EventSequenceTokenV2(2));
 
             AddMessage(2);
@@ -647,27 +647,27 @@ namespace UnitTests.OrleansRuntime.Streams
             var streamKey = Guid.NewGuid();
             var stream = StreamId.Create(TestStreamNamespace, streamKey);
 
-            // 发送一条消息给流
+            // 为目标流将一条消息入队
             var firstSequenceNumber = EnqueueMessage(streamKey);
 
-            // 为其它串流发送一些其他消息
+            // 为其他流将若干其他消息入队
             EnqueueMessage(Guid.NewGuid());
             EnqueueMessage(Guid.NewGuid());
 
-            // 将第一个事件合并为第一个事件, 并看到光标已移动到最后一次显示的事件( 与我们的 streamIdentity不匹配)
+            // 消费第一个事件，确认游标已移至最近看到的事件（该事件与目标 streamIdentity 不匹配）
             var cursor = cache.GetCursor(stream, new EventSequenceTokenV2(firstSequenceNumber));
             Assert.True(cache.TryGetNextMessage(cursor, out var firstContainer));
             Assert.False(cache.TryGetNextMessage(cursor, out _));
 
-            // 删除多个事件, 包括光标当前指向的事件
+            // 移除多个事件，包括游标当前指向的事件
             cache.RemoveOldestMessage();
             cache.RemoveOldestMessage();
             cache.RemoveOldestMessage();
 
-            // 给流发送新信件
+            // 为该流将另一条消息入队
             var lastSequenceNumber = EnqueueMessage(streamKey);
 
-            // 能够消耗刚刚推出的这个事件
+            // 应能够消费刚刚推入的事件
             Assert.True(cache.TryGetNextMessage(cursor, out var lastContainer));
             Assert.Equal(stream, lastContainer.StreamId);
             Assert.Equal(lastSequenceNumber, lastContainer.SequenceToken.SequenceNumber);
@@ -698,22 +698,22 @@ namespace UnitTests.OrleansRuntime.Streams
             var seqNumber = 123;
             var stream = StreamId.Create(TestStreamNamespace, Guid.NewGuid());
 
-            // 给流发送消息
+            // 为该流将一条消息入队
             var firstSequenceNumber = EnqueueMessage(stream);
 
-            // 包含首个事件
+            // 消费第一个事件
             var cursor = cache.GetCursor(stream, new EventSequenceTokenV2(firstSequenceNumber));
             Assert.True(cache.TryGetNextMessage(cursor, out var firstContainer));
             Assert.Equal(stream, firstContainer.StreamId);
             Assert.Equal(firstSequenceNumber, firstContainer.SequenceToken.SequenceNumber);
 
-            // 删除已消耗的第一则信件
+            // 移除已消费的第一条消息
             cache.RemoveOldestMessage();
 
             if (!emptyCache)
             {
-                // 添加与流流无关的内容
-                // 所以缓存不是空的
+                // 将与该流无关的消息入队，
+                // 使缓存不为空
                 EnqueueMessage(StreamId.Create(TestStreamNamespace, Guid.NewGuid()));
                 EnqueueMessage(StreamId.Create(TestStreamNamespace, Guid.NewGuid()));
                 EnqueueMessage(StreamId.Create(TestStreamNamespace, Guid.NewGuid()));
@@ -722,10 +722,10 @@ namespace UnitTests.OrleansRuntime.Streams
                 EnqueueMessage(StreamId.Create(TestStreamNamespace, Guid.NewGuid()));
             }
 
-            // 给流发送新信件
+            // 为该流将另一条消息入队
             var lastSequenceNumber = EnqueueMessage(stream);
 
-            // 能够消耗刚刚推出的这个事件
+            // 应能够消费刚刚推入的事件
             Assert.True(cache.TryGetNextMessage(cursor, out var lastContainer));
             Assert.Equal(stream, lastContainer.StreamId);
             Assert.Equal(lastSequenceNumber, lastContainer.SequenceToken.SequenceNumber);
@@ -759,28 +759,28 @@ namespace UnitTests.OrleansRuntime.Streams
             var stream = StreamId.Create(TestStreamNamespace, streamKey);
 
             var cursor = cache.GetCursor(stream, new EventSequenceTokenV2(seqNumber));
-            // 开始先排成流信息排队, 然后排在布后面, 下一个排在另一个列成另一行
+            // 先为该流将一条消息入队，再将另一条发往其他流的消息入队
             EnqueueMessage(streamKey);
             EnqueueMessage(Guid.NewGuid());
-            // 混成流,应该没事
+            // 消费该流，应该能够正常进行
             Assert.True(cache.TryGetNextMessage(cursor, out _));
             Assert.False(cache.TryGetNextMessage(cursor, out _));
 
-            // 加入新批次
-            // 发送到流的首条和最后一条消息, 跟随电文
-            // 指定用于其他流
+            // 将新批次入队
+            // 第一条和最后一条消息发往该流，其他消息
+            // 发往其他流
             EnqueueMessage(streamKey);
             for (var idx = 0; idx < 20; idx++)
             {
                 EnqueueMessage(Guid.NewGuid());
             }
 
-            // 从缓存中删除前三封信件
-            cache.RemoveOldestMessage(); // 最终成为溪流,消耗
-            cache.RemoveOldestMessage(); // 并非预定流
-            cache.RemoveOldestMessage(); // 最终成为溪流,未消耗
+            // 从缓存中移除前三条消息
+            cache.RemoveOldestMessage(); // 发往该流，已消费
+            cache.RemoveOldestMessage(); // 不发往该流
+            cache.RemoveOldestMessage(); // 发往该流，未消费
 
-            // 给流发送新消息
+            // 为该流将一条新消息入队
             EnqueueMessage(streamKey);
 
             var result = cache.TryGetNextMessageWithResult(cursor, out _);
@@ -790,7 +790,7 @@ namespace UnitTests.OrleansRuntime.Streams
             Assert.NotNull(cacheMiss.Low);
             Assert.NotNull(cacheMiss.High);
 
-            // 保存现有缓存执行的遗留 API 行为。
+            // 为现有缓存实现保留旧版 API 的行为。
             Assert.Throws<QueueCacheMissException>(() => cache.TryGetNextMessage(cursor, out _));
 
             long EnqueueMessage(Guid streamId)
@@ -865,14 +865,14 @@ namespace UnitTests.OrleansRuntime.Streams
         }
 
         /// <summary>
-        /// 序列数差距可能超过 int.MaxValue: MemoryStreamQueueGrain 种子的抗
-        /// 与 DateTime.UtcNow.Ticks 每次启动时都排队 grain 停止作用
-        /// 以单步前进的远处编号。 比较不能缩短差数为 32 比特 。
+        /// 序列号间隔可能超过 int.MaxValue：MemoryStreamQueueGrain 每次激活时均以
+        /// DateTime.UtcNow.Ticks 初始化其计数器，因此队列 Grain 停用再激活会使
+        /// 编号一步大幅向前跳跃。Compare 不得将差值截断为 32 位。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public void CompareHandlesSequenceNumberGapsLargerThanIntMaxValue()
         {
-            // 选中的空白, 短短的 32 比特差有错误的符号或为零 。
+            // 选取使截断后的 32 位差值符号错误或为零的间隔。
             var olderMessage = new CachedMessage { SequenceNumber = 100 };
             Assert.True(olderMessage.Compare(new EventSequenceTokenV2(100L + int.MaxValue + 2)) < 0);
             Assert.True(olderMessage.Compare(new EventSequenceTokenV2(100 + (1L << 32))) < 0);
@@ -880,7 +880,7 @@ namespace UnitTests.OrleansRuntime.Streams
             var newerMessage = new CachedMessage { SequenceNumber = 100L + int.MaxValue + 2 };
             Assert.True(newerMessage.Compare(new EventSequenceTokenV2(100)) > 0);
 
-            // 相同的序列数仍然按事件指数进行比较。
+            // 序列号相同时仍按事件索引比较。
             var message = new CachedMessage { SequenceNumber = 100, EventIndex = 1 };
             Assert.True(message.Compare(new EventSequenceTokenV2(100, 0)) > 0);
             Assert.True(message.Compare(new EventSequenceTokenV2(100, 2)) < 0);
@@ -888,10 +888,10 @@ namespace UnitTests.OrleansRuntime.Streams
         }
 
         /// <summary>
-        /// 空闲光标光标必须看到序列数跳过大于
-        /// int.MaxValue (e.g).队队 grain 被停用,并重新播种其计数器
-        /// DateTime.UtcNow.Ticks。在对新信件的溢出比较后,新信件看起来比
-        /// 光标和投递时静悄悄地抛锚。
+        /// 空闲游标必须能够看到在序列号跳跃超过
+        /// int.MaxValue 后发布的消息（例如队列 Grain 停用后重新以
+        /// DateTime.UtcNow.Ticks 初始化其计数器）。比较操作溢出时，新消息看起来比
+        /// 游标更旧，导致投递悄然停滞。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public void IdleCursorContinuesAfterLargeSequenceNumberJump()
@@ -905,10 +905,10 @@ namespace UnitTests.OrleansRuntime.Streams
 
             var stream = StreamId.Create(TestStreamNamespace, Guid.NewGuid());
             const long firstEpochSequenceNumber = 1000;
-            // 大于 int.MaxValue, 选中的, 所以短短的 32 比特差的翻转符号 。
+            // 大于 int.MaxValue，选取此值使截断后的 32 位差值符号反转。
             const long secondEpochSequenceNumber = firstEpochSequenceNumber + 5 + (3L << 30);
 
-            // 添加第一个时代的信息, 并全部消耗, 让光标空闲 。
+            // 添加第一个世代的消息并全部消费，使游标处于空闲状态。
             for (var i = 0; i < 5; i++)
             {
                 EnqueueMessage(firstEpochSequenceNumber + i);
@@ -920,10 +920,10 @@ namespace UnitTests.OrleansRuntime.Streams
             }
             Assert.False(cache.TryGetNextMessage(cursor, out _));
 
-            // 队列 grain 已恢复, 其编号跳跃远早于前一个时代 。
+            // 队列 Grain 重新激活，其编号大幅跳跃，远超前一个世代。
             EnqueueMessage(secondEpochSequenceNumber);
 
-            // 闲置光标应该会接收新消息 。
+            // 空闲游标应获取到新消息。
             Assert.True(cache.TryGetNextMessage(cursor, out var container));
             Assert.Equal(secondEpochSequenceNumber, container.SequenceToken.SequenceNumber);
 
@@ -940,10 +940,10 @@ namespace UnitTests.OrleansRuntime.Streams
         }
 
         /// <summary>
-        /// 光标放置在一个符号上, 其序列数跳跃大于 int.MaxValue后坐着的符号
-        /// 必须在该标记上开始。 如果对牌进行溢出比较, 该标记看起来比最老的要长
-        /// 缓存信件; 因为存在清除元数据, 那么光标会默默地重写到
-        /// 最老的缓存信件和整个缓存已重新发送 。
+        /// 定位到序列号跳跃超过 int.MaxValue 之后的令牌的游标
+        /// 必须从该令牌开始。比较操作溢出时，该令牌看起来比最旧的
+        /// 缓存消息还旧；由于存在清除元数据，游标会被悄然回退到
+        /// 最旧的缓存消息，从而重新投递整个缓存中的消息。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Streaming")]
         public void CursorNotRewoundToOldestMessageAfterLargeSequenceNumberJump()
@@ -957,22 +957,22 @@ namespace UnitTests.OrleansRuntime.Streams
 
             var stream = StreamId.Create(TestStreamNamespace, Guid.NewGuid());
             const long firstEpochSequenceNumber = 1000;
-            // 大于 int.MaxValue, 选中的, 所以短短的 32 比特差的翻转符号 。
+            // 大于 int.MaxValue，选取此值使截断后的 32 位差值符号反转。
             const long secondEpochSequenceNumber = firstEpochSequenceNumber + 1 + int.MaxValue + 3L;
 
-            // 添加第一个时代的信息 。
+            // 添加第一个世代的消息。
             for (var i = 0; i < 5; i++)
             {
                 EnqueueMessage(firstEpochSequenceNumber + i);
             }
 
-            // 将最古老的信息从电流中录入净化元数据
+            // 逐出最旧的消息，以便记录该流的清除元数据。
             cache.RemoveOldestMessage();
 
-            // 队列 grain 已恢复, 其编号跳跃远早于前一个时代 。
+            // 队列 Grain 重新激活，其编号大幅跳跃，远超前一个世代。
             EnqueueMessage(secondEpochSequenceNumber);
 
-            // 新信件的光标必须只发送该信件, 而不是整个缓存 。
+            // 针对新消息的游标必须仅投递该消息，而不是整个缓存中的消息。
             var cursor = cache.GetCursor(stream, new EventSequenceTokenV2(secondEpochSequenceNumber));
             Assert.True(cache.TryGetNextMessage(cursor, out var container));
             Assert.Equal(secondEpochSequenceNumber, container.SequenceToken.SequenceNumber);
@@ -998,8 +998,8 @@ namespace UnitTests.OrleansRuntime.Streams
             var stream1 = StreamId.Create(TestStreamNamespace, Guid.NewGuid());
             var stream2 = StreamId.Create(TestStreamNamespace, Guid.NewGuid());
 
-            // 现在将信件添加到比光标更新的缓存中
-            // 添加足够填充池
+            // 现在将比游标更新的消息添加到缓存
+            // 添加足够多的消息以填满池
             List<TestQueueMessage> messages = Enumerable.Range(0, MessagesPerBuffer * PooledBufferCount)
                 .Select(i => new TestQueueMessage
                 {
@@ -1014,7 +1014,7 @@ namespace UnitTests.OrleansRuntime.Streams
             cache.Add(cachedMessages, utcNow);
             sequenceNumber += MessagesPerBuffer * PooledBufferCount;
 
-            // 获取 slow 1 的光标, 以光标在流中行走所有事件
+            // 获取 stream1 的游标，使用该游标遍历流中的所有事件
             object stream1Cursor = cache.GetCursor(stream1, new EventSequenceTokenV2(startOfCache));
             int stream1EventCount = 0;
             while (cache.TryGetNextMessage(stream1Cursor, out batch))
@@ -1027,7 +1027,7 @@ namespace UnitTests.OrleansRuntime.Streams
             }
             Assert.Equal((sequenceNumber - startOfCache) / 2, stream1EventCount);
 
-            // 获取 slob 2 的光标, 使用光标在流中所有事件都行走
+            // 获取 stream2 的游标，使用该游标遍历流中的所有事件
             object stream2Cursor = cache.GetCursor(stream2, new EventSequenceTokenV2(startOfCache));
             int stream2EventCount = 0;
             while (cache.TryGetNextMessage(stream2Cursor, out batch))
@@ -1040,7 +1040,7 @@ namespace UnitTests.OrleansRuntime.Streams
             }
             Assert.Equal((sequenceNumber - startOfCache) / 2, stream2EventCount);
 
-            // 将一个值的事件块添加到缓存中, 然后每个光标都行走。 做这个足够多的时间来填充缓存两次 。
+            // 向缓存添加一个缓冲块容量的事件，再遍历每个游标。重复足够多次，以使缓存被填满两次。
             for (int j = 0; j < PooledBufferCount * 2; j++)
             {
                 List<TestQueueMessage> moreMessages = Enumerable.Range(0, MessagesPerBuffer)
@@ -1057,7 +1057,7 @@ namespace UnitTests.OrleansRuntime.Streams
                 cache.Add(moreCachedMessages, utcNow);
                 sequenceNumber += MessagesPerBuffer;
 
-                // 使用光标在溪流中所有事件行走
+                // 使用游标遍历流中的所有事件
                 while (cache.TryGetNextMessage(stream1Cursor, out batch))
                 {
                     Assert.NotNull(stream1Cursor);
@@ -1068,7 +1068,7 @@ namespace UnitTests.OrleansRuntime.Streams
                 }
                 Assert.Equal((sequenceNumber - startOfCache) / 2, stream1EventCount);
 
-                // 使用光标在溪流中所有事件行走
+                // 使用游标遍历流中的所有事件
                 while (cache.TryGetNextMessage(stream2Cursor, out batch))
                 {
                     Assert.NotNull(stream2Cursor);

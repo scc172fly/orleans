@@ -7,7 +7,7 @@ using Orleans.Runtime;
 namespace Orleans.Metadata
 {
     /// <summary>
-    /// 关于分组中现有类型的信息。
+    /// 有关集群中可用类型的信息。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class ClusterManifest
@@ -19,7 +19,7 @@ namespace Orleans.Metadata
         /// 清单版本。
         /// </param>
         /// <param name="silos">
-        /// 下 silo 数据。
+        /// Silo 清单。
         /// </param>
         public ClusterManifest(
             MajorMinorVersion version,
@@ -35,10 +35,10 @@ namespace Orleans.Metadata
         /// 清单版本。
         /// </param>
         /// <param name="silos">
-        /// 下 silo 数据。
+        /// Silo 清单。
         /// </param>
         /// <param name="allGrainManifests">
-        /// 所有 grain 清单,包括与 <paramref name="silos"/>条目无关的表。
+        /// 所有 Grain 清单，包括与 <paramref name="silos"/> 中条目不关联的清单。
         /// </param>
         public ClusterManifest(
             MajorMinorVersion version,
@@ -57,19 +57,19 @@ namespace Orleans.Metadata
         }
 
         /// <summary>
-        /// 获取这个例子的版本 。
+        /// 获取此实例的版本。
         /// </summary>
         [Id(0)]
         public MajorMinorVersion Version { get; }
 
         /// <summary>
-        /// 获取集中每个 silo 的货单。
+        /// 获取集群中各 Silo 的清单。
         /// </summary>
         [Id(1)]
         public ImmutableDictionary<SiloAddress, GrainManifest> Silos { get; }
 
         /// <summary>
-        /// 获取所有独有的 grain 清单。
+        /// 获取所有不重复的 Grain 清单。
         /// </summary>
         [Id(2)]
         public ImmutableArray<GrainManifest> AllGrainManifests { get; }
@@ -137,8 +137,8 @@ namespace Orleans.Metadata
                 {
                     if (canonicalProperties.TryGetValue(entry.Value, out var canonicalProperty))
                     {
-                        // 上文的探讨利用了结构平等。
-                        // 需要更换大炮。
+                        // 上述查找使用结构相等性；引用相等性仅用于判断
+                        // 是否需要替换为规范实例。
                         if (!ReferenceEquals(canonicalProperty, entry.Value))
                         {
                             builder ??= properties.ToBuilder();

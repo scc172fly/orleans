@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Orleans durable order processing</title>
+  <title>Orleans 持久化订单处理</title>
   <style>
     body { font-family: system-ui, sans-serif; margin: 2rem; color: #222; }
     h1 { margin-top: 0; }
@@ -19,65 +19,65 @@
   </style>
 </head>
 <body>
-  <h1>Durable order processing</h1>
+  <h1>持久化订单处理</h1>
   <p>
-    Buyer <input id="buyer" value="alice" size="10" />
-    <span class="muted">Orders wait <code>Ordering:GracePeriod</code> before stock validation. <a href="/dashboard">Dashboard</a></span>
+    买家 <input id="buyer" value="alice" size="10" />
+    <span class="muted">订单先等待 <code>Ordering:GracePeriod</code> ，然后验证库存。 <a href="/dashboard">仪表板</a></span>
   </p>
   <main>
     <div>
       <section>
-        <h2>Catalog</h2>
+        <h2>商品目录</h2>
         <table>
-          <thead><tr><th>Item</th><th class="num">Price</th><th class="num">Available</th><th class="num">Reserved</th><th class="num">Sold</th><th></th></tr></thead>
+          <thead><tr><th>商品</th><th class="num">价格</th><th class="num">可用库存</th><th class="num">已预留</th><th class="num">已售出</th><th></th></tr></thead>
           <tbody id="catalog"></tbody>
         </table>
       </section>
       <section>
-        <h2>Basket</h2>
+        <h2>购物篮</h2>
         <table>
-          <thead><tr><th>Item</th><th class="num">Price</th><th class="num">Quantity</th></tr></thead>
+          <thead><tr><th>商品</th><th class="num">价格</th><th class="num">数量</th></tr></thead>
           <tbody id="basket"></tbody>
         </table>
         <p>
-          Card <input id="card" value="4111111111111111" size="18" />
-          <span class="muted">The gateway declines cards ending in 0002, never decides for 0003, so the payment times
-          out, drops its first response for 0004, so the payment client retries, and fails for 0005.</span>
+          卡号 <input id="card" value="4111111111111111" size="18" />
+          <span class="muted">网关会拒绝尾号为 0002 的卡；对尾号为 0003 的卡始终不作决定，导致付款超时；
+          对尾号为 0004 的卡丢弃首次响应，使支付客户端重试；对尾号为 0005 的卡则失败。</span>
         </p>
         <p>
-          <label><input type="checkbox" id="lose-response" /> Lose the checkout's first response</label>
-          <span class="muted">The server places the order, then resets the connection; the retry carries the same key.</span>
+          <label><input type="checkbox" id="lose-response" /> 丢弃结算的首次响应</label>
+          <span class="muted">服务器先创建订单，再重置连接；重试携带同一个幂等键。</span>
         </p>
-        <button id="checkout">Checkout</button> <span id="checkout-result" class="muted"></span>
+        <button id="checkout">结算</button> <span id="checkout-result" class="muted"></span>
       </section>
       <section>
-        <h2>Operations</h2>
-        <p class="muted">Pending starts and running orders, which this tab persists in <code>sessionStorage</code> and
-        resumes after a refresh.</p>
+        <h2>操作</h2>
+        <p class="muted">尚未确认的启动请求和运行中的订单，此标签页将其持久化到 <code>sessionStorage</code>，并在
+        刷新后恢复。</p>
         <ul id="operations"></ul>
       </section>
       <section>
-        <h2>Payment gateway</h2>
-        <p class="muted">Each authorization and the requests which reached it with its Idempotency-Key.</p>
+        <h2>支付网关</h2>
+        <p class="muted">每次授权，以及携带该授权 Idempotency-Key 到达网关的请求。</p>
         <table>
-          <thead><tr><th>Order</th><th class="num">Amount</th><th>Status</th><th class="num">Requests</th></tr></thead>
+          <thead><tr><th>订单</th><th class="num">金额</th><th>状态</th><th class="num">请求数</th></tr></thead>
           <tbody id="gateway"></tbody>
         </table>
       </section>
     </div>
     <div>
       <section>
-        <h2>Orders</h2>
+        <h2>订单</h2>
         <table>
-          <thead><tr><th>Order</th><th>Date</th><th class="num">Total</th><th>Status</th><th></th></tr></thead>
+          <thead><tr><th>订单</th><th>日期</th><th class="num">总额</th><th>状态</th><th></th></tr></thead>
           <tbody id="orders"></tbody>
         </table>
       </section>
       <section>
-        <h2>Order history</h2>
-        <p id="detail-title" class="muted">Select an order to watch its history.</p>
+        <h2>订单历史</h2>
+        <p id="detail-title" class="muted">选择订单以观察其历史。</p>
         <table>
-          <thead><tr><th class="num">Version</th><th>Status</th><th>Stock</th></tr></thead>
+          <thead><tr><th class="num">版本</th><th>状态</th><th>库存</th></tr></thead>
           <tbody id="history"></tbody>
         </table>
       </section>
@@ -94,7 +94,7 @@
     const escape = text => String(text ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
     const short = id => `<code>${escape(id).slice(0, 8)}</code>`;
 
-    // An order's ID is the idempotency key of its checkout, so its operation is /api/orders/operations/{orderId}.
+    // 订单 ID 是其结算请求的幂等键，因此其操作位于 /api/orders/operations/{orderId}。
     const orderOperation = orderId => `${location.origin}/api/orders/operations/${orderId}`;
 
     async function api(path, method = "GET", body) {
@@ -107,7 +107,7 @@
       return response.headers.get("content-type")?.includes("json") ? response.json() : null;
     }
 
-    // Basket updates set absolute quantities, so a repeated update is idempotent and needs no key.
+    // 购物篮更新设置绝对数量，因此重复更新具有幂等性，无需幂等键。
     async function setQuantity(productId, quantity) {
       await api(`/buyers/${encodeURIComponent(buyer())}/basket/${productId}`, "PUT", { quantity });
       await refresh();
@@ -119,8 +119,8 @@
       await setQuantity(productId, current + 1);
     }
 
-    // A checkout is one intent per buyer until the server acknowledges it: double clicks, retries after a lost response,
-    // and a refresh send the same key, which is the new order's ID.
+    // 服务器确认之前，每个买家的结算都对应同一个意图：双击、响应丢失后的重试
+    // 以及刷新都会发送同一个键，该键就是新订单的 ID。
     async function checkout() {
       const result = document.getElementById("checkout-result");
       const buyerId = buyer();
@@ -143,7 +143,7 @@
       await refresh();
     }
 
-    // Shows an order's operation until it is terminal, and watches the order's history.
+    // 显示订单的操作直到其进入终态，并观察订单历史。
     function follow({ location, data, operation }) {
       const orderId = data.orderId;
       const result = document.getElementById("checkout-result");
@@ -156,19 +156,19 @@
         show(terminal.result ? `${terminal.result.status} ${terminal.result.description ?? ""}` : terminal.error?.message);
         refresh();
       }, error => {
-        // The order's operation no longer exists, such as after the playground restarted with its in-memory storage.
+        // 订单操作已不存在，例如使用内存存储的 playground 重启后。
         show(error.message);
         if (watchedOrderId === orderId) watched?.close();
       });
     }
 
-    // Cancelling the order's operation cancels its workflow until it is paid; a repeated cancellation changes nothing.
+    // 订单付款之前，取消其操作会取消工作流；重复取消不会改变任何状态。
     async function cancelOrder(orderId) {
       await operations.cancel(orderOperation(orderId), "Cancelled by the buyer.");
       await refresh();
     }
 
-    // The shipment's ID is the persisted key of the ship intent, so a repeated click sends the same signal.
+    // 发货 ID 是发货意图的持久化键，因此重复点击会发送同一个信号。
     async function shipOrder(orderId) {
       const intent = `ship:${orderId}`;
       try {
@@ -228,8 +228,8 @@
           <td>${escape(entry.status)}${entry.voided ? " (voided)" : ""}</td><td class="num">${entry.requests}</td></tr>`).join("");
     }
 
-    // The selected order's history arrives as server-sent events: each committed snapshot once, in order. A reconnected
-    // stream replays the history from the start, so the view starts over when the stream opens.
+    // 所选订单的历史以服务器发送事件传入：每个已提交快照按顺序发送一次。重新连接后，
+    // 事件流会从头重放历史，因此事件流打开时视图会重新开始。
     let watched, watchedOrderId;
     function watchOrder(orderId) {
       watched?.close();
@@ -251,11 +251,11 @@
       };
     }
 
-    // The markup's inline handlers call these functions, which the module scope would otherwise hide.
+    // 标记中的内联处理程序会调用这些函数；模块作用域原本会使这些函数对其不可见。
     Object.assign(window, { setQuantity, addToBasket, cancelOrder, shipOrder, watchOrder });
     document.getElementById("checkout").onclick = checkout;
 
-    // After a refresh, observes the running orders, and sends the checkouts which the server hasn't acknowledged again.
+    // 刷新之后，观察运行中的订单，并重新发送服务器尚未确认的结算请求。
     for (const entry of operations.watching()) follow({ ...entry, operation: { status: "Running" } });
     operations.resume().then(started => started.forEach(follow), error => {
       document.getElementById("checkout-result").textContent = error.message;

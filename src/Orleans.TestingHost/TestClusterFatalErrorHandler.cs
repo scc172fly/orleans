@@ -49,7 +49,7 @@ internal sealed class TestClusterHostTerminator(ILogger<TestClusterHostTerminato
 
         _ = Task.Run(async () =>
         {
-            // 致命错误模型过程损失:在完成过程清理时取消排水。
+            // 致命错误模拟进程丢失：取消排空操作，同时完成进程内清理。
             var cancellationToken = new CancellationToken(canceled: true);
             try
             {

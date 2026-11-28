@@ -8,7 +8,7 @@ using Xunit;
 namespace UnitTests.StorageTests.AdoNet
 {
     /// <summary>
-    /// 测试 MySQL 关系存储功能。
+    /// MySQL 关系型存储功能测试。
     /// </summary>
     [TestCategory("Persistence"), TestCategory("MySql")]
     [TestSuite("Functional")]

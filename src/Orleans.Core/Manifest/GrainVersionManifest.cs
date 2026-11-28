@@ -7,7 +7,7 @@ using Orleans.Metadata;
 namespace Orleans.Runtime.Versions
 {
     /// <summary>
-    /// 查询所宣布的 grain 接口版本的职能。
+    /// 用于查询 Grain 接口声明版本的功能。
     /// </summary>
     internal sealed class GrainVersionManifest
     {
@@ -21,7 +21,7 @@ namespace Orleans.Runtime.Versions
         /// <summary>
         /// 初始化 <see cref="GrainVersionManifest"/> 类的新实例。
         /// </summary>
-        /// <param name="clusterManifestProvider">集束货单提供者。</param>
+        /// <param name="clusterManifestProvider">集群清单提供程序。</param>
         public GrainVersionManifest(IClusterManifestProvider clusterManifestProvider)
         {
             _clusterManifestProvider = clusterManifestProvider;
@@ -30,10 +30,10 @@ namespace Orleans.Runtime.Versions
         }
 
         /// <summary>
-        /// 获取指定 grain 接口类型的本地版本。
+        /// 获取指定 Grain 接口类型的本地版本。
         /// </summary>
-        /// <param name="interfaceType"> grain 接口类型名称。</param>
-        /// <returns>指定 grain 接口的版本。</returns>
+        /// <param name="interfaceType">Grain 接口类型名称。</param>
+        /// <returns>指定 Grain 接口的版本。</returns>
         public ushort GetLocalVersion(GrainInterfaceType interfaceType)
         {
             if (_localVersions.TryGetValue(interfaceType, out var result))
@@ -56,10 +56,10 @@ namespace Orleans.Runtime.Versions
         }
 
         /// <summary>
-        /// 获取 grain 接口的所有已知版本的集合。
+        /// 获取 Grain 接口所有已知版本的集合。
         /// </summary>
-        /// <param name="interfaceType"> grain 接口类型名称。</param>
-        /// <returns>指定 grain 接口的所有已知版本。</returns>
+        /// <param name="interfaceType">Grain 接口类型名称。</param>
+        /// <returns>指定 Grain 接口的所有已知版本。</returns>
         public (MajorMinorVersion Version, ushort[] Result) GetAvailableVersions(GrainInterfaceType interfaceType)
         {
             var snapshot = Capture();
@@ -67,11 +67,11 @@ namespace Orleans.Runtime.Versions
         }
 
         /// <summary>
-        /// 获得支持的一组 silos 指定 grain 界面和版本。
+        /// 获取支持指定 Grain 接口及其版本的 Silo 集合。
         /// </summary>
-        /// <param name="interfaceType"> grain 接口类型名称。</param>
-        /// <param name="version"> grain 接口版本。</param>
-        /// <returns>集 silos 支持指定 grain 界面类型和版本。</returns>
+        /// <param name="interfaceType">Grain 接口类型名称。</param>
+        /// <param name="version">Grain 接口版本。</param>
+        /// <returns>支持指定 Grain 接口类型及版本的 Silo 集合。</returns>
         public (MajorMinorVersion Version, SiloAddress[] Result) GetSupportedSilos(GrainInterfaceType interfaceType, ushort version)
         {
             var snapshot = Capture();
@@ -79,10 +79,10 @@ namespace Orleans.Runtime.Versions
         }
 
         /// <summary>
-        /// 获得支持的一组 silos 指定 grain 类型。
+        /// 获取支持指定 Grain 类型的 Silo 集合。
         /// </summary>
-        /// <param name="grainType"> grain 类型。</param>
-        /// <returns>下 silos 支持指定 grain 类型。</returns>
+        /// <param name="grainType">Grain 类型。</param>
+        /// <returns>支持指定 Grain 类型的 Silo。</returns>
         public (MajorMinorVersion Version, SiloAddress[] Result) GetSupportedSilos(GrainType grainType)
         {
             var snapshot = Capture();
@@ -90,12 +90,12 @@ namespace Orleans.Runtime.Versions
         }
 
         /// <summary>
-        /// 获得支持的一组 silos 指定组合的 grain 类型、界面类型和版本。
+        /// 获取支持指定 Grain 类型、接口类型和版本组合的 Silo 集合。
         /// </summary>
-        /// <param name="grainType"> grain 类型。</param>
-        /// <param name="interfaceType"> grain 接口类型名称。</param>
-        /// <param name="versions"> grain 接口版本。</param>
-        /// <returns>集 silos 支持指定 grain.</returns>
+        /// <param name="grainType">Grain 类型。</param>
+        /// <param name="interfaceType">Grain 接口类型名称。</param>
+        /// <param name="versions">Grain 接口版本。</param>
+        /// <returns>支持指定 Grain 的 Silo 集合。</returns>
         public (MajorMinorVersion Version, Dictionary<ushort, SiloAddress[]> Result) GetSupportedSilos(GrainType grainType, GrainInterfaceType interfaceType, ushort[] versions)
         {
             var snapshot = Capture();
@@ -220,7 +220,7 @@ namespace Orleans.Runtime.Versions
             {
                 var silo = entry.Key;
 
-                // 由于客户没有资格获得安置,我们在此排除他们。
+                // 由于客户端不能成为放置目标，因此在这里将其排除。
                 if (silo.IsClient)
                 {
                     continue;

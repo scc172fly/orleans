@@ -6,15 +6,15 @@ using Orleans.Hosting;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// 试验组群的扩展方法。
+    /// 测试集群的扩展方法。
     /// </summary>
     public static class TestClusterExtensions
     {
         /// <summary>
-        /// 从指定的主机构建器获取配置 。
+        /// 从指定宿主构建器获取配置。
         /// </summary>        
         /// <param name="builder">
-        /// 建筑工
+        /// 构建器。
         /// </param>
         public static IConfiguration GetConfiguration(this IHostBuilder builder)
         {
@@ -28,10 +28,10 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// 获得配置值。
+        /// 获取配置值。
         /// </summary>
-        /// <param name="hostBuilder">主机建造者。</param>
-        /// <param name="key">密钥。</param>
+        /// <param name="hostBuilder">宿主构建器。</param>
+        /// <param name="key">键。</param>
         /// <returns>配置值。</returns>
         public static string? GetConfigurationValue(this IHostBuilder hostBuilder, string key)
         {
@@ -39,20 +39,20 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// 获得测试组选项。
+        /// 获取测试集群选项。
         /// </summary>
-        /// <param name="hostBuilder">主机建造者。</param>
-        /// <returns>测试组群选项。</returns>
+        /// <param name="hostBuilder">宿主构建器。</param>
+        /// <returns>测试集群选项。</returns>
         public static TestClusterOptions GetTestClusterOptions(this IHostBuilder hostBuilder)
         {
             return hostBuilder.GetConfiguration().GetTestClusterOptions();
         }
 
         /// <summary>
-        /// 获得测试组选项。
+        /// 获取测试集群选项。
         /// </summary>
         /// <param name="config">配置。</param>
-        /// <returns>测试组群选项。</returns>
+        /// <returns>测试集群选项。</returns>
         public static TestClusterOptions GetTestClusterOptions(this IConfiguration config)
         {
             var result = new TestClusterOptions();

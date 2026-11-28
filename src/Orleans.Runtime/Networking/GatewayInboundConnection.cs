@@ -62,7 +62,7 @@ namespace Orleans.Runtime.Messaging
 
         protected internal override void OnReceivedMessage(Message msg)
         {
-            // 不要处理已经超时的消息
+            // 不处理已经超时的消息。
             if (msg.IsExpired)
             {
                 this.MessagingTrace.OnDropExpiredMessage(msg, MessagingInstruments.Phase.Receive);
@@ -70,7 +70,7 @@ namespace Orleans.Runtime.Messaging
                 return;
             }
 
-            // 我们超负荷了吗?
+            // 当前是否过载？
             if (this.overloadDetector.IsOverloaded)
             {
                 MessagingMetrics.OnRejectedMessage(msg);
@@ -86,7 +86,7 @@ namespace Orleans.Runtime.Messaging
             msg.SendingSilo = this.myAddress;
             if (targetAddress is null)
             {
-                // 通过调度器重新转正路由
+                // 通过 Dispatcher 重新路由。
                 msg.TargetSilo = null;
 
                 if (SystemTargetGrainId.TryParse(msg.TargetGrain, out var systemTargetId))
@@ -100,7 +100,7 @@ namespace Orleans.Runtime.Messaging
             }
             else
             {
-                // 直接直接发送
+                // 直接发送。
                 msg.TargetSilo = targetAddress;
 
                 if (SystemTargetGrainId.TryParse(msg.TargetGrain, out var systemTargetId))
@@ -150,7 +150,7 @@ namespace Orleans.Runtime.Messaging
 
         protected override bool PrepareMessageForSend(Message msg)
         {
-            // 不要发送已经超时的信息
+            // 不要发送已超时的消息。
             if (msg.IsExpired)
             {
                 this.MessagingTrace.OnDropExpiredMessage(msg, MessagingInstruments.Phase.Send);
@@ -158,7 +158,7 @@ namespace Orleans.Runtime.Messaging
                 return false;
             }
 
-            // 如果尚未设置, 请用我们的 silo 地址填入发出信件
+            // 如果出站消息尚未设置 Silo 地址，则填入本地 Silo 地址。
             msg.SendingSilo ??= this.myAddress;
 
             return true;
@@ -171,7 +171,7 @@ namespace Orleans.Runtime.Messaging
             {
                 LogSiloRejectingMessage(this.Log, this.myAddress, msg, reason);
 
-                // 重试完成后, 将错误寄回
+                // 重试已结束，改为返回错误。
                 this.messageCenter.SendRejection(
                     msg,
                     Message.RejectionTypes.Transient,

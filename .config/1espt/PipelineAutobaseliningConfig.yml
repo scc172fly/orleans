@@ -1,4 +1,4 @@
-## 不可将这个文件复制为普通文件。 这是 1ES 管道模板的自动基线的一部分。 请到 [https://aka.ms/1espt-autobaselining了解更多细节 。
+## DO NOT MODIFY THIS FILE MANUALLY. This is part of auto-baselining from 1ES Pipeline Templates. Go to [https://aka.ms/1espt-autobaselining] for more details.
 
 pipelines:
   128:

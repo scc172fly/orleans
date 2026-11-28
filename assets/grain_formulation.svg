@@ -79,7 +79,7 @@
    x="184.633"
    y="0"
    id="tspan3791"
-   style="fill:#ffc000">identity</tspan>
+   style="fill:#ffc000">&#160;标识</tspan>
 <tspan
    x="381.08701"
    y="0"
@@ -88,7 +88,7 @@
    x="423.58701"
    y="0"
    id="tspan3795"
-   style="fill:#00b050">behavior</tspan>
+   style="fill:#00b050">行为</tspan>
 <tspan
    x="646.44702"
    y="0"
@@ -97,7 +97,7 @@
    x="706.94702"
    y="0"
    id="tspan3799"
-   style="fill:#ff0000">state</tspan>
+   style="fill:#ff0000">状态</tspan>
  ]</text>
     <path
        d="m 396,341 c 0,-14.359 1.94,-26 4.333,-26 h 86.334 c 2.393,0 4.333,-11.641 4.333,-26 0,14.359 1.94,26 4.333,26 h 86.334 c 2.393,0 4.333,11.641 4.333,26"
@@ -132,26 +132,26 @@
        font-size="24"
        transform="translate(925.151,233)"
        id="text3823"
-       style="font-weight:400;font-size:24px;font-family:Calibri, Calibri_MSFontService, sans-serif;fill:#ffffff">In <tspan
+       style="font-weight:400;font-size:24px;font-family:Calibri, Calibri_MSFontService, sans-serif;fill:#ffffff">内<tspan
    x="18.6667"
    y="0"
-   id="tspan3813">-</tspan>
+   id="tspan3813"></tspan>
 <tspan
    x="26"
    y="0"
-   id="tspan3815">memory</tspan>
+   id="tspan3815">存中</tspan>
 <tspan
    x="-3.55334"
    y="29"
-   id="tspan3817">o</tspan>
+   id="tspan3817"></tspan>
 <tspan
    x="9.1133404"
    y="29"
-   id="tspan3819">r</tspan>
+   id="tspan3819"></tspan>
 <tspan
    x="22.946699"
    y="29"
-   id="tspan3821">persisted</tspan>
+   id="tspan3821">或持久化</tspan>
 </text>
     <path
        d="m 922,344 c 0,-14.359 1.94,-26 4.333,-26 h 48.834 c 2.393,0 4.333,-11.641 4.333,-26 0,14.359 1.94,26 4.333,26 h 48.837 c 2.39,0 4.33,11.641 4.33,26"

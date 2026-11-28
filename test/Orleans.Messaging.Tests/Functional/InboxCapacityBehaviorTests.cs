@@ -31,7 +31,7 @@ public sealed class InboxCapacityBehaviorTests(InboxCapacityClusterFixture fixtu
         _ = await receiver.GetSnapshotAsync();
         var failed = fixture.GetGrainContext(receiver);
 
-        // 毒药的尝试失败了, 恢复费用也随之增加; 信息保留着唯一的位置。
+        // 毒性消息的尝试使其激活实例失败，恢复时计入此次尝试；该消息仍占用唯一的容量槽位。
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, poison));
         await failed.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
         DeliveryResultAssert.IsCase<DeliveryResult.Backpressured>(await DeliverAsync(receiver, rejected));
@@ -47,7 +47,7 @@ public sealed class InboxCapacityBehaviorTests(InboxCapacityClusterFixture fixtu
         var nextAttempt = Assert.IsType<DateTimeOffset>(state.NextAttemptAt);
         Assert.Equal(fixture.Clock.GetUtcNow() + TimeSpan.FromHours(1), nextAttempt);
 
-        // 重新尝试在窗口关闭后运行,再次失败;收取的回收费将信息写成死字。
+        // 重试在窗口关闭后运行并再次失败；计入此次尝试的恢复过程会将消息转为死信。
         fixture.Clock.Advance(TimeSpan.FromHours(2));
         failed = fixture.GetGrainContext(receiver);
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await DeliverAsync(receiver, poison));

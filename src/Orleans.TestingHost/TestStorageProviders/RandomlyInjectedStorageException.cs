@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// 代表随机注射储存例外。
+    /// 表示随机注入的存储异常。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -19,8 +19,8 @@ namespace Orleans.TestingHost
         /// <summary>
         /// 初始化 <see cref="RandomlyInjectedStorageException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">下 <see cref="T:System.Runtime.Serialization.SerializationInfo" /> 保存关于被抛出例外的序列物体数据。</param>
-        /// <param name="context">下 <see cref="T:System.Runtime.Serialization.StreamingContext" /> 包含源或目的地的背景资料。</param>
+        /// <param name="info">包含所抛出异常的序列化对象数据的 <see cref="T:System.Runtime.Serialization.SerializationInfo" />。</param>
+        /// <param name="context">包含源或目标上下文信息的 <see cref="T:System.Runtime.Serialization.StreamingContext" />。</param>
         [Obsolete]
         private RandomlyInjectedStorageException(SerializationInfo info, StreamingContext context)
             : base(info, context)
@@ -29,7 +29,7 @@ namespace Orleans.TestingHost
     }
 
     /// <summary>
-    /// 代表随机注入的 <see cref="InconsistentStateException"/>。
+    /// 表示随机注入的 <see cref="InconsistentStateException"/>。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -43,7 +43,7 @@ namespace Orleans.TestingHost
         /// <summary>
         /// 初始化 <see cref="RandomlyInjectedInconsistentStateException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">序列号信息。</param>
+        /// <param name="info">序列化信息。</param>
         /// <param name="context">上下文。</param>
         [Obsolete]
         private RandomlyInjectedInconsistentStateException(SerializationInfo info, StreamingContext context)

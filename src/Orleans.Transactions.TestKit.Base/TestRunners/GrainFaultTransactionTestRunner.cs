@@ -7,24 +7,24 @@ using AwesomeAssertions;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 运行交易情景,以证明参与 grains引起的故障。
+    /// 执行测试参与 Grain 引发失败的事务场景。
     /// </summary>
     public abstract class GrainFaultTransactionTestRunner : TransactionTestRunnerBase
     {
         /// <summary>
         /// 初始化 <see cref="GrainFaultTransactionTestRunner"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">下 grain 用于测试的工厂 grains.</param>
+        /// <param name="grainFactory">用于访问测试 Grain 的 Grain 工厂。</param>
         /// <param name="output">用于写入测试输出的回调。</param>
         public GrainFaultTransactionTestRunner(IGrainFactory grainFactory, Action<string> output)
         : base(grainFactory, output)
         { }
 
         /// <summary>
-        /// 证明 grain 例外规定中止其交易而不改变承诺状态。
+        /// 验证 Grain 异常会中止其事务而不改变已提交状态。
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
-        /// <returns>代表测试的任务。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task AbortTransactionOnExceptions(string grainStates)
         {
             const int expected = 5;
@@ -47,10 +47,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 证明只读交易中试图写作的拒绝不改变承诺状态。
+        /// 验证只读事务中的写入尝试会被拒绝且不会改变已提交状态。
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
-        /// <returns>代表测试的任务。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task AbortTransactionOnReadOnlyViolatedException(string grainStates)
         {
             const int expected = 5;
@@ -73,10 +73,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 证明一名参与人的例外情形会以原子方式中止多grain 交易。
+        /// 验证单个参与者引发的异常会导致多 Grain 事务原子性中止。
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grains的交易状态配置。</param>
-        /// <returns>代表测试的任务。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task MultiGrainAbortTransactionOnExceptions(string grainStates)
         {
             const int grainCount = TransactionTestConstants.MaxCoordinatedTransactions - 1;
@@ -112,10 +112,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 证明多grain 中止报告有一个根原因 grain 例外,作为内部例外。
+        /// 验证多 Grain 事务中止时会将一个导致失败的根因 Grain 异常报告为内部异常。
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grains的交易状态配置。</param>
-        /// <returns>代表测试的任务。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task AbortTransactionExceptionInnerExceptionOnlyContainsOneRootCauseException(string grainStates)
         {
             const int throwGrainCount = 3;
@@ -166,10 +166,10 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 证明一个孤儿的呼唤会中止其交易,而不改变承诺状态。
+        /// 验证孤立调用会中止其事务而不改变已提交状态。
         /// </summary>
-        /// <param name="grainStates">用于选择测试 grain的交易状态配置。</param>
-        /// <returns>代表测试的任务。</returns>
+        /// <param name="grainStates">用于选择测试 Grain 的事务状态配置。</param>
+        /// <returns>表示该测试的任务。</returns>
         public virtual async Task AbortTransactionOnOrphanCalls(string grainStates)
         {
             const int expected = 5;
@@ -181,7 +181,7 @@ namespace Orleans.Transactions.TestKit
             Func<Task> task = () => coordinator.OrphanCallTransaction();
             await task.Should().ThrowAsync<OrleansOrphanCallException>();
 
-            //等待 Task.Delay(2000年) ;/给GC留有时间
+            //await Task.Delay(20000); // give time for GC
 
             await TestAfterDustSettles(async () =>
             {
@@ -204,8 +204,8 @@ namespace Orleans.Transactions.TestKit
                 }
                 catch (OrleansCascadingAbortException)
                 {
-                    // 是因为阅读结果乐观,我们可能读到中止交易的状态
-                    // 导致串列中止
+                    // 由于采用乐观读取，我们可能读到已中止事务的状态，
+                    // 从而导致级联中止
                 }
             }
         }

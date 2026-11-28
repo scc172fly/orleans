@@ -6,7 +6,7 @@ using Orleans.Storage;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 随机输入存储和状态一致性的故障,导致国家交易性储存业务。
+    /// 在事务状态存储操作中随机注入存储失败和状态一致性失败。
     /// </summary>
     public class RandomErrorInjector : ITransactionFaultInjector
     {
@@ -17,7 +17,7 @@ namespace Orleans.Transactions.TestKit
         /// <summary>
         /// 初始化 <see cref="RandomErrorInjector"/> 类的新实例。
         /// </summary>
-        /// <param name="injectionProbability">储存操作期间注射过错的总概率。</param>
+        /// <param name="injectionProbability">一次存储操作中注入故障的总概率。</param>
         public RandomErrorInjector(double injectionProbability)
         {
             conflictProbability = injectionProbability / 5;
@@ -52,7 +52,7 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 代表随机注入交易存储故障。
+        /// 表示随机注入的事务存储失败。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -64,10 +64,10 @@ namespace Orleans.Transactions.TestKit
             public RandomlyInjectedStorageException() : base("injected fault") { }
 
             /// <summary>
-            /// 从序列数据初始化了 <see cref="RandomlyInjectedStorageException"/> 类的新实例。
+            /// 从序列化数据初始化 <see cref="RandomlyInjectedStorageException"/> 类的新实例。
             /// </summary>
-            /// <param name="info">序列的例外数据。</param>
-            /// <param name="context">序列数据的来源或目的地的背景。</param>
+            /// <param name="info">已序列化的异常数据。</param>
+            /// <param name="context">有关序列化数据来源或目标的上下文。</param>
             [Obsolete]
             protected RandomlyInjectedStorageException(SerializationInfo info, StreamingContext context)
                 : base(info, context)
@@ -76,7 +76,7 @@ namespace Orleans.Transactions.TestKit
         }
 
         /// <summary>
-        /// 代表随机注入交易状态一致性失灵。
+        /// 表示随机注入的事务状态一致性失败。
         /// </summary>
         [Serializable]
         [GenerateSerializer]
@@ -88,10 +88,10 @@ namespace Orleans.Transactions.TestKit
             public RandomlyInjectedInconsistentStateException() : base("injected fault") { }
 
             /// <summary>
-            /// 从序列数据初始化了 <see cref="RandomlyInjectedInconsistentStateException"/> 类的新实例。
+            /// 从序列化数据初始化 <see cref="RandomlyInjectedInconsistentStateException"/> 类的新实例。
             /// </summary>
-            /// <param name="info">序列的例外数据。</param>
-            /// <param name="context">序列数据的来源或目的地的背景。</param>
+            /// <param name="info">已序列化的异常数据。</param>
+            /// <param name="context">有关序列化数据来源或目标的上下文。</param>
             [Obsolete]
             protected RandomlyInjectedInconsistentStateException(SerializationInfo info, StreamingContext context)
                 : base(info, context)

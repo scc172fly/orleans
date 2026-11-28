@@ -5,63 +5,63 @@ using Orleans.Runtime;
 namespace Orleans.GrainDirectory
 {
     /// <summary>
-    /// 用于定位集组中的 Grain 激活
+    /// 用于在集群中定位 Grain 激活实例。
     /// </summary>
     public interface IGrainLocator
     {
         /// <summary>
-        /// 在适当的 grain 目录中登记所提供的地址。
+        /// 在相应的 Grain 目录中注册提供的地址。
         /// </summary>
-        /// <param name="address">登记地址。</param>
-        /// <param name="previousRegistration">先前的登记将替换,如果知道的话。</param>
-        /// <returns>下 grain 此呼叫后立即在目录中注册的地址。</returns>
+        /// <param name="address">要注册的地址。</param>
+        /// <param name="previousRegistration">要替换的先前注册记录（如果已知）。</param>
+        /// <returns>此次调用刚完成时在目录中注册的 Grain 地址。</returns>
         Task<GrainAddress?> Register(GrainAddress address, GrainAddress? previousRegistration);
 
         /// <summary>
-        /// 由目录中设置 grain 地址。
+        /// 从目录中注销 Grain 地址。
         /// </summary>
-        /// <param name="address">解除登记地址。</param>
-        /// <param name="cause">取消登记的原因。</param>
-        /// <returns>A <see cref="Task"/> 代表所完成的工作。</returns>
+        /// <param name="address">要注销的地址。</param>
+        /// <param name="cause">注销的原因。</param>
+        /// <returns>表示所执行工作的 <see cref="Task"/>。</returns>
         Task Unregister(GrainAddress address, UnregistrationCause cause);
 
         /// <summary>
-        /// 查找 grain的相应地址。
+        /// 查找 Grain 对应的地址。
         /// </summary>
-        /// <param name="grainId">下 grain id. 数据。</param>
-        /// <returns>与指定地址对应的地址 grain id,或 <see langword="null"/> 如果 grain 目前尚未登记。</returns>
+        /// <param name="grainId">Grain ID。</param>
+        /// <returns>与指定 Grain ID 对应的地址；如果 Grain 当前未注册，则为 <see langword="null"/>。</returns>
         ValueTask<GrainAddress?> Lookup(GrainId grainId);
 
         /// <summary>
-        /// 以 grain 安置决定或已知激活地址更新缓存。
+        /// 使用 Grain 放置决策或已知激活实例地址更新缓存。
         /// </summary>
-        /// <param name="grainId"> grain 标识符。</param>
-        /// <param name="siloAddress">下 silo 可能作为东道国的 grain.</param>
+        /// <param name="grainId">Grain 标识符。</param>
+        /// <param name="siloAddress">可能承载该 Grain 的 Silo。</param>
         void UpdateCache(GrainId grainId, SiloAddress siloAddress);
 
         /// <summary>
-        /// 无效与所提供的 grain id 相关的任何查找缓存条目 。
+        /// 使与所提供 Grain ID 关联的查找缓存条目失效。
         /// </summary>
         /// <param name="grainId">
-        /// 下 grain id. 数据。
+        /// Grain ID。
         /// </param>
         void InvalidateCache(GrainId grainId);
 
         /// <summary>
-        /// 从查找缓存中删除指定的地址 。
+        /// 从查找缓存中移除指定地址。
         /// </summary>
         /// <param name="address">
-        /// grain 地址无效。
+        /// 要使其失效的 Grain 地址。
         /// </param>
         void InvalidateCache(GrainAddress address);
 
         /// <summary>
-        /// 试图寻找 grain 提供地址的地址 grain id,没有从事非同步的工作。
-        /// 执行者可查询地方缓存或权威的地方目录分区。
+        /// 尝试查找与所提供 Grain ID 对应的地址，不执行异步工作。
+        /// 实现可以查询本地缓存或权威的本地目录分区。
         /// </summary>
-        /// <param name="grainId">下 grain 需要找到的ID。</param>
-        /// <param name="address">由此结果 grain 地址, 如果找到的话, 或者 <see langword="null"/> 找不到的话。</param>
-        /// <returns>值,表示是否找到有效条目。</returns>
+        /// <param name="grainId">要查找的 Grain ID。</param>
+        /// <param name="address">查找成功时为所得 Grain 地址，否则为 <see langword="null"/>。</param>
+        /// <returns>指示是否找到有效条目的值。</returns>
         bool TryLookupInCache(GrainId grainId, [NotNullWhen(true)] out GrainAddress? address);
     }
 }

@@ -12,49 +12,49 @@ using Orleans.Runtime;
 namespace Orleans.Reminders.TestKit;
 
 /// <summary>
-/// 配置生成的 <see cref="IReminderTable"/> 执行模式合规测试。
+/// 配置针对 <see cref="IReminderTable"/> 实现生成的基于模型的符合性测试。
 /// </summary>
 public sealed class ReminderTableModelBasedConformanceOptions
 {
     /// <summary>
-    /// 获取或设置在生成失败时报告的提供者名 。
+    /// 获取或设置生成式测试失败报告中的提供程序名称。
     /// </summary>
     public string ProviderName { get; set; } = "ReminderTable";
 
     /// <summary>
-    /// 获取或设置用于生成提醒身份的 grain 类型。
+    /// 获取或设置生成提醒器标识时使用的 Grain 类型。
     /// </summary>
     public string GrainType { get; set; } = "reminder-testkit-model-grain";
 
     /// <summary>
-    /// 获取或设置生成 grain 密钥的可选固定前缀。
+    /// 获取或设置生成 Grain 键时使用的可选固定前缀。
     /// </summary>
     public string? KeyPrefix { get; set; }
 
     /// <summary>
-    /// 获取或设定生成操作序列时所探索的最大深度。
+    /// 获取或设置生成操作序列时探索的最大深度。
     /// </summary>
     public int MaxDepth { get; set; } = 3;
 
     /// <summary>
-    /// 在生成的序列中获取或设定最大操作次数 。
+    /// 获取或设置生成序列中的最大操作数。
     /// </summary>
     public int MaxSequenceLength { get; set; } = 3;
 
     /// <summary>
-    /// 获取或设置用于生成提醒身份的决定性种子。
+    /// 获取或设置生成提醒器标识时使用的确定性种子。
     /// </summary>
     public int Seed { get; set; }
 }
 
 /// <summary>
-/// 生成提醒表操作序列,并核查 <see cref="IReminderTable"/> 实施情况
-/// 与行为模型相对
+/// 生成提醒器表操作序列，并验证 <see cref="IReminderTable"/> 实现是否
+/// 符合行为模型。
 /// </summary>
 /// <remarks>
-/// 模拟状态跟踪跟踪模式提醒身份、持续的时间表、当前和以往的ETAGs、存在和
-/// 产生故障报告运行序列、供应商、投入、预期状态和
-/// 观察到的结果。
+/// 建模状态跟踪提醒器标识、持久化的调度计划、当前及上一 ETag、存在性和
+/// 哈希所有权。生成式测试失败报告包含操作序列、提供程序、输入、预期状态及
+/// 观测结果。
 /// </remarks>
 public sealed class ReminderTableModelBasedTestRunner
 {
@@ -65,9 +65,9 @@ public sealed class ReminderTableModelBasedTestRunner
     /// <summary>
     /// 初始化 <see cref="ReminderTableModelBasedTestRunner"/> 类的新实例。
     /// </summary>
-    /// <param name="reminderTable">用于测试的提醒表。</param>
-    /// <param name="providerName">由生成失败报告供应商名称。</param>
-    /// <param name="output">接收故障细节的可选回调。</param>
+    /// <param name="reminderTable">要测试的提醒器表。</param>
+    /// <param name="providerName">生成式测试失败报告中的提供程序名称。</param>
+    /// <param name="output">接收失败详细信息的可选回调。</param>
     public ReminderTableModelBasedTestRunner(IReminderTable reminderTable, string providerName, Action<string>? output = null)
         : this(
             reminderTable,
@@ -79,9 +79,9 @@ public sealed class ReminderTableModelBasedTestRunner
     /// <summary>
     /// 初始化 <see cref="ReminderTableModelBasedTestRunner"/> 类的新实例。
     /// </summary>
-    /// <param name="reminderTable">用于测试的提醒表。</param>
-    /// <param name="options">生成的测试配置。</param>
-    /// <param name="output">接收故障细节的可选回调。</param>
+    /// <param name="reminderTable">要测试的提醒器表。</param>
+    /// <param name="options">生成式测试配置。</param>
+    /// <param name="output">接收失败详细信息的可选回调。</param>
     public ReminderTableModelBasedTestRunner(IReminderTable reminderTable, ReminderTableModelBasedConformanceOptions options, Action<string>? output = null)
     {
         _reminderTable = reminderTable ?? throw new ArgumentNullException(nameof(reminderTable));
@@ -90,18 +90,18 @@ public sealed class ReminderTableModelBasedTestRunner
     }
 
     /// <summary>
-    /// 生成并执行提醒表格操作序列。
+    /// 生成并执行提醒器表操作序列。
     /// </summary>
-    /// <returns>代表无同步测试运行的任务。</returns>
-    /// <exception cref="ReminderConformanceException">一个或多个生成的测试案例失败。</exception>
+    /// <returns>表示异步测试运行的任务。</returns>
+    /// <exception cref="ReminderConformanceException">一个或多个生成的测试用例失败。</exception>
     public Task RunGeneratedConformanceTests() => RunGeneratedConformanceTests(CancellationToken.None);
 
     /// <summary>
-    /// 生成并执行提醒表格操作序列。
+    /// 生成并执行提醒器表操作序列。
     /// </summary>
-    /// <param name="cancellationToken">取消的符号。</param>
-    /// <returns>代表无同步测试运行的任务。</returns>
-    /// <exception cref="ReminderConformanceException">一个或多个生成的测试案例失败。</exception>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>表示异步测试运行的任务。</returns>
+    /// <exception cref="ReminderConformanceException">一个或多个生成的测试用例失败。</exception>
     public async Task RunGeneratedConformanceTests(CancellationToken cancellationToken)
     {
         await ReminderTableModelBasedConformance.ExecuteWithCleanup(
@@ -180,7 +180,7 @@ internal static class ReminderTableModelBasedConformance
                     }
                     catch when (!info.Success || cancellationToken.IsCancellationRequested)
                     {
-                        // 保全产生的故障或测试取消。
+                        // 保留生成式测试失败或测试取消结果。
                     }
 
                     if (!info.Success)

@@ -26,6 +26,6 @@ try
 }
 catch (SiloUnavailableException)
 {
-    // 失去与集束的连接...
+    // 与集群的连接已丢失……
 }
 // </siloexc>

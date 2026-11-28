@@ -7,24 +7,24 @@ using Orleans.Serialization.Codecs;
 namespace Orleans.Serialization.Utilities
 {
     /// <summary>
-    /// 该代表过去用数值类型来设置字段。
+    /// 用于设置值类型字段的委托。
     /// </summary>
-    /// <typeparam name="TDeclaring">字段的申报类型。</typeparam>
+    /// <typeparam name="TDeclaring">字段的声明类型。</typeparam>
     /// <typeparam name="TField">字段类型。</typeparam>
-    /// <param name="instance">设置字段的实例。</param>
+    /// <param name="instance">要设置字段的实例。</param>
     public delegate TField ValueTypeGetter<TDeclaring, out TField>(ref TDeclaring instance) where TDeclaring : struct;
 
     /// <summary>
-    /// 该代表过去用数值类型来设置字段。
+    /// 用于设置值类型字段的委托。
     /// </summary>
-    /// <typeparam name="TDeclaring">字段的申报类型。</typeparam>
+    /// <typeparam name="TDeclaring">字段的声明类型。</typeparam>
     /// <typeparam name="TField">字段类型。</typeparam>
-    /// <param name="instance">设置字段的实例。</param>
-    /// <param name="value">值被设定。</param>
+    /// <param name="instance">要设置字段的实例。</param>
+    /// <param name="value">要设置的值。</param>
     public delegate void ValueTypeSetter<TDeclaring, in TField>(ref TDeclaring instance, TField value) where TDeclaring : struct;
 
     /// <summary>
-    /// 进入田地的功能。
+    /// 提供字段访问功能。
     /// </summary>
     public static class FieldAccessor
     {
@@ -35,9 +35,9 @@ namespace Orleans.Serialization.Utilities
 #endif
 
         /// <summary>
-        /// 返回代表以获取指定字段的值。
+        /// 返回用于获取指定字段值的委托。
         /// </summary>
-        /// <returns>代表获取指定字段的值。</returns>
+        /// <returns>用于获取指定字段值的委托。</returns>
         public static Delegate GetGetter(
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(FieldMembers)]
@@ -50,9 +50,9 @@ namespace Orleans.Serialization.Utilities
         }
 
         /// <summary>
-        /// 返回代表以获取指定字段的值。
+        /// 返回用于获取指定字段值的委托。
         /// </summary>
-        /// <returns>代表获取指定字段的值。</returns>
+        /// <returns>用于获取指定字段值的委托。</returns>
         public static Delegate GetValueGetter(
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(FieldMembers)]
@@ -78,7 +78,7 @@ namespace Orleans.Serialization.Utilities
             var method = new DynamicMethod(fieldName + "Get", field.FieldType, parameterTypes, typeof(FieldAccessor).Module, true);
 
             var emitter = method.GetILGenerator();
-            // arg0 用于更好地履行代表职能(避免辩论打折)
+            // 为提高委托性能，不使用 arg0（避免参数重新排列的转换桩）。
             emitter.Emit(OpCodes.Ldarg_1);
             emitter.Emit(OpCodes.Ldfld, field);
             emitter.Emit(OpCodes.Ret);
@@ -87,9 +87,9 @@ namespace Orleans.Serialization.Utilities
         }
 
         /// <summary>
-        /// 返回代表以设置此字段的值。
+        /// 返回用于设置某个实例中此字段值的委托。
         /// </summary>
-        /// <returns>代表为举例而确定此字段的价值。</returns>
+        /// <returns>用于设置某个实例中此字段值的委托。</returns>
         public static Delegate GetReferenceSetter(
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(FieldMembers)]
@@ -102,9 +102,9 @@ namespace Orleans.Serialization.Utilities
         }
 
         /// <summary>
-        /// 返回代表以设置此字段的值。
+        /// 返回用于设置某个实例中此字段值的委托。
         /// </summary>
-        /// <returns>代表为举例而确定此字段的价值。</returns>
+        /// <returns>用于设置某个实例中此字段值的委托。</returns>
         public static Delegate GetValueSetter(
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(FieldMembers)]
@@ -130,7 +130,7 @@ namespace Orleans.Serialization.Utilities
             var method = new DynamicMethod(fieldName + "Set", null, parameterTypes, typeof(FieldAccessor).Module, true);
 
             var emitter = method.GetILGenerator();
-            // arg0 用于更好地履行代表职能(避免辩论打折)
+            // 为提高委托性能，不使用 arg0（避免参数重新排列的转换桩）。
             emitter.Emit(OpCodes.Ldarg_1);
             emitter.Emit(OpCodes.Ldarg_2);
             emitter.Emit(OpCodes.Stfld, field);

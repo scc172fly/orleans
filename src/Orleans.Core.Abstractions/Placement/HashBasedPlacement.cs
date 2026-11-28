@@ -3,7 +3,7 @@ using System;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 将激活安装在兼容的 silos 以散 grain 使用稳定的散列并选择 silo 从使用模组操作的排序集中选择 。
+    /// 使用稳定哈希对 Grain 标识符进行哈希计算，通过取模运算从排序后的兼容 Silo 集合中选择一个 Silo，以放置激活实例。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable, SuppressReferenceTracking]
     public sealed class HashBasedPlacement : PlacementStrategy

@@ -9,7 +9,7 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// 向在目前 grain登记的交易管理人发送交易协调信息。
+    /// 将事务协调消息分派给在当前 Grain 上注册的事务管理器。
     /// </summary>
     public class TransactionManagerExtension : ITransactionManagerExtension
     {
@@ -17,9 +17,9 @@ namespace Orleans.Transactions
         private readonly Dictionary<string, ITransactionManager> managers;
 
         /// <summary>
-        /// 初始化当前 grain 上下文的新扩展名。
+        /// 为当前 Grain 上下文初始化新的扩展。
         /// </summary>
-        /// <param name="contextAccessor">用于 grain 包含已注册交易经理工厂的背景。</param>
+        /// <param name="contextAccessor">用于访问包含已注册事务管理器工厂的 Grain 上下文的访问器。</param>
         public TransactionManagerExtension(IGrainContextAccessor contextAccessor)
         {
             this.factories = contextAccessor.GrainContext.GetResourceFactoryRegistry<ITransactionManager>()!;

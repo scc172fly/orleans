@@ -1,6 +1,6 @@
 ---
-title: "Orleans 移徙指南"
-description: "计划并实施升级至 Orleans 10,从 Orleans 9、8、7或更早的释放。"
+title: Orleans 迁移指南
+description: 规划并执行从 Orleans 9、8、7 或更早版本升级到 Orleans 10 的过程。
 ms.date: 08/07/2026
 ms.topic: how-to
 ms.custom: migration-guide
@@ -8,58 +8,58 @@ ms.custom: migration-guide
 
 <a id="orleans-migration-guides"></a>
 
-# Orleans 移徙指南
+# Orleans 迁移指南
 
-使用与当前生产中使用的主要 Orleans 版本相匹配的指南。
+请选择与当前生产环境部署的 Orleans 主版本对应的指南。
 
-| 启动版本 | 建议路径 | 指南指南指南指南 |
+| 起始版本 | 建议升级路径 | 指南 |
 |------------------|------------------|-------|
-| Orleans 9.x | 更新到最新的 9x 补丁, 然后升级到 Orleans 10. x | [升级 Orleans 9. x 到 10.x](migration/9-to-10.md) |
-| Orleans 8.x | 更新至 Orleans 8.2,验证 Orleans 9.2,然后升级为 Orleans 10x | [升级 Orleans 8.x 到 10.x](migration/8-to-10.md) |
-| Orleans 7.x | 更新最新7.2个补丁,然后验证每个得到支持的主要转换检查站 | [升级 Orleans 7.x 到 10.x](migration/7-to-10.md) |
-| Orleans 3.x或更早 | 调整为 Orleans 7,在一个单独的组别中,然后按顺序连续进行 | [已存档 Orleans 3.x至 7.x 便笺](migration/3-to-7-archive.md) |
+| Orleans 9.x | 更新至最新 9.x 补丁版本，再升级至 Orleans 10.x | [将 Orleans 9.x 升级至 10.x](migration/9-to-10.md) |
+| Orleans 8.x | 更新至 Orleans 8.2，验证 Orleans 9.2，再升级至 Orleans 10.x | [将 Orleans 8.x 升级至 10.x](migration/8-to-10.md) |
+| Orleans 7.x | 更新至最新 7.2 补丁版本，再逐一验证各受支持的主版本检查点 | [将 Orleans 7.x 升级至 10.x](migration/7-to-10.md) |
+| Orleans 3.x 或更早版本 | 在独立集群中迁移至 Orleans 7，再按顺序继续升级 | [归档的 Orleans 3.x 至 7.x 迁移说明](migration/3-to-7-archive.md) |
 
 > [!IMPORTANT]
-> Orleans 混合版本部署安全文件只在一个主要版本家庭内提供。 Orleans 9和9 Orleans 10 silos 在同一生产组别中,指南使用平行分组部署作为跨越主要版本的安全默认。
+> Orleans 仅对同一主版本系列内的混合版本部署安全性提供文档说明。在完成自己的兼容性验证之前，不要将 Orleans 9 和 Orleans 10 的 Silo 部署在同一个生产集群中。本系列指南以并行集群部署作为跨主版本升级的安全默认方案。
 
 <a id="what-every-upgrade-must-preserve"></a>
 
-## 每一次升级必须保存什么
+## 每次升级都必须保留的内容
 
-在改变包件之前,记录以下兼容性合同:
+更改软件包之前，请记录以下兼容性契约：
 
-- Orleans、 .NET、提供者和数据库版本目前部署。
-- 下 grain 和每台 silo 客户。
-- 稳定的序列质变器成员身份识别码和输入 grain 存储、流、提醒和队列信件中数据的别名。
-- 集群、持久性、提醒、串流和 grain——目录提供者及其形式版本。
-- 行为敏感选项的清晰值,包括请求取消、放置、 grain 目录缓存和计时器连接。
-- 耐久状态和供应商元数据的备份或恢复点。
+- 当前部署的 Orleans、.NET、提供程序及数据库版本。
+- 每个 Silo 和客户端所使用的 Grain 接口及序列化类型程序集。
+- Grain 存储、流、提醒器及排队消息中的数据所使用的稳定序列化成员 ID 和类型别名。
+- 集群、持久化、提醒器、流及 Grain 目录提供程序和它们的架构版本。
+- 对行为敏感的选项的显式值，包括请求取消、放置、Grain 目录缓存及定时器交错执行。
+- 持久化状态和提供程序元数据的备份或恢复点。
 
-见 [升级部署和回调](migration/deployment-and-rollback.md) ,然后选择部署战略。
+选择部署策略前，请参阅[升级部署与回滚](migration/deployment-and-rollback.md)。
 
 <a id="activation-metric-schema-update"></a>
 
-## 动能指标系统的最新计划
+## 激活实例指标架构更新
 
-**下一期发布说明:** 启动生命周期反转、延时直方图和人口计现在包括 `grain_type`,使用语气 `GrainId.Type.ToString()` 身份。 `orleans-grains` 从含有CLR执行名称的 `type` 键迁移到包含该语气特性的 `grain_type` 。因此,明确命名 grains 和构建通用 grains 可以有不同的数值和不同钥匙。
+**下一版本的发行说明：** 激活实例生命周期计数器、延迟直方图及数量仪表现在包含 `grain_type`，使用规范的 `GrainId.Type.ToString()` 标识。`orleans-grains` 从包含 CLR 实现名称的 `type` 键迁移到包含规范标识的 `grain_type` 键。因此，显式命名的 Grain 和构造后的泛型 Grain 不仅键名不同，其值也可能不同。
 
-更新仪表板组合、过滤器、记录规则和 OpenTelemetry 视图以保留 `grain_type`。为了混合版本推出,使用排放服务版本选择旧的或新的系统。用部署 grain- 类型注册来绘制老的 CLR 名称,在合并序列之前先使用语法名称。将每个发射系列一次的合并浏览数。
+更新仪表板分组、筛选器、记录规则和 OpenTelemetry 视图以保留 `grain_type`。对于混合版本发布，使用指标发出方的服务版本选择旧架构或新架构。合并时间序列前，通过部署中的 Grain 类型注册将旧 CLR 名称映射为规范名称。在合并视图中，每个发出方的时间序列只计数一次。
 
-激活仪表现在发布每个缓存类型(包括上次启动假后零位)的快照。 通过对每个 silo 和类型的最新观测进行总结,获取集群总数。通过导出来保存发射身份并在后端配置存储序列过期。生命周期计数器保留添加事件语义:在同一个间隔内按每类计算其增加量,恢复了总的事件量。
+激活实例数量仪表现在为每个缓存的类型发出快照，包括最后一个激活实例离开后的零值。通过对每个 Silo 和类型的最新有效观测值求和，获取集群总量。导出指标时保留发出方标识，并在后端配置陈旧时间序列过期机制。生命周期计数器仍具有可加的事件语义：对同一时间区间内各类型的增量求和即可得到事件总量。
 
-关闭计数器保留了每个非空收集批次的附加历史事件,只有 `via=collection`;单个关闭事件带有激活的卡方型。在汇总全部关闭事件时包括打字和未打字的捐款。采集扫描计数器保留扫描水平测量数据。 `orleans-system-targets` 保留其 `type` 键,管理统计 grain 保留每silo 账户显示的CLR名称。
+关闭计数器保留了其历史行为：每个非空回收批次额外产生一个仅带 `via=collection` 的事件；单个关闭事件带有相应激活实例的规范类型。汇总关闭事件总量时，同时计入带类型和不带类型的贡献。回收扫描计数器保留扫描级度量。`orleans-system-targets` 保留其 `type` 键，管理 Grain 的统计信息保留 CLR 显示名称，并按 Silo 统计。
 
-单位、生命周期结果、人口范围和汇总见 [计量表](host/monitoring/metrics-catalog.md#grain-type-identity-and-aggregation) 。
+有关单位、生命周期结果、数量统计范围及聚合方式，请参阅[指标目录](host/monitoring/metrics-catalog.md#grain-type-identity-and-aggregation)。
 
 <a id="package-version-policy"></a>
 
-## 套件版政策
+## 软件包版本策略
 
-将所有 `Microsoft.Orleans.*` 软件包保存在同一 10.x 补丁上。 对于使用 NuGet 中央软件包管理软件的解决方案, 请在 `Directory.Packages.props` 中声明版本, 从项目级别 `PackageReference` 项中删除版本。 不要从迁移示例复制旧供应商依赖性版本; 选择一个得到目标运行时间和提供者支持的当前版本 。
+让所有 `Microsoft.Orleans.*` 软件包保持在同一 10.x 补丁版本。对于采用 NuGet 中央软件包管理的解决方案，在 `Directory.Packages.props` 中声明版本，并省略项目级 `PackageReference` 项中的版本。不要照搬迁移示例中的旧提供程序依赖版本；应选择目标运行时与提供程序均支持的当前版本。
 
-有关指导见:
+另请参阅：
 
-- [Orleans 序号](host/configuration-guide/serialization.md)
-- [部署 grains新版本](grains/grain-versioning/deploying-new-versions-of-grains.md)
-- [ADO.NET 供应商配置](host/configuration-guide/configuring-ado-dot-net-providers.md)
-- [排除部署故障](deployment/troubleshooting-deployments.md)
+- [Orleans 序列化](host/configuration-guide/serialization.md)
+- [部署新版本的 Grain](grains/grain-versioning/deploying-new-versions-of-grains.md)
+- [ADO.NET 提供程序配置](host/configuration-guide/configuring-ado-dot-net-providers.md)
+- [部署故障排查](deployment/troubleshooting-deployments.md)

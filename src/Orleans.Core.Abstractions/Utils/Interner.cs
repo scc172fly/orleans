@@ -5,12 +5,12 @@ using System.Threading;
 namespace Orleans
 {
     /// <summary>
-    /// 通用 <see cref="Interner{K, T}"/> 类使用的常数。
+    /// 泛型 <see cref="Interner{K, T}"/> 类使用的常量。
     /// </summary>
     internal static class InternerConstants
     {
-        /* 根据 ConcurrentDictionary扩大政策提出的建议缓冲量
-        // 内部实施 ConcurrentDictionary 调整成质数(不可3或5或7分辨)
+        /* 根据 ConcurrentDictionary 的扩容策略建议采用以下缓存大小
+        // ConcurrentDictionary 的内部实现会将大小调整为质数（不能被 3、5 或 7 整除）
         31
         67
         137
@@ -40,15 +40,15 @@ namespace Orleans
     }
 
     /// <summary>
-    /// 提供参考不足的被扣押对象缓存。
-    /// 内部人员被用来优化垃圾收集工作。
-    /// 我们用它储存经常分配的物品,这些物品可能具有较长寿命。
-    /// 这意味着这些物体可能很快填充原2,并导致经常花费昂贵的堆积物。
-    /// 具体而言,到达 silo 和信头及信标内所有身份识别码的信息可能活得足够长,足以达到2等离子。
-    /// 因此,我们把所有ID存储在内部 以便重新使用他们的记忆 跨越不同的讯息。
+    /// 提供对驻留对象的弱引用缓存。
+    /// Interner 用于优化垃圾回收。
+    /// 它用于存储频繁分配且可能具有较长生命周期的对象。
+    /// 这意味着这些对象可能迅速占满第 2 代堆，导致频繁且代价高昂的全堆垃圾回收。
+    /// 具体而言，抵达 Silo 的消息及其所有标头和 ID 可能存活足够长的时间，晋升到第 2 代堆。
+    /// 因此，将所有 ID 存入 Interner，以便在不同消息之间复用其内存。
     /// </summary>
-    /// <typeparam name="TKey">用于实习生钥匙的物体类型。</typeparam>
-    /// <typeparam name="TValue">要被隔离的对象类型。</typeparam>
+    /// <typeparam name="TKey">用作驻留键的对象类型。</typeparam>
+    /// <typeparam name="TValue">需要驻留的对象类型。</typeparam>
     internal sealed class Interner<TKey, TValue> : IDisposable
         where TKey : IEquatable<TKey>
         where TValue : class
@@ -61,30 +61,30 @@ namespace Orleans
         /// <summary>
         /// 初始化 <see cref="Interner{K, T}"/> 类的新实例。
         /// </summary>
-        /// <param name="initialSize">内部绘图的初始大小。</param>
+        /// <param name="initialSize">驻留映射的初始大小。</param>
         public Interner(int initialSize = InternerConstants.SIZE_SMALL)
         {
-            int concurrencyLevel = Environment.ProcessorCount; // 默认默认 ConcurrentDictionary 类内 .NET 31号核心
+            int concurrencyLevel = Environment.ProcessorCount; // 这是 .NET Core 中 ConcurrentDictionary 在容量为 31 时采用的默认并发级别。
             if (initialSize >= InternerConstants.SIZE_MEDIUM) concurrencyLevel *= 4;
             if (initialSize >= InternerConstants.SIZE_LARGE) concurrencyLevel *= 4;
             concurrencyLevel = Math.Min(concurrencyLevel, 1024);
             this.internCache = new ConcurrentDictionary<TKey, WeakReference<TValue>>(concurrencyLevel, initialSize);
 
             var period = TimeSpan.FromMinutes(10);
-            var dueTime = period + TimeSpan.FromTicks(Random.Shared.Next((int)TimeSpan.TicksPerMinute)); // 添加一些初始音量
+            var dueTime = period + TimeSpan.FromTicks(Random.Shared.Next((int)TimeSpan.TicksPerMinute)); // 添加少量初始随机扰动。
             cacheCleanupTimer = new Timer(InternCacheCleanupTimerCallback, null, dueTime, period);
         }
 
         /// <summary>
-        /// 查找带有指定密钥的对象缓存副本, 否则使用所提供的创建功能创建新密钥 。
+        /// 查找指定键对应的缓存对象；若不存在，则调用提供的创建函数生成新对象。
         /// </summary>
-        /// <param name="key">查找密钥键</param>
-        /// <param name="creatorFunc">函数,在没有缓存副本的情况下创建新对象并存储此密钥</param>
-        /// <returns>对象,带有指定的密钥 - 之前的缓存副本或新创建的</returns>
+        /// <param name="key">要查找的键。</param>
+        /// <param name="creatorFunc">如果不存在缓存副本，用于创建新对象并将其存储到此键的函数。</param>
+        /// <returns>指定键对应的对象，可以是先前缓存的副本，也可以是新创建的对象。</returns>
         public TValue FindOrCreate(TKey key, Func<TKey, TValue> creatorFunc)
         {
-            // 试图从缓存获取现有值 。
-            // 如果没有缓存条目, 请使用创建功能创建并插入新的缓存条目 。
+            // 尝试从缓存获取现有值。
+            // 如果缓存条目不存在，则使用创建函数生成并插入新值。
             if (!internCache.TryGetValue(key, out var cacheEntry))
             {
                 var obj = creatorFunc(key);
@@ -92,10 +92,10 @@ namespace Orleans
                 return obj;
             }
 
-            // 如果存在缓存条目,请确定它是否仍然持有有效值。
+            // 如果缓存条目已存在，则判断其中的值是否仍然有效。
             if (!cacheEntry.TryGetTarget(out var result))
             {
-                // 创建新对象, 通过重新插入缓存来确保条目仍然有效 。
+                // 创建新对象并将其重新插入缓存，以确保该条目仍然有效。
                 var obj = creatorFunc(key);
                 cacheEntry.SetTarget(obj);
                 return obj;
@@ -105,16 +105,16 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 查找带有指定密钥的对象缓存副本, 否则使用所提供的创建功能创建新密钥 。
+        /// 查找指定键对应的缓存对象；若不存在，则调用提供的创建函数生成新对象。
         /// </summary>
-        /// <param name="key">查找密钥键</param>
-        /// <param name="creatorFunc">函数,在没有缓存副本的情况下创建新对象并存储此密钥</param>
-        /// <param name="state">国家将转至 <paramref name="creatorFunc"/>。</param>
-        /// <returns>对象,带有指定的密钥 - 之前的缓存副本或新创建的</returns>
+        /// <param name="key">要查找的键。</param>
+        /// <param name="creatorFunc">如果不存在缓存副本，用于创建新对象并将其存储到此键的函数。</param>
+        /// <param name="state">要传递给 <paramref name="creatorFunc"/> 的状态。</param>
+        /// <returns>指定键对应的对象，可以是先前缓存的副本，也可以是新创建的对象。</returns>
         public TValue FindOrCreate<TState>(TKey key, Func<TKey, TState, TValue> creatorFunc, TState state)
         {
-            // 试图从缓存获取现有值 。
-            // 如果没有缓存条目, 请使用创建功能创建并插入新的缓存条目 。
+            // 尝试从缓存获取现有值。
+            // 如果缓存条目不存在，则使用创建函数生成并插入新值。
             if (!internCache.TryGetValue(key, out var cacheEntry))
             {
                 var obj = creatorFunc(key, state);
@@ -122,10 +122,10 @@ namespace Orleans
                 return obj;
             }
 
-            // 如果存在缓存条目,请确定它是否仍然持有有效值。
+            // 如果缓存条目已存在，则判断其中的值是否仍然有效。
             if (!cacheEntry.TryGetTarget(out var result))
             {
-                // 创建新对象, 通过重新插入缓存来确保条目仍然有效 。
+                // 创建新对象并将其重新插入缓存，以确保该条目仍然有效。
                 var obj = creatorFunc(key, state);
                 cacheEntry.SetTarget(obj);
                 return obj;

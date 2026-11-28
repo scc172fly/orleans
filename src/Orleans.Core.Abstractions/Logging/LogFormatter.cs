@@ -7,53 +7,53 @@ using System.Text;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 用于记录目的的格式值。
+    /// 将值格式化以供日志记录使用。
     /// </summary>
     public static class LogFormatter
     {
         /// <summary>
-        /// 支持的最大日志消息大小 。
+        /// 支持的最大日志消息大小。
         /// </summary>
         public const int MAX_LOG_MESSAGE_SIZE = 20000;
-        private const string TIME_FORMAT = "HH:mm:ss.fff 'GMT'"; // 示例:09:50:43.341格林尼治标准
-        private const string DATE_FORMAT = "yyyy-MM-dd " + TIME_FORMAT; // 示例:2010-09-02 UniversalSorta­bleDateTimePat任
+        private const string TIME_FORMAT = "HH:mm:ss.fff 'GMT'"; // 示例：09:50:43.341 GMT
+        private const string DATE_FORMAT = "yyyy-MM-dd " + TIME_FORMAT; // 示例：2010-09-02 09:50:43.341 GMT，即 UniversalSortableDateTimePattern 的变体。
         private static readonly ConcurrentDictionary<Type, Func<Exception, string>> exceptionDecoders = new ConcurrentDictionary<Type, Func<Exception, string>>();
 
         /// <summary>
-        /// 将 <c>DateTime</c> 对象转换为Logger子系统使用的可打印数据格式的实用功能。
+        /// 将 <c>DateTime</c> 对象转换为日志记录子系统使用的可显示日期格式的实用方法。
         /// </summary>
-        /// <param name="date">下 <c>DateTime</c> 要打印的值。</param>
-        /// <returns>输入数据的格式字符串表示,以Logger子系统使用的可打印格式。</returns>
+        /// <param name="date">要显示的 <c>DateTime</c> 值。</param>
+        /// <returns>输入数据的格式化字符串表示，采用日志记录子系统使用的可显示格式。</returns>
         public static string PrintDate(DateTime date)
         {
             return date.ToString(DATE_FORMAT, CultureInfo.InvariantCulture);
         }
 
         /// <summary>
-        /// 约会
+        /// 解析日期。
         /// </summary>
         /// <param name="dateStr">日期字符串。</param>
-        /// <returns>解析日期。</returns>
+        /// <returns>解析得到的日期。</returns>
         public static DateTime ParseDate(string dateStr)
         {
             return DateTime.ParseExact(dateStr, DATE_FORMAT, CultureInfo.InvariantCulture);
         }
 
         /// <summary>
-        /// 将一个 <c>DateTime</c> 对象转换为Logger子系统使用的可打印时间格式的实用函数。
+        /// 将 <c>DateTime</c> 对象转换为日志记录子系统使用的可显示时间格式的实用方法。
         /// </summary>
-        /// <param name="date">下 <c>DateTime</c> 要打印的值。</param>
-        /// <returns>输入数据的格式字符串表示,以Logger子系统使用的可打印格式。</returns>
+        /// <param name="date">要显示的 <c>DateTime</c> 值。</param>
+        /// <returns>输入数据的格式化字符串表示，采用日志记录子系统使用的可显示格式。</returns>
         public static string PrintTime(DateTime date)
         {
             return date.ToString(TIME_FORMAT, CultureInfo.InvariantCulture);
         }
 
         /// <summary>
-        /// 将例外转换为可打印格式的实用功能,包括扩展和格式化任何嵌套子表达式。
+        /// 将异常转换为可显示格式的实用方法，包括展开并格式化所有嵌套的子表达式。
         /// </summary>
-        /// <param name="exception">要打印的例外。</param>
-        /// <returns>格式化的字符串表示例外,包括扩展和格式化任何嵌套子表达式。</returns>
+        /// <param name="exception">要显示的异常。</param>
+        /// <returns>异常的格式化字符串表示，包括展开并格式化所有嵌套的子表达式。</returns>
         public static string PrintException(Exception? exception)
         {
             if (exception == null)
@@ -65,9 +65,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 配置指定例外类型的特殊解码器。
+        /// 为指定的异常类型配置异常解码器。
         /// </summary>
-        /// <param name="exceptionType">用于配置解码器的例外类型。</param>
+        /// <param name="exceptionType">需要配置解码器的异常类型。</param>
         /// <param name="decoder">解码器。</param>
         public static void SetExceptionDecoder(Type exceptionType, Func<Exception, string> decoder)
         {
@@ -99,7 +99,7 @@ namespace Orleans.Runtime
                     {
                         if (inner is not null)
                         {
-                            // 对所有装载器例外的重复呼叫。 所有都使用相同水平 。
+                            // 递归处理所有加载器异常，全部使用同一层级。
                             PrintException_Helper(sb, inner, level + 1);
                         }
                     }
@@ -111,13 +111,13 @@ namespace Orleans.Runtime
                 {
                     foreach (Exception inner in innerExceptions)
                     {
-                        // 对所有内部例外的重复呼叫。 对于所有其它情况, 都使用相同的级别 。
+                        // 递归处理所有内部异常，全部使用同一层级。
                         PrintException_Helper(sb, inner, level + 1);
                     }
                 }
                 else
                 {
-                    // 重复呼叫单一内部例外。
+                    // 递归处理单个内部异常。
                     PrintException_Helper(sb, exception.InnerException, level + 1);
                 }
             }

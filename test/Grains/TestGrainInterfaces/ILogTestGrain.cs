@@ -1,34 +1,34 @@
 namespace UnitTests.GrainInterfaces
 {
     /// <summary>
-    /// 用于测试逻辑一致性提供者的 grain 。
-    /// 班级的内容是武断的,乱七八糟的;
-    /// (不要用这个来介绍如何使用 JournaledGrain)
-    /// 是从 SimpleGrain开始的, 但随着时间推移,很多东西被添加 
+    /// 用于测试日志一致性提供程序的 Grain。
+    /// 此类的内容比较随意且杂乱；
+    /// （请勿将此类用作 JournaledGrain 的入门示例）
+    /// 它最初基于 SimpleGrain，后来陆续增加了许多内容
     /// </summary>
     public interface ILogTestGrain : IGrainWithIntegerKey
     {
-        // 改为A
+        // 读取 A
 
         Task<int> GetAGlobal();
 
         Task<int> GetALocal();
 
-        // 改为
+        // 同时读取两者
 
         Task<AB> GetBothGlobal();
 
         Task<AB> GetBothLocal();
 
-        // 保留
+        // 预订
 
         Task<int[]> GetReservationsGlobal();
 
-        // 版本版本
+        // 版本
 
         Task<int> GetConfirmedVersion();
 
-        // 设置值或加量 A
+        // 设置或递增 A
 
         Task SetAGlobal(int a);
 
@@ -40,13 +40,13 @@ namespace UnitTests.GrainInterfaces
 
         Task IncrementAGlobal();
 
-        // B 套B
+        // 设置 B
 
         Task SetBGlobal(int b);
 
         Task SetBLocal(int b);
 
-        // 保留
+        // 预订
 
         Task AddReservationLocal(int x);
 
@@ -59,7 +59,7 @@ namespace UnitTests.GrainInterfaces
         Task<IReadOnlyList<object>> GetEventLog();
 
 
-        // 其他业务的业务
+        // 其他操作
 
         Task SynchronizeGlobalState();
         Task Clear();
@@ -67,9 +67,9 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// 单位测试使用。 
-    /// 田地没有真正意义 
-    /// 支架的点只是 grain 方法可以同时返回 A和B。
+    /// 供单元测试使用。
+    /// 这些字段本身没有特殊含义。
+    /// 此结构体只是为了使 Grain 方法能够同时返回 A 和 B。
     /// </summary>
     [GenerateSerializer]
     public struct AB

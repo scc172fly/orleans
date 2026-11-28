@@ -11,7 +11,7 @@ using Orleans.Configuration.Overrides;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// 创建由 Azure 表存储支持的事件枢纽分区检查站。
+    /// 创建以 Azure Table Storage 为后端的 Event Hub 分区检查点管理器。
     /// </summary>
     public class EventHubCheckpointerFactory : IStreamQueueCheckpointerFactory
     {
@@ -23,10 +23,10 @@ namespace Orleans.Streaming.EventHubs
         /// <summary>
         /// 初始化 <see cref="EventHubCheckpointerFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="providerName">流体提供者名称。</param>
-        /// <param name="options">下 Azure 表格存储检查站选项。</param>
-        /// <param name="clusterOptions">组合组合选项。</param>
-        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="providerName">流提供程序名称。</param>
+        /// <param name="options">Azure Table Storage 检查点管理器选项。</param>
+        /// <param name="clusterOptions">集群选项。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
         public EventHubCheckpointerFactory(string providerName, AzureTableStreamCheckpointerOptions options, IOptions<ClusterOptions> clusterOptions, ILoggerFactory loggerFactory)
         {
             this.options = options;
@@ -42,11 +42,11 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 创建事件枢纽分区检查站工厂。
+        /// 创建 Event Hub 分区检查点管理器工厂。
         /// </summary>
-        /// <param name="services">服务供应商。</param>
-        /// <param name="providerName">流体提供者名称。</param>
-        /// <returns>检查站工厂</returns>
+        /// <param name="services">服务提供程序。</param>
+        /// <param name="providerName">流提供程序名称。</param>
+        /// <returns>检查点管理器工厂。</returns>
         public static IStreamQueueCheckpointerFactory CreateFactory(IServiceProvider services, string providerName)
         {
             var options = services.GetOptionsByName<AzureTableStreamCheckpointerOptions>(providerName);
@@ -56,7 +56,7 @@ namespace Orleans.Streaming.EventHubs
     }
 
     /// <summary>
-    /// 这个班级商店 EventHub 分隔区间分隔区检查点信息 Azure 桌子储存。
+    /// 此类在 Azure Table Storage 中存储 Event Hub 分区检查点信息。
     /// </summary>
     public class EventHubCheckpointer : IStreamQueueCheckpointer<string>
     {
@@ -66,14 +66,14 @@ namespace Orleans.Streaming.EventHubs
         public bool CheckpointExists => _inner.CheckpointExists;
 
         /// <summary>
-        /// 创建并初始化事件枢纽分区检查器。
+        /// 创建并初始化 Event Hub 分区检查点管理器。
         /// </summary>
-        /// <param name="options">下 Azure 表格存储检查站选项。</param>
-        /// <param name="streamProviderName">流体提供者名称。</param>
-        /// <param name="partition">事件枢纽分区标识符。</param>
-        /// <param name="serviceId">下 Orleans 服务标识符。</param>
-        /// <param name="loggerFactory">伐木厂</param>
-        /// <returns>一项任务,即解决初始化检查站的任务。</returns>
+        /// <param name="options">Azure Table Storage 检查点管理器选项。</param>
+        /// <param name="streamProviderName">流提供程序名称。</param>
+        /// <param name="partition">Event Hub 分区标识符。</param>
+        /// <param name="serviceId">Orleans 服务标识符。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
+        /// <returns>完成时返回已初始化检查点管理器的任务。</returns>
         public static async Task<IStreamQueueCheckpointer<string>> Create(AzureTableStreamCheckpointerOptions options, string streamProviderName, string partition, string serviceId, ILoggerFactory loggerFactory)
         {
             var inner = await AzureTableStreamQueueCheckpointer.Create(
@@ -93,17 +93,17 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 装满了检查站
+        /// 加载检查点。
         /// </summary>
-        /// <returns>任务由检查站承担</returns>
+        /// <returns>完成时返回检查点偏移量的任务。</returns>
         [Obsolete("Use the overload which accepts a CancellationToken.")]
         public Task<string> Load() => Load(CancellationToken.None);
 
         /// <summary>
-        /// 装满了一个检查站
+        /// 加载检查点。
         /// </summary>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>检查站。</returns>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>检查点。</returns>
         public async Task<string> Load(CancellationToken cancellationToken)
         {
             var checkpoint = await _inner.Load(cancellationToken);
@@ -111,30 +111,30 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 更新检查站,这是最好的努力,并不总是更新检查站。
-        /// 最新的抵消总是在记忆中跟踪,以便 <see cref="FlushAsync(CancellationToken)"/> 能够持续关闭。
+        /// 更新检查点。此操作采用尽力而为的方式，并不总是更新检查点。
+        /// 始终在内存中跟踪最新偏移量，以便 <see cref="FlushAsync(CancellationToken)"/> 在关闭时将其持久化。
         /// </summary>
-        /// <param name="offset">检查站</param>
-        /// <param name="utcNow">当前UTC 时间。</param>
+        /// <param name="offset">检查点偏移量。</param>
+        /// <param name="utcNow">当前 UTC 时间。</param>
         [Obsolete("Use the overload which accepts a CancellationToken.")]
         public void Update(string offset, DateTime utcNow)
             => Update(offset, utcNow, CancellationToken.None);
 
         /// <summary>
-        /// 更新检查站
+        /// 更新检查点。
         /// </summary>
-        /// <param name="offset">检查站</param>
-        /// <param name="utcNow">当前UTC 时间。</param>
-        /// <param name="cancellationToken">取消牌。</param>
+        /// <param name="offset">检查点偏移量。</param>
+        /// <param name="utcNow">当前 UTC 时间。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
         public void Update(string offset, DateTime utcNow, CancellationToken cancellationToken)
             => _inner.Update(offset, utcNow, cancellationToken);
 
         /// <summary>
-        /// 任何待设的持久性储存检查站都可穿透。
-        /// 等待任何在建的储蓄,如果超过上次节省的价值,则维持最新的抵消。
+        /// 将所有待处理的检查点刷新到持久化存储。
+        /// 等待正在进行的保存操作；若最新偏移量已超过上次保存值，则将其持久化。
         /// </summary>
-        /// <param name="cancellationToken">取消牌。</param>
-        /// <returns>代表冲洗操作的任务。</returns>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>表示刷新操作的任务。</returns>
         public Task FlushAsync(CancellationToken cancellationToken) => _inner.FlushAsync(cancellationToken);
     }
 }

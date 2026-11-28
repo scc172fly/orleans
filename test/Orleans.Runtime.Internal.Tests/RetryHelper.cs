@@ -3,17 +3,17 @@ using System.Diagnostics;
 namespace UnitTests
 {
     /// <summary>
-    /// 预设重试操作,用于 <see cref="RetryHelper"/>。
+    /// 预先确定的重试操作，与 <see cref="RetryHelper"/> 一起使用。
     /// </summary>
-    /// <remarks>一种非常粗糙的系统 用于目前的测试</remarks>
+    /// <remarks>当前测试使用的一套非常简易的机制。</remarks>
     public static class RetryOperation
     {
         /// <summary>
-        /// 产生小类形延迟曲线。
+        /// 生成 S 形延迟曲线。
         /// </summary>
-        /// <param name="retryAttempt">当前重试尝试。</param>
-        /// <returns>下次尝试重试的延迟。</returns>
-        /// <remarks>此函数未接受深查。</remarks>
+        /// <param name="retryAttempt">当前重试次数。</param>
+        /// <returns>下次重试之前的延迟。</returns>
+        /// <remarks>此函数尚未经深入审查。</remarks>
         public static TimeSpan Sigmoid(int retryAttempt)
         {
             const int MaxDurationInSeconds = 50;
@@ -22,10 +22,10 @@ namespace UnitTests
 
 
         /// <summary>
-        /// 产生线性延缓曲线,加量为10毫秒。
+        /// 生成以 10 ms 为增量的线性延迟曲线。
         /// </summary>
-        /// <param name="retryAttempt">当前重试尝试。</param>
-        /// <remarks>此函数未接受深查。</remarks>
+        /// <param name="retryAttempt">当前重试次数。</param>
+        /// <remarks>此函数尚未经深入审查。</remarks>
         public static TimeSpan LinearWithTenMilliseconds(int retryAttempt)
         {
             return TimeSpan.FromMilliseconds(retryAttempt * 10);
@@ -34,18 +34,18 @@ namespace UnitTests
 
 
     /// <summary>
-    /// 简单的再试辅助器, 使测试更稳健 。
+    /// 用于增强测试稳健性的简单重试辅助类。
     /// </summary>
     internal static class RetryHelper
     {
         /// <summary>
-        /// 用于根据参数重试操作的脚架功能。
+        /// 根据参数重试操作的辅助框架函数。
         /// </summary>
-        /// <typeparam name="TResult">要重试的函数的结果类型。</typeparam>
-        /// <param name="maxAttempts">尝试重试的最大次数。</param>
-        /// <param name="retryFunction">函数, 使用当前重试参数, 提供等待下次尝试的时间。</param>
-        /// <param name="operation">重试操作。</param>
-        /// <param name="cancellation">取消牌。</param>
+        /// <typeparam name="TResult">待重试函数的结果类型。</typeparam>
+        /// <param name="maxAttempts">最大重试次数。</param>
+        /// <param name="retryFunction">接收当前重试参数并提供下次尝试前等待时间的函数。</param>
+        /// <param name="operation">待重试的操作。</param>
+        /// <param name="cancellation">取消令牌。</param>
         /// <returns>重试的结果。</returns>
         internal static async Task<TResult> RetryOnExceptionAsync<TResult>(int maxAttempts, Func<int, TimeSpan> retryFunction, Func<Task<TResult>> operation, CancellationToken cancellation = default)
         {

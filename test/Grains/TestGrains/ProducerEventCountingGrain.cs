@@ -58,7 +58,7 @@ namespace UnitTests.Grains
 
             await _producer.OnNextAsync(_numProducedItems + 1);
 
-            // 发生错误时发送后更新
+            // 在发送成功后再更新计数，以应对可能的错误
             _numProducedItems++;
             _logger.LogInformation("Producer.SendEvent - TotalSent: {Count}", _numProducedItems);
         }

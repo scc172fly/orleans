@@ -14,7 +14,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// <see cref="PendingDurableTaskResponse"/>的激活器。
+/// <see cref="PendingDurableTaskResponse"/> 的激活器。
 /// </summary>
 [RegisterActivator]
 internal sealed class PendingDurableTaskResponseActivator : IActivator<PendingDurableTaskResponse>
@@ -24,7 +24,7 @@ internal sealed class PendingDurableTaskResponseActivator : IActivator<PendingDu
 }
 
 /// <summary>
-/// <see cref="SubscribedDurableTaskResponse"/>的激活器。
+/// <see cref="SubscribedDurableTaskResponse"/> 的激活器。
 /// </summary>
 [RegisterActivator]
 internal sealed class SubscribedDurableTaskResponseActivator : IActivator<SubscribedDurableTaskResponse>
@@ -34,7 +34,7 @@ internal sealed class SubscribedDurableTaskResponseActivator : IActivator<Subscr
 }
 
 /// <summary>
-/// <see cref="SuccessDurableTaskResponse"/>的激活器。
+/// <see cref="SuccessDurableTaskResponse"/> 的激活器。
 /// </summary>
 [RegisterActivator]
 internal sealed class SuccessDurableTaskResponseActivator : IActivator<SuccessDurableTaskResponse>
@@ -393,9 +393,9 @@ internal sealed class CanceledDurableTaskResponseCopier : IDeepCopier<CanceledDu
 }
 
 /// <summary>
-/// 序列 <see cref="DurableTaskAbortedException"/>,其抽象组件没有 Orleans 序列器的序列号
-/// 和内置例外,所以中止的任务的存储结果 及其完成 保持例外类型,原因,
-/// 和原因。
+/// 按 <see cref="DurableTaskAbortedException"/> 的原因及内部异常对其进行序列化（其抽象层程序集没有 Orleans 序列化器），
+/// 从而使被中止任务的已存储结果和完成通知保留异常类型、原因及
+/// 根本原因。
 /// </summary>
 [RegisterConverter]
 internal sealed class DurableTaskAbortedExceptionConverter : IConverter<DurableTaskAbortedException, DurableTaskAbortedExceptionSurrogate>
@@ -407,7 +407,7 @@ internal sealed class DurableTaskAbortedExceptionConverter : IConverter<DurableT
         => new(value.Message, value.InnerException);
 }
 
-/// <remarks>Orleans 例外的复制浅度, 所以代孕人, 只能持有字符串和例外, 是永恒不变的。</remarks>
+/// <remarks>Orleans 对异常执行浅拷贝，因此仅包含一个字符串和一个异常的代理类型是不可变的。</remarks>
 [GenerateSerializer, Immutable]
 [Alias("Orleans.Durable.Tasks.Runtime.DurableTaskAbortedExceptionSurrogate")]
 internal readonly struct DurableTaskAbortedExceptionSurrogate(string reason, Exception? innerException)
@@ -420,10 +420,10 @@ internal readonly struct DurableTaskAbortedExceptionSurrogate(string reason, Exc
 }
 
 /// <summary>
-/// 序列 <see cref="DurableTaskAttemptCanceledException"/>其抽象的集会没有 Orleans 序列器
-/// 其原因,所以一个民意调查 停止激活失败 到达它的呼叫者 除了类型和理由。
+/// 对 <see cref="DurableTaskAttemptCanceledException"/> 进行序列化（其抽象层程序集没有 Orleans 序列化器），
+/// 序列化其原因，以便因激活实例停止而失败的轮询将异常类型及原因传递给调用方。
 /// </summary>
-/// <remarks>尝试的标记属于停止的激活,所以已解除的例外没有。</remarks>
+/// <remarks>执行尝试的令牌属于已停止的激活实例，因此反序列化的异常不携带此令牌。</remarks>
 [RegisterConverter]
 internal sealed class DurableTaskAttemptCanceledExceptionConverter
     : IConverter<DurableTaskAttemptCanceledException, DurableTaskAttemptCanceledExceptionSurrogate>

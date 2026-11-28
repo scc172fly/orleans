@@ -8,20 +8,20 @@ using static Orleans.Placement.ImmovableAttribute;
 namespace Orleans.Placement
 {
     /// <summary>
-    /// 用于所有职位安排政策标记属性的基础。
+    /// 所有放置策略标记特性的基类。
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public abstract class PlacementAttribute : Attribute, IGrainPropertiesProviderAttribute
     {
         /// <summary>
-        /// 获取与此属性相关的定位策略。
+        /// 获取与此特性关联的放置策略。
         /// </summary>
         public PlacementStrategy PlacementStrategy { get; private set; }
 
         /// <summary>
         /// 初始化 <see cref="PlacementAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="placement">与此属性相关的职位安排策略。</param>
+        /// <param name="placement">与此特性关联的放置策略。</param>
         protected PlacementAttribute(PlacementStrategy placement)
         {
             if (placement == null) throw new ArgumentNullException(nameof(placement));
@@ -37,10 +37,10 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// 标记a grain 类作为使用 <see cref="RandomPlacement"/> 政策。
+    /// 标记 Grain 类使用 <see cref="RandomPlacement"/> 策略。
     /// </summary>
     /// <remarks>
-    /// 这是默认安放策略, 所以此属性不需要用于正常 grains。
+    /// 这是默认放置策略，因此普通 Grain 无需使用此特性。
     /// </remarks>
     /// <inheritdoc cref="RandomPlacement"/>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
@@ -56,7 +56,7 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// 标记a grain 类作为使用 <see cref="HashBasedPlacement"/> 政策。
+    /// 标记 Grain 类使用 <see cref="HashBasedPlacement"/> 策略。
     /// </summary>
     /// <inheritdoc cref="HashBasedPlacement"/>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
@@ -71,7 +71,7 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// 标记a grain 类作为使用 <see cref="PreferLocalPlacement"/> 政策。
+    /// 标记 Grain 类使用 <see cref="PreferLocalPlacement"/> 策略。
     /// </summary>
     /// <inheritdoc cref="PreferLocalPlacement"/>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
@@ -87,8 +87,8 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// 标记一个 grain 类为使用试图平衡的 <see cref="ActivationCountBasedPlacement"/> 策略
-    /// grain 跨服务器的放置,根据每个服务器最近运行的 grains 相对数量。
+    /// 标记 Grain 类使用 <see cref="ActivationCountBasedPlacement"/> 策略，该策略尝试根据
+    /// 各服务器上近期活跃 Grain 的相对数量来均衡 Grain 放置。
     /// </summary>
     /// <inheritdoc cref="ActivationCountBasedPlacement"/>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
@@ -104,7 +104,7 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// 标记a grain 类作为使用 <see cref="SiloRoleBasedPlacement"/> 政策。
+    /// 标记 Grain 类使用 <see cref="SiloRoleBasedPlacement"/> 策略。
     /// </summary>
     /// <inheritdoc cref="SiloRoleBasedPlacement"/>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
@@ -119,7 +119,7 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// 标记a grain 类作为使用 <see cref="ResourceOptimizedPlacement"/> 政策。
+    /// 标记 Grain 类使用 <see cref="ResourceOptimizedPlacement"/> 策略。
     /// </summary>
     /// <inheritdoc cref="ResourceOptimizedPlacement"/>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
@@ -134,15 +134,15 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// 确保不自动迁移该 grain 型号的激活。
+    /// 确保此 Grain 类型的激活实例不会被自动迁移。
     /// </summary>
-    /// <remarks>活动仍可以通过用户启动的代码迁移。</remarks>
+    /// <remarks>用户主动发起的代码仍可迁移激活实例。</remarks>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class ImmovableAttribute(ImmovableKind kind = ImmovableKind.Any)
         : Attribute, IGrainPropertiesProviderAttribute
     {
         /// <summary>
-        /// 那种无法移动的
+        /// 不可移动性的类型。
         /// </summary>
         public ImmovableKind Kind { get; } = kind;
 
@@ -154,21 +154,21 @@ namespace Orleans.Placement
     }
 
     /// <summary>
-    /// 强调不得迁移仅限于某些组成部分。
+    /// 强调不可移动性仅限于某些组件。
     /// </summary>
     [Flags]
     public enum ImmovableKind : byte
     {
         /// <summary>
-        /// 此 grain 类型的激活不会被重新分配者迁移。
+        /// 此 Grain 类型的激活实例不会被重新分区器迁移。
         /// </summary>
         Repartitioner = 1,
         /// <summary>
-        /// 此 grain 类型的激活不会由再平衡器迁移。
+        /// 此 Grain 类型的激活实例不会被再均衡器迁移。
         /// </summary>
         Rebalancer = 2,
         /// <summary>
-        /// 此类型 grain 的激活不会被任何物体移动。
+        /// 此 Grain 类型的激活实例不会被任何机制迁移。
         /// </summary>
         Any = Repartitioner | Rebalancer
     }

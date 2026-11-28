@@ -3,60 +3,60 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 定义用于行使一个或多个交易整数状态的操作。
+    /// 定义用于测试一个或多个事务整数状态的操作。
     /// </summary>
     public interface ITransactionTestGrain : IGrainWithGuidKey
     {
         /// <summary>
-        /// 将每个交易状态设置为指定值。
+        /// 将所有事务状态设置为指定值。
         /// </summary>
-        /// <param name="newValue">分配给每个国家的值。</param>
-        /// <returns>一项代表交易操作的任务。</returns>
+        /// <param name="newValue">要赋给每个状态的值。</param>
+        /// <returns>表示事务操作的任务。</returns>
         [Transaction(TransactionOption.CreateOrJoin)]
         Task Set(int newValue);
 
         /// <summary>
-        /// 在每个交易状态中添加一个值 。
+        /// 为每个事务状态增加指定数值。
         /// </summary>
-        /// <param name="numberToAdd">每个国家的增值。</param>
-        /// <returns>交易性国家命令中的最新价值。</returns>
+        /// <param name="numberToAdd">要与每个状态值相加的数值。</param>
+        /// <returns>按事务状态顺序排列的更新后值。</returns>
         [Transaction(TransactionOption.CreateOrJoin)]
         Task<int[]> Add(int numberToAdd);
 
         /// <summary>
-        /// 阅读每一个交易状态。
+        /// 读取每个事务状态。
         /// </summary>
-        /// <returns>交易状态命令中的当前值。</returns>
+        /// <returns>按事务状态顺序排列的当前值。</returns>
         [Transaction(TransactionOption.CreateOrJoin)]
         Task<int[]> Get();
 
         /// <summary>
-        /// 阅读每个交易状态的承付值,不进行交易。
+        /// 在无事务情况下读取每个事务状态的已提交值。
         /// </summary>
-        /// <returns>承诺值。</returns>
+        /// <returns>已提交的值。</returns>
         [Transaction(TransactionOption.Supported)]
         Task<int[]> GetCommitted();
 
         /// <summary>
-        /// 给每个交易状态添加一个值, 然后为中止交易丢弃例外 。
+        /// 为每个事务状态增加指定数值，随后引发异常以中止事务。
         /// </summary>
-        /// <param name="numberToAdd">扔之前要添加的值。</param>
-        /// <returns>任务,在应用交易更新后总是有错误。</returns>
+        /// <param name="numberToAdd">引发异常前要增加的数值。</param>
+        /// <returns>应用事务更新后始终进入故障状态的任务。</returns>
         [Transaction(TransactionOption.CreateOrJoin)]
         Task AddAndThrow(int numberToAdd);
 
         /// <summary>
-        /// 设置每个交易状态, 然后放弃中止交易的例外 。
+        /// 设置每个事务状态，随后引发异常以中止事务。
         /// </summary>
-        /// <param name="numberToSet">扔掷前指定值。</param>
-        /// <returns>任务,在应用交易更新后总是有错误。</returns>
+        /// <param name="numberToSet">引发异常前要赋予的值。</param>
+        /// <returns>应用事务更新后始终进入故障状态的任务。</returns>
         [Transaction(TransactionOption.CreateOrJoin)]
         Task SetAndThrow(int numberToSet);
 
         /// <summary>
-        /// 要求在当前呼叫完成后停止启动 grain 。
+        /// 请求在当前调用完成后停用 Grain 激活实例。
         /// </summary>
-        /// <returns>一旦要求解除功能,即完成一项任务。</returns>
+        /// <returns>发出停用请求后已完成的任务。</returns>
         Task Deactivate();
     }
 }

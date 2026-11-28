@@ -4,26 +4,26 @@ using System;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// 缓存压力监测器记录暗藏处的档案压力,确定该藏匿处是否因其 
-    /// 反向压力算法
+    /// 缓存压力监视器记录对缓存的压力贡献值，并根据其
+    /// 背压算法判断缓存是否处于压力状态。
     /// </summary>
     public interface ICachePressureMonitor
     {
         /// <summary>
-        /// 记录对监视器的缓存压力贡献
+        /// 向监视器记录缓存压力贡献值。
         /// </summary>
         /// <param name="cachePressureContribution"></param>
         void RecordCachePressureContribution(double cachePressureContribution);
 
         /// <summary>
-        /// 确定显示器是否受到压力
+        /// 判断监视器是否处于压力状态。
         /// </summary>
         /// <param name="utcNow"></param>
         /// <returns></returns>
         bool IsUnderPressure(DateTime utcNow);
 
         /// <summary>
-        /// 用于报告缓存相关度量的缓存监测器
+        /// 用于报告缓存相关指标的缓存监视器。
         /// </summary>
         ICacheMonitor? CacheMonitor { set; }
     }

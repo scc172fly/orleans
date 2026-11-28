@@ -6,9 +6,9 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// 练习任务地址作为存储和发送的值:工作流程从它各自独立的任务和
-/// 返回后,一个 grain 接到他们时会打电话和日记,在重新启动 grain、工作流程和工作程序之后
-/// 客户端通过它们完成任务。
+/// 测试将任务地址作为存储和传输值使用：工作流从分离任务的句柄取得地址并
+/// 返回；Grain 在调用中接收地址并记入日志；重新激活后，Grain、工作流及
+/// 客户端均可通过这些地址访问任务。
 /// </summary>
 public abstract class DurableTaskAddressTests(string journalFormatKey) : IAsyncLifetime
 {
@@ -26,7 +26,7 @@ public abstract class DurableTaskAddressTests(string journalFormatKey) : IAsyncL
         var keeper = _fixture.Client.GetGrain<IDurableTaskAddressGrain>(Guid.NewGuid());
         var worker = _fixture.Client.GetGrain<IDurableTaskAddressGrain>(Guid.NewGuid());
 
-        // 工作流程的控点是处理工人的根本任务,其结果包含地址。
+        // 工作流的分离任务句柄指向工作 Grain 的根任务，其结果携带这些地址。
         var workflow = await starter.StartDetachedAsync(worker.GetPrimaryKey()).WithId("workflow").ScheduleAsync(cancellationToken);
         var addresses = await workflow.WaitAsync(Timeout, cancellationToken);
         Assert.Equal(
@@ -35,13 +35,13 @@ public abstract class DurableTaskAddressTests(string journalFormatKey) : IAsyncL
                 new(worker.GetGrainId(), TaskId.CreateRoot("canceled"))),
             addresses);
 
-        // 保管人收到一个电话地址,并日记这些地址,因此下一次启动后收回了这些地址。
+        // 保管 Grain 在调用中接收地址并记入日志，因此下一次激活能够恢复地址。
         await keeper.StoreAsync(addresses);
         await DeactivateAsync(keeper, cancellationToken);
         Assert.Equal(addresses, await keeper.GetStoredAsync());
         Assert.Equal((DurableTaskStatus.Pending, DurableTaskStatus.Pending), await keeper.PollStoredAsync());
 
-        // 工作流程订阅存储的任务,而保管人则发出一项任务信号并取消另一项任务。
+        // 工作流订阅已存储的任务，保管 Grain 向一个任务发送信号并取消另一个任务。
         var awaiting = await keeper.AwaitStoredAsync().WithId("await").ScheduleAsync(cancellationToken);
         await keeper.SignalAndCancelStoredAsync("released");
 
@@ -76,14 +76,14 @@ public abstract class DurableTaskAddressTests(string journalFormatKey) : IAsyncL
     }
 }
 
-/// <summary>运行任务地址,其覆盖包含任务和 grain 状态,存储在默认的 JSON 日记格式中。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务和 Grain 状态，运行任务地址相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskAddressTests() : DurableTaskAddressTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行任务时包含任务和 grain 状态中存储于 Orleans 双进制日记格式。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务和 Grain 状态，运行任务地址相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

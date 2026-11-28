@@ -67,7 +67,7 @@ internal class InMemoryTransportListener : MessageTransportListener
         {
             while (_acceptQueue.Reader.TryRead(out var item))
             {
-                // 通过同一完成源进行接受和取消竞争。
+                // 接受连接与取消通过同一个任务完成源发生竞争。
                 if (item.ConnectionAcceptedTcs.TrySetResult(true))
                 {
                     return item.Connection;
@@ -105,7 +105,7 @@ internal class InMemoryTransportListener : MessageTransportListener
             }
 
             completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            // 在取消回馈可以重新关闭之前发布完成 。
+            // 在取消回调可能重入关闭操作之前，发布用于通知完成的任务。
             _unbindTask = completion.Task;
         }
 
@@ -118,7 +118,7 @@ internal class InMemoryTransportListener : MessageTransportListener
         _acceptQueue.Writer.TryComplete();
         while (_acceptQueue.Reader.TryRead(out var item))
         {
-            // 设定结果为假以显示听众已终止。
+            // 将结果设置为 false，表示监听器已终止。
             item.ConnectionAcceptedTcs.TrySetResult(false);
         }
 
@@ -126,7 +126,7 @@ internal class InMemoryTransportListener : MessageTransportListener
         {
             try
             {
-                // 取消回调运行在启动呼叫器的调度器上
+                // 取消回调在发起调用方的调度器上运行。
                 _disposedCts.Cancel();
             }
             finally
@@ -193,7 +193,7 @@ internal class InMemoryTransportConnector : MessageTransportConnector
         var pipePair = DuplexPipe.CreatePair();
         var local = new InMemoryMessageTransport(pipePair.Left, _connectionLogger);
         local.Start();
-#pragma warning disable CA2000 // AddConnection transfers the remote transport to AcceptAsync; failed acceptance disposes both transports below.
+#pragma warning disable CA2000 // AddConnection 将远程传输对象移交给 AcceptAsync；如果接受失败，则在下方释放两个传输对象。
         var remote = new InMemoryMessageTransport(pipePair.Right, _connectionLogger);
 #pragma warning restore CA2000
         remote.Start();

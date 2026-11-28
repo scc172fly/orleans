@@ -3,8 +3,8 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// 请求东道方通过衍生途径到达的 <see cref="DurableTaskContext"/>东道方成员进行作为试验机
-/// a 上下文主机。
+/// 为模拟上下文宿主的测试调用 <see cref="DurableTaskContext"/> 的宿主成员；宿主通过派生类访问
+/// 这些成员。
 /// </summary>
 internal static class DurableTaskContextHostExtensions
 {

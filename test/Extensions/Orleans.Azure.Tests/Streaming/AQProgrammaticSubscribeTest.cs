@@ -11,7 +11,7 @@ using Xunit;
 namespace Tester.AzureUtils.Streaming
 {
     /// <summary>
-    /// 与 Azure 队列流提供者测试程序订阅功能。
+    /// 测试 Azure Queue 流提供程序的编程式订阅功能。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Streaming"), TestCategory("AQStreaming"), TestCategory("AzureStorage")]
     [TestSuite("BVT")]
@@ -57,7 +57,7 @@ namespace Tester.AzureUtils.Streaming
             {
                 await base.DisposeAsync();
 
-                // 只有在套件未跳过时才进行清理 。
+                // 仅当此测试套件未被跳过时执行清理。
                 try
                 {
                     TestUtils.CheckForAzureStorage();
@@ -68,7 +68,7 @@ namespace Tester.AzureUtils.Streaming
                 }
                 catch (Xunit.Sdk.SkipException)
                 {
-                    // 忽略忽略
+                    // 忽略
                 }
             }
         }

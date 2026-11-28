@@ -7,24 +7,24 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 代表一份在日记中记录突变的清单。
+/// 表示一个列表，其变更记录在持久化日志中。
 /// </summary>
 /// <typeparam name="T">列表中元素的类型。</typeparam>
 /// <remarks>
-/// 列表将获取传递给它的元素的所有权, 而日记记录在每次发生突变时。 要更改元素, 请指定一个新实例 。
+/// 列表取得传入元素的所有权，并在每次变更发生时将其记入日志。若要改变某个元素，请赋予新实例。
 /// </remarks>
 public interface IDurableList<T> : IList<T>
 {
     /// <summary>
-    /// 将指定收藏的元素添加到列表末尾。
+    /// 将指定集合的元素添加到列表末尾。
     /// </summary>
-    /// <param name="collection">收藏元素添加到列表中的收藏 。</param>
+    /// <param name="collection">要将其元素添加到列表的集合。</param>
     void AddRange(IEnumerable<T> collection);
 
     /// <summary>
-    /// 当前列表返回只读的折叠符。
+    /// 返回当前列表的只读包装器。
     /// </summary>
-    /// <returns>当前列表的只读折叠器。</returns>
+    /// <returns>当前列表的只读包装器。</returns>
     ReadOnlyCollection<T> AsReadOnly();
 }
 
@@ -85,7 +85,7 @@ internal sealed class DurableList<T> : IDurableList<T>, IStateMachine, IDurableL
 
     void IStateMachine.WritePendingEntries(JournalStreamWriter writer)
     {
-        // 此状态的实施随着数据结构的修改而附加日记条目, 因此在此无需单独写入 。
+        // 此状态实现会在数据结构被修改时追加日志条目，因此不需要在此处单独执行写入。
     }
 
     void IStateMachine.WriteSnapshot(JournalStreamWriter snapshotWriter)

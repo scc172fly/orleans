@@ -13,14 +13,14 @@ public sealed class BootstrapDeliveryProbe : IOutgoingGrainCallFilter, IObserver
 
     private readonly ConcurrentDictionary<GrainId, TaskCompletionSource> _drains = new();
 
-    // 事件流是整个过程的, 所以固定程序会将订阅内容与集成处理 。
+    // 事件流是进程级的，因此测试夹具在释放集群时同时释放订阅。
     private readonly IDisposable _subscription;
 
     public BootstrapDeliveryProbe() => _subscription = MessagingEvents.AllEvents.Subscribe(this);
 
     public void Dispose() => _subscription.Dispose();
 
-    /// <summary>等到发件人发信箱的发件人发送信息后退信</summary>
+    /// <summary>等待发送方的发件箱对已投递消息执行终结处理。</summary>
     public Task WaitForDrainAsync(GrainId sender) =>
         _drains.GetOrAdd(sender, static _ => new(TaskCreationOptions.RunContinuationsAsynchronously)).Task.WaitAsync(TimeSpan.FromSeconds(30));
 

@@ -17,35 +17,35 @@ using HttpJsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 namespace Orleans.Durable.Http;
 
-/// <summary>确定回调程序,由它决定其请求的页眉和机体。</summary>
+/// <summary>标识回调协议，该协议决定回调请求的请求头与请求体。</summary>
 [GenerateSerializer]
 public enum DurableCallbackProtocol
 {
     /// <summary>
-    /// 带有标准 Webhoooks 头目: <c>webhook-id</c>的网络监视器,
-    /// 凡企图者,都相等; <c>webhook-timestamp</c>,和 <c>webhook-signature</c> 时
-    /// <see cref="IDurableWebhookSigner"/> 信号发送。
+    /// 采用 Standard Webhooks 请求头的 Webhook，携带操作的状态监视器：<c>webhook-id</c>（在
+    /// 各次尝试中相同）、<c>webhook-timestamp</c>，以及 <c>webhook-signature</c>（当
+    /// <see cref="IDurableWebhookSigner"/> 为交付签名时发送）。
     /// </summary>
     Webhook,
 
     /// <summary>
-    /// Nexus 完成反馈, 产生结果或效果 <c>Failure</c>,与 <c>Nexus-Operation-Token</c>,
-    /// <c>Nexus-Operation-State</c>和 <c>Nexus-Operation-Close-Time</c> 页眉。它略去
-    /// <c>Nexus-Operation-Start-Time</c>,因此打电话者使用收到完成的时间。
+    /// Nexus 完成回调，携带结果或 <c>Failure</c>，并附带 <c>Nexus-Operation-Token</c>、
+    /// <c>Nexus-Operation-State</c> 和 <c>Nexus-Operation-Close-Time</c> 请求头。不发送
+    /// <c>Nexus-Operation-Start-Time</c>，因此调用方使用收到完成通知的时间。
     /// </summary>
     Nexus,
 }
 
-/// <summary>描述向调用者的 URL 发送操作结果的回调。</summary>
-/// <param name="Protocol">召回请求的规程</param>
-/// <param name="OperationHost">操作所在的 grain 。</param>
-/// <param name="OperationId">打电话者知道操作的识别符号:其操作识别符或Nexus 质证。</param>
-/// <param name="Url">收到回调的 URL。</param>
+/// <summary>描述向调用方 URL 交付操作结果的回调。</summary>
+/// <param name="Protocol">回调请求的协议。</param>
+/// <param name="OperationHost">承载操作的 Grain。</param>
+/// <param name="OperationId">调用方用于识别操作的标识，即操作标识符或 Nexus 令牌。</param>
+/// <param name="Url">接收回调的 URL。</param>
 /// <param name="Headers">
-/// 调用者要求每批交付时的页头携带的页眉, 以小写字母名称表示。 其值可以是证书, 所以每个
-/// 使用 ASP.NET 核心数据保护来保护价值,交付不保护其价值。
+/// 调用方要求每次交付携带的请求头，按小写名称索引。其值可能包含凭据，因此每个值均
+/// 使用 ASP.NET Core Data Protection 进行保护，并在实际交付时解除保护。
 /// </param>
-/// <param name="OperationLocation">运行状态监视器的 URL , 用于 Webhoooks 。</param>
+/// <param name="OperationLocation">操作状态监视器的 URL，用于 Webhook。</param>
 [GenerateSerializer, Immutable]
 [Alias("Orleans.Durable.Http.DurableCallback")]
 public sealed record DurableCallback(
@@ -56,12 +56,12 @@ public sealed record DurableCallback(
     [property: Id(4)] IReadOnlyDictionary<string, string> Headers,
     [property: Id(5)] string? OperationLocation)
 {
-    /// <summary>保护回溯者价值的数据保护保护工具的宗旨。</summary>
+    /// <summary>保护回调请求头值的数据保护器的用途字符串。</summary>
     internal const string HeaderProtectionPurpose = "Orleans.Durable.Http.DurableCallback.Headers";
 
     /// <summary>
-    /// 返回回调的识别符号:成员处理其交付的散列,因此每个成员的登记
-    /// 操作( 如重审启动) 的接收器, 到达一个中继, 以信头随身携带 。
+    /// 返回回调标识符：对用于定位交付目标的成员进行哈希计算，因此针对一个操作对同一
+    /// 接收方进行的所有注册（例如重试启动时的注册）都会到达同一中继，不受所携带请求头影响。
     /// </summary>
     internal string GetCallbackId()
     {
@@ -79,74 +79,74 @@ public sealed record DurableCallback(
     }
 }
 
-/// <summary>信号网络钩交付,按标准 Webhooks 键。</summary>
+/// <summary>按 Standard Webhooks 规范为 Webhook 交付签名。</summary>
 /// <remarks>
-/// 应用程序拥有签名密钥:在 silos服务收藏中登记执行,例如
-/// 计算 <c>v1,{base64(HMAC-SHA256(secret, "{id}.{timestamp}.{body}"))}</c> ,每个接收器都有一个秘密。
-/// 投出失败的运送尝试, 交付重试。
+/// 应用自行管理签名密钥：在 Silo 的服务集合中注册一个实现，例如使用各接收方专用的密钥
+/// 计算 <c>v1,{base64(HMAC-SHA256(secret, "{id}.{timestamp}.{body}"))}</c>。签名器若
+/// 抛出异常，本次交付尝试即失败，随后由交付机制重试。
 /// </remarks>
 public interface IDurableWebhookSigner
 {
-    /// <summary>返回 <c>webhook-signature</c> 交付货物的页头值,或 <see langword="null"/> 至于任何人,</summary>
-    /// <param name="callback">交付的回调所属。</param>
-    /// <param name="webhookId">送货 <c>webhook-id</c>.</param>
-    /// <param name="timestamp">运送企图 <c>webhook-timestamp</c>,在自Unix时代后几秒钟。</param>
-    /// <param name="body">送货尸体,字节为字节</param>
+    /// <summary>返回本次交付的 <c>webhook-signature</c> 请求头值；若不发送该请求头，则返回 <see langword="null"/>。</summary>
+    /// <param name="callback">本次交付所属的回调。</param>
+    /// <param name="webhookId">本次交付的 <c>webhook-id</c>。</param>
+    /// <param name="timestamp">本次交付尝试的 <c>webhook-timestamp</c>，以 Unix 纪元起的秒数表示。</param>
+    /// <param name="body">本次交付的完整请求体字节。</param>
     string? Sign(DurableCallback callback, string webhookId, long timestamp, ReadOnlySpan<byte> body);
 }
 
-/// <summary>配置回传发送。</summary>
+/// <summary>配置回调交付。</summary>
 public sealed class DurableCallbackOptions
 {
-    /// <summary>发送回溯的 <see cref="HttpClient"/> 的名称。</summary>
+    /// <summary>用于交付回调的 <see cref="HttpClient"/> 的名称。</summary>
     public const string HttpClientName = "Orleans.Durable.Http.Callbacks";
 
     /// <summary>
-    /// 获取或设定发件时间多久, 从发件开始到放弃之前的回调。 默认值是
-    /// 三天后
+    /// 获取或设置从开始交付起允许重试回调的时长，超过该时长则放弃交付。默认值为
+    /// 三天。
     /// </summary>
     public TimeSpan RetryTimeout { get; set; } = TimeSpan.FromDays(3);
 
-    /// <summary>获取或设置第一次重试之前的间隔, 后一次重试的间隔会加倍。 默认为一秒钟 。</summary>
+    /// <summary>获取或设置首次重试前的间隔，此后每次重试的间隔加倍。默认值为一秒。</summary>
     public TimeSpan InitialRetryInterval { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
-    /// 获取或设定在重试之间最长的间隔,包括接收器 <c>Retry-After</c>
-    /// 请求。 默认时间为5分钟。
+    /// 获取或设置重试之间的最长间隔，包括接收方通过 <c>Retry-After</c>
+    /// 请求的间隔。默认值为五分钟。
     /// </summary>
     /// <remarks>
-    /// 每次重试等待的间隔时间越长, 最多要等待双倍间隔的时间长度和接收器的 <c>Retry-After</c>, 最多要等待
-    /// 间距,再加四分之一以上, 将许多回调的重试分到一个接收器。
+    /// 每次重试等待加倍后的间隔与接收方 <c>Retry-After</c> 所指定间隔中的较大值，但不超过本
+    /// 配置的间隔，再增加最多四分之一的抖动时长，以分散发往同一接收方的大量回调重试。
     /// </remarks>
     public TimeSpan MaxRetryInterval { get; set; } = TimeSpan.FromMinutes(5);
 
     /// <summary>
-    /// 获取或设置函数,以决定发送是否连接到一个地址,该地址是回调 URL 主机
-    /// 确定交付连接时的解决方案,或 <see langword="null"/> 将连接保留到客户主机
-    /// 处理器
+    /// 获取或设置一个函数，用于判定交付时是否允许连接到回调 URL 的主机名在建立连接时
+    /// 解析出的地址；若为 <see langword="null"/>，则将连接处理交由客户端的主
+    /// 处理程序。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 默认值 <see cref="IsPublicAddress"/>,仅接受公共地址,因此,一个回调的 URL,其主机对
-    /// 反馈、私人、本地链接或其他内部地址,包括通过DNS(在
-    /// 应用程序接受了 URL , 无法到达内部服务。 发送文件连接到检查所在地址
-    /// 已接受。
+    /// 默认实现 <see cref="IsPublicAddress"/> 只接受公有地址，因此当回调 URL 的主机名解析到
+    /// 环回、私有、链路本地或其他内部地址时（包括应用接受 URL 后 DNS 解析结果发生变化的情况），
+    /// 交付不会访问内部服务。实际交付连接到通过检查的
+    /// 地址。
     /// </para>
     /// <para>
-    /// 检查运行 <c>ConnectCallback</c> 调回客户端的 <see cref="SocketsHttpHandler"/>客户
-    /// 其主要处理器将其他方式连接起来,例如 <see cref="HttpClientHandler"/> 或
-    /// <see cref="SocketsHttpHandler"/> 拥有自有 <c>ConnectCallback</c>,除非该财产是
+    /// 此检查在回调客户端的 <c>ConnectCallback</c>（属于 <see cref="SocketsHttpHandler"/>）中执行。若客户端
+    /// 的主处理程序使用其他连接方式（例如 <see cref="HttpClientHandler"/>，或
+    /// <see cref="SocketsHttpHandler"/>（自带 <c>ConnectCallback</c>）），则客户端构建会失败，除非将此属性设置为
     /// <see langword="null"/>.
     /// </para>
     /// </remarks>
     public Func<IPAddress, bool>? AllowAddress { get; set; } = IsPublicAddress;
 
     /// <summary>
-    /// 返回是否 <paramref name="address"/> 是一个公共的单人广播地址,而不是回过头来、私人、共享和分享的,
-    /// 链接-本地、多台、文档或其他保留文件。
+    /// 返回 <paramref name="address"/> 是否为公有单播地址，而不是环回、私有、共享、
+    /// 链路本地、多播、文档示例或其他保留地址。
     /// </summary>
     /// <param name="address">地址。</param>
-    /// <returns><see langword="true"/> 用于公开的单人地址。</returns>
+    /// <returns><see langword="true"/> 表示公有单播地址。</returns>
     public static bool IsPublicAddress(IPAddress address)
     {
         ArgumentNullException.ThrowIfNull(address);
@@ -188,7 +188,7 @@ public sealed class DurableCallbackOptions
             Span<byte> bytes = stackalloc byte[16];
             address.TryWriteBytes(bytes, out _);
 
-            // 2002年:16(6至4) 嵌入IPv4地址,64:ff9b:96翻译1;2001:db8:32文件实例。
+            // 2002::/16（6to4）嵌入 IPv4 地址，64:ff9b::/96 用于转换 IPv4 地址，2001:db8::/32 用于文档示例。
             return bytes switch
             {
                 [0x20, 0x02, ..] => false,
@@ -202,7 +202,7 @@ public sealed class DurableCallbackOptions
     }
 }
 
-/// <summary>表示发送放弃的回调。</summary>
+/// <summary>表示已放弃交付的回调。</summary>
 [GenerateSerializer]
 [Alias("Orleans.Durable.Http.DurableCallbackDeliveryException")]
 public sealed class DurableCallbackDeliveryException : Exception
@@ -211,15 +211,15 @@ public sealed class DurableCallbackDeliveryException : Exception
     {
     }
 
-    /// <summary>初始化了交付放弃的回调的例外。</summary>
-    /// <param name="message">描述最后一次尝试。</param>
+    /// <summary>为已放弃交付的回调初始化异常。</summary>
+    /// <param name="message">最后一次尝试的说明。</param>
     public DurableCallbackDeliveryException(string message)
         : base(message)
     {
     }
 }
 
-/// <summary>一旦其运行为终端, 将发送回调, 重试直到接收者接受它。</summary>
+/// <summary>操作进入终态后交付回调，直至接收方接受为止（必要时重试）。</summary>
 [Alias("Orleans.Durable.Http.IDurableCallbackRelayGrain")]
 internal interface IDurableCallbackRelayGrain : IGrainWithStringKey
 {
@@ -228,13 +228,13 @@ internal interface IDurableCallbackRelayGrain : IGrainWithStringKey
 }
 
 /// <summary>
-/// 中继回回调:每次回回回都是由回回的识别符号作为键键,由自上继中继的单独、耐久的任务。
-/// 等待操作终端结果,并用耐久重试来交付。
+/// 中继回调：每个回调都是在独立中继 Grain 上运行的分离式持久化任务，以回调标识符为键，
+/// 等待操作进入终态，并通过持久化重试交付其结果。
 /// </summary>
 /// <remarks>
-/// 交付至少一次:接收器通过 <c>webhook-id</c> 或 <c>Nexus-Operation-Token</c>进行重复处理。
-/// 接收者回答时结束 <c>2xx</c> 或 <c>410 Gone</c>,或失败 <see cref="DurableCallbackDeliveryException"/>
-/// 一旦 <see cref="DurableCallbackOptions.RetryTimeout"/> 折叠,继电器保留用于诊断和日志。
+/// 交付采用至少一次语义：接收方根据 <c>webhook-id</c> 或 <c>Nexus-Operation-Token</c> 去重。
+/// 接收方返回 <c>2xx</c> 或 <c>410 Gone</c> 时结束交付；否则可能以 <see cref="DurableCallbackDeliveryException"/> 失败，
+/// 即 <see cref="DurableCallbackOptions.RetryTimeout"/> 到期时仍未成功；中继保留失败信息，用于诊断和日志记录。
 /// </remarks>
 [GrainType("orleans-durable-http-callback")]
 internal sealed partial class DurableCallbackRelayGrain(
@@ -247,7 +247,7 @@ internal sealed partial class DurableCallbackRelayGrain(
     IOptions<HttpJsonOptions> jsonOptions,
     ILogger<DurableCallbackRelayGrain> logger) : DurableGrain, IDurableCallbackRelayGrain
 {
-    /// <summary>其中继交付任务根标识符。</summary>
+    /// <summary>中继上交付任务的根任务标识符。</summary>
     public const string DeliveryRootId = "deliver";
 
     private readonly IDataProtector _headers = dataProtection.CreateProtector(DurableCallback.HeaderProtectionPurpose);
@@ -255,8 +255,8 @@ internal sealed partial class DurableCallbackRelayGrain(
     public async DurableTask DeliverAsync(DurableCallback callback)
     {
         var options = callbackOptions.Value;
-        // 订阅记录了业务的终端反应,其结果保留了任务类型,记录在这项任务的树上,以及
-        // 向行动完成时的逻辑时间预付款。
+        // 订阅将操作的终态响应（结果保留原有类型）记录在此任务树中，并
+        // 将逻辑时间推进至操作完成的时间。
         var subscription = await grainFactory.GetGrain(callback.OperationHost)
             .GetDurableTask<object?>(DurableOperationGrain.RootId)
             .WithId("observe")
@@ -299,16 +299,16 @@ internal sealed partial class DurableCallbackRelayGrain(
     }
 
     /// <summary>
-    /// 返回下次尝试前的延迟时间: <paramref name="backoff"/> 的长度和接收器的
-    /// <paramref name="retryAfter"/>,最多 <paramref name="maxInterval"/>,加上最多不超过四分之一以上,其来源是
-    /// 重复和尝试, 所以每次重播都等待同样的延迟。
+    /// 返回下次尝试前的等待时长：取 <paramref name="backoff"/> 和接收方
+    /// <paramref name="retryAfter"/> 所指定时长中的较大值，不超过 <paramref name="maxInterval"/>，再增加最多四分之一的抖动时长；该抖动根据
+    /// 回调及尝试次数确定，因此每次重放的等待时长均相同。
     /// </summary>
     internal static TimeSpan GetRetryDelay(TimeSpan? retryAfter, TimeSpan backoff, TimeSpan maxInterval, string callbackId, int attemptNumber)
     {
         var delay = retryAfter > backoff ? retryAfter.Value : backoff;
         delay = delay < maxInterval ? delay : maxInterval;
 
-        // FNV-1a 翻过回击识别码和尝试号
+        // 对回调标识符和尝试次数计算 FNV-1a 哈希。
         var hash = 2166136261u;
         foreach (var character in callbackId)
         {
@@ -319,7 +319,7 @@ internal sealed partial class DurableCallbackRelayGrain(
         return delay + delay * (hash / (double)uint.MaxValue / 4);
     }
 
-    /// <summary>返回交付操作终端的请答机构 <paramref name="response"/>.</summary>
+    /// <summary>返回用于交付操作终态 <paramref name="response"/> 的请求体。</summary>
     private DurableCallbackOutcome Format(DurableCallback callback, DurableTaskResponse response, DateTimeOffset closedAt)
     {
         var json = jsonOptions.Value.SerializerOptions;
@@ -335,7 +335,7 @@ internal sealed partial class DurableCallbackRelayGrain(
         return new(JsonSerializer.SerializeToUtf8Bytes(operation, DurableHttpJsonContext.Default.DurableOperation), operation.Status.ToString(), closedAt);
     }
 
-    /// <summary>发送一次送货尝试,并返回接收者是否接受。</summary>
+    /// <summary>执行一次交付尝试，并返回接收方是否接受该交付。</summary>
     private async Task<DurableCallbackAttempt> SendAsync(DurableCallback callback, DurableCallbackOutcome outcome, CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, callback.Url) { Content = new ByteArrayContent(outcome.Body) };
@@ -413,7 +413,7 @@ internal sealed partial class DurableCallbackRelayGrain(
         }
         catch (OperationCanceledException exception) when (!cancellationToken.IsCancellationRequested)
         {
-            // 客户的超时时间已经过去了
+            // 客户端超时。
             LogAttemptFailed(logger, exception, callback.Url, callback.OperationId);
             return new(false, exception.Message, null);
         }
@@ -432,14 +432,14 @@ internal sealed partial class DurableCallbackRelayGrain(
     private static partial void LogFormatFailed(ILogger logger, Exception exception, Uri url, string operationId);
 }
 
-/// <summary>将回溯交付连接到 <see cref="DurableCallbackOptions.AllowAddress"/> 接受的地址。</summary>
+/// <summary>将回调交付连接到 <see cref="DurableCallbackOptions.AllowAddress"/> 接受的地址。</summary>
 internal static class DurableCallbackConnections
 {
     /// <summary>
-    /// 确定交付文件连接到第一个地址并连接到该地址的东道主 <paramref name="allowAddress"/>
-    /// 接受,所以检查所接受的地址是交付到达的地址。
+    /// 解析交付所连接的主机名，并连接到 <paramref name="allowAddress"/> 接受的第一个
+    /// 地址，确保检查通过的地址就是实际交付到达的地址。
     /// </summary>
-    /// <exception cref="HttpRequestException">主机解决的地址没有 <paramref name="allowAddress"/> 接受。</exception>
+    /// <exception cref="HttpRequestException">主机名未解析到任何 <paramref name="allowAddress"/> 接受的地址。</exception>
     public static async ValueTask<Stream> ConnectAsync(DnsEndPoint endpoint, Func<IPAddress, bool> allowAddress, CancellationToken cancellationToken)
     {
         var addresses = IPAddress.TryParse(endpoint.Host, out var literal)
@@ -465,16 +465,16 @@ internal static class DurableCallbackConnections
     }
 }
 
-/// <summary>记录提供业务终端结果的请求。</summary>
-/// <param name="Body">请求书的尸体</param>
-/// <param name="State">操作的终端状态, 以回调协议的名称命名 。</param>
-/// <param name="ClosedAt">观察记录了这次行动完成时的情况。</param>
+/// <summary>记录用于交付操作终态结果的请求。</summary>
+/// <param name="Body">请求体。</param>
+/// <param name="State">操作的终态，采用回调协议中的状态名称。</param>
+/// <param name="ClosedAt">操作完成的时间，以观察时记录的值为准。</param>
 [GenerateSerializer, Immutable]
 internal sealed record DurableCallbackOutcome(byte[] Body, string State, DateTimeOffset ClosedAt);
 
-/// <summary>记录一次运送未遂。</summary>
-/// <param name="Delivered">接收人接受交货还是退出回调 <c>410 Gone</c>.</param>
-/// <param name="Status">反应状态,或防止失败的失败。</param>
-/// <param name="RetryAfter">下一次尝试之前答复 <c>Retry-After</c> 请求之后重新查询的间隔。</param>
+/// <summary>记录一次交付尝试。</summary>
+/// <param name="Delivered">接收方是否已接受交付，或通过 <c>410 Gone</c> 停止该回调。</param>
+/// <param name="Status">响应状态，或导致未获得响应的故障。</param>
+/// <param name="RetryAfter">响应的 <c>Retry-After</c> 所指定的下次尝试前的间隔。</param>
 [GenerateSerializer, Immutable]
 internal sealed record DurableCallbackAttempt(bool Delivered, string Status, TimeSpan? RetryAfter);

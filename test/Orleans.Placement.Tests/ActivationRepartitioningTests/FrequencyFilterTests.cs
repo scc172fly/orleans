@@ -59,21 +59,21 @@ public class FrequencyFilterTests
     }
 
     /// <summary>
-    /// 生成了大约的 Zipf 分布。 以前的方法比 MathNet.Numerics快20x, 但只能产生250个样本/秒。
-    /// 这一大致方法可产生大于1,000,000个样本/秒。
+    /// 生成近似 Zipf 分布。先前方法比 MathNet.Numerics 快 20 倍，但每秒只能生成 250 个样本。
+    /// 此近似方法每秒可以生成超过 1,000,000 个样本。
     /// </summary>
     public class FastZipf
     {
         private static readonly Random SeededPrng = new(42);
 
         /// <summary>
-        /// 生成一个拉链分布。
+        /// 生成 Zipf 分布。
         /// </summary>
         /// <param name="random">要使用的随机数生成器。</param>
         /// <param name="sampleCount">样本数量。</param>
-        /// <param name="skew">斜线 s=0 是统一的分布。 随着增长,高档项目比稀有低档项目的可能性更快。</param>
-        /// <param name="cardinality">N: 基本情况。项目总数。</param>
-        /// <returns>一条拉链的分布。</returns>
+        /// <param name="skew">偏斜度。s=0 时为均匀分布。随着 s 增大，排名靠前的项相较于排名靠后的稀有项，其出现概率迅速增大。</param>
+        /// <param name="cardinality">N：基数，即项的总数。</param>
+        /// <returns>Zipf 分布。</returns>
         public static long[] Generate(Random random, int sampleCount, double skew, int cardinality)
         {
             var sampler = new ZipfRejectionSampler(random, cardinality, skew);
@@ -88,12 +88,12 @@ public class FrequencyFilterTests
         }
 
         /// <summary>
-        /// 生成一个拉链分布。
+        /// 生成 Zipf 分布。
         /// </summary>
         /// <param name="sampleCount">样本数量。</param>
-        /// <param name="skew">斜线 s=0 是统一的分布。 随着增长,高档项目比稀有低档项目的可能性更快。</param>
-        /// <param name="cardinality">N: 基本情况。项目总数。</param>
-        /// <returns>一条拉链的分布。</returns>
+        /// <param name="skew">偏斜度。s=0 时为均匀分布。随着 s 增大，排名靠前的项相较于排名靠后的稀有项，其出现概率迅速增大。</param>
+        /// <param name="cardinality">N：基数，即项的总数。</param>
+        /// <returns>Zipf 分布。</returns>
         public static long[] Generate(int sampleCount, double skew, int cardinality) => Generate(SeededPrng, sampleCount, skew, cardinality);
     }
 

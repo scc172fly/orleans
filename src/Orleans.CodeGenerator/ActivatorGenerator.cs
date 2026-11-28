@@ -9,7 +9,7 @@ internal class ActivatorGenerator(IGeneratorServices generatorServices)
 {
     private readonly IGeneratorServices _generatorServices = generatorServices;
 
-    /// <summary>返回 <paramref name="type"/>的激活声明,该声明在不附加缩进信息的情况下写成。</summary>
+    /// <summary>返回 <paramref name="type"/> 的激活器声明，不包含外层缩进。</summary>
     public string GenerateActivator(ISerializableTypeDescription type)
     {
         var writer = new SourceWriter();
@@ -82,7 +82,7 @@ internal class ActivatorGenerator(IGeneratorServices generatorServices)
     public static string GetSimpleClassName(string name) => $"Activator_{name}";
 
     /// <summary>
-    /// 确定是否应该为指定类型生成一个活性器。
+    /// 确定是否应为指定类型生成激活器。
     /// </summary>
     internal static bool ShouldGenerateActivator(ISerializableTypeDescription type)
     {

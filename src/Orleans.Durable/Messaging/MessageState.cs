@@ -8,13 +8,13 @@ internal sealed class InboxMessageState
     [Id(0)]
     public int AttemptCount { get; set; }
 
-    /// <summary>在持久工作时钟上获取或设定时间, 信箱再次尝试该信件。</summary>
+    /// <summary>获取或设置收件箱根据持久化作业时钟再次尝试处理消息的起始时间。</summary>
     [Id(1)]
     public DateTimeOffset? NextAttemptAt { get; set; }
 
     /// <summary>
-    /// 错误信件的重写在持久工作钟中结束时, 其后 <c>InboxRetryTimeout</c> 上[ 挂牌
-    /// 第一次失败。
+    /// 获取或设置按持久化作业时钟计算的失败消息重试截止时间：在首次失败时间上加上 <c>InboxRetryTimeout</c>
+    /// 所指定的时长。
     /// </summary>
     [Id(3)]
     public DateTimeOffset? ExpirationTime { get; set; }
@@ -33,8 +33,8 @@ internal sealed class OutboxMessageState
     public string? LastError { get; set; }
 
     /// <summary>
-    /// 获取或设置逻辑发送在“ 持久工作钟” 上的中转时间。 每一次尝试都保留了这个值 ;
-    /// 之后的重新输入端 <c>OutboxRetryTimeout</c> 。一个回收条目要求该日记值。
+    /// 获取或设置逻辑发送的暂存时间，使用持久化作业时钟。每次尝试均保留该值；
+    /// 重试在其后的 <c>OutboxRetryTimeout</c> 时结束。恢复的条目必须包含该日志记录值。
     /// </summary>
     [Id(3)]
     public DateTimeOffset? SentAt { get; set; }

@@ -14,7 +14,7 @@ using System.Threading;
 namespace Orleans.TestingHost;
 
 /// <summary>
-/// 默认 <see cref="ITestClusterPortAllocator"/> 执行, 试图分配未使用的端口 。
+/// <see cref="ITestClusterPortAllocator"/> 的默认实现，尝试分配未使用的端口。
 /// </summary>
 public class TestClusterPortAllocator : ITestClusterPortAllocator
 {
@@ -30,7 +30,7 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
     /// <inheritdoc />
     public (int, int) AllocateConsecutivePortPairs(int numPorts = 5)
     {
-        // 评估当前系统 tcp 连接
+        // 检查系统当前的 TCP 连接。
         var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
         var tcpConnInfoArray = ipGlobalProperties.GetActiveTcpListeners();
 
@@ -51,7 +51,7 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
         int gatewayPortRangeStart,
         int gatewayPortRangeEnd)
     {
-        // 这些服务器-门户网站区域位于支持操作系统的默认动态客户端-门户网站范围之下。
+        // 在受支持的操作系统上，这些服务端端口范围低于默认的动态客户端端口范围。
         var siloPort = GetAvailableConsecutiveServerPorts(tcpConnInfoArray, siloPortRangeStart, siloPortRangeEnd, numPorts);
         try
         {
@@ -73,9 +73,9 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
     }
 
     /// <summary>
-    /// 释放未经管理和任选管理的资源。
+    /// 释放非托管资源，并根据需要释放托管资源。
     /// </summary>
-    /// <param name="disposing"><see langword="true" /> 释放管理下和未管理的资源; <see langword="false" /> 释放仅释放未管理的资源。</param>
+    /// <param name="disposing"><see langword="true" /> 表示释放托管和非托管资源；<see langword="false" /> 表示仅释放非托管资源。</param>
     protected virtual void Dispose(bool disposing)
     {
         if (_disposed)
@@ -101,7 +101,7 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
     }
 
     /// <summary>
-    /// 最后确定了 <see cref="TestClusterPortAllocator"/> 类的例数。
+    /// 对 <see cref="TestClusterPortAllocator"/> 类的实例执行终结操作。
     /// </summary>
     ~TestClusterPortAllocator()
     {
@@ -141,11 +141,11 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
 
         for (var attempts = 0; attempts < MaxAttempts; attempts++)
         {
-            // 使用对齐的桶子,平行的分配器探测连续距离断开。
+            // 使用对齐的分桶，使并行分配器探测互不重叠的连续范围。
             var basePort = firstBasePort + Random.Shared.Next(bucketCount) * consecutivePortsToCheck;
             var endPort = basePort + consecutivePortsToCheck;
 
-            // 确保该子范围内的任何港口均不使用
+            // 确保该子范围中的端口均未被占用。
             var activeListener = tcpConnInfoArray.FirstOrDefault(endpoint => endpoint.Port >= basePort && endpoint.Port < endPort);
             if (activeListener is not null)
             {
@@ -221,7 +221,7 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
 
             if (allocations.Count == 0)
             {
-                // 尝试不同的范围。
+                // 尝试其他范围。
                 continue;
             }
 
@@ -369,7 +369,7 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
 
                             if (acquired)
                             {
-                                // 获得
+                                // 已获取。
                                 _mutexes[name] = mutex;
                                 mutex = null;
                                 result[0] = MutexAcquisitionResult.Acquired;
@@ -416,13 +416,13 @@ public class TestClusterPortAllocator : ITestClusterPortAllocator
 
             try
             {
-                // 港口分配同步;其上层工作人员有名获得哑巴。
+                // 端口分配为同步操作；命名互斥体的获取在具有线程亲和性的工作线程上执行。
                 signal.Task.WaitAsync(_acquisitionTimeout).GetAwaiter().GetResult();
             }
             catch (TimeoutException)
             {
-                // 获取的仍排队, 可在该呼叫器放弃后完成 。
-                // 将有条件清理置于其背后,这样只有根据这项请求获得的哑巴才能被释放。
+                // 获取操作仍在队列中，并且可能在此调用方放弃等待后完成。
+                // 在它之后将条件清理操作排队，确保只释放由此请求获取的互斥体。
                 SignalRelease(name, acquiredByRequest);
                 throw new TimeoutException("Timed out while waiting for MutexManager to acquire mutex.");
             }

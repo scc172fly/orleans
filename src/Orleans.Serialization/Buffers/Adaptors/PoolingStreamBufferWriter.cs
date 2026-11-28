@@ -3,7 +3,7 @@ using System.Buffers;
 namespace Orleans.Serialization.Buffers.Adaptors
 {
     /// <summary>
-    /// 执行《公约》执行 <see cref="IBufferWriter{T}"/> 将写到 <see cref="Stream"/>,将集合阵列用作中间缓冲。
+    /// <see cref="IBufferWriter{T}"/> 的一种实现，使用池化数组作为中间缓冲区向 <see cref="Stream"/> 写入数据。
     /// </summary>
     public struct PoolingStreamBufferWriter : IBufferWriter<byte>, IDisposable
     {

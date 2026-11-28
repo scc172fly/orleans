@@ -3,7 +3,7 @@ namespace UnitTests.StorageTests.Relational.TestDataSets
     public static class GrainTypeGenerator
     {
         /// <summary>
-        /// 当通用参数未被使用并应用到某些函数调用时, 将一个监控值用于该值。
+        /// 当某个泛型参数未使用但仍需传入某个函数调用时使用的哨兵值。
         /// </summary>
         private class NotApplicable { };
 
@@ -65,17 +65,17 @@ namespace UnitTests.StorageTests.Relational.TestDataSets
             return GetGrainType<TGrainKey, NotApplicable>();
         }
 
-        // Orleans.Storage.AdoNetStorageProvider 无法解决,因为由于不需要,没有提及含有组件的组装。
+        // 无法解析 Orleans.Storage.AdoNetStorageProvider，因为不需要引用包含它的程序集，故未引用。
 #pragma warning disable 1574
         /// <summary>
-        /// 返回 grain 类型名称。
+        /// 返回 Grain 类型名称。
         /// </summary>
-        /// <typeparam name="TGrainKey">用于选择密钥类型接口。</typeparam>
-        /// <typeparam name="TGrain">用于选择 grain的类型。</typeparam>
-        /// <returns>类型( T) 中的类别 。AssemblyQualifiedName 窗体。</returns>
-        /// <remarks> Asumes Orleans 将这种形式的 <em>grainType</em> 参数改为 <see cref="Orleans.Storage.IStorageProvider"/> 接口执行功能。
-        /// 在 <see cref="Orleans.Storage.AdoNetStorageProvider"/> 私用函数 <em>ExtractClassBaseType</em> 中,此格式为此。应该固定
-        /// 是否/如果在 Orleans中更改了该数值。
+        /// <typeparam name="TGrainKey">用于选择键类型接口。</typeparam>
+        /// <typeparam name="TGrain">用于选择 Grain 类型。</typeparam>
+        /// <returns>以 typeof(T).AssemblyQualifiedName 形式表示的类。</returns>
+        /// <remarks>假定 Orleans 以此形式将 <em>grainType</em> 参数传递给 <see cref="Orleans.Storage.IStorageProvider"/> 接口的实现函数。
+        /// <see cref="Orleans.Storage.AdoNetStorageProvider"/> 中的私有函数 <em>ExtractClassBaseType</em> 依赖此形式。如果 Orleans 改变了此形式，
+        /// 则应修正该函数。
         /// </remarks>
 #pragma warning restore 1574
         public static string GetGrainType<TGrainKey, TGrain>()

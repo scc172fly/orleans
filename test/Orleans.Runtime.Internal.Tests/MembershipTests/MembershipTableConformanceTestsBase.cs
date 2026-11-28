@@ -10,7 +10,7 @@ public abstract class MembershipTableConformanceTestsBase
     protected abstract MembershipTableTestFixture CreateConformanceFixture();
 
     protected virtual int ConformanceConcurrencyRowCount => 128;
-    // 贴面附于 HostName ,必须符合供应商的固定字符串限制。
+    // 填充内容追加至 HostName，且必须符合提供程序的持久化字符串长度限制。
     protected virtual int ConformanceConcurrencyRowPadding => 0;
 
     protected virtual void WriteConformanceOutput(string message)

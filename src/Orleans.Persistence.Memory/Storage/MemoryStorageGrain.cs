@@ -8,7 +8,7 @@ using Orleans.Storage.Internal;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// 内质存储供应商使用的存储 Grain 实施类别
+    /// 内存存储提供程序使用的存储 Grain 的实现类：
     /// <c>Orleans.Storage.MemoryStorage</c>
     /// </summary>
     [KeepAlive]
@@ -66,8 +66,8 @@ namespace Orleans.Storage
 
             var currentETag = GetETagFromStorage<T>(grainStoreKey);
             ValidateEtag(currentETag, etag, grainStoreKey, "Delete");
-            // 不要从字典中删除它, 只要设置为空值以记住此项目
-            // 曾经在店里,现在被删除
+            // 不要从字典中移除此条目，只将值设置为 null，以记录该条目
+            // 曾存在于存储中，但现已删除。
             _store[grainStoreKey] = null;
             return Task.CompletedTask;
         }
@@ -82,7 +82,7 @@ namespace Orleans.Storage
             string? currentETag = null;
             if (_store.TryGetValue(grainStoreKey, out var entry))
             {
-                // 如果条目为无效,则从存储中移除
+                // 如果条目为 null，则表示它已从存储中删除。
                 currentETag = entry != null ? ((IGrainState<T>)entry).ETag : string.Empty;
             }
             return currentETag;
@@ -90,20 +90,20 @@ namespace Orleans.Storage
 
         private void ValidateEtag(string? currentETag, string? receivedEtag, string grainStoreKey, string operation)
         {
-            // 如果我们没有当前数据, 我们将接受用户数据 。
-            // 这是当存储 grain 因 silo 崩溃而丢失时的缓解。
+            // 如果没有当前 ETag，则接受用户的数据。
+            // 这用于缓解因 Silo 崩溃而丢失内存存储 Grain 的情况。
             if (currentETag == null)
                 return;
 
-            // 如果这是我们第一次写作, 并且我们有一个空的牌子, 我们就很好
+            // 如果这是第一次写入，并且 ETag 为空，则可以继续。
             if (string.IsNullOrEmpty(currentETag) && receivedEtag == null)
                 return;
 
-            // 如果现在的状态和新状态 都配有匹配的标签 或者我们忽略ETag,我们就很好
+            // 如果当前状态与新状态的 ETag 匹配，或允许忽略 ETag，则可以继续。
             if (receivedEtag == currentETag || receivedEtag == "*")
                 return;
 
-            // 换句话说,我们有一个不匹配的
+            // 否则，ETag 不匹配。
             LogWarningEtagMismatch(operation, grainStoreKey, currentETag, receivedEtag);
             throw new MemoryStorageEtagMismatchException(currentETag, receivedEtag);
         }

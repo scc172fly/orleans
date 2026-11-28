@@ -25,7 +25,7 @@ public sealed partial class DurableTaskSignalTests
         Assert.True(signaled.Storage.Contains(raceId.Child("$winner")));
         Assert.False(signaled.Storage.Contains(raceId));
 
-        // 最后期限的延迟已经丢失 所以比赛在它返回之前取消了
+        // 截止时间的延迟操作未胜出，因此竞速操作在返回前将其取消。
         var delay = signaled.Storage.Get(raceId.Child("1"));
         Assert.Equal(DurableTaskStatus.Canceled, delay.Result!.Status);
         Assert.Equal(RaceLostReason, delay.CancellationReason);
@@ -65,7 +65,7 @@ public sealed partial class DurableTaskSignalTests
         await harness.Manager.WriteStateAsync(TestCancellation);
         await timedOut.Task.WaitAsync(TimeSpan.FromSeconds(10), TestCancellation);
 
-        // 等待失败,所以比赛在它返回之前取消了
+        // 等待操作未胜出，因此竞速操作在返回前将其取消。
         var wait = harness.Storage.Get(raceId.Child("0"));
         Assert.Equal(DurableTaskStatus.Canceled, wait.Result!.Status);
         Assert.Equal(RaceLostReason, wait.CancellationReason);

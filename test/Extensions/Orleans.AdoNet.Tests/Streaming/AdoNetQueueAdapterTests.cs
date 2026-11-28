@@ -12,7 +12,7 @@ using RelationalOrleansQueries = Orleans.Streaming.AdoNet.Storage.RelationalOrle
 namespace Tester.AdoNet.Streaming;
 
 /// <summary>
-/// 试验 <see cref="AdoNetQueueAdapter"/> 日 和 SQL 服务器
+/// 针对 SQL Server 的 <see cref="AdoNetQueueAdapter"/> 测试。
 /// </summary>
 [TestCategory("SqlServer"), TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("SqlServer")]
@@ -22,7 +22,7 @@ public class SqlServerAdoNetQueueAdapterTests(TestEnvironmentFixture fixture) : 
 }
 
 /// <summary>
-/// 试验 <see cref="AdoNetQueueAdapter"/> 日 和 MySQL.
+/// 针对 MySQL 的 <see cref="AdoNetQueueAdapter"/> 测试。
 /// </summary>
 [TestCategory("MySql"), TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("MySql")]
@@ -36,7 +36,7 @@ public class MySqlAdoNetQueueAdapterTests : AdoNetQueueAdapterTests
 }
 
 /// <summary>
-/// 试验 <see cref="AdoNetQueueAdapter"/> 日 和 PostgreSQL.
+/// 针对 PostgreSQL 的 <see cref="AdoNetQueueAdapter"/> 测试。
 /// </summary>
 [TestCategory("PostgreSql"), TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("PostgreSql")]
@@ -46,7 +46,7 @@ public class PostgreSqlAdoNetQueueAdapterTests(TestEnvironmentFixture fixture) :
 }
 
 /// <summary>
-/// <see cref="AdoNetQueueAdapter"/>测试。
+/// <see cref="AdoNetQueueAdapter"/> 的测试。
 /// </summary>
 [Collection(TestEnvironmentFixture.DefaultCollection)]
 [TestCategory("AdoNet"), TestCategory("Streaming")]
@@ -75,12 +75,12 @@ public abstract class AdoNetQueueAdapterTests(string invariant, TestEnvironmentF
     }
 
     /// <summary>
-    /// 测试 <see cref="AdoNetQueueAdapter"/> 构造与预期状态。
+    /// 测试 <see cref="AdoNetQueueAdapter"/> 构造后的状态是否符合预期。
     /// </summary>
     [Fact]
     public void AdoNetQueueAdapter_Constructs()
     {
-        // 安排
+        // 准备
         var name = "MyProviderId";
         var streamOptions = new AdoNetStreamOptions
         {
@@ -97,22 +97,22 @@ public abstract class AdoNetQueueAdapterTests(string invariant, TestEnvironmentF
         var logger = NullLogger<AdoNetQueueAdapter>.Instance;
         var serviceProvider = _fixture.Services;
 
-        // 行为
+        // 执行
         var adapter = new AdoNetQueueAdapter(name, streamOptions, clusterOptions, cacheOptions, mapper, _queries, new AdoNetStreamPositions(), serializer, logger, serviceProvider);
 
-        // 平面
+        // 验证
         Assert.Equal(name, adapter.Name);
         Assert.False(adapter.IsRewindable);
         Assert.Equal(StreamProviderDirection.ReadWrite, adapter.Direction);
     }
 
     /// <summary>
-    /// 测试 <see cref="AdoNetQueueAdapter"/> 可以对信件进行排队。
+    /// 测试 <see cref="AdoNetQueueAdapter"/> 能否将消息入队。
     /// </summary>
     [Fact]
     public async Task AdoNetQueueAdapter_EnqueuesMessages()
     {
-        // 安排
+        // 准备
         var serviceId = "MyServiceId";
         var clusterOptions = new ClusterOptions
         {
@@ -136,14 +136,14 @@ public abstract class AdoNetQueueAdapterTests(string invariant, TestEnvironmentF
         var adapter = new AdoNetQueueAdapter(providerId, streamOptions, clusterOptions, cacheOptions, adoNetMapper, _queries, new AdoNetStreamPositions(), serializer, logger, _fixture.Services);
         var context = new Dictionary<string, object> { { "MyKey", "MyValue" } };
 
-        // - 以下列方式发布一些消息:
+        // 执行 - 通过适配器将若干消息入队
         var beforeEnqueued = DateTime.UtcNow.AddSeconds(-1);
         await adapter.QueueMessageBatchAsync(streamId, new[] { new TestModel(1) }, null!, context);
         await adapter.QueueMessageBatchAsync(streamId, new[] { new TestModel(2) }, null!, context);
         await adapter.QueueMessageBatchAsync(streamId, new[] { new TestModel(3) }, null!, context);
         var afterEnqueued = DateTime.UtcNow.AddSeconds(1);
 
-        // 维护 - 存储信件如预期的那样
+        // 断言 - 已存储的消息符合预期
         var stored = (await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             TestContext.Current.CancellationToken)).ToList();
@@ -176,12 +176,12 @@ public abstract class AdoNetQueueAdapterTests(string invariant, TestEnvironmentF
     }
 
     /// <summary>
-    /// 测试 <see cref="AdoNetQueueAdapter"/> 能够将其接收器可见的信件排队。
+    /// 测试 <see cref="AdoNetQueueAdapter"/> 能否将消息入队，并使接收器可见这些消息。
     /// </summary>
     [Fact]
     public async Task AdoNetQueueAdapter_WiresUpReceiver()
     {
-        // 安排
+        // 准备
         var serviceId = "MyServiceId";
         var clusterOptions = new ClusterOptions
         {
@@ -204,21 +204,21 @@ public abstract class AdoNetQueueAdapterTests(string invariant, TestEnvironmentF
         var adoNetQueueId = adoMapper.GetAdoNetQueueId(streamId);
         var adapter = new AdoNetQueueAdapter(providerId, streamOptions, clusterOptions, cacheOptions, adoMapper, _queries, new AdoNetStreamPositions(), serializer, logger, _fixture.Services);
 
-        // - 以下列方式发布一些消息:
+        // 执行 - 通过适配器将若干消息入队
         var beforeEnqueued = DateTime.UtcNow.AddSeconds(-1);
         await adapter.QueueMessageBatchAsync(streamId, new[] { new TestModel(1) }, null!, new Dictionary<string, object> { { "MyKey", 1 } });
         await adapter.QueueMessageBatchAsync(streamId, new[] { new TestModel(2) }, null!, new Dictionary<string, object> { { "MyKey", 2 } });
         await adapter.QueueMessageBatchAsync(streamId, new[] { new TestModel(3) }, null!, new Dictionary<string, object> { { "MyKey", 3 } });
         var afterEnqueued = DateTime.UtcNow.AddSeconds(1);
 
-        // - 动作 抓取接收接收器并解除对信件的排泄
+        // 执行 - 获取接收器并将消息出队
         var receiver = adapter.CreateReceiver(queueId);
         await receiver.Initialize(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
         var beforeDequeued = DateTime.UtcNow.AddSeconds(-1);
         var messages = await receiver.GetQueueMessagesAsync(10, TestContext.Current.CancellationToken);
         var afterDequeued = DateTime.UtcNow.AddSeconds(1);
 
-        // 平面 - 已取消排队的信件与预期的一样
+        // 断言 - 出队消息符合预期
         Assert.NotNull(messages);
         Assert.Equal(3, messages.Count);
         for (var i = 0; i < messages.Count; i++)
@@ -231,7 +231,7 @@ public abstract class AdoNetQueueAdapterTests(string invariant, TestEnvironmentF
             Assert.Equal(i + 1, RequestContext.Get("MyKey"));
         }
 
-        // 维护 - 存储信件如预期的那样
+        // 断言 - 已存储的消息符合预期
         var stored = (await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             TestContext.Current.CancellationToken)).ToList();

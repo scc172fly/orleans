@@ -10,28 +10,28 @@ using Orleans.Storage;
 namespace Orleans.Persistence.FileStorage;
 
 /// <summary>
-/// 配置文件 grain 存储的扩展名 。
+/// 用于配置文件 Grain 存储的扩展方法。
 /// </summary>
 public static class FileSiloBuilderExtensions
 {
     /// <summary>
-    /// 配置文件 grain 存储为默认的 grain 存储提供者 。
+    /// 将文件 Grain 存储配置为默认 Grain 存储提供程序。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <param name="options">配置代表。</param>
-    /// <returns>下 silo 建筑商</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <param name="options">配置委托。</param>
+    /// <returns>Silo 构建器。</returns>
     public static ISiloBuilder AddFileGrainStorage(
         this ISiloBuilder builder,
         Action<FileGrainStorageOptions> options) =>
         builder.AddFileGrainStorage(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME, options);
 
     /// <summary>
-    /// 配置一个名为 grain 的存储提供者的文件。
+    /// 配置命名的文件 Grain 存储提供程序。
     /// </summary>
-    /// <param name="builder">下 silo 建筑商</param>
-    /// <param name="providerName">存储提供者的名称。</param>
-    /// <param name="options">配置代表。</param>
-    /// <returns>下 silo 建筑商</returns>
+    /// <param name="builder">Silo 构建器。</param>
+    /// <param name="providerName">存储提供程序名称。</param>
+    /// <param name="options">配置委托。</param>
+    /// <returns>Silo 构建器。</returns>
     public static ISiloBuilder AddFileGrainStorage(
         this ISiloBuilder builder,
         string providerName,
@@ -41,23 +41,23 @@ public static class FileSiloBuilderExtensions
                 providerName, options));
 
     /// <summary>
-    /// 配置文件 grain 存储为默认的 grain 存储提供者 。
+    /// 将文件 Grain 存储配置为默认 Grain 存储提供程序。
     /// </summary>
-    /// <param name="services">服务收藏。</param>
-    /// <param name="options">配置代表。</param>
-    /// <returns>服务收藏。</returns>
+    /// <param name="services">服务集合。</param>
+    /// <param name="options">配置委托。</param>
+    /// <returns>服务集合。</returns>
     public static IServiceCollection AddFileGrainStorage(
         this IServiceCollection services,
         Action<FileGrainStorageOptions> options) =>
         services.AddFileGrainStorage(ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME, options);
 
     /// <summary>
-    /// 配置一个名为 grain 的存储提供者的文件。
+    /// 配置命名的文件 Grain 存储提供程序。
     /// </summary>
-    /// <param name="services">服务收藏。</param>
-    /// <param name="providerName">存储提供者的名称。</param>
-    /// <param name="options">配置代表。</param>
-    /// <returns>服务收藏。</returns>
+    /// <param name="services">服务集合。</param>
+    /// <param name="providerName">存储提供程序名称。</param>
+    /// <param name="options">配置委托。</param>
+    /// <returns>服务集合。</returns>
     public static IServiceCollection AddFileGrainStorage(
         this IServiceCollection services,
         string providerName,

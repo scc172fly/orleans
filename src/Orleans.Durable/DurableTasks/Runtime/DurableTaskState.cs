@@ -10,25 +10,25 @@ using Orleans.Serialization;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// 一项持久任务持续存在。
+/// 单个持久化任务的持久化状态。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 每个成员都是原始的、点数、时间戳、字符串、 <see cref="GrainId"/>或一组订户,每个 grain
-/// 身份和任务标识符, 所以每个日记格式都能够存储状态。 请求和结果
-/// 多态 Orleans- 可序列值,以
-/// Orleans- <see cref="RequestPayload"/> 和 <see cref="ResultPayload"/>中的定序有效载荷。
-/// 与状态没有序列化: 状态每更新一次都重新写入, 所以拥有的存储器会持续每个有效载荷
-/// 单独,一次,并把它附加到它所暴露的国家。
+/// 每个持久化成员都是基本类型、枚举、时间戳、字符串、<see cref="GrainId"/> 或订阅者集合（每个订阅者包含一个 Grain
+/// 标识及一个任务标识符），因此任何日志格式都可以存储该状态。请求及结果是
+/// 可由 Orleans 序列化的多态值，
+/// 作为不透明的 Orleans 序列化有效载荷保存在 <see cref="RequestPayload"/> 和 <see cref="ResultPayload"/> 中。有效载荷
+/// 不随状态一起序列化：每次更新都会重写状态，所以所属存储将每个有效载荷
+/// 单独持久化一次，并将其附接到所公开的状态。
 /// </para>
 /// <para>
-/// 拥有所有权的储存库将每个国家约束于其 <see cref="Serializer"/> 之前,公开它。 <see cref="Request"/> 和
-/// <see cref="Result"/> 在第一次进入时解码其有效载荷,并隐藏已解码值,因此回收不会编码
-/// 不再编码的有效载荷将每一次进入和每次进入都投下,
-/// 保存不变,所以代码解码 它,例如后期部署的,读它。
+/// 所属存储在公开每个状态之前，先将其绑定到 <see cref="Serializer"/>。<see cref="Request"/> 和
+/// <see cref="Result"/> 在首次访问时解码各自的有效载荷并缓存解码后的值，因此恢复不会解码
+/// 所有有效载荷，后续更新会复用已存储的有效载荷。无法再解码的有效载荷在每次访问时都会抛出异常，
+/// 并在存储中保持不变，以便能够解码它的代码（例如后续部署的代码）读取它。
 /// </para>
 /// <para>
-/// JSON 日记省去未设置的 grain 身份,因此恢复为 <see langword="default"/>。
+/// JSON 日志省略未设置的 Grain 标识，因此恢复后的值为 <see langword="default"/>。
 /// </para>
 /// </remarks>
 [GenerateSerializer, SuppressReferenceTracking]
@@ -49,9 +49,9 @@ internal class DurableTaskState : IDurableTaskState
     private bool _payloadsAttached;
 
     /// <summary>
-    /// 获取或设置 Orleans- 序列化的 <see cref="IDurableTaskRequest"/>,或者当任务没有存储请求时,获取或设置 <see langword="null"/> 。
+    /// 获取或设置 Orleans 序列化后的 <see cref="IDurableTaskRequest"/>；当任务没有已存储的请求时，为 <see langword="null"/>。
     /// </summary>
-    /// <remarks>拥有的储存库将有效载荷与状态分开。</remarks>
+    /// <remarks>所属存储将有效载荷与状态分开持久化。</remarks>
     [JsonIgnore]
     public byte[]? RequestPayload
     {
@@ -64,9 +64,9 @@ internal class DurableTaskState : IDurableTaskState
     }
 
     /// <summary>
-    /// 获取或设置 Orleans- 序列终端 <see cref="DurableTaskResponse"/>,或者当任务没有存储结果时,获取或设置 <see langword="null"/> 。
+    /// 获取或设置 Orleans 序列化后的终态 <see cref="DurableTaskResponse"/>；当任务没有已存储的结果时，为 <see langword="null"/>。
     /// </summary>
-    /// <remarks>拥有的储存库将有效载荷与状态分开。</remarks>
+    /// <remarks>所属存储将有效载荷与状态分开持久化。</remarks>
     [JsonIgnore]
     public byte[]? ResultPayload
     {
@@ -79,8 +79,8 @@ internal class DurableTaskState : IDurableTaskState
     }
 
     /// <inheritdoc cref="IDurableTaskState.Result"/>
-    /// <remarks>数值解码 <see cref="ResultPayload"/> 第一次访问。</remarks>
-    /// <exception cref="InvalidOperationException">国家储存是结果,但不受储存的约束。</exception>
+    /// <remarks>首次访问时从 <see cref="ResultPayload"/> 解码该值。</remarks>
+    /// <exception cref="InvalidOperationException">该状态存储了结果，但尚未绑定到其存储。</exception>
     [JsonIgnore]
     public DurableTaskResponse? Result => _result ??= _resultPayload is { } payload
         ? GetSerializer().Deserialize<DurableTaskResponse>(payload)
@@ -95,8 +95,8 @@ internal class DurableTaskState : IDurableTaskState
     public HashSet<DurableTaskSubscriber> CompletionDestinations { get; set; } = [];
 
     /// <inheritdoc cref="IDurableTaskState.Request"/>
-    /// <remarks>数值解码 <see cref="RequestPayload"/> 第一次访问。</remarks>
-    /// <exception cref="InvalidOperationException">国家储存一项请求,但不受其储存的约束。</exception>
+    /// <remarks>首次访问时从 <see cref="RequestPayload"/> 解码该值。</remarks>
+    /// <exception cref="InvalidOperationException">该状态存储了请求，但尚未绑定到其存储。</exception>
     [JsonIgnore]
     public IDurableTaskRequest? Request => _request ??= _requestPayload is { } payload
         ? GetSerializer().Deserialize<IDurableTaskRequest>(payload)
@@ -179,7 +179,7 @@ internal class DurableTaskState : IDurableTaskState
     IReadOnlySet<DurableTaskSubscriber> IDurableTaskState.CompletionDestinations => CompletionDestinations;
 
     /// <summary>
-    /// 将这个状态绑在序列器上 用于编码和解码其有效载荷的序列器
+    /// 将此状态绑定到用于编码和解码其有效载荷的序列化器。
     /// </summary>
     internal DurableTaskState Bind(Serializer serializer)
     {
@@ -188,10 +188,10 @@ internal class DurableTaskState : IDurableTaskState
         return this;
     }
 
-    /// <summary>了解拥有存储器的剩余有效载荷是否被单独连接。</summary>
+    /// <summary>获取所属存储单独持久化的有效载荷是否已附接。</summary>
     internal bool PayloadsAttached => _payloadsAttached;
 
-    /// <summary>随附拥有的储存库与回收状态分开存在的有效载荷。</summary>
+    /// <summary>附接所属存储与恢复状态分开持久化的有效载荷。</summary>
     internal void AttachPayloads(byte[]? request, byte[]? result)
     {
         Debug.Assert(!_payloadsAttached, "A state's payloads are attached once.");
@@ -201,7 +201,7 @@ internal class DurableTaskState : IDurableTaskState
     }
 
     /// <summary>
-    /// 共享此实例复制的状态的有效载荷。 这些有效载荷一旦存储后就不可移动 。
+    /// 共享此实例所复制自的状态的有效载荷。有效载荷存储后不可变。
     /// </summary>
     internal void CopyPayloadsFrom(DurableTaskState source)
     {
@@ -210,7 +210,7 @@ internal class DurableTaskState : IDurableTaskState
     }
 
     /// <summary>
-    /// 仓库 <paramref name="request"/> 以 A 时 Orleans- 序列有效载荷并隐藏作为解码值。
+    /// 将 <paramref name="request"/> 存储为 Orleans 序列化有效载荷，并将其缓存为解码后的值。
     /// </summary>
     internal void SetRequest(IDurableTaskRequest? request)
     {
@@ -220,7 +220,7 @@ internal class DurableTaskState : IDurableTaskState
     }
 
     /// <summary>
-    /// 仓库 <paramref name="result"/> 以 A 时 Orleans- 序列有效载荷并隐藏作为解码值。
+    /// 将 <paramref name="result"/> 存储为 Orleans 序列化有效载荷，并将其缓存为解码后的值。
     /// </summary>
     internal void SetResult(DurableTaskResponse? result)
     {

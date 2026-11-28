@@ -9,9 +9,9 @@ using TestExtensions;
 namespace NonSilo.Tests.Caching;
 
 /// <summary>
-/// ConcurrentLruCache测试,这是 Orleans中使用的一条线索安全的 LRU(最近使用过的最小)缓存实施。
-/// 这个暗藏处设计成一个多代结构(热、暖、冷),以有效管理经常被查获的物品。
-/// 整个使用 Orleans 缓存 grain 目录条目, grain 参考文献和其他经常获得的数据。
+/// 测试 ConcurrentLruCache，这是 Orleans 使用的线程安全 LRU（最近最少使用）缓存实现。
+/// 此缓存采用多代架构（Hot、Warm、Cold），以高效管理频繁访问的项。
+/// Orleans 广泛使用它来缓存 Grain 目录条目、Grain 引用及其他频繁访问的数据。
 /// </summary>
 [TestCategory("BVT")]
 [TestSuite("BVT")]
@@ -32,7 +32,7 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
     private static ConcurrentLruCache<int, string>.ITestAccessor GetTestAccessor(ConcurrentLruCache<int, string> lru) => lru;
 
     /// <summary>
-    /// 证明藏匿处至少需要3个能力,以支持其多代结构。
+    /// 验证缓存要求最小容量为 3，以支持其多代架构。
     /// </summary>
     [Fact]
     public void WhenCapacityIsLessThan3CtorThrows()
@@ -82,7 +82,7 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
     }
 
     /// <summary>
-    /// 测试当添加新条目时,缓存正确跟踪项目计数。
+    /// 测试添加新条目时缓存能否正确跟踪项的数量。
     /// </summary>
     [Fact]
     public void WhenItemIsAddedCountIsCorrect()
@@ -170,8 +170,8 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
     [Fact]
     public void WhenRefToMetricsIsCapturedResultIsCorrect()
     {
-        // 中此选项可检测结构结构复制的特性。如果内部数据类
-        // 没用,这次测试失败了
+        // 这可检测结构体被复制的情况。如果内部 Data 类
+        // 无法正常工作，此测试就会失败。
         var m = _lru.Metrics;
 
         _lru.GetOrAdd(1, _valueFactory.Create);
@@ -230,7 +230,7 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
         {
             _lru.GetOrAdd(i, _valueFactory.Create);
 
-            // 当物品仍热时已经缓存的触摸项
+            // 访问仍处于 Hot 代的已缓存项。
             if (i > 0)
             {
                 _lru.GetOrAdd(i - 1, _valueFactory.Create);
@@ -248,9 +248,9 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
         {
             _lru.GetOrAdd(i, _valueFactory.Create);
 
-            // 触摸所有已经隐藏在热、温暖和冷的物品
-            // 这是最坏的假设情况,因为我们按他们的确切顺序 来触摸他们
-            // 添加了。
+            // 访问已缓存于 Hot、Warm 和 Cold 代的所有项。
+            // 这是最坏情况，因为访问顺序与这些项的
+            // 添加顺序完全一致。
             for (var j = 0; j < i; j++)
             {
                 _lru.GetOrAdd(j, _valueFactory.Create);
@@ -270,9 +270,9 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
         {
             lru.GetOrAdd(i, _valueFactory.Create);
 
-            // 触摸所有已经隐藏在热、温暖和冷的物品
-            // 这是最坏的假设情况,因为我们按他们的确切顺序 来触摸他们
-            // 添加了。
+            // 访问已缓存于 Hot、Warm 和 Cold 代的所有项。
+            // 这是最坏情况，因为访问顺序与这些项的
+            // 添加顺序完全一致。
             for (var j = 0; j < i; j++)
             {
                 lru.GetOrAdd(j, _valueFactory.Create);
@@ -283,25 +283,25 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
     }
 
     /// <summary>
-    /// 测试多代驱逐政策:热一代没有获得的物品被降为冷藏。
-    /// 以此测试暗藏库区分经常和不经常获得的物品的能力。
+    /// 测试多代逐出策略：在 Hot 代中未被访问的项降级至 Cold 代。
+    /// 这测试缓存区分频繁访问项与不频繁访问项的能力。
     /// </summary>
     [Fact]
     public void WhenValueIsNotTouchedAndExpiresFromHotValueIsBumpedToCold()
     {
         FillCache();
 
-        // 插入值, 使其热
+        // 插入一个值，使其进入 Hot 代。
         Touch(0);
 
-        // 插入更多的值, 降为冷
+        // 插入更多值，使其降级至 Cold 代。
         GetOrAddRangeInclusive(1, Capacity - 1);
 
-        IsInCache(0); // 价值应当冷淡
+        IsInCache(0); // 该值应处于 Cold 代。
 
         GetOrAddRangeInclusive(Capacity, Capacity + 1);
 
-        // 价值本应该被拆迁
+        // 该值应已被逐出。
         _lru.TryGet(0, out var value).Should().BeFalse();
     }
 
@@ -353,7 +353,7 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
     {
         FillCache();
 
-        // 热到热
+        // 提升至 Hot 代。
         Touch(0);
         Touch(0);
 
@@ -374,16 +374,16 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
 
         _lru.GetOrAdd(1, _valueFactory.Create);
         _lru.GetOrAdd(2, _valueFactory.Create);
-        _lru.GetOrAdd(3, _valueFactory.Create); // 将 0 推至冷( 不热触)
+        _lru.GetOrAdd(3, _valueFactory.Create); // 将 0 推入 Cold 代（在 Hot 代中未访问）。
 
         IsInCache(0).Should().BeTrue();
 
-        _lru.GetOrAdd(0, _valueFactory.Create); // 寒冷中触碰0
+        _lru.GetOrAdd(0, _valueFactory.Create); // 访问 Cold 代中的 0。
 
         IsInCache(0).Should().BeTrue();
 
         GetOrAddRangeInclusive(4, 9);
-        _lru.GetOrAdd(4, _valueFactory.Create); // 完全循环冷, 如果零不移动到温暖的状态, 这将驱离 0
+        _lru.GetOrAdd(4, _valueFactory.Create); // 使 Cold 代完整轮转一次；如果 0 未被移至 Warm 代，它就会被逐出。
         _lru.GetOrAdd(5, _valueFactory.Create);
         _lru.GetOrAdd(6, _valueFactory.Create);
         _lru.GetOrAdd(7, _valueFactory.Create);
@@ -410,17 +410,17 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
     {
         FillCache();
 
-        // 插入热插
+        // 插入 Hot 项。
         Touch(0);
 
-        // 重新触碰它,然后把它提升到“温暖”
+        // 再次访问该项，使其提升至 'Warm' 代。
         Touch(0);
 
         GetOrAddRangeInclusive(1, Capacity - 1);
 
         IsInCache(0).Should().BeTrue();
 
-        // 更能触摸到更多的价值 让它被逐出
+        // 访问更多值，使其被逐出。
         for (var i = 1; i < 1 + Capacity; i++)
         {
             Touch(i);
@@ -436,26 +436,26 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
         FillCache();
 
         _lru.GetOrAdd(0, _valueFactory.Create);
-        _lru.GetOrAdd(0, _valueFactory.Create); // 热的触碰 0,它会促进温暖
+        _lru.GetOrAdd(0, _valueFactory.Create); // 访问 Hot 代中的 0，它将提升至 Warm 代。
 
         _lru.GetOrAdd(1, _valueFactory.Create);
         _lru.GetOrAdd(2, _valueFactory.Create);
-        _lru.GetOrAdd(3, _valueFactory.Create); // 将 0 推向热点
+        _lru.GetOrAdd(3, _valueFactory.Create); // 将 0 推入 Warm 代。
 
-        // 切下3个值, 以促变暖
+        // 访问接下来的 3 个值，使其提升至 Warm 代。
         _lru.GetOrAdd(4, _valueFactory.Create); _lru.GetOrAdd(4, _valueFactory.Create);
         _lru.GetOrAdd(5, _valueFactory.Create); _lru.GetOrAdd(5, _valueFactory.Create);
         _lru.GetOrAdd(6, _valueFactory.Create); _lru.GetOrAdd(6, _valueFactory.Create);
 
-        // 将4,5,6至热,0至冷
+        // 将 4、5、6 推入 Warm 代，0 推入 Cold 代。
         _lru.GetOrAdd(7, _valueFactory.Create);
         _lru.GetOrAdd(8, _valueFactory.Create);
         _lru.GetOrAdd(9, _valueFactory.Create);
 
-        // 触碰 0
+        // 访问 0。
         _lru.TryGet(0, out var value).Should().BeTrue();
 
-        // 将7,8,9推入冷却,循环0回暖
+        // 将 7、8、9 推入 Cold 代，使 0 轮转回 Warm 代。
         _lru.GetOrAdd(10, _valueFactory.Create);
         _lru.GetOrAdd(11, _valueFactory.Create);
         _lru.GetOrAdd(12, _valueFactory.Create);
@@ -538,12 +538,12 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
         _lru.GetOrAdd(1, _valueFactory.Create);
 
         _lru.TryRemove(1);
-        Print();                                    // [1] 热 [1] [1]温暖 [ [冷 [ ]
+        Print();                                    // Hot [1] Warm [] Cold []
 
         _lru.GetOrAdd(1, _valueFactory.Create);
         _lru.GetOrAdd(2, _valueFactory.Create);
         _lru.GetOrAdd(3, _valueFactory.Create);
-        Print();                                    // [热,1,2,3] 温暖 [冷
+        Print();                                    // Hot [1,2,3] Warm [] Cold []
 
         _lru.WarmCount.Should().Be(0);
         _lru.ColdCount.Should().Be(0);
@@ -563,13 +563,13 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
 
         _lru.TryRemove(-1);
 
-        // 整个循环热,即3项
+        // 使 Hot 代完整轮转一次，即处理 3 个项。
         foreach (var item in Enumerable.Range(1000, HotCap))
         {
             _lru.GetOrAdd(item, _valueFactory.Create);
         }
 
-        // 热门队列满了,第四件就会被排出
+        // 从 Hot 代清除 -1 时若不立即逐出，第四个项将因 Hot 队列已满而被挤出。
         _lru.Metrics.Evicted.Should().Be(HotCap);
     }
 
@@ -588,8 +588,8 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
             _lru.GetOrAdd(item, _valueFactory.Create);
         }
 
-        // 将项目从热到温循环,因为热尚未填充。
-        // 跳过先前删除的项目 。
+        // 由于 Warm 代尚未填满，各项从 Hot 代轮转至 Warm 代。
+        // 跳过此前已移除的项。
         _lru.WarmCount.Should().Be(HotCap - 1);
         _lru.ColdCount.Should().Be(0);
     }
@@ -603,7 +603,7 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
             _lru.GetOrAdd(i, _valueFactory.Create);
         }
 
-        Print();                                    // [6,7,8] 暖 [1,2,3] 冷 [0,4,5]
+        Print();                                    // Hot [6,7,8] Warm [1,2,3] Cold [0,4,5]
         _lru.Metrics.Evicted.Should().Be(0);
 
         _lru.TryRemove(1);
@@ -611,7 +611,7 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
         _lru.GetOrAdd(6, _valueFactory.Create); // 6 -> W
         _lru.GetOrAdd(9, _valueFactory.Create);
 
-        Print();                                    // [2,3,6] 冷[0,4,5]
+        Print();                                    // Hot [7,8,9] Warm [2,3,6] Cold [0,4,5]
 
         _lru.Metrics.Evicted.Should().Be(0);
     }
@@ -624,7 +624,7 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
             _lru.GetOrAdd(i, _valueFactory.Create);
         }
 
-        Print();                                    // [6,7,8] 暖 [1,2,3] 冷 [0,4,5]
+        Print();                                    // Hot [6,7,8] Warm [1,2,3] Cold [0,4,5]
         _lru.Metrics.Evicted.Should().Be(0);
 
         _lru.GetOrAdd(0, _valueFactory.Create);
@@ -632,7 +632,7 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
 
         _lru.GetOrAdd(9, _valueFactory.Create);
 
-        Print();                                    // [1,2,3] 冷[4,5,6]
+        Print();                                    // Hot [7,8,9] Warm [1,2,3] Cold [4,5,6]
 
         _lru.Metrics.Evicted.Should().Be(0);
     }
@@ -669,8 +669,8 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
     {
         for (var i = 0; i < Capacity; i++)
         {
-            // 因为 TryRemove 将项目留在队列中, 当它最终被删除时
-            // 从冷列队列中删除, 它不应该删除新创建的值 。
+            // 由于 TryRemove 将项留在队列中，当它最终从 Cold 队列移除时，
+            // 不应移除新创建的值。
             _lru.GetOrAdd(1, _valueFactory.Create);
             _lru.TryGet(1, out var value).Should().BeTrue();
             _lru.TryRemove(1);
@@ -709,7 +709,7 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
         _lru.TryUpdate(2, "3").Should().BeFalse();
     }
 
-    // 反对的兼容: 删除条件汇编
+    // 向后兼容：移除条件编译。
 #if NETCOREAPP3_0_OR_GREATER
     [Fact]
     public void WhenKeyExistsTryUpdateIncrementsUpdateCount()
@@ -1165,18 +1165,18 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
 
         _lru.Count.Should().Be(0);
 
-        // 校验队列已被清除
+        // 验证队列已清除。
         _lru.HotCount.Should().Be(0);
         _lru.WarmCount.Should().Be(0);
         _lru.ColdCount.Should().Be(0);
     }
 
-    // 这是特殊情况:
-    // 周期1:热度
-    // 周期2:温暖
-    // 周期3:温暖寒冷
-    // 第 4 轮：冷却后移除
-    // 周期5:冷
+    // 这是一种特殊情况：
+    // 第 1 轮：Hot => Warm
+    // 第 2 轮：Warm => Warm
+    // 第 3 轮：Warm => Cold
+    // 第 4 轮：Cold => 移除
+    // 第 5 轮：Cold => 移除
     [Fact]
     public void WhenCacheIsSize3ItemsExistAndItemsAccessedClearRemovesAllItems()
     {
@@ -1206,15 +1206,15 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
     [InlineData(10)]
     public void WhenItemsExistAndItemsAccessedClearRemovesAllItems(int itemCount)
     {
-        // 默认能力为9. 测试所有可能接触物品的状态
-        // 隐藏处。
+        // 默认容量为 9。测试缓存中已访问项的
+        // 所有可能状态。
 
         for (var i = 0; i < itemCount; i++)
         {
             _lru.AddOrUpdate(i, "1");
         }
 
-        // 至n项
+        // 访问 n 个项。
         for (var i = 0; i < itemCount; i++)
         {
             _lru.TryGet(i, out _);
@@ -1226,7 +1226,7 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
 
         _lru.Count.Should().Be(0);
 
-        // 校验队列已被清除
+        // 验证队列已清除。
         _lru.HotCount.Should().Be(0);
         _lru.WarmCount.Should().Be(0);
         _lru.ColdCount.Should().Be(0);
@@ -1278,8 +1278,8 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
     }
 
     /// <summary>
-    /// 证明缓存妥善处置了通过Clear () 移除的可处置物品。
-    /// 这对于防止在缓存可支配物体时出现资源泄漏十分重要。
+    /// 验证通过 Clear() 移除 IDisposable 项时，缓存能否正确释放它们。
+    /// 这对于缓存可释放对象时防止资源泄漏十分重要。
     /// </summary>
     [Fact]
     public void WhenItemsAreDisposableClearDisposesItemsOnRemove()
@@ -1324,7 +1324,7 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
     {
         FillCache();
 
-        // 暖热物品
+        // Warm 代的项
         var warmItems = Enumerable.Range(1, WarmCap).ToArray();
         foreach (var item in warmItems)
         {
@@ -1332,14 +1332,14 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
             _lru.GetOrAdd(item, _valueFactory.Create);
         }
 
-        // 冷藏物品(添加但未动)
+        // Cold 代的项（已添加但未访问）
         var coldItems = Enumerable.Range(1000, ColdCap).ToArray();
         foreach (var item in coldItems)
         {
             _lru.AddOrUpdate(item, item.ToString());
         }
 
-        // 热物品( 显示先前的热物品冷到冷)
+        // Hot 代的项（将之前的 Hot 项逐出至 Cold 代）
         var hotItems = Enumerable.Range(2000, HotCap).ToArray();
         foreach (var item in hotItems)
         {
@@ -1367,10 +1367,10 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
     [InlineData(9, new int[] { })]
     public void WhenHotAndWarmItemsExistTrimRemovesExpectedItemCount(int itemCount, int[] expected)
     {
-        // 初始状态 :
-        // 热度=6,5,4
-        // 热量=3,2,1
-        // 冷= -
+        // 初始状态：
+        // Hot = 6, 5, 4
+        // Warm = 3, 2, 1
+        // Cold = -
         _lru.AddOrUpdate(1, "1");
         _lru.AddOrUpdate(2, "2");
         _lru.AddOrUpdate(3, "3");
@@ -1399,10 +1399,10 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
     [InlineData(9, new int[] { })]
     public void WhenHotItemsExistTrimRemovesExpectedItemCount(int itemCount, int[] expected)
     {
-        // 初始状态 :
-        // 热热=3 2 1
-        // 热度=-
-        // 冷= -
+        // 初始状态：
+        // Hot = 3, 2, 1
+        // Warm = -
+        // Cold = -
         _lru.AddOrUpdate(1, "1");
         _lru.AddOrUpdate(2, "2");
         _lru.AddOrUpdate(3, "3");
@@ -1425,7 +1425,7 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
     {
         FillCache();
 
-        // 暖热物品
+        // Warm 代的项
         var warmItems = Enumerable.Range(1, WarmCap).ToArray();
         foreach (var item in warmItems)
         {
@@ -1433,21 +1433,21 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
             _lru.GetOrAdd(item, _valueFactory.Create);
         }
 
-        // 冷藏物品(添加但未动)
+        // Cold 代的项（已添加但未访问）
         var coldItems = Enumerable.Range(1000, ColdCap).ToArray();
         foreach (var item in coldItems)
         {
             _lru.AddOrUpdate(item, item.ToString());
         }
 
-        // 热物品( 显示先前的热物品冷到冷)
+        // Hot 代的项（将之前的 Hot 项逐出至 Cold 代）
         var hotItems = Enumerable.Range(2000, HotCap).ToArray();
         foreach (var item in hotItems)
         {
             _lru.AddOrUpdate(item, item.ToString());
         }
 
-        // 触碰冷冻物品,以促其取暖
+        // 访问 Cold 代的项，使其提升至 Warm 代。
         foreach (var item in coldItems)
         {
             _lru.GetOrAdd(item, _valueFactory.Create);
@@ -1479,15 +1479,15 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
     [InlineData(10)]
     public void WhenItemsExistAndItemsAccessedTrimRemovesAllItems(int itemCount)
     {
-        // 默认能力为9. 测试所有可能接触物品的状态
-        // 隐藏处。
+        // 默认容量为 9。测试缓存中已访问项的
+        // 所有可能状态。
 
         for (var i = 0; i < itemCount; i++)
         {
             _lru.AddOrUpdate(i, "1");
         }
 
-        // 至n项
+        // 访问 n 个项。
         for (var i = 0; i < itemCount; i++)
         {
             _lru.TryGet(i, out _);
@@ -1499,7 +1499,7 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
 
         _lru.Count.Should().Be(0);
 
-        // 校验队列已被清除
+        // 验证队列已清除。
         _lru.HotCount.Should().Be(0);
         _lru.WarmCount.Should().Be(0);
         _lru.ColdCount.Should().Be(0);
@@ -1523,7 +1523,7 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
             _lru.AddOrUpdate(i, "1");
         }
 
-        // 中,此选项在队列中留下一个项,但不会出现在字典中
+        // 这会使一个项留在队列中，但不在字典中。
         _lru.TryRemove(0, out _);
 
         _lru.Clear();
@@ -1532,7 +1532,7 @@ public class ConcurrentLruTests(ITestOutputHelper testOutputHelper)
 
         _lru.Count.Should().Be(0);
 
-        // 校验队列已被清除
+        // 验证队列已清除。
         _lru.HotCount.Should().Be(0);
         _lru.WarmCount.Should().Be(0);
         _lru.ColdCount.Should().Be(0);

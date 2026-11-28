@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Orleans.TestingHost;
 
 var builder = Host.CreateApplicationBuilder(args);
-builder.AddServiceDefaults(); // 配置 OTel
+builder.AddServiceDefaults(); // 配置 OpenTelemetry。
 using var app = builder.Build();
 await app.StartAsync();
 
@@ -37,7 +37,7 @@ log.LogInformation($"ClusterId: {testCluster.Options.ClusterId}");
 var cts = new CancellationTokenSource(TimeSpan.FromMinutes(15));
 var reconfigurationTimer = Stopwatch.StartNew();
 var upperLimit = 10;
-var lowerLimit = 1; // 会员资格保留在初级, 所以我们不能低于1
+var lowerLimit = 1; // 成员资格信息保存在主 Silo 上，因此 Silo 数量不能少于 1。
 var target = upperLimit;
 var idBase = 0L;
 var client = testCluster.Silos[0].ServiceProvider.GetRequiredService<IGrainFactory>();
@@ -98,7 +98,7 @@ var chaosTask = Task.Run(async () =>
 
                     if (currentCount > target)
                     {
-                        // 停止或杀死随机 silo, 但并非主控( 因为主机组群集会)
+                        // 停止或强制终止随机选定的 Silo，但不要操作主 Silo（因为集群成员资格由它托管）。
                         var victim = testCluster.Silos[Random.Shared.Next(1, testCluster.Silos.Count - 1)];
                         if (currentCount % 2 == 0)
                         {

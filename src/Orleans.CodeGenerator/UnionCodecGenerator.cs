@@ -8,11 +8,11 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// 生成工会类型和封闭型等级的贴有标签的工会编码和复印机。
+/// 为联合类型及封闭类型层次结构生成带标记联合的编解码器和复制器。
 /// </summary>
 /// <remarks>
-/// 贴标签的工会值是作为带标签的限定字段写成,最多包含一个字段,其实地识别符号即为案件识别符号
-/// 并且预期类型是案件类型。 因此, 案件值的运行时间类型只有在与案件类型不同时才编码。
+/// 带标记联合值写为一个由标记分隔的字段，其中最多包含一个字段，其字段标识符为分支标识符，
+/// 预期类型为分支类型。因此仅当分支值的运行时类型与分支类型不同时，才对其运行时类型编码。
 /// </remarks>
 internal sealed class UnionCodecGenerator(IGeneratorServices generatorServices)
 {
@@ -43,7 +43,7 @@ internal sealed class UnionCodecGenerator(IGeneratorServices generatorServices)
                 continue;
             }
 
-            // 当热重装入在清单中较早插入一个案例时, 案件识别符号保留字段身份 。
+            // 热重载在列表靠前位置插入分支时，分支标识符可以保留字段标识。
             var fieldName = $"_caseCodec{unionCase.Id}";
             var field = new SerializerGenerator.CodecFieldDescription(GetCodecType(valueType), fieldName, valueType, HotReloadSafe);
             result.Add(new(unionCase, caseTypeName, valueTypeName, field, SerializerGenerator.GetCodecExpression(field)));
@@ -59,7 +59,7 @@ internal sealed class UnionCodecGenerator(IGeneratorServices generatorServices)
             && (SymbolEqualityComparer.Default.Equals(named.ContainingAssembly, LibraryTypes.Compilation.Assembly)
                 || named.ContainingAssembly.HasAttribute(LibraryTypes.TypeManifestProviderAttribute)))
         {
-            // 使用混凝土生成的编码来避免接口发送。
+            // 使用具体的生成编解码器，避免接口分派。
             return QualifiedName(
                 ParseName(SerializerGenerator.GetGeneratedNamespaceName(named)),
                 IdentifierName(SerializerGenerator.GetSimpleClassName(named.Name)));
@@ -258,7 +258,7 @@ internal sealed class UnionCodecGenerator(IGeneratorServices generatorServices)
     }
 
     /// <summary>
-    /// 用于编写封闭基型的实地编码方法,其序列化和去序化方法将案件基础成员顺序排列。
+    /// 为封闭基类型写出字段编解码器方法。其 Serialize 和 Deserialize 方法为各分支序列化基类成员。
     /// </summary>
     internal static void WriteClosedTypeFieldCodecMethods(SourceWriter writer, SerializableTypeEmissionPlan type, EquatableArray<UnionCaseSerializerPlan> cases)
     {

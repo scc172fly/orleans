@@ -54,7 +54,7 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
         {
             ValidatePolicy(nextPolicy, request.OnSuccess!.Kind, now);
         }
-        // 额外的警醒可能因失败的所有人写作而成为孤儿。 其处理者只读到承诺的所有国 。
+        // 所有者的写入失败可能留下额外的孤立唤醒任务。该任务的处理程序仅读取已提交的所有者状态。
         await ArmAsync(now);
         var effect = new EffectRecord
         {
@@ -75,7 +75,7 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
 
     public async Task<EffectRecord?> GetAsync(EffectIdentity identity)
     {
-        // 写作前的抓捕:在抓获后,
+        // 在写入前获取快照：获取之后交错执行的决策属于后续确认操作。
         var result = _effects.TryGetValue(Key(identity), out var effect) ? effect : null;
         await WriteStateAsync();
         return result;
@@ -137,7 +137,7 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
             throw new InvalidOperationException("Resolve an outstanding effect using provider evidence or an authorized business decision.");
         }
 
-        // 决定关闭此身份的发送。 故意重发是单独授权的效果 。
+        // 作出决策后，不再以此标识发送请求。有意重发属于需要单独授权的副作用。
         var next = Complete(effect, outcome, $"operator: {evidence}");
         var saved = await SaveAsync(next);
         if (_active.TryGetValue(effect.ProviderKey, out var attempt))
@@ -182,8 +182,8 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
             ValidatePolicy(nextPolicy, followUpRequest.OnSuccess!.Kind, now);
         }
         await ArmAsync(now);
-        // 合适的工作可以与日程安排发生间断。 尝试开始活动,或者已经录下了新工作的
-        // 修改后,仍拥有原产结果,所以授权要等到尝试解决为止。
+        // 到期作业可能与调度操作交错执行。已经开始执行或已经记录更高
+        // 修订版本的执行尝试仍然负责原始操作的结果，因此授权需等待该次尝试结束。
         CheckRevision(_effects[effect.ProviderKey], effect.Revision);
         ThrowIfFollowUpBlocked();
         var next = new EffectRecord
@@ -200,8 +200,8 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
             Authorization = authorization,
             OnSuccessPolicy = nextPolicy
         };
-        // 原始文件保留不确定因素及其证据。
-        // 取消合同阻止了原始身份下的另一发件人。
+        // 原始操作保留其结果的不确定性及相关证据。授权转移的是下一步业务操作的执行权，而
+        // 不是凭空确定服务提供方的处理结果。取消会阻止以原始标识再次发送请求。
         _effects[effect.ProviderKey] = effect with
         {
             CancellationRequested = true,
@@ -283,7 +283,7 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
                 NextAction = effect.Policy.Execution is EffectExecution.RetrySafe ? "retry-same-key-or-lookup" : "lookup-or-operator-decision"
             };
             await SaveAsync(marked);
-            // 取消/解决可与存储确认中断。 只有当前版本才能发送 。
+            // Cancel/Resolve 可能与存储确认操作交错执行。只有当前修订版本可以发送请求。
             if (!ReferenceEquals(_effects[key], marked) || cancellation.IsCancellationRequested)
             {
                 return;
@@ -315,7 +315,7 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
             }
             catch (Exception exception)
             {
-                // 超时、取消和任意的供应商/运输错误是不确定性的证据。
+                // 超时、取消以及其他服务提供方或传输错误都是结果不确定的证据。
                 result = new(ProviderOutcome.Unknown, $"{exception.GetType().Name}: {exception.Message}");
             }
 
@@ -347,7 +347,7 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
 
     private async Task ReconcileAsync(EffectRecord effect, CancellationToken cancellationToken)
     {
-        // 发布查询前的下一步动作时间安排, 因此无法提供的提供者会留下一个负责的所有人 。
+        // 先调度下一步操作，再发出查询，这样即使服务提供方不可用，也仍有所有者负责后续处理。
         var checking = effect with
         {
             Status = EffectStatus.Reconciling,
@@ -419,7 +419,7 @@ public sealed class ExternalEffectGrain : DurableGrain, IExternalEffectGrain, ID
             await ArmAsync(next.NextActionAt);
         }
 
-        // 等待中转前的日程安排,可能同时作出跨胎决定,从而推进了修订。
+        // 暂存之前已等待调度完成。在此期间，交错执行的决策可能已经递增修订版本。
         if (_effects.TryGetValue(next.ProviderKey, out var current) && current.Revision >= next.Revision)
         {
             await WriteStateAsync();

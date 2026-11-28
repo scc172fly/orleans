@@ -14,7 +14,7 @@ using RelationalOrleansQueries = Orleans.Streaming.AdoNet.Storage.RelationalOrle
 namespace Tester.AdoNet.Streaming;
 
 /// <summary>
-/// <see cref="AdoNetQueueAdapterReceiver"/>的自给性(独立)生命周期测试。
+/// <see cref="AdoNetQueueAdapterReceiver"/> 与提供程序无关的生命周期测试。
 /// </summary>
 [Collection(TestEnvironmentFixture.DefaultCollection)]
 [TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
@@ -428,7 +428,7 @@ public class AdoNetQueueAdapterReceiverLifecycleTests(TestEnvironmentFixture fix
 }
 
 /// <summary>
-/// 试验 <see cref="AdoNetQueueAdapterReceiverTests"/> 日 和 SQL 服务器
+/// 针对 SQL Server 的 <see cref="AdoNetQueueAdapterReceiverTests"/> 测试。
 /// </summary>
 [TestCategory("SqlServer"), TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("SqlServer")]
@@ -438,7 +438,7 @@ public class SqlServerAdoNetQueueAdapterReceiverTests(TestEnvironmentFixture fix
 }
 
 /// <summary>
-/// 试验 <see cref="AdoNetQueueAdapterReceiverTests"/> 日 和 MySQL.
+/// 针对 MySQL 的 <see cref="AdoNetQueueAdapterReceiverTests"/> 测试。
 /// </summary>
 [TestCategory("MySql"), TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("MySql")]
@@ -452,7 +452,7 @@ public class MySqlAdoNetQueueAdapterReceiverTests : AdoNetQueueAdapterReceiverTe
 }
 
 /// <summary>
-/// 试验 <see cref="AdoNetQueueAdapterReceiverTests"/> 日 和 PostgreSQL.
+/// 针对 PostgreSQL 的 <see cref="AdoNetQueueAdapterReceiverTests"/> 测试。
 /// </summary>
 [TestCategory("PostgreSql"), TestCategory("BVT"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("PostgreSql")]
@@ -462,7 +462,7 @@ public class PostgreSqlAdoNetQueueAdapterReceiverTests(TestEnvironmentFixture fi
 }
 
 /// <summary>
-/// <see cref="AdoNetQueueAdapterReceiverTests"/>测试。
+/// <see cref="AdoNetQueueAdapterReceiverTests"/> 的测试。
 /// </summary>
 [Collection(TestEnvironmentFixture.DefaultCollection)]
 [TestCategory("AdoNet"), TestCategory("Streaming")]
@@ -490,12 +490,12 @@ public abstract class AdoNetQueueAdapterReceiverTests(string invariant, TestEnvi
     }
 
     /// <summary>
-    /// 测试 <see cref="AdoNetQueueAdapterReceiver"/> 能够接收并确认消息。
+    /// 测试 <see cref="AdoNetQueueAdapterReceiver"/> 能否获取并确认消息。
     /// </summary>
     [Fact]
     public async Task AdoNetQueueAdapterReceiver_GetsMessages_ConfirmsMessages()
     {
-        // - 安排接收器
+        // 准备 - 接收器
         var serviceId = "MyServiceId";
         var clusterOptions = new ClusterOptions
         {
@@ -509,7 +509,7 @@ public abstract class AdoNetQueueAdapterReceiverTests(string invariant, TestEnvi
             Invariant = invariant,
             ConnectionString = _storage.ConnectionString,
 
-            // 为本测试而禁用的驱逐
+            // 在此测试中禁用逐出操作
             EvictionBatchSize = 0
         };
         var cacheOptions = new SimpleQueueCacheOptions();
@@ -518,34 +518,34 @@ public abstract class AdoNetQueueAdapterReceiverTests(string invariant, TestEnvi
         var receiver = new AdoNetQueueAdapterReceiver(providerId, queueId, streamOptions, clusterOptions, cacheOptions, _queries, new AdoNetStreamPositions(), serializer, logger);
         await receiver.Initialize(TimeSpan.FromSeconds(10));
 
-        // - 数据
+        // 准备 - 数据
         var streamId = StreamId.Create("MyNamespace", "MyKey");
         var events = new List<object> { new TestModel(1), new TestModel(2), new TestModel(3) };
         var context = new Dictionary<string, object> { { "MyKey", "MyValue" } };
         var container = new AdoNetBatchContainer(streamId, events, context);
         var payload = serializer.SerializeToArray(container);
 
-        // - 安排以(保存)方式发送一些无效信息,然后是有效电文
+        // 准备 - 通过存储将若干无效消息入队，再将一条有效消息入队
         var ackExpired = await _queries.QueueStreamMessageAsync(serviceId, providerId, queueId, payload, 0);
         var ackOtherQueueId = await _queries.QueueStreamMessageAsync(serviceId, providerId, queueId + "X", payload, 100);
         var ackOtherProviderId = await _queries.QueueStreamMessageAsync(serviceId, providerId + "X", queueId, payload, 100);
         var ackOtherServiceId = await _queries.QueueStreamMessageAsync(serviceId + "X", providerId, queueId, payload, 100);
         var ackValid = await _queries.QueueStreamMessageAsync(serviceId, providerId, queueId, payload, 100);
 
-        // - 通过接收器解除对信息的排队
+        // 执行 - 通过接收器将消息出队
         var dequeued = await receiver.GetQueueMessagesAsync(maxCount);
         Assert.NotNull(dequeued);
         var storedDequeued = (await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             TestContext.Current.CancellationToken)).ToDictionary(x => x.MessageId);
 
-        // - 通过接收器确认消息
+        // 执行 - 通过接收器确认消息
         await receiver.MessagesDeliveredAsync(dequeued);
         var storedConfirmed = (await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             TestContext.Current.CancellationToken)).ToDictionary(x => x.MessageId);
 
-        // 平面 - 已取消排队的信件与预期的一样
+        // 断言 - 出队消息符合预期
         var single = Assert.IsType<AdoNetBatchContainer>(Assert.Single(dequeued));
         Assert.NotNull(single.RequestContext);
         Assert.Equal(streamId, single.StreamId);
@@ -554,7 +554,7 @@ public abstract class AdoNetQueueAdapterReceiverTests(string invariant, TestEnvi
         Assert.Equal(ackValid.MessageId, single.MessageId);
         Assert.Equal(1, single.Dequeued);
 
-        // 原索赔 - 在卸排后如预期的那样储存
+        // 断言 - 出队后的存储状态符合预期
         Assert.Equal(5, storedDequeued.Count);
         Assert.Equal(0, storedDequeued[ackExpired.MessageId].Dequeued);
         Assert.Equal(0, storedDequeued[ackOtherQueueId.MessageId].Dequeued);
@@ -562,7 +562,7 @@ public abstract class AdoNetQueueAdapterReceiverTests(string invariant, TestEnvi
         Assert.Equal(0, storedDequeued[ackOtherServiceId.MessageId].Dequeued);
         Assert.Equal(1, storedDequeued[ackValid.MessageId].Dequeued);
 
-        // 维护 - 已存储确认的邮件
+        // 断言 - 存储中的已确认消息
         Assert.Equal(4, storedConfirmed.Count);
         Assert.True(storedConfirmed.ContainsKey(ackExpired.MessageId));
         Assert.True(storedConfirmed.ContainsKey(ackOtherQueueId.MessageId));
@@ -572,7 +572,7 @@ public abstract class AdoNetQueueAdapterReceiverTests(string invariant, TestEnvi
     }
 
     /// <summary>
-    /// 测试关闭接收器立即发布未经证实的信息
+    /// 测试关闭接收器时是否立即释放其尚未确认的消息。
     /// </summary>
     [Fact]
     public async Task AdoNetQueueAdapterReceiver_Shutdown_ReleasesUnconfirmedMessages()
@@ -613,7 +613,7 @@ public abstract class AdoNetQueueAdapterReceiverTests(string invariant, TestEnvi
     }
 
     /// <summary>
-    /// 测试 <see cref="AdoNetQueueAdapterReceiver.Shutdown(TimeSpan)"/> 等待未完成的任务。
+    /// 测试 <see cref="AdoNetQueueAdapterReceiver.Shutdown(TimeSpan)"/> 是否等待尚未完成的任务。
     /// </summary>
     [Fact]
     public async Task AdoNetQueueAdapterReceiver_Shutdown_WaitsForOutstandingTask()
@@ -654,7 +654,7 @@ public abstract class AdoNetQueueAdapterReceiverTests(string invariant, TestEnvi
     }
 
     /// <summary>
-    /// 测试接收器缓存新信件后由先前所有人发布的信息是否被发送和确认。
+    /// 测试接收器已缓存较新消息后，先前所有者释放的消息仍能被投递和确认。
     /// </summary>
     [Fact]
     public async Task AdoNetQueueAdapterReceiver_ReleasedMessageAfterNewerMessage_IsDeliveredAndConfirmed()
@@ -710,7 +710,7 @@ public abstract class AdoNetQueueAdapterReceiverTests(string invariant, TestEnvi
     }
 
     /// <summary>
-    /// 测试一旦两次尝试都被清除后,即证实在先前尝试仍缓存的情况下电文重新发送。
+    /// 测试消息较早的一次投递尝试仍在缓存中时发生重新投递，并在两次投递尝试都从缓存清除后得到确认。
     /// </summary>
     [Fact]
     public async Task AdoNetQueueAdapterReceiver_CachedRedeliveryOfSameMessage_IsConfirmed()

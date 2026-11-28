@@ -1,8 +1,7 @@
 <Project>
   <!--
-    每个样本都有其包件版本的自有版本,以便其文件夹可以从存储库复制出来
-    并按原样构建。 此文件只能阻止搜索到达全仓库版本,
-    因此,在恢复过程中缺少自己 Directory.Packages.props 的样本失败。
+    每个示例自行管理包版本，以便其目录复制到仓库之外后仍能原样构建。
+    此文件仅阻止向上查找仓库级版本配置，因此缺少自身 Directory.Packages.props 的示例将在还原时失败。
   -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>

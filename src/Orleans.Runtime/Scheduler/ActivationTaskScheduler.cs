@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Runtime.Scheduler
 {
     /// <summary>
-    /// 单币、单顺序任务调度器,用于每项活动工作时间安排。
+    /// 用于按激活实例调度工作的单并发、按序任务调度器。
     /// </summary>
     [DebuggerDisplay("ActivationTaskScheduler RunQueue={workerGroup.ExternalWorkItemCount} GrainContext={workerGroup.GrainContext}")]
     internal sealed partial class ActivationTaskScheduler : TaskScheduler
@@ -40,8 +40,8 @@ namespace Orleans.Runtime.Scheduler
 #endif
         }
 
-        /// <summary>获取一个包含当前排程器上所安排任务数量的清单。</summary>
-        /// <returns>目前计划的任务中可列成数。</returns>
+        /// <summary>获取当前调度到此调度器的任务的可枚举集合。</summary>
+        /// <returns>当前已调度任务的可枚举集合。</returns>
         protected override IEnumerable<Task> GetScheduledTasks() => this.workerGroup.GetScheduledTasks();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -56,8 +56,8 @@ namespace Orleans.Runtime.Scheduler
             }
         }
 
-        /// <summary>将任务排队到调度器。</summary>
-        /// <param name="task">要排队的任务。</param>
+        /// <summary>将任务加入调度器队列。</summary>
+        /// <param name="task">要加入队列的任务。</param>
         protected override void QueueTask(Task task)
         {
 #if DEBUG
@@ -67,13 +67,13 @@ namespace Orleans.Runtime.Scheduler
         }
 
         /// <summary>
-        /// 确定是否在此调用中同步执行所提供的 <see cref="T:System.Threading.Tasks.Task"/> ,如果可以,则执行。
+        /// 确定提供的 <see cref="T:System.Threading.Tasks.Task"/> 是否可以在此次调用中同步执行；若可以，则执行它。
         /// </summary>
         /// <returns>
-        /// 显示任务是否内嵌执行的布尔值 。
+        /// 指示任务是否已内联执行的布尔值。
         /// </returns>
-        /// <param name="task">下 <see cref="T:System.Threading.Tasks.Task"/> 待执行。</param>
-        /// <param name="taskWasPreviouslyQueued">布尔表示任务是否先前被排队。 如果此参数是真实的, 那么任务可能已经预先排队( 计划) ; 如果假, 那么任务没有排队, 而这个调用是为了在不排队的情况下执行内线任务 。</param>
+        /// <param name="task">要执行的 <see cref="T:System.Threading.Tasks.Task"/>。</param>
+        /// <param name="taskWasPreviouslyQueued">表示任务此前是否已入队的布尔值。若参数为 True，则任务可能已入队（已调度）；若为 False，则已知任务尚未入队，本次调用旨在不入队的情况下内联执行任务。</param>
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
             var canExecuteInline = !taskWasPreviouslyQueued && Equals(RuntimeContext.Current, workerGroup.GrainContext);
@@ -101,7 +101,7 @@ namespace Orleans.Runtime.Scheduler
 #if DEBUG
             LogTraceTryExecuteTaskInlineYes(myId, task.Id, System.Environment.CurrentManagedThreadId);
 #endif
-            // 尝试运行任务 。
+            // 尝试运行任务。
             bool done = TryExecuteTask(task);
 #if DEBUG
             if (!done)

@@ -1,22 +1,22 @@
 namespace Orleans.Configuration;
 
 /// <summary>
-/// 配置 silo 从集中检索 grain 列表的方式。
+/// 配置 Silo 从集群获取 Grain 清单的方式。
 /// </summary>
 public sealed class ClusterManifestOptions
 {
     /// <summary>
-    /// 获取或设置值,以显示 silo 是否通过内容散列检索列表
-    /// 并使用同行摘要来弥补缺失的旅客名单。
+    /// 获取或设置一个值，指示 Silo 是否按内容哈希获取清单，
+    /// 并使用对等节点的摘要修复缺失的清单。
     /// </summary>
     /// <value>
-    /// 默认<see langword="true"/> 。 设为 <see langword="false"/> 直接检索每个活动 silo的列表 。
+    /// 默认为 <see langword="true"/>。设为 <see langword="false"/> 时直接获取每个活动 Silo 的清单。
     /// </value>
     /// <remarks>
-    /// 当 silo的列表提供者构建时,运行时间会捕捉到此设置 。
-    /// 重新启动 silo 以应用更改的值。 Silos 服务于来自启用端点的散列请求
-    /// 需要时, 包括当他们自己配置的检索可使用直接路径时 。
-    /// 同侪修理最多利用三个同时进行的地方尝试,每次尝试的最后期限为1秒钟。
+    /// 运行时在构造 Silo 的清单提供程序时读取此设置。
+    /// 更改此值后需要重启 Silo 才能生效。Silo 按需响应已启用此功能的对等节点发出的哈希请求，
+    /// 即使自身已配置为采用直接获取路径也会如此。
+    /// 对等节点修复最多使用三次并发的本地尝试，每次限时一秒。
     /// </remarks>
     public bool EnableContentAddressedRetrieval { get; set; } = true;
 }

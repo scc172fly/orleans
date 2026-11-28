@@ -126,7 +126,7 @@ internal sealed class AzureJournalScenario(AzureJournalOptions options, AzureJou
         }
         else
         {
-            // 最后一份日记保留用于暖气;测量的操作每个都有相同的基线。
+            // 最后一份日志专用于预热；每次测量操作均使用相同的初始状态。
             for (var index = 0; index <= options.Operations; index++)
             {
                 var storage = _provider.CreateStorage(WorkId(index));
@@ -207,7 +207,7 @@ internal sealed class AzureJournalScenario(AzureJournalOptions options, AzureJou
     private async Task VerifyJournalAsync(int index, int batches, CancellationToken cancellationToken)
     {
         using var consumer = new PayloadConsumer(_checkpoint, _append, batches, _expectedHash);
-        // 回收使用新鲜的存储物,运行着恒定状态,而不是作家的缓存。
+        // 恢复时使用新的存储对象，验证的是持久化状态，而非写入方的缓存。
         await _provider.CreateStorage(WorkId(index)).ReadAsync(consumer, cancellationToken);
         consumer.AssertComplete();
     }

@@ -73,7 +73,7 @@ public sealed class RedisMembershipTableCancellationTests
         }
         finally
         {
-            // 共享的晚存连接不得被取消初始化使用或处理 。
+            // 已取消的初始化不得使用或释放延迟建立的共享连接。
             creation.TrySetResult((backend.Multiplexer, true));
         }
     }
@@ -138,7 +138,7 @@ public sealed class RedisMembershipTableCancellationTests
         backend.Database.ClearReceivedCalls();
         const string guidance = "Use ReadAllAsync and MembershipTableData.TryGet instead.";
         var address = CreateEntry().SiloAddress;
-#pragma warning disable CS0618 // Verify both retired entrypoints and cancellation precedence.
+#pragma warning disable CS0618 // 验证两个已退役的入口点以及取消请求的优先级。
         var legacy = table.ReadRow(address);
         var current = table.ReadRowAsync(address, TestContext.Current.CancellationToken);
         Assert.True(legacy.IsFaulted);
@@ -187,7 +187,7 @@ public sealed class RedisMembershipTableCancellationTests
             "Initialize" => table.InitializeMembershipTableAsync(true, token),
             "Delete" => table.DeleteMembershipTableEntriesAsync("cluster", token),
             "ReadAll" => table.ReadAllAsync(token),
-#pragma warning disable CS0618 // Verify the retired API's cancellation precedence.
+#pragma warning disable CS0618 // 验证已退役 API 的取消请求优先级。
             "ReadRow" => table.ReadRowAsync(entry.SiloAddress, token),
 #pragma warning restore CS0618
             "Insert" => table.InsertRowAsync(entry, version, token),

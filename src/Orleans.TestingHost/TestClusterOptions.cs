@@ -6,15 +6,15 @@ using Orleans.Runtime;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// 测试组群配置选项 。
+    /// 测试集群的配置选项。
     /// </summary>
     public class TestClusterOptions
     {
         /// <summary>
-        /// 获取或设置集束识别码。
+        /// 获取或设置集群标识符。
         /// </summary>
         /// <seealso cref="ClusterOptions.ClusterId"/>
-        /// <value>集束识别符号。</value>
+        /// <value>集群标识符。</value>
         public string ClusterId { get; set; } = null!;
 
         /// <summary>
@@ -25,88 +25,88 @@ namespace Orleans.TestingHost
         public string ServiceId { get; set; } = null!;
 
         /// <summary>
-        /// 获取或设置基 silo 端口,这是第一个 silo的端口。其他 silos 将使用随后的端口。
+        /// 获取或设置基础 Silo 端口，即第一个 Silo 使用的端口。其他 Silo 将使用后续端口。
         /// </summary>
-        /// <value>基地 silo 端口。</value>
+        /// <value>基础 Silo 端口。</value>
         public int BaseSiloPort { get; set; }
 
         /// <summary>
-        /// 获取或设置基端网关,这是第一个 silo的网关。其他 silos 将使用随后的港口。
+        /// 获取或设置网关起始端口，即首个 Silo 的网关端口。其他 Silo 使用后续端口。
         /// </summary>
-        /// <value>基端网关端口。</value>
+        /// <value>基础网关端口。</value>
         public int BaseGatewayPort { get; set; }
 
         /// <summary>
-        /// 获取或设定一个数值,显示是否使用测试组群成员资格。
+        /// 获取或设置一个值，指示是否使用测试集群成员资格机制。
         /// </summary>
-        /// <value><see langword="true" /> 如果采用测试组群成员制;否则, <see langword="false" />.</value>
+        /// <value><see langword="true" /> 表示应使用测试集群成员资格机制；否则为 <see langword="false" />。</value>
         public bool UseTestClusterMembership { get; set; }
 
         /// <summary>
-        /// 获取或设定一个数值,以显示是否使用实际环境统计数据。
+        /// 获取或设置一个值，指示是否使用真实环境统计信息。
         /// </summary>
         public bool UseRealEnvironmentStatistics { get; set; }
 
         /// <summary>
-        /// 获取或设定一个值,以显示是否在部署后立即初始化客户。
+        /// 获取或设置一个值，指示部署时是否立即初始化客户端。
         /// </summary>
-        /// <value><see langword="true" /> ,如果客户部署后应立即启动;否则, <see langword="false" />。</value>
+        /// <value><see langword="true" /> 表示部署时应立即初始化客户端；否则为 <see langword="false" />。</value>
         public bool InitializeClientOnDeploy { get; set; }
 
         /// <summary>
-        /// 获取或设置初始 silos 数。
+        /// 获取或设置初始 Silo 数量。
         /// </summary>
-        /// <value>初始 silos 计数。</value>
+        /// <value>初始 Silo 数量。</value>
         public short InitialSilosCount { get; set; }
 
         /// <summary>
-        /// 获取或设置应用程序基准目录。
+        /// 获取或设置应用程序基础目录。
         /// </summary>
-        /// <value>应用程序基准目录。</value>
+        /// <value>应用程序基础目录。</value>
         public string? ApplicationBaseDirectory { get; set; }
 
         /// <summary>
-        /// 获取或设置一个值,以显示是否配置文件记录。
+        /// 获取或设置一个值，指示是否配置文件日志记录。
         /// </summary>
-        /// <value><see langword="true" /> 如果文件记录应该配置; 否则, <see langword="false" />。</value>
+        /// <value><see langword="true" /> 表示应配置文件日志记录；否则为 <see langword="false" />。</value>
         public bool ConfigureFileLogging { get; set; } = true;
 
         /// <summary>
-        /// 获取或设定一个数值,表明是否为测试目的假设同质 silos 。
+        /// 获取或设置一个值，指示测试时是否假定所有 Silo 同构。
         /// </summary>
-        /// <value><see langword="true" /> 如果组群应假定同质 silos;否则, <see langword="false" />。</value>
+        /// <value><see langword="true" /> 表示集群应假定 Silo 同构；否则为 <see langword="false" />。</value>
         public bool AssumeHomogenousSilosForTesting { get; set; }
 
         /// <summary>
-        /// 获取或设置一个值,以显示每个 silo 是否应该主持网关。
+        /// 获取或设置一个值，指示是否每个 Silo 都应承载网关。
         /// </summary>
-        /// <value><see langword="true" /> ,如果每个 silo 都设有网关;否则, <see langword="false" />。</value>
+        /// <value><see langword="true" /> 表示每个 Silo 均应承载网关；否则为 <see langword="false" />。</value>
         public bool GatewayPerSilo { get; set; } = true;
 
         /// <summary>
-        /// 获取 silo 构建器配置类型。
+        /// 获取 Silo 构建器配置器类型。
         /// </summary>
-        /// <value>下 silo 建筑配置类型。</value>
+        /// <value>Silo 构建器配置器类型。</value>
         public List<string?> SiloBuilderConfiguratorTypes { get; } = new List<string?>();
 
         /// <summary>
-        /// 获取客户端构建器配置类型 。
+        /// 获取客户端构建器配置器类型。
         /// </summary>
-        /// <value>客户端构建器配置类型。</value>
+        /// <value>客户端构建器配置器类型。</value>
         public List<string?> ClientBuilderConfiguratorTypes { get; } = new List<string?>();
 
         /// <summary>
-        /// 获取或设定一个值,以显示连接 silos 和客户的运输方式。
+        /// 获取或设置用于连接 Silo 与客户端的传输机制。
         /// </summary>
         /// <remarks>
-        /// 默认为在模拟传输中。
+        /// 默认为内存传输。
         /// </remarks>
         public ConnectionTransportType ConnectionTransport { get; set; } = ConnectionTransportType.InMemory;
 
         /// <summary>
-        /// 将这些选项转换成字典。
+        /// 将这些选项转换为字典。
         /// </summary>
-        /// <returns>选项词典。</returns>
+        /// <returns>选项字典。</returns>
         public Dictionary<string, string?> ToDictionary()
         {
             var result = new Dictionary<string, string?>
@@ -154,14 +154,14 @@ namespace Orleans.TestingHost
     }
 
     /// <summary>
-    /// 单个配置的替换 silos。
+    /// 单个 Silo 的配置覆盖选项。
     /// </summary>
     public class TestSiloSpecificOptions
     {
         /// <summary>
-        /// 获取或设置 silo 端口。
+        /// 获取或设置 Silo 端口。
         /// </summary>
-        /// <value> silo 端口。</value>
+        /// <value>Silo 端口。</value>
         public int SiloPort { get; set; }
 
         /// <summary>
@@ -171,24 +171,24 @@ namespace Orleans.TestingHost
         public int GatewayPort { get; set; }
 
         /// <summary>
-        /// 获取或设置 silo的名称。
+        /// 获取或设置 Silo 名称。
         /// </summary>
-        /// <value> silo的名称。</value>
+        /// <value>Silo 名称。</value>
         public string SiloName { get; set; } = null!;
 
         /// <summary>
-        /// 获取或设置主 silo 端口。
+        /// 获取或设置主 Silo 端口。
         /// </summary>
-        /// <value>主 silo 端口。</value>
+        /// <value>主 Silo 端口。</value>
         public IPEndPoint? PrimarySiloEndPoint { get; set; }
 
         /// <summary>
-        /// 创建 <see cref="TestSiloSpecificOptions"/> 类实例。
+        /// 创建 <see cref="TestSiloSpecificOptions"/> 类的实例。
         /// </summary>
-        /// <param name="testCluster">测试组。</param>
-        /// <param name="testClusterOptions">测试组群选项。</param>
+        /// <param name="testCluster">测试集群。</param>
+        /// <param name="testClusterOptions">测试集群选项。</param>
         /// <param name="instanceNumber">实例编号。</param>
-        /// <param name="assignNewPort">设定为 <see langword="true" />,为 silo.</param>
+        /// <param name="assignNewPort">设置为 <see langword="true" /> 时，为 Silo 分配新端口。</param>
         /// <returns>选项。</returns>
         public static TestSiloSpecificOptions Create(TestCluster testCluster, TestClusterOptions testClusterOptions, int instanceNumber, bool assignNewPort = false)
         {
@@ -214,9 +214,9 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// 将这些选项转换成字典。
+        /// 将这些选项转换为字典。
         /// </summary>
-        /// <returns>选项词典。</returns>
+        /// <returns>选项字典。</returns>
         public Dictionary<string, string?> ToDictionary()
         {
             var result = new Dictionary<string, string?>
@@ -237,22 +237,22 @@ namespace Orleans.TestingHost
     }
 
     /// <summary>
-    /// 描述运输方法
+    /// 描述一种传输方式。
     /// </summary>
     public enum ConnectionTransportType
     {
         /// <summary>
-        /// 使用真实的 TCP 套接字 。
+        /// 使用真实的 TCP 套接字。
         /// </summary>
         TcpSocket = 0,
 
         /// <summary>
-        /// 内存套接字中的用途 。
+        /// 使用内存套接字。
         /// </summary>
         InMemory = 1,
 
         /// <summary>
-        /// Unix套接字中的用途 。
+        /// 使用 Unix 套接字。
         /// </summary>
         UnixSocket = 2,
     }

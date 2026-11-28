@@ -50,9 +50,9 @@ internal static class OrleansBinaryJournalReader
 
         while (input.Length > 0)
         {
-            // 截取当前所有缓放的字节, 以折叠 ArcBuffer 的方式让读者行走
-            // 重迭此迭代。 成功条目由 KWit 跳过
-            // ArcBufferReader;短尾尾巴留小节供日后调用。
+            // 将当前缓冲的所有字节创建为固定的 ArcBuffer 快照，供读取器在
+            // 本轮迭代中遍历。成功读取的条目通过调用底层
+            // ArcBufferReader 的 Skip() 提交；截断的尾部字节保留至后续调用。
             using var batchSlice = input.Peek(input.Length);
 
             if (!TryReadEntry(
@@ -70,7 +70,7 @@ internal static class OrleansBinaryJournalReader
             var streamId = new JournalStreamId(streamIdValue);
             var state = context.ResolveStateMachine(streamId);
 
-            // 切除进入有效载荷(streamId后),以便国家完全获得一个指挥机构。
+            // 对条目有效载荷（streamId 之后的部分）进行切片，使状态恰好接收一个命令正文。
             var payloadLength = frameLength - payloadStart;
             using var payloadSlice = batchSlice.Slice(payloadStart, payloadLength);
             using var payloadBuffer = new ArcBufferWriter();

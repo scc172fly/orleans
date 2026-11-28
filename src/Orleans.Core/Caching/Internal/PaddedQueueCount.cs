@@ -3,10 +3,10 @@ using System.Runtime.InteropServices;
 
 namespace Orleans.Caching.Internal;
 
-// 由Alex Peck从 BitFaster.Caching 取出
+// Derived from BitFaster.Caching by Alex Peck
 // https://github.com/bitfaster/BitFaster.Caching/blob/5b2d64a1afcc251787fbe231c6967a62820fc93c/BitFaster.Caching/Lru/PaddedQueueCount.cs
 [DebuggerDisplay("Hot = {Hot}, Warm = {Warm}, Cold = {Cold}")]
-[StructLayout(LayoutKind.Explicit, Size = 4 * Padding.CACHE_LINE_SIZE)] // 字段前后/之间/之后的
+[StructLayout(LayoutKind.Explicit, Size = 4 * Padding.CACHE_LINE_SIZE)] // 字段之前、之间及之后的填充。
 internal struct PaddedQueueCount
 {
     [FieldOffset(1 * Padding.CACHE_LINE_SIZE)] public int Hot;

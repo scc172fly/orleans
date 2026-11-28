@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="ImmutableQueue{T}"/>的序列器。
+    /// <see cref="ImmutableQueue{T}"/> 的序列化器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
@@ -16,7 +16,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ImmutableQueueCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">代孕序列器</param>
+        /// <param name="surrogateSerializer">代理类型序列化器。</param>
         public ImmutableQueueCodec(IValueSerializer<ImmutableQueueSurrogate<T>> surrogateSerializer) : base(surrogateSerializer)
         {
         }
@@ -29,22 +29,22 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ImmutableListCodec{T}"/>所使用的代金矿类型。
+    /// <see cref="ImmutableListCodec{T}"/> 所使用的代理类型。（译注：实际对应 ImmutableQueueCodec{T}。）
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [GenerateSerializer]
     public struct ImmutableQueueSurrogate<T>
     {
         /// <summary>
-        /// 获取或设置值。
+        /// 获取或设置值集合。
         /// </summary>
-        /// <value>价值。</value>
+        /// <value>值集合。</value>
         [Id(0)]
         public List<T> Values;
     }
 
     /// <summary>
-    /// <see cref="ImmutableQueue{T}"/>的复印机。
+    /// <see cref="ImmutableQueue{T}"/> 的复制器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
@@ -56,7 +56,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ImmutableQueueCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier">元素复印机。</param>
+        /// <param name="copier">元素复制器。</param>
         public ImmutableQueueCopier(IDeepCopier<T> copier) => _copier = OrleansGeneratedCodeHelper.UnwrapService(this, copier);
 
         /// <inheritdoc />
@@ -76,8 +76,8 @@ namespace Orleans.Serialization.Codecs
             if (input.IsEmpty || IsShallowCopyable())
                 return input;
 
-            // 如果输入收藏的任何值能够参与循环参考, 此处就有可能无限重复。
-            // 将这种案件退回浅本,从而减轻这一负担。
+            // 如果输入集合中有任何值能够参与循环引用，则此处可能发生无限递归。
+            // 在这种情况下返回浅拷贝，以缓解该问题。
             context.RecordCopy(input, input);
 
             var items = new List<T>();

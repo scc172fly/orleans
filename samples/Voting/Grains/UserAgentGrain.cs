@@ -4,10 +4,10 @@ using VotingContract;
 namespace Grains;
 
 /// <summary>
-/// 此 grain 演示了一种简单的节减特定客户端的方法
-/// (按其IP地址确定,该地址被用作 grain的主要关键)
-/// 该公司继续统计最近电话和油门,如果超过规定的门槛值。
-/// 得分逐渐衰减 直到客户恢复通话
+/// 此 Grain 演示了一种对指定客户端进行限流的简单方法
+/// （通过其 IP 地址进行标识，该地址用作 Grain 的主键）。
+/// 它维护近期调用的计数，并在计数超过预定义阈值时进行限流。
+/// 分数会随时间衰减，使客户端可以恢复调用。
 /// </summary>
 internal class UserAgentGrain : Grain, IUserAgentGrain
 {
@@ -28,13 +28,13 @@ internal class UserAgentGrain : Grain, IUserAgentGrain
     {
         Throttle();
 
-        // 获取民意调查的引用 grain
+        // 获取投票 Grain 的引用。
         var pollGrain = _grainFactory.GetGrain<IPollGrain>(pollId);
 
-        // 获取当前民意调查结果
+        // 获取当前投票结果。
         var results = await pollGrain.GetCurrentResults();
 
-        // 以及我们是否投票了
+        // 返回结果，并同时返回当前用户是否已经投票。
         return (Results: results, Voted: _votedPolls.Contains(pollId));
     }
 
@@ -42,18 +42,18 @@ internal class UserAgentGrain : Grain, IUserAgentGrain
     {
         Throttle();
 
-        // 限制任何一个用户能够投票的投票次数
+        // 限制任意单个用户创建的投票数量。
         if (_myPolls.Count >= 5)
         {
             throw new InvalidOperationException("You have already created 5 polls, which is enough for anybody.");
         }
 
-        // 生成一个新代号, 用该代号获取 PollGrain 的引用
+        // 生成新 ID，并获取使用该 ID 的 PollGrain 引用。
         var pollId = Guid.NewGuid().ToString("N")[..6];
         var pollGrain = _grainFactory.GetGrain<IPollGrain>(pollId);
 
-        // 创建民意调查。 我们可以避免在这里发生碰撞, 如果投票结果错误, 则会返回错误
-        // 已经存在了。
+        // 创建投票。如果具有该 ID 的投票已存在，可以通过返回错误来
+        // 避免 ID 冲突。
         await pollGrain.CreatePoll(initialState);
 
         _myPolls.Add(pollId);
@@ -64,33 +64,33 @@ internal class UserAgentGrain : Grain, IUserAgentGrain
     {
         Throttle();
 
-        // 首先,检查一下我们是否已经投票了
+        // 首先检查当前用户是否已经投票。
         if (_votedPolls.Contains(pollId))
         {
             throw new InvalidOperationException("You have already voted in that poll!");
         }
 
-        // 表决票数票数投票的票数票数票数票数票数表决(V的票数)
+        // 投票。
         var pollGrain = _grainFactory.GetGrain<IPollGrain>(pollId);
         var result = await pollGrain.AddVote(optionId);
 
-        // 记录我们的投票,防止双重投票
+        // 记录当前用户的投票，防止重复投票。
         _votedPolls.Add(pollId);
         return result;
     }
 
     private void Throttle()
     {
-        // 查查上次电话打多久没接了
+        // 计算自上次调用以来经过的时间。
         var elapsedSeconds = _stopwatch.Elapsed.TotalSeconds;
         _stopwatch.Restart();
 
-        // 计算基于固定的分数衰减率和
-        // 上次召唤后已过了一段时间。
+        // 根据恒定的分数衰减速率及
+        // 自上次调用以来经过的时间，计算新分数。
         _throttleScore = Math.Max(0, _throttleScore - elapsedSeconds * DecayRate) + 1;
 
-        // 如果用户超过门槛,则拒绝其请求并给予
-        // 有用的警告。
+        // 如果用户已超过阈值，则拒绝其请求，并向其提供
+        // 有帮助的警告信息。
         if (_throttleScore > ThrottleThreshold)
         {
             var remainingSeconds = Math.Max(0, (int)Math.Ceiling((_throttleScore - (ThrottleThreshold - 1)) / DecayRate));

@@ -1,4 +1,4 @@
-#查看 https://aka.ms/customizecontainer 学习如何定制调试容器,以及视觉工作室如何使用此 Docker 文件构建图像以更快地调试 。
+# 参阅 https://aka.ms/customizecontainer，了解如何自定义调试容器，以及 Visual Studio 如何使用此 Dockerfile 构建镜像以加快调试。
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 USER app

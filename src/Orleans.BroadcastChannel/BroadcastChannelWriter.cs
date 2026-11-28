@@ -12,22 +12,22 @@ using Orleans.Runtime;
 namespace Orleans.BroadcastChannel
 {
     /// <summary>
-    /// 界面允许写入频道 。
+    /// 用于写入通道的接口。
     /// </summary>
-    /// <typeparam name="T">频道元素类型。</typeparam>
+    /// <typeparam name="T">通道元素类型。</typeparam>
     public interface IBroadcastChannelWriter<T>
     {
         /// <summary>
-        /// 发布元素到频道 。
+        /// 向通道发布元素。
         /// </summary>
-        /// <param name="item">发布元素。</param>
+        /// <param name="item">要发布的元素。</param>
         Task Publish([DisallowNull] T item);
 
         /// <summary>
-        /// 发布元素到频道 。
+        /// 向通道发布元素。
         /// </summary>
-        /// <param name="item">发布元素。</param>
-        /// <param name="cancellationToken">取消牌。</param>
+        /// <param name="item">要发布的元素。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
         Task Publish([DisallowNull] T item, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

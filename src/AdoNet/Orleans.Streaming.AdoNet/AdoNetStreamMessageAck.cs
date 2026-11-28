@@ -1,8 +1,8 @@
 namespace Orleans.Streaming.AdoNet;
 
 /// <summary>
-/// 表示存储中确认有一条电文被排入队列。
-/// 用于表面任何生成的测试识别符。
+/// 表示存储返回的消息入队确认。
+/// 用于公开生成的标识符以便测试。
 /// </summary>
 internal record AdoNetStreamMessageAck(
     string ServiceId,

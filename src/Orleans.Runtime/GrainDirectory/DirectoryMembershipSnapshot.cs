@@ -14,7 +14,7 @@ namespace Orleans.Runtime.GrainDirectory;
 internal sealed class DirectoryMembershipSnapshot
 {
     /// <summary>
-    /// 目录环边框的默认散列函数,与 <see cref="LocalGrainDirectory"/> 分区方案匹配。
+    /// 目录环边界的默认哈希函数，与 <see cref="LocalGrainDirectory"/> 的分区方案匹配。
     /// </summary>
     internal static readonly Func<SiloAddress, int, ImmutableArray<uint>> DefaultGetRingBoundaries = static (silo, count) =>
     {
@@ -40,7 +40,7 @@ internal sealed class DirectoryMembershipSnapshot
         var sortedActiveMembers = ImmutableArray.CreateBuilder<SiloAddress>(snapshot.Members.Count(static m => m.Value.Status == SiloStatus.Active));
         foreach (var member in snapshot.Members)
         {
-            // 只有现役成员是名录成员的一部分。
+            // 仅活动成员属于目录成员集合。
             if (member.Value.Status == SiloStatus.Active)
             {
                 sortedActiveMembers.Add(member.Key);
@@ -89,7 +89,7 @@ internal sealed class DirectoryMembershipSnapshot
             return left.MemberIndex.CompareTo(right.MemberIndex);
         });
 
-        // 删除散列碰撞造成的空区域 。
+        // 移除哈希冲突导致的空范围。
         if (hashIndexPairs.Count > 1)
         {
             for (var i = 1; i < hashIndexPairs.Count;)
@@ -231,14 +231,14 @@ internal sealed class DirectoryMembershipSnapshot
         var (nextStart, _, _) = _ringBoundaries[(index + 1) % _ringBoundaries.Length];
         if (entryStart == nextStart)
         {
-            // 处理散列碰撞,使随后的相邻区域空闲。
+            // 通过将后续相邻范围设为空来处理哈希冲突。
             if (_ringBoundaries.Length == 1)
             {
                 return RingRange.Full;
             }
             else
             {
-                // 处理散列碰撞,使随后的相邻区域空闲。
+                // 通过将后续相邻范围设为空来处理哈希冲突。
                 return RingRange.Empty;
             }
         }

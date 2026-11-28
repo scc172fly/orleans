@@ -10,8 +10,8 @@ namespace Orleans.Transactions.TestKit.xUnit
         /// <summary>
         /// 初始化 <see cref="TransactionRecoveryTestsRunnerxUnit"/> 类的新实例。
         /// </summary>
-        /// <param name="cluster">用于运行恢复设想的测试组群。</param>
-        /// <param name="testOutput"> xUnit 测试输出助手。</param>
+        /// <param name="cluster">用于运行恢复场景的测试集群。</param>
+        /// <param name="testOutput">xUnit 测试输出助手。</param>
         public TransactionRecoveryTestsRunnerxUnit(TestCluster cluster, ITestOutputHelper testOutput)
             : base(cluster, TestOutputHelperExtensions.GetWriteLine(testOutput, nameof(testOutput)))
         {

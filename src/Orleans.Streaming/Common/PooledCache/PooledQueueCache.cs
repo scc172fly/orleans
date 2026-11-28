@@ -10,22 +10,22 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// PooledQueueCache 是一个缓存,意在作为 IQueueCache中的信息缓存。
-    /// 它能够长期储存大量信息(价值的图像)
-    ///   时间(分钟至无限期),但垃圾收集工作导致最低性能打击。
-    /// 这个集合缓存共享共享存储器分配记忆,永远不释放。 它保持了共用资源中可自由使用的资源 
-    ///   使用寿命期间仍在应用中的物体,即这些物体进入第2款。
-    ///   相对便宜,因为现在他们唯一的成本是
-    ///   检查成本,以确定是否在每个收集周期中释放这些弹药。
-    ///   少量大物体,其对象图相对简单,检查费用较低
-    ///   然后是大量较小对象,其物体图形更为复杂。
-    /// 基于性能原因,该缓存的设计与队列特定数据更加一致。 也就是说,
-    ///   部分原因,为什么与 SimpleQueueCache不同,这个缓存不执行 IQueueCache。
-    ///   用于 IQueueCache的队列特定执行。
+    /// PooledQueueCache 是一种缓存，旨在用作 IQueueCache 中的消息缓存。
+    /// 它能够在较长时间内（数分钟至无限期）存储大量消息（数 GB），
+    /// 同时将垃圾回收带来的性能影响降至最低。
+    /// 此池化缓存分配内存后不再释放，而是将已释放使用权的资源保留在池中，
+    /// 这些池在服务的整个生命周期内一直供应用程序使用。这意味着这些对象会进入第 2 代（gen2），
+    /// 经过压实后留在那里。其成本相对较低，因为它们现在仅产生
+    /// 每次垃圾回收周期中检查是否应释放它们的成本。由于该缓存使用的对象
+    /// 数量较少、体积较大且对象图相对简单，因此检查这些对象的成本
+    /// 低于检查大量体积较小但对象图更复杂的对象。
+    /// 出于性能考虑，此缓存的设计更贴合特定队列的数据。这也是它与 SimpleQueueCache 不同，
+    /// 不直接实现 IQueueCache 的部分原因。它旨在
+    /// 供针对特定队列的 IQueueCache 实现使用。
     /// </summary>
     public class PooledQueueCache : IPurgeObservable
     {
-        // 信件 bocks 链接列表。 第一个是最新消息 。
+        // 消息块的链表。第一个块为最新块。
         private readonly LinkedList<CachedMessageBlock> messageBlocks;
         private readonly CachedMessagePool pool;
         private readonly ICacheDataAdapter cacheDataAdapter;
@@ -38,7 +38,7 @@ namespace Orleans.Providers.Streams.Common
         private readonly Dictionary<StreamId, (DateTime TimeStamp, StreamSequenceToken Token)> lastPurgedToken = new Dictionary<StreamId, (DateTime TimeStamp, StreamSequenceToken Token)>();
 
         /// <summary>
-        /// 获取最近添加的缓存信件。
+        /// 获取最近添加的缓存消息。
         /// </summary>
         public CachedMessage? Newest
         {
@@ -46,12 +46,12 @@ namespace Orleans.Providers.Streams.Common
             {
                 if (IsEmpty)
                     return null;
-                return messageBlocks.First!.Value.NewestMessage; // messageBlocks.Count ! = 0 (通过 IsEmpty核对以上) 。
+                return messageBlocks.First!.Value.NewestMessage; // 此处 messageBlocks.Count != 0（上文已通过 IsEmpty 检查）。
             }
         }
 
         /// <summary>
-        /// 获取缓存中最古老的信息 。
+        /// 获取缓存中最旧的消息。
         /// </summary>
         public CachedMessage? Oldest
         {
@@ -59,23 +59,23 @@ namespace Orleans.Providers.Streams.Common
             {
                 if (IsEmpty)
                     return null;
-                return messageBlocks.Last!.Value.OldestMessage; // messageBlocks.Count ! = 0 (通过 IsEmpty核对以上) 。
+                return messageBlocks.Last!.Value.OldestMessage; // 此处 messageBlocks.Count != 0（上文已通过 IsEmpty 检查）。
             }
         }
 
         /// <summary>
-        /// 获取缓存信件计数 。
+        /// 获取缓存的消息数量。
         /// </summary>
         public int ItemCount { get; private set; }
 
         /// <summary>
-        /// 集合队列缓存是一个从池中获取资源的信息缓存
+        /// 池化队列缓存是一种从池中获取资源的消息缓存。
         /// </summary>
         /// <param name="cacheDataAdapter">缓存数据适配器。</param>
-        /// <param name="logger">日志器。</param>
+        /// <param name="logger">日志记录器。</param>
         /// <param name="cacheMonitor">缓存监视器。</param>
-        /// <param name="cacheMonitorWriteInterval">缓存监视器写间隔。 只有活动缓存才触发 。</param>
-        /// <param name="purgeMetadataInterval">清除缓存元数据的间隔。</param>
+        /// <param name="cacheMonitorWriteInterval">缓存监视器的写入间隔。仅对活动缓存触发。</param>
+        /// <param name="purgeMetadataInterval">清除缓存元数据的时间间隔。</param>
         public PooledQueueCache(
             ICacheDataAdapter cacheDataAdapter,
             ILogger logger,
@@ -102,19 +102,19 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// 指示缓存是否空
+        /// 指示缓存是否为空。
         /// </summary>
-        public bool IsEmpty => messageBlocks.Count == 0 || (messageBlocks.Count == 1 && messageBlocks.First!.Value.IsEmpty); // messageBlocks.Count = 1 表示第一是非核。
+        public bool IsEmpty => messageBlocks.Count == 0 || (messageBlocks.Count == 1 && messageBlocks.First!.Value.IsEmpty); // messageBlocks.Count == 1 意味着 First 不为 null。
 
         /// <summary>
-        /// 获取光标,通过所提供 sequenceToken的缓存中的信件进行罗列, 
-        ///   过滤到指定的流上。
+        /// 获取游标，从给定的 sequenceToken 位置开始枚举缓存中的消息，
+        /// 并按指定的流进行筛选。
         /// </summary>
-        /// <param name="streamId">流态身份</param>
+        /// <param name="streamId">流标识。</param>
         /// <param name="sequenceToken"></param>
-        /// <returns>获得的缓存光标。</returns>
+        /// <returns>获取的缓存游标。</returns>
         /// <exception cref="QueueCacheMissException">
-        /// 请求的符名比缓存保存的信件要旧 。
+        /// 请求的序列令牌对应的位置早于缓存中最早保留的消息。
         /// </exception>
         [Obsolete("Use TryGetCursor instead.")]
         public object GetCursor(StreamId streamId, StreamSequenceToken? sequenceToken)
@@ -129,13 +129,13 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// 试图在提供的序列符号上获取光标 。
+        /// 尝试在给定序列令牌处获取游标。
         /// </summary>
-        /// <param name="streamId">流体识别符号。</param>
-        /// <param name="sequenceToken">序列符号。</param>
+        /// <param name="streamId">流标识符。</param>
+        /// <param name="sequenceToken">序列令牌。</param>
         /// <returns>
-        /// 包含获得的光标的成功结果,或含有
-        /// 无法获取位置和当前缓存边框 。
+        /// 成功时返回包含所获取游标的结果；缓存未命中时返回包含
+        /// 不可用位置和当前缓存边界的结果。
         /// </returns>
         public QueueCacheCursorResult<object> TryGetCursor(StreamId streamId, StreamSequenceToken? sequenceToken)
         {
@@ -154,11 +154,11 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// 试图在指定的订阅启动位置获取光标 。
+        /// 尝试在指定的订阅起始位置获取游标。
         /// </summary>
-        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="streamId">流标识符。</param>
         /// <param name="startPosition">初始订阅位置。</param>
-        /// <returns>包含所获取光标的成功结果。</returns>
+        /// <returns>包含所获取游标的成功结果。</returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="startPosition"/> 未定义。</exception>
         public QueueCacheCursorResult<object> TryGetCursorAtPosition(
             StreamId streamId,
@@ -180,10 +180,10 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// 在提供的序列符号上重新定位闲置或未设定光标。
+        /// 将空闲或未设置的游标重新定位到给定序列令牌处。
         /// </summary>
-        /// <param name="cursorObj">光标要刷新。</param>
-        /// <param name="sequenceToken">将光标定位在位置上的序列符号。</param>
+        /// <param name="cursorObj">要刷新的游标。</param>
+        /// <param name="sequenceToken">用于定位游标的序列令牌。</param>
         public void Refresh(object cursorObj, StreamSequenceToken? sequenceToken)
         {
             ArgumentNullException.ThrowIfNull(cursorObj);
@@ -198,17 +198,17 @@ namespace Orleans.Providers.Streams.Common
                 return;
             }
 
-            // 只调整空闲或未设置光标的位置。 活动光标( Set) 是中数, 不得移动 。
-            // 无一无名牌没有重新定位目标, 所以不要让光标保持未动, 让普通的空闲唤醒
-            // 路径处理它, 而不是重新定位到最新事件( 这会跳过数据) 。
+            // 仅重新定位空闲或未设置的游标。活动游标（Set）正在枚举，不能移动。
+            // null 令牌没有重新定位目标，因此保持游标不变，让正常的空闲唤醒
+            // 路径进行处理，而不是将其重新定位到最新事件（那样会跳过数据）。
             if (sequenceToken is null || cursor.State == CursorStates.Set)
             {
                 return;
             }
 
-            // 刷新时只往前移动光标。如果光标已定位在鼠标的前面或正前
-            // 请求的牌号( 例如, 尚未设置的光标等待未来的牌) , 请将其留在原位, 所以我们可以这样做
-            // 消费者已要求从此开始,
+            // 刷新始终只会将游标向前移动。如果游标已经位于请求令牌处或其之后
+            // （例如，未设置的游标正在等待未来的令牌），则保持其位置不变，避免
+            // 使其回溯并重新投递消费者已请求跳过的事件。
             if (cursor.SequenceToken is not null && EventSequenceTokenCompatibility.Compare(cursor.SequenceToken, sequenceToken) >= 0)
             {
                 return;
@@ -225,16 +225,16 @@ namespace Orleans.Providers.Streams.Common
         {
             if (this.IsEmpty)
             {
-                this.cacheMonitor!.ReportMessageStatistics(null, null, null, this.ItemCount); // 仅通过 periodicMonitoring引用, 只有在 cacheMonitor 不中值时才创建。
+                this.cacheMonitor!.ReportMessageStatistics(null, null, null, this.ItemCount); // 仅通过 periodicMonitoring 调用，而 periodicMonitoring 仅在 cacheMonitor 不为 null 时创建。
             }
             else
             {
-                var newestMessage = this.Newest!.Value; // 并非空( 上文选中) , 所以新时是非中点 。
-                var oldestMessage = this.Oldest!.Value; // 并非空( 已在上面选中) , 所以老者是非null 。
+                var newestMessage = this.Newest!.Value; // 缓存非空（上文已检查），因此 Newest 不为 null。
+                var oldestMessage = this.Oldest!.Value; // 缓存非空（上文已检查），因此 Oldest 不为 null。
                 var newestMessageEnqueueTime = newestMessage.EnqueueTimeUtc;
                 var oldestMessageEnqueueTime = oldestMessage.EnqueueTimeUtc;
                 var oldestMessageDequeueTime = oldestMessage.DequeueTimeUtc;
-                this.cacheMonitor!.ReportMessageStatistics(oldestMessageEnqueueTime, oldestMessageDequeueTime, newestMessageEnqueueTime, this.ItemCount); // 仅通过 periodicMonitoring引用, 只有在 cacheMonitor 不中值时才创建。
+                this.cacheMonitor!.ReportMessageStatistics(oldestMessageEnqueueTime, oldestMessageDequeueTime, newestMessageEnqueueTime, this.ItemCount); // 仅通过 periodicMonitoring 调用，而 periodicMonitoring 仅在 cacheMonitor 不为 null 时创建。
             }
         }
 
@@ -242,7 +242,7 @@ namespace Orleans.Providers.Streams.Common
         {
             var now = DateTime.UtcNow;
 
-            // 获取所有重于 this.purgeMetadataInterval的密钥
+            // 获取所有早于 this.purgeMetadataInterval 所指定时限的键。
             foreach (var kvp in this.lastPurgedToken)
             {
                 if (kvp.Value.TimeStamp + this.purgeMetadataInterval < now)
@@ -254,7 +254,7 @@ namespace Orleans.Providers.Streams.Common
 
         private void TrackAndPurgeMetadata(CachedMessage messageToRemove)
         {
-            // 如果已禁用对被逐出信件元数据的跟踪, 则不做任何动作
+            // 如果禁用了已逐出消息的元数据跟踪，则不执行任何操作。
             if (this.periodicMetadaPurging == null)
                 return;
 
@@ -268,7 +268,7 @@ namespace Orleans.Providers.Streams.Common
 
         private QueueCacheMissInfo? SetCursor(Cursor cursor, StreamSequenceToken? sequenceToken)
         {
-            // 如果在缓存、取消标记和等待更多数据中没有任何信息, 则取消设置标记。
+            // 如果缓存为空，则取消设置令牌并等待更多数据。（译注：实现将游标置为 Unset 状态，并保留传入的序列令牌。）
             if (IsEmpty)
             {
                 cursor.State = CursorStates.Unset;
@@ -276,9 +276,9 @@ namespace Orleans.Providers.Streams.Common
                 return null;
             }
 
-            LinkedListNode<CachedMessageBlock> newestBlock = messageBlocks.First!; // messageBlocks.Count =0(上文已作核对)。
+            LinkedListNode<CachedMessageBlock> newestBlock = messageBlocks.First!; // messageBlocks.Count != 0（上文已检查）。
 
-            // 如果 sequenceToken 无效,则从缓存中最新信件转出
+            // 如果 sequenceToken 为 null，则从缓存中的最新消息开始迭代。
             if (sequenceToken == null)
             {
                 cursor.State = CursorStates.Idle;
@@ -288,7 +288,7 @@ namespace Orleans.Providers.Streams.Common
                 return null;
             }
 
-            // 如果 sequenceToken 过于新, 无法在缓存、 取消设置标记并等待更多数据 。
+            // 如果 sequenceToken 太新而尚未进入缓存，则取消设置令牌并等待更多数据。（译注：实现将游标置为 Unset 状态，并保留该序列令牌。）
             CachedMessage newestMessage = newestBlock.Value.NewestMessage;
             if (cacheDataAdapter.Compare(ref newestMessage, sequenceToken) < 0)
             {
@@ -297,15 +297,15 @@ namespace Orleans.Providers.Streams.Common
                 return null;
             }
 
-            // 检查是否已经老到无法在缓存中 sequenceToken
-            var oldestBlock = messageBlocks.Last!; // messageBlocks.Count =0(上文已作核对)。
+            // 检查 sequenceToken 是否太旧而不在缓存中。
+            var oldestBlock = messageBlocks.Last!; // messageBlocks.Count != 0（上文已检查）。
             var oldestMessage = oldestBlock.Value.OldestMessage;
             if (cacheDataAdapter.Compare(ref oldestMessage, sequenceToken) > 0)
             {
-                // 检查我们上次清理缓存后是否错过了事件
+                // 检查上次清除缓存后是否遗漏了事件。
                 if (this.lastPurgedToken.TryGetValue(cursor.StreamId, out var entry) && EventSequenceTokenCompatibility.Compare(sequenceToken, entry.Token) >= 0)
                 {
-                    // 如果该牌的最近时间比上次清除的牌更近, 那么我们没有丢失任何东西。 从缓存中最老的信件开始
+                    // 如果令牌比最近清除的令牌更新，则未遗漏任何消息。从缓存中最旧的消息开始。
                     cursor.State = CursorStates.Set;
                     cursor.CurrentBlock = oldestBlock;
                     cursor.Index = oldestBlock.Value.OldestMessageIndex;
@@ -318,11 +318,11 @@ namespace Orleans.Providers.Streams.Common
                 }
             }
 
-            // 查找含有序列号的块块, 从最新开始, 并返回到最老
+            // 从最新块向最旧块查找包含该序列号的块。
             LinkedListNode<CachedMessageBlock>? node = messageBlocks.First;
             while (true)
             {
-                CachedMessage oldestMessageInBlock = node!.Value.OldestMessage; // 循环变量:当搜索没有用尽缓存(受上述界限检查的保证)时,节点不是中核。
+                CachedMessage oldestMessageInBlock = node!.Value.OldestMessage; // 循环不变式：只要搜索尚未遍历完缓存，node 就不为 null（由上文的边界检查保证）。
                 if (cacheDataAdapter.Compare(ref oldestMessageInBlock, sequenceToken) <= 0)
                 {
                     break;
@@ -330,22 +330,22 @@ namespace Orleans.Providers.Streams.Common
                 node = node.Next;
             }
 
-            // 从一开始就返回光标。
+            // 从起始位置返回游标。
             cursor.CurrentBlock = node;
-            cursor.Index = node!.Value.GetIndexOfFirstMessageLessThanOrEqualTo(sequenceToken, cacheDataAdapter); // 见上文“循环”一行。
-            // 如果光标空闲, 则在 sequenceToken指定信件后移动到下一条信件  
+            cursor.Index = node!.Value.GetIndexOfFirstMessageLessThanOrEqualTo(sequenceToken, cacheDataAdapter); // 参见上文的循环不变式。
+            // 如果游标此前处于空闲状态，则移至 sequenceToken 指定消息的下一条消息。
             if (cursor.State == CursorStates.Idle)
             {
-                // 如果此块块中有更多的信件, 移动到下一条信件
+                // 如果当前块中还有消息，则移至下一条消息。
                 if (!cursor.IsNewestInBlock)
                 {
                     cursor.Index++;
                 }
-                // 如果这是此块中最新的信件, 请移动到新块中最老的信件
+                // 如果这是当前块中的最新消息，则移至较新块中最旧的消息。
                 else if (node.Previous != null)
                 {
                     cursor.CurrentBlock = node.Previous;
-                    cursor.Index = cursor.CurrentBlock!.Value.OldestMessageIndex; // 刚刚指定给 node.Previous, 这里不在此内。
+                    cursor.Index = cursor.CurrentBlock!.Value.OldestMessageIndex; // 刚刚赋值为 node.Previous，此处该值不为 null。
                 }
                 else
                 {
@@ -353,7 +353,7 @@ namespace Orleans.Providers.Streams.Common
                     return null;
                 }
             }
-            cursor.SequenceToken = cursor.CurrentBlock!.Value.GetSequenceToken(cursor.Index, cacheDataAdapter); // CurrentBlock 被设置为达到此点的每一路径以上有效区块。
+            cursor.SequenceToken = cursor.CurrentBlock!.Value.GetSequenceToken(cursor.Index, cacheDataAdapter); // 到达此处的每条执行路径都已在上文将 CurrentBlock 设置为有效块。
             cursor.State = CursorStates.Set;
             return null;
         }
@@ -466,15 +466,15 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// 获取在所提供光标的缓存中下一个消息
+        /// 从缓存中获取给定游标处的下一条消息。
         /// </summary>
         /// <param name="cursorObj"></param>
         /// <param name="message"></param>
-        /// <returns><see langword="true"/> 电文被退回时;否则, <see langword="false"/>。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="cursorObj"/> 是 <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="cursorObj"/> 不是一个缓存光标。</exception>
+        /// <returns><see langword="true"/> 表示已返回消息；否则为 <see langword="false"/>。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="cursorObj"/> 为 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="cursorObj"/> 不是缓存游标。</exception>
         /// <exception cref="QueueCacheMissException">
-        /// 光标位置比缓存保存的信件要老。
+        /// 游标位置早于缓存所保留的消息。
         /// </exception>
         [Obsolete("Use TryGetNextMessageWithResult instead.")]
         public bool TryGetNextMessage(object cursorObj, [NotNullWhen(true)] out IBatchContainer? message)
@@ -489,16 +489,16 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// 试图获取在提供的光标处缓存中的下一个消息 。
+        /// 尝试从缓存中获取给定游标处的下一条消息。
         /// </summary>
-        /// <param name="cursorObj">缓存光标。</param>
-        /// <param name="message">下一条消息可用时的下一个消息。</param>
+        /// <param name="cursorObj">缓存游标。</param>
+        /// <param name="message">下一条可用消息。</param>
         /// <returns>
-        /// 无中点 <paramref name="message"/>、 <see cref="QueueCacheCursorMoveResultKind.NoData"/>的成功结果
-        /// 带有无效信息,或含有无效信息的缓存遗漏结果。
+        /// 返回包含非 null <paramref name="message"/> 的成功结果、<see cref="QueueCacheCursorMoveResultKind.NoData"/> 结果（
+        /// 其消息为 null），或包含 null 消息的缓存未命中结果。
         /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="cursorObj"/> 是 <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="cursorObj"/> 不是一个缓存光标。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="cursorObj"/> 为 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="cursorObj"/> 不是缓存游标。</exception>
         public QueueCacheCursorMoveResult TryGetNextMessageWithResult(object cursorObj, out IBatchContainer? message)
         {
             message = null;
@@ -552,22 +552,22 @@ namespace Orleans.Providers.Streams.Common
                 }
             }
 
-            // 此消息是否已被清除
-            CachedMessage oldestMessage = messageBlocks.Last!.Value.OldestMessage; // 光标是设置, 所以缓存不是空的 。
+            // 此消息是否已被清除？
+            CachedMessage oldestMessage = messageBlocks.Last!.Value.OldestMessage; // 游标处于 Set 状态，因此缓存非空。
             if (cursor.State == CursorStates.Set
-                && cacheDataAdapter.Compare(ref oldestMessage, cursor.SequenceToken!) > 0) // 光标是设置的, 所以 SequenceToken 保证不中核 。
+                && cacheDataAdapter.Compare(ref oldestMessage, cursor.SequenceToken!) > 0) // 游标处于 Set 状态，因此 SequenceToken 保证不为 null。
             {
                 return QueueCacheCursorMoveResult.FromCacheMiss(CreateCacheMissInfo(cursor.SequenceToken!));
             }
 
-            // 在缓存中( 及时) 向前插入, 直到我们找到流上的信息 或者隐藏信件的耗尽 。
-            // 请注意, 我们从当前光标所在的位置获取消息, 然后将其向前移动。 这意味着如果我们返回真实信息, 光标将返回真实信息
-            //   将指向下一个信息后, 我们返回的。
+            // 在缓存中按时间顺序向前迭代，直到找到属于该流的消息或遍历完缓存中的消息。
+            // 注意，先获取当前游标位置的消息，再将游标向前移动。这意味着如果返回 true，则游标
+            // 将指向所返回消息的下一条消息。
             while (cursor.State is CursorStates.Set or CursorStates.EarliestAvailableSet)
             {
                 CachedMessage currentMessage = cursor.Message;
 
-                // 我们是否赶上了最新的事件, 如果这样的话, 将光标设为空闲 。
+                // 是否已追上最新事件？若是，则将游标设为空闲状态。
                 if (cursor.CurrentBlock == messageBlocks.First && cursor.IsNewestInBlock)
                 {
                     if (cursor.State == CursorStates.EarliestAvailableSet)
@@ -577,22 +577,22 @@ namespace Orleans.Providers.Streams.Common
                     else
                     {
                         cursor.State = CursorStates.Idle;
-                        cursor.SequenceToken = messageBlocks.First!.Value.GetNewestSequenceToken(cacheDataAdapter); // 与 cursor.CurrentBlock等值, 即不中和而 cursor.State 是设置的。
+                        cursor.SequenceToken = messageBlocks.First!.Value.GetNewestSequenceToken(cacheDataAdapter); // 刚刚比较得出其等于 cursor.CurrentBlock，而在 cursor.State 为 Set 时该值不为 null。
                     }
                 }
-                else // 移到下移动
+                else // 移至下一条。
                 {
                     int index;
                     if (cursor.IsNewestInBlock)
                     {
-                        // cursor.CurrentBlock 是在设置 cursor.State 时不中点的。 这里不是 messageBlocks.First (上文已选中)
-                        // 所以它不是缓存中最新的块, 因此有一个非null 上一个 。
+                        // 当 cursor.State 为 Set 时，cursor.CurrentBlock 不为 null。此处它不是 messageBlocks.First（上文已检查），
+                        // 因此它不是缓存中的最新块，其 Previous 不为 null。
                         cursor.CurrentBlock = cursor.CurrentBlock!.Previous;
                         cursor.CurrentBlock!.Value.TryFindFirstMessage(cursor.StreamId, this.cacheDataAdapter, out index);
                     }
                     else
                     {
-                        cursor.CurrentBlock!.Value.TryFindNextMessage(cursor.Index + 1, cursor.StreamId, this.cacheDataAdapter, out index); // 设定 cursor.State 时不中点 。
+                        cursor.CurrentBlock!.Value.TryFindNextMessage(cursor.Index + 1, cursor.StreamId, this.cacheDataAdapter, out index); // 当 cursor.State 为 Set 时不为 null。
                     }
                     cursor.Index = index;
                     if (cursor.State == CursorStates.EarliestAvailableSet)
@@ -601,13 +601,13 @@ namespace Orleans.Providers.Streams.Common
                     }
                 }
 
-                // 选中此项中是否在光标的流中
+                // 检查此消息是否属于游标对应的流。
                 if (currentMessage.CompareStreamId(cursor.StreamId))
                 {
                     message = cacheDataAdapter.GetBatchContainer(ref currentMessage);
                     cursor.SequenceToken = cursor.IsEarliestAvailable
                         ? cacheDataAdapter.GetSequenceToken(ref currentMessage)
-                        : cursor.CurrentBlock!.Value.GetSequenceToken(cursor.Index, cacheDataAdapter); // 设定 cursor.State 时不中点 。
+                        : cursor.CurrentBlock!.Value.GetSequenceToken(cursor.Index, cacheDataAdapter); // 当 cursor.State 为 Set 时不为 null。
                     return QueueCacheCursorMoveResult.Success;
                 }
             }
@@ -622,7 +622,7 @@ namespace Orleans.Providers.Streams.Common
                 messageBlocks.First!.Value.GetNewestSequenceToken(cacheDataAdapter));
 
         /// <summary>
-        /// 向缓存添加队列信件列表 
+        /// 将一组队列消息添加到缓存中。
         /// </summary>
         /// <param name="messages"></param>
         /// <param name="dequeueTime"></param>
@@ -639,26 +639,26 @@ namespace Orleans.Providers.Streams.Common
 
         private void Add(CachedMessage message)
         {
-            // 从共享中分配信件
+            // 从池中分配消息。
             CachedMessageBlock block = pool.AllocateMessage(message);
 
-            // 如果新建块,如果新块,则在链接的列表中添加信息块
+            // 如果是新块，则将消息块添加到链表中。
             if (block != messageBlocks.FirstOrDefault())
                 messageBlocks.AddFirst(block.Node);
             ItemCount++;
         }
 
         /// <summary>
-        /// 删除缓存中最老的信件, 如果块为空, 也删除最旧的块块
+        /// 移除缓存中最旧的消息，如果最旧块已空，则也移除该块。
         /// </summary>
         public void RemoveOldestMessage()
         {
-            TrackAndPurgeMetadata(this.messageBlocks.Last!.Value.OldestMessage); // 只有在缓存是空的时才打电话。
+            TrackAndPurgeMetadata(this.messageBlocks.Last!.Value.OldestMessage); // 仅在缓存非空时调用。
 
-            this.messageBlocks.Last!.Value.Remove(); // 只有在缓存是空的时才打电话。
+            this.messageBlocks.Last!.Value.Remove(); // 仅在缓存非空时调用。
             this.ItemCount--;
-            CachedMessageBlock lastCachedMessageBlock = this.messageBlocks.Last!.Value; // 只有在缓存是空的时才打电话。
-            // 区块为空,但所有容量都已经过高,删除
+            CachedMessageBlock lastCachedMessageBlock = this.messageBlocks.Last!.Value; // 仅在缓存非空时调用。
+            // 如果当前块已空且容量已经全部耗尽，则移除该块。
             if (lastCachedMessageBlock.IsEmpty && !lastCachedMessageBlock.HasCapacity)
             {
                 lastCachedMessageBlock.Dispose();
@@ -668,11 +668,11 @@ namespace Orleans.Providers.Streams.Common
 
         private enum CursorStates
         {
-            Unset, // 尚未确定或指出今后的一些数据。
-            Set, // 点对缓存中信件的点
-            Idle, // 已经对缓存中的所有相关事件进行了循环,正在等待关于流的更多数据。
-            EarliestAvailableSet, // 以插入顺序选中的一条电文的点数供订阅使用,以便尽早获得。
-            EarliestAvailableWaiting, // 等待下一个匹配流信息的实际缓存位置后再进行。
+            Unset, // 尚未设置，或指向未来的某些数据。
+            Set, // 指向缓存中的一条消息。
+            Idle, // 已遍历缓存中所有相关事件，正在等待流上的更多数据。
+            EarliestAvailableSet, // 指向为“最早可用”订阅按插入顺序选定的消息。
+            EarliestAvailableWaiting, // 在缓存的物理位置之后等待下一条匹配的流消息。
         }
 
         private class Cursor
@@ -687,18 +687,18 @@ namespace Orleans.Providers.Streams.Common
 
             public CursorStates State;
 
-            // 当前序列符号; 取消设置时为空( 未确定序列符号)
+            // 当前序列令牌；在 Unset 状态时为 null（尚未建立序列令牌）。（译注：等待未来位置时，Unset 状态也可保留非 null 令牌。）
             public StreamSequenceToken? SequenceToken;
             public long BlockGeneration;
 
-            // 缓存中引用; 状态为 Set 时不停
+            // 对缓存内部的引用；当 State 为 Set 时不为 null。
             public LinkedListNode<CachedMessageBlock>? CurrentBlock;
             public int Index;
 
-            // 水电公用事业费
+            // 辅助功能。
             public bool IsEarliestAvailable => State is CursorStates.EarliestAvailableSet or CursorStates.EarliestAvailableWaiting;
-            public bool IsNewestInBlock => Index == CurrentBlock!.Value.NewestMessageIndex; // 仅在状态设定时访问, 点 CurrentBlock 不中。
-            public CachedMessage Message => CurrentBlock!.Value[Index]; // 仅在状态设定时访问, 点 CurrentBlock 不中。
+            public bool IsNewestInBlock => Index == CurrentBlock!.Value.NewestMessageIndex; // 仅在 State 为 Set 时访问，此时 CurrentBlock 不为 null。
+            public CachedMessage Message => CurrentBlock!.Value[Index]; // 仅在 State 为 Set 时访问，此时 CurrentBlock 不为 null。
         }
     }
 }

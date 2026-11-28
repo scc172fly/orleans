@@ -38,7 +38,7 @@
             },
             "id": 2,
             "panels": [],
-            "title": "Networking",
+            "title": "网络通信",
             "type": "row"
         },
         {
@@ -167,7 +167,7 @@
                     "refId": "B"
                 }
             ],
-            "title": "Sockets",
+            "title": "套接字",
             "type": "timeseries"
         },
         {
@@ -180,7 +180,7 @@
             },
             "id": 6,
             "panels": [],
-            "title": "Messaging",
+            "title": "消息传递",
             "type": "row"
         },
         {
@@ -333,7 +333,7 @@
                     "refId": "F"
                 }
             ],
-            "title": "Messages",
+            "title": "消息",
             "type": "timeseries"
         },
         {
@@ -438,7 +438,7 @@
                     "refId": "B"
                 }
             ],
-            "title": "Throughput",
+            "title": "吞吐量",
             "type": "timeseries"
         },
         {
@@ -547,7 +547,7 @@
                     "refId": "B"
                 }
             ],
-            "title": "Failed",
+            "title": "失败",
             "type": "timeseries"
         },
         {
@@ -616,7 +616,7 @@
                     "refId": "B"
                 }
             ],
-            "title": "Sent Size",
+            "title": "发送大小",
             "transformations": [],
             "type": "bargauge"
         },
@@ -686,7 +686,7 @@
                     "refId": "B"
                 }
             ],
-            "title": "Received Size",
+            "title": "接收大小",
             "transformations": [],
             "type": "bargauge"
         },
@@ -909,7 +909,7 @@
                     "refId": "C"
                 }
             ],
-            "title": "Dispatcher",
+            "title": "调度分发器",
             "type": "timeseries"
         },
         {
@@ -1013,7 +1013,7 @@
                     "refId": "B"
                 }
             ],
-            "title": "Messaging",
+            "title": "消息传递",
             "type": "timeseries"
         },
         {
@@ -1105,7 +1105,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Connected Clients",
+            "title": "已连接的客户端",
             "type": "timeseries"
         },
         {
@@ -1118,7 +1118,7 @@
             },
             "id": 23,
             "panels": [],
-            "title": "Scheduler",
+            "title": "调度器",
             "type": "row"
         },
         {
@@ -1210,7 +1210,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Long Running Turns",
+            "title": "长时间运行的轮次",
             "type": "timeseries"
         },
         {
@@ -1315,7 +1315,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Activations (Current)",
+            "title": "激活实例（当前）",
             "type": "timeseries"
         },
         {
@@ -1419,7 +1419,7 @@
                     "refId": "B"
                 }
             ],
-            "title": "Activation",
+            "title": "激活",
             "type": "timeseries"
         },
         {
@@ -1534,7 +1534,7 @@
                     "refId": "C"
                 }
             ],
-            "title": "Issued Activations",
+            "title": "已发起的激活",
             "type": "timeseries"
         },
         {
@@ -1625,7 +1625,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Shutdown",
+            "title": "关闭",
             "type": "timeseries"
         },
         {
@@ -1638,7 +1638,7 @@
             },
             "id": 32,
             "panels": [],
-            "title": "Directory",
+            "title": "目录",
             "type": "row"
         },
         {
@@ -1742,7 +1742,7 @@
                     "refId": "B"
                 }
             ],
-            "title": "Local Lookups",
+            "title": "本地查找",
             "type": "timeseries"
         },
         {
@@ -1846,7 +1846,7 @@
                     "refId": "B"
                 }
             ],
-            "title": "Remote Lookups",
+            "title": "远程查找",
             "type": "timeseries"
         },
         {
@@ -1938,7 +1938,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Full Lookups",
+            "title": "完整查找",
             "type": "timeseries"
         },
         {
@@ -2030,7 +2030,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Partition Size",
+            "title": "分区大小",
             "type": "timeseries"
         },
         {
@@ -2122,7 +2122,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Cache Size",
+            "title": "缓存大小",
             "type": "timeseries"
         },
         {
@@ -2250,7 +2250,7 @@
                     "refId": "D"
                 }
             ],
-            "title": "Registrations",
+            "title": "注册",
             "type": "timeseries"
         },
         {
@@ -2414,7 +2414,7 @@
                     "refId": "G"
                 }
             ],
-            "title": "Unregistrations",
+            "title": "注销",
             "type": "timeseries"
         },
         {
@@ -2518,7 +2518,7 @@
                     "refId": "B"
                 }
             ],
-            "title": "Cache Hit Ratio",
+            "title": "缓存命中率",
             "type": "timeseries"
         },
         {
@@ -2531,7 +2531,7 @@
             },
             "id": 41,
             "panels": [],
-            "title": "Consistent Ring",
+            "title": "一致性哈希环",
             "type": "row"
         },
         {
@@ -2597,7 +2597,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Ring Size",
+            "title": "环大小",
             "type": "stat"
         },
         {
@@ -2663,7 +2663,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Ring Range Avg",
+            "title": "环范围平均值",
             "type": "stat"
         },
         {
@@ -2732,7 +2732,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Ring Percentage",
+            "title": "环范围百分比",
             "type": "piechart"
         },
         {
@@ -2745,7 +2745,7 @@
             },
             "id": 47,
             "panels": [],
-            "title": "Watch Dog",
+            "title": "看门狗",
             "type": "row"
         },
         {
@@ -2848,7 +2848,7 @@
                     "refId": "B"
                 }
             ],
-            "title": "Health Checks",
+            "title": "健康检查",
             "type": "timeseries"
         },
         {
@@ -2861,7 +2861,7 @@
             },
             "id": 50,
             "panels": [],
-            "title": "Misc",
+            "title": "其他",
             "type": "row"
         },
         {
@@ -3055,7 +3055,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "System Targets",
+            "title": "系统目标",
             "type": "timeseries"
         },
         {
@@ -3068,7 +3068,7 @@
             },
             "id": 54,
             "panels": [],
-            "title": "App Requests",
+            "title": "应用请求",
             "type": "row"
         },
         {
@@ -3160,7 +3160,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Throughput",
+            "title": "吞吐量",
             "type": "timeseries"
         },
         {
@@ -3268,7 +3268,7 @@
                     "refId": "B"
                 }
             ],
-            "title": "Latency",
+            "title": "延迟",
             "type": "timeseries"
         },
         {
@@ -3281,7 +3281,7 @@
             },
             "id": 58,
             "panels": [],
-            "title": "Reminders",
+            "title": "提醒器",
             "type": "row"
         },
         {
@@ -3373,7 +3373,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Local Active",
+            "title": "本地活动提醒器",
             "type": "timeseries"
         },
         {
@@ -3465,7 +3465,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Tick Rate",
+            "title": "触发速率",
             "type": "timeseries"
         },
         {
@@ -3588,7 +3588,7 @@
                     "refId": "C"
                 }
             ],
-            "title": "Tardiness",
+            "title": "延误",
             "type": "timeseries"
         },
         {
@@ -3601,7 +3601,7 @@
             },
             "id": 63,
             "panels": [],
-            "title": "Storage",
+            "title": "存储",
             "type": "row"
         },
         {
@@ -3717,7 +3717,7 @@
                     "refId": "C"
                 }
             ],
-            "title": "Throughput",
+            "title": "吞吐量",
             "type": "timeseries"
         },
         {
@@ -3881,7 +3881,7 @@
                     "refId": "F"
                 }
             ],
-            "title": "Latency",
+            "title": "延迟",
             "type": "timeseries"
         },
         {
@@ -3997,7 +3997,7 @@
                     "refId": "C"
                 }
             ],
-            "title": "Error Rate",
+            "title": "错误发生速率",
             "type": "timeseries"
         },
         {
@@ -4010,7 +4010,7 @@
             },
             "id": 68,
             "panels": [],
-            "title": "Stream",
+            "title": "流",
             "type": "row"
         },
         {
@@ -4114,7 +4114,7 @@
                     "refId": "B"
                 }
             ],
-            "title": "PubSub Producers",
+            "title": "发布/订阅生产者",
             "type": "timeseries"
         },
         {
@@ -4218,7 +4218,7 @@
                     "refId": "B"
                 }
             ],
-            "title": "PubSub Consumers",
+            "title": "发布/订阅消费者",
             "type": "timeseries"
         },
         {
@@ -4310,7 +4310,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Pulling Agents",
+            "title": "拉取代理",
             "type": "timeseries"
         },
         {
@@ -4402,7 +4402,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Pulling Agents",
+            "title": "拉取代理",
             "type": "timeseries"
         },
         {
@@ -4494,7 +4494,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "Cache Size",
+            "title": "缓存大小",
             "type": "timeseries"
         }
     ],
@@ -4612,7 +4612,7 @@
     },
     "timepicker": {},
     "timezone": "",
-    "title": "Orleans Full",
+    "title": "Orleans 完整监控",
     "uid": "orleans",
     "version": 5,
     "weekStart": ""

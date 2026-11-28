@@ -95,12 +95,12 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// 表示应阻止发送或收到应用程序信息。
-        /// 此方法用于“ 快速停止” 进程 。
+        /// 指示应阻止发送或接收应用程序消息。
+        /// 此方法由快速停止流程使用。
         /// <para>
-        /// 具体而言,所有出境申请请求和单向信息都被拒绝或放弃;
-        /// 成员名单的答复和致辞 grain 允许完成。
-        /// 入境申请被以缓存失效的方式驳回,其他入境申请信息被丢弃。
+        /// 具体而言，拒绝或丢弃所有出站应用程序请求及单向消息，
+        /// 同时允许响应消息及发送给成员表 Grain 的消息完成。
+        /// 拒绝入站应用程序请求并附带缓存失效信息，丢弃其他入站应用程序消息。
         /// </para>
         /// </summary>
         public void BlockApplicationMessages()
@@ -145,7 +145,7 @@ namespace Orleans.Runtime.Messaging
         {
             Debug.Assert(!msg.IsLocalOnly);
 
-            // 请注意,如果我们确定或添加其他 grains 需要适当停止,我们需要对待他们,就像对待会员国一样 grain 这里
+            // 注意：如果识别或添加了正常停止所必需的其他 Grain，则需要按此处处理成员表 Grain 的方式处理它们。
             var isBlockedApplicationMessage = IsBlockingApplicationMessages
                 && !msg.IsSystemMessage
                 && msg.Direction is not Message.Directions.Response
@@ -180,7 +180,7 @@ namespace Orleans.Runtime.Messaging
                     return;
                 }
 
-                // 不要处理已经超时的消息
+                // 不处理已经超时的消息。
                 if (msg.IsExpired)
                 {
                     this.messagingTrace.OnDropExpiredMessage(msg, MessagingInstruments.Phase.Send);
@@ -188,10 +188,10 @@ namespace Orleans.Runtime.Messaging
                     return;
                 }
 
-                // 首先检查是否真的指定给代理客户端, 而不是本地 grain。
+                // 先检查消息实际上是否以被代理的客户端而非本地 Grain 为目标。
                 if (TryDeliverToProxy(msg))
                 {
-                    // 信件已成功传送到代理服务器 。
+                    // 消息已成功投递给代理。
                     return;
                 }
 
@@ -219,7 +219,7 @@ namespace Orleans.Runtime.Messaging
                     }
                     else if (this.siloStatusOracle.IsDeadSilo(targetSilo))
                     {
-                        // 不尝试建立
+                        // 不尝试建立连接。
                         if (msg.Direction is Message.Directions.Request or Message.Directions.OneWay)
                         {
                             this.messagingTrace.OnRejectSendMessageToDeadSilo(_siloAddress, msg);
@@ -292,9 +292,9 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// 将 <paramref name="message"/> 拒绝回复连同其缓存失效信头发送给发件人。
+        /// 向 <paramref name="message"/> 的发送方发送拒绝响应，并附带其缓存失效标头。
         /// </summary>
-        /// <remarks>电话人保留所有权 <paramref name="message"/>.</remarks>
+        /// <remarks>调用方保留 <paramref name="message"/> 的所有权。</remarks>
         internal void SendRejectionResponse(Message message, Message.RejectionTypes rejectionType, string reason, Exception? exception)
         {
             var rejection = messageFactory.CreateRejectionResponse(message, rejectionType, reason, exception);
@@ -363,13 +363,13 @@ namespace Orleans.Runtime.Messaging
         {
             Debug.Assert(!message.IsLocalOnly);
 
-            // 利用这个机会也废除本地快取条目 。
+            // 同时利用此机会使本地缓存项失效。
             if (oldAddress != null)
             {
                 _grainLocator.InvalidateCache(oldAddress);
             }
 
-            // 重要:在激活上下文中,不要做任何事情了,因为启动已经无效。
+            // 重要：不要再对此激活上下文执行任何操作，因为该激活实例已经无效。
             if (rejectMessages)
             {
                 if (oldAddress != null)
@@ -421,7 +421,7 @@ namespace Orleans.Runtime.Messaging
             {
                 var sentRejection = false;
 
-                // 如果信件是单向信息,即使信件已成功转发,也发送缓存无效响应。
+                // 如果消息是单向消息，即使成功转发，也要发送缓存失效响应。
                 if (message.Direction == Message.Directions.OneWay)
                 {
                     SendRejectionResponse(
@@ -449,7 +449,7 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// 更改通过通道传来的信息的路径
+        /// 重新路由经网关进入的消息。
         /// </summary>
         /// <param name="message"></param>
         internal void RerouteMessage(Message message)
@@ -489,18 +489,18 @@ namespace Orleans.Runtime.Messaging
             }
         }
 
-        // 转发由接收人使用,通常当它无法处理电文并将其转发给另一个 silo 进行处理时。
-        // (此处是因为重复激活、过期缓存、 silo 关闭/超载,......)
+        // 转发由接收方使用，通常是在无法处理消息、将其转发给另一 Silo 处理时
+        // （因重复激活、缓存过时、Silo 正在关闭或过载等情况到达此处）。
         private static bool MayForward(Message message, SiloMessagingOptions messagingOptions)
         {
             return message.ForwardCount < messagingOptions.MaxForwardCount;
         }
 
         /// <summary>
-        /// 发送发出信件, 可能同步完成
-        /// - 交易结束时,可缓冲完成/承诺交易的缓冲区
-        /// - 选择目标定位地址,维持发送顺序
-        /// - 增加订购信息并维持发送订单
+        /// 发送出站消息，可能同步完成：
+        /// - 如果消息结束事务，则可能缓冲消息以等待事务完成或提交。
+        /// - 选择目标放置地址，并保持发送顺序。
+        /// - 添加顺序信息，并保持发送顺序。
         ///
         /// </summary>
         internal Task AddressAndSendMessage(Message message)
@@ -547,7 +547,7 @@ namespace Orleans.Runtime.Messaging
         internal void SendResponse(Message request, Response response)
         {
             Debug.Assert(!request.IsLocalOnly);
-            // 创建响应
+            // 创建响应。
             var message = this.messageFactory.CreateResponseMessage(request);
             message.BodyObject = response;
 
@@ -611,7 +611,7 @@ namespace Orleans.Runtime.Messaging
                 _messagingInstruments.OnRejectedMessage(msg);
                 LogWarningUnknownSystemTarget(log, msg, msg.TargetGrain);
 
-                // 只根据请求发送拒绝
+                // 仅对请求发送拒绝响应。
                 if (msg.Direction == Message.Directions.Request)
                 {
                     var response = this.messageFactory.CreateRejectionResponse(
@@ -626,7 +626,7 @@ namespace Orleans.Runtime.Messaging
             }
             else
             {
-                // 启动并不存在,也不是新的安置。
+                // 激活实例不存在，且不是新放置的实例。
                 LogDebugUnableToCreateActivation(log, msg);
 
                 var partialAddress = new GrainAddress { SiloAddress = msg.TargetSilo, GrainId = msg.TargetGrain };
@@ -642,7 +642,7 @@ namespace Orleans.Runtime.Messaging
 
                 if (msg.Direction is Message.Directions.Response && msg.Result is Message.ResponseTypes.Rejection)
                 {
-                    // 不发送拒绝本地拒绝的拒绝, 将会造成堆叠溢出
+                    // 不要在本地对拒绝响应发送拒绝响应，否则会导致栈溢出。
                     _messagingInstruments.OnDroppedSentMessage(msg);
                     LogDebugDroppingRejection(log, msg);
                 }
@@ -650,7 +650,7 @@ namespace Orleans.Runtime.Messaging
                 {
                     if (string.IsNullOrEmpty(reason)) reason = $"Rejection from silo {this._siloAddress} - Unknown reason.";
                     var error = this.messageFactory.CreateRejectionResponse(msg, rejectionType, reason, exception);
-                    // 拒绝 msgs 总是来自本地 silo, 它们从不远程 。
+                    // 拒绝消息始终源自本地 Silo，从不来自远程。
                     this.ReceiveMessage(error);
                 }
             }

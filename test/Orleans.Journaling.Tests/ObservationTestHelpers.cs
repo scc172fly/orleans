@@ -4,16 +4,16 @@ using Xunit;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// 观察日记状态的测试基础设施。
+/// 用于观察日志化状态的测试基础设施。
 /// </summary>
 internal static class ObservationTestHelpers
 {
     /// <summary>
-    /// 在独家调度器上运行 <paramref name="body"/> , 反映激活单行调度器的镜像 。
+    /// 在独占调度器上运行 <paramref name="body"/>，模拟激活实例的单线程调度器。
     /// </summary>
     /// <remarks>
-    /// 经理的工作循环和每个监视器的继续运行 都继承了调度器 所以状态通过一个逻辑进入
-    /// 继续线只在试验体等待时运行。
+    /// 管理器的工作循环及每个观察流的延续操作均继承该调度器，因此状态由一个逻辑
+    /// 线程访问，且仅当测试主体执行 await 时，延续操作才会运行。
     /// </remarks>
     public static Task RunOnActivationSchedulerAsync(Func<Task> body)
     {
@@ -36,7 +36,7 @@ internal static class ObservationTestHelpers
     }
 
     /// <summary>
-    /// 阅读下一个日志事件,而不使用它的时代。测试中肯定该时代的值读 <see cref="IAsyncEnumerator{T}.Current"/>。
+    /// 读取下一条日志事件但不返回其 epoch。断言 epoch 的测试读取 <see cref="IAsyncEnumerator{T}.Current"/>。
     /// </summary>
     public static async Task<LogEvent<T>> NextAsync<T>(this IAsyncEnumerator<LogEvent<T>> enumerator)
     {
@@ -49,7 +49,7 @@ internal static class ObservationTestHelpers
 }
 
 /// <summary>
-/// 将耐久数据下放给不稳定的存储。
+/// 能够挂起正在进行的写入并使其失败的日志存储，将持久化数据委托给易失性存储。
 /// </summary>
 internal sealed class GatedJournalStorage(VolatileJournalStorage inner) : IJournalStorage
 {
@@ -70,7 +70,7 @@ internal sealed class GatedJournalStorage(VolatileJournalStorage inner) : IJourn
     public int ReplaceCount { get; private set; }
 
     /// <summary>
-    /// 将下一个写作保持到 <see cref="Release"/> 被调用。 <see cref="WriteStarted"/> 当写入到达存储点时完成 。
+    /// 挂起下一次写入，直到调用 <see cref="Release"/>。当写入到达存储层时，<see cref="WriteStarted"/> 完成。
     /// </summary>
     public void HoldNextWrite()
     {

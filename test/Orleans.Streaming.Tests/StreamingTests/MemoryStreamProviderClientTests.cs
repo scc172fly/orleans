@@ -9,15 +9,15 @@ using Xunit;
 namespace Tester.StreamingTests
 {
     /// <summary>
-    /// 客户端行为测试 MemoryStreamProvider。
+    /// 测试客户端使用 MemoryStreamProvider 时的行为。
     /// 
-    /// MemoryStreamProvider 是一个内线流提供商,用于:
-    /// - 没有任何外部依赖性的单位测试流程假设情况
-    /// - 发展和原型设计
-    /// - 不需要持久性的情况
+    /// MemoryStreamProvider 是内存流提供程序，适用于：
+    /// - 在没有外部依赖项的情况下对流处理场景进行单元测试。
+    /// - 开发和原型设计
+    /// - 无需持久化的场景
     /// 
-    /// 这些测试侧重于客户断开断开的假想,以确保
-    /// 妥善清理和回收流动生产者和消费者。
+    /// 这些测试重点关注客户端断开连接的场景，以确保
+    /// 流生产者和消费者得到正确清理和恢复。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -25,9 +25,9 @@ namespace Tester.StreamingTests
     public class MemoryStreamProviderClientTests : OrleansTestingBase, IClassFixture<MemoryStreamProviderClientTests.Fixture>
     {
         /// <summary>
-        /// 用于配置 MemoryStreamProvider集的测试设置。
-        /// 以相同的流提供配置设置 silo 和客户端
-        /// 确保适当的沟通。
+        /// 配置使用 MemoryStreamProvider 的集群的测试夹具。
+        /// 为 Silo 和客户端设置相同的流提供程序配置，
+        /// 以确保正常通信。
         /// </summary>
         public class Fixture : BaseTestClusterFixture
         {
@@ -48,10 +48,10 @@ namespace Tester.StreamingTests
             }
 
             /// <summary>
-            /// 配置 silos , 其 :
-            /// - 内存 grain 储存用于 PubSub 订阅
-            /// - 内存流提供商,有指定的分区计数
-            /// - 降低客户的退学超时,以便更快地进行测试执行
+            /// 为 Silo 配置以下内容：
+            /// - 用于发布/订阅的内存 Grain 存储
+            /// - 指定分区数量的内存流提供程序
+            /// - 缩短客户端失联超时，以加快测试执行
             /// </summary>
             private class MySiloBuilderConfigurator : ISiloConfigurator
             {
@@ -74,11 +74,11 @@ namespace Tester.StreamingTests
         }
 
         /// <summary>
-        /// 当客户被丢弃/断开时, 测试串流生产者的行为 。
-        /// 证明:
-        /// - 客户断开时停止流生产
-        /// - 系统中没有孤儿生产者
-        /// - 其他客户/grains 仍然可以使用流
+        /// 测试客户端被移除或断开连接时流生产者的行为。
+        /// 验证以下情况：
+        /// - 客户端断开连接时停止生产流消息
+        /// - 系统中不残留孤立的生产者
+        /// - 其他客户端或 Grain 仍可使用该流
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("Streaming")]
         public async Task MemoryStreamProducerOnDroppedClientTest()
@@ -91,11 +91,11 @@ namespace Tester.StreamingTests
         }
 
         /// <summary>
-        /// 测试客户被丢弃/断开时消费者的行为。
-        /// 证明:
-        /// - 消费者订阅的购买量得到妥善清理
-        /// - 消费者断开时,信息不会丢失
-        /// - 重新平衡,再分配流流处理
+        /// 测试客户端被移除或断开连接时流消费者的行为。
+        /// 验证以下情况：
+        /// - 消费者订阅得到正确清理
+        /// - 消费者断开连接时消息不会丢失
+        /// - 通过再均衡重新分配流处理工作
         /// </summary>
         [Fact, TestCategory("Functional"), TestCategory("Streaming")]
         public async Task MemoryStreamConsumerOnDroppedClientTest()

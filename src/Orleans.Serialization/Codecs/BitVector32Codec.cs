@@ -7,7 +7,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="BitVector32"/>的序列器。
+    /// <see cref="BitVector32"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class BitVector32Codec : IFieldCodec<BitVector32>
@@ -17,7 +17,7 @@ namespace Orleans.Serialization.Codecs
         {
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(BitVector32), WireType.Fixed32);
-            writer.WriteInt32(value.Data);  // BitVector32.Data 获得 BitVector32 作为 Int32 的值
+            writer.WriteInt32(value.Data);  // BitVector32.Data 以 Int32 的形式获取 BitVector32 的值。
         }
 
         /// <inheritdoc/>

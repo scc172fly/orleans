@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Provisioned .NET runtime metrics dashboard based on Grafana dashboard 23179, enhanced with contention, ThreadPool queueing, exception, allocation, and process health panels.",
+  "description": "基于 Grafana 仪表板 23179 预配的 .NET 运行时指标仪表板，增加了锁争用、ThreadPool 排队、异常、分配和进程运行状况面板。",
   "editable": false,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -37,7 +37,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "description": "These include both handled and unhandled exceptions!",
+          "description": "其中既包括已处理的异常，也包括未处理的异常！",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -105,7 +105,7 @@
               "refId": "A"
             }
           ],
-          "title": "Thrown Exceptions",
+          "title": "抛出的异常",
           "transformations": [
             {
               "id": "organize",
@@ -126,7 +126,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "description": "The total number of .NET assemblies loaded into the process.",
+          "description": "加载到进程中的 .NET 程序集总数。",
           "fieldConfig": {
             "defaults": {
               "custom": {
@@ -190,7 +190,7 @@
               "refId": "A"
             }
           ],
-          "title": "Assemblies by Job",
+          "title": "按作业统计的程序集",
           "transformations": [
             {
               "id": "organize",
@@ -207,7 +207,7 @@
           "type": "table"
         }
       ],
-      "title": "Exceptions and Assemblies",
+      "title": "异常和程序集",
       "type": "row"
     },
     {
@@ -222,7 +222,7 @@
       "panels": [],
       "repeat": "job",
       "repeatDirection": "h",
-      "title": ".NET GC and Memory [$job]",
+      "title": ".NET GC 和内存 [$job]",
       "type": "row"
     },
     {
@@ -230,7 +230,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Total amount of seconds the GC was paused in each process.",
+      "description": "每个进程中 GC 暂停的累计秒数。",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -320,7 +320,7 @@
           "refId": "A"
         }
       ],
-      "title": ".NET GC Pause Time",
+      "title": ".NET GC 暂停时间",
       "type": "timeseries"
     },
     {
@@ -328,7 +328,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Number of GC collection attempts per generation.",
+      "description": "各代的 GC 回收尝试次数。",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -418,7 +418,7 @@
           "refId": "A"
         }
       ],
-      "title": ".NET GC Collection Attempts",
+      "title": ".NET GC 回收尝试次数",
       "type": "timeseries"
     },
     {
@@ -426,7 +426,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "The amount of physical memory in-use inside each .NET process.",
+      "description": "每个 .NET 进程中正在使用的物理内存量。",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -516,7 +516,7 @@
           "refId": "A"
         }
       ],
-      "title": ".NET GC Memory Committed",
+      "title": ".NET GC 已提交内存",
       "type": "timeseries"
     },
     {
@@ -524,7 +524,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Memory fragmentation in the managed heap, per-GC generation.",
+      "description": "按 GC 代统计的托管堆内存碎片。",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -614,7 +614,7 @@
           "refId": "A"
         }
       ],
-      "title": ".NET GC Heap Fragmentation",
+      "title": ".NET GC 堆碎片",
       "type": "timeseries"
     },
     {
@@ -622,7 +622,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "The size of each of the managed heaps, following their last GC collection attempt.",
+      "description": "各托管堆在上次 GC 回收尝试之后的大小。",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -712,7 +712,7 @@
           "refId": "A"
         }
       ],
-      "title": ".NET GC Last Collection Heap Size",
+      "title": ".NET GC 上次回收后的堆大小",
       "type": "timeseries"
     },
     {
@@ -727,7 +727,7 @@
       "panels": [],
       "repeat": "job",
       "repeatDirection": "h",
-      "title": "CPU and ThreadPool [$job]",
+      "title": "CPU 和 ThreadPool [$job]",
       "type": "row"
     },
     {
@@ -735,7 +735,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Number of work items completed by the .NET managed ThreadPool on this [$job]",
+      "description": "[$job] 上的 .NET 托管 ThreadPool 已完成的工作项数",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -825,7 +825,7 @@
           "refId": "A"
         }
       ],
-      "title": ".NET ThreadPool Workload",
+      "title": ".NET ThreadPool 工作负载",
       "type": "timeseries"
     },
     {
@@ -833,7 +833,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Number of .NET ThreadPool threads and timers on [$job]",
+      "description": "[$job] 上的 .NET ThreadPool 线程数和计时器数",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -936,7 +936,7 @@
           "refId": "timers"
         }
       ],
-      "title": ".NET ThreadPool Threads and Timers",
+      "title": ".NET ThreadPool 线程和计时器",
       "type": "timeseries"
     },
     {
@@ -944,7 +944,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "⚠️ Requires .NET 9+ built-in metrics (not available in OpenTelemetry.Instrumentation.Runtime package for .NET 6/7/8).\n\nThe amount of CPU time used by instances of [$job]",
+      "description": "⚠️ 需要 .NET 9+ 内置指标（适用于 .NET 6/7/8 的 OpenTelemetry.Instrumentation.Runtime 包不提供这些指标）。\n\n[$job] 各实例使用的 CPU 时间",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1064,7 +1064,7 @@
           "refId": "A"
         }
       ],
-      "title": "CPU Seconds by Job",
+      "title": "按作业统计的 CPU 秒数",
       "type": "timeseries"
     },
     {
@@ -1072,7 +1072,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "⚠️ Requires .NET 9+ built-in metrics (not available in OpenTelemetry.Instrumentation.Runtime package for .NET 6/7/8).\n\nAll logical CPUs available to this process - these are shared with other processes running on the same machine.",
+      "description": "⚠️ 需要 .NET 9+ 内置指标（适用于 .NET 6/7/8 的 OpenTelemetry.Instrumentation.Runtime 包不提供这些指标）。\n\n此进程可用的全部逻辑 CPU；这些 CPU 与同一计算机上运行的其他进程共享。",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1139,7 +1139,7 @@
           "refId": "CPUs"
         }
       ],
-      "title": "Available CPUs",
+      "title": "可用 CPU",
       "transformations": [
         {
           "id": "organize",
@@ -1180,7 +1180,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Total amount of time spent by the .NET Just-in-Time (JIT) compiler.",
+      "description": ".NET 即时（JIT）编译器花费的总时间。",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1270,7 +1270,7 @@
           "refId": "A"
         }
       ],
-      "title": ".NET JIT Compilation Time",
+      "title": ".NET JIT 编译时间",
       "type": "timeseries"
     },
     {
@@ -1278,7 +1278,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Determined by the total number of methods compiled by the .NET Just-in-Time (JIT) compiler.",
+      "description": "根据 .NET 即时（JIT）编译器编译的方法总数确定。",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1368,7 +1368,7 @@
           "refId": "A"
         }
       ],
-      "title": ".NET JIT Compilations",
+      "title": ".NET JIT 编译次数",
       "type": "timeseries"
     },
     {
@@ -1376,7 +1376,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Total amount of .NET IL bytes emitted by the JIT.",
+      "description": "JIT 生成的 .NET IL 总字节数。",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1466,7 +1466,7 @@
           "refId": "A"
         }
       ],
-      "title": ".NET JIT Compiled IL Bytes",
+      "title": ".NET JIT 已编译的 IL 字节数",
       "type": "timeseries"
     },
     {
@@ -1479,7 +1479,7 @@
       },
       "id": 400,
       "panels": [],
-      "title": "Runtime pressure: exceptions, contention, and ThreadPool queueing [$job]",
+      "title": "运行时压力：异常、锁争用和 ThreadPool 排队 [$job]",
       "type": "row"
     },
     {
@@ -1520,9 +1520,9 @@
           "refId": "A"
         }
       ],
-      "title": ".NET Exception rate",
+      "title": ".NET 异常速率",
       "type": "timeseries",
-      "description": "Exceptions thrown per second. A rising rate can explain throughput loss even if failures are not surfaced at the workload layer."
+      "description": "每秒抛出的异常数。即使工作负载层未显现故障，异常速率上升也可能解释吞吐量下降的原因。"
     },
     {
       "datasource": {
@@ -1562,9 +1562,9 @@
           "refId": "A"
         }
       ],
-      "title": ".NET Lock contention rate",
+      "title": ".NET 锁争用速率",
       "type": "timeseries",
-      "description": "Managed monitor lock contentions per second. Sustained contention here points to blocked critical sections rather than storage or network latency."
+      "description": "每秒发生的托管监视器锁争用次数。此处持续出现争用表明临界区被阻塞，而非存储或网络延迟。"
     },
     {
       "datasource": {
@@ -1604,9 +1604,9 @@
           "refId": "A"
         }
       ],
-      "title": ".NET ThreadPool queue length",
+      "title": ".NET ThreadPool 队列长度",
       "type": "timeseries",
-      "description": "Queued ThreadPool work items by process. Non-zero sustained queue length indicates worker starvation or blocking work."
+      "description": "按进程统计的 ThreadPool 排队工作项数。队列长度持续非零表明工作线程不足或工作项发生阻塞。"
     },
     {
       "datasource": {
@@ -1646,9 +1646,9 @@
           "refId": "A"
         }
       ],
-      "title": ".NET ThreadPool completed work-item rate",
+      "title": ".NET ThreadPool 工作项完成速率",
       "type": "timeseries",
-      "description": "Completed ThreadPool work items per second, useful for correlating runtime throughput with workload throughput."
+      "description": "每秒完成的 ThreadPool 工作项数，有助于关联运行时吞吐量与工作负载吞吐量。"
     },
     {
       "datasource": {
@@ -1688,9 +1688,9 @@
           "refId": "A"
         }
       ],
-      "title": ".NET ThreadPool thread count",
+      "title": ".NET ThreadPool 线程数",
       "type": "timeseries",
-      "description": "ThreadPool worker thread count by process."
+      "description": "按进程统计的 ThreadPool 工作线程数。"
     },
     {
       "datasource": {
@@ -1730,9 +1730,9 @@
           "refId": "A"
         }
       ],
-      "title": ".NET Timer count",
+      "title": ".NET 计时器数",
       "type": "timeseries",
-      "description": "Active timers by process. Unexpected growth can indicate leaked scheduled work."
+      "description": "按进程统计的活动计时器数。意外增长可能表明已调度工作发生泄漏。"
     },
     {
       "collapsed": false,
@@ -1744,7 +1744,7 @@
       },
       "id": 410,
       "panels": [],
-      "title": "Runtime memory and GC pressure [$job]",
+      "title": "运行时内存和 GC 压力 [$job]",
       "type": "row"
     },
     {
@@ -1785,9 +1785,9 @@
           "refId": "A"
         }
       ],
-      "title": ".NET GC allocation rate",
+      "title": ".NET GC 分配速率",
       "type": "timeseries",
-      "description": "Allocated bytes per second across selected instances."
+      "description": "所有选定实例每秒分配的字节数。"
     },
     {
       "datasource": {
@@ -1827,9 +1827,9 @@
           "refId": "A"
         }
       ],
-      "title": ".NET GC collection rate by generation",
+      "title": ".NET GC 各代回收速率",
       "type": "timeseries",
-      "description": "GC collection rate by generation."
+      "description": "按代统计的 GC 回收速率。"
     },
     {
       "datasource": {
@@ -1869,9 +1869,9 @@
           "refId": "A"
         }
       ],
-      "title": ".NET GC committed memory",
+      "title": ".NET GC 已提交内存",
       "type": "timeseries",
-      "description": "GC committed memory by process."
+      "description": "按进程统计的 GC 已提交内存。"
     },
     {
       "datasource": {
@@ -1911,9 +1911,9 @@
           "refId": "A"
         }
       ],
-      "title": ".NET Assembly count",
+      "title": ".NET 程序集数",
       "type": "timeseries",
-      "description": "Loaded assembly count by process. Unexpected growth can indicate dynamic load/unload issues."
+      "description": "按进程统计的已加载程序集数。意外增长可能表明动态加载或卸载存在问题。"
     }
   ],
   "refresh": "5s",
@@ -1963,7 +1963,7 @@
         "definition": "label_values(target_info, job)",
         "hide": 0,
         "includeAll": true,
-        "label": "Service",
+        "label": "服务",
         "multi": true,
         "name": "job",
         "options": [],
@@ -1991,7 +1991,7 @@
         "definition": "label_values(target_info{job=~\"$job\"}, instance)",
         "hide": 0,
         "includeAll": true,
-        "label": "Instance",
+        "label": "实例",
         "multi": true,
         "name": "instance",
         "options": [],
@@ -2014,7 +2014,7 @@
   "timeRangeUpdatedDuringEditOrView": false,
   "timepicker": {},
   "timezone": "browser",
-  "title": ".NET Runtime Metrics",
+  "title": ".NET 运行时指标",
   "uid": "dotnet-runtime-metrics",
   "version": 1,
   "weekStart": "",

@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Orleans.Durable.Http.Tests;
 
-/// <summary>通过Nexus协议及其与该团体自己的路线的相互作用,开展持久行动。</summary>
+/// <summary>通过 Nexus 协议验证持久化操作，以及它们与路由组自身路由的交互。</summary>
 [Collection(DurableHttpCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -42,7 +42,7 @@ public sealed class NexusOperationTests(DurableHttpFixture fixture)
             Assert.Equal(token, (await ReadJsonAsync(retry, cancellationToken)).GetProperty("token").GetString());
         }
 
-        // 服务范围中一组涉及Nexus要求识别名称的操作。
+        // 该服务作用域的路由组对 Nexus 请求标识符所标识的操作进行寻址。
         using (var signal = await Http.PostAsJsonAsync($"/approvals/operations/{requestId}/signals/approved", "ada", cancellationToken))
         {
             Assert.Equal(HttpStatusCode.NoContent, signal.StatusCode);
@@ -75,7 +75,7 @@ public sealed class NexusOperationTests(DurableHttpFixture fixture)
 
         await WaitForStatusAsync(requestId, "Canceled", cancellationToken);
 
-        // 接受重复取消, 并附加查询中的标记, 并且不更改任何更改 。
+        // 将令牌放在查询字符串中的重复取消请求会被接受，但不会产生任何变更。
         using (var repeated = await Http.PostAsync($"{Operation}/cancel?token={Uri.EscapeDataString(token)}", content: null, cancellationToken))
         {
             Assert.Equal(HttpStatusCode.Accepted, repeated.StatusCode);
@@ -98,8 +98,8 @@ public sealed class NexusOperationTests(DurableHttpFixture fixture)
         using var started = await StartAsync(new NexusApprovalInput(orderId, "widget"), requestId, cancellationToken);
         var token = (await ReadJsonAsync(started, cancellationToken)).GetProperty("token").GetString()!;
 
-        // 输入不相同的重试, 输入不同时用相同的方法调用同一 grain, 从而它到达操作; 调用
-        // 请求识别特征冲突下的另外 grain 。
+        // 输入不同的重试调用同一 Grain 的同一方法，因此到达同一个操作；使用该请求标识符调用
+        // 另一 Grain 则会发生冲突。
         using (var changed = await StartAsync(new NexusApprovalInput(orderId, "gadget"), requestId, cancellationToken))
         {
             Assert.Equal(HttpStatusCode.Created, changed.StatusCode);
@@ -116,7 +116,7 @@ public sealed class NexusOperationTests(DurableHttpFixture fixture)
             await AssertHandlerErrorAsync(invalid, HttpStatusCode.BadRequest, "BAD_REQUEST", cancellationToken);
         }
 
-        // 表示另一个用户操作、 一个未知操作或一个无效的身份识别名称不操作。
+        // 另一用户操作的令牌、未知操作的令牌或无效标识符均无法标识任何操作。
         foreach (var (candidate, user) in new[] { (token, "ada"), ("unknown", null), ("a/b", (string?)null) })
         {
             using var cancel = new HttpRequestMessage(HttpMethod.Post, $"{Operation}/cancel");
@@ -130,7 +130,7 @@ public sealed class NexusOperationTests(DurableHttpFixture fixture)
             await AssertHandlerErrorAsync(response, HttpStatusCode.NotFound, "NOT_FOUND", cancellationToken);
         }
 
-        // 被拒绝的请求没有改变。
+        // 被拒绝的请求未产生任何变更。
         using var status = await Http.GetAsync($"/approvals/operations/{requestId}", cancellationToken);
         Assert.Equal("Running", (await ReadJsonAsync(status, cancellationToken)).GetProperty("status").GetString());
     }
@@ -142,7 +142,7 @@ public sealed class NexusOperationTests(DurableHttpFixture fixture)
         var orderId = Guid.NewGuid().ToString("N");
         var requestId = Guid.NewGuid().ToString();
 
-        // 该订单 grain 已经含有业务工作将使用的其他根基下的工作。
+        // 订单 Grain 已经在此操作的工作将使用的根标识符下保存其他工作。
         var workRootId = TaskId.CreateRoot(DurableHttpFixture.ApprovalsScope).Child("@").Child(requestId).ToString();
         await fixture.Client.GetGrain<IDurableHttpTestGrain>(orderId).EchoAsync("other").WithId(workRootId).ScheduleAsync(cancellationToken);
 

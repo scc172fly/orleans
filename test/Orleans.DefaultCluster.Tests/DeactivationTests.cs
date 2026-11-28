@@ -7,13 +7,13 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// 测试 grain 和重新激活行为 Orleans.
-    /// Grain 解除作用是 Orleans资源管理的关键部分:
-    /// - Grains 可以明确停止使用或闲置时自动停止使用
-    /// - 解除活动释放记忆和其他资源
-    /// - 再次调用已停止作用 grain 时,重新激活以透明方式进行
-    /// - 国家在整个解除/恢复作用周期中得到维护
-    /// 这些测试核实了这一机制的性能和正确性。
+    /// 测试 Orleans 中 Grain 的停用与重新激活行为。
+    /// Grain 停用是 Orleans 资源管理的关键部分：
+    /// - Grain 可以被显式停用，或在空闲时自动停用
+    /// - 停用会释放内存和其他资源
+    /// - 已停用的 Grain 再次被调用时会透明地重新激活
+    /// - 状态在停用及重新激活周期中得到保留
+    /// 这些测试验证此机制的性能与正确性。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -25,12 +25,12 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grain 停用和重新启动的时间。
-        /// 证明:
-        /// - 明确解除功能,然后迅速恢复(1秒以下)
-        /// - 解除后 grain 将获得新的启动(新版本)
-        /// - 国家在整个解除/恢复作用周期中得到维护
-        /// 这确保 Orleans 能够有效管理 grain 生命周期,而无需大量间接费用。
+        /// 测试 Grain 停用与重新激活的时序。
+        /// 验证以下情况：
+        /// - 显式停用后重新激活能够迅速完成（1 秒以内）
+        /// - 停用之后 Grain 获得新的激活实例（新版本）
+        /// - 状态在停用及重新激活周期中得到保留
+        /// 这确保 Orleans 能够高效管理 Grain 生命周期，而无明显开销。
         /// </summary>
         [Fact, TestCategory("BVT")]
         public async Task DeactivateReactivateTiming()
@@ -41,8 +41,8 @@ namespace DefaultCluster.Tests.General
 
             var sw = Stopwatch.StartNew();
 
-            await grain.SetA(99, true); // 设定 A 值后停止使用 grain
-            var newVersion = await grain.GetVersion(); // 从新激活中获取新版本
+            await grain.SetA(99, true); // 设置 A 值后停用 Grain
+            var newVersion = await grain.GetVersion(); // 从新激活实例获取新版本
             Assert.NotEqual(originalVersion, newVersion);
 
             sw.Stop();
@@ -51,7 +51,7 @@ namespace DefaultCluster.Tests.General
             this.Logger.LogInformation("Took {ElapsedMilliseconds}ms to deactivate and reactivate the grain", sw.ElapsedMilliseconds);
 
             var a = await grain.GetA();
-            Assert.Equal(99, a); // grain的解除和重新启动
+            Assert.Equal(99, a); // A 的值在 Grain 停用及重新激活后仍得到保留
         }
     }
 }

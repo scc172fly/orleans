@@ -9,43 +9,43 @@ using Orleans.Timers;
 namespace Orleans
 {
     /// <summary>
-    /// grain 执行的接口
+    /// Grain 实现的接口。
     /// </summary>
     public interface IGrainBase
     {
         /// <summary>
-        /// 获取 grain 上下文。
+        /// 获取 Grain 上下文。
         /// </summary>
         IGrainContext GrainContext { get; }
 
         /// <summary>
-        /// 处理激活的 grain 执行方法取代的方法。
+        /// Grain 实现可重写此方法以处理激活。
         /// </summary>
-        /// <param name="token">取消牌用于表示激活应迅速中止。</param>
-        /// <returns>A <see cref="Task"/> 表示操作。</returns>
+        /// <param name="token">取消令牌，用于指示激活过程应尽快中止。</param>
+        /// <returns>表示该操作的 <see cref="Task"/>。</returns>
         Task OnActivateAsync(CancellationToken token) => Task.CompletedTask;
 
         /// <summary>
-        /// 处理停用时的 grain 执行方法取代的方法。
+        /// Grain 实现可重写此方法以处理停用。
         /// </summary>
-        /// <param name="reason">停止使用的理由。</param>
-        /// <param name="token">取消牌用于表示应当迅速完成解除功能的标记。</param>
-        /// <returns>A <see cref="Task"/> 表示操作。</returns>
+        /// <param name="reason">停用原因。</param>
+        /// <param name="token">取消令牌，用于指示停用过程应尽快完成。</param>
+        /// <returns>表示该操作的 <see cref="Task"/>。</returns>
         Task OnDeactivateAsync(DeactivationReason reason, CancellationToken token) => Task.CompletedTask;
     }
 
     /// <summary>
-    /// <see cref="IGrainBase"/> 执行的辅助方法。
+    /// <see cref="IGrainBase"/> 实现的辅助方法。
     /// </summary>
     public static class GrainBaseExtensions
     {
         /// <summary>
-        /// 禁用此功能 grain 当前时值后激活 grain 方法调用已完成。
-        /// 此调用将标志着当前 grain 的激活, 在当前方法结束时停止使用并移除 。
-        /// 下次调用此 grain 将导致使用不同的激活, 典型地意味着在运行时将自动生成新的激活。
+        /// 当前 Grain 方法调用完成后，停用此 Grain 激活实例。
+        /// 此调用将标记当前 Grain 的此激活实例，使其在当前方法结束后被停用并移除。
+        /// 下一次调用此 Grain 时将使用另一个激活实例，通常意味着由运行时自动创建新的激活实例。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 是 <see langword="null"/>.</exception>
+        /// <param name="grain">Grain 实例。</param>
+        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 为 <see langword="null"/>。</exception>
         public static void DeactivateOnIdle(this IGrainBase grain)
         {
             ArgumentNullException.ThrowIfNull(grain);
@@ -53,12 +53,12 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 开始尝试将这个实例移到另一个地方。
-        /// 移民捕捉到当前的 <see cref="RequestContext"/>,向启动的安置主任提供,以便其在选择新地点时能够加以考虑。
-        /// 移民将不同步地发生,而没有执行任何请求;如果启动的安置主任不选择其他地点,则不会出现移徙。
+        /// 开始尝试将此实例迁移到另一个位置。
+        /// 迁移会捕获当前 <see cref="RequestContext"/>，并将其提供给此激活实例的放置决策器，以便选择新位置时加以考虑。
+        /// 迁移将在没有正在执行的请求时异步进行；如果此激活实例的放置决策器未选出其他位置，则不会迁移。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 是 <see langword="null"/>.</exception>
+        /// <param name="grain">Grain 实例。</param>
+        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 为 <see langword="null"/>。</exception>
         public static void MigrateOnIdle(this IGrainBase grain)
         {
             ArgumentNullException.ThrowIfNull(grain);
@@ -66,30 +66,30 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 运行 <paramref name="callback"/> 作为此 grain 激活的请求。
+        /// 将 <paramref name="callback"/> 作为请求在此 Grain 激活实例上运行。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">回调要运行。</param>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">要运行的回调。</param>
         /// <param name="cancellationToken">
-        /// 取消在排队时的请求。 调回开始后, 将牌传给调回 。
+        /// 请求仍在排队时，取消令牌可取消请求。一旦回调开始执行，令牌便会传给回调。
         /// </param>
-        /// <returns>A <see cref="Task"/> ,与回调结果完全相同。</returns>
+        /// <returns>一个根据回调结果完成的 <see cref="Task"/>。</returns>
         /// <remarks><inheritdoc cref="RunRequestAsync{TState, TResult}(IGrainBase, Func{TState, CancellationToken, Task{TResult}}, TState, LocalRequestOptions, CancellationToken)" path="/remarks/node()"/></remarks>
         public static Task RunRequestAsync(this IGrainBase grain, Func<CancellationToken, Task> callback, CancellationToken cancellationToken = default) =>
             RunRequestAsync(grain, callback, default(LocalRequestOptions), cancellationToken);
 
         /// <summary>
-        /// 运行 <paramref name="callback"/> 作为此 grain 激活的请求。
+        /// 将 <paramref name="callback"/> 作为请求在此 Grain 激活实例上运行。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">回调要运行。</param>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">要运行的回调。</param>
         /// <param name="options">请求选项。</param>
         /// <param name="cancellationToken">
-        /// 取消在排队时的请求。 调回开始后, 将牌传给调回 。
+        /// 请求仍在排队时，取消令牌可取消请求。一旦回调开始执行，令牌便会传给回调。
         /// </param>
-        /// <returns>A <see cref="Task"/> ,与回调结果完全相同。</returns>
+        /// <returns>一个根据回调结果完成的 <see cref="Task"/>。</returns>
         /// <remarks><inheritdoc cref="RunRequestAsync{TState, TResult}(IGrainBase, Func{TState, CancellationToken, Task{TResult}}, TState, LocalRequestOptions, CancellationToken)" path="/remarks/node()"/></remarks>
-        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 或 <paramref name="callback"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 或 <paramref name="callback"/> 为 <see langword="null"/>。</exception>
         public static Task RunRequestAsync(this IGrainBase grain, Func<CancellationToken, Task> callback, LocalRequestOptions options, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(callback);
@@ -103,34 +103,34 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 运行 <paramref name="callback"/> 作为此 grain 激活的请求。
+        /// 将 <paramref name="callback"/> 作为请求在此 Grain 激活实例上运行。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">回调要运行。</param>
-        /// <param name="state">国家通过回调。</param>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">要运行的回调。</param>
+        /// <param name="state">传递给回调的状态。</param>
         /// <param name="cancellationToken">
-        /// 取消在排队时的请求。 调回开始后, 将牌传给调回 。
+        /// 请求仍在排队时，取消令牌可取消请求。一旦回调开始执行，令牌便会传给回调。
         /// </param>
-        /// <typeparam name="TState"> <paramref name="state"/> 参数的类型。</typeparam>
-        /// <returns>A <see cref="Task"/> ,与回调结果完全相同。</returns>
+        /// <typeparam name="TState"><paramref name="state"/> 参数的类型。</typeparam>
+        /// <returns>一个根据回调结果完成的 <see cref="Task"/>。</returns>
         /// <remarks><inheritdoc cref="RunRequestAsync{TState, TResult}(IGrainBase, Func{TState, CancellationToken, Task{TResult}}, TState, LocalRequestOptions, CancellationToken)" path="/remarks/node()"/></remarks>
         public static Task RunRequestAsync<TState>(this IGrainBase grain, Func<TState, CancellationToken, Task> callback, TState state, CancellationToken cancellationToken = default) =>
             RunRequestAsync(grain, callback, state, default(LocalRequestOptions), cancellationToken);
 
         /// <summary>
-        /// 运行 <paramref name="callback"/> 作为此 grain 激活的请求。
+        /// 将 <paramref name="callback"/> 作为请求在此 Grain 激活实例上运行。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">回调要运行。</param>
-        /// <param name="state">国家通过回调。</param>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">要运行的回调。</param>
+        /// <param name="state">传递给回调的状态。</param>
         /// <param name="options">请求选项。</param>
         /// <param name="cancellationToken">
-        /// 取消在排队时的请求。 调回开始后, 将牌传给调回 。
+        /// 请求仍在排队时，取消令牌可取消请求。一旦回调开始执行，令牌便会传给回调。
         /// </param>
-        /// <typeparam name="TState"> <paramref name="state"/> 参数的类型。</typeparam>
-        /// <returns>A <see cref="Task"/> ,与回调结果完全相同。</returns>
+        /// <typeparam name="TState"><paramref name="state"/> 参数的类型。</typeparam>
+        /// <returns>一个根据回调结果完成的 <see cref="Task"/>。</returns>
         /// <remarks><inheritdoc cref="RunRequestAsync{TState, TResult}(IGrainBase, Func{TState, CancellationToken, Task{TResult}}, TState, LocalRequestOptions, CancellationToken)" path="/remarks/node()"/></remarks>
-        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 或 <paramref name="callback"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 或 <paramref name="callback"/> 为 <see langword="null"/>。</exception>
         public static Task RunRequestAsync<TState>(this IGrainBase grain, Func<TState, CancellationToken, Task> callback, TState state, LocalRequestOptions options, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(callback);
@@ -139,30 +139,30 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 运行 <paramref name="callback"/> 作为此 grain 激活的请求。
+        /// 将 <paramref name="callback"/> 作为请求在此 Grain 激活实例上运行。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">回调要运行。</param>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">要运行的回调。</param>
         /// <param name="cancellationToken">
-        /// 取消在排队时的请求。 调回开始后, 将牌传给调回 。
+        /// 请求仍在排队时，取消令牌可取消请求。一旦回调开始执行，令牌便会传给回调。
         /// </param>
-        /// <returns>A <see cref="Task"/> ,与回调结果完全相同。</returns>
+        /// <returns>一个根据回调结果完成的 <see cref="Task"/>。</returns>
         /// <remarks><inheritdoc cref="RunRequestAsync{TState, TResult}(IGrainBase, Func{TState, CancellationToken, Task{TResult}}, TState, LocalRequestOptions, CancellationToken)" path="/remarks/node()"/></remarks>
         public static Task RunRequestAsync(this IGrainBase grain, Action<CancellationToken> callback, CancellationToken cancellationToken = default) =>
             RunRequestAsync(grain, callback, default(LocalRequestOptions), cancellationToken);
 
         /// <summary>
-        /// 运行 <paramref name="callback"/> 作为此 grain 激活的请求。
+        /// 将 <paramref name="callback"/> 作为请求在此 Grain 激活实例上运行。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">回调要运行。</param>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">要运行的回调。</param>
         /// <param name="options">请求选项。</param>
         /// <param name="cancellationToken">
-        /// 取消在排队时的请求。 调回开始后, 将牌传给调回 。
+        /// 请求仍在排队时，取消令牌可取消请求。一旦回调开始执行，令牌便会传给回调。
         /// </param>
-        /// <returns>A <see cref="Task"/> ,与回调结果完全相同。</returns>
+        /// <returns>一个根据回调结果完成的 <see cref="Task"/>。</returns>
         /// <remarks><inheritdoc cref="RunRequestAsync{TState, TResult}(IGrainBase, Func{TState, CancellationToken, Task{TResult}}, TState, LocalRequestOptions, CancellationToken)" path="/remarks/node()"/></remarks>
-        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 或 <paramref name="callback"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 或 <paramref name="callback"/> 为 <see langword="null"/>。</exception>
         public static Task RunRequestAsync(this IGrainBase grain, Action<CancellationToken> callback, LocalRequestOptions options, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(callback);
@@ -180,34 +180,34 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 运行 <paramref name="callback"/> 作为此 grain 激活的请求。
+        /// 将 <paramref name="callback"/> 作为请求在此 Grain 激活实例上运行。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">回调要运行。</param>
-        /// <param name="state">国家通过回调。</param>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">要运行的回调。</param>
+        /// <param name="state">传递给回调的状态。</param>
         /// <param name="cancellationToken">
-        /// 取消在排队时的请求。 调回开始后, 将牌传给调回 。
+        /// 请求仍在排队时，取消令牌可取消请求。一旦回调开始执行，令牌便会传给回调。
         /// </param>
-        /// <typeparam name="TState"> <paramref name="state"/> 参数的类型。</typeparam>
-        /// <returns>A <see cref="Task"/> ,与回调结果完全相同。</returns>
+        /// <typeparam name="TState"><paramref name="state"/> 参数的类型。</typeparam>
+        /// <returns>一个根据回调结果完成的 <see cref="Task"/>。</returns>
         /// <remarks><inheritdoc cref="RunRequestAsync{TState, TResult}(IGrainBase, Func{TState, CancellationToken, Task{TResult}}, TState, LocalRequestOptions, CancellationToken)" path="/remarks/node()"/></remarks>
         public static Task RunRequestAsync<TState>(this IGrainBase grain, Action<TState, CancellationToken> callback, TState state, CancellationToken cancellationToken = default) =>
             RunRequestAsync(grain, callback, state, default(LocalRequestOptions), cancellationToken);
 
         /// <summary>
-        /// 运行 <paramref name="callback"/> 作为此 grain 激活的请求。
+        /// 将 <paramref name="callback"/> 作为请求在此 Grain 激活实例上运行。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">回调要运行。</param>
-        /// <param name="state">国家通过回调。</param>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">要运行的回调。</param>
+        /// <param name="state">传递给回调的状态。</param>
         /// <param name="options">请求选项。</param>
         /// <param name="cancellationToken">
-        /// 取消在排队时的请求。 调回开始后, 将牌传给调回 。
+        /// 请求仍在排队时，取消令牌可取消请求。一旦回调开始执行，令牌便会传给回调。
         /// </param>
-        /// <typeparam name="TState"> <paramref name="state"/> 参数的类型。</typeparam>
-        /// <returns>A <see cref="Task"/> ,与回调结果完全相同。</returns>
+        /// <typeparam name="TState"><paramref name="state"/> 参数的类型。</typeparam>
+        /// <returns>一个根据回调结果完成的 <see cref="Task"/>。</returns>
         /// <remarks><inheritdoc cref="RunRequestAsync{TState, TResult}(IGrainBase, Func{TState, CancellationToken, Task{TResult}}, TState, LocalRequestOptions, CancellationToken)" path="/remarks/node()"/></remarks>
-        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 或 <paramref name="callback"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 或 <paramref name="callback"/> 为 <see langword="null"/>。</exception>
         public static Task RunRequestAsync<TState>(this IGrainBase grain, Action<TState, CancellationToken> callback, TState state, LocalRequestOptions options, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(callback);
@@ -225,32 +225,32 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 运行 <paramref name="callback"/> 作为此 grain 激活的请求。
+        /// 将 <paramref name="callback"/> 作为请求在此 Grain 激活实例上运行。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">回调要运行。</param>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">要运行的回调。</param>
         /// <param name="cancellationToken">
-        /// 取消在排队时的请求。 调回开始后, 将牌传给调回 。
+        /// 请求仍在排队时，取消令牌可取消请求。一旦回调开始执行，令牌便会传给回调。
         /// </param>
         /// <typeparam name="TResult">回调结果的类型。</typeparam>
-        /// <returns>A <see cref="Task{TResult}"/> ,与回调结果完全相同。</returns>
+        /// <returns>一个根据回调结果完成的 <see cref="Task{TResult}"/>。</returns>
         /// <remarks><inheritdoc cref="RunRequestAsync{TState, TResult}(IGrainBase, Func{TState, CancellationToken, Task{TResult}}, TState, LocalRequestOptions, CancellationToken)" path="/remarks/node()"/></remarks>
         public static Task<TResult> RunRequestAsync<TResult>(this IGrainBase grain, Func<CancellationToken, Task<TResult>> callback, CancellationToken cancellationToken = default) =>
             RunRequestAsync(grain, callback, default(LocalRequestOptions), cancellationToken);
 
         /// <summary>
-        /// 运行 <paramref name="callback"/> 作为此 grain 激活的请求。
+        /// 将 <paramref name="callback"/> 作为请求在此 Grain 激活实例上运行。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">回调要运行。</param>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">要运行的回调。</param>
         /// <param name="options">请求选项。</param>
         /// <param name="cancellationToken">
-        /// 取消在排队时的请求。 调回开始后, 将牌传给调回 。
+        /// 请求仍在排队时，取消令牌可取消请求。一旦回调开始执行，令牌便会传给回调。
         /// </param>
         /// <typeparam name="TResult">回调结果的类型。</typeparam>
-        /// <returns>A <see cref="Task{TResult}"/> ,与回调结果完全相同。</returns>
+        /// <returns>一个根据回调结果完成的 <see cref="Task{TResult}"/>。</returns>
         /// <remarks><inheritdoc cref="RunRequestAsync{TState, TResult}(IGrainBase, Func{TState, CancellationToken, Task{TResult}}, TState, LocalRequestOptions, CancellationToken)" path="/remarks/node()"/></remarks>
-        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 或 <paramref name="callback"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 或 <paramref name="callback"/> 为 <see langword="null"/>。</exception>
         public static Task<TResult> RunRequestAsync<TResult>(this IGrainBase grain, Func<CancellationToken, Task<TResult>> callback, LocalRequestOptions options, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(callback);
@@ -264,56 +264,56 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 运行 <paramref name="callback"/> 作为此 grain 激活的请求。
+        /// 将 <paramref name="callback"/> 作为请求在此 Grain 激活实例上运行。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">回调要运行。</param>
-        /// <param name="state">国家通过回调。</param>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">要运行的回调。</param>
+        /// <param name="state">传递给回调的状态。</param>
         /// <param name="cancellationToken">
-        /// 取消在排队时的请求。 调回开始后, 将牌传给调回 。
+        /// 请求仍在排队时，取消令牌可取消请求。一旦回调开始执行，令牌便会传给回调。
         /// </param>
-        /// <typeparam name="TState"> <paramref name="state"/> 参数的类型。</typeparam>
+        /// <typeparam name="TState"><paramref name="state"/> 参数的类型。</typeparam>
         /// <typeparam name="TResult">回调结果的类型。</typeparam>
-        /// <returns>A <see cref="Task{TResult}"/> ,与回调结果完全相同。</returns>
+        /// <returns>一个根据回调结果完成的 <see cref="Task{TResult}"/>。</returns>
         /// <remarks><inheritdoc cref="RunRequestAsync{TState, TResult}(IGrainBase, Func{TState, CancellationToken, Task{TResult}}, TState, LocalRequestOptions, CancellationToken)" path="/remarks/node()"/></remarks>
         public static Task<TResult> RunRequestAsync<TState, TResult>(this IGrainBase grain, Func<TState, CancellationToken, Task<TResult>> callback, TState state, CancellationToken cancellationToken = default) =>
             RunRequestAsync(grain, callback, state, default(LocalRequestOptions), cancellationToken);
 
         /// <summary>
-        /// 运行 <paramref name="callback"/> 作为此 grain 激活的请求。
+        /// 将 <paramref name="callback"/> 作为请求在此 Grain 激活实例上运行。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">回调要运行。</param>
-        /// <param name="state">国家通过回调。</param>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">要运行的回调。</param>
+        /// <param name="state">传递给回调的状态。</param>
         /// <param name="options">请求选项。</param>
         /// <param name="cancellationToken">
-        /// 取消在排队时的请求。 调回开始后, 将牌传给调回 。
+        /// 请求仍在排队时，取消令牌可取消请求。一旦回调开始执行，令牌便会传给回调。
         /// </param>
-        /// <typeparam name="TState"> <paramref name="state"/> 参数的类型。</typeparam>
+        /// <typeparam name="TState"><paramref name="state"/> 参数的类型。</typeparam>
         /// <typeparam name="TResult">回调结果的类型。</typeparam>
-        /// <returns>A <see cref="Task{TResult}"/> ,与回调结果完全相同。</returns>
+        /// <returns>一个根据回调结果完成的 <see cref="Task{TResult}"/>。</returns>
         /// <remarks>
         /// <para>
-        /// 请求与启动的其他请求一起排期。 默认情况下, 请求遵循 grain的再生规则 :
-        /// 在一个非返回 grain上,回调完全运行,与 grain 方法呼叫相同。
-        /// 请求通过 grain 调用过滤器,作为 <c>IGrainRequestInvoker.RunRequestAsync</c>。
-        /// 它启动一个新的呼叫链 默认情况下,它能保持激活的活力
-        /// 无效或设定结果的呼叫过滤器,不援引请求即可完成返回的任务并取得该结果。
-        /// 回调状态和结果通过参考而不是复制传递。
+        /// 该请求与激活实例的其他请求一起调度。默认遵循 Grain 的可重入性规则：
+        /// 在非可重入 Grain 上，回调独占执行，行为与 Grain 方法调用相同。
+        /// 请求以 <c>IGrainRequestInvoker.RunRequestAsync</c> 的形式通过 Grain 调用过滤器。
+        /// 它会启动一条新的调用链，且默认保持激活实例存活。
+        /// 如果调用过滤器执行失败，或在未调用请求的情况下设置结果，则返回的任务以该结果完成。
+        /// 回调的状态和结果按引用传递，而不是复制。
         /// </para>
         /// <para>
-        /// 使用此方法运行背景任务( 如流或短信处理器) 的代码, 作为 grain 请求 。
-        /// 它可以被从任何线索调用。在一个未恢复的 grain上,等待在请求中返回的任务,要求启动同样的僵局,
-        /// 等待着从回调中 发出同一信号
+        /// 使用此方法将后台任务（例如流处理器或消息处理器）中的代码作为 Grain 请求运行。
+        /// 可从任意线程调用此方法。对于非可重入 Grain，在同一激活实例的请求内部等待返回的任务会导致死锁；
+        /// 在回调内部等待对同一激活实例的调用也会导致死锁。
         /// </para>
         /// <para>
-        /// 如果在请求开始之前启动的禁用装置,返回的任务故障
-        /// <see cref="OrleansMessageRejectionException"/>.
-        /// 提出调用过滤器和追踪不同界面的名称、方法名称或参数的请求,
-        /// 队列自定义 <see cref="ILocalRequest"/> 使用 <see cref="IGrainContext.ReceiveLocalRequest"/>.
+        /// 如果请求开始之前激活实例已停用，则返回的任务将以
+        /// <see cref="OrleansMessageRejectionException"/> 异常结束。
+        /// 若需要向调用过滤器和跟踪系统呈现不同的接口名、方法名或参数，
+        /// 将自定义 <see cref="ILocalRequest"/> 通过 <see cref="IGrainContext.ReceiveLocalRequest"/> 加入队列。
         /// </para>
         /// </remarks>
-        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 或 <paramref name="callback"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 或 <paramref name="callback"/> 为 <see langword="null"/>。</exception>
         public static Task<TResult> RunRequestAsync<TState, TResult>(this IGrainBase grain, Func<TState, CancellationToken, Task<TResult>> callback, TState state, LocalRequestOptions options, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(callback);
@@ -333,7 +333,7 @@ namespace Orleans
                 return Task.FromCanceled<TResult>(cancellationToken);
             }
 
-            // 启动程序一旦排队,即拥有请求权,并在请求后处置。
+            // 请求加入队列后，其所有权归激活实例；实例在调用完成后释放请求。
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var request = new GrainRequest<TState, TResult>(callback, state, cancellationToken);
 #pragma warning restore CA2000 // Dispose objects before losing scope
@@ -343,7 +343,7 @@ namespace Orleans
             }
             catch (Exception exception)
             {
-                // 完成请求后,取消登记即予以解除,并报告在返回的任务中未能履行。
+                // 完成请求会释放其取消注册，并通过返回的任务报告失败。
                 ((ILocalRequest)request).Complete(Response.FromException(exception));
             }
 
@@ -351,48 +351,48 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 创建 grain 计时器。
+        /// 创建 Grain 定时器。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">计时器回调, 定时器到期时将使用该调时器。</param>
-        /// <param name="state">国家通过回调。</param>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">定时器回调，每当定时器到期时调用。</param>
+        /// <param name="state">传递给回调的状态。</param>
         /// <param name="options">
-        /// 创建计时器的选项。
+        /// 创建定时器的选项。
         /// </param>
-        /// <typeparam name="TState"> <paramref name="state"/> 参数的类型。</typeparam>
+        /// <typeparam name="TState"><paramref name="state"/> 参数的类型。</typeparam>
         /// <returns>
-        /// 代表计时器的 <see cref="IGrainTimer"/> 实例。
+        /// 表示定时器的 <see cref="IGrainTimer"/> 实例。
         /// </returns>
         /// <remarks>
         /// <para>
-        /// Grain 计时器默认不保持 grains 活动。设置 <see cref="GrainTimerCreationOptions.KeepAlive"/>
-        /// <see langword="true"/> 导致每个计时器的勾当延长 grain 激活的寿命。
-        /// 如果定时器的计时器不常, grain 仍然可以因闲置而停止使用。
-        /// 当一个 grain 被停用时,所有活动定时器将被丢弃。
+        /// Grain 定时器默认不会保持 Grain 处于激活状态。将 <see cref="GrainTimerCreationOptions.KeepAlive"/> 设置为
+        /// <see langword="true"/> 后，每次定时器触发都会延长 Grain 激活实例的生命周期。
+        /// 如果定时器触发不频繁，Grain 仍可能因空闲而停用。
+        /// Grain 停用时，所有活动定时器都会被丢弃。
         /// </para>
         /// <para>
-        /// 在调回返回的 <see cref="Task"/> 解决之前,将不排期下一次计时器计数。
-        /// 也就是说,一个时间推回永远不会同时执行。
-        /// 如果 <see cref="GrainTimerCreationOptions.Interleave"/> 设为 <see langword="true"/>,则允许回调定时器
-        /// 与另一配偶或 grain 方法调用和其他定时器。
-        /// 如果 <see cref="GrainTimerCreationOptions.Interleave"/> 设为 <see langword="false"/>,则回调时将尊重
-        /// grain的重新恢复设置,就像典型 grain 方法调用。
+        /// 在回调返回的 <see cref="Task"/> 完成之前，不会调度下一次定时器触发。
+        /// 也就是说，同一定时器的回调绝不会与自身并发执行。
+        /// 如果将 <see cref="GrainTimerCreationOptions.Interleave"/> 设置为 <see langword="true"/>，则允许定时器回调
+        /// 与其他 Grain 方法调用及其他定时器交错执行。
+        /// 如果将 <see cref="GrainTimerCreationOptions.Interleave"/> 设置为 <see langword="false"/>，则定时器回调会遵循
+        /// Grain 的可重入性设置，与普通 Grain 方法调用一样。
         /// </para>
         /// <para>
-        /// 可随时调用 <see cref="IGrainTimer"/> <see cref="IDisposable.Dispose"/> 方法停止计时器。
-        /// 使用定时器可防止任何进一步的定时器计数器时间点被排入日程。
+        /// 可以随时调用 <see cref="IGrainTimer"/> 的 <see cref="IDisposable.Dispose"/> 方法停止定时器。
+        /// 释放定时器后，不会再调度新的定时器触发。
         /// </para>
         /// <para>
-        /// 定时器的到期时间和期限可以通过调用其 <see cref="IGrainTimer.Change(TimeSpan, TimeSpan)"/> 方法来更新。
-        /// 每次更新计时器,将根据最新时间排定下一次计时器的时间安排。
-        /// 以后的勾选将在更新期结束后安排。
-        /// 请注意,该行为与 <see cref="Timer.Change(TimeSpan, TimeSpan)"/> 方法相同。
+        /// 可以调用定时器的 <see cref="IGrainTimer.Change(TimeSpan, TimeSpan)"/> 方法更新其首次触发时间和周期。
+        /// 每次更新定时器后，都会根据更新后的首次触发时间调度下一次触发。
+        /// 随后的触发会在更新后的周期结束后进行调度。
+        /// 请注意，此行为与 <see cref="Timer.Change(TimeSpan, TimeSpan)"/> 方法相同。
         /// </para>
         /// <para>
-        /// 将记录被回调的例外, 但不会阻止下次计时器滴记排队 。
+        /// 回调抛出的异常会被记录，但不会阻止下一次定时器触发加入队列。
         /// </para>
         /// </remarks>
-        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 或 <paramref name="callback"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="grain"/> 或 <paramref name="callback"/> 为 <see langword="null"/>。</exception>
         public static IGrainTimer RegisterGrainTimer<TState>(this IGrainBase grain, Func<TState, CancellationToken, Task> callback, TState state, GrainTimerCreationOptions options)
         {
             ArgumentNullException.ThrowIfNull(callback);
@@ -407,43 +407,43 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 创建 grain 计时器。
+        /// 创建 Grain 定时器。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">计时器回调, 定时器到期时将使用该调时器。</param>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">定时器回调，每当定时器到期时调用。</param>
         /// <param name="options">
-        /// 创建计时器的选项。
+        /// 创建定时器的选项。
         /// </param>
         /// <returns>
-        /// 代表计时器的 <see cref="IGrainTimer"/> 实例。
+        /// 表示定时器的 <see cref="IGrainTimer"/> 实例。
         /// </returns>
         /// <remarks>
         /// <para>
-        /// Grain 计时器默认不保持 grains 活动。设置 <see cref="GrainTimerCreationOptions.KeepAlive"/>
-        /// <see langword="true"/> 导致每个计时器的勾当延长 grain 激活的寿命。
-        /// 如果定时器的计时器不常, grain 仍然可以因闲置而停止使用。
-        /// 当一个 grain 被停用时,所有活动定时器将被丢弃。
+        /// Grain 定时器默认不会保持 Grain 处于激活状态。将 <see cref="GrainTimerCreationOptions.KeepAlive"/> 设置为
+        /// <see langword="true"/> 后，每次定时器触发都会延长 Grain 激活实例的生命周期。
+        /// 如果定时器触发不频繁，Grain 仍可能因空闲而停用。
+        /// Grain 停用时，所有活动定时器都会被丢弃。
         /// </para>
         /// <para>
-        /// 在调回返回的 <see cref="Task"/> 解决之前,将不排期下一次计时器计数。
-        /// 也就是说,一个时间推回永远不会同时执行。
-        /// 如果 <see cref="GrainTimerCreationOptions.Interleave"/> 设为 <see langword="true"/>,则允许回调定时器
-        /// 与另一配偶或 grain 方法调用和其他定时器。
-        /// 如果 <see cref="GrainTimerCreationOptions.Interleave"/> 设为 <see langword="false"/>,则回调时将尊重
-        /// grain的重新恢复设置,就像典型 grain 方法调用。
+        /// 在回调返回的 <see cref="Task"/> 完成之前，不会调度下一次定时器触发。
+        /// 也就是说，同一定时器的回调绝不会与自身并发执行。
+        /// 如果将 <see cref="GrainTimerCreationOptions.Interleave"/> 设置为 <see langword="true"/>，则允许定时器回调
+        /// 与其他 Grain 方法调用及其他定时器交错执行。
+        /// 如果将 <see cref="GrainTimerCreationOptions.Interleave"/> 设置为 <see langword="false"/>，则定时器回调会遵循
+        /// Grain 的可重入性设置，与普通 Grain 方法调用一样。
         /// </para>
         /// <para>
-        /// 可随时调用 <see cref="IGrainTimer"/> <see cref="IDisposable.Dispose"/> 方法停止计时器。
-        /// 使用定时器可防止任何进一步的定时器计数器时间点被排入日程。
+        /// 可以随时调用 <see cref="IGrainTimer"/> 的 <see cref="IDisposable.Dispose"/> 方法停止定时器。
+        /// 释放定时器后，不会再调度新的定时器触发。
         /// </para>
         /// <para>
-        /// 定时器的到期时间和期限可以通过调用其 <see cref="IGrainTimer.Change(TimeSpan, TimeSpan)"/> 方法来更新。
-        /// 每次更新计时器,将根据最新时间排定下一次计时器的时间安排。
-        /// 以后的勾选将在更新期结束后安排。
-        /// 请注意,该行为与 <see cref="Timer.Change(TimeSpan, TimeSpan)"/> 方法相同。
+        /// 可以调用定时器的 <see cref="IGrainTimer.Change(TimeSpan, TimeSpan)"/> 方法更新其首次触发时间和周期。
+        /// 每次更新定时器后，都会根据更新后的首次触发时间调度下一次触发。
+        /// 随后的触发会在更新后的周期结束后进行调度。
+        /// 请注意，此行为与 <see cref="Timer.Change(TimeSpan, TimeSpan)"/> 方法相同。
         /// </para>
         /// <para>
-        /// 将记录被回调的例外, 但不会阻止下次计时器滴记排队 。
+        /// 回调抛出的异常会被记录，但不会阻止下一次定时器触发加入队列。
         /// </para>
         /// </remarks>
         public static IGrainTimer RegisterGrainTimer(this IGrainBase grain, Func<CancellationToken, Task> callback, GrainTimerCreationOptions options)
@@ -453,12 +453,12 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 创建 grain 计时器。
+        /// 创建 Grain 定时器。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">计时器回调, 定时器到期时将使用该调时器。</param>
-        /// <param name="options">创建计时器的选项。</param>
-        /// <returns>代表计时器的 <see cref="IGrainTimer"/> 实例。</returns>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">定时器回调，每当定时器到期时调用。</param>
+        /// <param name="options">用于创建定时器的选项。</param>
+        /// <returns>表示定时器的 <see cref="IGrainTimer"/> 实例。</returns>
         public static IGrainTimer RegisterGrainTimer(this IGrainBase grain, Func<Task> callback, GrainTimerCreationOptions options)
         {
             ArgumentNullException.ThrowIfNull(callback);
@@ -466,11 +466,11 @@ namespace Orleans
         }
 
         /// <inheritdoc cref="RegisterGrainTimer(IGrainBase, Func{Task}, GrainTimerCreationOptions)"/>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">计时器回调, 定时器到期时将使用该调时器。</param>
-        /// <param name="state">国家通过回调。</param>
-        /// <param name="options">创建计时器的选项。</param>
-        /// <typeparam name="TState"> <paramref name="state"/> 参数的类型。</typeparam>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">定时器回调，每当定时器到期时调用。</param>
+        /// <param name="state">传递给回调的状态。</param>
+        /// <param name="options">用于创建定时器的选项。</param>
+        /// <typeparam name="TState"><paramref name="state"/> 参数的类型。</typeparam>
         public static IGrainTimer RegisterGrainTimer<TState>(this IGrainBase grain, Func<TState, Task> callback, TState state, GrainTimerCreationOptions options)
         {
             ArgumentNullException.ThrowIfNull(callback);
@@ -478,49 +478,49 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 创建 grain 计时器。
+        /// 创建 Grain 定时器。
         /// </summary>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">计时器回调, 定时器到期时将使用该调时器。</param>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">定时器回调，每当定时器到期时调用。</param>
         /// <param name="dueTime">
-        /// <see cref="TimeSpan"/> 表示在使用 <see cref="IGrainTimer"/> 构建时指定的回调方法之前需要延迟的时间。
-        /// 指定 <see cref="Timeout.InfiniteTimeSpan"/> 以阻止计时器启动。
-        /// 指定 <see cref="TimeSpan.Zero"/> 立即开始计时器。
+        /// 一个 <see cref="TimeSpan"/>，表示调用创建 <see cref="IGrainTimer"/> 时指定的回调方法之前需要等待的时长。
+        /// 指定 <see cref="Timeout.InfiniteTimeSpan"/> 可阻止定时器启动。
+        /// 指定 <see cref="TimeSpan.Zero"/> 可立即启动定时器。
         /// </param>
         /// <param name="period">
-        /// 构建 <see cref="IGrainTimer"/> 时指定的回调方法的引用间隔时间。
-        /// 指定用于禁用定期信号的 <see cref="Timeout.InfiniteTimeSpan "/> 。
+        /// 创建 <see cref="IGrainTimer"/> 时指定的回调方法的调用时间间隔。
+        /// 指定 <see cref="Timeout.InfiniteTimeSpan "/> 可禁用周期性触发。
         /// </param>
         /// <returns>
-        /// 代表计时器的 <see cref="IGrainTimer"/> 实例。
+        /// 表示定时器的 <see cref="IGrainTimer"/> 实例。
         /// </returns>
         /// <remarks>
         /// <para>
-        /// Grain 计时器默认不保持 grains 活动。设置 <see cref="GrainTimerCreationOptions.KeepAlive"/>
-        /// <see langword="true"/> 导致每个计时器的勾当延长 grain 激活的寿命。
-        /// 如果定时器的计时器不常, grain 仍然可以因闲置而停止使用。
-        /// 当一个 grain 被停用时,所有活动定时器将被丢弃。
+        /// Grain 定时器默认不会保持 Grain 处于激活状态。将 <see cref="GrainTimerCreationOptions.KeepAlive"/> 设置为
+        /// <see langword="true"/> 后，每次定时器触发都会延长 Grain 激活实例的生命周期。
+        /// 如果定时器触发不频繁，Grain 仍可能因空闲而停用。
+        /// Grain 停用时，所有活动定时器都会被丢弃。
         /// </para>
         /// <para>
-        /// 在调回返回的 <see cref="Task"/> 解决之前,将不排期下一次计时器计数。
-        /// 也就是说,一个时间推回永远不会同时执行。
-        /// 如果 <see cref="GrainTimerCreationOptions.Interleave"/> 设为 <see langword="true"/>,则允许回调定时器
-        /// 与另一配偶或 grain 方法调用和其他定时器。
-        /// 如果 <see cref="GrainTimerCreationOptions.Interleave"/> 设为 <see langword="false"/>,则回调时将尊重
-        /// grain的重新恢复设置,就像典型 grain 方法调用。
+        /// 在回调返回的 <see cref="Task"/> 完成之前，不会调度下一次定时器触发。
+        /// 也就是说，同一定时器的回调绝不会与自身并发执行。
+        /// 如果将 <see cref="GrainTimerCreationOptions.Interleave"/> 设置为 <see langword="true"/>，则允许定时器回调
+        /// 与其他 Grain 方法调用及其他定时器交错执行。
+        /// 如果将 <see cref="GrainTimerCreationOptions.Interleave"/> 设置为 <see langword="false"/>，则定时器回调会遵循
+        /// Grain 的可重入性设置，与普通 Grain 方法调用一样。
         /// </para>
         /// <para>
-        /// 可随时调用 <see cref="IGrainTimer"/> <see cref="IDisposable.Dispose"/> 方法停止计时器。
-        /// 使用定时器可防止任何进一步的定时器计数器时间点被排入日程。
+        /// 可以随时调用 <see cref="IGrainTimer"/> 的 <see cref="IDisposable.Dispose"/> 方法停止定时器。
+        /// 释放定时器后，不会再调度新的定时器触发。
         /// </para>
         /// <para>
-        /// 定时器的到期时间和期限可以通过调用其 <see cref="IGrainTimer.Change(TimeSpan, TimeSpan)"/> 方法来更新。
-        /// 每次更新计时器,将根据最新时间排定下一次计时器的时间安排。
-        /// 以后的勾选将在更新期结束后安排。
-        /// 请注意,该行为与 <see cref="Timer.Change(TimeSpan, TimeSpan)"/> 方法相同。
+        /// 可以调用定时器的 <see cref="IGrainTimer.Change(TimeSpan, TimeSpan)"/> 方法更新其首次触发时间和周期。
+        /// 每次更新定时器后，都会根据更新后的首次触发时间调度下一次触发。
+        /// 随后的触发会在更新后的周期结束后进行调度。
+        /// 请注意，此行为与 <see cref="Timer.Change(TimeSpan, TimeSpan)"/> 方法相同。
         /// </para>
         /// <para>
-        /// 将记录被回调的例外, 但不会阻止下次计时器滴记排队 。
+        /// 回调抛出的异常会被记录，但不会阻止下一次定时器触发加入队列。
         /// </para>
         /// </remarks>
         public static IGrainTimer RegisterGrainTimer(this IGrainBase grain, Func<Task> callback, TimeSpan dueTime, TimeSpan period)
@@ -531,97 +531,97 @@ namespace Orleans
             => RegisterGrainTimer(grain, callback, new() { DueTime = dueTime, Period = period });
 
         /// <inheritdoc cref="RegisterGrainTimer(IGrainBase, Func{Task}, TimeSpan, TimeSpan)"/>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">计时器回调, 定时器到期时将使用该调时器。</param>
-        /// <param name="state">国家通过回调。</param>
-        /// <param name="dueTime">调回前要延迟的时间。</param>
-        /// <param name="period">回调引用之间的时间间隔。</param>
-        /// <typeparam name="TState"> <paramref name="state"/> 参数的类型。</typeparam>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">定时器回调，每当定时器到期时调用。</param>
+        /// <param name="state">传递给回调的状态。</param>
+        /// <param name="dueTime">调用回调之前的延迟时间。</param>
+        /// <param name="period">回调调用之间的时间间隔。</param>
+        /// <typeparam name="TState"><paramref name="state"/> 参数的类型。</typeparam>
         public static IGrainTimer RegisterGrainTimer<TState>(this IGrainBase grain, Func<TState, Task> callback, TState state, TimeSpan dueTime, TimeSpan period)
             => RegisterGrainTimer(grain, callback, state, new() { DueTime = dueTime, Period = period });
 
         /// <inheritdoc cref="RegisterGrainTimer(IGrainBase, Func{Task}, TimeSpan, TimeSpan)"/>
-        /// <param name="grain"> grain 实例。</param>
-        /// <param name="callback">计时器回调, 定时器到期时将使用该调时器。</param>
-        /// <param name="state">国家通过回调。</param>
-        /// <param name="dueTime">调回前要延迟的时间。</param>
-        /// <param name="period">回调引用之间的时间间隔。</param>
-        /// <typeparam name="TState"> <paramref name="state"/> 参数的类型。</typeparam>
+        /// <param name="grain">Grain 实例。</param>
+        /// <param name="callback">定时器回调，每当定时器到期时调用。</param>
+        /// <param name="state">传递给回调的状态。</param>
+        /// <param name="dueTime">调用回调之前的延迟时间。</param>
+        /// <param name="period">回调调用之间的时间间隔。</param>
+        /// <typeparam name="TState"><paramref name="state"/> 参数的类型。</typeparam>
         public static IGrainTimer RegisterGrainTimer<TState>(this IGrainBase grain, Func<TState, CancellationToken, Task> callback, TState state, TimeSpan dueTime, TimeSpan period)
             => RegisterGrainTimer(grain, callback, state, new() { DueTime = dueTime, Period = period });
     }
 
     /// <summary>
-    /// 禁用的信息解释代码。
+    /// 用于说明停用原因的原因代码。
     /// </summary>
     [GenerateSerializer]
     public enum DeactivationReasonCode : byte
     {
         /// <summary>
-        /// 没有提供理由。
+        /// 未提供原因。
         /// </summary>
         None,
 
         /// <summary>
-        /// 进程目前正在关闭。
+        /// 进程正在关闭。
         /// </summary>
         ShuttingDown,
 
         /// <summary>
-        /// 启动 grain 失败 。
+        /// Grain 激活失败。
         /// </summary>
         ActivationFailed,
 
         /// <summary>
-        /// 发行的 grain 目录内部故障影响这种激活。
+        /// 此激活实例受到分布式 Grain 目录内部故障的影响。
         /// </summary>
         /// <remarks>
-        /// 这可能是由于例如,一个程序在主机启动此 grain 目录分区时失败所致。
+        /// 例如，托管此激活实例对应的 Grain 目录分区的进程发生故障，可能导致这种情况。
         /// </remarks>
         DirectoryFailure,
 
         /// <summary>
-        /// 启动已闲置 。
+        /// 此激活实例处于空闲状态。
         /// </summary>
         ActivationIdle,
 
         /// <summary>
-        /// 启动对命令或请求没有反应
+        /// 此激活实例未响应命令或请求。
         /// </summary>
         ActivationUnresponsive,
 
         /// <summary>
-        /// 另一例 grain 已经启动。
+        /// 此 Grain 的另一个实例已激活。
         /// </summary>
         DuplicateActivation,
 
         /// <summary>
-        /// 启动程序收到一个请求,但无法由本地运行程序处理。
+        /// 此激活实例收到无法由本地运行进程处理的请求。
         /// </summary>
         IncompatibleRequest,
 
         /// <summary>
-        /// 发生了应用程序错误。
+        /// 发生应用程序错误。
         /// </summary>
         ApplicationError,
 
         /// <summary>
-        /// 请求启动此激活的应用程序 。
+        /// 应用程序请求停用此激活实例。
         /// </summary>
         ApplicationRequested,
 
         /// <summary>
-        /// 启动程序正在迁移到一个新的地点
+        /// 此激活实例正在迁移到新位置。
         /// </summary>
         Migrating,
 
         /// <summary>
-        /// 激活启动的运行时间 。
+        /// 运行时请求停用此激活实例。
         /// </summary>
         RuntimeRequested,
 
         /// <summary>
-        /// 运行时间检测到应用程序的内存率很低,并强行决定停止使用。
+        /// 运行时检测到应用程序可用内存不足，因而决定强制停用。
         /// </summary>
         HighMemoryPressure,
     }

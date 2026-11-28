@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// 代表一种例外,其类型在解除飞行时无法使用。
+    /// 表示其类型在反序列化期间不可用的异常。
     /// </summary>
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
     public sealed class UnavailableExceptionFallbackException : Exception
@@ -34,12 +34,12 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// 获得例外的序列属性。
+        /// 获取异常的已序列化属性。
         /// </summary>
         public Dictionary<string, object?> Properties { get; } = new();
 
         /// <summary>
-        /// 获得例外类型名称 。
+        /// 获取异常类型名称。
         /// </summary>
         public string? ExceptionType { get; internal set; }
 

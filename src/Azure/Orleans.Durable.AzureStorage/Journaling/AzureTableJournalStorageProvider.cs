@@ -119,7 +119,7 @@ internal sealed class AzureTableJournalStorageProvider : ILifecycleParticipant<I
             if (range.LowerBound is { } lowerBound)
             {
                 var lowerKey = GetPartitionKeyBound(lowerBound);
-                // 保存时间最长的前缀后,有更长的界限。
+                // 较长的边界在排序中位于其最长可能的已存储前缀之后。
                 filter += lowerBound.Length > MaximumDefaultJournalIdLength
                     ? TableClient.CreateQueryFilter($" and PartitionKey gt {lowerKey}")
                     : TableClient.CreateQueryFilter($" and PartitionKey ge {lowerKey}");
@@ -134,7 +134,7 @@ internal sealed class AzureTableJournalStorageProvider : ILifecycleParticipant<I
             if (range.Prefix is { } prefix)
             {
                 var prefixKey = AzureTableJournalStorageOptions.EncodePartitionKey(prefix);
-                // 长度限制只有精确的ID才能匹配;较短的前缀可以有后代。
+                // 达到长度上限时，只有完全相同的 ID 能匹配；更短的前缀可以有后代项。
                 filter += prefix.Length == MaximumDefaultJournalIdLength
                     ? TableClient.CreateQueryFilter($" and PartitionKey le {prefixKey}")
                     : TableClient.CreateQueryFilter($" and PartitionKey lt {prefixKey + "G"}");
@@ -142,7 +142,7 @@ internal sealed class AzureTableJournalStorageProvider : ILifecycleParticipant<I
         }
         else
         {
-            // Ordinal UTF-16 边界可以包含未受控制的代孕体, 将这些限制保留在本地。
+            // 按 UTF-16 序数比较的边界可能包含未配对的代理项。将这些限制留在本地处理。
             if (range.LowerBound is { } lowerBound && IsWellFormedUnicode(lowerBound))
             {
                 filter += TableClient.CreateQueryFilter($" and JournalId ge {lowerBound}");
@@ -168,8 +168,8 @@ internal sealed class AzureTableJournalStorageProvider : ILifecycleParticipant<I
             return AzureTableJournalStorageOptions.EncodePartitionKey(value);
         }
 
-        // 没有任何存储的代号可以等同一个无支持的受约束。
-        // 1F 排序与确切的前缀相同,但先于任何后代;7F 排序则先于所有后代。
+        // 不受支持的边界不可能与任何已存储 ID 相等。在其第一个不受支持的代码单元处，
+        // 1F 排在精确前缀之后、所有后代项之前；7F 排在所有后代项之后。
         return AzureTableJournalStorageOptions.EncodePartitionKey(value[..index])
             + (value[index] < ' ' ? "1F" : "7F");
     }

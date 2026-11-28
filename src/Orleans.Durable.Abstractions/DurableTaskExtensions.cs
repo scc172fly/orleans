@@ -1,30 +1,30 @@
 namespace Orleans.Durable.Tasks;
 
-/// <summary>提供等待、确定、安排、超时和组合操作,以用于确定耐久的任务定义和处理。</summary>
+/// <summary>为持久化任务定义和句柄提供等待、标识、调度、超时及组合器操作。</summary>
 public static partial class DurableTaskExtensions
 {
-    /// <summary>在当前执行过程中,寻找等待者来完成一项持久的任务。</summary>
+    /// <summary>获取当前执行上下文中的持久化任务等待器。</summary>
     public static DurableTaskAwaiter GetAwaiter(this DurableTask task) => new ConfiguredDurableTask(task).GetAwaiter();
 
-    /// <summary>在当前执行过程中,寻找等待者来完成一项持久的任务。</summary>
+    /// <summary>获取当前执行上下文中的持久化任务等待器。</summary>
     public static DurableTaskAwaiter<TResult> GetAwaiter<TResult>(this DurableTask<TResult> task) => new ConfiguredDurableTask<TResult>(task).GetAwaiter();
 
-    /// <summary>返回一个指定任务名称的配置。</summary>
-    /// <param name="task">要开始的定义。</param>
+    /// <summary>返回为任务命名的配置。</summary>
+    /// <param name="task">要启动的任务定义。</param>
     /// <param name="name">任务名称。</param>
     /// <remarks>
     /// <para>
-    /// 在一个耐久执行的处决中,名字指执行处决开始的任务和重放
-    /// 同一操作。在一次运行中重复的一个名字按顺序标明其后来发生的情况,例如
-    /// <c>reserve$2</c>,姓名不包含 <c>$</c>。开始分配发生时间,因此顺序
-    /// 配置电话不会改变它。 附加的任务是该名字所识别的孩子, 以及一个分离的
-    /// 根任务标识符来自它,正如 <see cref="Detached(DurableTask)"/> 所描述的。
+    /// 在持久化执行实例中，名称标识该执行实例用于启动任务的操作，重放时
+    /// 到达同一个操作。同一次运行中重复出现的名称按出现顺序标识其后续各次，例如
+    /// <c>reserve$2</c>；名称不能包含 <c>$</c>。启动操作负责分配出现次数，因此
+    /// 配置调用的顺序不会改变该标识。附接任务是该名称标识的子任务，分离
+    /// 任务的根标识符则由该标识派生，如 <see cref="Detached(DurableTask)"/> 所述。
     /// </para>
     /// <para>
-    /// 在一个可持久执行外部的外部执行,每个任务都是根任务,而名称是其根标识符。该名称使开始
-    /// 安全重试:在模棱两可的故障(如超时)发生后重新尝试启动的呼叫器, 达到相同的任务 。
-    /// 启动时没有名称, 将接收一个新的随机根标识符, 其控点是 <see cref="ScheduledTask.Id"/>
-    /// 汇报,所以它的行为就像普通的电话。
+    /// 在持久化执行实例之外，每个任务都是根任务，其名称就是根标识符。名称让启动操作可以
+    /// 安全重试：调用方在超时等结果不明确的故障后重试启动时，会访问同一个任务。
+    /// 未提供名称的启动会取得一个新的随机根标识符，该标识符由句柄的 <see cref="ScheduledTask.Id"/>
+    /// 报告，因此其行为与普通调用类似。
     /// </para>
     /// </remarks>
     public static ConfiguredDurableTask WithId(this DurableTask task, string name) => new ConfiguredDurableTask(task).WithId(name);
@@ -32,50 +32,50 @@ public static partial class DurableTaskExtensions
     /// <inheritdoc cref="WithId(DurableTask, string)"/>
     public static ConfiguredDurableTask<TResult> WithId<TResult>(this DurableTask<TResult> task, string name) => new ConfiguredDurableTask<TResult>(task).WithId(name);
 
-    /// <summary>返回将任务作为独立的根任务启动的配置。</summary>
-    /// <param name="task">启动定义,如耐用 grain 调用。</param>
+    /// <summary>返回将任务作为独立根任务启动的配置。</summary>
+    /// <param name="task">要启动的定义，例如持久化 Grain 调用。</param>
     /// <remarks>
     /// <para>
-    /// 在持久执行的范围内,一个独立的任务本身就是一个根:执行并不拥有它,可以完成
-    /// 它可以运行, 并取消, 中止和删除, 并且删除也达不到它。 等待独立任务, 或者等待哪个控点
-    /// <see cref="ConfiguredDurableTask.ScheduleAsync"/> 或 <see cref="ConfiguredDurableTask.Post"/> 返回,注意
-    /// 其结果: 开始命名执行的用户名, 取消等待仅结束订阅 。
+    /// 在持久化执行实例内，分离任务拥有独立的根：启动方执行实例并不拥有它，可在它仍运行时完成，
+    /// 且启动方的取消、中止和删除不会影响它。等待分离任务本身，或者等待
+    /// <see cref="ConfiguredDurableTask.ScheduleAsync"/> 或 <see cref="ConfiguredDurableTask.Post"/> 返回的句柄，都会观察到
+    /// 其结果：启动操作将该执行实例指定为订阅者，取消等待只会结束该订阅。
     /// </para>
     /// <para>
-    /// 任务根标识符来自主机身份、执行的识别符号和
-    /// 开始此操作的操作: <see cref="WithId(DurableTask, string)"/> 指定,或执行
-    /// 下一个生成的识别符号。 因此重放产生相同的根标识符, 以及不同的处决和
-    /// 在一个相同的根标识符下重新开始独立任务,包括在
-    /// 重播放, 达到相同的任务。 <see cref="Detached(DurableTask, string)"/> 提供了根标识符, 而该源代码是其它
-    /// 事先通知缔约方。
+    /// 任务的根标识符派生自宿主标识、执行实例标识符以及
+    /// 启动任务的操作标识符：由 <see cref="WithId(DurableTask, string)"/> 分配的名称，或该执行实例
+    /// 下一个生成的标识符。因此，重放会派生同一个根标识符，不同执行实例及
+    /// 不同操作会派生不同的根标识符。再次使用相同根标识符启动分离任务（包括在
+    /// 重放期间）时，会访问同一个任务。<see cref="Detached(DurableTask, string)"/> 提供一个其他参与方
+    /// 可以预先获知的根标识符。
     /// </para>
     /// <para>
-    /// 独立任务的定义是主机以根任务开头的 <see cref="ISchedulableTask"/> 诸如
-    /// 耐久 grain 调用,因为其主机仓库和自行经营。步骤、 <c>async DurableTask</c> 方法;
-    /// 启动一个独立投出
-    /// <see cref="InvalidOperationException"/> (ORLEANS0228).
+    /// 分离任务的定义必须是宿主能够作为根任务启动的定义，即某种 <see cref="ISchedulableTask"/>（例如
+    /// 持久化 Grain 调用），因为其宿主会独立存储和运行该任务。步骤、<c>async DurableTask</c> 方法以及
+    /// 组合器作为启动它们的执行实例的一部分运行，尝试以分离方式启动它们会抛出
+    /// <see cref="InvalidOperationException"/>（ORLEANS0228）。
     /// </para>
-    /// <para>在耐久执行之外,每项任务都已经是一个根任务,因此配置没有变化。</para>
+    /// <para>在持久化执行实例之外，每个任务已经是根任务，因此不改变配置。</para>
     /// </remarks>
     public static ConfiguredDurableTask Detached(this DurableTask task) => new ConfiguredDurableTask(task).Detached();
 
     /// <inheritdoc cref="Detached(DurableTask)"/>
     public static ConfiguredDurableTask<TResult> Detached<TResult>(this DurableTask<TResult> task) => new ConfiguredDurableTask<TResult>(task).Detached();
 
-    /// <summary>返回一个配置,该配置以独立的根任务 <paramref name="rootId"/>开始任务。</summary>
-    /// <param name="task">启动定义,如耐用 grain 调用。</param>
-    /// <param name="rootId">任务主机的根标识符是逐字的。</param>
+    /// <summary>返回将任务作为独立根任务 <paramref name="rootId"/> 启动的配置。</summary>
+    /// <param name="task">要启动的定义，例如持久化 Grain 调用。</param>
+    /// <param name="rootId">任务在其宿主上的根标识符，原样使用。</param>
     /// <remarks>
     /// <para>
-    /// 任务与开始执行有关, <see cref="Detached(DurableTask)"/> 根底的描述
-    /// 其它缔约方处理的 <paramref name="rootId"/>,例如 <c>GetDurableTask</c>。
-    /// 任务主机上的 <paramref name="rootId"/> 号对面,任何执行者或打电话者,包括一次重播,都达到同一目标
-    /// 任务,所以标识符指定了任务的全球名称,例如 <c>place-order-42</c>。定义是主机所在的定义
-    /// 以根任务开始, 正如 <see cref="Detached(DurableTask)"/> 描述的那样 。
+    /// 任务与启动方执行实例的关系如 <see cref="Detached(DurableTask)"/> 所述，使用根
+    /// 标识符 <paramref name="rootId"/>，其他参与方可以通过该标识符寻址任务，例如通过 <c>GetDurableTask</c>。在任务宿主上
+    /// 启动 <paramref name="rootId"/> 时，无论来自哪个执行实例或调用方（包括重放），都访问同一个
+    /// 任务，因此该标识符为任务提供全局名称，例如 <c>place-order-42</c>。任务定义必须是宿主
+    /// 可作为根任务启动的定义，如 <see cref="Detached(DurableTask)"/> 所述。
     /// </para>
-    /// <para>任务在于根任务 <paramref name="rootId"/>.</para>
+    /// <para>在持久化执行实例之外，该任务就是根任务 <paramref name="rootId"/>。</para>
     /// </remarks>
-    /// <exception cref="ArgumentException"><paramref name="rootId"/> 是 <see langword="null"/> 或空的。</exception>
+    /// <exception cref="ArgumentException"><paramref name="rootId"/> 为 <see langword="null"/> 或空字符串。</exception>
     public static ConfiguredDurableTask Detached(this DurableTask task, string rootId) => new ConfiguredDurableTask(task).Detached(rootId);
 
     /// <inheritdoc cref="Detached(DurableTask, string)"/>
@@ -83,31 +83,31 @@ public static partial class DurableTaskExtensions
         => new ConfiguredDurableTask<TResult>(task).Detached(rootId);
 
     /// <summary>
-    /// 返回返回一个将任务作为子子子启动或作为执行的一部分运行的配置,退出
-    /// 执行期的持久取消时间
+    /// 返回一种配置：将任务作为附接子任务启动，或作为当前执行实例的一部分运行，并且不受
+    /// 启动方执行实例的持久化取消影响。
     /// </summary>
-    /// <param name="task">要开始的定义。</param>
+    /// <param name="task">要启动的任务定义。</param>
     /// <remarks>
     /// <para>
-    /// 处决仍然拥有一个被保护的孩子,等待着:即使处决时儿童也快完成
-    /// 儿童在开始之前要求取消,这符合被取消工作流程运行时的赔偿要求。
-    /// 执行中指定的 <see cref="DurableTaskContext.CancellationToken"/> 和
-    /// <see cref="DurableTaskContext.IsTaskCancellationRequested"/> 仍然报告取消。 行政中止
-    /// 并删除处决的树 仍然到达孩子的手中, 和取消儿童 通过自己的手柄
-    /// 取消它及其子孙。
+    /// 执行实例仍拥有受取消屏蔽保护的子任务并等待它：即使执行实例的
+    /// 取消请求在子任务启动前发出，子任务也会运行至完成，适用于已取消工作流执行的补偿操作。
+    /// 执行实例自身的 <see cref="DurableTaskContext.CancellationToken"/> 和
+    /// <see cref="DurableTaskContext.IsTaskCancellationRequested"/> 仍会报告其取消状态。管理中止操作
+    /// 以及删除执行实例的任务树仍会影响该子任务，通过子任务自己的句柄取消它也仍然
+    /// 会取消该任务及其子任务。
     /// </para>
     /// <para>
-    /// 只有在儿童被弃儿被弃儿的取消之后,才能接触到被保护儿童自己的子女。
-    /// <see cref="DurableTask.Run(Func{CancellationToken, Task})"/> 步数和它开始的工作, 运行到完成。 A
-    /// 套头套套用组合器,例如 <see cref="DurableTask.WhenAll(IReadOnlyList{DurableTask})"/>,作为
-    /// 并屏蔽它开始的每个输入
+    /// 受屏蔽子任务自身的子任务只受该子任务取消的影响，因此整棵子树（例如
+    /// <see cref="DurableTask.Run(Func{CancellationToken, Task})"/> 步骤及其启动的工作）会一直运行到完成。受屏蔽保护的
+    /// 组合器（例如 <see cref="DurableTask.WhenAll(IReadOnlyList{DurableTask})"/>）会作为当前执行实例的一部分运行，
+    /// 并对它启动的每个输入应用屏蔽保护。
     /// </para>
     /// <para>
-    /// 不论是否在童年时期或作为儿童期的一部分运行,所有等待的持久作业都以同样的方式为盾牌打光。
-    /// 执行:信号等待、延迟、订阅现有任务、呼叫另一个 grain和组合器
-    /// 诸如 <c>Race</c>, <c>WhenAny</c>, <c>WaitAsync</c>,和 <see cref="DurableSignal{T}.TryWaitAsync"/> 完整
-    /// 执行取消后,行政中止终止。
-    /// 并且屏蔽能防止死刑执行的取消 结束死刑执行的订阅结果
+    /// 所有被等待的持久化操作均以相同方式遵循屏蔽保护，无论其作为子执行实例运行还是作为当前
+    /// 执行实例的一部分运行：信号等待、延迟、已有任务订阅、跨 Grain 调用，以及
+    /// <c>Race</c>、<c>WhenAny</c>、<c>WaitAsync</c>、<see cref="DurableSignal{T}.TryWaitAsync"/> 等组合器均可
+    /// 在当前执行实例取消后继续完成，但管理操作中的中止会结束它们。分离任务独立于当前
+    /// 执行实例；屏蔽保护使当前执行实例的取消不会终止对分离任务结果的订阅。
     /// </para>
     /// </remarks>
     public static ConfiguredDurableTask Shielded(this DurableTask task) => new ConfiguredDurableTask(task).Shielded();
@@ -130,41 +130,41 @@ public static partial class DurableTaskExtensions
     public static ScheduledTask<TResult> Post<TResult>(this DurableTask<TResult> task) => new ConfiguredDurableTask<TResult>(task).Post();
 
     /// <summary>
-    /// 创建耐久任务,该任务运行 <paramref name="task"/> 并请求永久取消一次
-    /// <paramref name="timeout"/> 过
+    /// 创建运行 <paramref name="task"/> 的持久化任务，并在
+    /// <paramref name="timeout"/> 经过后请求对该任务进行持久化取消。
     /// </summary>
     /// <param name="task">要运行的任务。</param>
-    /// <param name="timeout">请求取消前等待时间, 即零或正。</param>
+    /// <param name="timeout">请求取消之前等待的时长，必须为零或正值。</param>
     /// <returns>
-    /// 混合器,在等待耐久处决期间,作为执行的一部分运行,并完成一次
-    /// <paramref name="task"/> 是终端 。
+    /// 一个组合器，在持久化执行实例中被等待时，作为该执行实例的一部分运行，并在
+    /// <paramref name="task"/> 达到终态后完成。
     /// </returns>
     /// <remarks>
     /// <para>
-    /// 组合赛 <paramref name="task"/> 与 <see cref="DurableTask.Delay(TimeSpan)"/>,作为
-    /// <see cref="DurableTask.Race(IReadOnlyList{DurableTask})"/> 确实如此,主机在重播时选择了同样的赢家。
-    /// 使用从第一次运行开始的主机逻辑时间测量延迟,重放保留其记录到的应时,所以
-    /// 组合计算器第一次运行时计时超时。任务以孩子 <c>0</c> 和孩子的延迟时间计算
-    /// <c>1</c> ,在组合器操作识别符号下,其中还指明了所记录的选定:
-    /// 含有 <c>WithId</c>或执行令产生的一个段。
+    /// 组合器让 <paramref name="task"/> 与 <see cref="DurableTask.Delay(TimeSpan)"/> 竞争，行为与
+    /// <see cref="DurableTask.Race(IReadOnlyList{DurableTask})"/> 相同；宿主在重放中选择相同的获胜任务。
+    /// 延迟从首次运行开始按宿主逻辑时间计量，重放保留已记录的到期时间，因此
+    /// 超时从组合器首次运行时开始计时。任务作为子任务 <c>0</c> 运行，延迟作为子任务
+    /// <c>1</c> 运行，二者都位于组合器的操作标识符之下。该标识符还标识记录的选择结果，即
+    /// <c>WithId</c> 分配的段，或按执行顺序生成的段。
     /// </para>
     /// <para>
-    /// 当任务完成之前, 组合器会取消延迟并随着任务结果完成: 结果,
-    /// 失败, 或者取消, 或取消。 当超时间隔先过的时候, 组合器会请求取消任务
-    /// 原因 <c>The operation timed out after {timeout}.</c>
-    /// <see cref="DurableTaskContext.TaskCancellationReason"/> 报告,当请求是任务第一时,报告将等待
-    /// 任务就是任务结束:组合器开始的没有什么比它长。一个任务如果终止,则失败
-    /// 带有 <see cref="TimeoutException"/> 的组合器,其内部例外是任务
-    /// <see cref="OperationCanceledException"/>和任何其他结果,例如任务在
-    /// 观察请求,是组合结果。延迟结束而不会拖延,例如因为耐久
-    /// 取消待执行的注销,要求取消任务,然后是组合
-    /// 任务为终端时, 延迟的例外失败 。
+    /// 当任务先完成时，组合器取消延迟，并以任务的结果完成：成功结果、
+    /// 失败或取消。当超时先到期时，组合器请求取消任务，并携带
+    /// 原因 <c>The operation timed out after {timeout}.</c>；如果这是该任务的首次取消请求，则由任务的
+    /// <see cref="DurableTaskContext.TaskCancellationReason"/> 报告该原因。组合器等待到
+    /// 任务达到终态为止：组合器启动的所有工作都不会比它存活更久。如果任务随后以取消状态结束，
+    /// 组合器以 <see cref="TimeoutException"/> 失败，其内部异常为该任务的
+    /// <see cref="OperationCanceledException"/>；任何其他结果（例如任务在观察到取消请求之后返回的结果）
+    /// 都成为组合器的结果。如果延迟未到期就结束，例如等待方执行实例的持久化
+    /// 取消传播到了延迟，则同样请求取消任务；组合器在任务达到终态后
+    /// 以延迟的异常失败。
     /// </para>
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="task"/> 是 <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="task"/> 为 <see langword="null"/>。</exception>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="timeout"/> 是负,包括 <see cref="Timeout.InfiniteTimeSpan"/>;等待任务本身
-    /// 等待时间没有超时。
+    /// <paramref name="timeout"/> 为负值，包括 <see cref="Timeout.InfiniteTimeSpan"/>；如果需要无限期等待而不设置超时，
+    /// 请直接等待任务本身。
     /// </exception>
     public static DurableTask WaitAsync(this DurableTask task, TimeSpan timeout)
     {
@@ -174,8 +174,8 @@ public static partial class DurableTaskExtensions
     }
 
     /// <summary>
-    /// 创建一个运行 <paramref name="task"/>的耐久任务,返回结果并请求永久取消
-    /// 一次 <paramref name="timeout"/> 过
+    /// 创建运行 <paramref name="task"/> 并返回其结果的持久化任务，在
+    /// <paramref name="timeout"/> 经过后请求对该任务进行持久化取消。
     /// </summary>
     /// <inheritdoc cref="WaitAsync(DurableTask, TimeSpan)"/>
     public static DurableTask<TResult> WaitAsync<TResult>(this DurableTask<TResult> task, TimeSpan timeout)
@@ -186,25 +186,25 @@ public static partial class DurableTaskExtensions
     }
 
     /// <summary>
-    /// 创建耐久任务,该任务运行 <paramref name="task"/> 并请求永久取消一次
-    /// <paramref name="dueTime"/> 通行证。
+    /// 创建运行 <paramref name="task"/> 的持久化任务，在
+    /// <paramref name="dueTime"/> 到达后请求对该任务进行持久化取消。
     /// </summary>
     /// <param name="task">要运行的任务。</param>
     /// <param name="dueTime">
-    /// 时间, 使用主机逻辑时间测量, 请求取消的时间。 已经过去的时间
-    /// 尽快
+    /// 请求取消的时间，以宿主逻辑时间计量。若该时间已过，则
+    /// 尽快超时。
     /// </param>
     /// <returns>
-    /// 混合器,在等待耐久处决期间,作为执行的一部分运行,并完成一次
-    /// <paramref name="task"/> 是终端 。
+    /// 一个组合器，在持久化执行实例中被等待时，作为该执行实例的一部分运行，并在
+    /// <paramref name="task"/> 达到终态后完成。
     /// </returns>
     /// <remarks>
-    /// 组合器行为为 <see cref="WaitAsync(DurableTask, TimeSpan)"/>,赛 <paramref name="task"/>
-    /// <see cref="DurableTask.DelayUntil(DateTimeOffset)"/>请求取消的原因
-    /// <c>The operation timed out because its deadline {dueTime} passed.</c>, 格式为 <paramref name="dueTime"/>
-    /// 圆形车厢格式, <c>O</c>。
+    /// 组合器行为与 <see cref="WaitAsync(DurableTask, TimeSpan)"/> 相同，让 <paramref name="task"/> 与
+    /// <see cref="DurableTask.DelayUntil(DateTimeOffset)"/> 竞争，并请求取消，取消原因为
+    /// <c>The operation timed out because its deadline {dueTime} passed.</c>，其中 <paramref name="dueTime"/> 使用
+    /// 往返格式 <c>O</c> 格式化。
     /// </remarks>
-    /// <exception cref="ArgumentNullException"><paramref name="task"/> 是 <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="task"/> 为 <see langword="null"/>。</exception>
     public static DurableTask WaitUntilAsync(this DurableTask task, DateTimeOffset dueTime)
     {
         ArgumentNullException.ThrowIfNull(task);
@@ -212,8 +212,8 @@ public static partial class DurableTaskExtensions
     }
 
     /// <summary>
-    /// 创建一个运行 <paramref name="task"/>的耐久任务,返回结果并请求永久取消
-    /// 一旦 <paramref name="dueTime"/> 通过。
+    /// 创建运行 <paramref name="task"/> 并返回其结果的持久化任务，在
+    /// <paramref name="dueTime"/> 到达后请求对该任务进行持久化取消。
     /// </summary>
     /// <inheritdoc cref="WaitUntilAsync(DurableTask, DateTimeOffset)"/>
     public static DurableTask<TResult> WaitUntilAsync<TResult>(this DurableTask<TResult> task, DateTimeOffset dueTime)

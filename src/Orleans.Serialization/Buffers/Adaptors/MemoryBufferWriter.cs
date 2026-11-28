@@ -4,7 +4,7 @@ using System.Buffers;
 namespace Orleans.Serialization.Buffers.Adaptors
 {
     /// <summary>
-    /// A <see cref="IBufferWriter{T}"/> 执行和《公约》 <see cref="Memory{T}"/>
+    /// <see cref="IBufferWriter{T}"/> 的实现，用于 <see cref="Memory{T}"/>。
     /// </summary>
     public struct MemoryBufferWriter : IBufferWriter<byte>
     {
@@ -14,7 +14,7 @@ namespace Orleans.Serialization.Buffers.Adaptors
         /// <summary>
         /// 初始化 <see cref="MemoryBufferWriter"/> 结构的新实例。
         /// </summary>
-        /// <param name="buffer">缓冲。</param>
+        /// <param name="buffer">缓冲区。</param>
         internal MemoryBufferWriter(Memory<byte> buffer)
         {
             _buffer = buffer;
@@ -22,9 +22,9 @@ namespace Orleans.Serialization.Buffers.Adaptors
         }
 
         /// <summary>
-        /// 获取写入的字节数 。
+        /// 获取已写入的字节数。
         /// </summary>
-        /// <value>写入的字节数。</value>
+        /// <value>已写入的字节数。</value>
         public readonly int BytesWritten => _bytesWritten;
 
         /// <inheritdoc />

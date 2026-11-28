@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Orleans.Durable.Analyzers.Tests;
 
-/// <summary>代表的议事规则 DurableTask.Run 和 DurableTask.RunInline 接收。</summary>
+/// <summary>测试 DurableTask.Run 和 DurableTask.RunInline 所接收委托的规则。</summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 public class DurableTaskDelegateRuleTests
 {

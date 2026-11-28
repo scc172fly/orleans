@@ -1,29 +1,29 @@
 ---
-title: "配置 Conser 群集"
-description: "配置 Orleans silos 和客户使用领事作为分组成员和网关发现。"
+title: 配置 Consul 集群
+description: 配置 Orleans Silo 和客户端，使其使用 Consul 管理集群成员资格及发现网关。
 ms.date: 10/03/2026
 ms.topic: how-to
 ---
 
 <a id="configure-consul-clustering"></a>
 
-# 配置 Conser 群集
+# 配置 Consul 集群
 
-使用 [`Microsoft.Orleans.Clustering.Consul`](https://www.nuget.org/packages/Microsoft.Orleans.Clustering.Consul) 软件包将 Orleans 会籍记录存储在 [领事密钥/价值商店](https://developer.hashicorp.com/consul/docs/dynamic-app-config/kv)中。
+使用 [`Microsoft.Orleans.Clustering.Consul`](https://www.nuget.org/packages/Microsoft.Orleans.Clustering.Consul) 包，将 Orleans 成员资格记录存储在 [Consul 键值存储](https://developer.hashicorp.com/consul/docs/dynamic-app-config/kv) 中。
 
-使用领事1.22或以后。 Orleans silo-地址键包含 `:` 和 `@`,但领事1.21.5以默认的密钥过滤器拒绝。当升级现有的领事1.21.5部署时,临时启用 [`disable_http_unprintable_char_filter`](https://developer.hashicorp.com/consul/docs/v1.21.x/reference/agent/configuration-file/general#disable_http_unprintable_char_filter) ,直到部署抵达领事1.22或以后。
+请使用 Consul 1.22 或更高版本。Orleans Silo 地址键包含 `:` 和 `@`，Consul 1.21.5 的默认键筛选器会拒绝这些字符。升级现有 Consul 1.21.5 部署时，请暂时启用 [`disable_http_unprintable_char_filter`](https://developer.hashicorp.com/consul/docs/v1.21.x/reference/agent/configuration-file/general#disable_http_unprintable_char_filter)，直到部署升级至 Consul 1.22 或更高版本。
 
-组群中的每一 silo 和客户必须使用:
+集群中的每个 Silo 和客户端都必须使用：
 
-- 同一个领事集群和关键/价值根。
-- 相同 <xref:Orleans.Configuration.ClusterOptions.ServiceId>。
-- 相同 <xref:Orleans.Configuration.ClusterOptions.ClusterId>。
+- 相同的 Consul 集群和键值存储根路径。
+- 相同的 <xref:Orleans.Configuration.ClusterOptions.ServiceId>。
+- 相同的 <xref:Orleans.Configuration.ClusterOptions.ClusterId>。
 
 <a id="configure-a-silo"></a>
 
-## 配置 silo
+## 配置 Silo
 
-配置 <xref:Orleans.Configuration.ConsulClusteringOptions> , 使用领事地址, 当启用领事ACLs时, 设置 ACL 符号 :
+配置 <xref:Orleans.Configuration.ConsulClusteringOptions>，指定 Consul 地址；若启用了 Consul ACL，还需指定 ACL 令牌：
 
 :::code language="csharp" source="../../../snippets/compiled/Host/HostSnippets.cs" id="configure_consul_silo":::
 
@@ -31,58 +31,58 @@ ms.topic: how-to
 
 ## 配置客户端
 
-配置具有相同领事设置和群集身份的 Orleans 客户 :
+使用相同的 Consul 设置和集群标识配置 Orleans 客户端：
 
 :::code language="csharp" source="../../../snippets/compiled/Host/HostSnippets.cs" id="configure_consul_client":::
 
 <a id="inspect-membership-data"></a>
 
-## 被检查成员数据
+## 检查成员资格数据
 
-一家领事公司在关键/价值前缀下每个组群的供应商商店:
+提供程序将每个集群的数据存储在一个 Consul 键值前缀之下：
 
-- `<KvRootFolder>/orleans/<ClusterId>` 何时 <xref:Orleans.Configuration.ConsulClusteringOptions.KvRootFolder?displayProperty=nameWithType> 被配置。
-- `orleans/<ClusterId>` 时, `KvRootFolder` 不配置 。
+- 已配置 <xref:Orleans.Configuration.ConsulClusteringOptions.KvRootFolder?displayProperty=nameWithType> 时，使用 `<KvRootFolder>/orleans/<ClusterId>`。
+- 未配置 `KvRootFolder` 时，使用 `orleans/<ClusterId>`。
 
-`ServiceId` 不是这个前缀的一部分。 不要重新使用相同的 `KvRootFolder` 和 `ClusterId` , 用于不同的服务, 因为会员记录将共享一个密钥空间 。
+`ServiceId` 不属于此前缀。不要对不同服务重复使用相同的 `KvRootFolder` 和 `ClusterId`，否则其成员资格记录将共享同一个键空间。
 
-在组群前缀下,供应商坚持:
+在集群前缀之下，提供程序维护：
 
-| 键关键键键 | 目的目的宗旨 |
+| 键 | 用途 |
 | --- | --- |
-| `version` | 成员表格的整数版本。 此密钥的领事 `ModifyIndex` 是比较和设置ETag 。 |
-| `<silo-address>` | silo 登记,包括其主机名称、网关端口、启动时间、状态、 silo 名称和故障检测票。 |
-| `<silo-address>/iamalive` | silo的周期 `IAmAlive` 时间戳。 |
+| `version` | 整数形式的成员资格表版本。Consul 对此键的 `ModifyIndex` 是用于比较并设置的 ETag。 |
+| `<silo-address>` | Silo 注册记录，包括主机名、网关端口、启动时间、状态、Silo 名称及故障检测器投票。 |
+| `<silo-address>/iamalive` | Silo 定期更新的 `IAmAlive` 时间戳。 |
 
-成员阅读了领事的一致模式, 以返回一致的登记快照和表格版本。 Single-silo 读了查询 silo的注册和时间戳前缀并验证了表格版本的 ETag 在整个读取中保持不变。 在版本更改和荣誉取消后重新检索了 100 ms 的文本。插入和状态更新使用 [领事往来](https://developer.hashicorp.com/consul/api-docs/txn) 原子比较和设置登记和表格版本。相矛盾的行或表ETag 返回一个失败的更新,以便调用者可以刷新其成员视图。其他交易失败作为例外出现,包含领事操作错误的细节 。
+成员资格读取使用 Consul 的一致性模式，以返回注册记录及表版本的一致快照。单个 Silo 的读取操作查询其注册记录和时间戳前缀，并验证表版本的 ETag 在整个读取期间保持不变。版本发生变化时，重试读取之前等待 100 ms，并遵循取消请求。插入及状态更新使用 [Consul 事务](https://developer.hashicorp.com/consul/api-docs/txn)，以原子方式对注册记录和表版本执行比较并设置。行或表的 ETag 冲突时返回更新失败结果，以便调用方刷新其成员资格视图。其他事务故障以异常形式呈现，其中包含 Consul 的操作错误详细信息。
 
-每个 silo 在其注册的一生中拥有定期更新 `IAmAlive` 。每更新都使用一个本地字母,写到 silo的 `iamalive` 键上,保留登记字段、行ETag和表格版本。写荣誉取消并宣传存储失败。会员包括独立公布的活性诊断时间戳;行和表同值检查只使用卡通会籍标记。
+每个 Silo 在其整个注册生存期内负责自身的定期 `IAmAlive` 更新。每次更新对该 Silo 的 `iamalive` 键执行一次原生写入，保留注册字段、行 ETag 及表版本。写入遵循取消请求，并传播存储故障。成员资格读取包含单独发布的时间戳，用于存活性诊断；行和表的并发检查仅使用规范的成员资格令牌。
 
-清理清除了在截断点之前所有开始时间、 `IAmAlive` 时间戳和失败检测票的死登记。 它比较了注册和按原程序对键进行时间戳,保留表格版本,保存同时作者更改的条目。
+清理操作移除启动时间、`IAmAlive` 时间戳及故障检测器投票均早于截止时间的 Dead 状态注册记录。它以原子方式比较注册记录和时间戳键，并保留表版本，从而保护被并发写入者修改的条目。
 
-`IAmAlive` 时间戳支持诊断和启动恢复。 Silos 如 [分组成员](../../../implementation/cluster-management.md)所述,相互调查以检测失败。
+`IAmAlive` 时间戳用于诊断和启动恢复。Silo 之间相互探测以检测故障，详见[集群成员资格](../../../implementation/cluster-management.md)。
 
-Orleans 客户列出组群前缀,并在非零网关端选择主动注册。如果客户发现没有网关,检查客户和 silos所使用的确切的前缀,然后比较登记状况、网关和广告上的可到达性。
+Orleans 客户端列出集群前缀下的记录，并选择状态为活跃且网关端口非零的注册记录。若客户端未发现任何网关，请检查客户端和 Silo 实际使用的前缀，再比较注册状态、网关端口及通告地址的可达性。
 
-使用 [Concoper KV 命令](https://developer.hashicorp.com/consul/commands/kv/get) 来列出或检查记录:
+使用 [Consul KV 命令](https://developer.hashicorp.com/consul/commands/kv/get) 列出或检查记录：
 
 ```bash
 consul kv get -keys -recurse <cluster-prefix>
 consul kv get -detailed -recurse <cluster-prefix>
 ```
 
-详细输出包含每个关键字的值和 `ModifyIndex`。 将布局作为诊断性实施细节处理。 在该组中的任何 silo 可能仍在运行时, 不要手动编辑或删除会籍密钥 。
+详细输出包含每个键的值和 `ModifyIndex`。请将此布局视为用于诊断的实现细节。如果该集群中可能仍有 Silo 正在运行，不要手动编辑或删除成员资格键。
 
 <a id="production-considerations"></a>
 
-## 生产方面的考虑
+## 生产环境注意事项
 
-- 运行领事,配置高度可用并遵循 [顾问团生产部署指导](https://developer.hashicorp.com/consul/docs/deploy/server)。
-- 启用 Consulter ACLS 和 TLS。 使用工作量身份、 秘密商店或平台受保护配置机制提供代号; 不要在源代码或图像中嵌入代号 。
-- 限制网络接入,仅授权 silos 客户可以联系领事 API.
-- 只给 Orleans 身份关键/值前缀所需的权限 。
-- 对必须保持孤立的环境使用单独的 `ClusterId` 和密钥/价值根。
-- 监测领事的可用性、请求的延缓期、领导层的变化、储存能力以及ACL或TLS故障。
-- 在领事被降级或无法使用时测试集束启动和恢复。 避免同步、 未约束的重试 。
+- 使用高可用配置运行 Consul，并遵循 [Consul 生产部署指南](https://developer.hashicorp.com/consul/docs/deploy/server)。
+- 启用 Consul ACL 和 TLS。通过工作负载标识、机密存储或平台受保护的配置机制提供令牌；不要将令牌嵌入源代码或镜像。
+- 限制网络访问，只允许获得授权的 Silo 和客户端访问 Consul API。
+- 仅向 Orleans 标识授予其键值前缀所需的权限。
+- 对必须彼此隔离的环境使用不同的 `ClusterId` 和键值存储根路径。
+- 监控 Consul 可用性、请求延迟、领导者变更、存储容量以及 ACL 或 TLS 故障。
+- 测试 Consul 降级或不可用时的集群启动和恢复。避免同步发生且无上限的重试。
 
-领事数据会籍数据协调群集发现和活性。 它不包含 grain 应用程序状态, 也不取代 grain 存储提供者。 关于供应商的选择标准, 见 [地形学、联网和集群](../../../deployment/networking.md#choose-a-clustering-provider)。
+Consul 成员资格数据用于协调集群发现和存活性，不包含 Grain 应用状态，也不能替代 Grain 存储提供程序。有关提供程序选择标准，请参见[拓扑、网络与集群](../../../deployment/networking.md#choose-a-clustering-provider)。

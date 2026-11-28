@@ -5,8 +5,8 @@ using Xunit;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// 由生成的物体对生成的物体进行验证, 重播放时不运行功能返回已记录的效果, 即指定每个
-/// 操作第一个运行指定的标识符。
+/// 通过生成的任务体验证：重放直接返回记录的效果结果而不运行效果，并为每个
+/// 操作分配与首次运行相同的标识符。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -29,7 +29,7 @@ public sealed class ReplayIdentityPropertyTests
         Version,
     }
 
-    /// <summary>生成体的一个操作; 效果的旗帜添加嵌套效应和被拒绝的持久操作。</summary>
+    /// <summary>生成的任务体中的一个操作；效果的标志会添加一个嵌套效果和一个被拒绝的持久化操作。</summary>
     private sealed record Operation(Kind Kind, int Name, int Width, bool NestedEffect, bool NestedOperation)
     {
         public override string ToString() => $"{Kind}({Names[Name]}, {Width}, {NestedEffect}, {NestedOperation})";
@@ -56,7 +56,7 @@ public sealed class ReplayIdentityPropertyTests
                 Assert.Equal(first.Identifiers, replay.Identifiers);
                 Assert.Equal(0, replay.EffectRuns);
 
-                // 运行的每个操作都有自己的识别码;一个提供根标识符,在全球范围命名一个任务。
+                // 一次运行中的每个操作都有自己的标识符；显式提供的根标识符在全局标识一个任务。
                 var owned = first.Identifiers.Where(static entry => entry.Kind is not ("rooted" or "version")).Select(static entry => entry.Id).ToArray();
                 Assert.Equal(owned.Length, owned.Distinct().Count());
             },
@@ -111,7 +111,7 @@ public sealed class ReplayIdentityPropertyTests
         }
     }
 
-    /// <summary>重放的物体不运行效果,所以它不会使用标识符。</summary>
+    /// <summary>一种效果，其操作体不会在重放时运行，因此它执行的任何操作都不得占用标识符。</summary>
     private static int Effect(Operation operation)
     {
         var result = 1;
@@ -129,7 +129,7 @@ public sealed class ReplayIdentityPropertyTests
         return result;
     }
 
-    /// <summary>即时完成每次操作、记录效果和列出运行用途的识别符号的主机。</summary>
+    /// <summary>立即完成每个操作、记录效果并列出一次运行所用标识符的宿主。</summary>
     private sealed class RecordingContext(Dictionary<TaskId, DurableTaskResponse> records) : DurableTaskContext(TaskId.CreateRoot("root"))
     {
         public List<(string Kind, string Id)> Identifiers { get; } = [];
@@ -181,7 +181,7 @@ public sealed class ReplayIdentityPropertyTests
             => throw new NotSupportedException();
     }
 
-    /// <summary>主机开始作为根任务的定义, 如耐用 grain 调用。</summary>
+    /// <summary>宿主作为根任务启动的定义，例如持久化 Grain 调用。</summary>
     private sealed class RootCall : DurableTask, ISchedulableTask
     {
         public ValueTask<DurableTaskResponse> ScheduleAsync(TaskId taskId, CancellationToken cancellationToken) => new(DurableTaskResponse.Completed);

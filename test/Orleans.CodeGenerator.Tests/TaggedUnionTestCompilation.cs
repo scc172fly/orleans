@@ -7,11 +7,11 @@ using Xunit;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// 使用试验目标引用的Roslyn版本,在贴有标签的工会测试源上运行 Orleans 序列生成器。
+/// 使用测试目标所引用的 Roslyn 版本，在带标记联合类型的测试源码上运行 Orleans 序列化生成器。
 /// </summary>
 internal static class TaggedUnionTestCompilation
 {
-    // 汇编者要求这些类型申报封闭型和结合;它们是从 .NET 11开始的基本类图书馆的一部分。
+    // 编译器需要这些类型才能声明封闭类型及联合类型；从 .NET 11 开始，它们属于基础类库。
     private const string Polyfills = """
         namespace System.Runtime.CompilerServices
         {

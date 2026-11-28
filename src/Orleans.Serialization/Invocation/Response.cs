@@ -13,24 +13,24 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Invocation
 {
     /// <summary>
-    /// 系方法调用的结果。
+    /// 表示方法调用的结果。
     /// </summary>
     [SerializerTransparent]
     public abstract class Response : IDisposable
     {
         /// <summary>
-        /// 创建代表例外的新回复。
+        /// 创建表示异常的新响应。
         /// </summary>
-        /// <param name="exception">例外。</param>
-        /// <returns>新的回应。</returns>
+        /// <param name="exception">异常。</param>
+        /// <returns>新的响应。</returns>
         public static Response FromException(Exception exception) => new ExceptionResponse { Exception = exception };
 
         /// <summary>
-        /// 创建已用所提供的值满足的新响应对象。
+        /// 创建一个已使用给定值完成的新响应对象。
         /// </summary>
-        /// <typeparam name="TResult">基本结果类型。</typeparam>
-        /// <param name="value">数值。</param>
-        /// <returns>新的回应。</returns>
+        /// <typeparam name="TResult">底层结果类型。</typeparam>
+        /// <param name="value">值。</param>
+        /// <returns>新的响应。</returns>
         public static Response FromResult<TResult>(TResult value)
         {
             var result = ResponsePool.Get<TResult>();
@@ -39,30 +39,30 @@ namespace Orleans.Serialization.Invocation
         }
 
         /// <summary>
-        /// 得到一个完整的回应。
+        /// 获取已完成的响应。
         /// </summary>
         public static Response Completed => CompletedResponse.Instance;
 
         /// <summary>
-        /// 获取或设置未类型结果值。
+        /// 获取或设置无类型的结果值。
         /// </summary>
         public abstract object? Result { get; set; }
 
         /// <summary>
-        /// 当响应代表简单输入结果时,会获取结果类型。
+        /// 当响应表示简单的强类型结果时，获取结果类型。
         /// </summary>
-        /// <returns>结果类型,或当响应不代表简单打印结果时的 <see langword="null"/> 。</returns>
+        /// <returns>结果类型；当响应不表示简单的强类型结果时为 <see langword="null"/>。</returns>
         public virtual Type? GetSimpleResultType() => null;
 
         /// <summary>
-        /// 获取或设置此回复所代表的例外。
+        /// 获取或设置此响应表示的异常。
         /// </summary>
         public abstract Exception? Exception { get; set; }
 
         /// <summary>
-        /// 获取结果为指定类型。
+        /// 以指定类型获取结果。
         /// </summary>
-        /// <typeparam name="T">所请求的结果类型。</typeparam>
+        /// <typeparam name="T">请求的结果类型。</typeparam>
         /// <returns>结果。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public abstract T GetResult<T>();
@@ -81,7 +81,7 @@ namespace Orleans.Serialization.Invocation
     public sealed class CompletedResponse : Response
     {
         /// <summary>
-        /// 获得单吨的例子 这个类。
+        /// 获取此类的单例实例。
         /// </summary>
         public static CompletedResponse Instance { get; } = new CompletedResponse();
 
@@ -103,7 +103,7 @@ namespace Orleans.Serialization.Invocation
     }
 
     /// <summary>
-    /// <see cref="CompletedResponse"/>的激活器。
+    /// <see cref="CompletedResponse"/> 的激活器。
     /// </summary>
     [RegisterActivator]
     internal sealed class CompletedResponseActivator : IActivator<CompletedResponse>
@@ -113,7 +113,7 @@ namespace Orleans.Serialization.Invocation
     }
 
     /// <summary>
-    /// 代表例外和违背诺言的 <see cref="Response"/> 。
+    /// 表示异常的 <see cref="Response"/>，即以失败结束的承诺对象（Promise）。
     /// </summary>
     [GenerateSerializer, Immutable]
     public sealed class ExceptionResponse : Response
@@ -150,9 +150,9 @@ namespace Orleans.Serialization.Invocation
     }
 
     /// <summary>
-    /// 代表已输入值的 <see cref="Response"/> 。
+    /// 表示强类型值的 <see cref="Response"/>。
     /// </summary>
-    /// <typeparam name="TResult">基本结果类型。</typeparam>
+    /// <typeparam name="TResult">底层结果类型。</typeparam>
     [UseActivator, SuppressReferenceTracking]
     public sealed class Response<TResult> : Response
     {
@@ -160,15 +160,15 @@ namespace Orleans.Serialization.Invocation
         private TResult? _result;
 
         /// <summary>
-        /// 获取或设置输入的结果值。
+        /// 获取或设置强类型的结果值。
         /// </summary>
         public TResult? TypedResult { get => _result; set => _result = value; }
 
         /// <summary>
-        /// 获得与回复相关的例外。
+        /// 获取与响应关联的异常。
         /// </summary>
         /// <remarks>
-        /// 输入回复不包含例外。设置此属性投弃 <see cref="InvalidOperationException"/>。
+        /// 强类型响应不包含异常。设置此属性会抛出 <see cref="InvalidOperationException"/>。
         /// </remarks>
         public override Exception? Exception
         {
@@ -212,20 +212,20 @@ namespace Orleans.Serialization.Invocation
     public abstract class ResponseCodec
     {
         /// <summary>
-        /// 撰写答复,不包含字段页眉。
+        /// 写入不带外层字段头的响应。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="value">要写的答复。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="value">要写入的响应。</param>
         public abstract void WriteRaw<TBufferWriter>(ref Writer<TBufferWriter> writer, object value) where TBufferWriter : IBufferWriter<byte>;
 
         /// <summary>
-        /// 阅读响应而不包含字段信头。
+        /// 读取不带外层字段头的响应。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
-        /// <param name="field">响应内容的字段标题。</param>
-        /// <returns>反应。</returns>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
+        /// <param name="field">响应内容的字段头。</param>
+        /// <returns>响应。</returns>
         public abstract object ReadRaw<TInput>(ref Reader<TInput> reader, scoped ref Field field);
     }
 
@@ -324,14 +324,14 @@ namespace Orleans.Serialization.Invocation
     }
 
     /// <summary>
-    /// 适用援引答复的扩展方法。
+    /// 用于处理调用响应的扩展方法。
     /// </summary>
     public static class ResponseExtensions
     {
         /// <summary>
-        /// 将有回复的例外条款丢弃。
+        /// 如果响应包含异常，则抛出该异常。
         /// </summary>
-        /// <param name="response">检查回复。</param>
+        /// <param name="response">要检查的响应。</param>
         public static void ThrowIfExceptionResponse(this Response response)
         {
             if (response.Exception is { } exception)

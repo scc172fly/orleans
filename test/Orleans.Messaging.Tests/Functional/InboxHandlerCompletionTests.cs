@@ -106,7 +106,7 @@ public sealed class InboxHandlerCompletionTests : MessagingBehaviorTestBase
             const string counter = "orleans-messaging-inbox-messages-processed";
             var retried = Fixture.Metrics.WaitForCountAsync(counter, 1, "retry");
 
-            // 第一次尝试没有结果,但未能启动;追偿费用。
+            // 第一次尝试在没有结果的情况下结束，使其激活实例失败；恢复时计入此次尝试。
             DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, input));
             await failed.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
             await receiver.GetSnapshotAsync();
@@ -134,7 +134,7 @@ public sealed class InboxHandlerCompletionTests : MessagingBehaviorTestBase
             Assert.Equal(2, handler.Attempts);
         }
 
-        // 操作器的重复控制属于一个激活, 所以每个恢复的激活都需要安装处理器。
+        // 处理程序替代实现属于单个激活实例，因此每个恢复的激活实例都需要重新安装处理程序。
         private static async Task InstallAsync(IGrainContext context, IInboxHandler handler)
         {
             var grain = Assert.IsType<MessagingTestGrain>(context.GrainInstance);
@@ -378,7 +378,7 @@ public sealed class InboxHandlerCompletionTests : MessagingBehaviorTestBase
         await WaitAsync(finished);
         if (!completed)
         {
-            // 毫无结果,这一尝试就失败了启动,而恢复再次传递信息。
+            // 尝试没有结果时会使激活实例失败，恢复时再次处理消息。
             var failure = Assert.IsType<InvalidOperationException>(await WaitAsync(rig.Grain.DeactivationFailure.Task));
             Assert.Same(error, failure.InnerException);
             Assert.Empty(rig.Effects);
@@ -410,7 +410,7 @@ public sealed class InboxHandlerCompletionTests : MessagingBehaviorTestBase
         var thrown = new InvalidOperationException("A downstream call failed.");
         handler.Body = (self, _) =>
         {
-            // 处理人给自己发送的信息是尝试的改变, 就像它的其他效果一样。
+            // 处理程序向自身发送的消息也属于本次尝试的变更，与其他效果相同。
             if (change == "mutate") self.Mutate();
             else if (change == "self-send") rig.InboxState.StageLocal(selfSent);
             if (throws) throw thrown;
@@ -427,9 +427,9 @@ public sealed class InboxHandlerCompletionTests : MessagingBehaviorTestBase
         await WaitAsync(rig.Context.Deactivated);
         Assert.Equal(writes, Writes(rig));
 
-        // 重新审判的警醒从日记上收回 grain ,没有第一次尝试修改,收取
-        // 发送消息,然后再次运行此信息。 此固定的重放处理器不知道该信息的路径, 所以
-        // 重新运行失败, 且使用固定点的零 InboxRetryTimeout , 下次恢复时会用废字母来发送消息 。
+        // 重试唤醒根据日志恢复 Grain，不包含第一次尝试的变更，计入
+        // 该次尝试并再次处理消息。此测试夹具的重放处理程序不知道消息路由，因此
+        // 再次运行也会失败；由于夹具的 InboxRetryTimeout 为零，下一次恢复会将消息转为死信。
         var recovered = await Fixture.WaitForDeadLetterCountAsync(rig.Receiver, 1);
         Assert.NotEqual(rig.Grain.GetSnapshotForTest().ActivationId, recovered.ActivationId);
         Assert.Empty(recovered.Effects);
@@ -669,11 +669,11 @@ public sealed class InboxHandlerCompletionTests : MessagingBehaviorTestBase
     }
 
     /// <summary>
-    /// 泵完成当前传球(包括批量写字)和再过一个传球后, 便完整完成。
+    /// 在消息泵结束当前处理轮次（包括批量写入）并再完成一轮后结束。
     /// </summary>
     private Task FinishedAsync(Rig rig)
     {
-        // 现在就解决泵问题:一个失败的写法将 grain 关闭并处置其激活服务。
+        // 现在解析消息泵：写入失败会停用 Grain 并释放其激活实例服务。
         var shutdown = rig.Context.ActivationServices.GetRequiredService<MessagingPump>().ShutdownToken;
         return RunAsync();
 
@@ -685,7 +685,7 @@ public sealed class InboxHandlerCompletionTests : MessagingBehaviorTestBase
             }
             catch (OperationCanceledException) when (shutdown.IsCancellationRequested)
             {
-                // 失败的写停止了泵; 电话人明确声明失败。
+                // 写入失败会停止消息泵；调用方显式断言该故障。
             }
         }
     }

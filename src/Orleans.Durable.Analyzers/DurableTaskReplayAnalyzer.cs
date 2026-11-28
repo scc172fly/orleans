@@ -13,21 +13,21 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Orleans.Durable.Analyzers;
 
 /// <summary>
-/// 长期任务机构报告代码,如果重弹重运行时其效果或值与运行时间不同,则重复重运行
-/// 记录任务操作。
+/// 报告持久化任务体中在重放时再次运行、且产生的效果或值不同于
+/// 记录该任务操作的那次运行的代码。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 持久任务机构是一种同步方法、局部功能或返回的羊羔 <c>DurableTask</c>代表,代表
-/// <c>DurableTask.Run</c> 分析仪建立
-/// 每个物体的控制流程图, 将其代码分隔为重弹区域, 从此区域中可持久操作
-/// 和尾巴,它只在身体完整运行的运行中运行。重放再运行重播放区域
-/// 事后行动实施后,有关重播的规则适用于该地。
+/// 持久化任务体是返回 <c>DurableTask</c> 的异步方法、局部函数或 Lambda 表达式、
+/// <c>DurableTask.Run</c> 接收的委托，或直接等待持久化任务或记录效果的辅助方法。分析器构建
+/// 每个任务体的控制流图，并将其代码划分为重放区域（从此区域可以到达持久化操作）
+/// 和尾部（仅在使任务体完成的那次运行中执行）。重放会在后续操作已经提交后重新运行重放区域，
+/// 因此与重放有关的规则适用于该区域。
 /// </para>
 /// <para>
-/// 持久行动是指等待一项持久的任务、一个组合或抽象 API;等待一名助手在
-/// 同一汇编,其来源进行耐久作业;或具有 <c>DurableTask.RunInline</c> 效应。
-/// 内部程序:身体在不等待的情况下召唤的助手和其他集会的助手,没有受到检查。
+/// 持久化操作是等待持久化任务、配置或抽象层 API，等待当前编译中
+/// 源码执行持久化操作的辅助方法，或执行 <c>DurableTask.RunInline</c> 效果。分析是
+/// 过程内的：不检查任务体调用但未等待的辅助方法，也不检查其他程序集中的辅助方法。
 /// </para>
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -70,8 +70,8 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
             {
                 foreach (var operation in block.OperationBlocks)
                 {
-                    // 构建控制流程图是分析器的主要成本,所以使用的方法不会持久任务 API
-                    // 跳过:它们没有包含任何身体、效果或辅助者, 规则检查。
+                    // 构建控制流图是分析器的主要开销，因此未使用持久化任务 API 的方法
+                    // 跳过此步骤：它们不包含规则所检查的任务体、效果或辅助方法。
                     if (operation is IMethodBodyBaseOperation or IBlockOperation { Parent: null or IMethodBodyBaseOperation }
                         && block.OwningSymbol is IMethodSymbol method
                         && (symbols.IsDurableBody(method) || UsesDurableTasks(symbols, operation)))
@@ -85,8 +85,8 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// 返回运行树使用耐久任务 API:它呼叫或等待持久任务的成员
-    /// 命名空间,或包含一个耐久的任务机构。
+    /// 返回操作树是否使用持久化任务 API：它调用或等待持久化任务
+    /// 命名空间中的成员，或包含持久化任务体。
     /// </summary>
     private static bool UsesDurableTasks(DurableTaskSymbols symbols, IOperation root)
     {
@@ -107,25 +107,25 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
 
     private enum FunctionKind
     {
-        /// <summary>代码不是长久任务机构的一部分</summary>
+        /// <summary>不属于持久化任务体的代码。</summary>
         None,
 
         /// <summary>
-        /// 由重编规则分析的持久任务机构: <c>async DurableTask</c> 方法、本地函数或羊羔
-        /// 或 <c>DurableTask.Run</c> 所接收的代表。
+        /// 持久化任务体（重放规则分析的对象）：<c>async DurableTask</c> 方法、局部函数或 Lambda 表达式，
+        /// 或 <c>DurableTask.Run</c> 接收的委托。
         /// </summary>
         Body,
 
         /// <summary>
-        /// 等待持久任务直接或记录效果的代码,重编规则将分析成一个机构。它可以运行
-        /// 或在一项长期任务中,或在一项长期任务之外, <c>WithId</c> 命名根任务。
+        /// 直接等待持久化任务或记录效果的代码，重放规则将其作为任务体分析。它可以在
+        /// 持久化任务内部或外部运行；在外部时，<c>WithId</c> 为根任务命名。
         /// </summary>
         Helper,
 
-        /// <summary>A <c>DurableTask.RunInline</c> 效果,它运行一次。</summary>
+        /// <summary>一个 <c>DurableTask.RunInline</c> 效果，仅运行一次。</summary>
         Effect,
 
-        /// <summary>一只作为创造它的附着体的供述的一部分的羊羔。</summary>
+        /// <summary>作为创建它的外层任务体语句的一部分运行的 Lambda 表达式。</summary>
         Inline,
     }
 
@@ -140,8 +140,8 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// 返回一个图形是等待持久任务还是直接配置,还是记录效果,只有代码
-    /// 运行中的任务要持久。
+    /// 返回控制流图是否直接等待持久化任务或配置，或记录效果；这些行为只有
+    /// 在持久化任务中运行的代码才会执行。
     /// </summary>
     private static bool PerformsDirectDurableOperations(DurableTaskSymbols symbols, ControlFlowGraph graph)
     {
@@ -184,16 +184,16 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    /// <summary>检查一个机构等待的帮助者的来源,以寻找从事持久行动的帮助者。</summary>
+    /// <summary>检查任务体所等待的辅助方法的源码，以查找执行持久化操作的辅助方法。</summary>
     private sealed class SourceInspector
     {
         private readonly ConcurrentDictionary<IMethodSymbol, bool> _durableHelpers = new(SymbolEqualityComparer.Default);
         private readonly ConcurrentDictionary<ISymbol, bool> _replaySafeLoggers = new(SymbolEqualityComparer.Default);
 
         /// <summary>
-        /// 返回本汇编中的方法是否执行持久操作,从来源判断:它调用
-        /// <c>WithId</c>, <c>Post</c>, <c>ScheduleAsync</c>,或耐久信号发送,或
-        /// <c>DurableTask</c>.
+        /// 根据源码判断并返回当前编译中的某个方法是否执行持久化操作：它调用
+        /// <c>WithId</c>、<c>Post</c>、<c>ScheduleAsync</c> 或持久化信号发送操作，或调用
+        /// <c>DurableTask</c> 的静态成员。
         /// </summary>
         public bool IsDurableHelper(IMethodSymbol method) => _durableHelpers.GetOrAdd(method.OriginalDefinition, static method =>
         {
@@ -215,8 +215,8 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
         });
 
         /// <summary>
-        /// 返回字段、财产或当地持有重放安全记录器的地块、财产或地方是否返回:所有任务,包括
-        /// 启动器,调用 <c>ReplaySafe</c>。
+        /// 返回字段、属性或局部变量是否持有可安全重放的日志记录器：其源码中的每次赋值（包括
+        /// 初始化器）都调用 <c>ReplaySafe</c>。
         /// </summary>
         public bool IsReplaySafeLogger(ISymbol member) => _replaySafeLoggers.GetOrAdd(member, static member =>
         {
@@ -286,7 +286,7 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    /// <summary>在一个行动区分析持久任务机构。</summary>
+    /// <summary>分析一个操作块中的持久化任务体。</summary>
     private sealed class BodyAnalysis
     {
         private readonly OperationBlockAnalysisContext context;
@@ -331,7 +331,7 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
                 var functionGraph = graph.GetAnonymousFunctionControlFlowGraph(function, context.CancellationToken);
                 var functionKind = ClassifyAnonymousFunction(function, functionGraph, kind);
 
-                // ORLEANS0222 报告使 DurableTask.RunInline 和 DurableTask.Run 所接收的代表无法相互联系。
+                // ORLEANS0222 报告 DurableTask.RunInline 和 DurableTask.Run 接收的 async void 委托。
                 if (analyzed && function.Symbol.IsAsync && function.Symbol.ReturnsVoid && !IsDurableTaskDelegate(function))
                 {
                     Report(DurableTaskDiagnostics.AsyncVoidInBody, function.Syntax.GetLocation(), "async lambda");
@@ -390,8 +390,8 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
         }
 
         /// <summary>
-        /// 报告在 <c>DurableTask.RunInline</c> 效果、对身体变量的指定和对象的变化
-        /// 并且得维持者,能持久地运作,能逃避天谴。
+        /// 在 <c>DurableTask.RunInline</c> 效果中，报告对任务体变量的赋值、对变量所持对象
+        /// 的修改、持久化操作及脱离调度器的行为。
         /// </summary>
         private void AnalyzeEffect(ControlFlowGraph graph)
         {
@@ -420,7 +420,7 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
                             IIncrementOrDecrementOperation increment => increment.Target,
                             ICoalesceAssignmentOperation assignment => assignment.Target,
 
-                            // 地点的改变,例如列入清单的项目也是一种产出。
+                            // 就地修改（例如向捕获的列表中添加元素）也是一种输出。
                             IInvocationOperation { Instance: { } instance } changed when DurableTaskSymbols.IsCollectionMutation(changed.TargetMethod) => instance,
                             _ => null,
                         };
@@ -441,7 +441,7 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
                 }
             }
 
-            // 指定或更改通过成员访问权限(如 order.Lines)达到的变量。
+            // 通过 order.Lines 等成员访问，找出赋值或修改所涉及的对象所属的变量。
             static IOperation RootOf(IOperation target)
             {
                 var current = DurableTaskSymbols.Unwrap(target);
@@ -473,8 +473,8 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
         }
 
         /// <summary>
-        /// 处理报告者在不过滤的情况下,围绕持久操作而取消
-        /// <c>IsTaskCancellationRequested</c> ,不重新投放。
+        /// 报告在持久化操作周围捕获取消异常、但未通过
+        /// <c>IsTaskCancellationRequested</c> 筛选且不重新抛出异常的处理程序。
         /// </summary>
         private void AnalyzeCancellationHandlers(IOperation body)
         {
@@ -499,9 +499,9 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
         }
 
         /// <summary>
-        /// 返回过滤器是否排除了每个 <c>OperationCanceledException</c>,例如
-        /// <c>e is not OperationCanceledException</c> 或 <c>!(e is OperationCanceledException)</c>,单独或作为
-        /// <c>&amp;&amp;</c>,因此处理者从不运行取消。
+        /// 返回筛选器是否排除了所有 <c>OperationCanceledException</c>，例如
+        /// <c>e is not OperationCanceledException</c> 或 <c>!(e is OperationCanceledException)</c>，无论其单独使用还是作为
+        /// <c>&amp;&amp;</c> 的一个操作数使用，从而使处理程序永远不会针对取消执行。
         /// </summary>
         private bool ExcludesCancellation(IOperation filter)
         {
@@ -530,7 +530,7 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
             };
         }
 
-        /// <summary>返回返回类型是否 <c>OperationCanceledException</c> 或其基数类型之一。</summary>
+        /// <summary>返回某类型是否为 <c>OperationCanceledException</c> 或其某个基类型。</summary>
         private bool CoversCancellation(ITypeSymbol? type)
         {
             for (var current = symbols.OperationCanceledException; current is not null; current = current.BaseType)
@@ -593,7 +593,7 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
             }
         }
 
-        /// <summary>返回在控制流程图之外的一个操作是否为持久操作。</summary>
+        /// <summary>返回控制流图之外的某个操作是否为持久化操作。</summary>
         private bool IsDurableOperation(IOperation operation) => operation switch
         {
             IAwaitOperation await => IsDurableAwait(await),
@@ -601,7 +601,7 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
             _ => false,
         };
 
-        /// <summary>返回,无论是等待者直接或通过协助人员观察持久行动,还是通过这一汇编。</summary>
+        /// <summary>返回某个 await 是否直接或通过当前编译中的辅助方法观察持久化操作。</summary>
         private bool IsDurableAwait(IAwaitOperation await)
         {
             if (symbols.IsDurableAwait(await))
@@ -616,7 +616,7 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
                 if (HasDurableTypeArgument(method.ContainingType)
                     || (invocation.Instance is { } instance && HasDurableTypeArgument(DurableTaskSymbols.Unwrap(instance).Type)))
                 {
-                    // 综合列举持久任务,例如 DurableTask.WhenEach,包括处理。
+                    // 持久化任务的异步枚举（例如 DurableTask.WhenEach），包括枚举器的释放操作。
                     return true;
                 }
 
@@ -629,7 +629,7 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
         private static bool HasDurableTypeArgument(ITypeSymbol? type) =>
             type is INamedTypeSymbol { TypeArguments: var typeArguments } && typeArguments.Any(DurableTaskSymbols.IsDurableTasksType);
 
-        /// <summary>返回等待是否在任务记录操作之外等待工作。</summary>
+        /// <summary>返回某个 await 是否等待任务所记录操作之外的工作。</summary>
         private bool IsExternalAwait(IAwaitOperation await)
         {
             if (IsDurableAwait(await))
@@ -643,7 +643,7 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
                 IInvocationOperation { TargetMethod: { Name: "Yield", ContainingType: var type } } when IsTask(type) => false,
                 IPropertyReferenceOperation { Property.Name: "CompletedTask" } => false,
 
-                // ORLEANS0225 报告民意调查。
+                // ORLEANS0225 报告轮询操作。
                 IInvocationOperation invocation when DurableTaskSymbols.IsPoll(invocation) => false,
                 _ => true,
             };
@@ -664,7 +664,7 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
             }
         }
 
-        /// <summary>返回操作是否从身体的调度器开始工作,例如线索或线状集合工作。</summary>
+        /// <summary>返回某个操作是否在任务体调度器之外启动工作，例如启动线程或在线程池中执行工作。</summary>
         private bool IsSchedulerEscape(IOperation operation)
         {
             switch (operation)
@@ -692,7 +692,7 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
             }
         }
 
-        /// <summary>将一个物体的控制流程图除以其重播区域及其尾部,并适用规则。</summary>
+        /// <summary>将单个任务体的控制流图划分为重放区域和尾部，并应用规则。</summary>
         private sealed class Region
         {
             private readonly BodyAnalysis _analysis;
@@ -830,8 +830,8 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
                     _analysis.Report(DurableTaskDiagnostics.RepeatedSignalWait, invocation.Syntax.GetLocation(), signal.Syntax.ToString());
                 }
 
-                // 投票和无背景续延是外部长期任务机构的有效做法,例如客户等,因此仅
-                // 机构报告它们。
+                // 轮询和不依赖上下文的延续操作在持久化任务体之外（例如客户端）是合法的，因此只有
+                // 任务体才会报告这些操作。
                 if (_kind == FunctionKind.Body && DurableTaskSymbols.IsPoll(invocation))
                 {
                     _analysis.Report(DurableTaskDiagnostics.PollInBody, invocation.Syntax.GetLocation(), method.Name);
@@ -842,9 +842,9 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
                     _analysis.Report(DurableTaskDiagnostics.ContinuationOffScheduler, invocation.Syntax.GetLocation(), argument);
                 }
 
-                // WithId 名称仅在一个持久任务机构内识别儿童;在其他地方,如客户中,它只指儿童的身份。
-                // root 任务。 DurableTask.RunInline 名称只识别耐久任务的效果,所以可以指定一个助手
-                // 记录一在身体中运行。
+                // WithId 名称只有在持久化任务体内才标识子任务；在其他位置（例如客户端），它标识一个
+                // 根任务。DurableTask.RunInline 的名称仅在持久化任务内标识效果，因此记录
+                // 此类效果的辅助方法在任务体内运行。
                 if ((Symbols.IsRunInline(invocation) || (_kind == FunctionKind.Body && DurableTaskSymbols.IsWithId(invocation)))
                     && GetName(invocation) is { } name)
                 {
@@ -877,8 +877,8 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
             }
 
             /// <summary>
-            /// 返回 <c>WithId</c> 或 <c>DurableTask.RunInline</c> 的传教通行证或无效的常数名称。
-            /// 未命名 <c>DurableTask.RunInline</c> 使用执行的下一个生成标识符,且没有名称 。
+            /// 返回 <c>WithId</c> 或 <c>DurableTask.RunInline</c> 调用传入的常量名称，或者 null。
+            /// 未命名的 <c>DurableTask.RunInline</c> 使用当前执行实例生成的下一个标识，并且没有名称。
             /// </summary>
             private static (string Value, Location Location)? GetName(IInvocationOperation invocation)
             {
@@ -1007,8 +1007,8 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
                 return false;
             }
 
-            // Grain 通过其收藏的状态变化 API,并通过国家具体对日志的作业完成
-            // 源,并持续状态。
+            // Grain 状态通过其集合 API，以及日志、完成
+            // 源和持久化状态各自的状态专用操作而发生变化。
             private static bool IsMutating(IMethodSymbol method) =>
                 DurableTaskSymbols.IsCollectionMutation(method)
                 || method.Name is "Append" or "TrimBefore" or "TrySetResult" or "TrySetException" or "TrySetCanceled"
@@ -1104,8 +1104,8 @@ public sealed class DurableTaskReplayAnalyzer : DiagnosticAnalyzer
             }
 
             /// <summary>
-            /// 计算每个区块的继承人:其分支目的地、其分支经营的最后区域、
-            /// 和最终目的地的
+            /// 计算每个块的后继：分支目标、分支会执行的 finally 区域、
+            /// 包含该块的 try 区域的处理程序，以及 finally 区域之后的目标位置。
             /// </summary>
             private static List<BasicBlock>[] ComputeSuccessors(ControlFlowGraph graph)
             {

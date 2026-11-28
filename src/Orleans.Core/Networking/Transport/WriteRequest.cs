@@ -4,29 +4,29 @@ using Orleans.Serialization.Buffers;
 namespace Orleans.Connections.Transport;
 
 /// <summary>
-/// 向 <see cref="MessageTransport"/>提交的书面作业。
+/// 表示提交给 <see cref="MessageTransport"/> 的写入操作。
 /// </summary>
 /// <remarks>
-/// 一旦被运输接受,请求及其缓冲带仍为运输所有,直至完成回击返回。
+/// 传输层接受请求后，直至完成回调返回，该请求及其缓冲区始终由传输层拥有。
 /// </remarks>
 public abstract class WriteRequest
 {
     /// <summary>
-    /// 使缓冲带可以写。
+    /// 获取要写入的缓冲区。
     /// </summary>
     /// <remarks>
-    /// 请求内容在运输部门拥有时仍然有效和不变。
+    /// 在传输层拥有请求期间，缓冲区内容始终有效且不变。
     /// </remarks>
     public ArcBufferReader Buffers { get; protected set; }
     internal virtual bool HasLargeMessages => false;
 
     /// <summary>
-    /// 在所有缓冲数据写入后完成请求。
+    /// 在所有缓冲数据都已写入后完成请求。
     /// </summary>
     public abstract void SetResult();
 
     /// <summary>
-    /// 错误填写请求。
+    /// 以错误结束请求。
     /// </summary>
     /// <param name="error">终止写入的错误。</param>
     public abstract void SetException(Exception error);

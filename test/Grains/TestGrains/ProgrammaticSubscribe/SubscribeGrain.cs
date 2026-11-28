@@ -14,7 +14,7 @@ namespace UnitTests.Grains.ProgrammaticSubscribe
     {
         public Task<bool> CanGetSubscriptionManager(string providerName)
         {
-            return Task.FromResult(this.ServiceProvider.GetKeyedService<IStreamProvider>(providerName)!.TryGetStreamSubscriptionManager(out _)); // 测试在引用此 grain前配置了命名的提供者。
+            return Task.FromResult(this.ServiceProvider.GetKeyedService<IStreamProvider>(providerName)!.TryGetStreamSubscriptionManager(out _)); // 测试会在调用此 Grain 之前配置命名提供程序。
         }
     }
 
@@ -33,13 +33,13 @@ namespace UnitTests.Grains.ProgrammaticSubscribe
         public string ProviderName;
 
         /// <summary>
-        /// 流出主干键
+        /// 流的 GUID 主键。
         /// </summary>
         [Id(1)]
         public Guid Guid { get; }
 
         /// <summary>
-        /// 流出命名空间。
+        /// 流命名空间。
         /// </summary>
         [Id(2)]
         public string Namespace { get; }

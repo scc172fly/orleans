@@ -12,8 +12,8 @@ using UnitTests.GrainInterfaces;
 namespace Tester.DurableJobs;
 
 /// <summary>
-/// 包含可以针对不同提供者的持久工作的测试逻辑。
-/// 这一类为供应商-不可知性,可通过测试类别重新用于 InMemory、 Azure和其他供应商。
+/// 包含可针对不同提供程序运行的持久化作业测试逻辑。
+/// 此类与提供程序无关，可供 InMemory、Azure 及其他提供程序的测试类复用。
 /// </summary>
 public class DurableJobTestsRunner
 {
@@ -38,7 +38,7 @@ public class DurableJobTestsRunner
         var job5 = await grain.ScheduleJobAsync("TestJob5", dueTime.AddSeconds(1)).WaitAsync(cancellationToken);
         var cancellationRequestedJob = await grain.ScheduleJobAsync("CancellationRequestedJob", dueTime.AddSeconds(2)).WaitAsync(cancellationToken);
         Assert.True(await grain.CancelAsync(cancellationRequestedJob).WaitAsync(cancellationToken));
-        // 等待工作运行
+        // 等待作业运行。
         foreach (var job in new[] { job1, job2, job3, job4, job5 })
         {
             try
@@ -50,7 +50,7 @@ public class DurableJobTestsRunner
                 Assert.Fail($"The durable job {job.Name} did not run within the expected time.");
             }
         }
-        // 使用耐久取消请求来核查工作没有运行 。
+        // 验证已请求持久化取消的作业未运行。
         Assert.False(await grain.HasJobRan(cancellationRequestedJob.Id).WaitAsync(cancellationToken));
     }
 
@@ -218,7 +218,7 @@ public class DurableJobTestsRunner
         Assert.Equal(jobCount, jobs.Length);
         Assert.Equal(jobCount, jobs.Select(j => j.Id).Distinct().Count());
 
-        // 避免在客户端在供应商装载时暂停响应前打开 grain 调用。
+        // 避免在提供程序负载较高时，使 Grain 调用一直保持未完成状态直至客户端响应超时。
         var pendingJobs = jobs.ToDictionary(job => job.Id);
         await TestingUtils.WaitUntilAsync(
             async (lastTry, token) =>
@@ -340,10 +340,10 @@ public class DurableJobTestsRunner
         Assert.NotNull(job.Metadata);
         Assert.Equal("3", job.Metadata["FailUntilAttempt"]);
 
-        // 等待工作最终成功(再试)
-        // 默认重试策略: 以指数回落重试最多5次( 1、 2、 4、 8、 16)
-        // 我们预期有3次尝试: DequeueCount=1失败, DequeueCount=2失败, DequeueCount=3成功
-        // 总时间:~2s(初始)+1s(第一次重试延迟)+2s(第二次重试延迟)=~5s
+        // 等待作业最终成功（包括重试）。
+        // 默认重试策略：最多重试 5 次，采用指数退避（1 秒、2 秒、4 秒、8 秒、16 秒）。
+        // 预期有 3 次执行尝试：DequeueCount=1 时失败，DequeueCount=2 时失败，DequeueCount=3 时成功。
+        // 总时间：约 2 秒（初次执行）+ 1 秒（首次重试延迟）+ 2 秒（第二次重试延迟）= 约 5 秒。
         await grain.WaitForJobToSucceed(job.Id).WaitAsync(cancellationToken);
 
         Assert.True(await grain.HasJobSucceeded(job.Id).WaitAsync(cancellationToken));

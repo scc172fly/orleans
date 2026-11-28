@@ -6,7 +6,7 @@ using Orleans.Serialization.Cloning;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// <see cref="ByteString"/>的复印机。
+/// <see cref="ByteString"/> 的深拷贝器。
 /// </summary>
 [RegisterCopier]
 public sealed class ByteStringCopier : IDeepCopier<ByteString>

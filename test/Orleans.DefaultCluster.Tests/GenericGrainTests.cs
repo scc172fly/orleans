@@ -10,10 +10,10 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// 用于 Orleans支持通用 grains 和接口的全面测试。
-    /// 验证 Orleans 能够正确处理 grain 类和与类型参数的接口,
-    /// 包括复杂情景,如多类型参数、继承等级、类型限制、
-    /// 和适当的 grain 激活/路由,基于通用类型参数。
+    /// 全面测试 Orleans 对泛型 Grain 和接口的支持。
+    /// 验证 Orleans 能正确处理具有类型参数的 Grain 类和接口，
+    /// 包括多个类型参数、继承层次结构、类型约束等复杂场景，
+    /// 以及根据泛型类型实参进行正确的 Grain 激活和路由。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Generics")]
     [TestSuite("BVT")]
@@ -38,9 +38,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// Orleans 能够即时反转多混凝解 grain 类型执行不同
-        /// 同一通用界面的相同通用界面的专业化。 grain
-        /// 执行程序根据通用类型参数得到正确解决和启动。
+        /// 测试 Orleans 能否实例化多个具体 Grain 类型，这些类型实现
+        /// 同一泛型接口的不同具体化版本。验证特定类型的 Grain
+        /// 实现能否根据泛型类型实参正确解析并激活。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_ConcreteGrainWithGenericInterfaceGetGrain()
@@ -63,9 +63,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 验证 grain 身份保存:多个 GetGrain 调用同一ID
-        /// 返回同一 grain 激活的引用。这将确保 Orleans'单启动
-        /// 通用 grains担保持有。
+        /// 验证 Grain 标识的保留：使用相同 ID 多次调用 GetGrain
+        /// 会返回指向同一 Grain 激活实例的引用。这确保 Orleans 的单激活实例
+        /// 保证对泛型 Grain 同样成立。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_ConcreteGrainWithGenericInterfaceMultiplicity()
@@ -82,9 +82,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 Orleans' 具有用各种类型参数对通用 grain 专业进行即时处理的能力。
-        /// 使用基于理论的测试来验证通用 grains 正确与不同
-        /// 原始类型(浮点、字符串),显示型号参数灵活性。
+        /// 测试 Orleans 使用各种类型实参实例化具体泛型 Grain 的能力。
+        /// 使用基于 Theory 的测试验证泛型 Grain 能正确处理不同的
+        /// 基本类型（float、string），展示类型参数的灵活性。
         /// </summary>
         [Theory]
         [InlineData(1.2f)]
@@ -97,7 +97,7 @@ namespace DefaultCluster.Tests.General
 
             await grain.Set(setValue);
 
-            // 通用 grain 执行不改变设定值:
+            // 泛型 Grain 实现不改变设置的值：
             await grain.Transform();
 
             T result = await grain.Get();
@@ -106,8 +106,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试具有数组类型参数的通用 grains 。
-        /// 验证 Orleans 可以处理复杂的类型参数, 如通用 grain 接口中的数组。
+        /// 测试使用数组作为类型实参的泛型 Grain。
+        /// 验证 Orleans 能处理泛型 Grain 接口中数组等复杂类型实参。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_SimpleGenericGrainGetGrain_ArrayTypeParameter()
@@ -117,7 +117,7 @@ namespace DefaultCluster.Tests.General
             var expected = new[] { 1, 2, 3 };
             await grain.Set(expected);
 
-            // 通用 grain 执行不改变设定值:
+            // 泛型 Grain 实现不改变设置的值：
             await grain.Transform();
 
             var result = await grain.Get();
@@ -126,8 +126,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试通过继承方式与阵列一起工作的通用 grains 。
-        /// 验证 Orleans处理登记和管理基于阵列状态的通用 grains 。
+        /// 测试通过继承使用数组的泛型 Grain。
+        /// 验证 Orleans 对注册并管理基于数组的状态的泛型 Grain 的处理。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_GenericGrainInheritingArray()
@@ -143,8 +143,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grains 采用嵌套通用类型参数的通用界面。
-        /// 验证 Orleans处理复杂通用情景的能力,例如将清单<T> 作为类型参数。
+        /// 测试实现带嵌套泛型类型参数的泛型接口的 Grain。
+        /// 验证 Orleans 处理 List&lt;T&gt; 等复杂泛型类型实参的能力。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_GenericInterfaceWithGenericParametersGetGrain()
@@ -163,8 +163,8 @@ namespace DefaultCluster.Tests.General
 
 
         /// <summary>
-        /// 验证多个 GetGrain 要求的通用 grain 类型和ID
-        /// 返回相同的激活。确保 Orleans的单动词义适用于通用 grains。
+        /// 验证针对相同泛型 Grain 类型和 ID 多次调用 GetGrain
+        /// 会返回同一激活实例。确保 Orleans 的单激活实例语义适用于泛型 Grain。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_SimpleGenericGrainMultiplicity()
@@ -173,7 +173,7 @@ namespace DefaultCluster.Tests.General
 
             var grainRef1 = GetGrain<ISimpleGenericGrain<float>>(grainId);
             await grainRef1.Set(1.2f);
-            await grainRef1.Transform();  // 通用 grain 类的NOP
+            await grainRef1.Transform();  // 泛型 Grain 类不执行任何操作
 
             var grainRef2 = GetGrain<ISimpleGenericGrain<float>>(grainId);
             var floatResult = await grainRef2.Get();
@@ -182,9 +182,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 Orleans' 型号分辨率偏重规则:当两者都具体实施时
-        /// 通用界面一般实施, Orleans 应更倾向于
-        /// 具体实施。 这验证了合适的类型匹配优先 。
+        /// 测试 Orleans 的类型解析优先规则：当泛型接口同时存在具体实现
+        /// 和泛型实现时，Orleans 应优先选择
+        /// 更具体的实现。此测试验证正确的类型匹配优先级。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_PreferConcreteGrainImplementationOfGenericInterface()
@@ -195,7 +195,7 @@ namespace DefaultCluster.Tests.General
             await grainOfDouble1.Set(1.0);
             await grainOfDouble2.Set(2.0);
 
-            // 具体执行(SpecializedSimpleGenericGrain)使设定值翻倍:
+            // 具体实现（SpecializedSimpleGenericGrain）将设置的值乘以 2：
             await grainOfDouble1.Transform();
             await grainOfDouble2.Transform();
 
@@ -207,9 +207,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 当 Orleans 选择具体实施时验证激活身份。
-        /// 确保对具体实施的重视不会打破
-        /// 单项活动保障。
+        /// 验证 Orleans 优先选择具体实现时的激活实例标识。
+        /// 确保对具体实现的优先选择不会破坏
+        /// 单激活实例保证。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_PreferConcreteGrainImplementationOfGenericInterfaceMultiplicity()
@@ -218,9 +218,9 @@ namespace DefaultCluster.Tests.General
 
             var grainRef1 = GetGrain<ISimpleGenericGrain<double>>(grainId);
             await grainRef1.Set(1.0);
-            await grainRef1.Transform();  // SpecializedSimpleGenericGrain 将通用 grain 类的值加倍
+            await grainRef1.Transform();  // SpecializedSimpleGenericGrain 将泛型 Grain 类的值乘以 2
 
-            // 以同一id点的第二处引用相同 grain:
+            // 具有相同 ID 的第二个引用指向同一 Grain：
             var grainRef2 = GetGrain<ISimpleGenericGrain<double>>(grainId);
             await grainRef2.Transform();
             var floatResult = await grainRef2.Get();
@@ -229,9 +229,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试 grains ,安装多通用界面。
-        /// 验证 Orleans 正确处理 grains 且界面结构复杂
-        /// 涉及多个通用界面。
+        /// 测试实现多个泛型接口的 Grain。
+        /// 验证 Orleans 能正确处理具有复杂接口层次结构的 Grain，
+        /// 其中涉及多个泛型接口。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_ConcreteGrainWithMultipleGenericInterfacesGetGrain()
@@ -242,7 +242,7 @@ namespace DefaultCluster.Tests.General
             await grain1.Set(1);
             await grain2.Set(2);
 
-            // ConcreteGrainWith2GenericInterfaces 将设定值乘以 10:
+            // ConcreteGrainWith2GenericInterfaces 将设置的值乘以 10：
             await grain1.Transform();
             await grain2.Transform();
 
@@ -254,9 +254,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 校验 grains 多个接口的单动静语义。
-        /// 重复使用相同界面的 GetGrain 调用返回相同的激活
-        /// 即使 grain 安装多个接口。
+        /// 验证具有多个接口的 Grain 的单激活实例语义。
+        /// 测试使用同一接口反复调用 GetGrain 会返回同一激活实例，
+        /// 即使该 Grain 实现了多个接口。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_ConcreteGrainWithMultipleGenericInterfacesMultiplicity1()
@@ -266,10 +266,10 @@ namespace DefaultCluster.Tests.General
             var grainRef1 = GetGrain<ISimpleGenericGrain<int>>(grainId);
             await grainRef1.Set(1);
 
-            // ConcreteGrainWith2GenericInterfaces 将设定值乘以 10:
+            // ConcreteGrainWith2GenericInterfaces 将设置的值乘以 10：
             await grainRef1.Transform();
 
-            //第二次引用界面将指同一 grain
+            //该接口的第二个引用将指向同一 Grain
             var grainRef2 = GetGrain<ISimpleGenericGrain<int>>(grainId);
             await grainRef2.Transform();
             var floatResult = await grainRef2.Get();
@@ -278,9 +278,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 在不同界面引用中测试 grain 身份。
-        /// 校验它通过所执行的不同接口访问相同的 grain
-        /// 仍然引用相同的启动基础,保持州的一致性。
+        /// 测试不同接口引用之间的 Grain 标识。
+        /// 验证通过同一 Grain 实现的不同接口访问它时，
+        /// 仍指向同一底层激活实例，从而保持状态一致性。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_ConcreteGrainWithMultipleGenericInterfacesMultiplicity2()
@@ -289,20 +289,20 @@ namespace DefaultCluster.Tests.General
 
             var grainRef1 = GetGrain<ISimpleGenericGrain<int>>(grainId);
             await grainRef1.Set(1);
-            await grainRef1.Transform();  // ConcreteGrainWith2GenericInterfaces 将设定值乘以 10:
+            await grainRef1.Transform();  // ConcreteGrainWith2GenericInterfaces 将设置的值乘以 10：
 
-            // 第二处提及 ConcreteGrainWith2GenericInterfaces所执行的不同接口
-            // 将引用相同的 grain:
+            // 对 ConcreteGrainWith2GenericInterfaces 实现的另一个接口的第二个引用
+            // 将引用同一 Grain：
             var grainRef2 = GetGrain<IGenericGrain<int, string>>(grainId);
-            // ConcreteGrainWith2GenericInterfaces 返回当前值乘以 10 的字符串表示法:
+            // ConcreteGrainWith2GenericInterfaces 返回当前值乘以 10 后的字符串表示形式：
             var floatResult = await grainRef2.MapT2U();
 
             Assert.Equal("100", floatResult);
         }
 
         /// <summary>
-        /// 测试 grains 使用 grain 用于创建引用其它通用 grains.
-        /// 证实 grain 工厂作业在通用型号 grain 代码内正确工作。
+        /// 测试 Grain 能否使用 Grain 工厂创建对其他泛型 Grain 的引用。
+        /// 验证 Grain 代码内的 Grain 工厂操作能否正确处理泛型类型。
         /// </summary>
         [Fact]
         public async Task GenericGrainTests_UseGenericFactoryInsideGrain()
@@ -349,7 +349,7 @@ namespace DefaultCluster.Tests.General
 
             var grain = this.GrainFactory.GetGrain<ISimpleGenericGrain1<int>>(grainId++);
 
-            // 明确使用. Wait()和.Result,以确保客户在这些情况下不会陷入僵局。
+            // 显式使用 .Wait() 和 .Result，以确保客户端在这些情况下不会死锁。
 #pragma warning disable xUnit1031 // Do not use blocking task operations in test method
             grain.SetA(a).Wait(cancellationToken);
 
@@ -448,7 +448,7 @@ namespace DefaultCluster.Tests.General
             var r1 = await g1.GetItems();
 
             Assert.True(
-                (a == r1[0] && b == r1[1]) || (b == r1[0] && a == r1[1]), // 电文订购不一定保存。
+                (a == r1[0] && b == r1[1]) || (b == r1[0] && a == r1[1]), // 消息顺序不一定得到保留。
                 string.Format("Result: r[0]={0}, r[1]={1}", r1[0], r1[1]));
         }
 
@@ -468,7 +468,7 @@ namespace DefaultCluster.Tests.General
             var r1 = await g1.GetItems();
 
             Assert.True(
-                (a == r1[0] && b == r1[1]) || (b == r1[0] && a == r1[1]), // 电文订购不一定保存。
+                (a == r1[0] && b == r1[1]) || (b == r1[0] && a == r1[1]), // 消息顺序不一定得到保留。
                 string.Format("Result: r[0]={0}, r[1]={1}", r1[0], r1[1]));
         }
 
@@ -544,9 +544,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试通用 grains ,使用非原始类型参数,如“吉德”和字节阵列。
-        /// 校验 Orleans 正确区分基于复杂特性的 grain 激活
-        /// 通用类型参数,确保适当的类型路径。
+        /// 测试以 Guid 和字节数组等非基本类型为实参的泛型 Grain。
+        /// 验证 Orleans 能根据复杂泛型类型实参正确区分 Grain 激活实例，
+        /// 确保按类型正确路由。
         /// </summary>
         [Fact]
         public async Task Generic_Non_Primitive_Type_Argument()
@@ -662,9 +662,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 验证 grains 使用不同通用类型参数创建独立启动。
-        /// 这对于确保 IDbGrain<int> 和 IDbGrain<string> 作为
-        /// 完全独立的 grain 类型,具有独立状态。
+        /// 验证具有不同泛型类型实参的 Grain 会创建独立激活实例。
+        /// 这对于确保 IDbGrain&lt;int&gt; 和 IDbGrain&lt;string&gt; 被视为
+        /// 具有独立状态的完全不同的 Grain 类型至关重要。
         /// </summary>
         [Fact]
         public async Task DifferentTypeArgsProduceIndependentActivations()
@@ -678,8 +678,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试自呼自呼的通用 grains 。
-        /// 在通用 grain 背景下验证自特调用是否正确。
+        /// 测试泛型 Grain 调用自身。
+        /// 验证自引用调用在泛型 Grain 上下文中正常工作。
         /// </summary>
         [Fact, TestCategory("Echo")]
         public async Task Generic_PingSelf()
@@ -692,8 +692,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试通用 grains 调用同类的其他通用 grains 。
-        /// 验证值 grain- 来...grain 通用信息交换 grain 类型。
+        /// 测试泛型 Grain 调用同一类型的其他泛型 Grain。
+        /// 验证泛型 Grain 类型间的 Grain 到 Grain 通信。
         /// </summary>
         [Fact, TestCategory("Echo")]
         public async Task Generic_PingOther()
@@ -708,8 +708,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试通用 grain 通过另一个 grain调用链的复合调用链。
-        /// 验证 grain 通用 grains.
+        /// 测试泛型 Grain 通过另一个 Grain 调用自身的复杂调用链。
+        /// 验证 Grain 引用在泛型 Grain 之间传递时仍然有效。
         /// </summary>
         [Fact, TestCategory("Echo")]
         public async Task Generic_PingSelfThroughOther()
@@ -724,9 +724,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试通用 grains的预定操作和停用。
-        /// 证明 Orleans的活化生命周期管理与通用 grains的正确工作有效,
-        /// 包括延迟运行和明确解除功能。
+        /// 测试泛型 Grain 的计划操作及停用。
+        /// 验证 Orleans 的激活生命周期管理能正确处理泛型 Grain，
+        /// 包括延迟操作与显式停用。
         /// </summary>
         [Fact, TestCategory("ActivateDeactivate")]
         public async Task Generic_ScheduleDelayedPingAndDeactivate()
@@ -761,9 +761,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试通用 grains 序列,并按其状态提供循环参考。
-        /// 验证 Orleans的序列化系统能够处理复杂的对象图
-        /// 在通用 grain 上下文中,没有无限环。
+        /// 测试状态中包含循环引用的泛型 Grain 的序列化。
+        /// 验证 Orleans 序列化系统在泛型 Grain 上下文中能处理复杂对象图，
+        /// 而不会进入无限循环。
         /// </summary>
         [Fact, TestCategory("Serialization")]
         public async Task SerializationTests_Generic_CircularReferenceTest()
@@ -774,9 +774,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试具有类型限制的通用 grains (T:类、新()等)。
-        /// 证明 Orleans 正确执行和处理C#通用类型限制,
-        /// 包括未加管理的制约和参考类型制约。
+        /// 测试带类型约束（where T : class, new() 等）的泛型 Grain。
+        /// 验证 Orleans 能正确实施并处理 C# 泛型类型约束，
+        /// 包括 unmanaged 约束及引用类型约束。
         /// </summary>
         [Fact]
         public async Task Generic_GrainWithTypeConstraints()
@@ -807,9 +807,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试具有数值类型状态持久性的通用 grains 。
-        /// 验证 Orleans'持久性系统正确处理价值类型(结构)
-        /// 年为 grain 状态, 通用 grain 环境。
+        /// 测试具有值类型持久化状态的泛型 Grain。
+        /// 验证 Orleans 持久化系统能正确处理泛型 Grain 上下文中
+        /// 用作 Grain 状态的值类型（结构体）。
         /// </summary>
         [Fact, TestCategory("Persistence")]
         public async Task Generic_GrainWithValueTypeState()
@@ -828,14 +828,14 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试在激活后将非通用 grain 引文用于通用界面。
-        /// 验证 Orleans对已激活的 grains上延迟关闭接口发现的支持。
+        /// 测试激活后将非泛型 Grain 引用转换为泛型接口。
+        /// 验证 Orleans 对已激活 Grain 的后期绑定接口发现的支持。
         /// </summary>
         [Fact, TestCategory("Cast")]
         public async Task Generic_CastToGenericInterfaceAfterActivation()
         {
             var grain = this.GrainFactory.GetGrain<INonGenericCastableGrain>(Guid.NewGuid());
-            await grain.DoSomething(); //在此激活原始 grain 类型
+            await grain.DoSomething(); //此处激活原始 Grain 类型
 
             var castRef = grain.AsReference<ISomeGenericGrain<string>>();
 
@@ -845,9 +845,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 激活前测试会选择与不同类型参数的通用界面。
-        /// 验证 Orleans 能够处理涉及不同通用的界面
-        /// 激活 grain 之前的特性类型。
+        /// 测试激活前转换为具有不同类型实参的泛型接口。
+        /// 验证 Orleans 能处理 Grain 激活之前涉及不同泛型类型
+        /// 具体化版本的接口转换。
         /// </summary>
         [Fact, TestCategory("Cast")]
         public async Task Generic_CastToDifferentlyConcretizedGenericInterfaceBeforeActivation()
@@ -862,9 +862,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 独立具体化通用界面之间的测试。
-        /// 校验 Orleans在接口位置处理复杂界面等级的能力
-        /// 独立于 grain通用参数之外的专门化。
+        /// 测试独立具体化的泛型接口之间的转换。
+        /// 验证 Orleans 处理复杂接口层次结构的能力，其中接口
+        /// 独立于 Grain 的泛型参数进行具体化。
         /// </summary>
         [Fact, TestCategory("Cast")]
         public async Task Generic_CastToDifferentlyConcretizedInterfaceBeforeActivation()
@@ -879,8 +879,8 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 从通用和非基因界面进行筛选试验。
-        /// 验证 Orleans 支持跨越通用/非遗传边界的界面。
+        /// 测试从泛型接口转换为非泛型接口。
+        /// 验证 Orleans 支持跨泛型与非泛型边界的接口转换。
         /// </summary>
         [Fact, TestCategory("Cast")]
         public async Task Generic_CastGenericInterfaceToNonGenericInterfaceBeforeActivation()
@@ -895,9 +895,9 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 通用 grains 具有不同类型参数的通用状态的测试。
-        /// 验证 Grain<TState> 的类型参数不需要与 grain的
-        /// 允许在通用 grain 执行中采用灵活状态模型。
+        /// 测试泛型 Grain 能否拥有使用不同类型参数的泛型状态。
+        /// 验证 Grain&lt;TState&gt; 的类型参数不必与 Grain 自身的
+        /// 类型参数匹配，从而允许在泛型 Grain 实现中灵活建模状态。
         /// </summary>
         [Fact]
         public async Task GenericGrainStateParameterMismatchTest()
@@ -914,10 +914,10 @@ namespace DefaultCluster.Tests.General
         using UnitTests.Grains.Generic.EdgeCases;
 
         /// <summary>
-        /// 在 Orleans通用 grain 类型系统中测试边缘情况。
-        /// 验证复杂假设情况,包括部分类型专业化、重复型号参数、
-        /// 重新排列的通用参数,继承等级制度中的类型参数限制,
-        /// 和推动通用类型解析器边界的高级类型的推断假设情景。
+        /// 测试 Orleans 泛型 Grain 类型系统的边界情况。
+        /// 验证复杂场景，包括类型的部分具体化、重复类型参数、
+        /// 重新排列的泛型实参、继承层次结构中的类型参数约束，
+        /// 以及挑战泛型类型解析器能力边界的高级类型推断场景。
         /// </summary>
         [TestCategory("BVT"), TestCategory("Generics")]
         [TestSuite("BVT")]
@@ -936,10 +936,10 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// 测试通用 grain 类型的一部分专业化。
-            /// 验证 Orleans处理部分指定通用参数的 grains 能力,
-            /// 还有一些留待从接口实施中推断。
-            /// 注:目前未支持的特性 。
+            /// 测试泛型 Grain 类型的部分具体化。
+            /// 验证 Orleans 处理部分指定泛型参数的 Grain 的能力，
+            /// 其余参数由接口实现推断。
+            /// 注意：目前不支持此功能。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_PartiallySpecifyingGenericGrainFulfilsInterface()
@@ -950,24 +950,24 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// 测试 grains 重复使用同一通用参数多次。
-            /// 验证单类型参数出现时的设想情景处理
-            /// 在 grain界面结构中多次。
-            /// 注:目前未支持 - 以太多的通用参数失败 。
+            /// 测试多次使用同一泛型参数的 Grain。
+            /// 验证对单个类型参数在 Grain 接口层次结构中
+            /// 多次出现的场景的处理。
+            /// 注意：当前不支持，会因泛型实参过多而失败。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_GenericGrainCanReuseOwnGenArgRepeatedly()
             {
-                // 正确解析正解, 但无法被激活: 混凝土类的 gen args 数量太多
+                // 解析正确，但无法激活：为具体类提供了过多泛型实参
                 var grain = this.GrainFactory.GetGrain<IGrainReceivingRepeatedGenArgs<int, int>>(Guid.NewGuid());
                 var concreteGenArgs = await GetConcreteGenArgs(grain);
                 Assert.True(concreteGenArgs.SequenceEqual(new[] { typeof(int) }));
             }
 
             /// <summary>
-            /// 带有部分指定的通用界面的测试铸造。
-            /// 验证与部分通用专门化界面的
-            /// 将其抛到完全指定的对应方身上。
+            /// 测试部分指定的泛型接口的转换。
+            /// 验证部分具体化的泛型接口能够
+            /// 转换为其完全指定的对应接口。
             /// </summary>
             [Fact]
             public async Task Generic_PartiallySpecifyingGenericInterfaceIsCastable()
@@ -980,9 +980,9 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// 启动前进行部分通用专业的铸造试验。
-            /// 证明铸造机制即使在 grain时仍然正确运转
-            /// 还没启动
+            /// 测试激活前进行部分泛型具体化的转换。
+            /// 验证即使 Grain 尚未激活，
+            /// 转换机制仍能正确工作。
             /// </summary>
             [Fact]
             public async Task Generic_PartiallySpecifyingGenericInterfaceIsCastable_Activating()
@@ -995,25 +995,25 @@ namespace DefaultCluster.Tests.General
 
 
             /// <summary>
-            /// 反复重复和重新安排的通用论点的测试解析。
-            /// 验证参数出现多次的复杂类型参数映射
-            /// 职位不同。
-            /// 注:目前未支持 - 类型推理失败 。
+            /// 测试既重复又重新排列的泛型实参解析。
+            /// 验证复杂的类型参数映射，其中实参多次出现在
+            /// 不同位置。
+            /// 注意：当前不支持，类型推断失败。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_RepeatedRearrangedGenArgsResolved()
             {
-                // 再次下定决心采用正确的通用类型定义,但未能像太多的参数那样启动
-                // gen ars 并没有被正确推断出匹配的混凝土类型
+                // 仍能解析为正确的泛型类型定义，但由于实参过多，激活时失败
+                // 未能从匹配的具体类型中正确推断泛型实参
                 var grain = this.GrainFactory.GetGrain<IReceivingRepeatedGenArgsAmongstOthers<int, string, int>>(Guid.NewGuid());
                 var concreteGenArgs = await GetConcreteGenArgs(grain);
                 Assert.True(concreteGenArgs.SequenceEqual(new[] { typeof(string), typeof(int) }));
             }
 
             /// <summary>
-            /// 测试类型分辨率,在界面之间反复使用通用参数。
-            /// 验证 Orleans 正确处理相同类型参数的情景
-            /// 用于等级体系中不同界面的多次。
+            /// 测试跨接口的重复泛型实参的类型解析。
+            /// 验证 Orleans 能正确处理同一类型参数在层次结构的
+            /// 不同接口中多次使用的场景。
             /// </summary>
             [Fact]
             public async Task Generic_RepeatedGenArgsWorkAmongstInterfacesInTypeResolution()
@@ -1024,9 +1024,9 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// 测试在与重复的通用参数界面之间进行切换。
-            /// 校验 grains 能够被投放在使用相同
-            /// 定义中键入参数多次。
+            /// 测试具有重复泛型实参的接口之间的转换。
+            /// 验证 Grain 可以在定义中多次使用同一类型参数的
+            /// 接口之间转换。
             /// </summary>
             [Fact]
             public async Task Generic_RepeatedGenArgsWorkAmongstInterfacesInCasting()
@@ -1039,9 +1039,9 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// 激活前用重复的通用参数进行试铸。
-            /// 校验复杂通用等级结构的激活前铸造行为
-            /// 带有重复类型参数。
+            /// 测试激活前使用重复泛型实参进行转换。
+            /// 验证具有重复类型参数的复杂泛型层次结构的
+            /// 激活前转换行为。
             /// </summary>
             [Fact]
             public async Task Generic_RepeatedGenArgsWorkAmongstInterfacesInCasting_Activating()
@@ -1053,10 +1053,10 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// 重新排列的通用参数的测试分辨率。
-            /// 验证 Orleans 能够处理通用参数的界面
-            /// 与 grain 执行中不同的顺序。
-            /// 注:目前未支持的特性 。
+            /// 测试重新排列的泛型实参的解析。
+            /// 验证 Orleans 能处理泛型参数的出现顺序不同于 Grain 实现中顺序的
+            /// 接口。
+            /// 注意：目前不支持此功能。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_RearrangedGenArgsOfCorrectArityAreResolved()
@@ -1067,9 +1067,9 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// 测试在与重新排列的通用参数界面之间进行切换。
-            /// 校验通用参数不同时投铸起作用的
-            /// 位置,但总数匹配。
+            /// 测试具有重新排列的泛型实参的接口之间的转换。
+            /// 验证泛型参数处于不同位置但总数相同时，
+            /// 转换仍能正常工作。
             /// </summary>
             [Fact]
             public async Task Generic_RearrangedGenArgsOfCorrectNumberAreCastable()
@@ -1082,9 +1082,9 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// 测试预先引爆弹铸,并重新排列通用参数。
-            /// 校验参数重新排列前不会中断抛出
-            /// 启动 grain 。
+            /// 测试使用重新排列的泛型实参进行激活前转换。
+            /// 验证在 Grain 激活前，参数重排不会破坏
+            /// 转换。
             /// </summary>
             [Fact]
             public async Task Generic_RearrangedGenArgsOfCorrectNumberAreCastable_Activating()
@@ -1105,9 +1105,9 @@ namespace DefaultCluster.Tests.General
             { }
 
             /// <summary>
-            /// 在同一通用界面的多个专业之间进行测试。
-            /// 证明a grain 执行通用的多混凝土版本
-            /// 可以在这些专业之间进行定位。
+            /// 测试同一泛型接口的多个具体化版本之间的转换。
+            /// 验证实现同一泛型接口多个具体版本的 Grain
+            /// 能在这些具体化版本之间转换。
             /// </summary>
             [Fact]
             public async Task CastingBetweenFullySpecifiedGenericInterfaces()
@@ -1121,9 +1121,9 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// 测试与非相关通用参数接口的切换。
-            /// 验证 grains 可投入通用参数的界面
-            /// 与 grain的具体类型参数没有任何关系。
+            /// 测试转换为带无关泛型参数的接口。
+            /// 验证 Grain 可以转换为泛型参数与 Grain 的具体类型实参
+            /// 无关的接口。
             /// </summary>
             [Fact]
             public async Task Generic_CanCastToFullySpecifiedInterfaceUnrelatedToConcreteGenArgs()
@@ -1137,9 +1137,9 @@ namespace DefaultCluster.Tests.General
 
 
             /// <summary>
-            /// 测试预激活性铸造到不相关的通用界面。
-            /// 验证与独立通用参数接口的铸造
-            /// 激活 grain 之前的工作。
+            /// 测试激活前转换为无关的泛型接口。
+            /// 验证转换为带独立泛型参数的接口在 Grain 激活之前
+            /// 即可正常工作。
             /// </summary>
             [Fact]
             public async Task Generic_CanCastToFullySpecifiedInterfaceUnrelatedToConcreteGenArgs_Activating()
@@ -1151,10 +1151,10 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// 测试已经具有遗传性的论点的进一步专业化。
-            /// 验证对嵌套的通用名词的处理,如T本身所在的清单<T>
-            /// 类型参数待解。
-            /// 注:目前未支持的特性 。
+            /// 测试对已经是泛型的类型实参进一步具体化。
+            /// 验证 List&lt;T&gt; 等嵌套泛型的处理，其中 T 本身是
+            /// 待解析的类型参数。
+            /// 注意：目前不支持此功能。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_GenArgsCanBeFurtherSpecialized()
@@ -1165,10 +1165,10 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// 测试通用参数在阵列类型中的专业化。
-            /// 验证 Orleans 能够处理通用参数的情景
-            /// 专门作为数组类型(T[])。
-            /// 注:目前未支持的特性 。
+            /// 测试将泛型参数具体化为数组类型。
+            /// 验证 Orleans 能处理泛型参数具体化为数组类型（T[]）的
+            /// 场景。
+            /// 注意：目前不支持此功能。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_GenArgsCanBeFurtherSpecializedIntoArrays()
@@ -1179,10 +1179,10 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// 测试嵌套通用专业界面之间的切换。
-            /// 当接口使用复杂的通用类型,如清单<T>时验证铸造
-            /// 具有不同但相容的专业。
-            /// 注:目前未支持的特性 。
+            /// 测试带嵌套泛型具体化版本的接口之间的转换。
+            /// 验证接口使用 List&lt;T&gt; 等复杂泛型类型且具有不同但兼容的
+            /// 具体化版本时的转换。
+            /// 注意：目前不支持此功能。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_CanCastBetweenInterfacesWithFurtherSpecializedGenArgs()
@@ -1195,9 +1195,9 @@ namespace DefaultCluster.Tests.General
             }
 
             /// <summary>
-            /// 测试使用嵌套式通用专业的预活性铸造。
-            /// 在启动 grain 之前,验证复杂的通用投射设想方案的工作。
-            /// 注:目前未支持的特性 。
+            /// 测试带嵌套泛型具体化版本的激活前转换。
+            /// 验证复杂泛型转换场景在 Grain 激活之前即可正常工作。
+            /// 注意：目前不支持此功能。
             /// </summary>
             [Fact(Skip = "Currently unsupported")]
             public async Task Generic_CanCastBetweenInterfacesWithFurtherSpecializedGenArgs_Activating()

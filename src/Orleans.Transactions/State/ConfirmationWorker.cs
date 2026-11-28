@@ -77,7 +77,7 @@ namespace Orleans.Transactions.State
 
             if (confirmations.Count == 0) return;
 
-            // 尝试确认全部, 将重试 ConfirmationRetryDelay 直到所有成功
+            // 尝试确认所有参与者，每隔 ConfirmationRetryDelay 重试，直到全部成功。
             var ct = this.onDeactivating;
 
             bool hasPendingConfirmations = true;
@@ -97,7 +97,7 @@ namespace Orleans.Transactions.State
             }
         }
 
-        // 收集回溯到成功
+        // 重试清理操作，直到成功。
         private async Task Collect(Guid transactionId)
         {
             var ct = this.onDeactivating;
@@ -110,13 +110,13 @@ namespace Orleans.Transactions.State
             }
         }
 
-        // 试图清除交易的运行日志
+        // 尝试从提交日志中清除事务。
         private async Task<bool> TryCollect(Guid transactionId)
         {
             try
             {
                 var storeComplete = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                // 现在我们可以删除记录了
+                // 现在可以移除提交记录。
                 StorageBatch<TState> storageBatch = getStorageBatch();
                 storageBatch.Collect(transactionId);
                 storageBatch.FollowUpAction(success =>
@@ -132,7 +132,7 @@ namespace Orleans.Transactions.State
 
                 storageWorker.Notify();
 
-                // 等待存储电话, 所以我们不自由旋转
+                // 等待存储调用，以免进行空转。
                 return await storeComplete.Task.WaitAsync(this.onDeactivating);
             }
             catch (OperationCanceledException) when (this.onDeactivating.IsCancellationRequested)
@@ -147,7 +147,7 @@ namespace Orleans.Transactions.State
             return false;
         }
 
-        // 跟踪通知参与者的努力,一旦成功,将不再打电话。
+        // 跟踪通知某个参与者的过程，成功后不再调用。
         private struct Confirmation
         {
             private readonly ParticipantId participant;

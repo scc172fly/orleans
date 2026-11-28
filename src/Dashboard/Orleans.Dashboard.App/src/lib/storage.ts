@@ -1,4 +1,4 @@
-// 使用临时存储的多填 localStorage
+// 使用临时存储为 localStorage 提供兼容实现（polyfill）。
 interface StorageInterface {
   [key: string]: any;
   removeItem?: (key: string) => void;
@@ -11,7 +11,7 @@ try {
     store = localStorage;
   }
 } catch {
-  // 点数
+  // 无操作（noop）。
 }
 
 const storageModule = {

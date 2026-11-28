@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.AzureStorage.Tests
 {
     /// <summary>
-    /// 与 Azure 存储进行交易一致性行为测试。
+    /// 测试使用 Azure Storage 时的事务一致性行为。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Transactions-dev")]
     [TestSuite("Nightly")]

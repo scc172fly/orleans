@@ -4,7 +4,7 @@ using UnitTests.GrainInterfaces;
 
 namespace UnitTests.Grains;
 
-[StatelessWorker(1)] // 强迫交接,否则它就只创造了一个新的工人
+[StatelessWorker(1)] // 使用 '1' 强制交错执行，否则只会创建新的工作实例
 [MayInterleave(nameof(MayInterleaveMethod))]
 public class StatelessWorkerWithMayInterleaveGrain : Grain, IStatelessWorkerWithMayInterleaveGrain
 {

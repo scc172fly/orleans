@@ -4,23 +4,23 @@ using Orleans.Storage;
 namespace Orleans.EventSourcing
 {
     /// <summary>
-    /// 用于日志视图调整器工厂的接口
+    /// 日志视图适配器工厂必须实现的接口。
     /// </summary>
     public interface ILogViewAdaptorFactory
     {
-        /// <summary> 如果建造适应器需要存储提供者, 返回为真。 </summary>
+        /// <summary>如果构造适配器需要存储提供程序，则返回 true。</summary>
         bool UsesStorageProvider { get; }
 
         /// <summary>
-        /// 构造 a <see cref="ILogViewAdaptor{TLogView,TLogEntry}"/> 将安装在给定的主机中 grain.
+        /// 构造一个 <see cref="ILogViewAdaptor{TLogView,TLogEntry}"/>，以安装到给定的宿主 Grain 中。
         /// </summary>
-        /// <typeparam name="TLogView">视图类型</typeparam>
-        /// <typeparam name="TLogEntry">日志条目类型</typeparam>
-        /// <param name="hostGrain">下 grain 正在托管此调整器的</param>
-        /// <param name="initialState">此视图的初始状态</param>
-        /// <param name="grainTypeName"> grain</param>的名称类型
-        /// <param name="grainStorage">储存提供者</param>
-        /// <param name="services">多部门多组协调协议的运行时间服务</param>
+        /// <typeparam name="TLogView">视图的类型。</typeparam>
+        /// <typeparam name="TLogEntry">日志条目的类型。</typeparam>
+        /// <param name="hostGrain">承载此适配器的 Grain。</param>
+        /// <param name="initialState">此视图的初始状态。</param>
+        /// <param name="grainTypeName">Grain 的类型名称。</param>
+        /// <param name="grainStorage">存储提供程序。</param>
+        /// <param name="services">多集群一致性协议所需的运行时服务。</param>
         ILogViewAdaptor<TLogView, TLogEntry> MakeLogViewAdaptor<TLogView, TLogEntry>(
             ILogViewAdaptorHost<TLogView, TLogEntry> hostGrain,
             TLogView initialState,

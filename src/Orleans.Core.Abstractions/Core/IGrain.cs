@@ -12,21 +12,21 @@ namespace Orleans
     }
 
     /// <summary>
-    /// 使用 <see cref="Guid"/> 键的 Grain 的标记接口。
+    /// 使用 <see cref="Guid"/> 类型键的 Grain 的标记接口。
     /// </summary>
     public interface IGrainWithGuidKey : IGrain
     {
     }
 
     /// <summary>
-    /// 使用 <see cref="long"/> 键的 Grain 的标记接口。
+    /// 使用 <see cref="long"/> 类型键的 Grain 的标记接口。
     /// </summary>
     public interface IGrainWithIntegerKey : IGrain
     {
     }
 
     /// <summary>
-    /// 使用 <see cref="string"/> 键的 Grain 的标记接口。
+    /// 使用 <see cref="string"/> 类型键的 Grain 的标记接口。
     /// </summary>
     public interface IGrainWithStringKey : IGrain
     {

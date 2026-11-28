@@ -3,25 +3,25 @@ using Orleans.Serialization.Invocation;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// grain 上下文通过 <see cref="IGrainContext.ReceiveLocalRequest"/> 收到并收到其答复的请求。
+/// 通过 <see cref="IGrainContext.ReceiveLocalRequest"/> 由 Grain 上下文接收，并接收自身响应的请求。
 /// </summary>
 /// <remarks>
-/// grain 上下文通过收到的 grain 呼叫过滤器,援引启动请求
-/// 对 <see cref="Complete"/>的响应, 然后处理请求。 呼叫过滤器、 日志和跟踪记录时, 观察请求的界面名称、 方法名称和参数 。
-/// 请求书及其答复通过参考而不是复制,因此请求书与打电话者分享变体特征,同时自行复制。
+/// Grain 上下文在激活实例上通过传入 Grain 调用过滤器执行此请求，将
+/// 响应传递给 <see cref="Complete"/>，随后释放请求。调用过滤器、日志和跟踪可以观察请求的接口名称、方法名称及参数。
+/// 请求和响应均按引用传递而不是复制，因此，与调用方共享可变状态的请求必须自行复制该状态。
 /// </remarks>
 public interface ILocalRequest : IInvokable
 {
     /// <summary>
-    /// 完成请求并附上结果。
+    /// 使用请求的执行结果完成该请求。
     /// </summary>
     /// <param name="response">
-    /// 请求及其呼叫过滤器作出的答复,或 grain 上下文拒绝请求的例外情况。
-    /// grain 上下文拒绝在请求开始之前停止使用 <see cref="OrleansMessageRejectionException"/> 的请求。
+    /// 请求及其调用过滤器生成的响应；如果 Grain 上下文拒绝请求，则为异常。
+    /// 如果 Grain 上下文在请求开始前停用，它将以 <see cref="OrleansMessageRejectionException"/> 拒绝该请求。
     /// </param>
     /// <remarks>
-    /// 请求书拥有其结果,包括报告或伐木失败,并接受收到的第一个结果。
-    /// 这种方法可以从任何线索中调用,因此执行过程应迅速完成,且不得阻拦。
+    /// 请求拥有其执行结果，负责报告或记录失败，并接受首次收到的结果。
+    /// 此方法可以从任何线程调用，因此实现应快速完成且不阻塞。
     /// </remarks>
     void Complete(Response response);
 }

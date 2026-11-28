@@ -3,7 +3,7 @@ using Orleans.Serialization;
 namespace UnitTests.GrainInterfaces
 {
     /// <summary>
-    /// 带有 <see cref="IOnDeserialized"/> 钩子的类型,用于测试内部序列器正确调用该类型。
+    /// 带有 <see cref="IOnDeserialized"/> 钩子的类型，用于测试内部序列化器是否正确调用此钩子。
     /// </summary>
     [Serializable]
     [Orleans.GenerateSerializer]
@@ -31,8 +31,8 @@ namespace UnitTests.GrainInterfaces
     }
 
     /// <summary>
-    /// 代码生成测试,以确保被覆盖的、类型不同于
-    /// 序列器生成过程中不使用基底自动prop
+    /// 代码生成测试，确保重写的自动实现属性若具有不同于
+    /// 基类自动实现属性的类型，则不会在生成序列化器时被使用
     /// </summary>
     [Serializable]
     [Orleans.GenerateSerializer]

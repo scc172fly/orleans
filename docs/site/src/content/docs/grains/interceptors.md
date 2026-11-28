@@ -1,133 +1,133 @@
 ---
-title: "Grain 调用过滤器"
-description: "拦截进出 Orleans grain 电话。"
+title: Grain 调用筛选器
+description: 拦截传入和传出的 Orleans Grain 调用。
 ms.date: 08/08/2026
 ms.topic: concept-article
 ---
 
 <a id="grain-call-filters"></a>
 
-# Grain 调用过滤器
+# Grain 调用筛选器
 
-Grain 呼叫过滤器围绕 Orleans 电话运行。 用于交叉行为, 如授权、 遥测、 请求元数据、 故意翻译例外 。
+Grain 调用筛选器围绕 Orleans 调用执行。可使用筛选器实现授权、遥测、请求元数据和有意的异常转换等横切功能。
 
-- <xref:Orleans.IIncomingGrainCallFilter> runs on the target silo before and after a grain or extension method.
-- <xref:Orleans.IOutgoingGrainCallFilter> runs on a client or silo that sends a call.
+- <xref:Orleans.IIncomingGrainCallFilter> 在目标 Silo 上运行，包围 Grain 或扩展方法的执行。
+- <xref:Orleans.IOutgoingGrainCallFilter> 在发送调用的客户端或 Silo 上运行。
 
-过滤器会形成一条不同步管道。 过滤器必须调用并等待 `context.Invoke()` 继续到下一个过滤器, 并最终达到目标方法 。
+筛选器构成异步管道。筛选器必须调用并等待 `context.Invoke()`，才能继续执行下一个筛选器并最终调用目标方法。
 
 <a id="incoming-filters"></a>
 
-## 接收过滤器
+## 传入调用筛选器
 
-以下汇编的文件样本记录完成和失败:
+以下经过编译验证的文档示例会记录调用完成和失败的情况：
 
 :::code language="csharp" source="snippets/interceptors/LoggingFilters.cs" id="logging_incoming_filter":::
 
-注册 silo:
+在 Silo 上注册此筛选器：
 
 :::code language="csharp" source="snippets/interceptors/Configuration.cs" id="register_incoming_filter":::
 
 <a id="per-grain-filters"></a>
 
-### 每一个grain 过滤器
+### 单个 Grain 的筛选器
 
-grain 类可以执行 <xref:Orleans.IIncomingGrainCallFilter> ,过滤发送给该 grain 激活的电话,而不影响其他 grain 类:
+Grain 类可以实现 <xref:Orleans.IIncomingGrainCallFilter>，以筛选分派到该 Grain 激活实例的调用，而不影响其他 Grain 类：
 
 :::code language="csharp" source="snippets/interceptors/GrainFilters.cs" id="per_grain_filter":::
 
-过滤器将 `GetFavoriteNumber` 的结果从 `7` 改为 `38`。 A grain- 级别过滤器不需要建筑商登记,因为 Orleans 在 grain 实例中发现了它。它也通过激活来封存通过该激活发出的 grain 扩展电话,所以当行为不是要延期时,用 `InterfaceMethod` 或 `ImplementationMethod` 选择呼叫。
+此筛选器将 `GetFavoriteNumber` 的结果从 `7` 改为 `38`。Grain 级筛选器无需在构建器中注册，因为 Orleans 会从 Grain 实例上发现它。它也会包围经由该激活实例分派的 Grain 扩展调用，因此，如果该行为不适用于扩展方法，请使用 `InterfaceMethod` 或 `ImplementationMethod` 选择适用的调用。
 
 <a id="authorization-with-method-attributes"></a>
 
-### 使用方法属性的授权
+### 使用方法特性进行授权
 
-i-grain 过滤器可执行一个属性所声明的应用程序授权政策。此示例使用申请授权服务对认证的 <xref:System.Security.Claims.ClaimsPrincipal> 进行评估:
+单个 Grain 的筛选器可以强制执行由特性声明的应用程序授权策略。此示例使用应用程序授权服务评估已经过身份验证的 <xref:System.Security.Claims.ClaimsPrincipal>：
 
 :::code language="csharp" source="snippets/interceptors/GrainFilters.cs" id="access_control_contract":::
 
-grain 通过安装者注射接受受信任的身份存取和授权服务,然后检查属性,然后再继续拨打:
+Grain 通过构造函数注入接收可信的身份访问器和授权服务，然后在继续调用之前检查相应特性：
 
 :::code language="csharp" source="snippets/interceptors/GrainFilters.cs" id="access_control_grain":::
 
-属性在 grain 实施方法上, 因此过滤器可以从 `ImplementationMethod`读取。 在 grain 接口上设置属性, 如果该政策是公共合同的一部分, 则检查 `InterfaceMethod` 。
+特性位于 Grain 实现方法上，因此筛选器从 `ImplementationMethod` 读取特性。如果策略属于公共契约的一部分，则应将特性放在 Grain 接口上，改为检查 `InterfaceMethod`。
 
-身份存取器必须在验证了打电话者的资质后,由可信赖的主机或过滤基础设施实施和容纳。 <xref:Orleans.Runtime.RequestContext> 是调用者可以设置的应用元数据,并会转而进入处理请求时发出的 grain 电话。将其价值视为不信任,除非在每一个信任边界上建立或确认其价值。一个 Orleans 客户可以设定一个 `"isAdmin"` 标志或用户名,因此这些值本身不是认证或授权边界。如果在请求中带有防篡改的证书,那么在产生经认证的本金之前,受信任的基础设施必须仍然予以验证。 `SourceId` 确定一个 Orleans 呼叫器,而不是一个经认证的最终用户。
+身份访问器必须由可信的宿主或筛选器基础设施实现，并在验证调用方的凭据之后由该基础设施填充。<xref:Orleans.Runtime.RequestContext> 是调用方可以设置的应用程序元数据，它会传递到处理请求期间发起的后续 Grain 调用。除非可信基础设施在每个信任边界设置或验证这些值，否则应视其为不可信。Orleans 客户端可以自行设置 `"isAdmin"` 标志或声称的用户 ID，因此仅凭这些值不能构成身份验证或授权边界。如果请求上下文携带抗篡改的凭据，可信基础设施仍必须先验证它，再生成经过身份验证的主体。`SourceId` 标识 Orleans 调用方，而不是经过身份验证的最终用户。
 
-完整的边界和执法模式见 [和客户端 grain- 调用安全](../security/authentication-authorization.md) 。
+有关完整的边界和强制执行模型，请参阅[客户端与 Grain 调用安全性](../security/authentication-authorization.md)。
 
 <a id="outgoing-filters"></a>
 
-## 输出过滤器
+## 传出调用筛选器
 
-输出过滤器使用相同的管道模式:
+传出调用筛选器使用相同的管道模式：
 
 :::code language="csharp" source="snippets/interceptors/LoggingFilters.cs" id="logging_outgoing_filter":::
 
-注册 silos 或客户端上的离线过滤器:
+在 Silo 或客户端上注册传出调用筛选器：
 
 :::code language="csharp" source="snippets/interceptors/Configuration.cs" id="register_outgoing_filter":::
 
 <a id="inspect-and-modify-calls"></a>
 
-## 检查和修改电话
+## 检查和修改调用
 
-<xref:Orleans.IGrainCallContext> exposes:
+<xref:Orleans.IGrainCallContext> 公开以下成员：
 
 - `SourceId` 和 `TargetId`。
-- `InterfaceType`、 `InterfaceName`和 `MethodName`。
-- `InterfaceMethod`.
-- `Request`, an <xref:Orleans.Serialization.Invocation.IInvokable>.
+- `InterfaceType`、`InterfaceName` 和 `MethodName`。
+- `InterfaceMethod`。
+- `Request`（一个 <xref:Orleans.Serialization.Invocation.IInvokable>）。
 - `Result` 和 `Response`。
 
-所接收的环境还暴露 `TargetContext` 和 `ImplementationMethod`;即将发布的环境也暴露 `SourceContext`。
+传入调用上下文还公开 `TargetContext` 和 `ImplementationMethod`；传出调用上下文公开 `SourceContext`。
 
-使用 `context.Request.GetArgumentCount()`、 `GetArgument(index)`和 `SetArgument(index, value)` 来检查或替换参数。当前背景和 `IInvokable` 不暴露一个 `Arguments` 数组 。
+使用 `context.Request.GetArgumentCount()`、`GetArgument(index)` 和 `SetArgument(index, value)` 检查或替换参数。当前的上下文及 `IInvokable` 不公开 `Arguments` 数组。
 
-汇编的代表实例显示了请求的背景和结果修改:
+以下经过编译验证的委托示例演示了如何修改请求上下文及返回结果：
 
 :::code language="csharp" source="snippets/interceptors/Configuration.cs" id="silo_delegate_filter":::
 
-改变论点或结果可能违反界面预期。 保留申报的种类,只对合同明确允许的方法进行转换。
+修改参数或返回结果可能违反接口契约的预期。应保留声明的类型，并且只对契约明确允许此类转换的方法应用转换。
 
 <a id="call-grains-from-a-filter"></a>
 
-## 从过滤器调用 grains
+## 在筛选器中调用 Grain
 
-依赖注射容器创建了基于分类的过滤器,以便它们能够接收 <xref:Orleans.IGrainFactory> 并进行谨慎的审计或遥测电话:
+基于类的筛选器由依赖注入容器创建，因此可以接收 <xref:Orleans.IGrainFactory>，并发起带有防递归保护的审计或遥测调用：
 
 :::code language="csharp" source="snippets/interceptors/GrainFactoryInjection.cs" id="grain_factory_injection":::
 
-注册 silo 上的过滤器,以便 Orleans 能够构建和提供其依赖性:
+在 Silo 上注册筛选器，使 Orleans 能够构造它并提供其依赖项：
 
 :::code language="csharp" source="snippets/interceptors/Configuration.cs" id="register_grain_factory_filter":::
 
-嵌套 grain 呼叫进入当前 silo 和目标 silo上的正常离线过滤管道。一个 silo-- 全方位的过滤器必须像样本那样排除审计目标,或者审计电话无限期地重新输入同一个过滤器和循环。使用明确的目标接口、 grain 类型、方法或标记保护,不要从接收的过滤器中调用请求的当前目标。
+嵌套 Grain 调用会进入当前 Silo 的正常传出调用筛选器管道，以及目标 Silo 的传入调用筛选器管道。Silo 范围的传入调用筛选器必须像示例一样排除审计目标，否则审计调用会重新进入同一个筛选器并无限递归。应使用明确的目标接口、Grain 类型、方法或标记作为保护条件，并且不要从当前请求的传入调用筛选器中调用该请求本身的目标 Grain。
 
-避免呼叫周期。 在过滤器等待嵌套电话时, 一个非回复周期 grain 仍然繁忙, 所以一个下游[ 将回拨回激活的 grain 可能会陷入僵局。 如果故意回召是不可避免的, 只对狭窄的呼叫链使用 <xref:Orleans.Runtime.RequestContext.AllowCallChainReentrancy> , 并记起连接; 见 [呼叫链回转](request-scheduling.md#call-chain-reentrancy)。 样本记录了原始呼叫前尝试过的尝试, 夫妇审计可提供请求的审计: 审计失败阻止了 `context.Invoke()` 运行。 审计和原始呼叫不是一次交易, 而且没有保证完全一次, 因此如果最初的呼叫后来失败或者应用级别重写可以产生重复, 记录可以保留。 只有在组合为有意时才使用等待的 grain 调来进行检查; 更愿意在观察工作上记录、 追踪或解开遥测 。
+避免循环调用。不可重入 Grain 在其筛选器等待嵌套调用时仍处于忙碌状态，因此如果下游 Grain 回调该激活实例，可能发生死锁。如果不可避免地需要有意回调，仅在狭窄的调用链范围内使用 <xref:Orleans.Runtime.RequestContext.AllowCallChainReentrancy>，并考虑交错执行；参见[调用链可重入性](request-scheduling.md#call-chain-reentrancy)。示例在原始调用之前记录尝试，并将审计服务的可用性与请求耦合：如果审计失败，`context.Invoke()` 就不会运行。审计与原始调用不属于同一个事务，也不保证恰好一次，因此原始调用之后失败时可能留下审计记录，应用层重试也可能产生重复记录。仅在有意建立这种耦合时才等待 Grain 调用；对于观测性工作，优先使用日志记录、跟踪或解耦的遥测。
 
 <a id="exceptions"></a>
 
-## 例外例外例外例外
+## 异常
 
-`context.Invoke()` 之前的代码正在进入呼叫中。 成功返回后将运行代码。 在等待的观察或转换失败的号召上使用 `try`、 `catch`和 `finally`
+`context.Invoke()` 之前的代码在进入调用时执行，其后的代码在调用成功返回时执行。使用 `try`、`catch` 和 `finally` 包围等待的调用，以观察或转换故障。
 
-如果过滤器捕获了一个例外, 而不重新倒转, 则会处理该例外。 只有当调用者理解替换合同时才能替换例外。 Orleans 已经保存了无法使用的远程例外细节, 使用 <xref:Orleans.Serialization.UnavailableExceptionFallbackException>, 所以大范围例外转换是很少必要的 。
+如果筛选器捕获异常而不重新引发，则视为异常已得到处理。只有调用方了解替换后的异常契约时才应替换异常。对于本地不可用的远程异常类型，Orleans 已使用 <xref:Orleans.Serialization.UnavailableExceptionFallbackException> 保留其异常详情，因此通常不必进行广泛的异常转换。
 
 <a id="scope-and-ordering"></a>
 
-## 范围和订购
+## 作用范围和顺序
 
-接收过滤器还观察 grain 扩展呼叫。 发送过滤器可以观察 Orleans 系统呼叫, 除了应用程序呼叫之外。 如果行为不是全球范围的, 可以通过接口或方法过滤 。
+传入调用筛选器也会观察到 Grain 扩展调用。传出调用筛选器除应用调用外，还可能观察到 Orleans 系统调用。如果行为并非全局适用，则按接口或方法进行筛选。
 
-登记册 silo- 具有 <xref:Orleans.Hosting.GrainCallFilterSiloBuilderExtensions.AddIncomingGrainCallFilter*>的全范围过滤器。类过滤器是 silo 服务提供商创建的单吨服务,其构建依赖性由该供应商解决。 Grain- 级过滤器拥有启动的 grain 寿命,通常的 grain 驱动器供应其构建依赖性。
+使用 <xref:Orleans.Hosting.GrainCallFilterSiloBuilderExtensions.AddIncomingGrainCallFilter*> 注册 Silo 范围的筛选器。基于类的筛选器是由 Silo 服务提供程序创建的单例服务，其构造函数依赖项从该提供程序解析。Grain 级筛选器的生命周期与 Grain 激活实例相同，由常规 Grain 激活器提供构造函数依赖项。
 
-输油管的输油量依此顺序:
+传入调用管道按以下顺序运行：
 
-1. Silo- 宽度过滤器,按登记顺序排列。
-1. grain- 级别过滤器,如果 grain 实例执行 <xref:Orleans.IIncomingGrainCallFilter>。
-1. 目标 grain 或 grain 扩展方法。
+1. Silo 范围的筛选器，按注册顺序执行。
+1. Grain 级筛选器（如果 Grain 实例实现了 <xref:Orleans.IIncomingGrainCallFilter>）。
+1. 目标 Grain 方法或 Grain 扩展方法。
 
-`context.Invoke()` 之前的代码遵循了该顺序。等待的呼叫后代码以反向顺序松开。
+`context.Invoke()` 之前的代码按上述顺序执行。等待的调用返回后，后续代码按相反顺序逐层执行。
 
-过滤器保持不同步、快速且没有阻断电话。 过滤器在其范围中为每通呼叫增加丁字裤,并可能成为整个集群的瓶颈。
+筛选器应保持异步、快速，且不得执行阻塞调用。筛选器会增加其作用范围内每次调用的延迟，并可能成为整个集群的瓶颈。

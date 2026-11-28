@@ -9,23 +9,23 @@ using Xunit;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// 在 Orleans 序列化中测试数字型转换支持。
+/// Orleans 序列化对数值类型转换的支持测试。
 /// 
-/// Orleans 提供数字型号的耐版本序列化,允许:
-/// - 扩大转换(e.g.,整数长)而不损失数据
-/// - 以适当处理方式缩小转换(e.g.)
-/// - 数字字段类型改变时的交叉转换兼容性
+/// Orleans 为数值类型提供具有版本容错能力的序列化，支持：
+/// - 无数据丢失的扩大转换（例如 int 到 long）
+/// - 经过适当处理的缩小转换（例如 long 到 int）
+/// - 数值字段类型发生变化时的跨版本兼容
 /// 
-/// 这一特性对于以下各方面至关重要:
-/// - 数字精确要求变化的气相变化
-/// - 分布系统中数据类型逐渐迁移
-/// - 在滚动升级期间保持兼容性
+/// 此功能对于以下场景至关重要：
+/// - 数值精度要求发生变化时的架构演进
+/// - 分布式系统中逐步迁移数据类型
+/// - 滚动升级期间保持兼容性
 /// 
-/// 序列系统自动处理:
-/// - 不同大小的签名/无符号整数之间的转换
-/// - 浮动点精确度变化
-/// - 安全转换,在目标类型范围内保留价值
-/// - 适当处理溢出/流量减少情况
+/// 序列化系统会自动处理：
+/// - 不同位宽的有符号和无符号整数之间的转换
+/// - 浮点精度的变化
+/// - 在目标类型取值范围内保留值的安全转换
+/// - 对上溢和下溢场景的适当处理
 /// </summary>
 [Trait("Suite", "BVT")]
 [Trait("Provider", "None")]
@@ -44,7 +44,7 @@ public class NumericsWideningAndNarrowingTests
     }
 
     /// <summary>
-    /// 测试无符号整数可以扩大和缩小并保持兼容性。
+    /// 测试无符号整数的扩大及缩小转换能否保持兼容性。
     /// </summary>
     [Fact]
     public void UnsignedIntegerWideningAndNarrowingVersionToleranceTests()
@@ -65,7 +65,7 @@ public class NumericsWideningAndNarrowingTests
     }
 
     /// <summary>
-    /// 签名的整数可以扩大和缩小并保持兼容性。
+    /// 测试有符号整数的扩大及缩小转换能否保持兼容性。
     /// </summary>
     [Fact]
     public void SignedIntegerWideningAndNarrowingVersionToleranceTests()
@@ -86,7 +86,7 @@ public class NumericsWideningAndNarrowingTests
     }
 
     /// <summary>
-    /// 测试浮点数可以扩大和缩小并保持兼容性。
+    /// 测试浮点数的扩大及缩小转换能否保持兼容性。
     /// </summary>
     [Fact]
     public void FloatWideningAndNarrowingVersionToleranceTests()
@@ -127,7 +127,7 @@ public class NumericsWideningAndNarrowingTests
         var values = new List<N>
         {
             N.MinValue,
-            // 此套件所使用的所有数值类型都是值类型, 所以默认值是非null 。
+            // 此测试套件涉及的所有数值类型均为值类型，因此默认值不为 null。
             default!,
             N.MaxValue / two,
             N.MaxValue,
@@ -147,7 +147,7 @@ public class NumericsWideningAndNarrowingTests
         var values = (new N[]
         {
             N.MinValue,
-            // 此套件所使用的所有数值类型都是值类型, 所以默认值是非null 。
+            // 此测试套件涉及的所有数值类型均为值类型，因此默认值不为 null。
             default!,
             N.MaxValue / two,
             N.MaxValue,
@@ -186,7 +186,7 @@ public class NumericsWideningAndNarrowingTests
         {
             N.MinValue + buffer,
             N.MinValue / two,
-            // 此套件所使用的所有数值类型都是值类型, 所以默认值是非null 。
+            // 此测试套件涉及的所有数值类型均为值类型，因此默认值不为 null。
             default!,
             N.MaxValue / two,
             N.MaxValue - buffer,
@@ -208,7 +208,7 @@ public class NumericsWideningAndNarrowingTests
         {
             N.MinValue + buffer,
             N.MinValue / two,
-            // 此套件所使用的所有数值类型都是值类型, 所以默认值是非null 。
+            // 此测试套件涉及的所有数值类型均为值类型，因此默认值不为 null。
             default!,
             N.MaxValue / two,
             N.MaxValue - buffer,
@@ -232,7 +232,7 @@ public class NumericsWideningAndNarrowingTests
         where TLeft : INumber<TLeft>, IMinMaxValue<TLeft>
         where TRight : INumber<TRight>, IMinMaxValue<TRight>
     {
-        // 转折价值, 沿途转换。
+        // 对值进行序列化往返，并在过程中转换其类型。
         var payload = _serializer.SerializeToArray(leftValue);
         var result = _serializer.Deserialize<TRight>(payload)!;
 
@@ -248,7 +248,7 @@ public class NumericsWideningAndNarrowingTests
         where TLeft : INumber<TLeft>, IMinMaxValue<TLeft>
         where TRight : INumber<TRight>, IMinMaxValue<TRight>
     {
-        // 折叠值和圆曲折包装值,并沿途转换。
+        // 包装该值，再对包装后的值进行序列化往返，并在过程中转换其类型。
         var payload = _serializer.SerializeToArray(new ValueHolder<TLeft> { Value = leftValue });
         var result = _serializer.Deserialize<ValueHolder<TRight>>(payload)!.Value;
 
@@ -264,7 +264,7 @@ public class NumericsWideningAndNarrowingTests
     public sealed class ValueHolder<T>
     {
         [Id(0)]
-        // 直接或通过消毒测试或先进行初始化,然后阅读。
+        // 测试在读取此成员之前，会直接初始化它或通过反序列化完成初始化。
         public T Value = default!;
     }
 }
@@ -278,7 +278,7 @@ using Xunit;
 namespace Orleans.Serialization.UnitTests;
 
 /// <summary>
-/// 确保以容忍的方式扩大和缩小数字字段(整数字段、浮点等)。
+/// 确保数值字段（整数、浮点数等）能够以兼顾版本容错的方式执行扩大及缩小转换。
 /// </summary>
 public class NumericsWideningAndNarrowingTests
 {
@@ -309,7 +309,7 @@ public class NumericsWideningAndNarrowingTests
     }
 
     /// <summary>
-    /// 测试无符号整数可以扩大和缩小并保持兼容性。
+    /// 测试无符号整数的扩大及缩小转换能否保持兼容性。
     /// </summary>
     [Fact]
     public void UnsignedIntegerWideningAndNarrowingVersionToleranceTests()
@@ -325,7 +325,7 @@ public class NumericsWideningAndNarrowingTests
     }
 
     /// <summary>
-    /// 签名的整数可以扩大和缩小并保持兼容性。
+    /// 测试有符号整数的扩大及缩小转换能否保持兼容性。
     /// </summary>
     [Fact]
     public void SignedIntegerWideningAndNarrowingVersionToleranceTests()
@@ -341,7 +341,7 @@ public class NumericsWideningAndNarrowingTests
     }
 
     /// <summary>
-    /// 测试浮点数可以扩大和缩小并保持兼容性。
+    /// 测试浮点数的扩大及缩小转换能否保持兼容性。
     /// </summary>
     [Fact]
     public void FloatWideningAndNarrowingVersionToleranceTests()
@@ -467,7 +467,7 @@ public class NumericsWideningAndNarrowingTests
 
     private void RoundTripValueDirectly<TLeft, TRight>(TLeft leftValue, INumber<TLeft> left, INumber<TRight> right)
     {
-        // 转折价值, 沿途转换。
+        // 对值进行序列化往返，并在过程中转换其类型。
         var payload = _serializer.SerializeToArray(leftValue);
         var result = _serializer.Deserialize<TRight>(payload);
 
@@ -481,9 +481,9 @@ public class NumericsWideningAndNarrowingTests
 
     private void RoundTripValueIndirectly<TLeft, TRight>(TLeft leftValue, INumber<TLeft> left, INumber<TRight> right)
     {
-        // 折叠值和圆曲折包装值,并沿途转换。
+        // 包装该值，再对包装后的值进行序列化往返，并在过程中转换其类型。
         var payload = _serializer.SerializeToArray(new ValueHolder<TLeft> { Value = leftValue });
-        var result = _serializer.Deserialize<ValueHolder<TRight>>(payload)!.Value; // 有效载荷从 ValueHolder 上文。
+        var result = _serializer.Deserialize<ValueHolder<TRight>>(payload)!.Value; // 此负载由上方的 ValueHolder 序列化而来。
 
         var asRight = right.CreateTruncating(leftValue);
         Assert.Equal(asRight, result);

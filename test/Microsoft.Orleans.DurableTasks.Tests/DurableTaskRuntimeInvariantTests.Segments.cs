@@ -8,7 +8,7 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 尝试在区段运行,每个区段都请求启动: 两个耐久等待之间的代码。
+/// 执行尝试分段运行，每个执行段都是激活实例上的一个本地请求，即两次持久化等待之间的代码。
 /// </summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
@@ -32,7 +32,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         })), cancellationToken);
         await WaitUntilAsync(() => runtime.GetWakeupDelay() is null);
 
-        // 停车的尝试部分结束, 所以启动承认了另一个尝试, 其部分持有它。
+        // 已挂起执行尝试的执行段结束，因此激活实例接纳另一个执行尝试，后者的执行段占用该激活实例。
         await ((IDurableTaskServer)runtime).ScheduleAsync(blockingId, CreateRequest(4, () => DurableTask.Run(async _ =>
         {
             blockingStarted.TrySetResult();
@@ -41,7 +41,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         })), cancellationToken);
         await blockingStarted.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
 
-        // 电话结果在另一段运行时被确认 所以停靠的尝试是可调用的 但不会恢复
+        // 调用结果在另一个执行段运行期间提交，因此已挂起的执行尝试可以运行，但尚未恢复执行。
         runtime.AcceptResponseFromInbox(parkedId.Child("call"), DurableTaskResponse.FromResult(2), RemoteTarget);
         await manager.WriteStateAsync(cancellationToken);
         for (var yields = 0; yields < 20; yields++)
@@ -85,7 +85,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         })), cancellationToken);
         await WaitUntilAsync(() => parked && runtime.GetWakeupDelay() is null);
 
-        // 停止不等待停靠的尝试, 它没有更多的代码: 下一次激活重播它。
+        // 停止过程不会等待已挂起的执行尝试，后者不再运行任何代码；下一个激活实例将重放它。
         await runtime.StopAsync(cancellationToken).WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
         for (var yields = 0; yields < 20; yields++)
         {
@@ -111,8 +111,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await manager.WriteStateAsync(cancellationToken);
         await WaitUntilAsync(() => runtime.GetWakeupDelay() is null);
 
-        // 通讯设备在启动时,在运行时间恢复之前,即开始使用时,会咨询工作来源。
-        // 启动报告从存储处执行前的操作,并重新武装警报。
+        // Messaging 在激活实例启动时、运行时恢复之前查询其工作来源，因此替代
+        // 激活实例会从存储报告待完成的执行实例，并重新设置唤醒操作。
         var (replacement, _, _, _) = CreateRuntime(storage, manager);
         Assert.Equal(new DurableTaskOptions().RunnableExecutionWakeupDelay, replacement.GetWakeupDelay());
 
@@ -138,8 +138,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         })), cancellationToken);
         await started.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
 
-        // 停止运动会抛弃运行中的尝试,
-        // 之后,必须留下继任者,让 grain 重新恢复处决。
+        // 停止过程丢弃正在运行的执行尝试，而 Messaging 会持续查询其工作来源，直至消息泵停止：
+        // 当时运行的唤醒操作必须保留后续唤醒，重新激活 Grain 以恢复执行实例。
         await runtime.StopAsync(cancellationToken).WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
 
         Assert.Equal(new DurableTaskOptions().RunnableExecutionWakeupDelay, workSource.GetWakeupDelay());

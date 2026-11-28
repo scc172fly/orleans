@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Orleans.Serialization.Invocation;
 using Xunit;
 
-#pragma warning disable xUnit1031 // These tests manually complete ValueTaskSource awaiters and must call GetResult.
+#pragma warning disable xUnit1031 // 这些测试手动完成 ValueTaskSource 等待器，必须调用 GetResult。
 
 namespace Orleans.Serialization.UnitTests;
 

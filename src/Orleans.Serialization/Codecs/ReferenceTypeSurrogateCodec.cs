@@ -8,10 +8,10 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <typeparamref name="TField"/>的代用序列器。
+    /// <typeparamref name="TField"/> 的代理序列化器。
     /// </summary>
-    /// <typeparam name="TField">执行此类支持的类型。</typeparam>
-    /// <typeparam name="TSurrogate">代替代用类型 <typeparamref name="TField"/>.</typeparam>
+    /// <typeparam name="TField">此类的实现所支持的类型。</typeparam>
+    /// <typeparam name="TSurrogate">代替 <typeparamref name="TField"/> 进行序列化的代理类型。</typeparam>
     public abstract class ReferenceTypeSurrogateCodec<TField, TSurrogate> : IFieldCodec<TField> where TSurrogate : struct
     {
         private readonly Type CodecFieldType = typeof(TField);
@@ -20,7 +20,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ReferenceTypeSurrogateCodec{TField, TSurrogate}"/> 类的新实例。
         /// </summary>
-        /// <param name="surrogateSerializer">代孕序列器</param>
+        /// <param name="surrogateSerializer">代理类型序列化器。</param>
         protected ReferenceTypeSurrogateCodec(IValueSerializer<TSurrogate> surrogateSerializer)
         {
             _surrogateSerializer = surrogateSerializer;
@@ -47,7 +47,7 @@ namespace Orleans.Serialization.Codecs
                 return result;
             }
 
-            // 类型是后裔,不是完全吻合 所以请具体连发器
+            // 该类型为派生类型而非精确匹配，因此获取其专用序列化器。
             var specificSerializer = reader.Session.CodecProvider.GetCodec(fieldType);
             return (TField)specificSerializer.ReadValue(ref reader, field)!;
         }
@@ -76,17 +76,17 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 将代数转换为字段类型。
+        /// 将代理值转换为字段类型。
         /// </summary>
-        /// <param name="surrogate">代孕人。</param>
-        /// <returns>数值。</returns>
+        /// <param name="surrogate">代理对象。</param>
+        /// <returns>值。</returns>
         public abstract TField ConvertFromSurrogate(ref TSurrogate surrogate);
 
         /// <summary>
-        /// 将一个值转换为代孕类型。
+        /// 将值转换为代理类型。
         /// </summary>
-        /// <param name="value">数值。</param>
-        /// <param name="surrogate">代孕人。</param>
+        /// <param name="value">值。</param>
+        /// <param name="surrogate">代理对象。</param>
         public abstract void ConvertToSurrogate(TField value, ref TSurrogate surrogate);
     }
 }

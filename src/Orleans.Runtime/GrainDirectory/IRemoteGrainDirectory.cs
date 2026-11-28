@@ -6,37 +6,37 @@ using Orleans.GrainDirectory;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 人均 --silo 用于管理分布式、分割式 grain-silo- 激活目录
+    /// 用于管理分布式分区式 Grain-Silo-激活实例目录的每 Silo 系统接口。
     /// </summary>
     internal interface IRemoteGrainDirectory : ISystemTarget, IDhtGrainDirectory
     {
         /// <summary>
-        /// 记录一连串新的 grain 激活。
-        /// 这种方法只应在交接时远程调用。
+        /// 记录一批新的 Grain 激活实例。
+        /// 此方法只应在移交期间通过远程调用执行。
         /// </summary>
-        /// <param name="addresses">发 言 的 国 址 grains 登记</param>
+        /// <param name="addresses">要注册的 Grain 地址。</param>
         /// <returns></returns>
         [Alias("CD06EAEE")]
         Task RegisterMany(List<GrainAddress> addresses, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// 在给定的 grains列表上获取更新信息。
-        /// 此方法应仅远程调用以刷新目录缓存 。
+        /// 获取给定 Grain 列表的更新信息。
+        /// 此方法只应通过远程调用执行，用于刷新目录缓存。
         /// </summary>
-        /// <param name="grainAndETagList">列表中的 grains 和(转换)数字。 
-        /// 使用该方法的援引者目前持有的激活清单。</param>
-        /// <returns>持有 grain的图例清单,启动清单的生成数和激活清单。 
-        /// 如果援引者的相数与目的地编号相符,则该列表为无效。如果目标不
-        /// 保留 grain上的信息, 将返回生成计 -1 (启动列表无效)</returns>
+        /// <param name="grainAndETagList">Grain 及世代（版本）号的列表。世代号表示
+        /// 当前方法调用方持有的激活实例列表的版本。</param>
+        /// <returns>元组列表，每个元组包含 Grain、激活实例列表的世代号，以及激活实例列表。
+        /// 如果调用方的世代号与目标方一致，则激活实例列表为 null。如果目标方没有
+        /// 该 Grain 的信息，则返回世代计数器 -1（且激活实例列表为 null）。</returns>
         [Alias("7DF50601")]
         Task<List<AddressAndTag>> LookUpMany(
             List<(GrainId GrainId, int Version)> grainAndETagList,
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// 注册此目录的分割分区激活 。
+        /// 将拆分所得分区中的激活实例注册到此目录。
         /// </summary>
-        /// <param name="singleActivations">分割分割区单激活登记。</param>
+        /// <param name="singleActivations">来自拆分所得分区的单激活实例注册记录。</param>
         /// <returns></returns>
         [Alias("9ABE3793")]
         Task AcceptSplitPartition(List<GrainAddress> singleActivations, CancellationToken cancellationToken = default);

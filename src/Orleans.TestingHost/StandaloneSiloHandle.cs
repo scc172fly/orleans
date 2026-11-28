@@ -13,7 +13,7 @@ using Microsoft.Extensions.Configuration;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// 一种 silo 处理和工厂,为每个 silo产生一个单独的过程。
+    /// 为每个 Silo 启动独立进程的 Silo 句柄及工厂。
     /// </summary>
     public class StandaloneSiloHandle : SiloHandle
     {
@@ -27,11 +27,11 @@ namespace Orleans.TestingHost
         private Task _runTask = null!;
 
         /// <summary>
-        /// 用于识别启动进程配置密钥 。
+        /// 用于标识要启动进程的配置键。
         /// </summary>
         public const string ExecutablePathConfigKey = "ExecutablePath";
 
-        /// <summary>获取 silo 主机的引用。</summary>
+        /// <summary>获取 Silo 宿主的引用。</summary>
         private Process Process { get; set; }
 
         /// <inheritdoc />
@@ -40,9 +40,9 @@ namespace Orleans.TestingHost
         /// <summary>
         /// 初始化 <see cref="StandaloneSiloHandle"/> 类的新实例。
         /// </summary>
-        /// <param name="siloName"> silo的名称。</param>
-        /// <param name="configuration">将传递到独立 silo 进程的配置。</param>
-        /// <param name="executablePath">主机 silo的可执行文件路径。</param>
+        /// <param name="siloName">Silo 名称。</param>
+        /// <param name="configuration">要传递给独立 Silo 进程的配置。</param>
+        /// <param name="executablePath">承载 Silo 的可执行文件路径。</param>
         public StandaloneSiloHandle(string siloName, IConfiguration configuration, string executablePath)
         {
             if (string.IsNullOrWhiteSpace(executablePath) || !File.Exists(executablePath))
@@ -52,7 +52,7 @@ namespace Orleans.TestingHost
 
             Name = siloName;
 
-            // 如果调试器与此进程有关,则给它一个机会附加远程进程。
+            // 如果调试器已附加到此进程，则给它附加到远程进程的机会。
             if (Debugger.IsAttached)
             {
                 configuration["AttachDebugger"] = "true";
@@ -84,7 +84,7 @@ namespace Orleans.TestingHost
                 }
                 else
                 {
-                    // 读取状态更新过程中的标准输出 。
+                    // 读取进程的标准输出以获取状态更新。
                     if (!_startedEvent.Task.IsCompleted)
                     {
                         if (e.Data.StartsWith(StandaloneSiloHost.SiloAddressLog, StringComparison.Ordinal))
@@ -145,7 +145,7 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// 启动新的程序以主机 silo,使用配置中提供的可执行文件“ExecutablePath" 财产作为入境点。
+        /// 启动新进程以承载 Silo，使用配置的 "ExecutablePath" 属性中提供的可执行文件作为入口点。
         /// </summary>
         public static async Task<SiloHandle> Create(
             string siloName,
@@ -158,9 +158,9 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// 创建代表,产生 silo 在新程序中,使用所提供的可执行文件作为该程序的切入点 silo.
+        /// 创建启动新进程中的 Silo 的委托，使用提供的可执行文件作为该 Silo 的入口点。
         /// </summary>
-        /// <param name="executablePath">产卵的切入点 silos.</param>
+        /// <param name="executablePath">启动的 Silo 的入口点。</param>
         public static Func<string, IConfiguration, Task<SiloHandle>> CreateDelegate(string executablePath)
         {
             return async (siloName, configuration) =>
@@ -172,9 +172,9 @@ namespace Orleans.TestingHost
         }
 
         /// <summary>
-        /// 创建一个代表,在新的过程中产生 silo ,该代表的切入点是提供组装(或可执行对应文件,如果它是图书馆的话)作为该 silo的切入点。
+        /// 创建启动新进程中的 Silo 的委托，使用提供的程序集（如果是库，则使用对应的可执行程序集）作为该 Silo 的入口点。
         /// </summary>
-        /// <param name="assembly">产卵的切入点 silos。如果提供的组装是一个库(dll),则将援引其可执行的硅状组装。</param>
+        /// <param name="assembly">启动的 Silo 的入口点。如果提供的程序集是库（dll），则改为调用其同级可执行程序集。</param>
         public static Func<string, IConfiguration, Task<SiloHandle>> CreateForAssembly(Assembly assembly)
         {
             var executablePath = GetExecutablePath(
@@ -208,7 +208,7 @@ namespace Orleans.TestingHost
                 }
                 else
                 {
-                    // 在类似unix的操作系统上,可执行文件一般没有扩展名。
+                    // 在类 Unix 操作系统中，可执行文件通常没有扩展名。
                     target = new FileInfo(Path.GetFileNameWithoutExtension(originalFileInfo.FullName));
                 }
             }

@@ -11,13 +11,13 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// 证明一个开始 其目标无法解码的 援引被重新研究
-/// <see cref="DurableTaskDeliveryException"/> 一次 <see cref="DurableMessagingOptions.OutboxRetryTimeout"/> 过。
+/// 验证目标无法解码其调用的启动操作会重试，并最终以
+/// <see cref="DurableTaskDeliveryException"/> 失败，失败发生在 <see cref="DurableMessagingOptions.OutboxRetryTimeout"/> 所指定时长届满时。
 /// </summary>
 /// <remarks>
-/// A <see cref="DeliveryFaultInjector"/> 无法按请求类型在目标的收件箱中每次发送请求
-/// 目标部署时不知道。
-/// 一旦发件箱 重新安排每次尝试。
+/// <see cref="DeliveryFaultInjector"/> 在目标收件箱处使该调用的每次传递失败，模拟目标部署
+/// 无法识别请求类型的情形。发件箱依据持久化作业时钟重试；测试在
+/// 发件箱重新调度每次尝试后推进该时钟。
 /// </remarks>
 public abstract class DurableTaskUndecodableStartTests : IAsyncLifetime
 {
@@ -54,8 +54,8 @@ public abstract class DurableTaskUndecodableStartTests : IAsyncLifetime
         var workflow = await starter.StartAsync(target.GetPrimaryKey()).WithId("workflow").ScheduleAsync(cancellationToken);
         var outcome = workflow.GetResponseAsync(cancellationToken);
 
-        // 目标失败了,没有进展,没有阶段, 所以启动人的发件箱重新安排它, 关于持久就业
-        // 测试推进的时钟
+        // 目标使传递失败且不暂存任何内容，因此启动方发件箱根据持久化作业
+        // 时钟重新调度传递，测试会推进该时钟。
         var firstRetry = await WaitForRetryAsync(events, starterId, attemptCount: 1);
         Assert.Equal(targetId, firstRetry.ReceiverId);
         Assert.Contains(DecodingError, firstRetry.Error, StringComparison.Ordinal);
@@ -67,7 +67,7 @@ public abstract class DurableTaskUndecodableStartTests : IAsyncLifetime
         Assert.Equal(2, faults.Count);
         Assert.False(outcome.IsCompleted);
 
-        // 一旦重试超时过后,发箱就会发出无信号的信号 启动失败
+        // 重试超时后，发件箱将调用转入死信，启动失败。
         _fixture.JobClock.Advance(RetryTimeout);
         var retired = (MessagingEvents.OutboxMessageRetired)(await events.WaitForEventAsync(
             nameof(MessagingEvents.OutboxMessageRetired),
@@ -100,14 +100,14 @@ public abstract class DurableTaskUndecodableStartTests : IAsyncLifetime
             TestContext.Current.CancellationToken)).Payload!;
 }
 
-/// <summary>运行不可更改的启动覆盖,任务状态以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行无法解码的启动相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskUndecodableStartTests() : DurableTaskUndecodableStartTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行不可更改的启动覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行无法解码的启动相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

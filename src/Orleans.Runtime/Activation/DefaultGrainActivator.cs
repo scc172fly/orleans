@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 默认 <see cref="IGrainActivator"/> 执行。
+    /// 默认的 <see cref="IGrainActivator"/> 实现。
     /// </summary>
     public class DefaultGrainActivator : IGrainActivator
     {
@@ -15,10 +15,10 @@ namespace Orleans.Runtime
         private readonly Type _grainClass;
 
         /// <summary>
-        /// 初始化一个新的 <see cref="DefaultGrainActivator"/> 实例。
+        /// 初始化新的 <see cref="DefaultGrainActivator"/> 实例。
         /// </summary>
-        /// <param name="serviceProvider">服务供应商。</param>
-        /// <param name="grainClass">下 grain 其公共建筑师为依赖注射保留了等级。</param>
+        /// <param name="serviceProvider">服务提供程序。</param>
+        /// <param name="grainClass">保留公共构造函数以供依赖注入使用的 Grain 类。</param>
         public DefaultGrainActivator(
             IServiceProvider serviceProvider,
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type grainClass)

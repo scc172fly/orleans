@@ -3,22 +3,22 @@ function Install-Dotnet
    $installDotnet = $true
    try 
    {
-       # 检查 dotnet.exe 命令是否存在
+       # 检查 dotnet.exe 命令是否存在。
        Get-Command dotnet.exe 2>&1 | Out-Null
-       # 从 global.json读取版本
+       # 从 global.json 读取版本。
        $globalJson = Get-Content .\global.json | ConvertFrom-Json
        $requiredVersion = $globalJson.sdk.version
-       # 检查已安装版本
+       # 检查已安装的版本。
        $localVersions = dotnet --list-sdks |% {  $_.Split(" ")[0] }
        Write-Output "Required SDK: $requiredVersion"
        Write-Output "Installed SDKs: $localversions"
-       # 如果所需版本没有安装, 我们将调用安装脚本
+       # 如果未安装所需版本，则调用安装脚本。
        $installDotnet = !$localVersions.Contains($globalJson.sdk.version)
    }
    catch
    {
        Write-Output "dotnet not found"
-       # 什么都不做,我们安装点网
+       # 无需进行其他操作，接下来将安装 dotnet。
    }
 
    if ($installDotnet)

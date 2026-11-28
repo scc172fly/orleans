@@ -12,17 +12,17 @@ using Orleans.Connections.Transport.Sockets;
 namespace Orleans.TestingHost.UnixSocketTransport;
 
 /// <summary>
-/// 配置 Unix 域套接字信件传输听众。
+/// 配置 Unix 域套接字消息传输监听器。
 /// </summary>
 public class UnixDomainSocketMessageTransportListenerOptions
 {
     /// <summary>
-    /// 获取或设置套接字路径。默认是系统临时目录中唯一的路径。
+    /// 获取或设置套接字路径。默认为系统临时目录下的唯一路径。
     /// </summary>
     public string Path { get; set; } = CreateDefaultPath();
 
     /// <summary>
-    /// 获取或设置一个值,以显示是否启用了听众。默认为 <see langword="true"/>。
+    /// 获取或设置一个值，指示监听器是否启用。默认为 <see langword="true"/>。
     /// </summary>
     public bool Enabled { get; set; } = true;
     private static string CreateDefaultPath() => System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"silo_{Guid.NewGuid():N}");
@@ -127,22 +127,22 @@ internal class UnixDomainSocketMessageTransportListener : MessageTransportListen
             }
             catch (OperationCanceledException)
             {
-                // 优雅的终止
+                // 正常终止。
                 return null;
             }
             catch (ObjectDisposedException)
             {
-                // 电话是叫 UnbindAsync/DisposeAsync 退回就完
+                // 已调用 UnbindAsync/DisposeAsync，直接返回 null，表示处理已结束。
                 return null;
             }
             catch (SocketException e) when (e.SocketErrorCode == SocketError.OperationAborted)
             {
-                // 电话是叫 UnbindAsync/DisposeAsync 退回就完
+                // 已调用 UnbindAsync/DisposeAsync，直接返回 null，表示处理已结束。
                 return null;
             }
             catch (SocketException)
             {
-                // 连接在积压时被重置, 所以我们再试一次。
+                // 连接在等待队列中被重置，因此重试。
                 SocketsLog.ConnectionReset(Logger, connection: "(null)");
             }
         }

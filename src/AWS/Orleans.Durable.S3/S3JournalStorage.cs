@@ -31,7 +31,7 @@ internal sealed partial class S3JournalStorage : IJournalStorage
     private readonly IAmazonS3 _client;
     private readonly JournalId _journalId;
     private readonly string _walObjectKey;
-    // 读或创建前不为空, 空用于没有 WAL 。
+    // 在读取或创建前为 null；WAL 不存在时为空。
     private string? _walETag;
     private WalProviderState _walProviderState;
 
@@ -151,8 +151,8 @@ internal sealed partial class S3JournalStorage : IJournalStorage
 
                 var walState = CreateWalState(properties);
 
-                // 元数据运行从未建立或移动内容的先决条件:它们只从版本中遵循WAL
-                // 情况是否有效。
+                // 元数据操作从不建立或推进内容前置条件：它们仅从当前实例
+                // 持有的版本跟踪 WAL。
                 var holdsWalVersion = WalExists
                     && IsSameLogicalWal(walState.ProviderState, _walProviderState)
                     && (walState.ProviderState.Generation is not null || string.Equals(walState.ETag, _walETag, StringComparison.Ordinal));
@@ -350,7 +350,7 @@ internal sealed partial class S3JournalStorage : IJournalStorage
             var expectedProviderState = _walProviderState;
             if (!WalExists)
             {
-                // 观察日记时不删除任何内容, 除非其他作家创建了它。
+                // 若实例此前发现日志不存在，则不删除任何内容，除非此后有其他写入方创建了日志。
                 if (await TryLoadWalStateAsync(expectedETag: null, cancellationToken).ConfigureAwait(false) is not null)
                 {
                     throw CreateConcurrentCreationException(exception: null);
@@ -822,7 +822,7 @@ internal sealed partial class S3JournalStorage : IJournalStorage
 
         try
         {
-            // 实例显示,没有WAL,所以它只是在WAL仍然不存在的情况下才创建WAL。
+            // 此实例此前发现 WAL 不存在，因此仅在 WAL 仍不存在时创建它。
             var created = await CreateWalAsync(
                 checkpointName: null,
                 ifMatch: null,
@@ -832,7 +832,7 @@ internal sealed partial class S3JournalStorage : IJournalStorage
         }
         catch (AmazonS3Exception exception) when (IsObjectAlreadyExists(exception) || IsConditionalRequestConflict(exception))
         {
-            // 有条件的请求冲突 意味着另一个作家的有条件写作 给WAL的正在飞行。
+            // 条件请求冲突表示另一写入方针对 WAL 的条件写入正在进行。
             throw CreateConcurrentCreationException(exception);
         }
     }

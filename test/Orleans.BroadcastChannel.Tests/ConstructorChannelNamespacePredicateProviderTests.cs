@@ -10,7 +10,7 @@ using System.Collections;
 namespace UnitTests;
 
 /// <summary>
-/// <see cref="ConstructorChannelNamespacePredicateProvider"/> 上游型号登记和分辨率测试。
+/// 测试 <see cref="ConstructorChannelNamespacePredicateProvider"/> 谓词类型的注册与解析。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

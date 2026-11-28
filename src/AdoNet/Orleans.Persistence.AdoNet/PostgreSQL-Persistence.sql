@@ -1,5 +1,5 @@
--- 在共享主脚本创建 OrleansQuery后应用此脚本设置和重复升级。
--- 在应用前停止使用此数据库的所有 silos , 然后重新启动以重新装入查询 。
+-- 共享的 Main 脚本创建 OrleansQuery 后，应用此脚本以执行初始化及可重复升级。
+-- 应用脚本前，停止所有使用此数据库的 Silo，之后重新启动以重新加载查询。
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS OrleansStorage
@@ -13,9 +13,9 @@ CREATE TABLE IF NOT EXISTS OrleansStorage
     serviceid character varying(150)  NOT NULL,
     payloadbinary bytea,
     modifiedon timestamptz NOT NULL,
-    -- 下一个版本的包页从2147483647返回到1,所以经常写 grain 永远不会溢出。
-    -- Orleans 比较版本时只为平等起见, 所以版本必须修改每本书写内容, 但不需要永久增加 。
-    -- 旧版本只能在2147483647进一步写成同本 grain后再次匹配。
+    -- 版本号达到 2147483647 后，下一个值回绕至 1，因此频繁写入的 Grain 不会发生版本号溢出。
+    -- Orleans 仅比较版本是否相等，因此每次写入时版本号必须变化，但不需要始终递增。
+    -- 只有在对同一 Grain 又执行 2147483647 次写入后，旧版本号才可能再次匹配。
     version integer
 );
 
@@ -42,24 +42,24 @@ AS $function$
 
     BEGIN
 
-    -- Grain 状态并非无效, 因此该国必须已经读过之前存储处的文字 。
-    -- 让我们试着更新它。
+    -- Grain 状态不为 null，因此必定已从存储中读取过该状态。
+    -- 尝试更新该状态。
     --
-    -- 当 Orleans 在正常状态下运行时,如果该状态不分裂,将
-    -- 只有一个 grain ,只有给定的ID和类型组合。此
-    -- grain 如果 Orleans 保证得到坚持,则主要以序列形式保存国家。
-    -- 如果不是,由于版本号,更新应正确工作。
+    -- 当 Orleans 正常运行且未发生脑裂时，
+    -- 给定 ID 和类型组合仅对应一个 Grain。
+    -- 若 Orleans 的保证成立，该 Grain 基本上会串行保存状态。即使
+    -- 不满足这一点，版本号也能确保更新正确执行。
     --
-    -- 在分裂的大脑情况下,可能出现两种或两种以上的情况
-    -- 与给定的ID和类型组合grains 。当他们尝试 INSERT 时
-    -- 同时,表格需要以悲观的方式锁在
-    -- grains 得到 @GrainStateVersion = 1 回报,而另一个 grains 将失败
-    -- 以更新存储。以下安排是为了减少正常操作中的锁定。
+    -- 发生脑裂时，可能会出现两个或更多具有相同 ID 和类型组合的
+    -- Grain。当它们尝试并发执行 INSERT 时，
+    -- 必须先对表采用悲观锁，以确保其中一个
+    -- Grain 收到返回值 @GrainStateVersion = 1，而其他 Grain 无法
+    -- 更新存储。以下设计旨在减少正常运行时的锁定。
     --
-    -- 如果明确返回的版本号仍然相同, Orleans 解释其内容,更新没有成功
-    -- 抛下一箭, InconsistentStateException.
+    -- 如果显式返回的版本号仍未改变，Orleans 将其解释为更新失败，
+    -- 并抛出 InconsistentStateException。
     --
-    -- 见 https://learn.microsoft.com/dotnet/orleans/grains/grain-persistence中的进一步资料。
+    -- 更多信息见 https://learn.microsoft.com/dotnet/orleans/grains/grain-persistence。
     IF _GrainStateVersion IS NOT NULL
     THEN
         UPDATE OrleansStorage
@@ -85,8 +85,8 @@ AS $function$
         END IF;
     END IF;
 
-    -- grain 状态尚未读取。 以下锁的锁定相当悲观
-    -- 确保只有一次国家清单专家审评组成功。
+    -- 尚未读取 Grain 状态。以下操作采用较严格的悲观锁策略，
+    -- 以确保只有一个 INSERT 成功。
     IF _GrainStateVersion IS NULL
     THEN
         INSERT INTO OrleansStorage
@@ -115,7 +115,7 @@ AS $function$
             1
         WHERE NOT EXISTS
          (
-            -- 不应有任何版本的 grain 状态。
+            -- 此 Grain 状态不应已有任何版本。
             SELECT 1
             FROM OrleansStorage
             WHERE

@@ -5,12 +5,12 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// 用于简单队列缓存的适应器 。
+    /// 简单队列缓存的适配器。
     /// </summary>
     public class SimpleQueueAdapterCache : IQueueAdapterCache
     {
         /// <summary>
-        /// 配置的缓存大小属性名称
+        /// 用于配置的缓存大小属性名。
         /// </summary>
         public const string CacheSizePropertyName = "CacheSize";
 
@@ -19,11 +19,11 @@ namespace Orleans.Providers.Streams.Common
         private readonly ILoggerFactory loggerFactory;
 
         /// <summary>
-        /// 用于简单队列缓存的适应器 。
+        /// 简单队列缓存的适配器。
         /// </summary>
         /// <param name="options">选项。</param>
-        /// <param name="providerName">流体提供者名称。</param>
-        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="providerName">流提供程序名称。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
         public SimpleQueueAdapterCache(SimpleQueueCacheOptions options, string providerName, ILoggerFactory loggerFactory)
         {
             this.cacheSize = options.CacheSize;

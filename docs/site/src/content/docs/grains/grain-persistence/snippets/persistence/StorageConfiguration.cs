@@ -125,15 +125,15 @@ public static class StorageConfiguration
 
     public static void ConfigureRedisAspireAppHost()
     {
-        // 注:这是阿spire AppHost - 无法实际编译的伪代码
-        // 此处的工程中,但代表了医生的图案
+        // 注意：这是 Aspire AppHost 的伪代码，实际无法在此项目中编译，
+        // 但展示了文档所述模式。
     }
 
     public static void ConfigureRedisAspireSilo(HostApplicationBuilder builder)
     {
         // <configure_redis_aspire_silo>
-        // 注册有密钥服务的 Redis 客户端。
-        // Orleans 供应商用其密钥服务名查找资源。
+        // 使用键控服务注册 Redis 客户端。
+        // Orleans 提供程序按键控服务名称查找资源。
         // builder.AddKeyedRedisClient("orleans-redis");
 
         builder.UseOrleans(siloBuilder =>
@@ -142,7 +142,7 @@ public static class StorageConfiguration
                 name: "redis",
                 configureOptions: options =>
                 {
-                    // 使用 Aspire 提供的连接字符串
+                    // 使用 Aspire 提供的连接字符串。
                     var connectionString = builder.Configuration.GetConnectionString("orleans-redis");
                     options.ConfigurationOptions = ConfigurationOptions.Parse(connectionString!);
                 });
@@ -153,8 +153,8 @@ public static class StorageConfiguration
     public static void ConfigureRedisAdvanced(ISiloBuilder siloBuilder, IServiceProvider sp)
     {
         // <configure_redis_advanced>
-        // 注册有密钥服务的 Redis 客户端。
-        // Orleans 供应商用其密钥服务名查找资源。
+        // 使用键控服务注册 Redis 客户端。
+        // Orleans 提供程序按键控服务名称查找资源。
         // builder.AddKeyedRedisClient("orleans-redis");
 
         siloBuilder.AddRedisGrainStorage("redis");
@@ -163,7 +163,7 @@ public static class StorageConfiguration
             {
                 options.CreateMultiplexer = _ =>
                 {
-                    // 从DI(由仲裁庭提供)中解决 IConnectionMultiplexer
+                    // 从 DI 解析 IConnectionMultiplexer（由 Aspire 提供）。
                     return Task.FromResult((
                         Multiplexer: sp.GetRequiredService<IConnectionMultiplexer>(),
                         IsShared: true));

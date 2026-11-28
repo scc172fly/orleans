@@ -13,48 +13,48 @@ namespace Orleans.Durable.Tasks.Runtime;
 
 /// <remarks>
 /// <para>
-/// 持久执行从一个订阅儿童开始,通过记录其指纹名称为任务 grain的订阅儿童,开始一项独立的任务。
-/// 和根标识符,以及谁的方法命名请求的方法, 并在同一日记中进行任务引用。
-/// 儿童是订阅者,所以任务 grain 在存储该任务时将孩子添加到任务的完成目的地。
-/// 儿童与其他订阅者一样执行该任务:其注销结束
-/// 仅订阅。同一 grain 的单独任务直接在任务状态下进行。
+/// 持久化执行实例通过记录订阅子任务来启动分离任务，其指纹标识任务所属 Grain
+/// 和根标识符，其方法标识请求的方法，并在同一次日志写入中暂存任务调用。调用会指定
+/// 子任务作为订阅者，因此任务所属 Grain 在存储任务时将子任务添加到任务完成通知的目的地，
+/// 无需单独订阅。该子任务像其他订阅一样观察任务：取消它会结束
+/// 其订阅，而不取消被订阅任务。位于同一 Grain 的分离任务直接在任务状态中暂存。
 /// </para>
 /// <para>
-/// 每一次在另一个 grain 上援引任务,都是一个参考发送,运行时间从它的日记表格中提供。
-/// 表格与处决树分开,因此从开始到删除那些
-/// 发件箱上报告 援引退休到运行时间, 从而从表格中删除
-/// 将结果写入开始记录:呼叫另一台台 grain的记录,或
-/// 发送信箱将任务完成后提供的传回 grain 他曾将这件事,加以长期的保存,
-/// 目标是否接受。一个无法保存任务 grain ,因为其识别符号已经确认
-/// 另一请求人或打电话者,将使用 <see cref="DurableTaskRejectionCodes.Conflict"/> 代码的编号写成死字,
-/// 发箱将它退去,而它原是被拒绝的, grain原因,其中没有记录
-/// <see cref="DurableTaskConflictException"/>. A grain 其进入窗口后收到传讯的,
-/// <c>DeduplicationWindow</c> 开始阶段的援引 以死亡字母
-/// <see cref="DurableTaskRejectionCodes.Expired"/> 代码。如果拒绝,有另一个代码或没有代码,记录失效
-/// a <see cref="DurableTaskRejectedException"/>,报告代码。
-/// 在邮件传送前确认 <c>OutboxRetryTimeout</c>,包括 grain 不接受,例如
-/// 或哪些代码 grain 进入禁闭后,以死字字母退休,这不符合记录
-/// 具有 a 的 <see cref="DurableTaskDeliveryException"/>:早先的尝试可能已经达到 grain所以结果就是
-/// 未知。等待任务或等待接受的任务开始时,
-/// 失败,在每次重播中。
+/// 每次对其他 Grain 上任务的调用都属于引用发送，由运行时根据其日志化的
+/// 待处理调用表提供调用。该表独立于执行树，因此即使删除了
+/// 发起该调用的执行树，启动操作也仍然保留。发件箱向运行时报告调用的退役；运行时在
+/// 退役的日志写入中将其从表中移除，并在启动记录上记录结果，即对另一 Grain 的调用记录，或
+/// 分离任务的记录。任务所属 Grain 持久化存储任务后，发件箱将调用作为已投递退役，
+/// 这表示目标接受了任务。若 Grain 无法存储任务（因为其标识符已经标识
+/// 其他请求或调用方），则以 <see cref="DurableTaskRejectionCodes.Conflict"/> 代码将调用转为死信，
+/// 发件箱将其作为拒绝结果退役，并携带 Grain 给出的原因，使记录以
+/// <see cref="DurableTaskConflictException"/> 失败。Grain 收到超出其准入窗口的调用时（该窗口为自首次暂存调用起经过 Messaging 的
+/// <c>DeduplicationWindow</c> 指定的时长），以
+/// <see cref="DurableTaskRejectionCodes.Expired"/> 代码将调用转为死信。使用其他代码或无代码的其他拒绝使记录以
+/// <see cref="DurableTaskRejectedException"/> 失败，该异常报告拒绝代码。若发件箱无法在 Messaging 的
+/// <c>OutboxRetryTimeout</c> 期限内确认调用已投递，包括 Grain 未能接受调用（例如调用
+/// 无法解码），或 Grain 在准入截止时间之后拒绝调用的情形，则调用作为死信退役，使记录
+/// 以 <see cref="DurableTaskDeliveryException"/> 失败：由于之前的尝试可能已到达 Grain，所以结果
+/// 未知。在每次重放中，等待任务或等待启动操作被接受都会抛出
+/// 此失败。
 /// </para>
 /// </remarks>
 internal sealed partial class DurableTaskGrainRuntime
 {
-    // 独立任务的记录是订阅儿童,其指纹为任务 grain 和根识别码,以及
-    // 记录的方法识别请求,所以重放
-    // 开始使用同一根标识符下的其他方法,但不同顺序的争论没有。
+    // 分离任务的记录是一个订阅子任务，其指纹标识任务所属 Grain 和根标识符，并且
+    // 包含分离请求的诊断指纹。记录的方法标识请求，因此重放时如果
+    // 在相同根标识符下启动另一个方法，会发生重放分歧；而参数序列化形式不同则不会导致分歧。
     private const string DetachedFingerprintPrefix = "$detach:";
 
-    // 开始时间等待目标接受, 以记录识别码表示。
-    // 记录接受或启动失败,或者删除记录。
+    // 等待目标接受的启动操作，按其记录的标识符索引。每个启动操作在其记录
+    // 记录接受状态、启动失败或记录被删除时收到通知。
     private readonly Dictionary<TaskId, TaskCompletionSource> _acceptanceWaiters = [];
 
     /// <summary>
-    /// 启动 <paramref name="request"/> ,作为独立根任务 <paramref name="rootId"/>,记录并订阅于
-    /// <paramref name="recordId"/>,等待开始的写作。
+    /// 将 <paramref name="request"/> 作为分离根任务 <paramref name="rootId"/> 启动，在
+    /// <paramref name="recordId"/> 下记录并订阅，并等待提交启动操作的写入。
     /// </summary>
-    /// <param name="waitForAcceptance">启动是否也等待任务 grain 接受任务。</param>
+    /// <param name="waitForAcceptance">启动操作是否也等待任务所属 Grain 接受任务。</param>
     public async ValueTask<IScheduledTaskHandle> StartDetachedAsync(
         TaskId recordId,
         TaskId rootId,
@@ -67,7 +67,7 @@ internal sealed partial class DurableTaskGrainRuntime
         cancellationToken.ThrowIfCancellationRequested();
         var handle = StageDetached(recordId, rootId, request, shielded);
 
-        // 记录一开始就承诺,可能写在一份早期尝试仍在等待的书上。
+        // 记录随启动操作一起提交，可能发生在先前执行尝试仍在等待的写入中。
         await WriteStateAsync(cancellationToken);
         if (waitForAcceptance)
         {
@@ -78,8 +78,8 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// 独立根任务 <paramref name="rootId"/>的启动阶段,在
-    /// <paramref name="recordId"/>,不以书面形式。
+    /// 暂存分离根任务 <paramref name="rootId"/> 的启动操作，并在
+    /// <paramref name="recordId"/> 下记录并订阅，但不执行写入。
     /// </summary>
     public IScheduledTaskHandle PostDetached(TaskId recordId, TaskId rootId, IDurableTaskRequest request, bool shielded)
     {
@@ -88,11 +88,11 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// 启动一个没有订阅者的分离根任务, 与在耐久执行之外运行的代码相连接。
+    /// 从持久化执行之外运行的代码暂存不带订阅者的分离根任务启动操作。
     /// </summary>
     /// <remarks>
-    /// 启动时要使用此 grain下个日记写入, 同时加上调用工作项的状态变化
-    /// 任务的任务 grain 写完后开始。
+    /// 启动操作随本 Grain 的下一次日志写入提交，同时提交调用方工作项
+    /// 所做的状态变更。本 Grain 上的任务在该次写入后启动。
     /// </remarks>
     public void PostRoot(TaskId rootId, IDurableTaskRequest request)
     {
@@ -123,7 +123,7 @@ internal sealed partial class DurableTaskGrainRuntime
         DurableTaskResponse? response = null;
         if (target == GrainId)
         {
-            // 任务在记录前就已展开,因此与任务发生冲突的开始没有记录。
+            // 任务先于其记录暂存，因此与任务冲突的启动操作会失败，且不留下记录。
             StageScheduleWithCommitEffects(rootId, request, fromInbox: false);
             response = SubscribeLocal(rootId, recordId);
         }
@@ -143,7 +143,7 @@ internal sealed partial class DurableTaskGrainRuntime
             rootId);
         var handle = StageSubscriptionRecord(recordId, DurableTaskRecordKind.DetachedStart, fingerprint, shielded, response, method);
 
-        // 取消的启动器仍然开始任务, 而取消的任务没有达到, 并且只结束订阅 。
+        // 已取消的启动方仍会启动任务，其取消不会传播到任务，只会结束自身的订阅。
         if (response is null && IsStartRefusedByAncestorCancellation(recordId, state: null, shielded))
         {
             _pendingHandleResponses[recordId] = StageResponse(recordId, DurableTaskResponse.Canceled);
@@ -152,7 +152,7 @@ internal sealed partial class DurableTaskGrainRuntime
         return handle;
     }
 
-    /// <summary>清除一个独立请求的来电人,但无人声称。</summary>
+    /// <summary>清除分离请求的调用方，因为没有调用方认领该请求。</summary>
     private static void PrepareDetachedInvocation(IDurableTaskRequest request)
     {
         var context = IDurableTaskRequest.GetContext(request);
@@ -160,7 +160,7 @@ internal sealed partial class DurableTaskGrainRuntime
         context.SupportsDurableCompletion = false;
     }
 
-    /// <summary>返回任务是否是独立任务的记录及其开始的任务。</summary>
+    /// <summary>返回任务是否是分离任务的记录，以及它所启动的任务。</summary>
     private static bool TryGetDetachedTask(IDurableTaskState state, out GrainId target, out TaskId rootId)
     {
         target = default;
@@ -171,7 +171,7 @@ internal sealed partial class DurableTaskGrainRuntime
             return false;
         }
 
-        // 请求指纹在身份之前,没有“ : ” 。
+        // 请求指纹不包含 ':'，位于标识之前。
         var separator = fingerprint.IndexOf(':', DetachedFingerprintPrefix.Length);
         return separator > 0 && TryParseIdentity(fingerprint[..(separator + 1)], fingerprint, out target, out rootId);
     }
@@ -180,16 +180,16 @@ internal sealed partial class DurableTaskGrainRuntime
         $"a start of detached task '{rootId}' on grain '{target}' for {DescribeMethod(method)}";
 
     /// <summary>
-    /// 返回为什么 grain 拒绝援引 <paramref name="taskId"/> 其发件人首先在
-    /// <paramref name="sentAt"/>或 <see langword="null"/> 接受时的 grain 。
+    /// 返回 Grain 拒绝 <paramref name="taskId"/> 的调用的原因，该调用由发送方首次暂存于
+    /// <paramref name="sentAt"/>；若 Grain 接受该调用，则返回 <see langword="null"/>。
     /// </summary>
     /// <remarks>
-    /// grain 在 <see cref="DurableTaskGrainRuntimeShared.InvocationAdmissionWindow"/> 之前接受一次请求
-    /// 发件人与 <paramref name="sentAt"/>之后或之后所装的注销或信号。
-    /// 召回在 <see cref="DurableTaskGrainRuntimeShared.EarlyRecordRetention"/> 到达后登记,但
-    /// 发送者时钟和 grain之间的折叠,所以被承认的祈祷找到它。就像通信一样
-    /// <c>DeliverAt</c>,核对将发送器的时钟与 grain的时钟进行比较。
-    /// 重新交付援引, grain 没有任何新阶段的存储,所以 grain 在任何时候都承认
+    /// 在 <see cref="DurableTaskGrainRuntimeShared.InvocationAdmissionWindow"/> 所规定的时长尚未
+    /// 自 <paramref name="sentAt"/> 起经过之前，Grain 会接受调用。发送方与调用一起或在其之后暂存的取消或信号，
+    /// 会在到达后保留 <see cref="DurableTaskGrainRuntimeShared.EarlyRecordRetention"/> 指定的时长，
+    /// 这涵盖了发送方与 Grain 之间的时钟偏差，所以被接受的调用可以找到该记录。与 Messaging 的
+    /// <c>DeliverAt</c> 一样，此检查将发送方的时钟与 Grain 的时钟进行比较。
+    /// Grain 已存储的调用的重新投递不会暂存任何新内容，因此 Grain 可在任何时间接受它。
     /// </remarks>
     internal string? GetInvocationAdmissionRejection(TaskId taskId, DateTimeOffset sentAt)
     {
@@ -202,17 +202,17 @@ internal sealed partial class DurableTaskGrainRuntime
         return $"The invocation of durable task '{taskId}' arrived at or after its admission deadline, {deadline:O}.";
     }
 
-    /// <summary>阶段的援引, 信箱发送了该请求。</summary>
-    /// <param name="taskId">所援引的任务:打电话者的子女,在打电话者的范围之内,或独立地执行根任务。</param>
-    /// <param name="request">任务运行的请求。</param>
-    /// <param name="sender">下 grain 他曾派遣祈祷者,</param>
-    /// <param name="detached">是否援引开始一项独立的任务,而该任务没有呼叫者。</param>
-    /// <param name="subscriberId">发送者任务中的线性识别符,如果有的话,该信号符可订阅一项独立的任务。</param>
+    /// <summary>暂存由收件箱投递的调用。</summary>
+    /// <param name="taskId">被调用的任务：调用方作用域中的子任务，或分离的根任务。</param>
+    /// <param name="request">任务所运行的请求。</param>
+    /// <param name="sender">发送调用的 Grain。</param>
+    /// <param name="detached">调用是否启动分离任务（该任务没有调用方）。</param>
+    /// <param name="subscriberId">订阅分离任务的发送方任务的传输标识符（若有）。</param>
     /// <remarks>
-    /// 将独立任务用户添加到任务完成目的地,其内容与存储
-    /// 任务。 与存储的任务发生冲突的援引,例如同一识别符号下的另一请求;
-    /// 之前抛出任何东西, 所以水槽拒绝它 冲突的信息和代码, 信箱
-    /// 记录已处理。
+    /// 分离任务的订阅者在存储该任务的同一次写入中添加到任务的完成通知目的地。
+    /// 如果调用与已存储的任务冲突（例如相同标识符下的另一请求），
+    /// 则在暂存任何内容之前抛出异常，因此接收器以冲突消息和代码拒绝调用，收件箱
+    /// 将其记录为已处理。
     /// </remarks>
     internal void InvokeFromInbox(TaskId taskId, IDurableTaskRequest request, GrainId sender, bool detached, TaskId? subscriberId)
     {
@@ -221,7 +221,7 @@ internal sealed partial class DurableTaskGrainRuntime
             ?? throw new InvalidOperationException("The durable task invocation request has no context.");
         if (detached)
         {
-            // 分离任务是一个根任务, 而其他 grain的引用在保留范围根下没有产生。
+            // 分离任务是根任务，不会由其他 Grain 的调用在保留的作用域根下创建。
             CallerScope.ThrowIfReserved(taskId);
             PrepareDetachedInvocation(request);
         }
@@ -244,16 +244,16 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// 发件箱中的阶段 <paramref name="invocation"/> ,参考文件编号,在待职职务表上予以记号
-    /// 至退休时, <paramref name="recordId"/>,记录启动的任务的线条识别符号
-    /// 如有结果的话。
+    /// 通过引用在发件箱中暂存 <paramref name="invocation"/>，并将其记入待处理调用表的日志，
+    /// 直到该调用退役；同时记录 <paramref name="recordId"/>，即记录启动结果的任务的传输标识符
+    /// （若有）。
     /// </summary>
     /// <remarks>
-    /// 以相同身份连接的待查援引:重播一个恢复阶段没有恢复的开始。
-    /// 记录所记录的起始点的身份覆盖了记录中的线标识符,因此每棵树的运行都发送到
-    /// 尚未解决的援引保留了它所日记的请求,所以重述其论点的顺序不同
-    /// 援引同一身份下另一种方法的待发援引,该同一身份先前曾被
-    /// 的根任务,失败启动。
+    /// 标识相同的待处理调用会合并：重放由恢复过程还原的启动操作时，不暂存任何内容。
+    /// 记录发起的启动操作的标识包含该记录的传输标识符，因此执行树的每次运行均发送
+    /// 自己的消息。待处理调用保留已写入日志的请求，所以参数序列化形式不同的重放
+    /// 仍会合并。如果同一标识下的待处理调用调用了不同的方法（由先前投递同一根任务的操作
+    /// 发送），则启动操作失败。
     /// </remarks>
     private void SendInvocation(OutboxMessage invocation, IDurableTaskRequest request, TaskId? recordId)
     {
@@ -274,8 +274,8 @@ internal sealed partial class DurableTaskGrainRuntime
         MessageTransport.Send(messageId);
     }
 
-    /// <summary>返回待裁决的援引是否引用了 <paramref name="request"/> 援引的方法。</summary>
-    /// <remarks>无法证明他的请求 使用同一方法</remarks>
+    /// <summary>返回待处理调用是否与 <paramref name="request"/> 调用了相同的方法。</summary>
+    /// <remarks>如果待处理调用的请求无法再解码，则无法证明它调用了相同的方法。</remarks>
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "A request which doesn't decode isn't the same method.")]
     private bool IsSameMethod(PendingInvocation pending, IDurableTaskRequest request)
     {
@@ -291,15 +291,15 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// 记录 <paramref name="invocation"/> 如何在开始的记录中留存:其目标是否接受,或
-    /// 失败开始, 失败结束记录, 没有写入 。
+    /// 在启动 <paramref name="invocation"/> 的记录上记录其退役方式：目标接受了调用，或
+    /// 启动失败（该失败使记录结束）；不执行写入。
     /// </summary>
     /// <remarks>
-    /// 发件箱在同一个日记写时, 将取消援引的删除分期进行。 任务结果已经记录的
-    /// 记录了当时的接受。记录中已经储存着它自己的结果,例如取消或取消。
-    /// 中止, 保留它, 所以每个重播都观察它首先观察到的结果。 一个已张贴的根任务没有记录,
-    /// 记录,用树的果木删除了它,而后出一棵树的记录,和那棵树的果实,也忽视了已老者已死的日子。
-    /// 在同一识别特征下再生。
+    /// 发件箱在同一次日志写入中暂存对调用的移除操作。已经收到任务结果的记录
+    /// 此时已经记录了接受状态。已存储自身结果（例如取消或
+    /// 中止）的记录保留该结果，因此每次重放都观察到最先观察到的结果。通过投递启动的根任务没有记录，
+    /// 随执行树删除的记录忽略退役通知；由执行树后续运行在相同标识符下
+    /// 重建的记录也忽略该通知。
     /// </remarks>
     private void RetireInvocation(PendingInvocation invocation, OutboxMessageRetirement retirement)
     {
@@ -334,9 +334,9 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// 除非 <paramref name="recordId"/>的铁丝标识符 <paramref name="wireId"/>启动投出
-    /// <paramref name="sourceTaskId"/> 联 年 月 日 月 日 月 月 日 <paramref name="sender"/>:是边远的孩子 grain 库内
-    /// 此 grain的调用范围, 或者它同意此项任务 。
+    /// 除非 <paramref name="recordId"/>（其传输标识符为 <paramref name="wireId"/>）启动了
+    /// <paramref name="sourceTaskId"/> 所标识、位于 <paramref name="sender"/> 上的任务，否则抛出异常：该任务是该 Grain 在
+    /// 本 Grain 的调用方作用域下存储的远程子任务，或者该记录订阅了该任务。
     /// </summary>
     private void ThrowIfNotStartedBy(TaskId recordId, TaskId wireId, TaskId sourceTaskId, IDurableTaskState state, GrainId sender)
     {
@@ -354,13 +354,13 @@ internal sealed partial class DurableTaskGrainRuntime
     }
 
     /// <summary>
-    /// 等到记录 <paramref name="recordId"/> 记录其启动目标是否接受
-    /// 并抛出一个开始的结果 而它的目标不接受。
+    /// 等待记录 <paramref name="recordId"/> 持久化记录其启动操作的目标是否接受了
+    /// 任务，并抛出目标未接受启动时的结果。
     /// </summary>
     /// <remarks>
-    /// 此 grain 的开始一旦被写入承诺,便被接受。当另一个 grain 被引用时,它会被接受
-    /// 完成时退休,或者当任务结果达到记录前先。失败的起始点以其
-    /// 失败,或者记录本身的取消或中止, 它先储存。
+    /// 在本 Grain 上的启动操作在其写入提交后即被接受。在其他 Grain 上的启动操作在其调用
+    /// 作为已投递退役时，或在任务结果先到达记录时被接受。失败的启动操作以其
+    /// 失败结果结束记录，或者以记录先前存储的自身取消或中止结果结束记录。
     /// </remarks>
     private async ValueTask WaitForAcceptanceAsync(TaskId recordId, CancellationToken cancellationToken)
     {
@@ -397,11 +397,11 @@ internal sealed partial class DurableTaskGrainRuntime
         }
     }
 
-    /// <summary>返回记录是否开始另一个 grain的任务,等待接受。</summary>
+    /// <summary>返回记录是否启动了另一 Grain 上的任务，并等待该 Grain 的接受。</summary>
     private bool AwaitsAcceptance(IDurableTaskState state) =>
         !state.RemoteTarget.IsDefault || (TryGetDetachedTask(state, out var target, out _) && target != GrainId);
 
-    /// <summary>唤醒了等待答复的开始 <paramref name="recordId"/>,如果有的话。</summary>
+    /// <summary>唤醒等待 <paramref name="recordId"/> 的回复的启动操作（若有）。</summary>
     private void SignalAcceptance(TaskId recordId)
     {
         if (_acceptanceWaiters.Remove(recordId, out var waiter))

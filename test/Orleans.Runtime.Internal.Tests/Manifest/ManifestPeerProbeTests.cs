@@ -189,7 +189,7 @@ public sealed class ManifestPeerProbeTests(ManifestPeerProbeTests.Fixture fixtur
                 Entered.TrySetResult();
             }
 
-            // 观察取消,同时故意保持远程的传讯生命。
+            // 有意让远程调用保持活跃，同时观察取消。
             await _release.Task;
             if (Interlocked.Increment(ref _finished) == 3)
             {

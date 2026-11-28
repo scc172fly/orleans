@@ -19,9 +19,9 @@ builder.UseOrleans(builder => builder
     {
         o.RebalancerDueTime = TimeSpan.FromSeconds(5);
         o.SessionCyclePeriod = TimeSpan.FromSeconds(5);
-        // 如果要提高移民比率,请在下面加注这些
+        // 如果希望提高迁移速率，请取消下面代码的注释。
         //o.CycleNumberWeight = 1;
-        //o.SiloNumberWeight = 0; 
+        //o.SiloNumberWeight = 0;
     })
     .AddActivationRebalancer());
 

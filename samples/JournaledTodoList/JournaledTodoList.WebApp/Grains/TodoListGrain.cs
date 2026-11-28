@@ -14,17 +14,17 @@ public sealed class TodoListGrain : JournaledGrain<TodoListGrain.TodoListProject
 
     public async Task<TodoList?> GetTodoListAtTimestampAsync(DateTimeOffset timestamp)
     {
-        // 将所有事件都提高到当前版本
+        // 获取截至当前版本的全部事件。
         var allEvents = await GetHistoryAsync();
 
-        // 创建新投影并应用过滤事件
+        // 创建新的投影，并应用筛选出的事件。
         var historicalProjection = new TodoListProjection();
         foreach (var evt in allEvents.Where(e => e.Timestamp <= timestamp))
         {
             TransitionState(historicalProjection, evt);
         }
 
-        // 只有发生与时间戳相匹配的事件时,才会返回 TodoList 。
+        // 仅当存在与时间戳匹配的事件时，才返回 TodoList。
         return historicalProjection.Timestamp > DateTimeOffset.MinValue
             ? new TodoList(
                 Name: this.GetPrimaryKeyString(),
@@ -81,16 +81,16 @@ public sealed class TodoListGrain : JournaledGrain<TodoListGrain.TodoListProject
         RaiseEvent(evt);
         await ConfirmEvents();
 
-        // 发布新待办事宜列表列表,并新增待办事宜列表登记处 。
-        // 登记处只关心名单的识别号和名称,
-        // 因此这是我们需要与登记处互动的唯一地方。
+        // 将带有新名称的列表发布到待办事项列表注册表。
+        // 注册表只关心列表的 ID 和名称，
+        // 所以只需要在此处与注册表交互。
         var registry = GrainFactory.GetGrain<ITodoListRegistryGrain>(Constants.TodoListRegistryId);
         await registry.RegisterTodoListAsync(new TodoListReference(this.GetPrimaryKeyString(), listName));
     }
 
     /// <summary>
-    /// <see cref="TodoListGrain"/>的国家集装箱。
-    /// 注:必须是一个可变物体。
+    /// <see cref="TodoListGrain"/> 的状态容器。
+    /// 注意：该对象必须是可变的。
     /// </summary>
     public sealed class TodoListProjection
     {

@@ -4,24 +4,24 @@ using Orleans.Runtime;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// 管理设置设置的设置 grains 使用时横横集 <see cref="ActivationCountBasedPlacement"/>.
+    /// 使用 <see cref="ActivationCountBasedPlacement"/> 时调节集群内 Grain 放置的设置。
     /// </summary>
     public class ActivationCountBasedPlacementOptions
     {
         /// <summary>
-        /// 使用激活计数定位策略时, 获取或设置随机选择的 silos 数字。
-        /// 仅用于激活计数安置政策。
+        /// 获取或设置使用激活实例计数放置策略时随机选取以供考虑的 Silo 数量。
+        /// 仅用于激活实例计数放置策略。
         /// </summary>
         public int ChooseOutOf { get; set; } = DEFAULT_ACTIVATION_COUNT_PLACEMENT_CHOOSE_OUT_OF;
 
         /// <summary>
-        /// 在做出安置决定时选择的默认 silos 数。
+        /// 作出放置决策时可供选择的 Silo 默认数量。
         /// </summary>
         public const int DEFAULT_ACTIVATION_COUNT_PLACEMENT_CHOOSE_OUT_OF = 2;
     }
 
     /// <summary>
-    /// 校验 <see cref="ActivationCountBasedPlacementOptions"/> 属性。
+    /// 验证 <see cref="ActivationCountBasedPlacementOptions"/> 的属性。
     /// </summary>
     internal class ActivationCountBasedPlacementOptionsValidator : IConfigurationValidator
     {

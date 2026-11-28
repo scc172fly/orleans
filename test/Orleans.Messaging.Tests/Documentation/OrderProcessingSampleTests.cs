@@ -368,7 +368,7 @@ public sealed class OrderProcessingSampleTests : IAsyncLifetime
                 options.Classes.Remove(typeof(global::Documentation.Grains.Messaging.PaymentGrain));
                 options.AddClass(typeof(OrderProcessing.Grains.PaymentGrain));
             });
-            // 命令日期和 DeliverAt 遵循“持久工作钟”,这里读的是测试钟。
+            // 订单日期及 DeliverAt 以 Durable Jobs 时钟为准，此处该时钟读取测试时钟。
             UseTestClockForDurableJobs(services);
             services.Configure<JournaledStateManagerOptions>(options => options.JournalFormatKey = "json");
             services.Configure<JsonJournalOptions>(options => options.AddTypeInfoResolver(OrderProcessingJsonContext.Default));

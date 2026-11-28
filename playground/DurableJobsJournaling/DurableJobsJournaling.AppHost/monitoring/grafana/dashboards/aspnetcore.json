@@ -21,7 +21,7 @@
       }
     ]
   },
-  "description": "ASP.NET Core metrics from OpenTelemetry",
+  "description": "来自 OpenTelemetry 的 ASP.NET Core 指标",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "gnetId": 19924,
@@ -233,7 +233,7 @@
           "refId": "p99.9"
         }
       ],
-      "title": "Requests Duration",
+      "title": "请求耗时",
       "type": "timeseries"
     },
     {
@@ -411,7 +411,7 @@
           "refId": "5XX"
         }
       ],
-      "title": "Errors Rate",
+      "title": "错误率",
       "type": "timeseries"
     },
     {
@@ -506,7 +506,7 @@
           "refId": "A"
         }
       ],
-      "title": "Current Connections",
+      "title": "当前连接数",
       "type": "timeseries"
     },
     {
@@ -601,7 +601,7 @@
           "refId": "A"
         }
       ],
-      "title": "Current Requests",
+      "title": "当前请求数",
       "type": "timeseries"
     },
     {
@@ -671,7 +671,7 @@
           "refId": "A"
         }
       ],
-      "title": "Total Requests",
+      "title": "请求总数",
       "type": "stat"
     },
     {
@@ -741,7 +741,7 @@
           "refId": "A"
         }
       ],
-      "title": "Total Unhandled Exceptions",
+      "title": "未处理的异常总数",
       "type": "stat"
     },
     {
@@ -808,7 +808,7 @@
           "refId": "A"
         }
       ],
-      "title": "Requests Secured",
+      "title": "请求是否采用安全传输",
       "type": "stat"
     },
     {
@@ -874,7 +874,7 @@
           "refId": "A"
         }
       ],
-      "title": "Requests HTTP Protocol",
+      "title": "请求使用的 HTTP 协议",
       "type": "stat"
     },
     {
@@ -1024,7 +1024,7 @@
           "refId": "A"
         }
       ],
-      "title": "Top 10 Requested Endpoints",
+      "title": "请求次数最多的 10 个终结点",
       "transformations": [
         {
           "id": "organize",
@@ -1199,7 +1199,7 @@
           "refId": "A"
         }
       ],
-      "title": "Top 10 Unhandled Exception Endpoints",
+      "title": "未处理的异常最多的 10 个终结点",
       "transformations": [
         {
           "id": "organize",
@@ -1266,7 +1266,7 @@
         "definition": "label_values(http_server_active_requests,job)",
         "hide": 0,
         "includeAll": true,
-        "label": "Job",
+        "label": "作业",
         "multi": true,
         "name": "job",
         "options": [],
@@ -1290,7 +1290,7 @@
         "definition": "label_values(http_server_active_requests{job=~\"$job\"},instance)",
         "hide": 0,
         "includeAll": true,
-        "label": "Instance",
+        "label": "实例",
         "multi": true,
         "name": "instance",
         "options": [],

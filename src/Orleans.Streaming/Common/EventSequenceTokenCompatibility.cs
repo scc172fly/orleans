@@ -37,8 +37,8 @@ internal static class EventSequenceTokenCompatibility
 
     private static void Normalize(ref StreamSequenceToken left, ref StreamSequenceToken right)
     {
-        // 仅为比较复原情况,将具体供应商的遗留职位正常化。
-        // 公共物证平等保留了供应商的合同,交付的物证保留了其元数据。
+        // 仅在恢复比较中对提供程序特定的旧版位置进行规范化。
+        // 公开的令牌相等性保持提供程序的契约，已投递令牌保留其元数据。
         if (left is EventSequenceToken leftProvider)
         {
             right = leftProvider.NormalizeLegacyToken(right);

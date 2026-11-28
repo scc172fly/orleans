@@ -1,6 +1,6 @@
 namespace Orleans.Docs.Snippets.Aspire.SharedContracts;
 
-// 用于 Aspire 集成示例的简单 grain 界面
+// Aspire 集成示例所用的简单 Grain 接口。
 public interface IHelloGrain : IGrainWithStringKey
 {
     Task<string> SayHelloAsync(string name);

@@ -3,77 +3,77 @@ using System;
 namespace Orleans.Transactions.TestKit.Consistency
 {
     /// <summary>
-    /// 配置由一致性测试 grains产生的随机交易。
+    /// 配置一致性测试 Grain 生成的随机事务。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public class ConsistencyTestOptions
     {
         /// <summary>
-        /// 获取或设置用于生成可重复测试操作的种子。
+        /// 获取或设置用于生成可复现测试操作的随机种子。
         /// </summary>
         [Id(0)]
         public int RandomSeed { get; set; } = 0;
 
         /// <summary>
-        /// 获取或设置参加测试的 grains 数量。
+        /// 获取或设置参与测试的 Grain 数量。
         /// </summary>
         [Id(1)]
         public int NumGrains { get; set; } = 50;
 
         /// <summary>
-        /// 获取或设置最大嵌套 grain 调用深度。
+        /// 获取或设置嵌套 Grain 调用的最大深度。
         /// </summary>
         [Id(2)]
         public int MaxDepth { get; set; } = 5;
 
         /// <summary>
-        /// 获取或设定一个值,显示是否为避免僵局而命令嵌套 grain 电话。
+        /// 获取或设置一个值，指示是否对嵌套 Grain 调用排序以避免死锁。
         /// </summary>
         [Id(3)]
         public bool AvoidDeadlocks { get; set; } = true;
 
         /// <summary>
-        /// 获取或设定一个值,以显示嵌套呼叫调度是否在交易超时前停止。
+        /// 获取或设置一个值，指示是否在事务超时前停止调度嵌套调用。
         /// </summary>
         [Id(4)]
         public bool AvoidTimeouts { get; set; } = true;
 
         /// <summary>
-        /// 获取或设定测试如何决定每次操作是否读写状态 。
+        /// 获取或设置测试确定每次操作是读取还是写入状态的方式。
         /// </summary>
         [Id(5)]
         public ReadWriteDetermination ReadWrite { get; set; } = ReadWriteDetermination.PerGrain;
 
         /// <summary>
-        /// 获取或设置基底 grain 键添加到每个逻辑 grain 数字。
+        /// 获取或设置与每个逻辑 Grain 编号相加的基础 Grain 键。
         /// </summary>
         [Id(6)]
         public long GrainOffset { get; set; }
 
         /// <summary>
-        /// 一致性测试中 grains 号数的独家上限。
+        /// 一致性测试中 Grain 数量的上界（不含该值）。
         /// </summary>
         public const int MaxGrains = 100000;
     }
 
     /// <summary>
-    /// 指定随机一致性测试选择读写操作的范围。
+    /// 指定随机一致性测试选择读操作或写操作的作用范围。
     /// </summary>
     public enum ReadWriteDetermination
     {
         /// <summary>
-        /// 选择交易中所有存取的操作类型。
+        /// 为事务中的所有访问选择同一种操作。
         /// </summary>
         PerTransaction,
 
         /// <summary>
-        /// 为交易访问的每一 grain 选择一种操作类型。
+        /// 为事务访问的每个 Grain 选择一种操作。
         /// </summary>
         PerGrain,
 
         /// <summary>
-        /// 为每个 grain 访问选择独立的操作类型。
+        /// 对每次 Grain 访问独立选择操作类型。
         /// </summary>
         PerAccess
     }

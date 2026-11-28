@@ -9,9 +9,9 @@ using Xunit;
 namespace UnitTests.Manifest;
 
 /// <summary>
-/// 直接演习 <see cref="InProcessTestCluster.DescribePendingFetch"/> ,涉及联合试验审查
-/// 在端网/ 点网上查找orleans# 11438, 没有测试覆盖此诊断字符串的精确格式化
-/// (成员版、公布版本、待 silos处理、过时和最近的失败)
+/// 直接测试 <see cref="InProcessTestCluster.DescribePendingFetch"/>，以解决 Copilot 审查
+/// 在 dotnet/orleans#11438 中发现的覆盖缺口：没有测试覆盖此诊断字符串的确切格式
+/// （成员资格版本、已发布版本、挂起的 Silo、已用时间及最近一次故障）。
 /// </summary>
 public class InProcessTestClusterPendingFetchDescriptionTests
 {

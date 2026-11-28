@@ -33,7 +33,7 @@ using Orleans.Metadata;
 namespace Orleans.TestingHost;
 
 /// <summary>
-/// 本地测试的主机舱 Orleans 正在使用中处理 silos.
+/// 使用进程内 Silo 进行 Orleans 本地测试的宿主类。
 /// </summary>
 public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
 {
@@ -49,7 +49,7 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     private int _startedInstances;
 
     /// <summary>
-    /// 收集所有已知的 silos。
+    /// 所有已知 Silo 的集合。
     /// </summary>
     public ReadOnlyCollection<InProcessSiloHandle> Silos
     {
@@ -63,40 +63,40 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 用于配置测试组集的选项。
+    /// 用于配置测试集群的选项。
     /// </summary>
-    /// <remarks>这是您配置的测试组选项, 或者默认的选项 。
-    /// 如果该组是通过 ClusterConfiguration配置的,则此对象可能不会反映真实设置。
+    /// <remarks>这是配置测试集群时使用的选项，或默认选项。
+    /// 如果通过 ClusterConfiguration 配置集群，则此对象可能不反映实际设置。
     /// </remarks>
     public InProcessTestClusterOptions Options { get; }
 
     /// <summary>
-    /// 内部客户界面。
+    /// 内部客户端接口。（译注：此属性实际为承载客户端的 IHost。）
     /// </summary>
     internal IHost? ClientHost { get; private set; }
 
     /// <summary>
-    /// 内部客户界面。
+    /// 内部客户端接口。
     /// </summary>
     internal IInternalClusterClient? InternalClient => ClientHost?.Services.GetRequiredService<IInternalClusterClient>();
 
     /// <summary>
-    /// 客户
+    /// 客户端。
     /// </summary>
-    /// <exception cref="InvalidOperationException">集群尚未部署或客户被停止。</exception>
+    /// <exception cref="InvalidOperationException">集群尚未部署，或客户端已停止。</exception>
     public IClusterClient Client => InternalClient ?? throw new InvalidOperationException(
         "The test cluster client is unavailable because the cluster has not been deployed or has been stopped.");
 
     /// <summary>
-    /// 港口分配器
+    /// 端口分配器。
     /// </summary>
     public ITestClusterPortAllocator PortAllocator { get; }
 
     /// <summary>
-    /// 返回地址是否属于此组 。
+    /// 返回地址是否属于此集群。
     /// </summary>
-    /// <param name="siloAddress"> silo 地址。</param>
-    /// 当地址属于本组时,<returns><see langword="true"/> 。</returns>
+    /// <param name="siloAddress">Silo 地址。</param>
+    /// <returns>当地址属于此集群时为 <see langword="true"/>。</returns>
     public bool ContainsSilo(SiloAddress siloAddress)
     {
         ArgumentNullException.ThrowIfNull(siloAddress);
@@ -107,7 +107,7 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 配置测试组群集加客户端正在处理中 。
+    /// 在进程内配置测试集群及客户端。
     /// </summary>
     public InProcessTestCluster(
         InProcessTestClusterOptions options,
@@ -120,10 +120,10 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 返回 <see cref="IServiceProvider"/> 与给定的 <paramref name="silo"/>.
+    /// 返回 <see cref="IServiceProvider"/>，它与给定的 <paramref name="silo"/> 关联。
     /// </summary>
-    /// <param name="silo">下 silo 向服务提供方发送进程。</param>
-    /// <remarks>如果 <paramref name="silo"/> 是 <see langword="null"/> 现有 silos 将随机选择。</remarks>
+    /// <param name="silo">要获取其服务提供程序的 Silo 进程。</param>
+    /// <remarks>如果 <paramref name="silo"/> 为 <see langword="null"/>，则随机选择一个现有 Silo。</remarks>
     public IServiceProvider GetSiloServiceProvider(SiloAddress? silo = null)
     {
         if (silo != null)
@@ -140,12 +140,12 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 试图寻找 <see cref="IGrainContext"/> 排排 grain 指定 <paramref name="grainId"/>
-    /// 中查找组内的所有 silos 。
+    /// 尝试查找 Grain 的 <see cref="IGrainContext"/>，该 Grain 具有指定的 <paramref name="grainId"/>，
+    /// 搜索范围为集群中的所有 Silo。
     /// </summary>
-    /// <param name="grainId">要找到的 grain 的代号。</param>
-    /// <param name="grainContext">当此方法返回时, 如果发现包含 grain 上下文; 否则, <see langword="null"/>.</param>
-    /// <returns><see langword="true"/> 如果 grain 是在其中之一被发现的 silos;否则, <see langword="false"/>.</returns>
+    /// <param name="grainId">要查找的 Grain 的 ID。</param>
+    /// <param name="grainContext">此方法返回时，如果找到 Grain，则包含其上下文；否则为 <see langword="null"/>。</param>
+    /// <returns><see langword="true"/> 表示在某个 Silo 中找到了 Grain；否则为 <see langword="false"/>。</returns>
     public bool TryGetGrainContext(GrainId grainId, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out IGrainContext? grainContext)
     {
         foreach (var silo in Silos)
@@ -163,14 +163,14 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 得到a <see cref="Task"/> 当指定 grain
-    /// 完成的取消活动。 如果 grain 目前尚未激活, 返回 <see cref="Task.CompletedTask"/>。
+    /// 获取 <see cref="Task"/>，在指定 Grain 的当前激活实例
+    /// 完成停用时完成。如果 Grain 当前未激活，则返回 <see cref="Task.CompletedTask"/>。
     /// </summary>
-    /// <param name="grainId">所要观察的 grain 识别号。</param>
-    /// <returns>任务在 grain当前激活已停止时完成。</returns>
+    /// <param name="grainId">要观察的 Grain 的 ID。</param>
+    /// <returns>在 Grain 的当前激活实例停用后完成的任务。</returns>
     /// <remarks>
-    /// 可能存在在测试中先需要记录这项任务,然后才拨打 DeactivateOnIdle/MigrateOnIdle
-    /// 以避免在完成返回的任务之前,在停止使用 grain 和恢复使用该任务之前进行竞赛。
+    /// 某些场景可能需要在测试中调用 DeactivateOnIdle/MigrateOnIdle 之前获取此任务，
+    /// 以避免在取得返回任务之前 Grain 已停用并重新激活的竞态条件。
     /// </remarks>
     /// <example>
     /// <code>
@@ -190,10 +190,10 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 禁用指定 grain 的当前激活,等待解除功能完成。
+    /// 停用指定 Grain 的当前激活实例，并等待停用完成。
     /// </summary>
-    /// <param name="grainId">身份识别 grain 停止使用。</param>
-    /// <returns>任务在 grain 被停止使用后完成。</returns>
+    /// <param name="grainId">要停用的 Grain 的 ID。</param>
+    /// <returns>Grain 停用后完成的任务。</returns>
     /// <example>
     /// <code>
     /// await cluster.DeactivateAsync(grain.GetGrainId());
@@ -209,12 +209,12 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 将指定 grain 的当前激活移到不同的 silo , 等待迁移完成 。
-    /// 如果指定了 <paramref name="targetSilo"/> ,将设置一个位置提示来引导向该 silo迁移。
+    /// 将指定 Grain 的当前激活实例迁移到其他 Silo，并等待迁移完成。
+    /// 如果指定了 <paramref name="targetSilo"/>，则设置放置提示，引导迁移到该 Silo。
     /// </summary>
-    /// <param name="grainId">身份识别 grain 移徙。</param>
-    /// <param name="targetSilo">目标目标 silo 地址,或 <see langword="null"/> 任由安置主任选择</param>
-    /// <returns>一项任务,当它完成的时候, grain 已经迁移( 在源头停止活动) silo).</returns>
+    /// <param name="grainId">要迁移的 Grain 的 ID。</param>
+    /// <param name="targetSilo">目标 Silo 地址；若让放置决策器选择，则为 <see langword="null"/>。</param>
+    /// <returns>Grain 迁移后（在源 Silo 上停用后）完成的任务。</returns>
     /// <example>
     /// <code>
     /// var targetSilo = cluster.GetActiveSilos().First(s => s.SiloAddress != originalHost).SiloAddress;
@@ -234,27 +234,27 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <inheritdoc cref="WaitForDeactivationAsync(GrainId)"/>
-    /// <param name="grain">下 grain 观察。</param>
+    /// <param name="grain">要观察的 Grain。</param>
     public Task WaitForDeactivationAsync(IAddressable grain) => WaitForDeactivationAsync(grain.GetGrainId());
 
     /// <inheritdoc cref="DeactivateAsync(GrainId)"/>
-    /// <param name="grain">下 grain 停止使用。</param>
+    /// <param name="grain">要停用的 Grain。</param>
     public Task DeactivateAsync(IAddressable grain) => DeactivateAsync(grain.GetGrainId());
 
     /// <inheritdoc cref="MigrateAsync(GrainId, SiloAddress?)"/>
-    /// <param name="grain">下 grain 移徙。</param>
-    /// <param name="targetSilo">目标目标 silo 地址,或 <see langword="null"/> 任由安置主任选择</param>
+    /// <param name="grain">要迁移的 Grain。</param>
+    /// <param name="targetSilo">目标 Silo 地址；若让放置决策器选择，则为 <see langword="null"/>。</param>
     public Task MigrateAsync(IAddressable grain, SiloAddress? targetSilo = null) => MigrateAsync(grain.GetGrainId(), targetSilo);
 
     /// <summary>
-    /// 使用指定的配置部署组群,并启动客户端的处理。
+    /// 使用指定的配置部署集群，并在进程内启动客户端。
     /// </summary>
     public Task DeployAsync() => DeployAsync(CancellationToken.None);
 
     /// <summary>
-    /// 使用指定的配置部署组群,并启动客户端的处理。
+    /// 使用指定的配置部署集群，并在进程内启动客户端。
     /// </summary>
-    /// <param name="cancellationToken">用于取消部署的标记。</param>
+    /// <param name="cancellationToken">用于取消部署的令牌。</param>
     public async Task DeployAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -290,16 +290,16 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
                 throw new TimeoutException("Timeout during test initialization", ex);
             }
 
-            // 重要:
-            // 在此不重新丢放原例外, 也不得作为内部例外在 AggregateException内重新投入
-            // 由于MS测试工作方式,如果原来的例外是 Orleans 例外,
-            // 其组件可能还没有装入 在试验的这个阶段。
-            // 因此,我们将获得“MSTest:单位测试适配器被丢弃例外: 类型对于成员三十没有解决”
-            // 并会松开原来的例外。这会使调试测试变得超重!
-            // 根本原因在于我们从测试构建器而不是 TestInitialize 方法开始测试。
-            // 更详细信息: http://dobrzanski.net/2010/09/20/mstest-unit-test-adapter-threw-exception-type-is-not-resolved-for-member/
-            //丢弃新的例外( )
-            //    string.Format("试验初始化期间的例外:{0}")",
+            // 重要：
+            // 不要在此处重新抛出原始异常，也不要将其作为 AggregateException 的内部异常重新抛出。
+            // 由于 Microsoft 测试框架的工作方式，如果原始异常为 Orleans 异常，
+            // 其程序集可能在此测试阶段尚未加载。
+            // 因此，我们将收到 "MSTest: Unit Test Adapter threw exception: Type is not resolved for member XXX"，
+            // 并丢失原始异常。这会使测试调试非常困难！
+            // 根本原因与我们在测试构造函数中而不是 TestInitialize 方法中初始化测试有关。
+            // 更多详情：http://dobrzanski.net/2010/09/20/mstest-unit-test-adapter-threw-exception-type-is-not-resolved-for-member/
+            //throw new Exception(
+            //    string.Format("Exception during test initialization: {0}",
             //        LogFormatter.PrintException(baseExc)));
             throw;
         }
@@ -307,9 +307,9 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
 
     private async Task WaitForInitialStabilization(CancellationToken cancellationToken)
     {
-        // 每人打 silo ,检查是否知道活动 silos的预期数目。
-        // 如果有任何 silo 在组群成员中没有预期的活跃 silos 数目,请再试一次。
-        // 如果该组成员在一段时间后没有稳定下来,就放弃并无论如何继续。
+        // 轮询每个 Silo，检查它是否已知预期数量的活动 Silo。
+        // 如果任一 Silo 的集群成员资格视图中没有预期数量的活动 Silo，则重试。
+        // 如果经过一段时间后集群成员资格仍未稳定，则放弃等待并继续执行。
         var totalWait = Stopwatch.StartNew();
         while (true)
         {
@@ -319,7 +319,7 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
 
             foreach (var silo in silos)
             {
-                var hooks = InternalClient!.GetTestHooks(silo); // 成员稳定化需要部署的客户。
+                var hooks = InternalClient!.GetTestHooks(silo); // 成员资格稳定过程需要已部署的客户端。
                 var statuses = await hooks.GetApproximateSiloStatuses().WaitAsync(cancellationToken);
                 var activeCount = statuses.Count(s => s.Value == SiloStatus.Active);
                 if (activeCount != expectedCount) break;
@@ -344,9 +344,9 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 获取当前活动的列表 silos。
+    /// 获取当前活动 Silo 的列表。
     /// </summary>
-    /// <returns>当前列表列表 silos.</returns>
+    /// <returns>当前 Silo 列表。</returns>
     public IEnumerable<InProcessSiloHandle> GetActiveSilos()
     {
         var additional = new List<InProcessSiloHandle>();
@@ -365,10 +365,10 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 查找 silo 指定控件的控件 silo 地址。
+    /// 查找指定 Silo 地址对应的 Silo 句柄。
     /// </summary>
-    /// <param name="siloAddress">Silo 要找到地址 。</param>
-    /// <returns>SiloHandle 适当 silo,或 <c>null</c> 找不到的话。</returns>
+    /// <param name="siloAddress">要查找的 Silo 地址。</param>
+    /// <returns>对应 Silo 的 SiloHandle；若未找到则为 <c>null</c>。</returns>
     public InProcessSiloHandle? GetSiloForAddress(SiloAddress siloAddress)
     {
         var activeSilos = GetActiveSilos().ToList();
@@ -377,9 +377,9 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 等待 silo 活性子系统发现最近分组成员的任何变化并就其采取行动。
+    /// 等待 Silo 存活检测子系统发现并处理近期的集群成员资格变化。
     /// </summary>
-    /// <param name="didKill">我们通过优雅的停止方式, 是否改变最近的成员。</param>
+    /// <param name="didKill">近期成员资格变化是否由正常 Stop 操作产生。</param>
     public async Task WaitForLivenessToStabilizeAsync(bool didKill = false)
     {
         var clusterMembershipOptions = Client!.ServiceProvider.GetRequiredService<IOptions<ClusterMembershipOptions>>().Value;
@@ -408,7 +408,7 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 等待活动 silos 对所有活动 silos的集散清单进行观察更新。
+    /// 等待活动 Silo 观测到所有活动 Silo 的集群清单更新。
     /// </summary>
     public async Task WaitForClusterManifestToStabilizeAsync(bool didKill = false)
     {
@@ -435,8 +435,8 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
         var clusterMembershipOptions = Client!.ServiceProvider
             .GetRequiredService<IOptions<ClusterMembershipOptions>>().Value;
         var timeout = GetLivenessStabilizationTime(clusterMembershipOptions, didKill);
-        // 使用两个配置的 LAPL 活度间隔来计算 。 在默认八类流言配置下, 此
-        // 包含5秒的提取数据重新试用,加上最后快照检查的一个排程间隔。
+        // 集群清单使用两个已配置的存活检测时间间隔。在默认的 Gossip 配置下，这
+        // 涵盖 5 秒的清单获取重试时间，以及最终快照检查的一个调度间隔。
         var manifestTimeout = TestingUtils.Multiply(timeout, 2);
         var activeSilos = GetActiveSilos().ToArray();
         var expectedSilos = string.Join(", ", activeSilos.Select(static silo => silo.SiloAddress));
@@ -494,13 +494,13 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 描述 silo最近一份清单更新尝试:它调和的会员版本
-    /// 与它等待的同侪们,
-    /// 最近抓取失败, 如果有的话。 用于诊断聚集中最显著的合并超时 。
+    /// 描述 Silo 最近一次清单更新尝试：正在协调的成员资格版本、
+    /// 仍在等待的对等节点、尝试已经持续的时间，以及最近一次
+    /// 获取失败（如果有）。用于诊断集群清单收敛超时。
     /// </summary>
-    /// <remarks><see langword="internal"/> (而不是 <see langword="private"/>) 仅如此,其精确输出
-    /// 格式,可直接从 <c>Orleans.Core.Tests</c> 无需整个过程
-    /// 集束体聚合超时。</remarks>
+    /// <remarks><see langword="internal"/>（而不是 <see langword="private"/>）仅为了让其精确的输出
+    /// 格式能够直接从 <c>Orleans.Core.Tests</c> 中进行单元测试，而无需触发完整的进程内
+    /// 集群收敛超时。</remarks>
     internal static string DescribePendingFetch(
         SiloAddress observer,
         ClusterManifest manifest,
@@ -512,8 +512,8 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
             return $"{observer}: no manifest-update attempt recorded (published version {manifest.Version})";
         }
 
-        // 使用观察员 silo自己的钟表,该钟表可在测试中虚拟化,这样过的时间被测量
-        // 与 AttemptStartedAt 相一致(通过同一 silo的 TimeProvider加以标 )。
+        // 使用观察方 Silo 自己的时钟（在测试中可能虚拟化），使经过时间的测量方式
+        // 与 AttemptStartedAt 一致（使用同一 Silo 的 TimeProvider 记录）。
         var elapsed = observerUtcNow - diagnostics.AttemptStartedAt;
         var pending = string.Join(", ", diagnostics.PendingSilos);
         var failure = diagnostics.LastFailedSilo is { } failedSilo
@@ -524,7 +524,7 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 获取超时值, 等待 silo 活性子系统检测最近分组成员变化的情况并采取行动。
+    /// 获取等待 Silo 存活检测子系统发现并处理近期集群成员资格变化时使用的超时值。
     /// <seealso cref="WaitForLivenessToStabilizeAsync"/>
     /// </summary>
     public static TimeSpan GetLivenessStabilizationTime(ClusterMembershipOptions clusterMembershipOptions, bool didKill = false)
@@ -532,7 +532,7 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
         TimeSpan stabilizationTime = TimeSpan.Zero;
         if (didKill)
         {
-            // 如果发生硬杀(杀人而不是停止),我们应该给 silos 时间首先发现故障。
+            // 如果采用强制终止（Kill 而不是 Stop），应先给 Silo 留出检测故障的时间。
             stabilizationTime = TestingUtils.Multiply(clusterMembershipOptions.MaxProbeTimeout, clusterMembershipOptions.NumMissedProbesLimit);
         }
         if (clusterMembershipOptions.UseLivenessGossip)
@@ -548,27 +548,27 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 启动一个额外的 silo,以便加入现有组群。
+    /// 启动额外的 Silo，使其加入现有集群。
     /// </summary>
-    /// <returns>SiloHandle 新建的 silo.</returns>
+    /// <returns>新启动的 Silo 的 SiloHandle。</returns>
     public InProcessSiloHandle StartAdditionalSilo()
     {
         return StartAdditionalSiloAsync().GetAwaiter().GetResult();
     }
 
     /// <summary>
-    /// 启动一个额外的 silo,以便加入现有组群。
+    /// 启动额外的 Silo，使其加入现有集群。
     /// </summary>
-    /// <returns>SiloHandle 新建的 silo.</returns>
+    /// <returns>新启动的 Silo 的 SiloHandle。</returns>
     public async Task<InProcessSiloHandle> StartAdditionalSiloAsync()
     {
         return (await StartSilosAsync(1)).Single();
     }
 
     /// <summary>
-    /// 启动一个额外的 silo,以便加入现有组群。
+    /// 启动额外的 Silo，使其加入现有集群。
     /// </summary>
-    /// <returns>SiloHandle 新建的 silo.</returns>
+    /// <returns>新启动的 Silo 的 SiloHandle。</returns>
     [Obsolete("Use overload which does not have a 'startAdditionalSiloOnNewPort' parameter.")]
     public InProcessSiloHandle StartAdditionalSilo(bool startAdditionalSiloOnNewPort)
     {
@@ -576,20 +576,20 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 启动一个额外的 silo,以便加入现有组群。
+    /// 启动额外的 Silo，使其加入现有集群。
     /// </summary>
-    /// <returns>SiloHandle 新建的 silo.</returns>
+    /// <returns>新启动的 Silo 的 SiloHandle。</returns>
     public async Task<InProcessSiloHandle> StartAdditionalSiloAsync(bool startAdditionalSiloOnNewPort)
     {
         return (await StartSilosAsync(1)).Single();
     }
 
     /// <summary>
-    /// 启动若干额外的 silo,以便加入现有组群。
+    /// 启动一定数量的额外 Silo，使其加入现有集群。
     /// </summary>
-    /// <param name="silosToStart">数目数量 silos 开始。</param>
+    /// <param name="silosToStart">要启动的 Silo 数量。</param>
     /// <param name="startAdditionalSiloOnNewPort"></param>
-    /// <returns>名单清单 SiloHandles 新建的 silos.</returns>
+    /// <returns>新启动 Silo 的 SiloHandle 列表。</returns>
     [Obsolete("Use overload which does not have a 'startAdditionalSiloOnNewPort' parameter.")]
     public async Task<List<InProcessSiloHandle>> StartSilosAsync(int silosToStart, bool startAdditionalSiloOnNewPort)
     {
@@ -597,19 +597,19 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 启动若干额外的 silo,以便加入现有组群。
+    /// 启动一定数量的额外 Silo，使其加入现有集群。
     /// </summary>
-    /// <param name="silosToStart">数目数量 silos 开始。</param>
-    /// <returns>名单清单 SiloHandles 新建的 silos.</returns>
+    /// <param name="silosToStart">要启动的 Silo 数量。</param>
+    /// <returns>新启动 Silo 的 SiloHandle 列表。</returns>
     public Task<List<InProcessSiloHandle>> StartSilosAsync(int silosToStart)
         => StartSilosAsync(silosToStart, CancellationToken.None);
 
     /// <summary>
-    /// 启动若干额外的 silos,以便加入现有组群。
+    /// 启动一定数量的额外 Silo，使其加入现有集群。
     /// </summary>
-    /// <param name="silosToStart">数目数量 silos 开始。</param>
-    /// <param name="cancellationToken">取消时使用的牌点 silo 启动。</param>
-    /// <returns>列表 silo 中新启动的 silos的控件</returns>。
+    /// <param name="silosToStart">要启动的 Silo 数量。</param>
+    /// <param name="cancellationToken">用于取消 Silo 启动的令牌。</param>
+    /// <returns>新启动 Silo 的句柄列表。</returns>
     public async Task<List<InProcessSiloHandle>> StartSilosAsync(
         int silosToStart,
         CancellationToken cancellationToken)
@@ -658,14 +658,14 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 停止全部 silos。
+    /// 停止所有 Silo。
     /// </summary>
     public Task StopSilosAsync() => StopSilosAsync(CancellationToken.None);
 
     /// <summary>
-    /// 停止全部 silos。
+    /// 停止所有 Silo。
     /// </summary>
-    /// <param name="cancellationToken">取消关闭时使用的标记。</param>
+    /// <param name="cancellationToken">用于取消关闭过程的令牌。</param>
     public async Task StopSilosAsync(CancellationToken cancellationToken)
     {
         foreach (var instance in _silos.ToList())
@@ -675,16 +675,16 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 停止将客户群分组为非同步操作 。
+    /// 以异步操作停止集群客户端。
     /// </summary>
-    /// <returns>A <see cref="Task"/> 代表非同步操作。</returns>
+    /// <returns>表示异步操作的 <see cref="Task"/>。</returns>
     public Task StopClusterClientAsync() => StopClusterClientAsync(CancellationToken.None);
 
     /// <summary>
-    /// 停止将客户群分组为非同步操作 。
+    /// 以异步操作停止集群客户端。
     /// </summary>
-    /// <param name="cancellationToken">取消关闭时使用的标记。</param>
-    /// <returns>A <see cref="Task"/> 代表非同步操作。</returns>
+    /// <param name="cancellationToken">用于取消关闭过程的令牌。</param>
+    /// <returns>表示异步操作的 <see cref="Task"/>。</returns>
     public async Task StopClusterClientAsync(CancellationToken cancellationToken)
     {
         var client = ClientHost;
@@ -711,7 +711,7 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 停止全部当前 silos。
+    /// 停止当前所有 Silo。
     /// </summary>
     public void StopAllSilos()
     {
@@ -719,14 +719,14 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 停止全部当前 silos。
+    /// 停止当前所有 Silo。
     /// </summary>
     public Task StopAllSilosAsync() => StopAllSilosAsync(CancellationToken.None);
 
     /// <summary>
-    /// 停止全部当前 silos。
+    /// 停止当前所有 Silo。
     /// </summary>
-    /// <param name="cancellationToken">取消关闭时使用的标记。</param>
+    /// <param name="cancellationToken">用于取消关闭过程的令牌。</param>
     public async Task StopAllSilosAsync(CancellationToken cancellationToken)
     {
         try
@@ -741,16 +741,16 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 执行指定的 silo半可观停止。
+    /// 对指定 Silo 执行半优雅停止操作。
     /// </summary>
-    /// <param name="instance">Silo 以停止。</param>
+    /// <param name="instance">要停止的 Silo。</param>
     public Task StopSiloAsync(InProcessSiloHandle instance) => StopSiloAsync(instance, CancellationToken.None);
 
     /// <summary>
-    /// 执行指定的 silo半可观停止。
+    /// 对指定 Silo 执行半优雅停止操作。
     /// </summary>
-    /// <param name="instance">Silo 以停止。</param>
-    /// <param name="cancellationToken">取消关闭时使用的标记。</param>
+    /// <param name="instance">要停止的 Silo。</param>
+    /// <param name="cancellationToken">用于取消关闭过程的令牌。</param>
     public async Task StopSiloAsync(InProcessSiloHandle instance, CancellationToken cancellationToken)
     {
         if (instance != null)
@@ -770,16 +770,16 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 立即杀死指定 silo。
+    /// 立即强制终止指定 Silo。
     /// </summary>
-    /// <param name="instance">Silo 被杀死</param>
+    /// <param name="instance">要强制终止的 Silo。</param>
     public Task KillSiloAsync(InProcessSiloHandle instance) => KillSiloAsync(instance, CancellationToken.None);
 
     /// <summary>
-    /// 立即杀死指定 silo。
+    /// 立即强制终止指定 Silo。
     /// </summary>
-    /// <param name="instance">Silo 被杀死</param>
-    /// <param name="cancellationToken">取消操作所用的标记。</param>
+    /// <param name="instance">要强制终止的 Silo。</param>
+    /// <param name="cancellationToken">用于取消该操作的令牌。</param>
     public async Task KillSiloAsync(InProcessSiloHandle instance, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -787,7 +787,7 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
         {
             try
             {
-                // 而不是停止,只是直接杀死,模拟坠机。
+                // 不要正常停止，直接强制终止，以模拟崩溃。
                 await StopSiloAsync(instance, false, cancellationToken);
             }
             finally
@@ -801,7 +801,7 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 执行对客户端的硬性杀戮。 客户端不会清理资源 。
+    /// 强制终止客户端。客户端不会清理资源。
     /// </summary>
     public async Task KillClientAsync()
     {
@@ -829,9 +829,9 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 停止或终止指定的 silo, 然后重新开始 。
+    /// 对指定 Silo 执行 Stop 或 Kill 操作，随后重启。
     /// </summary>
-    /// <param name="instance">Silo 要重新开始。</param>
+    /// <param name="instance">要重启的 Silo。</param>
     public async Task<InProcessSiloHandle?> RestartSiloAsync(InProcessSiloHandle instance)
     {
         if (instance is not null)
@@ -851,9 +851,9 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 重新启动先前已停止的状态 。
+    /// 重启此前已停止的 Silo。
     /// </summary>
-    /// <param name="siloName">Silo 要重新开始。</param>
+    /// <param name="siloName">要重启的 Silo。</param>
     public async Task<InProcessSiloHandle> RestartStoppedSecondarySiloAsync(string siloName)
     {
         if (siloName == null) throw new ArgumentNullException(nameof(siloName));
@@ -867,14 +867,14 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 初始化 grain 客户端。 这项工作应该已经由 <see cref="DeployAsync()"/>完成
+    /// 初始化 Grain 客户端。此操作应已由 <see cref="DeployAsync()"/> 完成。
     /// </summary>
     public Task InitializeClientAsync() => InitializeClientAsync(CancellationToken.None);
 
     /// <summary>
-    /// 初始化 grain 客户端。
+    /// 初始化 Grain 客户端。
     /// </summary>
-    /// <param name="cancellationToken">取消初始化所用的标记。</param>
+    /// <param name="cancellationToken">用于取消初始化的令牌。</param>
     public async Task InitializeClientAsync(CancellationToken cancellationToken)
     {
         WriteLog("Initializing Cluster Client");
@@ -945,19 +945,19 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 创建并启动一个进程 silo。
+    /// 创建并启动进程内 Silo。
     /// </summary>
-    /// <param name="siloOptions"> silo 选项。</param>
-    /// <returns>启动 silo的控点。</returns>
+    /// <param name="siloOptions">Silo 选项。</param>
+    /// <returns>已启动 Silo 的句柄。</returns>
     public Task<InProcessSiloHandle> CreateSiloAsync(InProcessTestSiloSpecificOptions siloOptions)
         => CreateSiloAsync(siloOptions, CancellationToken.None);
 
     /// <summary>
-    /// 创建并启动一个进程 silo。
+    /// 创建并启动进程内 Silo。
     /// </summary>
-    /// <param name="siloOptions"> silo 选项。</param>
-    /// <param name="cancellationToken">取消时使用的牌点 silo 启动。</param>
-    /// <returns>启动 silo的控点。</returns>
+    /// <param name="siloOptions">Silo 选项。</param>
+    /// <param name="cancellationToken">用于取消 Silo 启动的令牌。</param>
+    /// <returns>已启动 Silo 的句柄。</returns>
     public async Task<InProcessSiloHandle> CreateSiloAsync(
         InProcessTestSiloSpecificOptions siloOptions,
         CancellationToken cancellationToken)
@@ -987,7 +987,7 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
 
                 if (Debugger.IsAttached)
                 {
-                    // 测试正在内部调试器内运行 - 让超时 *\\ 无限
+                    // 测试在调试器中运行，将超时时间设为近似无限。
                     services.Configure<SiloMessagingOptions>(op => op.ResponseTimeout = TimeSpan.FromMilliseconds(1000000));
                 }
 
@@ -1082,12 +1082,12 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 在目标组中开始新 silo
+    /// 在目标集群中启动一个新 Silo。
     /// </summary>
-    /// <param name="cluster">下 InProcessTestCluster 和在 silo 应部署</param>
-    /// <param name="instanceNumber">部署的试数</param>
-    /// <param name="clusterOptions">使用选项。</param>
-    /// <returns>部署的 silo 的手柄</returns>
+    /// <param name="cluster">应在其中部署 Silo 的 InProcessTestCluster。</param>
+    /// <param name="instanceNumber">要部署的实例编号。</param>
+    /// <param name="clusterOptions">要使用的选项。</param>
+    /// <returns>已部署 Silo 的句柄。</returns>
     public static async Task<InProcessSiloHandle> StartSiloAsync(InProcessTestCluster cluster, int instanceNumber, InProcessTestClusterOptions clusterOptions)
     {
         if (cluster == null) throw new ArgumentNullException(nameof(cluster));
@@ -1095,14 +1095,14 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 在目标组中开始新 silo
+    /// 在目标集群中启动一个新 Silo。
     /// </summary>
-    /// <param name="cluster">下 InProcessTestCluster 和在 silo 应部署</param>
-    /// <param name="instanceNumber">部署的试数</param>
-    /// <param name="clusterOptions">使用选项。</param>
-    /// <param name="configurationOverrides">配置覆盖。</param>
-    /// <param name="startSiloOnNewPort">我们是否在新端口启动此 silo , 而不是默认的端口</param>
-    /// <returns>部署的 silo 的手柄</returns>
+    /// <param name="cluster">应在其中部署 Silo 的 InProcessTestCluster。</param>
+    /// <param name="instanceNumber">要部署的实例编号。</param>
+    /// <param name="clusterOptions">要使用的选项。</param>
+    /// <param name="configurationOverrides">配置覆盖项。</param>
+    /// <param name="startSiloOnNewPort">是否在新端口而非默认端口上启动此 Silo。</param>
+    /// <returns>已部署 Silo 的句柄。</returns>
     [Obsolete("Use the overload which does not have a 'startSiloOnNewPort' parameter.")]
     public static async Task<InProcessSiloHandle> StartSiloAsync(InProcessTestCluster cluster, int instanceNumber, InProcessTestClusterOptions clusterOptions, IReadOnlyList<IConfigurationSource> configurationOverrides, bool startSiloOnNewPort)
     {
@@ -1111,21 +1111,21 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 启动新的 silo。
+    /// 启动新的 Silo。
     /// </summary>
-    /// <param name="instanceNumber">部署的试数</param>
-    /// <param name="clusterOptions">使用选项。</param>
-    /// <returns>部署的 silo的把手。</returns>
+    /// <param name="instanceNumber">要部署的实例编号。</param>
+    /// <param name="clusterOptions">要使用的选项。</param>
+    /// <returns>已部署 Silo 的句柄。</returns>
     public Task<InProcessSiloHandle> StartSiloAsync(int instanceNumber, InProcessTestClusterOptions clusterOptions)
         => StartSiloAsync(instanceNumber, clusterOptions, CancellationToken.None);
 
     /// <summary>
-    /// 启动新的 silo。
+    /// 启动新的 Silo。
     /// </summary>
-    /// <param name="instanceNumber">要部署的试数。</param>
-    /// <param name="clusterOptions">使用选项。</param>
-    /// <param name="cancellationToken">取消时使用的牌点 silo 启动。</param>
-    /// <returns>部署的 silo的把手。</returns>
+    /// <param name="instanceNumber">要部署的实例编号。</param>
+    /// <param name="clusterOptions">要使用的选项。</param>
+    /// <param name="cancellationToken">用于取消 Silo 启动的令牌。</param>
+    /// <returns>已部署 Silo 的句柄。</returns>
     public async Task<InProcessSiloHandle> StartSiloAsync(
         int instanceNumber,
         InProcessTestClusterOptions clusterOptions,
@@ -1139,13 +1139,13 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 启动新的 silo。
+    /// 启动新的 Silo。
     /// </summary>
-    /// <param name="instanceNumber">部署的试数</param>
-    /// <param name="clusterOptions">使用选项。</param>
-    /// <param name="configurationOverrides">配置覆盖。</param>
-    /// <param name="startSiloOnNewPort">我们是否在新端口启动此 silo , 而不是默认的端口</param>
-    /// <returns>部署的 silo的把手。</returns>
+    /// <param name="instanceNumber">要部署的实例编号。</param>
+    /// <param name="clusterOptions">要使用的选项。</param>
+    /// <param name="configurationOverrides">配置覆盖项。</param>
+    /// <param name="startSiloOnNewPort">是否在新端口而非默认端口上启动此 Silo。</param>
+    /// <returns>已部署 Silo 的句柄。</returns>
     [Obsolete("Use the overload which does not have a 'startSiloOnNewPort' parameter.")]
     public async Task<InProcessSiloHandle> StartSiloAsync(int instanceNumber, InProcessTestClusterOptions clusterOptions, IReadOnlyList<IConfigurationSource> configurationOverrides, bool startSiloOnNewPort)
     {
@@ -1170,7 +1170,7 @@ public sealed class InProcessTestCluster : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// 拿到日志了
+    /// 获取日志。
     /// </summary>
     /// <returns>日志内容。</returns>
     public string GetLog()

@@ -1,53 +1,53 @@
 # Microsoft.Orleans.Reminders.TestKit
 
-验证 Orleans `IReminderTable` 执行及其提醒服务整合的测试基础设施。
+用于验证 Orleans `IReminderTable` 实现及其与提醒器服务集成的测试基础设施。
 
-每个供应商都执行一份合同。
-它们不禁用保障或调制重试。 TestKit 确定数据、断言和序列
-设置和清理、受约束的重整、诊断和故障信息。
+所有提供程序执行同一份契约。提供程序测试套件只负责构造及配置外部服务；
+它们不禁用保证，也不调整重试策略。TestKit 负责确定性数据生成、断言、串行化的
+记录数量初始化与清理、有限重试、诊断和失败消息。
 
 <a id="contents"></a>
 
-## 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录 目录
+## 内容
 
-| 类型类型 | 目的目的宗旨 |
+| 类型 | 用途 |
 | --- | --- |
-| `ReminderTableTestRunner` | 每个有记录的表格保证书的直接符合事实。 |
-| `ReminderServiceTestRunner` | 聚类级登记、替换、查找、查点和清除符合规定。 |
-| `ReminderServiceLifecycleTestRunner` | 确定性的启动、所有权、准确到期、和解、杂乱无章和清洁隔离。 |
-| `IReminderServiceLifecycleHarness` | 一组的适应器合同、一个提醒钟、诊断和明确的地形障碍。 |
-| `ReminderTableModelBasedTestRunner` | 与同一合同完全一致,产生相继符合的情况。 |
-| `IdealizedReminderTable` | 确定性、强烈一致的参考实施和错误注射手肘。 |
-| `ReminderTableTestFixture` | 部署和解决供应商问题的流程中集束固定装置。 |
-| `ReminderConformanceException` / `ReminderFailureReport` | 统一、供应商名诊断。 |
+| `ReminderTableTestRunner` | 针对每项文档规定的表保证进行直接符合性测试。 |
+| `ReminderServiceTestRunner` | 集群级注册、替换、查找、枚举和删除的契约符合性测试。 |
+| `ReminderServiceLifecycleTestRunner` | 确定性启动、所有权、精确到期、协调、集群成员变动和清理隔离的契约符合性测试。 |
+| `IReminderServiceLifecycleHarness` | 针对单个集群、单个提醒器时钟、诊断和显式拓扑屏障的适配器契约。 |
+| `ReminderTableModelBasedTestRunner` | 根据同一完整契约生成并顺序执行的符合性测试。 |
+| `IdealizedReminderTable` | 确定性的强一致性参考实现和故障注入判定基准。 |
+| `ReminderTableTestFixture` | 用于部署和解析提供程序的进程内集群测试夹具。 |
+| `ReminderConformanceException` / `ReminderFailureReport` | 统一的、包含提供程序名称的诊断信息。 |
 
 <a id="contract"></a>
 
-## 合同合同合同合同
+## 契约
 
-共享套房要求:
+共享测试套件要求：
 
-- 极强的启动和停止后持久恢复;
-- a 供每个成功上岗者使用的非空、供应商签发的ETag,供每个替代者使用的不同ETag;
-- 准确点、 grain和范围如下,包括身份,统合时秒 `StartAt`、 `Period`、ETag、主要内容,
-  重复拒绝;
-- (a) 不带符号 `(begin, end]` 环词义,包括整环包装和 `(0, 0]` ;
-- 现职和已停工的ETag有条件驱逐、确切缺勤观察和 `TestOnlyClearTable`;
-- 使用一个连接的突变回录法政策撰写同身份替换和平行的每 -grain ;
-- 一条约束的阅读一致政策(10秒,100毫秒延迟)。
+- 幂等启动以及停止后能够持久恢复的重新启动；
+- 每次成功插入或更新均由提供程序签发非空 ETag，每次替换均产生不同的 ETag；
+- 精确的单点、Grain 和范围读取，包括标识、UTC 整秒精度的 `StartAt`、`Period`、ETag、记录数量，
+  以及拒绝重复记录；
+- 无符号 `(begin, end]` 环语义，包括回绕和表示整个环的 `(0, 0]`；
+- 使用当前和过期 ETag 进行条件删除、准确观察记录不存在，以及 `TestOnlyClearTable`；
+- 使用统一的有限变更重试策略，并发替换同一标识和并行执行各 Grain 写入；以及
+- 统一的有限读取收敛策略（10 秒，间隔 100 毫秒）。
 
-第一次尝试前测量重试时间, 从而将被阻隔的初始操作捆绑起来。 超时诊断仍然保留
-提供方、担保、运行、预期结果、尝试计算、最后完成的观察和最后例外。
-每一个供应商都对确切的心肌梗塞设置和清理进行序列记录;共同货币由专门的事实来行使。
+重试时间从首次尝试之前开始计算，因此即使首次操作阻塞，也受到时间限制。超时诊断保留
+提供程序、保证、操作、预期结果、尝试次数、最后一次已完成的观察及最后一个异常。
+每个提供程序涉及精确记录数量的初始化及清理均串行执行；并发由专门的测试用例验证。
 
-供应商套件拥有额外的后端语义学,例如 `ReminderEntry.ETag`的有条件调高器等,
-启动取消时间、交叉隔离、传呼和持续行为。
+提供程序测试套件负责其他后端语义，例如基于 `ReminderEntry.ETag` 的条件插入或更新、
+启动取消时机、跨表隔离、分页及续页行为。
 
 <a id="adopting-the-suite"></a>
 
-## 采用套套套件
+## 接入测试套件
 
-供应商测试项目私下提及 TestKit :
+从提供程序测试项目私有引用 TestKit：
 
 ```xml
 <ProjectReference
@@ -57,10 +57,10 @@
 
 <a id="create-a-provider-fixture"></a>
 
-### 创建提供者固定设置
+### 创建提供程序测试夹具
 
-从 `ReminderTableTestFixture` 提取,用于在进程 silo中配置供应商。固定线开始表格
-暴露已部署的 `IGrainFactory` 和 `IReminderTable`,并在套件后停止并处置集束。
+派生自 `ReminderTableTestFixture`，在进程内 Silo 中配置提供程序。夹具启动表，
+公开已部署的 `IGrainFactory` 和 `IReminderTable`，并在套件完成后停止和释放集群。
 
 ```csharp
 public sealed class MyReminderTableFixture : ReminderTableTestFixture, IAsyncLifetime
@@ -76,15 +76,15 @@ public sealed class MyReminderTableFixture : ReminderTableTestFixture, IAsyncLif
 }
 ```
 
-`CheckPreconditionsOrThrow` 记录了固定装置启动期间的外部服务可用性失效。
-调用测试构建器的 `EnsurePreconditionsMet` ,以便测试框架报告一致地记录结果。
+`CheckPreconditionsOrThrow` 在夹具初始化期间捕获外部服务不可用的失败。
+在测试构造函数中调用 `EnsurePreconditionsMet`，让测试框架以一致方式报告捕获的结果。
 
 <a id="run-the-direct-contract"></a>
 
-### 运行直接合同
+### 运行直接契约测试
 
-从 `ReminderTableTestRunner`中衍生出,通过已解决的表格和一个稳定的提供者名称,然后暴露每个共享
-使用测试框架属性保证:
+派生自 `ReminderTableTestRunner`，传入已解析的表和稳定的提供程序名称，然后通过所用测试框架的特性
+公开各项共享保证：
 
 ```csharp
 public sealed class MyReminderTableTests
@@ -110,15 +110,15 @@ public sealed class MyReminderTableTests
 }
 ```
 
-内置提供套房通过 `ReminderTableTestsBase`继承这些事实。
-`ReminderTableTestRunner` 上的公共担保,因此在审查过程中可以看到对共享合同的增补。
+内置提供程序测试套件通过 `ReminderTableTestsBase` 继承这些测试。独立套件公开
+`ReminderTableTestRunner` 上的每项公共保证，以便在评审时发现共享契约新增的内容。
 
 <a id="run-the-model-based-contract"></a>
 
-### 运行基于示范合同的合同
+### 运行基于模型的契约测试
 
-模型运行器生成确定性操作序列,覆盖上移、点和 grain 读作, 未符号范围
-读物,当前和平淡的ETag清除和清理表格:
+模型运行器生成确定性的操作序列，覆盖插入或更新、单点与 Grain 读取、无符号范围
+读取、当前及过期 ETag 删除，以及清空表：
 
 ```csharp
 public sealed class MyReminderTableModelTests : IClassFixture<MyReminderTableFixture>
@@ -153,16 +153,16 @@ public sealed class MyReminderTableModelTests : IClassFixture<MyReminderTableFix
 }
 ```
 
-`Seed` 和 `KeyPrefix` 使身份和故障痕迹可以复制。
-每个生成的立案, 在返回前进行最后空表观测 。
+`Seed` 和 `KeyPrefix` 使标识及失败轨迹可重现。运行器在每个生成用例前后清空表，
+并在返回前最后确认表为空。
 
 <a id="run-the-grain-facing-reminder-service-contract"></a>
 
-### 运行 grain- 附加提醒服务合同
+### 运行面向 Grain 的提醒器服务契约测试
 
-`ReminderServiceTestRunner` 核实登记、查查、查查、查点、时间表替换、ETag替换和
-未经公众登记 grain API相同的 `TimeProvider` 和 silo 登记册登记
-`ReminderTimeProviderNames.Reminders` 所以,适时的主张使用子系统时钟:
+`ReminderServiceTestRunner` 通过公共 Grain API 验证注册、查找、枚举、调度替换、ETag 替换及
+注销。传入 Silo 为
+`ReminderTimeProviderNames.Reminders` 注册的同一个 `TimeProvider`，使到期时间断言使用子系统的时钟：
 
 ```csharp
 public sealed class MyReminderServiceTests
@@ -191,19 +191,19 @@ public sealed class MyReminderServiceTests
 
 <a id="run-lifecycle-and-churn-conformance"></a>
 
-### 运行生命周期和周期性
+### 运行生命周期与集群成员变动的契约符合性测试
 
-`ReminderServiceLifecycleTestRunner` 添加共享服务级合同。
-服务提供商:开办准备、单一登记所有权、现场时间表更新、清除不便、
-及时追回、陈旧的所有人登记核对、一silo 连/休假转移以及清理隔离。
+`ReminderServiceLifecycleTestRunner` 补充共享服务级契约。每个服务提供程序都运行同样的八种场景：
+启动就绪、单一注册所有权、就地更新调度、删除后的静默、
+精确到期恢复、过期所有者注册协调、单个 Silo 加入/离开时的移交，以及清理隔离。
 
-使用 `ReminderTestClock` 作为唯一的时间驱动程序,使用 `ReminderDiagnosticObserver` 作为生命周期/ ticklick 源。
-`ReminderServiceLifecycleHarness` 用于 `InProcessTestCluster` 提供明确的成员和提醒-
-和解障碍。
+使用 `ReminderTestClock` 作为唯一时间驱动器，并使用 `ReminderDiagnosticObserver` 作为生命周期及触发事件的来源。
+适用于 `InProcessTestCluster` 的 `ReminderServiceLifecycleHarness` 适配器提供显式成员资格和提醒器范围
+协调屏障。
 
-加入假想开始 silo , 以其自然地址杂乱状态启动, 等待在选择前进行地表调节
-确定论 grain 身份 silo身份选择受约束,报告a
-找不到匹配的候选人时结构结构不一致性; 情景清理仍然删除了合并 silo。
+加入场景使用 Silo 自身的地址哈希启动该 Silo，并等待拓扑协调，然后在该 Silo 的实际所有权范围内选择
+确定性的 Grain 标识。标识选择有界，如果找不到匹配候选项，会报告结构化的
+契约符合性失败；场景清理仍会删除已加入的 Silo。
 
 ```csharp
 var clock = builder.AddReminderTestClock();
@@ -231,25 +231,25 @@ public sealed class MyLifecycleTests : ReminderServiceLifecycleTestRunner
 }
 ```
 
-不以延迟、 重新运行环、 超时或特定供应商跳过来取代带环屏障。 方案清理
-使用自己的约束牌, 使用当前ETags 来去除仅确定性情景的行, 并使用其当前的ETags, 前进一列
-用于自控自控器不自密的刷新, 并验证其不存在; 它从不清除无关的提供行或替换
-所有权主张计算当地提醒事件身份,包括重复
-在一个 silo地址上,而不是计算单独的 silo 地址。
+不要用延迟、重试循环、更长超时或提供程序特定的跳过逻辑替代测试框架屏障。场景清理
+使用自己的有限取消令牌，只使用当前 ETag 删除确定性的场景记录，显式推进一次
+刷新以等待所有者静默，并验证这些记录不存在；它从不清除无关的提供程序记录，也不会替换
+原始场景失败。所有权断言统计本地提醒器实例标识，包括
+单个 Silo 上的重复实例，而不是统计不同的 Silo 地址。
 
-内置的存储器、 Azure 表、宇宙 DB、 ADO.NET SQL 服务器、 PostgreSQL、 MySQL、 Redis、 DynamoDB和消防站
-它们的适应器只包含后端先决条件/设置和提供者
-提供外部服务可跳过固定建筑,但没有任何供应商能够使个人残疾
-寿命周期保障。在此添加一个有文件证明的能力界限,然后忽略无法托管的未来供应商
-排 Orleans 提醒服务或参与处理中 silo 胡说八道
+内置内存、Azure Table、Cosmos DB、ADO.NET SQL Server、PostgreSQL、MySQL、Redis、DynamoDB 和 Firestore
+提供程序均公开相同的继承测试。其适配器仅包含后端先决条件检查、初始化及提供程序
+注册。外部服务可用性检查可以使夹具构造被跳过，但没有任何提供程序禁用单项
+生命周期保证。未来若某个提供程序无法托管
+Orleans 提醒器服务或参与进程内 Silo 成员变动，则在将其排除之前，应在此记录能力边界。
 
 <a id="deterministic-oracle-and-cluster-testing"></a>
 
-## 确定性神器和集束测试
+## 确定性判定基准与集群测试
 
-`IdealizedReminderTable` 提供 TestKit 自测试和自试的严格一致的参考执行
-`UseIdealizedReminderTable` 登记每个 silo 共有的孔器,并安装
-专用提醒时钟和提醒选项:
+`IdealizedReminderTable` 为 TestKit 自身测试和运行时集成测试提供强一致性的参考实现。
+`UseIdealizedReminderTable` 在所有 Silo 中注册同一个共享判定基准，并可安装
+专用提醒器时钟和提醒器选项：
 
 ```csharp
 var builder = new InProcessTestClusterBuilder();
@@ -264,38 +264,38 @@ var records = oracle.Snapshot();
 var operations = oracle.Operations;
 ```
 
-先知揭发:
+判定基准公开：
 
-- `Snapshot`、 `Find`、 `Operations`和 `OperationCount` ,用于确定状态和运行主张;
-- 选定表格业务周围的阶段障碍`BlockNext` ;
-- 短暂故障和断电情景的`InjectFailure` 和 `SetAvailable` ;
-- 用于读取淡化趋同设想情景的`FreezeReads` ;以及
-- 取消生命周期和无差别检查。
+- `Snapshot`、`Find`、`Operations` 和 `OperationCount`，用于确定性状态和操作断言；
+- `BlockNext`，用于围绕选定的表操作设置阶段屏障；
+- `InjectFailure` 和 `SetAvailable`，用于瞬态故障和服务中断场景；
+- `FreezeReads`，用于过期读取收敛场景；以及
+- 生命周期取消与不变量检查。
 
-`ReminderTestClock` 在集群组建立之前设立其生命周期观察者,允许启动合规等待
-单 `ReminderServiceStarted` 用于每 silo 和距离调和障碍。 TestKit
-集束集成套件利用这些控制手段,处理应交付、应收回储存、应归还的准确交货、应归还的仓储、
-超过平台定时时限的到期时间,未登记后停止再登记,以及单人交货
--silo 组合体。
+`ReminderTestClock` 在构建集群之前创建其生命周期观察者，使启动符合性测试能够在活性及范围协调屏障之前，
+等待每个 Silo 的一个 `ReminderServiceStarted` 事件。TestKit
+集群集成套件使用这些控制手段覆盖精确到期投递、精确到期存储恢复、
+超过平台定时器限制的到期时间、注销后的过期刷新抑制，以及
+多 Silo 集群中的单所有者投递。
 
 <a id="diagnostics-and-cleanup"></a>
 
-## 诊断和清理
+## 诊断与清理
 
-每次不合规都丢弃 `ReminderConformanceException` ,并丢出 `ReminderFailureReport`。
-提供方、担保、操作、提醒身份、预期和观察状态、ETATag线系、牧场所有权、再加工
-以及最后的观察或例外
+每次契约符合性失败都会抛出带 `ReminderFailureReport` 的 `ReminderConformanceException`。报告标识
+提供程序、保证、操作、提醒器标识、预期与观察到的状态、ETag 演变关系、范围所有权、重试
+次数，以及最后的观察结果或异常。
 
-直接事实使用独特的确定身份,并删除行排。
-以模型为基础的案例清除了每个边界的表格。 `ReminderTableTestFixture` 拥有集束关闭和
-资源处置,包括部署失败后清理。
+直接测试使用唯一且确定性的标识，并删除其记录。涉及精确记录数量的初始化与清理均
+串行执行。基于模型的用例在每个边界清空表。`ReminderTableTestFixture` 负责关闭集群并
+释放资源，包括部署失败后的清理。
 
-具体供应商的测试包括:计划、配置、序列化、迁移、模拟和外部服务
-与共享合同同时发生的行为。
+除共享契约外，提供程序特定测试还覆盖架构、配置、序列化、迁移、模拟器及外部服务
+行为。
 
 <a id="consumption"></a>
 
-## 消费消费
+## 使用方式
 
-供应商测试项目利用私人项目参考书,从源头消耗项目,匹配
-`Orleans.Persistence.TestKit`.
+提供程序测试项目通过私有项目引用直接使用此项目源码，与
+`Orleans.Persistence.TestKit` 的方式一致。

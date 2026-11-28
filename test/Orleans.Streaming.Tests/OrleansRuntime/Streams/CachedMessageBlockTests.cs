@@ -6,7 +6,7 @@ using Xunit;
 namespace UnitTests.OrleansRuntime.Streams
 {
     /// <summary>
-    /// 测试流动基础设施中缓存信件块功能的测试 。
+    /// 流式处理基础设施中缓存消息块功能的测试。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -111,17 +111,17 @@ namespace UnitTests.OrleansRuntime.Streams
 
             while (block.HasCapacity)
             {
-                // 添加到块的结尾处的信件
+                // 将消息添加到块的末尾。
                 AddAndCheck(block, dataAdapter, first, last);
                 last++;
                 if (!block.HasCapacity)
                 {
                     continue;
                 }
-                // 添加到块的结尾处的信件
+                // 将消息添加到块的末尾。
                 AddAndCheck(block, dataAdapter, first, last);
                 last++;
-                // 从块块开始删除信件
+                // 从块的起始位置移除消息
                 RemoveAndCheck(block, first, last);
                 first++;
             }
@@ -142,7 +142,7 @@ namespace UnitTests.OrleansRuntime.Streams
 
             while (block.HasCapacity)
             {
-                // 添加到块的结尾处的信件
+                // 将消息添加到块的末尾。
                 AddAndCheck(block, dataAdapter, 0, last, sequenceNumber);
                 last++;
                 sequenceNumber += 2;
@@ -163,10 +163,10 @@ namespace UnitTests.OrleansRuntime.Streams
             CachedMessageBlock block = pool.Allocate();
             int last = 0;
             int sequenceNumber = 0;
-            // 定义 2 流
+            // 定义 2 个流
             var streams = new[] { new StreamIdentity(Guid.NewGuid(), null), new StreamIdentity(Guid.NewGuid(), null) };
 
-            // 添加两个断开的串流,直到锁定全锁
+            // 交错添加两个流的消息，直到块已满
             while (block.HasCapacity)
             {
                 var stream = streams[last % 2];
@@ -176,19 +176,19 @@ namespace UnitTests.OrleansRuntime.Streams
                     SequenceToken = new EventSequenceTokenV2(sequenceNumber)
                 };
 
-                // 添加到块的结尾处的信件
+                // 将消息添加到块的末尾。
                 AddAndCheck(block, dataAdapter, message, 0, last - 1);
                 last++;
                 sequenceNumber += 2;
             }
 
-            // 获取第一流的索引
+            // 获取第一个流的索引
             int streamIndex;
             Assert.True(block.TryFindFirstMessage(StreamId.Create(streams[0]), dataAdapter, out streamIndex));
             Assert.Equal(0, streamIndex);
             Assert.Equal(0, block.GetSequenceToken(streamIndex, dataAdapter).SequenceNumber);
 
-            // 查找流流1 消息
+            // 查找 stream1 的消息
             int iteration = 1;
             while (block.TryFindNextMessage(streamIndex + 1, StreamId.Create(streams[0]), dataAdapter, out streamIndex))
             {
@@ -199,12 +199,12 @@ namespace UnitTests.OrleansRuntime.Streams
 
             Assert.Equal(TestBlockSize / 2, iteration);
 
-            // 获取第一流的索引
+            // 获取第一个流的索引
             Assert.True(block.TryFindFirstMessage(StreamId.Create(streams[1]), dataAdapter, out streamIndex));
             Assert.Equal(1, streamIndex);
             Assert.Equal(2, block.GetSequenceToken(streamIndex, dataAdapter).SequenceNumber);
 
-            // 查找流流1 消息
+            // 查找 stream1 的消息
             iteration = 1;
             while (block.TryFindNextMessage(streamIndex + 1, StreamId.Create(streams[1]), dataAdapter, out streamIndex))
             {

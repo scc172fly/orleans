@@ -10,12 +10,12 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 主机以选定的日记格式, 编辑了持久任务存储,
+/// 在易失性日志存储之上，以选定的日志格式承载日志化持久化任务存储。
 /// </summary>
 /// <remarks>
-/// 服务来自 <c>AddJournaling</c> 和 <c>AddDurableTasks</c>,因此日记编码、 JSON 元数据以及
-/// Orleans 序列器匹配 silo。每次激活都为该台创建了范围,由新日记的国家经理负责
-/// 同一日记, 所以一个激活的状态 会在下一时间恢复
+/// 服务来自 <c>AddJournaling</c> 和 <c>AddDurableTasks</c>，因此日志编解码器、JSON 元数据和
+/// Orleans 序列化器与 Silo 一致。每个激活实例为同一日志创建作用域及新的日志化状态管理器，
+/// 从而使前一个激活实例写入的状态能够被下一个激活实例恢复。
 /// </remarks>
 internal sealed class DurableTaskJournalHarness : IAsyncDisposable
 {
@@ -35,13 +35,13 @@ internal sealed class DurableTaskJournalHarness : IAsyncDisposable
         silo.Services.AddSingleton(timeProvider ?? TimeProvider.System);
         silo.Services.AddKeyedSingleton(JournalingTimeProviderNames.Journaling, TimeProvider.System);
 
-        // 类似 silo,其它区域的键盘钟,包括“持久工作钟”,默认为无锁的钟。
+        // 与 Silo 一样，其他区域的带键时钟（包括持久化作业时钟）默认使用不带键的时钟。
         silo.Services.AddKeyedSingleton<TimeProvider>(KeyedService.AnyKey, static (sp, _) => sp.GetRequiredService<TimeProvider>());
         silo.AddJournaling();
         silo.AddDurableTasks();
 
-        // 一个 silo 构成具有经期刊编辑的持久工作的长期任务,其登记也为以下目的提供 JSON 元数据:
-        // 日记经理自己的流目录和退休跟踪器
+        // Silo 将持久化任务与日志化持久化作业组合，后者的注册也为
+        // 日志管理器自身的流目录和退役跟踪器提供 JSON 元数据。
         silo.UseJournaledDurableJobs();
         silo.Services.AddSerializer(builder => builder.AddAssembly(typeof(DurableTaskJournalHarness).Assembly));
         silo.Services.Configure<JournaledStateManagerOptions>(options => options.JournalFormatKey = journalFormatKey);
@@ -51,7 +51,7 @@ internal sealed class DurableTaskJournalHarness : IAsyncDisposable
         _services = silo.Services.BuildServiceProvider();
     }
 
-    /// <summary>获取耐久任务状态支持的日记格式。</summary>
+    /// <summary>获取持久化任务状态所支持的日志格式。</summary>
     public static TheoryData<string> Formats => new() { Json, OrleansBinary };
 
     public string JournalFormatKey { get; }
@@ -62,7 +62,7 @@ internal sealed class DurableTaskJournalHarness : IAsyncDisposable
 
     public Serializer Serializer => _services.GetRequiredService<Serializer>();
 
-    /// <summary>创建激活范围并从日记中恢复任务状态。</summary>
+    /// <summary>创建激活作用域，并从日志恢复其任务状态。</summary>
     public async Task<Activation> ActivateAsync(CancellationToken cancellationToken)
     {
         var scope = _services.CreateAsyncScope();
@@ -79,10 +79,10 @@ internal sealed class DurableTaskJournalHarness : IAsyncDisposable
         }
     }
 
-    /// <summary>创建启动范围,而不恢复状态,因此呼叫者可以先登记国家。</summary>
+    /// <summary>创建激活作用域而不恢复其状态，以便调用方先注册状态。</summary>
     public AsyncServiceScope CreateScope() => _services.CreateAsyncScope();
 
-    /// <summary>返回存储在日记上标记的日记格式密钥。</summary>
+    /// <summary>返回存储的日志上标记的日志格式键。</summary>
     public async Task<string?> GetStoredJournalFormatKeyAsync(CancellationToken cancellationToken)
     {
         var metadata = await StorageProvider.CreateStorage(_journalId).GetMetadataAsync(cancellationToken);

@@ -11,8 +11,8 @@ namespace Orleans.Runtime
     {
         private static ulong _nextId;
 
-        // none 降低给定的 grain 电离碰撞仅在假设情况下才相关。
-        // 发生碰撞的微小机会可以接受,例如取消电话。
+        // 此随机数使给定 Grain 的 ID 冲突概率实际上接近于零。ID 冲突只涉及
+        // 能够接受极小冲突概率的场景，例如调用取消。
         private readonly ulong _seed;
         private readonly DeepCopier _deepCopier;
         private readonly ILogger _logger;
@@ -22,8 +22,8 @@ namespace Orleans.Runtime
             _deepCopier = deepCopier;
             _logger = logger;
 
-            // 为主机生成64位元的无值,与每个邮件相关号组合,以获得独特的、每个主机的价值。
-            // 这样可以避免特定主机在不同主机之间发生误撞 grain.
+            // 为宿主生成 64 位随机数，与每条消息的关联 ID 组合，得到宿主范围内唯一的值。
+            // 这可避免给定 Grain 在不同宿主之间发生 ID 冲突。
             _seed = unchecked((ulong)Random.Shared.NextInt64());
         }
 
@@ -52,15 +52,15 @@ namespace Orleans.Runtime
             return new CorrelationId(unchecked((long)id));
         }
 
-        // 收到 grain 的呼叫带有接口类型。 本地请求共享此类型, 并调用过滤器来观察每个请求的自定义界面名称 。
+        // 传入的 Grain 调用携带接口类型。本地请求共享此接口类型，而调用筛选器观察各请求自身的接口名称。
         private static readonly GrainInterfaceType LocalRequestInterfaceType = GrainInterfaceType.Create("Orleans.Runtime.ILocalRequest");
 
         /// <summary>
-        /// 创建单向请求,在自己身上设置 <paramref name="target"/> 队列。
+        /// 创建由 <paramref name="target"/> 在自身队列中排队的单向请求。
         /// </summary>
         /// <remarks>
-        /// 请求启动一个新的呼叫链, 永远不过期, 并在 <paramref name="target"/> 上完成或被拒绝 。
-        /// 仅本地信息总是带有 <see cref="ILocalRequest"/> 体。
+        /// 请求启动新的调用链，永不过期，并在 <paramref name="target"/> 上完成，或随其一并被拒绝。
+        /// 仅本地使用的消息始终携带 <see cref="ILocalRequest"/> 消息体。
         /// </remarks>
         public Message CreateLocalRequest(IGrainContext target, ILocalRequest request, LocalRequestOptions options)
         {

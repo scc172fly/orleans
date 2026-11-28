@@ -6,29 +6,29 @@ using Orleans.Durable.Messaging;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// 应用耐久 grain 向 grain收件箱里有东西
+/// 应用投递到 Grain 收件箱的持久化 Grain RPC 消息。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 作为 <see cref="IInboxMessageSink"/>,它接受各种职业、订阅、完成、取消、
-/// 请求、结果或信号有效载荷在
-/// 状态,并且收件箱日记只将信件的处理记录写入同一文字。
-/// 在任何更改进行之前先行验证。 其身份识别特征已经确认另一个请求或呼叫者的援引
-/// 以 <see cref="DurableTaskRejectionCodes.Conflict"/> 代码和冲突代码命名
-/// 发送者发件人发回的发信信的发件箱在拒绝的终止援引时报告该信息。
-/// grain入门窗口后,以 <see cref="DurableTaskRejectionCodes.Expired"/> 代码编号为字母,所以
-/// 之前的取消信号或信号,如果被承认的援引从未丢失。
-/// 拒绝是它拒绝的原因。另一个失败,比如一个信息, 它不解码,就扔了,所以
-/// 发件人发件人的发件箱将发送的重新发送重新发送,直到Messages <c>OutboxRetryTimeout</c>:在滚动部署期间,a
-/// 重新尝试可以达到一个能解码的激活。
+/// 作为 <see cref="IInboxMessageSink"/>，它直接将调用、订阅、完成、取消、
+/// 取消订阅及信号应用到任务状态。因此，请求、结果或信号的有效载荷仅在
+/// 任务状态中写入日志一次，收件箱只在同一次写入中记录该消息已处理。每条消息都在暂存任何变更之前解码并
+/// 验证。若调用的标识符已标识其他请求或调用方，则该冲突不可重试，
+/// 因此调用以 <see cref="DurableTaskRejectionCodes.Conflict"/> 代码和冲突的
+/// 消息转为死信；发送方的发件箱在将该调用作为拒绝结果退役时报告它。若调用到达时
+/// 已超出 Grain 的准入窗口，则以 <see cref="DurableTaskRejectionCodes.Expired"/> 代码转为死信，从而
+/// 确保早于调用到达的取消或信号不会因接受该调用而丢失。遭拒的信号
+/// 以拒绝原因转为死信。其他失败（例如消息无法解码）会抛出异常，使
+/// 发送方的发件箱在 Messaging 的 <c>OutboxRetryTimeout</c> 期限内重试投递；滚动部署期间，
+/// 重试可能到达能够解码该消息的激活实例。
 /// </para>
 /// <para>
-/// 作为 <see cref="IInboxHandler"/>,它处理延迟,恢复了收件箱所保存的 grain 时间表
-/// 处理者将修改恢复程序,并用同步的块完成信件。
+/// 作为 <see cref="IInboxHandler"/>，它处理 Grain 为自身安排的延迟恢复消息，收件箱将这些消息保留到
+/// 到期。处理程序在一个同步代码块中暂存恢复操作的变更并完成该消息。
 /// </para>
 /// <para>
-/// 运行时间产生依赖确认的效果,如启动请求、完成处理和进行宣传
-/// 取消, 在进行已启动的更改的写作后取消。 任何路径都无法等待日记的写作 。
+/// 运行时在提交暂存变更的写入之后执行依赖确认的效果，例如启动请求、完成句柄以及传播
+/// 取消。两条路径均不等待日志写入。
 /// </para>
 /// </remarks>
 internal sealed class DurableTaskMessageHandler(
@@ -45,8 +45,8 @@ internal sealed class DurableTaskMessageHandler(
                 var sender = GetSender(invocation.Sender);
                 if (invocation.Request is not { } request)
                 {
-                    // 订阅不收取任何要求,而且声称没有打电话者:它将发送人的任务与现有的
-                    // 任务完成目的地。
+                    // 订阅不携带请求，也不声明调用方身份：它将发送方的任务添加到现有
+                    // 任务的完成通知目的地。
                     if (invocation.SubscriberId is not { } subscriberId || invocation.Detached)
                     {
                         throw new InvalidOperationException("A durable task subscription carries a subscriber and nothing else.");
@@ -56,12 +56,12 @@ internal sealed class DurableTaskMessageHandler(
                     return true;
                 }
 
-                // a/ 本 grain 在发送者范围内储存的发件人的孩子;a
-                // 独立职业处理根任务 。
+                // 附接调用寻址到发送方的子任务，该 Grain 将其存储在发送方的作用域中；
+                // 分离调用则寻址到根任务。
                 var invokedId = CallerScope.Resolve(sender, invocation.TaskId);
                 if (runtime.GetInvocationAdmissionRejection(invokedId, message.SentAt) is { } expired)
                 {
-                    // 迟到的祈祷阶段 什么也没有
+                    // 迟到的调用不会暂存任何变更。
                     result = new DeliveryResult.DeadLettered(expired, DurableTaskRejectionCodes.Expired);
                     return true;
                 }
@@ -77,7 +77,7 @@ internal sealed class DurableTaskMessageHandler(
                 }
                 catch (DurableTaskConflictException conflict)
                 {
-                    // 互相冲突的援引阶段没有发生任何变化。
+                    // 发生冲突的调用不会暂存任何变更。
                     result = new DeliveryResult.DeadLettered(conflict.Message, DurableTaskRejectionCodes.Conflict);
                 }
 
@@ -100,8 +100,8 @@ internal sealed class DurableTaskMessageHandler(
                 }
                 else
                 {
-                    // 取消或中止的地址是发件人远程子子(此 grain 仓库下
-                    // 发送方的范围。
+                    // 取消或中止操作寻址到发送方的远程子任务，该 Grain 将其存储在
+                    // 发送方的作用域中。
                     var caller = GetSender(cancellation.Sender);
                     var taskId = CallerScope.Resolve(caller, cancellation.TaskId);
                     if (cancellation.AbortReason is { } abortReason)
@@ -119,8 +119,8 @@ internal sealed class DurableTaskMessageHandler(
                 var signal = messageTypes.Signal.Decode(message.Envelope);
                 _ = GetSender(signal.Sender);
 
-                // 拒绝信号, 如终端任务信号或有冲突值的被拒绝信号, 级不级, 且
-                // 拒绝是其理由,在援引之前的信号被记录下来。
+                // 遭拒的信号（例如发往终态任务或携带冲突值的信号）不会暂存任何变更，并
+                // 以拒绝原因为由转为死信。先于调用到达的信号会被记录。
                 if (runtime.StageSignalFromInbox(signal.TaskId, signal.Name, signal.Value) is { } rejection)
                 {
                     result = new DeliveryResult.DeadLettered(rejection.Message);
@@ -128,8 +128,8 @@ internal sealed class DurableTaskMessageHandler(
 
                 return true;
             default:
-                // 延缓恢复被拒绝, 所以收件箱将每个收件箱一直保存到到期时间, 然后发送给
-                // 处理器
+                // 延迟恢复消息不会被直接接受，因此收件箱将每条消息保留到其到期时间，再将其分派给
+                // 处理程序。
                 result = default;
                 return false;
         }

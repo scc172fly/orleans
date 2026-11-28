@@ -14,18 +14,18 @@ using StreamingEvents = Orleans.Streaming.Diagnostics.StreamingEvents;
 namespace Orleans.Streams;
 
 /// <summary>
-/// LeaseBasedQueueBalancer。此平衡器支持分组自动规模假设情景中的队列平衡,
-/// 并试图尽可能支持理想分布。
+/// LeaseBasedQueueBalancer。此均衡器支持集群自动缩放、
+/// 服务器意外故障等场景中的队列均衡，并尽可能维持理想分布。
 /// </summary>
 /// <remarks>
 /// 初始化 <see cref="LeaseBasedQueueBalancer"/> 类的新实例。
 /// </remarks>
 /// <param name="name">名称。</param>
 /// <param name="options">选项。</param>
-/// <param name="leaseProvider">租赁提供人。</param>
-/// <param name="services">服务。</param>
-/// <param name="loggerFactory">伐木厂</param>
-/// <param name="timeProvider">供应商用于安排租赁保养和购置的时间。</param>
+/// <param name="leaseProvider">租约提供程序。</param>
+/// <param name="services">服务提供程序。</param>
+/// <param name="loggerFactory">日志记录器工厂。</param>
+/// <param name="timeProvider">用于安排租约维护和获取操作的时间提供程序。</param>
 public partial class LeaseBasedQueueBalancer(
     string name,
     LeaseBasedQueueBalancerOptions options,
@@ -50,7 +50,7 @@ public partial class LeaseBasedQueueBalancer(
     private readonly PeriodicTimer _leaseAcquisitionTimer = new(Timeout.InfiniteTimeSpan, timeProvider);
     private Task _leaseMaintenanceTimerTask = Task.CompletedTask;
     private Task _leaseAcquisitionTimerTask = Task.CompletedTask;
-    private RoundRobinSelector<QueueId> _queueSelector = null!; // 初始化时开始。
+    private RoundRobinSelector<QueueId> _queueSelector = null!; // 在 Initialize 中初始化。
     private int _allQueuesCount;
     private int _responsibility;
     private int _leaseOrder;
@@ -59,7 +59,7 @@ public partial class LeaseBasedQueueBalancer(
     /// <summary>
     /// 创建新的 <see cref="LeaseBasedQueueBalancer"/> 实例。
     /// </summary>
-    /// <param name="services">服务。</param>
+    /// <param name="services">服务提供程序。</param>
     /// <param name="name">名称。</param>
     /// <returns>新的 <see cref="LeaseBasedQueueBalancer"/> 实例。</returns>
     public static IStreamQueueBalancer Create(IServiceProvider services, string name)
@@ -83,8 +83,8 @@ public partial class LeaseBasedQueueBalancer(
         var allQueues = queueMapper.GetAllQueues().ToList();
         _allQueuesCount = allQueues.Count;
 
-        // 选择器默认现在可以绕行 Robin 选择器, 但我们还可以做进一步的修改, 以便在必要时使选择器配置可操作。 选择算法可以使用 。
-        // 影响分组启动和自动缩放中平衡稳定时间的队列
+        // 目前默认使用轮询选择器；必要时可进一步将选择器改为可配置。选择器算法可能
+        // 影响集群初始化和自动缩放时队列均衡达到稳定所需的时间。
         _queueSelector = new RoundRobinSelector<QueueId>(allQueues);
         await base.Initialize(queueMapper);
         StartMaintenanceTasks();
@@ -102,15 +102,15 @@ public partial class LeaseBasedQueueBalancer(
     {
         if (Cancellation.IsCancellationRequested) return;
 
-        // 停止处理会员更新事宜。
+        // 停止处理成员资格更新。
         await base.Shutdown();
 
         try
         {
-            // 停止获得和续租。
+            // 停止获取和续订租约。
             await Task.WhenAll(_leaseMaintenanceTimerTask, _leaseAcquisitionTimerTask);
 
-            // 排队排出排水系统并解除所有自有租赁。
+            // 等待已排队操作处理完毕，并释放所有持有的租约。
             await _executor.AddNext(async () =>
             {
                 _responsibility = 0;
@@ -119,7 +119,7 @@ public partial class LeaseBasedQueueBalancer(
         }
         finally
         {
-            // 确保始终处理计时器,即使排队排水或解除租约失败。
+            // 确保始终释放定时器，即使处理已排队操作或释放租约失败也是如此。
             _leaseMaintenanceTimer.Dispose();
             _leaseAcquisitionTimer.Dispose();
         }
@@ -159,10 +159,10 @@ public partial class LeaseBasedQueueBalancer(
             {
                 bool allLeasesRenewed = await RenewLeases();
 
-                // 如果我们在 leaseAcquisitionTimer 停止续展期间损失了一些租赁,则重新开始。
+                // 如果 leaseAcquisitionTimer 停止后，在续订过程中丢失了部分租约，则重新启动它。
                 if (!allLeasesRenewed)
                 {
-                    // 立即让收购定时器开火
+                    // 使获取租约的定时器立即触发。
                     _leaseAcquisitionTimer.Period = TimeSpan.FromMilliseconds(1);
                 }
             }
@@ -178,8 +178,8 @@ public partial class LeaseBasedQueueBalancer(
         await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
         while (await WaitForNextTick(_leaseAcquisitionTimer))
         {
-            // 设定下一轮的周期。
-            // 它可以因另一种方法而变异,但不能同时改变。
+            // 设置下一轮的周期。
+            // 它可能由其他方法修改，但不会并发修改。
             _leaseAcquisitionTimer.Period = _options.LeaseAcquisitionPeriod;
 
             try
@@ -213,7 +213,7 @@ public partial class LeaseBasedQueueBalancer(
             await NotifyOnChange(oldQueues);
             if (_myQueues.Count == _responsibility)
             {
-                // 停止获取计时器 。
+                // 停止获取租约的定时器。
                 _leaseAcquisitionTimer.Period = Timeout.InfiniteTimeSpan;
             }
         }
@@ -230,15 +230,15 @@ public partial class LeaseBasedQueueBalancer(
             return;
         }
 
-        // 先删除最老的已获得队列, 这样可以给正在移动的队列提供最大恢复时间 。
+        // 优先移除最早获取的队列，为被迁移的队列提供尽可能长的恢复时间。
         AcquiredLease[] queuesToGiveUp = _myQueues
             .OrderBy(queue => queue.LeaseOrder)
             .Take(queueCountToRelease)
             .Select(queue => queue.AcquiredLease)
             .ToArray();
 
-        // 即使在释放失败的情况下也从列表中删除队列, 因为可以让租赁到期 。
-        // TODO: 标记清除, 这样我们就不会续延, 只取消未到期的租赁。
+        // 即使释放失败，也从列表中移除队列，因为可以等待租约到期。
+        // TODO：改为标记为待移除，从而不再续订，并且仅移除尚未到期的租约。- jbragg
         for (int index = _myQueues.Count - 1; index >= 0; index--)
         {
             if (queuesToGiveUp.Contains(_myQueues[index].AcquiredLease))
@@ -249,7 +249,7 @@ public partial class LeaseBasedQueueBalancer(
 
         await _leaseProvider.Release(_options.LeaseCategory, queuesToGiveUp);
 
-        // 删除删除 queuesToGiveUp 调自 myQueue 平衡商放行了租赁合同之后的列表。
+        // 均衡器释放 queuesToGiveUp 中队列的租约后，从 myQueue 列表中移除这些队列。（译注：当前实现先从列表移除队列，再调用 Release；此处仅记录日志。）
         LogDebugReleasedLeases(Logger, queueCountToRelease, _myQueues.Count, _responsibility);
     }
 
@@ -264,28 +264,28 @@ public partial class LeaseBasedQueueBalancer(
             return;
         }
 
-        // 跟踪有多少其余的租赁可能存在。
+        // 跟踪剩余可能获取的租约数量。
         var possibleLeaseCount = _queueSelector.Count - _myQueues.Count;
         LogDebugHoldingLeased(Logger, _myQueues.Count, leasesToAcquire, expectedTotalLeaseCount, possibleLeaseCount);
 
-        // 试图获得租赁,直到我们没有更多可获取或无法获取
+        // 尝试获取租约，直到没有更多需要获取的租约，或者没有更多可能获取的租约。
         var sw = ValueStopwatch.StartNew();
         while (!Cancellation.IsCancellationRequested && leasesToAcquire > 0 && possibleLeaseCount > 0)
         {
-            // 选择要获取的新队列
+            // 选择要获取的新队列。
             List<QueueId> expectedQueues = _queueSelector.NextSelection(leasesToAcquire, _myQueues.Select(queue => queue.QueueId).ToList());
 
-            // 每一个队列的建设租赁请求
+            // 根据各队列构建租约请求。
             LeaseRequest[] leaseRequests = expectedQueues
                 .Select(queue => new LeaseRequest(queue.ToString(), _options.LeaseLength))
                 .ToArray();
 
-            // 成功将已成功获得的队列添加到 myQueues 列表
+            // 将成功获取的队列添加到 myQueues 列表。
             AcquireLeaseResult[] results = await _leaseProvider.Acquire(_options.LeaseCategory, leaseRequests);
             for (var i = 0; i < results.Length; i++)
             {
                 AcquireLeaseResult result = results[i];
-                // 平衡者要求取得每一项结果都具有租赁身份,并获得成功后获得租赁。
+                // 均衡器要求每个结果都包含租约标识，并且成功时包含已获取的租约。
                 switch (result.StatusCode)
                 {
                     case ResponseCode.OK:
@@ -298,13 +298,13 @@ public partial class LeaseBasedQueueBalancer(
                             LogWarningFailedToAcquireLeaseTransient(Logger, result.FailureException, result.AcquiredLease!.ResourceKey);
                             break;
                         }
-                    // 预计大部分时间都是如此。
+                    // 这在很多情况下都是预期行为。
                     case ResponseCode.LeaseNotAvailable:
                         {
                             LogDebugFailedToAcquireLeaseNotAvailable(Logger, result.FailureException, result.AcquiredLease!.ResourceKey, result.StatusCode);
                             break;
                         }
-                    // 获取呼叫不应返回此代码, 以日志错误
+                    // 获取租约的调用不应返回此代码，因此将其记录为错误。
                     case ResponseCode.InvalidToken:
                         {
                             LogErrorFailedToAcquireLeaseInvalidToken(Logger, result.FailureException, result.AcquiredLease!.ResourceKey);
@@ -324,7 +324,7 @@ public partial class LeaseBasedQueueBalancer(
 
             if (sw.Elapsed > timeout)
             {
-                // 时间被我们分配的时间吹散了,下次再试一次
+                // 已用完分配的时间，在下一个周期重试。
                 break;
             }
         }
@@ -333,9 +333,9 @@ public partial class LeaseBasedQueueBalancer(
     }
 
     /// <summary>
-    /// 续租租赁
+    /// 续订租约。
     /// </summary>
-    /// <returns>布尔 - 如果我们不续签所有租赁</returns>, 则假的
+    /// <returns>bool：如果未能成功续订所有租约，则为 false。</returns>
     private async Task<bool> RenewLeases()
     {
         bool allRenewed = true;
@@ -349,11 +349,11 @@ public partial class LeaseBasedQueueBalancer(
 
         var results = await _leaseProvider.Renew(_options.LeaseCategory, _myQueues.Select(queue => queue.AcquiredLease).ToArray());
 
-        // 更新 myQueues 清单,成功续租。
+        // 使用成功续订的租约更新 myQueues 列表。
         for (var i = results.Length - 1; i >= 0; i--)
         {
             AcquireLeaseResult result = results[i];
-            // 平衡者要求取得每一项结果都具有租赁身份,并获得成功后获得租赁。
+            // 均衡器要求每个结果都包含租约标识，并且成功时包含已获取的租约。
             switch (result.StatusCode)
             {
                 case ResponseCode.OK:
@@ -368,7 +368,7 @@ public partial class LeaseBasedQueueBalancer(
                         LogWarningFailedToRenewLeaseTransient(Logger, result.FailureException, result.AcquiredLease!.ResourceKey);
                         break;
                     }
-                // 如果租约到期和/或有人拿走,则可以采取这些措施。
+                // 当租约已到期和/或被其他持有者获取时，可能发生这些情况。
                 case ResponseCode.InvalidToken:
                 case ResponseCode.LeaseNotAvailable:
                     {
@@ -397,7 +397,7 @@ public partial class LeaseBasedQueueBalancer(
         if (Cancellation.IsCancellationRequested) return Task.CompletedTask;
         var newQueues = new HashSet<QueueId>(_myQueues.Select(queue => queue.QueueId));
 
-        // 如果队列改变,通知听众。
+        // 如果队列发生变化，则通知侦听器。
         if (!oldQueues.SetEquals(newQueues))
         {
             StreamingEvents.EmitQueueChange(_name, SiloAddress, [.. oldQueues], [.. newQueues], this);
@@ -441,17 +441,17 @@ public partial class LeaseBasedQueueBalancer(
     }
 
     /// <summary>
-    /// 检查是否要查看这个平衡器是否贪婪, 这意味着它试图抓住一个
-    ///   队列比非贪婪平衡器多。
+    /// 检查此均衡器是否应采用贪婪策略，即尝试比
+    /// 非贪婪均衡器多获取一个队列。
     /// </summary>
-    /// <param name="overflow">免费排队数量,假设所有平衡者都履行最低责任</param>
-    /// <param name="activeSilos">数 silos 主机队列</param>
-    /// <returns>布尔 - 真实表示平衡器应尝试获取
-    ///   队列多于非greedy 平衡器</returns>
+    /// <param name="overflow">假定所有均衡器均满足最低分配要求时的空闲队列数量。</param>
+    /// <param name="activeSilos">托管队列的活动 Silo 数量。</param>
+    /// <returns>bool：true 表示该均衡器应尝试比
+    /// 非贪婪均衡器多获取一个队列。</returns>
     private bool ShouldBeGreedy(int overflow, HashSet<SiloAddress> activeSilos)
     {
-        // 如果使用多个流流提供者, 这将选择相同的 silos 贪婪的人
-        //   增加供应者数量,使不平衡加剧。
+        // 如果使用多个流提供程序，这将为所有提供程序选择同一组 Silo
+        // 采用贪婪策略，随着流提供程序数量增加，会加剧不均衡。
         return activeSilos.OrderBy(silo => silo)
                           .Take(overflow)
                           .Contains(SiloAddress);
@@ -472,7 +472,7 @@ public partial class LeaseBasedQueueBalancer(
 
         if (_myQueues.Count < _responsibility && _leaseAcquisitionTimer.Period == Timeout.InfiniteTimeSpan)
         {
-            // 确保获取计时器运行中 。
+            // 确保获取租约的定时器正在运行。
             _leaseAcquisitionTimer.Period = _options.LeaseAcquisitionPeriod;
         }
 

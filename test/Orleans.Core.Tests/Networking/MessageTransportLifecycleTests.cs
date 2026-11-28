@@ -598,7 +598,7 @@ public class MessageTransportLifecycleTests
             else
             {
                 Assert.True(failingTransport.EnqueueWrite(write));
-                // 实际运输在报告写错前消耗并释放缓冲剂。
+                // 实际传输层会在报告写入失败之前消耗并释放缓冲区。
                 write.Buffers.ConsumeSlice(write.Buffers.Length).Dispose();
                 Assert.Equal(0, write.Buffers.Length);
                 await failingTransport.CloseAsync(new ConnectionClosedException(), cancellationToken);
@@ -618,7 +618,7 @@ public class MessageTransportLifecycleTests
             Assert.Null(bodyless._bodyObject);
         }
 
-        // 重新发送而不解码本地任何机构, 然后按其目的地阅读框架 。
+        // 在本地不解码任何消息体的情况下重新传输，然后以目标端的方式读取这些帧。
         Assert.True(transport.EnqueueWrite(WriteMessages()));
         Assert.Equal(messages.Length, connection.SentMessageCount);
         Assert.All(messages, message => Assert.Null(message._bodyObject));
@@ -724,7 +724,7 @@ public class MessageTransportLifecycleTests
         }, cancellationToken);
         try
         {
-            // 序列器在对页眉进行序列之前抓获了身体操作员。
+            // 序列化器在序列化此消息头之前已捕获消息体处理程序。
             await entered.Task.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
             callback.OnTimeout();
             Assert.IsType<TimeoutException>(completion.Response.Exception);

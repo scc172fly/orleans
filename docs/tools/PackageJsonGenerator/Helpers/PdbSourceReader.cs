@@ -1,5 +1,5 @@
-// 根据一项或多项协定获得 .NET 基金会许可证。
-// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -9,9 +9,9 @@ using System.Text;
 namespace PackageJsonGenerator.Helpers;
 
 /// <summary>
-/// 读取源文件路径和行距, 范围来自嵌入式的便携式 PDB 。
-/// 构建一个从元数据符号 `( 文件、 startLine、 endLine中创建的查找
-/// <see cref="CanonicalModelBuilder"/> 用于填充 SourceFile/SourceLines。
+/// 从嵌入的可移植 PDB 读取源文件路径和行号范围。
+/// 构建从元数据令牌到（文件、起始行、结束行）的查找表，
+/// 供 <see cref="CanonicalModelBuilder"/> 填充 SourceFile/SourceLines。
 /// </summary>
 internal sealed class PdbSourceReader : IDisposable
 {
@@ -21,29 +21,29 @@ internal sealed class PdbSourceReader : IDisposable
     private readonly MetadataReader _peMetadata;
 
     /// <summary>
-    /// 以 MethodDef 行号为键入的每条方法源信息。
+    /// 以 MethodDef 行号为键的各方法源码信息。
     /// </summary>
     private readonly Dictionary<int, MethodSourceInfo> _methodSources = [];
 
     /// <summary>
-    /// 以 TypeDef 行号为键入的每类集成源信息。
+    /// 以 TypeDef 行号为键的各类型汇总源码信息。
     /// </summary>
     private readonly Dictionary<int, MethodSourceInfo> _typeSources = [];
 
     /// <summary>
-    /// 地图将全型名称(通用脱光)与 TypeDef 把手正常化。
-    /// 启用 O(1) 查找, 正确处理嵌套类型和通用正数 。
+    /// 将规范化的类型完整名称（去除泛型表示）映射到其 TypeDef 句柄。
+    /// 支持 O(1) 查找，并正确处理嵌套类型和泛型元数。
     /// </summary>
     private readonly Dictionary<string, TypeDefinitionHandle> _normalizedNameToHandle = [];
 
     /// <summary>
-    /// 映射源目录路径的命名空间,这些路径来自有 PDB 源信息的类型。
-    /// 用作没有方法体类型源文件路径的回溯。
+    /// 将命名空间映射到其源文件目录路径，依据具有 PDB 源码信息的类型推导。
+    /// 用作回退方式，为没有方法体的类型推断源文件路径。
     /// </summary>
     private readonly Dictionary<string, string> _namespaceToDirs = [];
 
     /// <summary>
-    /// 组件中源文件的共同基准目录 (e.g. "src/Orleans.Core/")。
+    /// 此程序集源文件的公共基础目录（例如 "src/Orleans.Core/"）。
     /// </summary>
     private string? _baseDir;
 
@@ -68,7 +68,7 @@ internal sealed class PdbSourceReader : IDisposable
         }
         else
         {
-            // 尝试独立 PDB
+            // 尝试独立的 PDB 文件。
             var pdbPath = Path.ChangeExtension(assemblyPath, ".pdb");
             if (File.Exists(pdbPath))
             {
@@ -131,8 +131,8 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// 构建一个词典映射, 将全型号名称标准化到 TypeDef 控件上。
-    /// 这样可以进行 O(1) 查找, 正确处理嵌套类型和通用正数 。
+    /// 构建从规范化类型完整名称到其 TypeDef 句柄的字典。
+    /// 这样可实现 O(1) 查找，并正确处理嵌套类型及泛型元数。
     /// </summary>
     private void BuildNameIndex()
     {
@@ -145,8 +145,8 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// 根据源文件路径已知的类型建立命名空间到目录的映射。
-    /// 确定集会源文件的共同基准目录。
+    /// 根据已知源文件路径的类型构建命名空间到目录的映射。
+    /// 同时确定程序集源文件的公共基础目录。
     /// </summary>
     private void BuildNamespaceDirMapping()
     {
@@ -156,7 +156,7 @@ internal sealed class PdbSourceReader : IDisposable
             var typeDef = _peMetadata.GetTypeDefinition(handle);
             var ns = _peMetadata.GetString(typeDef.Namespace);
 
-            // 对于嵌套类型,步行到包含型号的命名空间
+            // 对于嵌套类型，向外查找到所属类型的命名空间。
             if (string.IsNullOrEmpty(ns))
             {
                 var parent = typeDef.GetDeclaringType();
@@ -179,7 +179,7 @@ internal sealed class PdbSourceReader : IDisposable
             }
         }
 
-        // 确定共同基准目录 (e.g) 。 “src/Orleans.Core/”
+        // 确定公共基础目录（例如 "src/Orleans.Core/"）。
         var baseDirs = _typeSources.Values
             .Select(s => s.File)
             .Where(f => f.StartsWith("src/", StringComparison.Ordinal))
@@ -199,8 +199,8 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// 构建类型的全部元数据名称,正确处理嵌套类型
-    /// 沿着申报型号的链条走。
+    /// 沿声明类型链向外查找，以构建类型的完整元数据名称，
+    /// 从而正确处理嵌套类型。
     /// </summary>
     private string GetFullMetadataName(TypeDefinitionHandle handle)
     {
@@ -218,10 +218,10 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// 将Roslyn通用语法的普通化 化为PE元数据对等符号
-    /// 具有不同异位名称的地名保持区别。
-    /// <c>InteractionResult`1</c> 和 <c>InteractionResult&lt;T&gt;</c> 两者都实现正常化
-    /// 至 <c>InteractionResult`1</c>.
+    /// 将 Roslyn 泛型类型语法规范化为 PE 元数据的元数表示，
+    /// 以便不同元数的名称仍能区分。
+    /// <c>InteractionResult`1</c> 和 <c>InteractionResult&lt;T&gt;</c> 均规范化
+    /// 为 <c>InteractionResult`1</c>。
     /// </summary>
     internal static string NormalizeGenericName(string name)
     {
@@ -289,9 +289,9 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// 以给定类型及其嵌套类型中的所有方法提供的源信息。
-    /// 括号类型包括编译器生成的用于合成/编辑方法的国家机器
-    /// 其序列点映射回附于附件类型源文件的源文件。
+    /// 汇总给定类型及其嵌套类型中所有方法的源码信息。
+    /// 嵌套类型包含编译器为异步方法或迭代器方法生成的状态机，
+    /// 其序列点映射回外层类型的源文件。
     /// </summary>
     private void AggregateMethodSources(TypeDefinition typeDef, ref string? file, ref int minLine, ref int maxLine)
     {
@@ -314,9 +314,9 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// 查找一种类型的源信息,其全名(由Roslyn的 ToDisplayString制作)
-    /// 通过身份正常匹配处理嵌套类型和通用型名 。
-    /// 如果没有可用的 PDB 信息,返回无效 。
+    /// 根据类型完整名称（由 Roslyn 的 ToDisplayString 生成）查找源码信息。
+    /// 通过规范化名称匹配处理嵌套类型和泛型类型名称。
+    /// 没有可用的 PDB 信息时返回 null。
     /// </summary>
     public MethodSourceInfo? GetTypeSource(string fullMetadataName)
     {
@@ -333,35 +333,35 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// 对于没有 PDB 序列点的类型(界面、 enums、 代表、 仅含Const- slears) ,
-    /// 推导出从命名空间指令映射和类型名称中得出的可能的源文件路径。
-    /// 返回文件路径( 无行号) , 如果无法推断则返回无效 。
+    /// 对于没有 PDB 序列点的类型（接口、枚举、委托、仅含常量的类），
+    /// 根据命名空间到目录的映射及类型名称推断可能的源文件路径。
+    /// 只返回文件路径（不含行号）；无法推断时返回 null。
     /// </summary>
     public string? InferTypeSourceFile(string fullName, string namespaceName)
     {
         if (string.IsNullOrEmpty(namespaceName)) return null;
 
-        // 获取类型路径的条形命名空间前缀
+        // 去除命名空间前缀以获得类型路径。
         var typePath = fullName.Length > namespaceName.Length + 1
             ? fullName[(namespaceName.Length + 1)..]
             : fullName;
 
-        // 将通用参数正常化
+        // 规范化名称，去除泛型参数。
         typePath = StripGenericArity(typePath);
 
-        // 对于嵌套类型,使用最外的类型名称作为文件名
+        // 对于嵌套类型，使用最外层类型的名称作为文件名。
         var topLevelName = typePath.Contains('.')
             ? typePath[..typePath.IndexOf('.')]
             : typePath;
         var fileName = $"{topLevelName}.cs";
 
-        // 先尝试按命名空间直接查找目录
+        // 优先直接查找命名空间到目录的映射。
         if (_namespaceToDirs.TryGetValue(namespaceName, out var dir))
         {
             return $"{dir}{fileName}";
         }
 
-        // 后退: 从基准目录+相对命名空间构建路径
+        // 回退：使用基础目录和相对命名空间构建路径。
         if (_baseDir is not null)
         {
             var assemblyName = _baseDir.TrimEnd('/');
@@ -390,14 +390,14 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// 查找类型内成员的类型名和成员名的源信息。
-    /// 当提供 <paramref name="parameterNames"/> 时,试图匹配特定超载
-    /// 比较PE元数据中的参数名称。
+    /// 通过匹配类型名称及成员名称，查找类型中某个成员的源码信息。
+    /// 提供 <paramref name="parameterNames"/> 时，尝试匹配特定重载，
+    /// 方法是比较 PE 元数据中的参数名称。
     /// <para>
-    /// 只有在单一方法有自信匹配时才会返回精确的行范围(唯一
-    /// 参数- name 匹配或使用该名称的单方法。当多个方法匹配
-    /// 模糊地返回只使用文件的结果 (<see cref="MethodSourceInfo.StartLine"/> = 0)
-    /// 以便呼叫者可以返回到文件级链接,而不是误导范围。
+    /// 仅当能够确信匹配到单个方法（唯一的
+    /// 参数名称匹配，或只有一个同名方法）时，才返回准确的行号范围。多个方法匹配且无法区分时，
+    /// 仅返回文件信息（<see cref="MethodSourceInfo.StartLine"/> == 0），
+    /// 使调用方能够回退到文件级链接，而不使用误导性的行号范围。
     /// </para>
     /// </summary>
     public MethodSourceInfo? GetMemberSource(string typeFullMetadataName, string memberName, IReadOnlyList<string>? parameterNames = null)
@@ -411,7 +411,7 @@ internal sealed class PdbSourceReader : IDisposable
         var typeDef = _peMetadata.GetTypeDefinition(typeHandle);
         var tname = _peMetadata.GetString(typeDef.Name);
 
-        // 搜索方法——跟踪所有匹配的建立信任措施评估
+        // 搜索方法：记录所有匹配项以评估匹配可信度。
         string? file = null;
         int minLine = int.MaxValue, maxLine = 0;
         int methodMatchCount = 0;
@@ -423,7 +423,7 @@ internal sealed class PdbSourceReader : IDisposable
             var methodDef = _peMetadata.GetMethodDefinition(methodHandle);
             var mname = _peMetadata.GetString(methodDef.Name);
 
-            // 匹配方法名称( 构件: .ctor {} 成员名称将是类型名称或“. ctor”)
+            // 匹配方法名称（构造函数：.ctor 对应的成员名为类型名称或 ".ctor"）。
             bool isMatch = mname == memberName
                 || (memberName == ".ctor" && mname == ".ctor")
                 || (mname == ".ctor" && memberName == tname)
@@ -439,35 +439,35 @@ internal sealed class PdbSourceReader : IDisposable
 
             methodMatchCount++;
 
-            // 超载分辨率的音轨参数名匹配
+            // 记录参数名称匹配项，以解析重载。
             if (parameterNames is not null && ParameterNamesMatch(methodDef, parameterNames))
             {
                 paramExactMatch = info;
                 paramMatchCount++;
             }
 
-            // 合并后退后范围累积
+            // 累积用于合并回退范围的信息。
             file ??= info.File;
             if (info.StartLine < minLine) minLine = info.StartLine;
             if (info.EndLine > maxLine) maxLine = info.EndLine;
         }
 
-        // 搜索字段( 对于粘结/静态字段)
+        // 同时搜索字段（用于常量或静态字段）。
         foreach (var fieldHandle in typeDef.GetFields())
         {
             var fieldDef = _peMetadata.GetFieldDefinition(fieldHandle);
             var fname = _peMetadata.GetString(fieldDef.Name);
             if (fname != memberName) continue;
 
-            // 字段没有序列点——只返回文件(无行范围)。
+            // 字段没有序列点，因此只返回文件信息（无行号范围）。
             if (_typeSources.TryGetValue(MetadataTokens.GetRowNumber(typeHandle), out var typeInfo))
             {
                 return new MethodSourceInfo(typeInfo.File, 0, 0);
             }
         }
 
-        // 检查编译器生成的嵌套类型( 同步状态机器、 循环器)
-        // 其姓名遵循模式 <MemberName>d__N或类似的。
+        // 检查编译器生成的嵌套类型（异步状态机、迭代器），
+        // 它们的名称遵循 <MemberName>d__N 或类似模式。
         if (file is null)
         {
             foreach (var nestedHandle in typeDef.GetNestedTypes())
@@ -492,20 +492,20 @@ internal sealed class PdbSourceReader : IDisposable
             }
         }
 
-        // 基于信任度的回报率:
-        // 1. 唯一参数名匹配
+        // 根据匹配可信度返回结果：
+        // 1. 参数名称唯一匹配：可信。
         if (paramExactMatch is not null && paramMatchCount == 1)
         {
             return paramExactMatch;
         }
 
-        // 2. 单一方法,名称匹配(无超载)
+        // 2. 按名称仅匹配到一个方法（无重载）：可信。
         if (methodMatchCount == 1 && file is not null)
         {
             return new MethodSourceInfo(file, minLine, maxLine);
         }
 
-        // 3. 多方法或模糊匹配 `回程文件'(无行范围)
+        // 3. 多个方法或匹配不明确：只返回文件（无行号范围）。
         if (file is not null)
         {
             return new MethodSourceInfo(file, 0, 0);
@@ -515,8 +515,8 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// 检查方法定义的参数名称是否与预期的名称完全匹配。
-    /// 跳过序列编号 0 (返回值伪参数) 。
+    /// 检查方法定义的参数名称是否与预期名称完全匹配。
+    /// 跳过序列号 0（表示返回值的伪参数）。
     /// </summary>
     private bool ParameterNamesMatch(MethodDefinition methodDef, IReadOnlyList<string> expectedNames)
     {
@@ -539,7 +539,7 @@ internal sealed class PdbSourceReader : IDisposable
     }
 
     /// <summary>
-    /// 从源路径中切除确定性构建路径前缀(e.g. "/_/") 。
+    /// 从源码路径中去除确定性构建的路径前缀（例如 "/_/"）。
     /// </summary>
     internal static string CleanPath(string path)
     {
@@ -572,11 +572,11 @@ internal sealed class PdbSourceReader : IDisposable
 }
 
 /// <summary>
-/// 源文件和行范围信息。
-/// <see cref="StartLine"/> 是 0时, 范围未知, 只有文件路径才有意义 。
+/// 源文件及行号范围信息。
+/// 当 <see cref="StartLine"/> 为 0 时，行号范围未知，只有文件路径有意义。
 /// </summary>
 internal sealed record MethodSourceInfo(string File, int StartLine, int EndLine)
 {
-    /// <summary>返回 GitHub- 友好线条范围,如“15-200”。</summary>
+    /// <summary>返回适合 GitHub 的行号范围，如 "15-200"。</summary>
     public string ToLineRange() => $"{StartLine}-{EndLine}";
 }

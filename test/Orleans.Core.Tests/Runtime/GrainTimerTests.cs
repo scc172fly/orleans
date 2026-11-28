@@ -103,7 +103,7 @@ public sealed class GrainTimerTests
         tick.Complete(Response.FromException(filterFailure));
         tick.Complete(Response.FromException(downstreamRejection));
 
-        // 激活程序在拒绝他们排队的滴答之前 将时间计数器处理掉
+        // 激活会先释放其定时器，再拒绝定时器已排队的触发操作。
         timer.Dispose();
         tick.Complete(Response.FromException(new OrleansMessageRejectionException("Activation is no longer valid.")));
 

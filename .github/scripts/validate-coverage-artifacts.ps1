@@ -157,7 +157,7 @@ if ($missing.Count -gt 0 -or $unexpected.Count -gt 0) {
 }
 
 foreach ($path in $superseded) {
-    # 聚合会回溯发现报告, 所以只保留选中的运行尝试 。
+    # 聚合过程会递归发现报告，因此只保留选定运行尝试的报告。
     Remove-Item -LiteralPath $path -Recurse -Force
 }
 

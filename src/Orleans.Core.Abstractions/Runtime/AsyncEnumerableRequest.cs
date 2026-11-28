@@ -16,53 +16,53 @@ using Orleans.Serialization.Invocation;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// 确定查点结果。
+/// 标识枚举结果。
 /// </summary>
 [GenerateSerializer]
 public enum EnumerationResult
 {
     /// <summary>
-    /// 此结果代表心跳。 发布随后的点名请求以接收新结果 。
+    /// 此结果表示心跳信号。发出后续枚举调用以接收新的结果。
     /// </summary>
     Heartbeat = 1,
 
     /// <summary>
-    /// 此结果代表了点数值 。
+    /// 此结果表示枚举中的一个值。
     /// </summary>
     Element = 1 << 1,
 
     /// <summary>
-    /// 此结果代表从点数中得出的一系列数值。
+    /// 此结果表示枚举中的一系列值。
     /// </summary>
     Batch = 1 << 2,
 
     /// <summary>
-    /// 这一结果表明,查点工作已经完成,不会产生进一步结果。
+    /// 此结果表示枚举已经完成，不会再生成后续结果。
     /// </summary>
     Completed = 1 << 3,
 
     /// <summary>
-    /// 试图加点失败, 因为找不到该查点器 。
+    /// 因未找到枚举器，枚举尝试失败。
     /// </summary>
     MissingEnumeratorError = 1 << 4,
 
     /// <summary>
-    /// 试图列举失败,因为列举是例外。
+    /// 因枚举过程抛出异常，枚举尝试失败。
     /// </summary>
     Error = 1 << 5,
 
     /// <summary>
-    /// 取消计数 。
+    /// 枚举已取消。
     /// </summary>
     Canceled = 1 << 6,
 
     /// <summary>
-    /// 这一结果表明,查点工作已经完成,不会产生进一步结果。
+    /// 此结果表示枚举已经完成，不会再生成后续结果。
     /// </summary>
     CompletedWithElement = Completed | Element,
 
     /// <summary>
-    /// 这一结果表明,查点工作已经完成,不会产生进一步结果。
+    /// 此结果表示枚举已经完成，不会再生成后续结果。
     /// </summary>
     CompletedWithBatch = Completed | Batch,
 }
@@ -75,67 +75,67 @@ internal static class EnumeratorResultExtensions
 }
 
 /// <summary>
-/// Grain 用于 grains 返回 <see cref="IAsyncEnumerable{T}"/> 调自 grain 方法。
+/// 用于 Grain 方法返回 <see cref="IAsyncEnumerable{T}"/> 的 Grain 的扩展接口。
 /// </summary>
 public interface IAsyncEnumerableGrainExtension : IGrainExtension
 {
     /// <summary>
-    /// 启动 <see cref="IAsyncEnumerable{T}"/> 请求并开始查点。
+    /// 执行 <see cref="IAsyncEnumerable{T}"/> 请求并开始枚举。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
-    /// <param name="requestId">请求代号,由打电话者生成。</param>
+    /// <param name="requestId">由调用方生成的请求 ID。</param>
     /// <param name="request">请求。</param>
-    /// <returns>查点结果</returns>
+    /// <returns>枚举结果。</returns>
     [AlwaysInterleave]
     public ValueTask<(EnumerationResult Status, object? Value)> StartEnumeration<T>(Guid requestId, [Immutable] IAsyncEnumerableRequest<T> request)
         => StartEnumeration(requestId, request, CancellationToken.None);
 
     /// <summary>
-    /// 启动 <see cref="IAsyncEnumerable{T}"/> 请求并开始查点。
+    /// 执行 <see cref="IAsyncEnumerable{T}"/> 请求并开始枚举。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
-    /// <param name="requestId">请求代号,由打电话者生成。</param>
+    /// <param name="requestId">由调用方生成的请求 ID。</param>
     /// <param name="request">请求。</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>查点结果</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>枚举结果。</returns>
     [AlwaysInterleave]
     public ValueTask<(EnumerationResult Status, object? Value)> StartEnumeration<T>(Guid requestId, [Immutable] IAsyncEnumerableRequest<T> request, CancellationToken cancellationToken);
 
     /// <summary>
-    /// 继续计算 <see cref="IAsyncEnumerable{T}"/> 值。
+    /// 继续枚举 <see cref="IAsyncEnumerable{T}"/> 值。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
-    /// <param name="requestId">请求代号,由打电话者生成。</param>
-    /// <returns>查点结果</returns>
+    /// <param name="requestId">由调用方生成的请求 ID。</param>
+    /// <returns>枚举结果。</returns>
     [AlwaysInterleave]
     public ValueTask<(EnumerationResult Status, object? Value)> MoveNext<T>(Guid requestId)
         => MoveNext<T>(requestId, CancellationToken.None);
 
     /// <summary>
-    /// 继续计算 <see cref="IAsyncEnumerable{T}"/> 值。
+    /// 继续枚举 <see cref="IAsyncEnumerable{T}"/> 值。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
-    /// <param name="requestId">请求代号,由打电话者生成。</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>查点结果</returns>
+    /// <param name="requestId">由调用方生成的请求 ID。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>枚举结果。</returns>
     [AlwaysInterleave]
     public ValueTask<(EnumerationResult Status, object? Value)> MoveNext<T>(Guid requestId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// 投放 <see cref="IAsyncEnumerable{T}"/> 值。
+    /// 释放 <see cref="IAsyncEnumerable{T}"/> 值。
     /// </summary>
-    /// <param name="requestId">请求代号,由打电话者生成。</param>
-    /// <returns>代表操作的任务。</returns>
+    /// <param name="requestId">由调用方生成的请求 ID。</param>
+    /// <returns>表示该操作的任务。</returns>
     [AlwaysInterleave]
     [Alias("DisposeAsync")]
     public ValueTask DisposeAsync(Guid requestId);
 
     /// <summary>
-    /// 投放 <see cref="IAsyncEnumerable{T}"/> 值。
+    /// 释放 <see cref="IAsyncEnumerable{T}"/> 值。
     /// </summary>
-    /// <param name="requestId">请求代号,由打电话者生成。</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>代表操作的任务。</returns>
+    /// <param name="requestId">由调用方生成的请求 ID。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>表示该操作的任务。</returns>
     [AlwaysInterleave]
     [Alias("3C6D7209")]
     public ValueTask DisposeAsync(Guid requestId, CancellationToken cancellationToken)
@@ -143,24 +143,24 @@ public interface IAsyncEnumerableGrainExtension : IGrainExtension
 }
 
 /// <summary>
-/// 请求返回 <see cref="IAsyncEnumerable{T}"/>- 返回方法的接口。
+/// 对返回 <see cref="IAsyncEnumerable{T}"/> 的方法发出请求的接口。
 /// </summary>
 public interface IAsyncEnumerableRequest<T> : IRequest
 {
     /// <summary>
-    /// 获取或设定请求的最大批量大小 。
+    /// 获取或设置请求的最大批量大小。
     /// </summary>
     int MaxBatchSize { get; set; }
 
     /// <summary>
-    /// 提出请求。
+    /// 执行该请求。
     /// </summary>
-    /// <returns>援引的结果。</returns>
+    /// <returns>调用结果。</returns>
     IAsyncEnumerable<T> InvokeImplementation();
 }
 
 /// <summary>
-/// 表示对 <see cref="IAsyncEnumerable{T}"/>-返回方法的请求。
+/// 表示对返回 <see cref="IAsyncEnumerable{T}"/> 的方法发出的请求。
 /// </summary>
 /// <typeparam name="T">元素类型。</typeparam>
 [GenerateSerializer]
@@ -169,7 +169,7 @@ public interface IAsyncEnumerableRequest<T> : IRequest
 public abstract class AsyncEnumerableRequest<T> : RequestBase, IAsyncEnumerable<T>, IAsyncEnumerableRequest<T>
 {
     /// <summary>
-    /// 目标 grain 实例。
+    /// 目标 Grain 实例。
     /// </summary>
     [field: NonSerialized]
     internal GrainReference? TargetGrain { get; private set; }
@@ -182,10 +182,10 @@ public abstract class AsyncEnumerableRequest<T> : RequestBase, IAsyncEnumerable<
     public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) => new AsyncEnumeratorProxy<T>(this, cancellationToken);
 
     /// <summary>
-    /// 将这一要求与目标 grain 参考值联系起来。
+    /// 将此请求与其目标 Grain 引用关联。
     /// </summary>
-    /// <param name="targetGrainReference">目标目标 grain 参考。</param>
-    /// <returns>该请求是一个非同步的可数请求。</returns>
+    /// <param name="targetGrainReference">目标 Grain 引用。</param>
+    /// <returns>作为异步可枚举对象的此请求。</returns>
     public IAsyncEnumerable<T> InitializeRequest(GrainReference targetGrainReference)
     {
         TargetGrain = targetGrainReference;
@@ -199,14 +199,14 @@ public abstract class AsyncEnumerableRequest<T> : RequestBase, IAsyncEnumerable<
     public IAsyncEnumerable<T> InvokeImplementation() => InvokeInner();
 
     /// <summary>
-    /// 向目标发出请求
+    /// 针对目标执行该请求。
     /// </summary>
-    /// <returns>援引返回的无同步序列。</returns>
+    /// <returns>调用返回的异步序列。</returns>
     protected abstract IAsyncEnumerable<T> InvokeInner();
 }
 
 /// <summary>
-/// <see cref="IAsyncEnumerator{T}"/> 实例的代理服务器从 grain 方法返回。
+/// Grain 方法返回的 <see cref="IAsyncEnumerator{T}"/> 实例的代理。
 /// </summary>
 internal sealed partial class AsyncEnumeratorProxy<T> : IAsyncEnumerator<T>
 {
@@ -228,8 +228,8 @@ internal sealed partial class AsyncEnumeratorProxy<T> : IAsyncEnumerator<T>
     /// <summary>
     /// 初始化 <see cref="AsyncEnumeratorProxy{T}"/> 类的新实例。
     /// </summary>
-    /// <param name="request">由这个代理提出的要求</param>
-    /// <param name="cancellationToken">点数的取消标记。</param>
+    /// <param name="request">由此实例代理的请求。</param>
+    /// <param name="cancellationToken">用于枚举的取消令牌。</param>
     public AsyncEnumeratorProxy(AsyncEnumerableRequest<T> request, CancellationToken cancellationToken)
     {
         Debug.Assert(request.TargetGrain is not null);
@@ -237,12 +237,12 @@ internal sealed partial class AsyncEnumeratorProxy<T> : IAsyncEnumerator<T>
         var requestCancellationToken = request.GetCancellationToken();
         if (requestCancellationToken == cancellationToken)
         {
-            // 请求和调查员也得到同样的支持。
+            // 请求与枚举器接收到的是同一个令牌。
             _cancellationToken = cancellationToken;
         }
         else if (requestCancellationToken.CanBeCanceled && cancellationToken.CanBeCanceled)
         {
-            // 两者都是不同、可消除的物品。
+            // 两个令牌不同，且均支持取消。
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(requestCancellationToken, cancellationToken);
             _cancellationToken = _cancellationTokenSource.Token;
         }
@@ -292,7 +292,7 @@ internal sealed partial class AsyncEnumeratorProxy<T> : IAsyncEnumerator<T>
 
         if (_isInitialized)
         {
-            // 将会话活动恢复为当前活动,以便 DisposeAsync RPC与其相邻
+            // 恢复会话活动作为当前活动，使 DisposeAsync RPC 成为它的子活动。
             var previousActivity = Activity.Current;
             Activity.Current = _sessionActivity;
             try
@@ -312,7 +312,7 @@ internal sealed partial class AsyncEnumeratorProxy<T> : IAsyncEnumerator<T>
 
         _cancellationTokenSource?.Dispose();
 
-        // 停止会话活动 DisposeAsync 填全
+        // DisposeAsync 完成后停止会话活动。
         _sessionActivity?.Stop();
         _sessionActivity?.Dispose();
 
@@ -324,7 +324,7 @@ internal sealed partial class AsyncEnumeratorProxy<T> : IAsyncEnumerator<T>
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        // 在获取更多之前先点算现有批次 。
+        // 在获取更多元素之前，先枚举当前批次。
         if (IsBatch && ++_batchIndex < ((List<T>)_current.Value!).Count)
         {
             return true;
@@ -337,7 +337,7 @@ internal sealed partial class AsyncEnumeratorProxy<T> : IAsyncEnumerator<T>
 
         var isActive = _isInitialized;
 
-        // 恢复会话活动为当前活动,以便 RPC 电话与其连接
+        // 恢复会话活动作为当前活动，使 RPC 调用成为它的子活动。
         var previousActivity = Activity.Current;
         if (_sessionActivity is not null)
         {
@@ -353,12 +353,12 @@ internal sealed partial class AsyncEnumeratorProxy<T> : IAsyncEnumerator<T>
 
                 if (!_isInitialized)
                 {
-                    // 以第一次点名电话开始届会活动
-                    // 此宽度覆盖整个查点会话
+                    // 首次枚举调用时启动会话活动。
+                    // 此跟踪 Span 涵盖整个枚举会话。
                     _sessionActivity = ActivitySources.ApplicationGrainSource.StartActivity(_request.GetActivityName(), ActivityKind.Client);
                     _sessionActivity?.SetTag(ActivityTagKeys.AsyncEnumerableRequestId, _requestId.ToString());
 
-                    // 假设电话一开始就启动
+                    // 一旦调用开始，即假定枚举器处于活动状态。
                     isActive = true;
                     result = await _target.StartEnumeration(_requestId, _request, _cancellationToken);
                     _isInitialized = true;
@@ -401,14 +401,14 @@ internal sealed partial class AsyncEnumeratorProxy<T> : IAsyncEnumerator<T>
         }
         catch when (isActive)
         {
-            // 如果分子在活动 我们应该现在就处理掉它
+            // 如果枚举器处于活动状态，现在应尝试释放它。
             await _target.DisposeAsync(_requestId, CancellationToken.None).AsTask()
                 .ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext | ConfigureAwaitOptions.SuppressThrowing);
             throw;
         }
         finally
         {
-            // 每次呼叫后恢复先前的活动
+            // 每次调用完成后恢复先前的活动。
             Activity.Current = previousActivity;
         }
     }
@@ -421,17 +421,17 @@ internal sealed partial class AsyncEnumeratorProxy<T> : IAsyncEnumerator<T>
 }
 
 /// <summary>
-/// 提供用于配置不同步的可计算 grain 请求的扩展方法。
+/// 提供用于配置异步可枚举 Grain 请求的扩展方法。
 /// </summary>
 public static class AsyncEnumerableExtensions
 {
     /// <summary>
     /// 指定 <see cref="IAsyncEnumerable{T}"/> 请求的最大批量大小。
     /// </summary>
-    /// <typeparam name="T">基本元素类型。</typeparam>
-    /// <param name="self">要配置的示例。</param>
+    /// <typeparam name="T">底层元素类型。</typeparam>
+    /// <param name="self">要配置的实例。</param>
     /// <param name="maxBatchSize">批量大小。</param>
-    /// <returns>原实例。</returns>
+    /// <returns>原始实例。</returns>
     public static IAsyncEnumerable<T> WithBatchSize<T>(this IAsyncEnumerable<T> self, int maxBatchSize)
     {
         if (self is AsyncEnumerableRequest<T> request)
@@ -445,7 +445,7 @@ public static class AsyncEnumerableExtensions
 }
 
 /// <summary>
-/// 显示查点被中止
+/// 指示枚举已中止。
 /// </summary>
 [GenerateSerializer]
 public sealed class EnumerationAbortedException : Exception

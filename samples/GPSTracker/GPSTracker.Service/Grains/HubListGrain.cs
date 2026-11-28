@@ -16,7 +16,7 @@ public class HubListGrain : Grain, IHubListGrain
 
     public ValueTask AddHub(SiloAddress host, IRemoteLocationHub hubReference)
     {
-        // 取消缓存 。
+        // 使缓存失效。
         _cache = null;
         _hubs[host] = hubReference;
 
@@ -28,14 +28,14 @@ public class HubListGrain : Grain, IHubListGrain
 
     private List<(SiloAddress Host, IRemoteLocationHub Hub)> GetCachedHubs()
     {
-        // 如果缓存有效, 返回缓存中心列表, 否则建立枢纽列表 。
+        // 缓存有效时返回缓存中的 Hub 列表，否则构建 Hub 列表。
         ClusterMembershipSnapshot clusterMembers = _clusterMembership.CurrentSnapshot;
         if (_cache is { } && clusterMembers.Version == _cacheMembershipVersion)
         {
             return _cache;
         }
 
-        // 过滤尚未激活或已从组中移除的主机 。
+        // 过滤尚未激活或已从集群移除的宿主。
         var hubs = new List<(SiloAddress Host, IRemoteLocationHub Hub)>();
         var toDelete = new List<SiloAddress>();
         foreach (KeyValuePair<SiloAddress, IRemoteLocationHub> pair in _hubs)

@@ -16,12 +16,12 @@ using Xunit;
 namespace Orleans.Durable.Journaling.Tests;
 
 /// <summary>
-/// 国家经理的测试,这是 Orleans日记基础设施的核心组成部分。
+/// 状态管理器的测试。状态管理器是 Orleans 日志化基础设施的核心组件。
 /// 
-/// 国家管理人员协调多个耐久数据结构(DurableDictionary、 DurableList等)
-/// 单 grain确保所有国家变化都以原子日记形式进行,并能够
-/// 管理国家生命周期,处理持久性
-/// WriteStateAsync 呼叫,确保故障后始终如一地收回。
+/// 状态管理器在单个 Grain 内协调多个持久化数据结构（DurableDictionary、DurableList 等），
+/// 确保所有状态变更以原子方式记入日志，并可以
+/// 一同恢复。它管理状态的生命周期，通过
+/// WriteStateAsync 调用处理持久化，并确保故障后的恢复保持一致。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -29,19 +29,19 @@ namespace Orleans.Durable.Journaling.Tests;
 public partial class StateManagerTests : JournalingTestBase
 {
     /// <summary>
-    /// 测试多个国家的注册和基本运作。
-    /// 证明可以登记不同类型的耐久收藏
-    /// 与经理合作并独立运作。
+    /// 测试多个状态的注册和基本操作。
+    /// 验证不同类型的持久化集合能否注册到
+    /// 管理器并独立运行。
     /// </summary>
     [Fact]
     public async Task StateManager_RegisterState_Test()
     {
-        // 排列排列
+        // 准备
         var sut = CreateTestSystem();
         var manager = sut.Manager;
         var codec = CodecProvider.GetCodec<int>();
 
-        // - 登记法——登记国
+        // 执行 - 注册状态
         var dictionary = new DurableDictionary<string, int>("dict1", manager, new OrleansBinaryDurableDictionaryCommandCodec<string, int>(CodecProvider.GetCodec<string>(), codec, SessionPool));
         var list = new DurableList<string>("list1", manager, new OrleansBinaryDurableListCommandCodec<string>(CodecProvider.GetCodec<string>(), SessionPool));
         var queue = new DurableQueue<int>("queue1", manager, new OrleansBinaryDurableQueueCommandCodec<int>(codec, SessionPool));
@@ -52,10 +52,10 @@ public partial class StateManagerTests : JournalingTestBase
         list.Add("item1");
         queue.Enqueue(42);
 
-        // 写状态
+        // 写入状态
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // 发还 - 数据被正确存储
+        // 断言 - 数据已正确存储
         Assert.Equal(1, dictionary["key1"]);
         Assert.Equal("item1", list[0]);
         Assert.Equal(42, queue.Peek());
@@ -430,7 +430,7 @@ public partial class StateManagerTests : JournalingTestBase
         value.Value = "after";
         await manager.WriteStateAsync(TestContext.Current.CancellationToken);
 
-        // 当后一目录条目重置状态时, 回收可以掩蔽已老化的条目 。
+        // 当后续目录条目重置状态时，恢复过程可能掩盖陈旧的条目。
         var entries = ReadBinaryEntries(storage.RecoverableBytes);
         Assert.Single(entries, entry => entry.StreamId.Value >= 8);
         var replay = ReplayValueCommands(storage.RecoverableBytes);
@@ -737,8 +737,8 @@ public partial class StateManagerTests : JournalingTestBase
     [Fact]
     public async Task StateManager_StorageFailureOfPreCommitType_FencesManager()
     {
-        // 与准备失败使用的类型捕捉后,存储报告发生故障。
-        // 失败让管理器可用,所以这个失败就把它围起来。
+        // 存储在捕获之后报告故障，并使用与准备阶段故障相同的类型。只有准备阶段的
+        // 故障会使管理器仍然可用，因此此故障会隔离管理器。
         var storage = new CapturingStorage();
         await using var manager = CreateTestSystem(storage).Manager;
         var value = new DurableValue<int>("value", manager, CreateValueCodec<int>());
@@ -869,9 +869,9 @@ public partial class StateManagerTests : JournalingTestBase
         var state = new ManualDirectWriteState();
         sut.Manager.RegisterStateMachine("manual", state);
 
-        // 管理员的工作环在控制调度器上运行。 信号显示写入队列会在该排程器上循环,
-        // 循环环运行,直到它到达打开条目,一直不离开它,直到它到达开放条目,所以运行其队列工作直到无
-        // 留下的文字要么被俘获,要么等待条目。
+        // 管理器的工作循环在受控调度器上运行。发出写入信号会将循环加入该调度器的队列，
+        // 循环会一直在该调度器上运行，直到遇到打开的条目，因此持续执行其排队的工作，直至
+        // 队列中不再有工作，可确保写入要么已完成捕获，要么正在等待该条目。
         var scheduler = new ControlledTaskScheduler();
         var start = scheduler.Start(() => sut.Lifecycle.OnStart(TestContext.Current.CancellationToken));
         await scheduler.RunUntilCompletedAsync(start);
@@ -881,7 +881,7 @@ public partial class StateManagerTests : JournalingTestBase
         var writeTask = scheduler.Start(() => sut.Manager.WriteStateAsync(TestContext.Current.CancellationToken).AsTask());
         scheduler.RunUntilIdle();
 
-        // 刻录记录每个状态, 所以它等待着占据日记缓冲的条目 。
+        // 写入会捕获每个状态，因此会等待占用日志缓冲区的条目。
         Assert.False(writeTask.IsCompleted);
         Assert.Empty(storage.Appends);
 
@@ -912,8 +912,8 @@ public partial class StateManagerTests : JournalingTestBase
         scheduler.RunUntilIdle();
         Assert.False(writeTask.IsCompleted);
 
-        // 当写作等待条目时, 转动会改变状态, 当写入时记录它的变化时, 它将日记它的变化 。
-        // 年为 DurableValue 捕获声称它捕捉到准备状态
+        // 写入等待该条目时，某个执行轮次修改了在写入捕获时才将变更记入日志的状态，
+        // 如 DurableValue 所做的那样。捕获阶段会断言被捕获的状态已经过准备。
         var mutation = scheduler.Start(() =>
         {
             ((IDurableValueCommandHandler<int>)prepared).ApplySet(7);
@@ -949,7 +949,7 @@ public partial class StateManagerTests : JournalingTestBase
         var writeTask = scheduler.Start(() => sut.Manager.WriteStateAsync(TestContext.Current.CancellationToken).AsTask());
         scheduler.RunUntilIdle();
 
-        // 照片捕捉到每个州, 所以它等待着另一个线条正在写的内容。
+        // 快照会捕获每个状态，因此会等待另一个线程正在写入的条目。
         Assert.False(writeTask.IsCompleted);
         Assert.Empty(storage.Replaces);
 
@@ -959,7 +959,7 @@ public partial class StateManagerTests : JournalingTestBase
         entry.Dispose();
         await scheduler.RunUntilCompletedAsync(writeTask);
 
-        // 照片记录了条目完成的状态变化,因此它取代了条目而不是跟随。
+        // 快照捕获了该条目完成时所产生的状态变更，因此它取代该条目，而不是位于该条目之后。
         var replacement = Assert.Single(storage.Replaces);
         Assert.Contains(ReadBinaryEntries(replacement), entry => entry.StreamId.Value >= 8);
         Assert.Empty(storage.Appends);
@@ -970,17 +970,17 @@ public partial class StateManagerTests : JournalingTestBase
     }
 
     /// <summary>
-    /// 测试所有注册州是否都正确合并恢复。
-    /// 证明管理人员在多个收款中保持一致
-    /// 恢复期间从长期状态。
+    /// 测试所有已注册状态能否正确地一同恢复。
+    /// 验证管理器是否在从持久化状态恢复期间
+    /// 维持多个集合之间的一致性。
     /// </summary>
     [Fact]
     public async Task StateManager_StateRecovery_Test()
     {
-        // 排列排列
+        // 准备
         var sut = CreateTestSystem();
 
-        // 创建和弹出状态
+        // 创建并填充状态
         var dictionary = new DurableDictionary<string, int>("dict1", sut.Manager, new OrleansBinaryDurableDictionaryCommandCodec<string, int>(CodecProvider.GetCodec<string>(), CodecProvider.GetCodec<int>(), SessionPool));
         var list = new DurableList<string>("list1", sut.Manager, new OrleansBinaryDurableListCommandCodec<string>(CodecProvider.GetCodec<string>(), SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
@@ -992,13 +992,13 @@ public partial class StateManagerTests : JournalingTestBase
 
         await sut.Manager.WriteStateAsync(CancellationToken.None);
 
-        // 法案 - 创建储存相同存储的新管理器
+        // 执行 - 使用同一存储创建新的管理器
         var sut2 = CreateTestSystem(storage: sut.Storage);
         var recoveredDict = new DurableDictionary<string, int>("dict1", sut2.Manager, new OrleansBinaryDurableDictionaryCommandCodec<string, int>(CodecProvider.GetCodec<string>(), CodecProvider.GetCodec<int>(), SessionPool));
         var recoveredList = new DurableList<string>("list1", sut2.Manager, new OrleansBinaryDurableListCommandCodec<string>(CodecProvider.GetCodec<string>(), SessionPool));
         await sut2.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // 摊还 - 应当收回国家
+        // 断言 - 状态应已恢复
         Assert.Equal(2, recoveredDict.Count);
         Assert.Equal(1, recoveredDict["key1"]);
         Assert.Equal(2, recoveredDict["key2"]);
@@ -1284,20 +1284,20 @@ public partial class StateManagerTests : JournalingTestBase
     }
 
     /// <summary>
-    /// 测试多个 WriteStateAsync 呼叫,在中间操作。
-    /// 证明每个 WriteStateAsync 都设置一个一致的检查站
-    /// 最后状态得到正确恢复。
+    /// 测试多次调用 WriteStateAsync 且调用之间存在操作的情况。
+    /// 验证每次 WriteStateAsync 调用是否创建一致的检查点，
+    /// 以及最终状态能否正确恢复。
     /// </summary>
     [Fact]
     public async Task StateManager_MultipleWriteStates_Test()
     {
-        // 排列排列
+        // 准备
         var sut = CreateTestSystem();
         var manager = sut.Manager;
         var dictionary = new DurableDictionary<string, int>("dict1", sut.Manager, new OrleansBinaryDurableDictionaryCommandCodec<string, int>(CodecProvider.GetCodec<string>(), CodecProvider.GetCodec<int>(), SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // 动作 - 多个操作, WriteState 在
+        // 执行 - 进行多次操作并在其间调用 WriteState
         dictionary.Add("key1", 1);
         await manager.WriteStateAsync(CancellationToken.None);
 
@@ -1310,41 +1310,41 @@ public partial class StateManagerTests : JournalingTestBase
         dictionary.Remove("key2");
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // 发还 - 最后状态正确
+        // 断言 - 最终状态正确
         Assert.Single(dictionary);
         Assert.Equal(10, dictionary["key1"]);
         Assert.False(dictionary.ContainsKey("key2"));
 
-        // 创建新管理器以核查回收
+        // 创建新的管理器以验证恢复
         var sut2 = CreateTestSystem(storage: sut.Storage);
         var recoveredDict = new DurableDictionary<string, int>("dict1", sut2.Manager, new OrleansBinaryDurableDictionaryCommandCodec<string, int>(CodecProvider.GetCodec<string>(), CodecProvider.GetCodec<int>(), SessionPool));
         await sut2.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // 发还 - 恢复应具有最终状态
+        // 断言 - 恢复后应得到最终状态
         Assert.Single(recoveredDict);
         Assert.Equal(10, recoveredDict["key1"]);
         Assert.False(recoveredDict.ContainsKey("key2"));
     }
 
     /// <summary>
-    /// 测试同时管理不同类型多种状态。
-    /// 证明管理员正确处理各种数据结构
-    /// (不同关键/价值类型、清单、值的词典)以单 grain。
+    /// 测试同时管理多个不同类型的状态。
+    /// 验证管理器能否在同一个 Grain 内正确处理多种数据结构
+    /// （具有不同键值类型的字典、列表、值）。
     /// </summary>
     [Fact]
     public async Task StateManager_MultipleStates_Test()
     {
-        // 排列排列
+        // 准备
         var sut = CreateTestSystem();
         var manager = sut.Manager;
 
-        // 创建不同类型多国家的多个状态
+        // 创建多个不同类型的状态
         var intDict = new DurableDictionary<int, string>("intDict", manager, new OrleansBinaryDurableDictionaryCommandCodec<int, string>(CodecProvider.GetCodec<int>(), CodecProvider.GetCodec<string>(), SessionPool));
         var stringList = new DurableList<string>("stringList", manager, new OrleansBinaryDurableListCommandCodec<string>(CodecProvider.GetCodec<string>(), SessionPool));
         var personValue = new DurableValue<TestPerson>("personValue", manager, new OrleansBinaryDurableValueCommandCodec<TestPerson>(CodecProvider.GetCodec<TestPerson>(), SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // - 向各州传播
+        // 执行 - 填充所有状态
         intDict.Add(1, "one");
         intDict.Add(2, "two");
 
@@ -1355,7 +1355,7 @@ public partial class StateManagerTests : JournalingTestBase
 
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // 摊销 - 所有债券的值都应该正确
+        // 断言 - 所有状态均应具有正确的值
         Assert.Equal(2, intDict.Count);
         Assert.Equal("one", intDict[1]);
 
@@ -1366,14 +1366,14 @@ public partial class StateManagerTests : JournalingTestBase
         Assert.Equal(100, personValue.Value.Id);
         Assert.Equal("Test Person", personValue.Value.Name);
 
-        // 创建新管理器以核查多个状态的恢复
+        // 创建新的管理器以验证多个状态的恢复
         var sut2 = CreateTestSystem(storage: sut.Storage);
         var recoveredIntDict = new DurableDictionary<int, string>("intDict", sut2.Manager, new OrleansBinaryDurableDictionaryCommandCodec<int, string>(CodecProvider.GetCodec<int>(), CodecProvider.GetCodec<string>(), SessionPool));
         var recoveredStringList = new DurableList<string>("stringList", sut2.Manager, new OrleansBinaryDurableListCommandCodec<string>(CodecProvider.GetCodec<string>(), SessionPool));
         var recoveredPersonValue = new DurableValue<TestPerson>("personValue", sut2.Manager, new OrleansBinaryDurableValueCommandCodec<TestPerson>(CodecProvider.GetCodec<TestPerson>(), SessionPool));
         await sut2.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // 摊销 - 所有应恢复正确值
+        // 断言 - 所有状态均应恢复并具有正确的值
         Assert.Equal(2, recoveredIntDict.Count);
         Assert.Equal("one", recoveredIntDict[1]);
 
@@ -1386,20 +1386,20 @@ public partial class StateManagerTests : JournalingTestBase
     }
 
     /// <summary>
-    /// 测试多国国家可以不受干扰地独立运作。
-    /// 验证不同州之间具有类似键的命名空间隔离。
+    /// 测试多个状态是否能够独立运行、互不干扰。
+    /// 验证具有相似键的不同状态之间的命名空间隔离。
     /// </summary>
     [Fact]
     public async Task StateManager_Concurrency_Test()
     {
-        // 排列排列
+        // 准备
         var sut = CreateTestSystem();
         var manager = sut.Manager;
         var dict1 = new DurableDictionary<string, int>("dict1", manager, new OrleansBinaryDurableDictionaryCommandCodec<string, int>(CodecProvider.GetCodec<string>(), CodecProvider.GetCodec<int>(), SessionPool));
         var dict2 = new DurableDictionary<string, int>("dict2", manager, new OrleansBinaryDurableDictionaryCommandCodec<string, int>(CodecProvider.GetCodec<string>(), CodecProvider.GetCodec<int>(), SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // - 法律-模拟在不同州同时进行的行动
+        // 执行 - 模拟在不同状态上的并发操作
         dict1.Add("key1", 1);
         dict2.Add("key1", 100);
 
@@ -1408,7 +1408,7 @@ public partial class StateManagerTests : JournalingTestBase
 
         await manager.WriteStateAsync(CancellationToken.None);
 
-        // 保证书 - 两国应拥有正确的数值
+        // 断言 - 两个状态均应具有各自正确的值
         Assert.Equal(2, dict1.Count);
         Assert.Equal(2, dict2.Count);
 
@@ -1420,19 +1420,19 @@ public partial class StateManagerTests : JournalingTestBase
     }
 
     /// <summary>
-    /// 国家恢复压力测试,提供大量数据。
-    /// 证明日记系统能够处理和恢复国家
-    /// 包含数千个条目,没有数据丢失或腐败。
+    /// 大量数据下的状态恢复压力测试。
+    /// 验证日志化系统能否处理并恢复包含
+    /// 数千个条目的状态，而不丢失或损坏数据。
     /// </summary>
     [Fact]
     public async Task StateManager_LargeStateRecovery_Test()
     {
-        // 排列排列
+        // 准备
         var sut = CreateTestSystem();
         var largeDict = new DurableDictionary<int, string>("largeDict", sut.Manager, new OrleansBinaryDurableDictionaryCommandCodec<int, string>(CodecProvider.GetCodec<int>(), CodecProvider.GetCodec<string>(), SessionPool));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // 法案 - 增加许多项目
+        // 执行 - 添加大量元素
         const int itemCount = 1000;
         for (int i = 0; i < itemCount; i++)
         {
@@ -1441,12 +1441,12 @@ public partial class StateManagerTests : JournalingTestBase
 
         await sut.Manager.WriteStateAsync(CancellationToken.None);
 
-        // 创建回收新管理器
+        // 创建用于恢复的新管理器
         var sut2 = CreateTestSystem(storage: sut.Storage);
         var recoveredDict = new DurableDictionary<int, string>("largeDict", sut2.Manager, new OrleansBinaryDurableDictionaryCommandCodec<int, string>(CodecProvider.GetCodec<int>(), CodecProvider.GetCodec<string>(), SessionPool));
         await sut2.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // 发还 - 所有物品应收回
+        // 断言 - 所有元素均应恢复
         Assert.Equal(itemCount, recoveredDict.Count);
         for (int i = 0; i < itemCount; i++)
         {
@@ -1455,8 +1455,8 @@ public partial class StateManagerTests : JournalingTestBase
     }
 
     /// <summary>
-    /// 测试退休状态的整个生命周期。它被保存,并通过一个
-    /// 早期压缩,但最终在宽限期过后,在后来的压缩中将失效。
+    /// 测试退役状态的完整生命周期。早期压实会保留该状态，它也可以重新引入；
+    /// 但在宽限期届满后的后续压实中，最终会被清除。
     /// </summary>
     [Fact]
     public async Task StateManager_AutoRetiringStates()
@@ -1471,10 +1471,10 @@ public partial class StateManagerTests : JournalingTestBase
             MaxAppendsBeforeSnapshot = 10
         });
 
-        // -------------- STEP 1 --------------
+        // -------------- 步骤 1 --------------
 
-        // 我们先用两个词典,其中之一我们将通过不向管理人员登记而退休。
-        // 这将是在真实世界开发商中,从 grain的代号中删除该代号作为依赖性。
+        // 初始有 2 个字典，其中一个通过不在管理器中注册的方式将其退役。
+        // 在实际场景中，这对应开发人员从 Grain 的构造函数依赖项中移除该字典。
         var sut1 = CreateTestSystem(storage, timeProvider);
         var dictToKeep1 = CreateTestState(DictToKeepKey, sut1.Manager);
         var dictToRetire2 = CreateTestState(DictToRetireKey, sut1.Manager);
@@ -1486,26 +1486,26 @@ public partial class StateManagerTests : JournalingTestBase
 
         await sut1.Manager.WriteStateAsync(CancellationToken.None);
 
-        // -------------- STEP 2 --------------
+        // -------------- 步骤 2 --------------
 
-        // 这次,我们只登记了 我们想要保存的字典, 这标志着 dictToRetire 退休了。
+        // 这次仅注册要保留的字典，这会将 dictToRetire 标记为已退役。
         var sut2 = CreateTestSystem(storage, timeProvider);
         var dictToKeep2 = CreateTestState(DictToKeepKey, sut2.Manager);
 
         await sut2.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // 经理本应为 dictToKeep收回国家,
-        // 创造了 DurableNothing 占位符的占位符 dictToRetire (目前无法测试)。 
+        // 管理器应已恢复 dictToKeep 的状态，
+        // 并为 dictToRetire 创建 DurableNothing 占位符（此时无法对此进行测试）。
         Assert.Equal(1, dictToKeep2["a"]);
 
-        // 我们把宽限期延长一半 看看我们能否从净化中拯救它
+        // 将时间推进半个宽限期，以验证能否避免该状态被清除。
         timeProvider.Advance(period / 2);
 
         await TriggerCompaction(sut2.Manager, dictToKeep2);
 
-        // -------------- STEP 3 --------------
+        // -------------- 步骤 3 --------------
 
-        // 验证一下, 退役的字典是否被此压缩清除, 因为只有一半的时间已经过去 。
+        // 验证本次压实未清除已退役的字典，因为时间仅过去了一半。
         var sut3 = CreateTestSystem(storage, timeProvider);
         var dictToKeep3 = CreateTestState(DictToKeepKey, sut3.Manager);
         var dictToRetire3 = CreateTestState(DictToRetireKey, sut3.Manager);
@@ -1514,11 +1514,11 @@ public partial class StateManagerTests : JournalingTestBase
 
         Assert.Equal(10, dictToKeep3["a"]);
 
-        // 存在这一条目[“b”、1]这一事实证明, dictToRetire 状态得到保留,尽管我们没有在步骤2中登记。
+        // 条目 ["b", 1] 的存在证明 dictToRetire 的状态得到了保留，尽管我们在步骤 2 中未注册它。
         Assert.Equal(1, dictToRetire3["b"]);
 
-        // 过了半个时期,我们又跨了整个期间。 但是既然我们重新引入了 dictToRetire,我们就应该不再把它用完。
-        // 这与步骤2相似,但在那里我们避免了由于时间不及时而净化,而在这里我们避免了因重新登记而净化。
+        // 再推进半个宽限期，使时间累计达到完整宽限期。但由于已重新引入 dictToRetire，它应已解除退役状态。
+        // 这与步骤 2 类似，但步骤 2 是由于时间尚未届满而避免清除，此处则因重新注册而避免清除。
         timeProvider.Advance(period / 2);
 
         dictToRetire3["b"] = 2;
@@ -1529,31 +1529,31 @@ public partial class StateManagerTests : JournalingTestBase
         await sut3Recovered.Lifecycle.OnStart(TestContext.Current.CancellationToken);
         Assert.Equal(2, dictToRetire3Recovered["b"]);
 
-        // -------------- STEP 4 --------------
+        // -------------- 步骤 4 --------------
 
-        // 由于重新登记是第3步(测试没有被清除),这意味着从跟踪器上删除了 dictToRetire 。
-        // 与步骤2一样,我们只登记了我们要保存的字典,这表示 dictToRetire 已经退休。
+        // 由于步骤 3 中重新注册了 dictToRetire（以验证它未被清除），它已从跟踪器中移除。
+        // 与步骤 2 相同，再次仅注册要保留的字典，这会将 dictToRetire 标记为已退役。
         var sut4 = CreateTestSystem(storage, timeProvider);
         var dictToKeep4 = CreateTestState(DictToKeepKey, sut4.Manager);
 
         await sut4.Lifecycle.OnStart(TestContext.Current.CancellationToken);
 
-        // 经理本应收回 dictToKeep的状态。
-        // 本来应该创立一个 DurableNothing 占位符的占位符 dictToRetire但我们不能测试这一点
+        // 管理器应已恢复 dictToKeep 的状态。
+        // 它应已为 dictToRetire 创建 DurableNothing 占位符，但我们无法对此进行测试。
 
 
-        // 请注意,这是必要的,因为第3步的副作用
-        // 是因为 dictToRetire 被从追踪器上移走(因为它回来了) 所以只要触发紧压就不会切断
-        // 退休时间将基本改为“现在”。
+        // 这次将时间推进一个完整宽限期。注意这样做是必要的，因为步骤 3 的一个副作用
+        // 是 dictToRetire 从跟踪器中被移除（因为它重新引入了），因此仅触发压实并不足够，
+        // 因为退役时间实质上会被重置为“现在”。
         timeProvider.Advance(period);
 
-        // 压实应该最终能清理它
+        // 此次压实最终应将其清除。
         await TriggerCompaction(sut4.Manager, dictToKeep4);
 
-        // 5号台...
+        // -------------- 步骤 5 --------------
 
-        // 此时,经理已经做了一个快照,因此它应该清理 dictToRetire 数据。
-        // 透过再次登记这两个字典,
+        // 此时，管理器已生成快照，因此应已清除 dictToRetire 的数据。
+        // 再次注册两个字典，便可查看快照生成后保留了哪些状态。
         var sut5 = CreateTestSystem(storage, timeProvider);
         var dictToKeep5 = CreateTestState(DictToKeepKey, sut5.Manager);
         var dictToRetire5 = CreateTestState(DictToRetireKey, sut5.Manager);
@@ -1561,15 +1561,15 @@ public partial class StateManagerTests : JournalingTestBase
         await sut5.Lifecycle.OnStart(TestContext.Current.CancellationToken);
         Assert.Equal(10, dictToKeep5["a"]);
 
-        // 退休的字典现在应该是空的,因为其状态在压缩期间被清除。
-        // 请注意,这是新版本的 dictToRetire,因为原创被删除。
-        // 如果我们能登记一个新的 dictToRetire (用同一钥匙),这意味着国家本身
-        // 数据已被删除,但数据也被删除,否则先前的状态至少会有一个
-        // 条目 i.e. ["b",1]。
+        // 已退役的字典现在应为空，因为其状态已在压实期间被清除。
+        // 注意，这是新版 dictToRetire，因为原版已被移除。这里的思路是，
+        // 如果能注册新的 dictToRetire（使用相同的键），就意味着状态本身
+        // 及其数据均已被移除，否则先前的状态至少会包含一个
+        // 条目，即 ["b", 1]。
 
         Assert.Empty(dictToRetire5);
 
-        // 注:国家退休的好处是能够重新使用国名。
+        // 注意：状态退役的一个好处是能够复用状态名称。
 
         DurableDictionary<string, int> CreateTestState(string key, IJournaledStateManager manager) =>
             new(key, manager, new OrleansBinaryDurableDictionaryCommandCodec<string, int>(CodecProvider.GetCodec<string>(), CodecProvider.GetCodec<int>(), SessionPool));
@@ -2410,8 +2410,8 @@ public partial class StateManagerTests : JournalingTestBase
 
         public MutableReadStorage(int blockedReadNumber, params byte[][] readSnapshots)
         {
-            // 回收测试模型存储在读失败后正在修理。
-            // 序列使得修复的决定性 而不是在经理的重试中比赛
+            // 恢复重试测试模拟存储在读取失败后被修复的情况。
+            // 该序列使修复确定性地发生，而不是与管理器的重试产生竞态。
             if (readSnapshots.Length == 0)
             {
                 throw new ArgumentException("At least one read snapshot is required.", nameof(readSnapshots));
@@ -2604,7 +2604,7 @@ public partial class StateManagerTests : JournalingTestBase
     }
 
     /// <summary>
-    /// 仅在测试询问时运行队列任务,一次每批一次。
+    /// 仅在测试要求时执行排队的任务，每次执行一个批次。
     /// </summary>
     private sealed class ControlledTaskScheduler : TaskScheduler
     {
@@ -2615,7 +2615,7 @@ public partial class StateManagerTests : JournalingTestBase
             Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.None, this).Unwrap();
 
         /// <summary>
-        /// 运行队列任务,直到 <paramref name="completion"/> 完成,包括其它线条队列的任务。
+        /// 执行排队的任务，直到 <paramref name="completion"/> 完成，包括其他线程加入队列的任务。
         /// </summary>
         public async Task RunUntilCompletedAsync(Task completion)
         {
@@ -2630,11 +2630,11 @@ public partial class StateManagerTests : JournalingTestBase
         }
 
         /// <summary>
-        /// 运行排队任务,包括他们排队的续选,直到没有剩余任务为止。
+        /// 执行排队的任务，包括这些任务加入队列的延续操作，直到队列为空。
         /// </summary>
         public void RunUntilIdle()
         {
-            // 继续显示上下文, 而不是根据测试的同步环境恢复到此调度器上。
+            // 捕获上下文的延续操作在此调度器上恢复执行，而不是在测试的同步上下文中恢复执行。
             var context = SynchronizationContext.Current;
             SynchronizationContext.SetSynchronizationContext(null);
             try

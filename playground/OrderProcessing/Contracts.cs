@@ -4,8 +4,8 @@ using Orleans.Serialization;
 
 namespace OrderProcessing;
 
-// 顺序流信息协议:每个约束性对一个主题及其有效载荷类型。
-// Grains 输入此单子以发送信件和注册处理器 。
+// 订单流程的消息协议：每个绑定都将主题与其有效载荷类型关联起来。
+// Grain 注入此单例来发送消息并注册处理程序。
 public sealed class OrderMessages(Serializer serializer)
 {
     public MessageType<SubmitOrder> SubmitOrder { get; } = new("ordering.submit-order.v1", serializer);
@@ -46,7 +46,7 @@ public enum StockLineStatus
     Committed,
 }
 
-// 参数目标识别码保留了现有的定位建构工地铁丝布局。
+// 应用于参数的 ID 保留现有构造函数参数与字段之间的按位置对应的传输格式布局。
 [GenerateSerializer, Immutable]
 public sealed record Address(
     [Id(0)] string Street,
@@ -112,7 +112,7 @@ public sealed record OrderDetails([Id(0)] OrderState Order, [Id(1)] StockLine[] 
 [GenerateSerializer, Immutable]
 public sealed record StockReservation([Id(0)] int? Units, [Id(1)] bool Confirmed);
 
-// 信息
+// 消息。
 [GenerateSerializer, Immutable]
 public sealed record SubmitOrder(
     [Id(0)] string BuyerId,
@@ -121,7 +121,7 @@ public sealed record SubmitOrder(
     [Id(3)] string CardLast4,
     [Id(4)] DateTimeOffset OrderDate);
 
-// 命令是寄给自己 预定在宽限期结束时
+// 订单向自身发送此消息，并计划在宽限期结束时投递。
 [GenerateSerializer, Immutable]
 public sealed record GracePeriodElapsed;
 
@@ -154,11 +154,11 @@ public sealed record PaymentResult([Id(0)] bool Succeeded, [Id(1)] string? Reaso
 
 public sealed class OrderingOptions
 {
-    // eShop的 GracePeriodManager 等一分钟;较短的默认使降压反应。
+    // eShop 的 GracePeriodManager 等待一分钟；此处采用较短的默认时间，以便演示更快响应。
     public TimeSpan GracePeriod { get; set; } = TimeSpan.FromSeconds(10);
 }
 
-// 日记状态以 JSON 行存储, 所以每个类型都存在需要源生成的元数据。
+// 日志化状态以 JSON Lines 格式存储，因此每种持久化类型都需要通过源生成提供元数据。
 [JsonSerializable(typeof(int))]
 [JsonSerializable(typeof(Guid))]
 [JsonSerializable(typeof(DateTimeOffset?))]

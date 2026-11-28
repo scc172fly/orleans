@@ -49,7 +49,7 @@ public class AnchoredGrainsFilterTests
         var filter = CreateFilter();
 
         filter.Add(_grainId);
-        filter.Rotate(); // Gen 0 -> Gen 1
+        filter.Rotate(); // 第 0 代 -> 第 1 代
 
         Assert.True(filter.Contains(_grainId));
     }
@@ -60,10 +60,10 @@ public class AnchoredGrainsFilterTests
         var filter = CreateFilter(generations: 2);
         filter.Add(_grainId);
 
-        filter.Rotate(); // Gen 0 -> Gen 1
+        filter.Rotate(); // 第 0 代 -> 第 1 代
         Assert.True(filter.Contains(_grainId));
 
-        filter.Rotate(); // GEN 1 - > 离开
+        filter.Rotate(); // 第 1 代 -> 移除
         Assert.False(filter.Contains(_grainId));
     }
 
@@ -73,13 +73,13 @@ public class AnchoredGrainsFilterTests
         var filter = CreateFilter(generations: 3);
         filter.Add(_grainId);
 
-        filter.Rotate(); // Gen 0 -> Gen 1
+        filter.Rotate(); // 第 0 代 -> 第 1 代
         Assert.True(filter.Contains(_grainId));
 
-        filter.Rotate(); // GEN 1 - > 2 个元
+        filter.Rotate(); // 第 1 代 -> 第 2 代
         Assert.True(filter.Contains(_grainId));
 
-        filter.Rotate(); // GEN 2 - > 离开
+        filter.Rotate(); // 第 2 代 -> 移除
         Assert.False(filter.Contains(_grainId));
     }
 
@@ -90,7 +90,7 @@ public class AnchoredGrainsFilterTests
 
         foreach (var _ in Enumerable.Range(0, 10))
         {
-            filter.Add(_grainId); // 一个热 grain
+            filter.Add(_grainId); // 一个热点 Grain。
             filter.Rotate();
             Assert.True(filter.Contains(_grainId));
         }
@@ -104,7 +104,7 @@ public class AnchoredGrainsFilterTests
         filter.Add(_grainId);
         filter.Reset();
 
-        Assert.False(filter.Contains(_grainId)); // 任何过滤器都不应包含它。
+        Assert.False(filter.Contains(_grainId)); // 所有过滤器都不应包含它。
     }
 
     [Fact]

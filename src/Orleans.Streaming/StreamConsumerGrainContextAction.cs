@@ -4,7 +4,7 @@ using Orleans.Streams.Core;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 安装 <see cref="IStreamConsumerExtension"/> 扩展号的 <see cref="IGrainContext"/> 用于 grains 执行 <see cref="IStreamSubscriptionObserver"/>.
+    /// 安装 <see cref="IStreamConsumerExtension"/> 扩展到 <see cref="IGrainContext"/> 上，适用于实现 <see cref="IStreamSubscriptionObserver"/> 的 Grain。
     /// </summary>
     internal class StreamConsumerGrainContextAction : IConfigureGrainContext
     {
@@ -13,7 +13,7 @@ namespace Orleans.Streams
         /// <summary>
         /// 初始化 <see cref="StreamConsumerGrainContextAction"/> 类的新实例。
         /// </summary>
-        /// <param name="streamProviderRuntime">流体提供者运行时间。</param>
+        /// <param name="streamProviderRuntime">流提供程序运行时。</param>
         public StreamConsumerGrainContextAction(IStreamProviderRuntime streamProviderRuntime)
         {
             _streamProviderRuntime = streamProviderRuntime;
@@ -24,7 +24,7 @@ namespace Orleans.Streams
         {
             if (context.GrainInstance is IStreamSubscriptionObserver)
             {
-                context.GetComponent<IGrainExtensionBinder>()! // Grain 上下文暴露扩展比对器。
+                context.GetComponent<IGrainExtensionBinder>()! // Grain 上下文公开了扩展绑定器。
                     .GetOrSetExtension<StreamConsumerExtension, IStreamConsumerExtension>(
                         () => new StreamConsumerExtension(_streamProviderRuntime, context));
             }

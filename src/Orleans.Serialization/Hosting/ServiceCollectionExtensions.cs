@@ -19,20 +19,20 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// <see cref="IServiceCollection"/> 扩展。
+    /// <see cref="IServiceCollection"/> 的扩展方法。
     /// </summary>
     /// <summary>
-    /// <see cref="IServiceCollection"/>的扩展期。
+    /// <see cref="IServiceCollection"/> 的扩展方法。
     /// </summary>
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// 添加序列器支持。
+        /// 添加序列化器支持。
         /// </summary>
-        /// <param name="services">服务收藏。</param>
-        /// <param name="configure">配置代表。</param>
-        /// <returns>服务收藏。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="services"/> 是 <see langword="null"/>.</exception>
+        /// <param name="services">服务集合。</param>
+        /// <param name="configure">配置委托。</param>
+        /// <returns>服务集合。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="services"/> 为 <see langword="null"/>。</exception>
         public static IServiceCollection AddSerializer(this IServiceCollection services, Action<ISerializerBuilder>? configure = null)
         {
             if (services is null) throw new ArgumentNullException(nameof(services));
@@ -54,12 +54,12 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// 使用清晰、汇编时间型图添加 Orleans 序列仪和深复印机。
+        /// 使用显式的编译时类型图添加 Orleans 序列化器和深拷贝器。
         /// </summary>
-        /// <param name="services">服务收藏。</param>
+        /// <param name="services">服务集合。</param>
         /// <param name="context">生成的上下文。</param>
-        /// <returns>服务收藏。</returns>
-        /// <remarks>重复电话结合了登记的情况,关闭工厂比基于元数据的解决办法优先。</remarks>
+        /// <returns>服务集合。</returns>
+        /// <remarks>重复调用会合并已注册的上下文。封闭工厂优先于基于元数据的解析。</remarks>
         public static IServiceCollection AddGeneratedContext(this IServiceCollection services, GeneratedContext context)
         {
             if (services is null) throw new ArgumentNullException(nameof(services));
@@ -105,14 +105,14 @@ namespace Orleans.Serialization
                 services.TryAddSingleton(typeof(IDeepCopier<>), typeof(CopierHolder<>));
                 services.TryAddSingleton(typeof(IBaseCopier<>), typeof(BaseCopierHolder<>));
 
-                // 键盘过滤
+                // 类型筛选。
                 services.AddSingleton<ITypeNameFilter, DefaultTypeFilter>();
 
-                // 届会会议届会届会届会届会届会届会届会届会届会届会届会届会届会届会届会届会届会
+                // 会话。
                 services.TryAddSingleton<SerializerSessionPool>();
                 services.TryAddSingleton<CopyContextPool>();
 
-                // 串行器
+                // 序列化器。
                 services.TryAddSingleton<ObjectSerializer>();
                 services.TryAddSingleton<Serializer>();
                 services.TryAddSingleton(typeof(Serializer<>));
@@ -289,19 +289,19 @@ namespace Orleans.Serialization
     }
 
     /// <summary>
-    /// 提供服务。
+    /// 持有对服务的引用。
     /// </summary>
     /// <typeparam name="T">服务类型。</typeparam>
     internal interface IServiceHolder<out T>
     {
         /// <summary>
-        /// 得到服务。
+        /// 获取服务。
         /// </summary>
         /// <value>服务。</value>
         T Value { get; }
 
         /// <summary>
-        /// 获得解决服务维持者问题的提供者。
+        /// 获取用于解析所持有服务的提供程序。
         /// </summary>
         object Provider { get; }
     }

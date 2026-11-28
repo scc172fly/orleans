@@ -68,8 +68,8 @@ public sealed class InboxHandlerTransactionTests : MessagingBehaviorTestBase
         var accepted = await DeliverAsync(receiver, envelope);
         var state = await Fixture.WaitForDeadLetterCountAsync(receiver, 1);
 
-        // 每次失败的尝试都失败 , 无法在未启动任何设备的情况下启动 。
-        // InboxRetryTimeout,第一次恢复开始重试窗口,第二个断字字母则发出消息。
+        // 每次失败的尝试都会使其激活实例失败，且不暂存任何操作。由于此测试夹具的
+        // InboxRetryTimeout 为零，第一次恢复开启重试窗口，第二次恢复将消息转为死信。
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(accepted);
         Assert.Empty(state.Effects);
         Assert.Equal(0, state.InboxCount);
@@ -145,7 +145,7 @@ public sealed class InboxHandlerTransactionTests : MessagingBehaviorTestBase
         await handler.WaitUntilEnteredAsync();
         var oldContext = Fixture.GetGrainContext(receiver);
 
-        // 失败的尝试没有写任何文字, 所以下一个写作是回收阶段的收费。
+        // 失败的尝试不进行写入，因此下一次写入是恢复过程为该尝试暂存的计次记录。
         using var chargeWrite = Fixture.Storage.BlockWrite(JournalId.FromGrainId(receiver.GetGrainId()));
         handler.Release();
         await chargeWrite.WaitUntilEnteredAsync();
@@ -156,8 +156,8 @@ public sealed class InboxHandlerTransactionTests : MessagingBehaviorTestBase
 
         var completed = await Fixture.WaitForDeadLetterCountAsync(receiver, 1);
         Assert.NotEqual(before.ActivationId, completed.ActivationId);
-        // 无罪指控不算: 事后追收费用 第一次尝试,重新开始
-        // 窗口中,再运行失败后恢复的功能 将信息第二次尝试时的信号写成死字
+        // 未提交的计次记录不生效：后续恢复会再次计入第一次尝试，开启重试
+        // 窗口；再次运行失败后的恢复会在第二次尝试时将消息转为死信。
         Assert.Equal(2, Assert.Single(completed.InboxDeadLetters).AttemptCount);
         Assert.Empty(completed.Effects);
         Assert.Empty(Fixture.GetStagedOutput(receiver));

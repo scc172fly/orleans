@@ -1,25 +1,25 @@
 ---
-title: "ORLEANS0214:为每次重复等待生成一个信号名称"
-description: "理解 ORLEANS0214, 它报告在环中等待一个耐久信号名称, 并用 DurableSignal<T>来修正它。 for."
+title: "ORLEANS0214: 为每次重复等待派生信号名称"
+description: 了解 ORLEANS0214，它报告在循环中等待同一个持久化信号名称的情况，并介绍如何使用 DurableSignal<T>.For 修复。
 ms.date: 10/15/2026
 ms.topic: reference
 ---
 
 <a id="orleans0214-derive-a-signal-name-for-each-repeated-wait"></a>
 
-# ORLEANS0214:为每次重复等待生成一个信号名称
+# ORLEANS0214: 为每次重复等待派生信号名称
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 严重性 | 信息信息 |
-| 类别类 | 用法 |
-| 代码修正 | 无无无无 |
+| 严重性 | 信息 |
+| 类别 | 用法 |
+| 代码修复 | 无 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-持久任务机构电话 `WaitAsync` 或 `TryWaitAsync` 上a `DurableSignal<T>` 内部环循环,而信号不是由 `For`:
+持久化任务主体在循环中调用 `WaitAsync` 或 `TryWaitAsync`，调用对象为 `DurableSignal<T>`，且未使用 `For` 派生信号：
 
 :::code source="snippets/durable-tasks/Orleans0214.cs" id="orleans0214_violation" language="csharp":::
 
@@ -27,22 +27,22 @@ ms.topic: reference
 
 ## 规则说明
 
-任务记录发送者为每个信号名称交付的第一个值, 并返回给每次等待该名称时的数值, 包括重放中的等待。 当同一名称的后一个值不同时, 拒绝作为冲突出现, 并在相同时作为重复报告 。
+对于每个信号名称，任务记录发送方传递的第一个值，并将该值返回给对此名称的每次等待，包括重放期间的等待。此后，同一名称收到的值若不同，则作为冲突拒绝；若相同，则报告为重复。
 
-举例来说,第一次审查否决了合同。 每轮的等待都同时回响了拒绝的结果,因此谈判在一次审查之后结束,而审议员后来的决定则被否决。
+在示例中，第一次审核拒绝了合同。后续每轮等待都会立即返回这次拒绝结果，因此协商在一次审核后便结束，审核人员之后的决定也会被拒绝。
 
-信号见 [信号](../grains/durable-tasks.md#signals)。
+有关信号，请参阅[信号](../grains/durable-tasks.md#signals)。
 
 <a id="how-to-fix-violations"></a>
 
-## 如何纠正违反情况
+## 如何修复违规
 
-以 `DurableSignal<T>.For`, 从一个能识别其值(如圆数)中, 产生每个事件的名称。 发件人将每个决定传送到同一发源信号, 如 `ContractGrain.Reviewed.For("round-2")`:
+使用 `DurableSignal<T>.For` 根据能够标识每次等待的值（例如轮次编号），为每次等待派生名称。发送方将每次决定传递给相应的派生信号，例如 `ContractGrain.Reviewed.For("round-2")`：
 
 :::code source="snippets/durable-tasks/Orleans0214.cs" id="orleans0214_fix" language="csharp":::
 
 <a id="when-to-suppress"></a>
 
-## 何时压缩
+## 何时抑制诊断
 
-禁止循环的诊断,因为循环会等待每次循环中同一一次性事件,例如,在事件到达后重新检查一个条件。
+如果循环有意在每次迭代中等待同一个一次性事件，例如在事件到达后重新检查条件，则可抑制此诊断。

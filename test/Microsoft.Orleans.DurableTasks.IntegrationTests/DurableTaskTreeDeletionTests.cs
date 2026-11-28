@@ -10,8 +10,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// 证明删除已完成任务的执行树会取消任务开始和从未观察到的工作:
-/// 正在运行的本地儿童, 以及尚未通知另一个孩子 grain。
+/// 验证删除已完成任务的执行树会取消该任务启动但从未观察的工作：
+/// 一个运行中的本地子任务，以及一个对其他 Grain 的待完成调用。
 /// </summary>
 public abstract class DurableTaskTreeDeletionTests : IAsyncLifetime
 {
@@ -39,7 +39,7 @@ public abstract class DurableTaskTreeDeletionTests : IAsyncLifetime
         var startId = TaskId.CreateRoot("start");
         using var events = DurableTaskEventBarriers.Collect();
 
-        // 业主的任务就是让当地孩子和工人打电话,完成后也没有人观察。
+        // 所有者的任务启动本地子任务及对工作 Grain 的调用，未观察两者便完成。
         var start = await starter.StartAsync(owner.GetPrimaryKey(), worker.GetPrimaryKey()).WithId("start").ScheduleAsync(cancellationToken);
         Assert.Equal(TreeDeletionOwnerGrain.Returned, (await start.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken)).GetResult<string>());
         var ownedId = await events.WaitForCallerChildAsync(ownerId, starter.GetGrainId(), startId.Child(TreeDeletionStarterGrain.CallId));
@@ -47,28 +47,28 @@ public abstract class DurableTaskTreeDeletionTests : IAsyncLifetime
         var remoteId = ownedId.Child(TreeDeletionOwnerGrain.RemoteId);
         var workerTaskId = await events.WaitForCallerChildAsync(workerId, ownerId, remoteId);
 
-        // 启动器接受所有者的完成, 从而删除所有者树上的仍在运行的工程 。
+        // 启动方接受所有者的完成消息，此操作删除所有者的执行树以及仍在运行的工作。
         await events.WaitForDeletedAsync(ownerId, ownedId);
         await events.WaitForDeletedAsync(ownerId, localId);
         await events.WaitForDeletedAsync(ownerId, remoteId);
 
-        // 当地儿童的尝试取消,没有取消任务,而且清理工作也承诺。
+        // 本地子任务的执行尝试被取消，但任务本身未被取消，其清理操作会提交。
         var local = await _probe.LocalUnwound.WaitAsync(Timeout, cancellationToken);
         Assert.False(local.TaskCancellationRequested);
         Assert.True(local.AttemptCanceled);
         Assert.Null(local.CleanupFailure);
 
-        // 工人的任务通过业主的发包作为持久取消而被删除。
+        // 工作 Grain 的任务通过所有者发件箱收到以持久化取消形式传递的删除通知。
         Assert.True(await _probe.RemoteCanceled.WaitAsync(Timeout, cancellationToken));
         Assert.Equal(DurableTaskStatus.Canceled, (await events.WaitForCompletedAsync(workerId, workerTaskId)).Status);
 
-        // 所有人接受取消的任务完成后, 不重建它, 所以工人删除了任务 。
+        // 所有者接受被取消任务的完成消息，而不重新创建该任务，因此工作 Grain 删除自己的任务。
         await events.WaitForDeletedAsync(workerId, workerTaskId);
         Assert.Empty(await owner.GetInboxDeadLetterReasonsAsync());
         Assert.Empty(await GetTasksAsync(owner));
         Assert.Equal(TreeDeletionOwnerGrain.CleanedUp, await owner.GetCleanupAsync());
 
-        // 承诺日记保存取消的尝试清理。
+        // 已提交的日志包含被取消尝试的清理结果。
         Assert.True(_fixture.Cluster.TryGetGrainContext(ownerId, out var activation));
         await owner.RequestDeactivationAsync();
         await activation.Deactivated.WaitAsync(Timeout, cancellationToken);
@@ -88,33 +88,33 @@ public abstract class DurableTaskTreeDeletionTests : IAsyncLifetime
     }
 }
 
-/// <summary>运行树形删除覆盖,任务状态以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行执行树删除相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskTreeDeletionTests() : DurableTaskTreeDeletionTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行以 Orleans 二进制日记格式存储的任务状态树删除覆盖。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行执行树删除相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class OrleansBinaryDurableTaskTreeDeletionTests() : DurableTaskTreeDeletionTests(DurableTaskRecoveryFixture.OrleansBinary);
 
-/// <summary>当地孩子的尝试所观察到的 是不健康的</summary>
+/// <summary>本地子任务的执行尝试在退出时观察到的内容。</summary>
 public sealed record LocalUnwinding(bool TaskCancellationRequested, bool AttemptCanceled, Exception? CleanupFailure);
 
-/// <summary>记录当业主的树被删除时,主人未观察的工作会看到什么。</summary>
+/// <summary>记录删除所有者执行树时，所有者尚未观察的工作所观察到的内容。</summary>
 public sealed class TreeDeletionProbe
 {
     private readonly TaskCompletionSource<LocalUnwinding> _localUnwound = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly TaskCompletionSource<bool> _remoteCanceled = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    /// <summary>一旦当地孩子的尝试解除了 就会完全结束</summary>
+    /// <summary>本地子任务的执行尝试退出后即完成。</summary>
     public Task<LocalUnwinding> LocalUnwound => _localUnwound.Task;
 
-    /// <summary>一旦工人的任务被观察到取消,就完成,是否是取消任务。</summary>
+    /// <summary>工作 Grain 的任务观察到取消后即完成，返回是否为任务取消。</summary>
     public Task<bool> RemoteCanceled => _remoteCanceled.Task;
 
     public void RecordLocalUnwound(LocalUnwinding unwinding) => _localUnwound.TrySetResult(unwinding);
@@ -129,7 +129,7 @@ public interface ITreeDeletionStarterGrain : IGrainWithGuidKey
 
 public interface ITreeDeletionOwnerGrain : IGrainWithGuidKey
 {
-    /// <summary>开始一个本地孩子, 和给工人的电话, 返回时也没有观察。</summary>
+    /// <summary>启动本地子任务和对工作 Grain 的调用，未观察两者便返回。</summary>
     DurableTask<string> StartWorkAndReturnAsync(Guid workerKey);
 
     Task<string?> GetCleanupAsync();
@@ -141,7 +141,7 @@ public interface ITreeDeletionOwnerGrain : IGrainWithGuidKey
 
 public interface ITreeDeletionWorkerGrain : IGrainWithGuidKey
 {
-    /// <summary>等待任务取消。</summary>
+    /// <summary>等待其任务被取消。</summary>
     DurableTask<string> HoldAsync();
 }
 
@@ -168,7 +168,7 @@ public sealed class TreeDeletionOwnerGrain(
 
     public async DurableTask<string> StartWorkAndReturnAsync(Guid workerKey)
     {
-        // 任务完成时,孩子在运行, 所以删除树上的树就取消它们。
+        // 任务在其子任务仍运行时完成，因此删除其执行树会取消子任务。
 #pragma warning disable ORLEANS0219
         _ = await DurableTask.Run(RunLocalWorkAsync).WithId(LocalId).ScheduleAsync();
         _ = await GrainFactory.GetGrain<ITreeDeletionWorkerGrain>(workerKey).HoldAsync().WithId(RemoteId).ScheduleAsync();

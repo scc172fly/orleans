@@ -16,7 +16,7 @@ using Xunit;
 namespace Tester.Cosmos.Persistence;
 
 /// <summary>
-/// 试验 Orleans grain 使用 Azure 宇宙DB作为存储供应商。
+/// 测试以 Azure Cosmos DB 为存储提供程序的 Orleans Grain 状态持久化操作。
 /// </summary>
 [Collection(TestEnvironmentFixture.DefaultCollection)]
 [TestCategory("Persistence"), TestCategory("Cosmos")]

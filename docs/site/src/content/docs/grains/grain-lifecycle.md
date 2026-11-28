@@ -1,111 +1,111 @@
 ---
-title: "Grain 激活和生命周期"
-description: "理解 grain 激活、停止使用、收集、生命周期参与和迁移 Orleans。"
+title: Grain 激活与生命周期
+description: 了解 Orleans 中 Grain 的激活、停用、回收、生命周期参与和迁移。
 ms.date: 08/07/2026
 ms.topic: concept-article
 ---
 
 <a id="grain-activation-and-lifecycle"></a>
 
-# Grain 激活和生命周期
+# Grain 激活与生命周期
 
-Orleans 应要求启动 grains ,并停止闲置激活以回收资源。启动是 grain稳定逻辑身份的实施细节:在激活变化中,调用者继续使用相同的 grain 参考值。
+Orleans 按需激活 Grain，并停用空闲的激活实例以回收资源。激活是 Grain 稳定逻辑标识背后的实现细节：即使激活实例发生变化，调用方仍可使用同一个 Grain 引用。
 
 <a id="activation"></a>
 
 ## 激活
 
-Orleans 通过自给性注射创建 grain 类, 建立其 grain 上下文, 负载配置的持久性状态, 然后调用 <xref:Orleans.Grain.OnActivateAsync*>。
+Orleans 通过依赖注入创建 Grain 类的实例，建立 Grain 上下文，加载已配置的持久化状态，然后调用 <xref:Orleans.Grain.OnActivateAsync*>。
 
-覆盖取消的当量超载 :
+重写带取消令牌的重载：
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="activate_grain":::
 
-<xref:Orleans.Grain.OnActivateAsync*> 接受一个 <xref:System.Threading.CancellationToken>;没有无参数超载。如果激活失败, Orleans 不提供该启动用于呼叫。
+<xref:Orleans.Grain.OnActivateAsync*> 接受 <xref:System.Threading.CancellationToken>，没有无参重载。如果激活失败，Orleans 不会让该激活实例接受调用。
 
-避免在激活期间做不必要的工作。 在收集、迁移、 silo 重新启动或失败后,可以重新恢复活动。
+避免在激活期间执行不必要的工作。激活实例可能在回收、迁移、Silo 重启或故障之后重新创建。
 
 <a id="deactivation"></a>
 
-## 解除活动
+## 停用
 
-Orleans 能够解除激活,因为它已经闲置、 silo 停止、申请请求的禁用、迁移发生或错误导致启动无效。
+如果激活实例处于空闲状态、Silo 正在停止、应用请求停用、正在迁移，或者发生使激活实例无效的错误，Orleans 可以停用该实例。
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="deactivate_grain":::
 
-关闭是最好的努力。 <xref:Orleans.Grain.OnDeactivateAsync*> 如果进程突然终止或有些失败, 则不会运行。 作为改变它的行动的一部分, 不仅在停止操作期间, 并且作为该操作的一部分存在重要状态 。
+停用是尽力而为的操作。进程突然终止或发生某些故障时，<xref:Orleans.Grain.OnDeactivateAsync*> 不会执行。应在修改重要状态的操作中进行持久化，而不要仅依靠停用阶段。
 
 <a id="influence-activation-lifetime"></a>
 
-## 影响启动寿命
+## 影响激活实例的生命周期
 
-在当前请求和排队工作完成后,调用 <xref:Orleans.Grain.DeactivateOnIdle> 询问 Orleans 停止 grain :
+调用 <xref:Orleans.Grain.DeactivateOnIdle>，请求 Orleans 在当前请求与排队的工作完成后停用 Grain：
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="deactivate_on_idle":::
 
-呼叫 <xref:Orleans.Grain.DelayDeactivation*> , 以保持一个其他闲置激活在特定期限内的合格状态。 这是提示, 不是持久性保证; 故障和关闭仍然可以取消激活 。
+调用 <xref:Orleans.Grain.DelayDeactivation*>，使本来空闲的激活实例在指定时间内仍可继续使用。这只是一个提示，不是持久性保证；故障与关闭仍可能移除该激活实例。
 
-Grain 计时器无法默认保持激活活性。 仅在定时器活动延长激活寿命时才设定 <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive?displayProperty=nameWithType> 。
+默认情况下，Grain 定时器不会延长激活实例的生存期。仅当定时器活动需要延长生存期时，才设置 <xref:Orleans.Runtime.GrainTimerCreationOptions.KeepAlive?displayProperty=nameWithType>。
 
 <a id="lifecycle-stages-and-participants"></a>
 
 ## 生命周期阶段和参与者
 
-grain 生命周期暴露了定序阶段:
+Grain 生命周期提供有序的阶段：
 
-| 阶段 | 目的目的宗旨 |
+| 阶段 | 用途 |
 |---|---|
-| <xref:Orleans.Runtime.GrainLifecycleStage.First?displayProperty=nameWithType> | 最迫切的订阅点 |
-| <xref:Orleans.Runtime.GrainLifecycleStage.SetupState?displayProperty=nameWithType> | 国家设置和装货。 |
-| <xref:Orleans.Runtime.GrainLifecycleStage.Activate?displayProperty=nameWithType> | Grain 启动和解除回击 |
-| <xref:Orleans.Runtime.GrainLifecycleStage.Last?displayProperty=nameWithType> | 最新订阅点。 |
+| <xref:Orleans.Runtime.GrainLifecycleStage.First?displayProperty=nameWithType> | 最早的订阅阶段。 |
+| <xref:Orleans.Runtime.GrainLifecycleStage.SetupState?displayProperty=nameWithType> | 状态初始化与加载。 |
+| <xref:Orleans.Runtime.GrainLifecycleStage.Activate?displayProperty=nameWithType> | Grain 激活与停用回调。 |
+| <xref:Orleans.Runtime.GrainLifecycleStage.Last?displayProperty=nameWithType> | 最晚的订阅阶段。 |
 
-需要有定序启动波及行为 <xref:Orleans.ILifecycleParticipant`1> 用于 <xref:Orleans.Runtime.IGrainLifecycle> 订阅 <xref:Orleans.Runtime.IGrainContext.ObservableLifecycle>。当一个部件的启动取决于另一个部件完成时,使用不同的阶段。在某一阶段内进行回调可以同时执行。
+需要按顺序执行激活实例级行为的组件，可以为 <xref:Orleans.Runtime.IGrainLifecycle> 实现 <xref:Orleans.ILifecycleParticipant`1>，并通过 <xref:Orleans.Runtime.IGrainContext.ObservableLifecycle> 订阅生命周期。当一个组件的启动依赖另一个组件完成启动时，应使用不同的阶段。同一阶段内的回调可以并发执行。
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="lifecycle_participant":::
 
-运行时间调用 `Participate` 上a grain 服务使用明确的注册所有人,例如面板工厂或下文所述的共享启动装置。
+运行时会对实现参与者接口的 Grain 对象调用 `Participate`。服务需要明确的注册责任方，例如 facet 工厂或下文所述的共享激活初始化机制。
 
 <a id="shared-activation-setup"></a>
 
-### 共享激活集共享设置
+### 共享激活初始化
 
-使用 <xref:Orleans.Runtime.IConfigureGrainTypeComponents> 选择一个 grain 执行类别的特点,并用 <xref:Orleans.Runtime.GrainTypeSharedContext.AddActivationSetup*>登记可重复使用的设置行动。本示例选择实施应用程序自有 `ICachedGrain` 标记的分类:
+使用 <xref:Orleans.Runtime.IConfigureGrainTypeComponents> 为 Grain 实现类选择功能，并使用 <xref:Orleans.Runtime.GrainTypeSharedContext.AddActivationSetup*> 注册可复用的初始化操作。此示例选择实现了应用自定义标记接口 `ICachedGrain` 的类：
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="activation_setup":::
 
-将配置登记为单吨,并将特征状态登记为范围:
+将配置器注册为单例，并将功能状态注册为作用域服务：
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="activation_setup_registration":::
 
-Orleans 缓存共享 grain 类型中选定的设置动作。 每次激活都在 grain 构建器完成和指定 <xref:Orleans.Runtime.IGrainContext.GrainInstance> 后按登记顺序运行这些动作。所有设置动作在运行时间拨打 grain 对象的 `Participate` 方法之前就结束,并开始生命周期回调。每个无国籍工人启动时都使用与其自身背景相同的共享设置。
+Orleans 将选定的初始化操作缓存在共享 Grain 类型上下文中。每个激活实例在 Grain 构造函数完成、<xref:Orleans.Runtime.IGrainContext.GrainInstance> 已赋值后，按照注册顺序执行这些操作。所有初始化操作完成后，运行时才调用 Grain 对象的 `Participate` 方法并开始生命周期回调。无状态工作者 Grain 的每个激活实例都使用自己的上下文执行同一组共享初始化操作。
 
-共同行动决心 `CacheParticipant` 仅为选中 grains分辨率使用激活范围,因此制造器注入 `CacheParticipant` 并设置相同的服务范围。 对于界面注射,注册一个别名工厂解决具体服务问题。普通混凝土、密钥和参与者界面识别码登记保留了明确的入学行为。
+共享操作仅为选定的 Grain 解析 `CacheParticipant`。解析使用激活实例的作用域，因此构造函数注入的 `CacheParticipant` 与初始化操作共享同一个作用域服务实例。如果通过接口注入，请注册一个解析该具体服务的别名工厂。普通的具体类型、键控服务及参与者接口的 DI 注册仍保留各自显式注册生命周期参与者的行为。
 
-设置动作可以同时运行不同激活。 保持共享行动无国籍状态, 或者让捕获的共享数据安全地同时访问; 保持启动范围中特定激活状态; 在共享类型配置中添加动作 。 使用同步设置来注册服务和生命周期回调不同步初始化和关闭。 给每个特性指派一个注册所有人, 以便一次建立订阅 。
+不同激活实例的初始化操作可以并发执行。共享操作应保持无状态，或者确保其捕获的共享数据可安全并发访问；将激活实例专属状态保存在激活作用域中。在共享类型配置期间添加操作。通过同步初始化注册服务，并通过生命周期回调完成异步初始化与关闭。每个功能应指定一个注册责任方，以确保只订阅一次。
 
-设置例外失败了激活, 跳过剩余设置动作和生命周期启动, 触发 grain 和激活范围处置。 新的激活可以解决新扩展状态并再次运行缓存设置 。
+初始化异常会使激活失败，跳过剩余的初始化操作与生命周期启动，并触发 Grain 和激活作用域的释放。新的激活实例会解析新的作用域状态，再次执行缓存的初始化操作。
 
-关于 silos 和 grain 激活所共有的运行时生命周期模型,见 [Orleans 运行时间生命周期](../implementation/orleans-lifecycle.md)。
+关于 Silo 与 Grain 激活实例共享的运行时生命周期模型，请参阅 [Orleans 运行时生命周期](../implementation/orleans-lifecycle.md)。
 
 <a id="grain-migration"></a>
 
-## Grain 移徙
+## Grain 迁移
 
-移徙会将一个活动转移到另一个 silo 保留移民参与的模拟状态。 <xref:Orleans.Grain.MigrateOnIdle> 激活完成当前工作后请求迁移:
+迁移将激活实例移动到另一个 Silo，同时保留参与迁移的内存状态。调用 <xref:Orleans.Grain.MigrateOnIdle>，请求在激活实例完成当前工作之后迁移：
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="migrate_on_idle":::
 
-只有在安置选择另一个兼容的 silo时,才进行移民。 Orleans 将目前的 <xref:Orleans.Runtime.RequestContext> 纳入安置决定。
+此请求是建议性的。只有放置决策选中了另一个兼容 Silo，才会发生迁移。Orleans 会将当前 <xref:Orleans.Runtime.RequestContext> 传递给放置决策过程。
 
-执行必须生存下来的自定义活化状态 <xref:Orleans.Runtime.IGrainMigrationParticipant> :
+对于必须在迁移过程中保留的自定义激活实例状态，请实现 <xref:Orleans.Runtime.IGrainMigrationParticipant>：
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="migration_participant":::
 
-由 Orleans 提供的持久性状态组件自动参与。移民不能替代耐久储存:如果源程序在传输完成之前失败,迁移状态仍然会消失。
+Orleans 提供的持久化状态组件会自动参与迁移。迁移不能替代持久化存储：如果源进程在传输完成前发生故障，待迁移的状态仍会丢失。
 
-自动激活重新分配和再平衡利用迁移来改善地点或组群的平衡。 [Grain 安置](grain-placement.md) 用于配置。
+自动激活实例重分区与再均衡会利用迁移来改善局部性或集群负载均衡。有关配置，请参阅 [Grain 放置](grain-placement.md)。
 
-使用 <xref:Orleans.Placement.ImmovableAttribute> 将一个 grain 类型排除在自动迁移之外。 它不阻拦明确的 <xref:Orleans.Grain.MigrateOnIdle> 请求 。
+使用 <xref:Orleans.Placement.ImmovableAttribute> 将某个 Grain 类型排除在自动迁移之外。它不会阻止显式的 <xref:Orleans.Grain.MigrateOnIdle> 请求。
 
-启动、收集、禁用和迁移后运行时间协议,请参见 [激活生命周期和移徙](../implementation/activation-lifecycle.md)。应用代码应继续依赖此处描述的公共生命周期API,而不是运行时内部。
+关于激活、回收、停用与迁移背后的运行时协议，请参阅 [激活实例生命周期与迁移](../implementation/activation-lifecycle.md)。应用代码应继续依赖本文介绍的公共生命周期 API，而不是运行时内部实现。

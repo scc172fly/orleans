@@ -17,7 +17,7 @@ public sealed class ClusterClientHostedService : IHostedService, IAsyncDisposabl
             .UseLocalhostClustering()
             .ConfigureServices(services =>
             {
-                // 添加主机容器的伐木记录。
+                // 添加来自宿主容器的日志记录服务。
                 services.AddSingleton(loggerFactory);
                 services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
             })

@@ -2,7 +2,7 @@ targetScope = 'resourceGroup'
 
 @minLength(3)
 @maxLength(12)
-@description('Lowercase letters, numbers, and hyphens used as the resource-name prefix.')
+@description('用作资源名称前缀的小写字母、数字和连字符。')
 param baseName string = 'orleansaca'
 
 param location string = resourceGroup().location

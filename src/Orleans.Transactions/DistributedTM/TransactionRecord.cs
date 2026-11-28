@@ -6,51 +6,51 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// 每一参与方在承诺议定书中发挥特殊作用
+    /// 每个参与者在提交协议中承担特定角色。
     /// </summary>
     internal enum CommitRole
     {
-        NotYetDetermined,  // 只有在从TA收到预写信息时才知道自己的角色
-        ReadOnly,          // 本参与人未写
-        RemoteCommit,      // 以物配主者已写过,但非他所意欲的。
-        LocalCommit,       // 以物配主者曾写作,故是TM
+        NotYetDetermined,  // 只有收到 TA 的准备消息后才知道角色。
+        ReadOnly,          // 此参与者未执行过写入。
+        RemoteCommit,      // 此参与者执行过写入，但不是 TM。
+        LocalCommit,       // 此参与者执行过写入，并且是 TM。
     }
 
     /// <summary>
-    /// 每一参与人保存每项交易的记录
+    /// 每个参与者为每项事务保留的记录。
     /// </summary>
-    /// <typeparam name="TState">国家类型</typeparam>
+    /// <typeparam name="TState">状态类型。</typeparam>
     internal class TransactionRecord<TState>
     {
         public TransactionRecord()
         {
         }
 
-        // 此交易的一个独有标识符
+        // 此事务的唯一标识符。
         public Guid TransactionId;
 
-        // 交易开始于TA时
+        // 此事务在 TA 上启动的时间。
         public DateTime Priority;
 
-        // 获得锁定的队列交易的截止时间
+        // 排队事务获取锁的截止时间。
         public DateTime Deadline;
 
-        // 获得锁后该参与者必须保留锁的最小时间
+        // 此参与者获取锁后必须持有该锁的最短时间。
         public TimeSpan LockTimeout;
 
-        // 算法计算的交易时间戳
+        // 算法计算出的事务时间戳。
         public DateTime Timestamp;
 
-        // 读数和写数,即交易是该交易参与者完成的
+        // 此事务对当前事务参与者执行的读写次数。
         public int NumberReads;
         public int NumberWrites;
 
-        // 交易的状态和顺序号
+        // 此事务的状态及该状态的序列号。
         public TState State = default!;
         public long SequenceNumber;
         public bool HasCopiedState;
 
-        // 表明这一交易持有独家锁
+        // 表示此事务持有排他锁。
         public bool IsExclusiveLock;
 
         public void AddRead()
@@ -64,18 +64,18 @@ namespace Orleans.Transactions
 
         public CommitRole Role;
 
-        // 用于只读和本地承诺
+        // 用于只读事务和本地提交。
         public TaskCompletionSource<TransactionalStatus> PromiseForTA = null!;
 
-        // 用于本地和远程使用
+        // 用于本地提交和远程提交。
         public ParticipantId TransactionManager;
 
-        // 用于本地承诺
+        // 用于本地提交。
         public List<ParticipantId> WriteParticipants = null!;
         public int WaitCount;
         public DateTime WaitingSince;
 
-        // 用于远程连接
+        // 用于远程提交。
         public DateTime? LastSent;
         public bool IsRestoredRemoteCommit;
         public int RecoveryPingCount;
@@ -114,7 +114,7 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// 表明交易记录是否准备进行
+        /// 指示事务记录是否已做好提交准备。
         /// </summary>
         public bool ReadyToCommit
         {
@@ -126,12 +126,12 @@ namespace Orleans.Transactions
                         return true;
 
                     case CommitRole.LocalCommit:
-                        return WaitCount == 0; // 收到全部“ 准备” 信件
+                        return WaitCount == 0; // 已收到所有“Prepared”（已准备）消息。
 
                     case CommitRole.RemoteCommit:
                         return
-                            (ConfirmationResponsePromise != null)  // TM已经发出确认,正在等待答复
-                         || (NumberWrites == 0 && LastSent.HasValue);  // 本与会者未写作并完成准备工作
+                            (ConfirmationResponsePromise != null)  // TM 已发送确认消息，正在等待响应。
+                         || (NumberWrites == 0 && LastSent.HasValue);  // 此参与者未执行过写入，并已完成准备。
 
                     default:
                         throw new NotSupportedException($"{Role} is not a supported CommitRole.");
@@ -174,7 +174,7 @@ namespace Orleans.Transactions
             }
         }
 
-        // 用于调试 $% 1 格式化
+        // 格式化输出，用于调试提交队列的内容。
         public override string ToString()
         {
             switch (Role)

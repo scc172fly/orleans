@@ -450,7 +450,7 @@ public sealed class ArcBufferCodecTests
         public ArcCopyFailureMember? DeepCopy(ArcCopyFailureMember? input, CopyContext context)
         {
             Calls++;
-            // 海关执行可在传播后期失败之前解除所有权。
+            // 自定义实现可以先解除所有权，再传播后续故障。
             var acquired = new ArcBufferCopier().DeepCopy(input!.Buffer, context);
             try
             {
@@ -621,7 +621,7 @@ public sealed class ArcBufferCodecTests
             Assert.Equal(expected.AsSpan(absoluteOffset, spanLength).ToArray(), span.ToArray());
             Assert.Equal(absoluteOffset + spanLength - offset, adaptor.Position);
 
-            // 偏移零必须选择此宽度的页面, 不在原始输入处重新启动 。
+            // 偏移量为零时，必须选择此跨度所在的页，而不是从原始输入的起点重新开始。
             using (var owned = adaptor.Slice(0, 7))
             {
                 Assert.Same(pages[i], owned.First);
@@ -634,7 +634,7 @@ public sealed class ArcBufferCodecTests
             Assert.Equal(before, pages.Select(page => page.ReferenceCount));
             if (i + 1 < pages.Length)
             {
-                // 平面的顶端的偏移 将正常进入下一页 而没有钉上这个
+                // 位于跨度末尾的偏移量会规范化到下一页，且不会固定当前页。
                 using (var boundary = adaptor.Slice(span.Length, 7))
                 {
                     Assert.Same(pages[i + 1], boundary.First);
@@ -668,7 +668,7 @@ public sealed class ArcBufferCodecTests
         using var full = source.PeekSlice(source.Length);
         Assert.Equal(0, full.First!.Length);
         Assert.Equal(0, full.First.Next!.Length);
-        // Peek 保存连续的领先页面; Sliste( 0) 将比它们恢复正常。
+        // Peek 会保留开头连续的空页；Slice(0) 则会规范化位置并跳过这些页。
         using var input = offset == 0 ? source.PeekSlice(source.Length) : full.Slice(offset, full.Length - offset - 11);
         if (offset == 0) Assert.Same(full.First, input.First);
         var pages = full.Pages.ToArray();
@@ -678,7 +678,7 @@ public sealed class ArcBufferCodecTests
         var firstDataPage = pages.First(page => page.Length > 0);
         var firstBoundary = firstDataPage.Length - offset;
 
-        // 留下三字节,跨越边界,然后在准确的页面边界开始读取。
+        // 保留三个字节，跨过边界，然后恰好从页边界开始读取。
         AssertOwnedRead(ref reader, firstBoundary - 3, offset, globalOffset, expected, pages, before);
         AssertOwnedRead(ref reader, 9, offset, globalOffset, expected, pages, before);
         var nextPage = firstDataPage.Next!;
@@ -713,7 +713,7 @@ public sealed class ArcBufferCodecTests
             for (var i = 0; i < pages.Length; i++)
             {
                 var pageEnd = pageStart + pages[i].Length;
-                // 独立的物理距离:空白和较早的页面没有针。
+                // 独立的物理范围判定基准：空页和之前的页均不获得固定引用。
                 var covered = pages[i].Length > 0 && pageStart < start + length && pageEnd > start;
                 Assert.Equal(before[i] + (covered ? 1 : 0), pages[i].ReferenceCount);
                 pageStart = pageEnd;

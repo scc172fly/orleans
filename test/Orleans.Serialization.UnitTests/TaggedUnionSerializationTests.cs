@@ -13,7 +13,7 @@ using static VerifyXunit.Verifier;
 namespace Orleans.Serialization.UnitTests.TaggedUnions;
 
 /// <summary>
-/// 测试封闭式等级和工会类型的有标签的工会连锁化。
+/// 测试封闭类型层次结构及联合类型的带标记联合序列化。
 /// </summary>
 [Trait("Category", "BVT")]
 [Trait("Suite", "BVT")]
@@ -84,7 +84,7 @@ public class TaggedUnionSerializationTests : IDisposable
         var asClosedType = _serializer.SerializeToArray<Sensor>(value);
         var asObject = _serializer.SerializeToArray<object>(value);
 
-        // 联盟字段在案例字段周围添加一个页眉字节和一个端字节,该词节以预期类型的优化编码。
+        // 联合字段在分支字段外添加一个头部字节和一个结束字节，而该分支字段使用预期类型优化进行编码。
         Assert.Equal(asCase.Length + 2, asClosedType.Length);
         Assert.True(asObject.Length > asClosedType.Length + 20, $"Expected the encoded type name to dominate: {asObject.Length} vs {asClosedType.Length}");
     }
@@ -92,7 +92,7 @@ public class TaggedUnionSerializationTests : IDisposable
     [Fact]
     public Task ClosedHierarchyAndEquivalentUnionEncoding_MatchesSnapshot()
     {
-        // 快速记录了封闭式等级的编码,而拥有相同案例和案件识别特征的工会必须产生相同的字节。
+        // 快照记录封闭层次结构的编码，具有相同分支及分支标识符的联合类型必须生成相同的字节。
         var snapshot = new StringBuilder();
         foreach (var value in SensorValues.Append<Sensor?>(null))
         {
@@ -120,7 +120,7 @@ public class TaggedUnionSerializationTests : IDisposable
     [Fact]
     public Task TransparentClosedHierarchyReplacedByUnionEncoding_MatchesSnapshot()
     {
-        // 升级前:无国籍、连续式透明封闭基地。之后:没有固定基地的同一记录合并。
+        // 升级之前：无状态且对序列化器透明的封闭基类。升级之后：由相同 record 组成且没有该基类的联合类型。
         var snapshot = new StringBuilder();
         foreach (var (before, after) in new (ShapeV1?, ShapeV2)[] { (new CircleV1(1.5), new CircleV2(1.5)), (new SquareV1(2), new SquareV2(2)), (null, default) })
         {
@@ -167,7 +167,7 @@ public class TaggedUnionSerializationTests : IDisposable
     [Fact]
     public void UnionReadsPayloadsWithEncodedRuntimeTypeOrNullReference()
     {
-        // 用于封闭型号的有效载荷,在它使用案件识别符号编码运行时间类型和编码无效参考编号前,先为该封闭型号而写成。
+        // 在封闭类型开始使用分支标识符之前写入的负载会编码运行时类型，并将 null 编码为 null 引用。
         var value = new Humidity(55) { Location = "attic" };
 
         Assert.Equal(value, _serializer.Deserialize<SensorUnion>(_serializer.SerializeToArray<object>(value)).Value);
@@ -177,7 +177,7 @@ public class TaggedUnionSerializationTests : IDisposable
     [Fact]
     public void ClosedHierarchyCaseIdentifiersAboveSixAreSupported()
     {
-        // 联系人使用与标记字节不符的9号案识别符号。
+        // Contact 使用分支标识符 9，无法容纳在标记字节中。
         var result = RoundTrip<Sensor>(new Contact { Open = true });
 
         Assert.Equal(new Contact { Open = true }, result);
@@ -188,7 +188,7 @@ public class TaggedUnionSerializationTests : IDisposable
     [InlineData(true)]
     public void ClosedHierarchyReadsLegacyPayloadAndWritesTaggedFormat(bool empty)
     {
-        // 遗留格式使用运行时间类型头来表示一个值,而无效引用则表示无效。
+        // 旧格式对值使用运行时类型头部，对 null 使用 null 引用。
         var value = empty ? null : new Humidity(55) { Location = "attic" };
         var legacyBytes = _serializer.SerializeToArray<object?>(value);
 
@@ -229,7 +229,7 @@ public class TaggedUnionSerializationTests : IDisposable
     [Fact]
     public void SkippedUnionFieldsKeepReferencesAligned()
     {
-        // 读者没有第一个字段跳过它, 所以从被忽略的联盟字段中解决第二个字段中的引用。
+        // 缺少第一个字段的 reader 会跳过该字段，因此它会从被跳过的联合字段中解析第二个字段的引用。
         var shared = new Temperature(30);
         var bytes = _serializer.SerializeToArray(new SensorHolder { First = shared, Second = shared, Trailing = "after" });
 
@@ -303,7 +303,7 @@ public class TaggedUnionSerializationTests : IDisposable
         Assert.Null(RoundTrip(default(IntOrString)).Value);
         Assert.Equal(42, Copy<IntOrString>(42).Value);
 
-        // 价值类型案例用固定代码书写:工会页头、案件页眉、价值、结束。
+        // 值类型分支使用其静态编解码器写入：联合头部、分支头部、值、结束标记。
         Assert.Equal(_serializer.SerializeToArray(42).Length + 2, _serializer.SerializeToArray<IntOrString>(42).Length);
     }
 
@@ -322,7 +322,7 @@ public class TaggedUnionSerializationTests : IDisposable
         Assert.Equal(new Value<string>("r"), RoundTrip(right).Value);
         Assert.Equal(new Value<int>(1), RoundTrip(left).Value);
 
-        // 当两种情况都属于同一类型时,工会无法区分它们,其价值贯穿第一个情况。
+        // 当两个分支类型相同时，联合类型无法区分它们，其值通过第一个分支完成序列化往返。
         var same = CreateRight<int, int>(2);
         Assert.Equal(new Value<int>(2), RoundTrip(same).Value);
     }
@@ -332,7 +332,7 @@ public class TaggedUnionSerializationTests : IDisposable
     [Fact]
     public void UnionCaseIdentifiersCanBeAssigned()
     {
-        // PetV2 将案件之间识别符号留存,因此第一个案件仍可被 PetV1读取。
+        // PetV2 停用两个分支之间的标识符，因此其第一个分支仍可由 PetV1 读取。
         var catBytes = _serializer.SerializeToArray<PetV2>(new Cat("Tom"));
         Assert.Equal(new Cat("Tom"), _serializer.Deserialize<PetV1>(catBytes).Value);
         Assert.Equal(new Dog("Fido"), RoundTrip<PetV2>(new Dog("Fido")).Value);
@@ -569,12 +569,12 @@ public sealed record ReedContact : Contact
 }
 
 /// <summary>
-/// 与 <see cref="Sensor"/>具有相同案例和案件识别特征的结合。
+/// 与 <see cref="Sensor"/> 具有相同分支和分支标识符的联合类型。
 /// </summary>
 [GenerateSerializer, CaseIds(0, 1, 2, 9)]
 public union SensorUnion(Temperature, Humidity, Environmental, Contact);
 
-// 一种封闭的等级,其无国籍基础对序列化和取代它的联盟是看不见的。
+// 一个无状态基类对序列化不可见的封闭层次结构，以及用于替换它的联合类型。
 [GenerateSerializer, SerializerTransparent]
 public closed record ShapeV1;
 
@@ -748,7 +748,7 @@ public union MaybeNumber(int?, string);
 [GenerateSerializer]
 public sealed record Value<T>([property: Id(0)] T Item);
 
-// 这些案件有意在类型辩论相同时使用通用定义,以核实第一案语义。
+// 这些分支有意共享泛型定义，以验证类型实参相同时的首分支语义。
 [GenerateSerializer]
 public union Either<L, R>(Value<L>, Value<R>);
 

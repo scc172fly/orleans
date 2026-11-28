@@ -18,10 +18,10 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// 使用 <see cref="MessagePackSerializer"/>的序列编码。
+/// 使用 <see cref="MessagePackSerializer"/> 的序列化编解码器。
 /// </summary>
 /// <remarks>
-/// MessagePack 编码器的运行比默认 Orleans 序列仪差一点,如果性能对您的应用程序至关重要,则考虑使用默认序列化。
+/// MessagePack 编解码器的性能略逊于默认 Orleans 序列化器。如果性能对应用程序至关重要，请考虑使用默认序列化机制。
 /// </remarks>
 [Alias(WellKnownAlias)]
 public class MessagePackCodec : IGeneralizedCodec, IGeneralizedCopier, ITypeFilter
@@ -35,16 +35,16 @@ public class MessagePackCodec : IGeneralizedCodec, IGeneralizedCopier, ITypeFilt
     private readonly MessagePackCodecOptions _options;
 
     /// <summary>
-    /// 这个代码码的已知型别名 。
+    /// 此编解码器的已知类型别名。
     /// </summary>
     public const string WellKnownAlias = "msgpack";
 
     /// <summary>
     /// 初始化 <see cref="MessagePackCodec"/> 类的新实例。
     /// </summary>
-    /// <param name="serializableTypeSelectors">过滤器用于表示哪些类型应该由此编码器序列。</param>
-    /// <param name="copyableTypeSelectors">过滤器用于表示该编码器应复制的类型。</param>
-    /// <param name="options"> MessagePack 代码化选项。</param>
+    /// <param name="serializableTypeSelectors">用于指示此编解码器应序列化哪些类型的筛选器。</param>
+    /// <param name="copyableTypeSelectors">用于指示此编解码器应复制哪些类型的筛选器。</param>
+    /// <param name="options">MessagePack 编解码器选项。</param>
     public MessagePackCodec(
         IEnumerable<ICodecSelector> serializableTypeSelectors,
         IEnumerable<ICopierSelector> copyableTypeSelectors,
@@ -67,10 +67,10 @@ public class MessagePackCodec : IGeneralizedCodec, IGeneralizedCopier, ITypeFilt
             return;
         }
 
-        // 编序字段的序列式是代码的型号。
+        // 序列化字段时，架构类型为该编解码器的类型。
         writer.WriteFieldHeader(fieldIdDelta, expectedType, SelfType, WireType.TagDelimited);
 
-        // 写入类型名称
+        // 写入类型名称。
         ReferenceCodec.MarkValueField(writer.Session);
         writer.WriteFieldHeaderExpected(0, WireType.LengthPrefixed);
         writer.Session.TypeCodec.WriteLengthPrefixed(ref writer, value.GetType());

@@ -133,7 +133,7 @@ public sealed class ExternalSerializerContextMetadataTests
         if (friend) AssertAccepted(output, result);
         else
         {
-            // C#在产生上下文之前,拒绝不可接受的通用属性论点。
+            // 在生成上下文之前，C# 会拒绝不可访问的泛型特性参数。
             Assert.Empty(result.Diagnostics);
             Assert.NotEmpty(output.GetDiagnostics(TestContext.Current.CancellationToken)
                 .Where(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));

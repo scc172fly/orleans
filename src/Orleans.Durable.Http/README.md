@@ -1,24 +1,18 @@
 <a id="microsoft-orleans-durable-http"></a>
 
-# Microsoft Orleans 耐久 HTTP
+# Microsoft Orleans 持久化 HTTP
 
 > [!WARNING]
-> `Microsoft.Orleans.Durable.Http` 是一个释放前的阿尔法包件。其API和电线
-> 协议可以在释放之间改变。
+> `Microsoft.Orleans.Durable.Http` 是处于 Alpha 阶段的预发行包，其 API 和线路协议可能在不同版本之间发生变化。
 
-`Microsoft.Orleans.Durable.Http` 承担 Orleans 持久任务的最佳能力
-横跨 HTTP 的路径组。 ASP.NET 核心最低APP开始耐用 grain 调用电话
-以请求 `Idempotency-Key`为关键,长期运行的HTTP操作,并提供服务
-状态、结果、事件流、取消、信号和网络图。
-`IDurableHttpClient` 处理HTTP的请求和业务,作为持久任务的步骤;
-将每步的标识作为 `Idempotency-Key`发送,所以要进行重试或重试的任务
-重播请求,使其第一次尝试开始的行动达到。
+`Microsoft.Orleans.Durable.Http` 将 Orleans 持久化任务的幂等性扩展到 HTTP。ASP.NET Core Minimal API 的路由组能够将持久化 Grain 调用作为长时间运行的 HTTP 操作启动，以请求的 `Idempotency-Key` 为键，并提供操作的状态、结果、事件流、取消、信号及 Webhook。
+`IDurableHttpClient` 将 HTTP 请求和操作作为持久化任务的步骤执行，并将每个步骤的标识作为 `Idempotency-Key` 发送，因此重试或重放请求的任务会访问首次尝试启动的操作。
 
 <a id="getting-started"></a>
 
-## 入门
+## 快速入门
 
-Alpha 软件包是预释放的, 所以用 `--prerelease`安装此软件包 :
+Alpha 包是预发行包，因此使用 `--prerelease` 安装：
 
 ```shell
 dotnet add package Microsoft.Orleans.Durable.Http --prerelease
@@ -26,7 +20,7 @@ dotnet add package Microsoft.Orleans.Durable.Http --prerelease
 
 <a id="serving-durable-operations"></a>
 
-## 长期维持业务
+## 提供持久化操作服务
 
 ```csharp
 builder.Services.AddDurableHttp();
@@ -42,58 +36,32 @@ orders.MapPost("/place", (string orderId, PlaceOrder order, IGrainFactory grains
 orders.MapDurableSignal(OrderGrain.Approval);
 ```
 
-`WithDurableOperations` 将处理器返回
-调用耐久 grain 启动一个操作,以进行操作。处理者将其绑定
-任何最小 API 处理器, 并运行每项请求, 包括重试;
-组创建调用, 端点开始。 其他端点是
-验证和授权是应用程序的:政策和
-该组上端端端点过滤器覆盖其启动和运行路线
-业务。
+`WithDurableOperations` 使组内处理程序返回持久化 Grain 调用的每个端点启动执行该调用的操作。处理程序与其他 Minimal API 处理程序一样绑定参数，并在每次请求（包括重试）时运行；它创建调用，由端点启动调用。组内其他端点不受影响。身份验证和授权由应用负责：组上的策略和端点筛选器覆盖启动端点以及提供操作服务的路由。
 
-请求的 `Idempotency-Key` 中指定了操作,因此每次重试请求
-到达它第一次尝试开始的操作。启动需要键,并且
-a 没有收到 `400 Bad Request` 的请求,除非
-`DurableHttpOptions.RequireIdempotencyKey` 是 `false`。操作标识符
-1至255个除 `/`以外的可打印 ASCII 字符,且不是 `.` 或 `..`。
+请求的 `Idempotency-Key` 为操作命名，因此每次请求重试均访问首次尝试启动的操作。启动请求必须提供该键；除非 `DurableHttpOptions.RequireIdempotencyKey` 为 `false`，否则缺少该键的请求会收到 `400 Bad Request`。
+操作标识符包含 1 至 255 个可打印 ASCII 字符，不含 `/`，且不为 `.` 或 `..`。
 
-操作的密钥是该组的范围、请求中该组路线的价值
-参数、调用对象的范围、识别符号,每个部分,例如
-以 `orders/42/@ada/{id}`命名。范围是一个稳定的名称,因此重新命名该组的路线
-保持其业务; 组合和Nexus服务,一个范围,同一路线值
-地址相同操作。 `DurableHttpOptions.GetCallerScope` 返回调用器的
-默认情况下,认证用户的 `NameIdentifier` 或 `sub`的授权范围
-因此,一个打电话者只能达到自己的业务:另一个打电话者所持的识别特征
-申请授权书的申请人,可申请批准。
-账户访问后返回账户, 因为 Strake 使用账户密钥。 匿名
-呼叫者有同一个范围,而一个没有范围的认证来电者则被拒绝。
+操作键由组的作用域、请求中的组路由参数值、调用方作用域以及操作标识符组成，每项为独立的段，例如 `orders/42/@ada/{id}`。作用域是稳定的名称，因此即使重命名组的路由也能保留原有操作；作用域和路由参数值均相同的路由组与 Nexus 服务会访问同一组操作。`DurableHttpOptions.GetCallerScope` 返回调用方的授权作用域，默认为已通过身份验证的用户的 `NameIdentifier` 或 `sub` 声明，因此调用方只能访问自身的操作：其他调用方即使知道某个操作标识符，也无法通过该标识符访问此操作。如果应用按帐户授权访问，则应返回帐户标识，就像 Stripe 按帐户划分幂等键作用域一样。匿名调用方共享一个作用域，缺少作用域的已认证调用方会被拒绝。
 
-操作主机 grain,即该操作的密钥地址,以一个
-以操作的钥匙命名的其 grain根任务,并完成结果;
-要求观察、取消或信号运行,通过识别符号到达
-。单一个处理器返回
-现有任务,例如 `grain.GetDurableTask<Receipt>(id)`的引用开始于
-操作中报告任务结果,
-其信号到达任务。取消行动结束其订阅,
-其他各方自己承担的任务继续:
+通过操作键寻址的操作宿主 Grain 在目标 Grain 上将调用作为根任务启动，以操作键为其名称，并以该调用的结果完成。因此观察、取消操作或向操作发送信号的请求仅需提供操作标识符即可访问该操作。处理程序也可以返回现有任务的引用，例如 `grain.GetDurableTask<Receipt>(id)`，由此启动订阅该任务的操作：操作报告任务的结果，发给操作的信号也会到达任务。取消该操作会结束订阅，而由其他方拥有的任务仍继续运行：
 
 ```csharp
 orders.MapPost("/fulfillment", (string orderId, IGrainFactory grains) =>
     grains.GetGrain<IOrderGrain>(orderId).GetDurableTask<Shipment>("fulfillment"));
 ```
 
-开始回复 :
+启动请求的响应如下：
 
-| 回应答复答复回应回应回应回应回应回应回应回应回应回应回应回应回应回应回应回应 | 何时 |
+| 响应 | 适用情况 |
 | --- | --- |
-| `200 OK` 与结果,或 `204 No Content` | 操作成功, 包括在 `Prefer: wait=N` 请求的等待范围内 。 |
-|  具有状态监视器的 `202 Accepted` | 操作正在运行中,包括完成前到的重试,因为 Azure 重复请求和Srake的 v2 应急恢复工作。 |
-|  具有状态监视器的 `424 Failed Dependency` | 操作失败或被取消。 当调用 grain 拒绝时, 没有保存它, 例如调用根已经命名了其他方法任务的调用, 调用从未运行, 错误代码是 `NotStarted`; 新密钥又开始。 当调用 grain 不确认它, 因为其发送已退出, 并且未识别或者到达 grain的入门窗口后, 调用可能已经运行, 错误代码是 `OutcomeUnknown`; 在重新启动调用前检查调用的效果 。 |
-| `400 Bad Request` | `Idempotency-Key` 无效,或丢失。 |
-| `422 Unprocessable Content` | 另一项请求使用键启动其他工作:呼叫另一种方法或另一种 grain,或者订阅另一任务。如果参数不同,则重试同一方法 grain,这样就可以实现操作,因为持久任务运行时间可以识别操作。 |
-| `503 Service Unavailable` 与 `Retry-After` | 请求没有到达操作, 没有改变, 所以客户再次用同样的钥匙寄过来。 |
+| `200 OK` 及结果，或 `204 No Content` | 操作成功，包括在 `Prefer: wait=N` 请求的等待时限内完成的情况。 |
+| `202 Accepted` 及状态监视器 | 操作仍在运行，包括操作完成前到达的重试；与 Azure 可重复请求和 Stripe v2 幂等机制一样恢复已有工作。 |
+| `424 Failed Dependency` 及状态监视器 | 操作失败或被取消。如果执行调用的 Grain 在未存储调用时便拒绝它（例如该根任务标识符已在该 Grain 中用于另一个方法的任务），调用从未运行，错误码为 `NotStarted`；可使用新键重新启动。如果执行调用的 Grain 未确认调用（因为投递在未获确认时停止，或者在 Grain 的准入窗口结束后才到达），调用可能已运行，错误码为 `OutcomeUnknown`；重新启动前应检查调用的实际效果。 |
+| `400 Bad Request` | `Idempotency-Key` 无效或缺失。 |
+| `422 Unprocessable Content` | 另一请求已使用该键启动不同工作，即调用另一个方法、另一个 Grain，或订阅另一个任务。参数不同的重试仍在同一 Grain 上调用同一方法，因此仍访问同一操作，符合持久化任务运行时识别操作的方式。 |
+| `503 Service Unavailable` 及 `Retry-After` | 请求未到达操作，操作保持不变，因此客户端使用相同的键重新发送请求。 |
 
-用于识别操作的响应,该响应包含 `Operation-Location` 页眉,即 URL
-其地位监测员:
+标识操作的响应包含 `Operation-Location` 响应头，即其状态监视器的 URL：
 
 ```http
 HTTP/1.1 202 Accepted
@@ -103,54 +71,24 @@ Retry-After: 1
 {"id":"8e03978e-40d5-43e8-bc93-6894a57f9324","status":"Running"}
 ```
 
-状态监视器的形状为 Azure 长期运行操作: `status` 是
-`Running`, `Succeeded`, `Failed`,或 `Canceled`;成功的行动带有其
-`result`,而失败或取消的操作带有 `error` 具有 a 的 `code` 和 a 以及
-`message`. `DurableHttpOptions.CreateError` 描述客户的例外;
-只报告 `Failed` 或 `Canceled`,所以服务器上存在例外细节
-除非应用程序绘制了它为其客户定义的例外。
-服务于下列业务:
+状态监视器采用 Azure 长时间运行操作的结构：`status` 为 `Running`、`Succeeded`、`Failed` 或 `Canceled`；成功的操作携带 `result`，失败或被取消的操作携带 `error`，其中包含 `code` 和 `message`。`DurableHttpOptions.CreateError` 向客户端描述异常；默认仅报告 `Failed` 或 `Canceled`，因此异常详情保留在服务器端，除非应用显式映射自己为客户端定义的异常。组提供以下操作服务：
 
-- `GET {group}/operations/{id}` 返回状态监视器。与 `Prefer: wait=N`,
-  最多等待 `N` 秒,最多等待 `DurableHttpOptions.MaxWait`秒
-  运行中的操作的响应包含 `Retry-After`。
-- `GET {group}/operations/{id}/events` 将状态监视器作为服务器已同意流出
-  `status` 事件,按其状况确定:现状,然后是终点
-  运行中的操作状态,在此之后流结束。
-  `Last-Event-ID` 接收 `204 No Content`,以结束一个 `EventSource`
-  重新连接。
-- `POST {group}/operations/{id}:cancel` 长期请求取消,并
-  任务所读取的任择 `{"reason": "..."}` 机构
-  `DurableTask.Current.TaskCancellationReason`,返回 `202 Accepted`;终端
-  返回 `200 OK` 。任务正文决定结果,而
-  状况监测报告。
-- `POST {group}/operations/{id}/signals/{name}` 发送信号
-  `MapDurableSignal` 地图, JSON 体为其值的地图和返回
-  一旦任务长期坚持,包括重复信号,即为`204 No Content`
-  请求中不带正体返回 `400 Bad Request`。 A
-  返回
-  `409 Conflict`.
+- `GET {group}/operations/{id}` 返回状态监视器。使用 `Prefer: wait=N` 时，响应最多等待 `N` 秒（不超过 `DurableHttpOptions.MaxWait`）以等待操作完成。正在运行的操作的响应携带 `Retry-After`。
+- `GET {group}/operations/{id}/events` 以服务器发送的 `status` 事件流传输状态监视器，事件标识符为其状态：先发送当前状态，若操作正在运行，再发送终态，随后结束流。若重连请求的 `Last-Event-ID` 为终态，则返回 `204 No Content`，使 `EventSource` 停止重连。
+- `POST {group}/operations/{id}:cancel` 持久化地请求取消操作，可携带 `{"reason": "..."}` 请求体，任务从 `DurableTask.Current.TaskCancellationReason` 读取原因；返回 `202 Accepted`。已处于终态的操作返回 `200 OK` 且保持不变。任务体决定任务的结果，由状态监视器报告。
+- `POST {group}/operations/{id}/signals/{name}` 传递由 `MapDurableSignal` 映射的信号，使用 JSON 请求体作为信号值；任务持久化保存信号后返回 `204 No Content`，包括携带相同值的重复信号。没有请求体时返回 `400 Bad Request`。若值不同，或操作已完成且未收到该信号，则返回 `409 Conflict`。
 
-操作的主机将完成的工作记录在日记中一次
-任务 grain 所在的任务中保留了该任务,请求取消或信号操作的请求读作
-从那里开始任务, 不论激活为它们服务。 返回的起始
-`202 Accepted` 记录和在它收到之前收到的请求,
-`503 Service Unavailable` 与 `Retry-After`.
+执行工作任务的 Grain 保存任务后，操作宿主在日志中记录该任务。取消操作或向操作发送信号的请求从日志读取任务，而不依赖由哪个激活实例处理请求。返回 `202 Accepted` 的启动请求发生在记录完成之后；在记录之前到达的请求收到 `503 Service Unavailable` 及 `Retry-After`。
 
-东道主保留已完成的操作,因此使钥匙变重复并服务于
-`DurableTaskOptions.ResultRetentionPeriod`的状态监视器。
+宿主在 `DurableTaskOptions.ResultRetentionPeriod` 指定的时限内保留已完成的操作，因此可按其键去重，并继续提供状态监视器。
 
-行动终点对请求具有约束力,不加考虑,因此它们为
-缩刻和 NativeAOT 应用程序。信号值和操作结果与
-最小 API `JsonOptions`,其确定者,例如源产生的
-`JsonSerializerContext`,处理这些应用中的这类类型。
+提供操作服务的端点无需反射即可绑定请求，因此支持经过裁剪的应用和 NativeAOT 应用。信号值及操作结果使用 Minimal API 的 `JsonOptions` 序列化，在此类应用中，其解析器（例如源代码生成的 `JsonSerializerContext`）必须能够处理相应类型。
 
 <a id="serving-durable-operations-through-nexus"></a>
 
-## 通过Nexus为持久业务提供服务
+## 通过 Nexus 提供持久化操作服务
 
-时间时空 Nexus 协议开始并取消运行, 按服务和操作来取消操作
-Nexus 服务开始以相同的操作进行耐用 grain 调用:
+Temporal 的 Nexus 协议通过服务名和操作名启动及取消操作。Nexus 服务将持久化 Grain 调用作为同一种操作启动：
 
 ```csharp
 var payments = app.MapGroup("/nexus").MapNexusService("payments.v1", scope: "payments");
@@ -160,40 +98,19 @@ payments.MapNexusOperation("charge", (Charge input, IGrainFactory grains) =>
 app.MapGroup("/nexus").WithDurableOperations("payments").MapDurableSignal(PaymentGrain.Capture);
 ```
 
-- `POST /nexus/payments.v1/charge` 调用开始作为
-  请求 `Nexus-Request-Id` 名称。 它返回 `200 OK` 并产生结果和
-  成功操作`Nexus-Operation-State: succeeded` , `201 Created`
-  `OperationInfo` 其 `token` 运行时的地址,
-  `424 Failed Dependency` 失败或取消的 `OperationError` 失败
-  运行中。
-- `POST /nexus/payments.v1/charge/cancel` 长期请求取消[
-  其业务活动的 `Nexus-Operation-Token` 标题或 `token` 查询价值名称,
-  返回 `202 Accepted`。
-- 无效、 冲突、 未知的请求接收 Nexus 处理器错误 :
-  `400 BAD_REQUEST`、 `409 CONFLICT`和 `404 NOT_FOUND`。
-  正在接受 `503 UNAVAILABLE`,调用者将重试。
+- `POST /nexus/payments.v1/charge` 将调用作为请求的 `Nexus-Request-Id` 命名的操作启动。成功的操作返回 `200 OK`、结果及 `Nexus-Operation-State: succeeded`；运行中的操作返回 `201 Created` 及 `OperationInfo`，其中的 `token` 用于寻址该操作；失败或被取消的操作返回 `424 Failed Dependency` 及 `OperationError` 失败信息。
+- `POST /nexus/payments.v1/charge/cancel` 持久化地请求取消由 `Nexus-Operation-Token` 请求头或 `token` 查询参数指定的操作，并返回 `202 Accepted`。
+- 无效、冲突及未知请求分别收到 Nexus 处理程序错误：`400 BAD_REQUEST`、`409 CONFLICT` 和 `404 NOT_FOUND`。未到达操作的请求收到 `503 UNAVAILABLE`，调用方应重试。
 
-`MapNexusOperation` 将处理器的参数反射绑定, 因为最小API 绑定
-a `MapPost` 处理器,请求代表发电机无法拦截。
+`MapNexusOperation` 使用反射绑定处理程序的参数，与 Minimal API 绑定未被请求委托生成器拦截的 `MapPost` 处理程序的方式一致。
 
-标记是操作的标识符; 注册 `INexusOperationTokenFormat`
-符号。
-服务使用 Nexus 请求的线路路线参数
-识别符号,所以它会流出他们的身份 并传递他们的信号。
+令牌就是操作标识符；可注册 `INexusOperationTokenFormat` 以签名、加密或采用其他方式格式化令牌。具有相同服务作用域且没有路由参数的组可以通过 Nexus 请求标识符寻址服务的操作，因此能够流式传输状态并向其投递信号。
 
 <a id="callbacks"></a>
 
-## 回回调
+## 回调
 
-启动操作请求时登记回调 URL,该URL接收
-运行结果一旦是终端时的结果: `Operation-Callback` 头,其
-带有标准 Webhookes 头或 Nexus 的状态监视器, 或 Nexus 。
-`callback` 查询值,其交付完成是Nexus完成的。
-请求书页头以 `Operation-Callback-` 或 `Nexus-Callback-`开头,
-上下前缀, 如接收者的证书。
-连接,例如 `Host`、 `Transfer-Encoding`和 `Proxy-*`等
-装货货物,如 `webhook-*` 和 `Nexus-Operation-*`等,接收
-`400 Bad Request`.
+启动操作的请求可以注册回调 URL，在操作进入终态后接收其结果：使用 `Operation-Callback` 请求头时，交付携带状态监视器及 Standard Webhooks 请求头；使用 Nexus 的 `callback` 查询参数时，交付 Nexus 完成通知。每次交付携带原请求中以 `Operation-Callback-` 或 `Nexus-Callback-` 开头的请求头（去掉前缀），例如接收方凭据。指定连接目标的请求头（如 `Host`、`Transfer-Encoding` 和 `Proxy-*`）以及交付过程自行设置的请求头（如 `webhook-*` 和 `Nexus-Operation-*`）不被接受，相关请求返回 `400 Bad Request`。
 
 ```csharp
 builder.Services.AddDurableHttp(options =>
@@ -203,34 +120,15 @@ siloBuilder.Services.AddDurableHttpCallbacks();
 siloBuilder.Services.AddSingleton<IDurableWebhookSigner, MyWebhookSigner>();
 ```
 
-`DurableHttpOptions.AllowCallback` 确定应用程序接受的 URL;
-默认它不接受任何条件, 而请求中会收到另一个 URL `400 Bad Request`。
-交付仅连接到 `DurableCallbackOptions.AllowAddress`地址
-默认公用公用信标,当它们连接时,它会接受。所以一个主机名可以解决
-内部地址,包括申请被接受后,没有达到。
-送货人不会遵循方向调整
-应用检查的`SocketsHttpHandler` 客户端,其主处理器
-软件包无法限制无法构建 。
+`DurableHttpOptions.AllowCallback` 决定应用接受哪些 URL；默认不接受任何 URL，包含未获接受 URL 的请求收到 `400 Bad Request`。交付建立连接时，仅连接到 `DurableCallbackOptions.AllowAddress` 接受的地址（默认仅接受公有地址），因此即使应用接受 URL 后主机名才解析到内部地址，也不会访问该内部地址。交付不跟随重定向。回调客户端的主处理程序为执行此检查的 `SocketsHttpHandler`；若本包无法约束客户端的主处理程序，则客户端构建失败。
 
-每次回调都是中继的持久任务 grain 中在 silos,其中的用户
-操作并交付结果,直到接收者回答 `2xx` 或
-`410 Gone`或 `DurableCallbackOptions.RetryTimeout` 折叠。每次重试等待
-最大为双倍后退和接收器 `Retry-After`的
-`DurableCallbackOptions.MaxRetryInterval`,加最多四分之一以上。
-到达同一中继站, 保持第一个注册的头头。
-至少一次:每件尝试的网钩 `webhook-id` 等于每个尝试,
-附加了`IDurableWebhookSigner`,该键持有应用程序的密钥
-`webhook-signature`.中继日志失败尝试, 以及它提供的送货
-上楼 `AddDurableHttpCallbacks` 返回返回 `HttpClient` 减去
-发送回调,以配置其处理器。
+每个回调都是 Silo 中某个中继 Grain 上的持久化任务，它订阅操作并交付结果，直至接收方返回 `2xx` 或 `410 Gone`，或者 `DurableCallbackOptions.RetryTimeout` 到期。每次重试等待加倍退避间隔与接收方 `Retry-After` 指定间隔中的较大值，最多为 `DurableCallbackOptions.MaxRetryInterval`，再增加最多四分之一的抖动时长。重试启动请求会到达相同中继，该中继保留首次注册的请求头。交付采用至少一次语义：Webhook 的 `webhook-id` 在各次尝试中相同，持有应用密钥的 `IDurableWebhookSigner` 添加 `webhook-signature`。中继记录失败的尝试及最终放弃的交付。`AddDurableHttpCallbacks` 返回交付回调的 `HttpClient` 的构建器，用于配置其处理程序。
 
-东道主保护回调头的值, 可以是证书, 包括
-ASP.NET 核心数据保护 silos 故你们将那些寄存的、实成宿的, silos a 共享份额a
-数据保护关键环和应用程序名称。
+宿主在 Silo 存储回调请求头值（可能包含凭据）之前，使用 ASP.NET Core Data Protection 保护它们，因此宿主和 Silo 必须共享 Data Protection 密钥环及应用名称。
 
 <a id="calling-http-apis-from-durable-tasks"></a>
 
-## 将HTTP APP 宣传广告从长期任务中调离
+## 从持久化任务调用 HTTP API
 
 ```csharp
 siloBuilder.Services.AddDurableHttpClient("payments")
@@ -263,54 +161,21 @@ public sealed class OrderGrain([FromKeyedServices("payments")] IDurableHttpClien
 }
 ```
 
-`AddDurableHttpClient` 登记 `IDurableHttpClient`, grains 作为
-键键服务,并返回它发送请求的 `HttpClient` 构建器
-其每一方法都以恢复持久任务记录的方式,作为步骤答复
-重播后再读一遍,不发请求。
-步骤的不安全要求 `Idempotency-Key` 服务产生的 grain,
-步骤的标识符,任务运行, `DurableTaskContext.Incarnation`,所以是一个步骤
-发生故障或停止功能后再次运行的服务器端工作,
-后运行同一任务标识符,删除后,发送新密钥。在
-建筑者加添的处理器,他们的变形器携带钥匙。
+`AddDurableHttpClient` 注册 `IDurableHttpClient`，Grain 将其作为键控服务注入；该方法返回用于发送请求的 `HttpClient` 的构建器。客户端每个返回持久化任务的方法均将其响应记录为调用任务的步骤，因此重放读取这些响应，无需再次发送请求。每个步骤中使用非安全方法的请求携带 `Idempotency-Key`，该键由服务、Grain、步骤标识符及任务运行世代标识 `DurableTaskContext.Incarnation` 派生，因此故障或停用之后再次运行的步骤会访问相同的服务器端工作，而任务删除后使用同一任务标识符的后续运行会发送新的键。幂等键处理程序位于构建器添加的处理程序之前，因此这些处理程序的重试也携带该键。
 
-- `SendAsync` 发送请求并返回所记录的 `DurableHttpResponse`。
-- `RunOperationAsync<T>` 开始操作,并长期等待结果;
-  `StartOperationAsync` 和 `WaitForOperationAsync<T>` 分两个步骤这样做,其他
-  两者的工作。
-- `GetOperationAsync`、 `CancelOperationAsync`和 `SignalOperationAsync` 改为:
-  取消, 并用状态监视器的 URL 信号操作 。
-- `WatchOperationAsync` 运行状态的流经于外部
-  直至处决结束为止。
+- `SendAsync` 发送请求并返回已记录的 `DurableHttpResponse`。
+- `RunOperationAsync<T>` 启动操作并以持久化方式等待结果；`StartOperationAsync` 和 `WaitForOperationAsync<T>` 分两步完成同一过程，可在两步之间执行其他工作。
+- `GetOperationAsync`、`CancelOperationAsync` 和 `SignalOperationAsync` 通过操作状态监视器的 URL 读取、取消操作和向操作发送信号。
+- `WatchOperationAsync` 在持久化执行之外通过事件流读取操作状态，直到操作进入终态。
 
-`200 OK` 或 `204 No Content` 的启动响应和另一个一样,都产生效果
-`2xx` 没有状态监视器的反应。 A `424 Failed Dependency` 答复报告的答复
-运行操作的地址
-:a 国家 `Operation-Location` 或 `Azure-AsyncOperation` 状态监视器, 例如此
-软件包的操作和 Azure 长期运行的操作服务,包括 Azure
-`201 Created` 或反应,或 `Location` 上a `202 Accepted` 答复,回答
-`202 Accepted` 直到它返回结果。客户端跟随启动位置
-请求的原发国,由 `DurableHttpClientOptions.FollowOperationLocation` 决定,因此
-服务器无法将客户的证书 直接送到另一个服务器
+`200 OK` 或 `204 No Content` 启动响应携带结果，不含状态监视器的其他 `2xx` 响应也如此。`424 Failed Dependency` 响应报告失败或被取消的操作。其他包含操作位置的响应表示操作仍在运行：可以是 `Operation-Location` 或 `Azure-AsyncOperation` 指定的状态监视器（例如本包提供的操作或 Azure 长时间运行操作，包括 Azure 的 `201 Created` 响应），也可以是 `202 Accepted` 响应中的 `Location`（在返回结果之前一直响应 `202 Accepted`）。默认情况下，客户端只跟随与启动请求同源的位置，具体由 `DurableHttpClientOptions.FollowOperationLocation` 决定，因此服务器无法将客户端的凭据导向另一个源。
 
-民意调查`DurableHttpWaitMode.Poll` 民 ,两次投票之间拖延时间长:
-广告`Retry-After` ,至少 `DurableHttpOperationOptions.PollInterval` 和
-最大 `MaxPollInterval`,在应用民意测验的服务器后没有
-`Prefer: wait`. 一次再次接受 `408`、 `429`、 `502`、 `503`或 `504` 民意测验的民调。
-`DurableHttpWaitMode.Events` 将状态监控器的事件读取为一步骤内,
-服务器一报告结果,即学习结果。失败或取消操作
-以其状态、代码和消息扔出 `DurableHttpOperationException` 。
+`DurableHttpWaitMode.Poll` 在轮询之间使用持久化延迟：等待 `Retry-After` 声明的间隔，最短为 `DurableHttpOperationOptions.PollInterval`，最长为 `MaxPollInterval`；如果服务器已经按轮询的 `Prefer: wait` 偏好执行等待，则不再等待。收到 `408`、`429`、`502`、`503` 或 `504` 的轮询会再次轮询。`DurableHttpWaitMode.Events` 在一个步骤中读取状态监视器事件，并在服务器报告结果时立即获知结果。操作失败或被取消时抛出 `DurableHttpOperationException`，其中包含状态、错误码和消息。
 
-录音答复中略略 `Set-Cookie` 页眉,其内容最多
-`DurableHttpClientOptions.MaxResponseContentLength`,默认一个中比字节;较大的
-其对策失败了。
+已记录的响应省略 `Set-Cookie` 响应头，响应内容不超过 `DurableHttpClientOptions.MaxResponseContentLength`（默认为 1 MiB）；超过该大小的响应会导致对应步骤失败。
 
-`DurableHttpClientOptions.SerializerOptions` 将请求的数值和结果序列成序,
-与最少的 API JSON 除非配置了,否则默认值。 NativeAOT
-应用程序设置了解决方案,由解决者处理其请求和结果类型。
+`DurableHttpClientOptions.SerializerOptions` 用于序列化请求值及结果，未另行配置时使用 Minimal API JSON 默认选项。经过裁剪的应用或 NativeAOT 应用应设置相应选项，使其解析器能够处理请求及结果类型。
 
-`AddDurableIdempotencyKey` 将密钥处理器添加到任何 `HttpClient`,以完成持久任务
-以 `DurableTask.Run`发送自步骤提出的请求。
+`AddDurableIdempotencyKey` 向任意 `HttpClient` 添加幂等键处理程序，供通过 `DurableTask.Run` 在自身步骤中发送请求的持久化任务使用。
 
-运行这些 [DurableOrderProcessing 操场](../../playground/DurableOrderProcessing)
-从一个浏览器, 维持每个退开的密钥到
-他们的钥匙把授权复制了
+[DurableOrderProcessing 演练项目](../../playground/DurableOrderProcessing) 将这些部分结合起来演示：从浏览器持久化每次结账的键，到支付网关按键对授权请求去重。

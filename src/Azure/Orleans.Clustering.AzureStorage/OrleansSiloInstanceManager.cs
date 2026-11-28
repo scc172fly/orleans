@@ -24,9 +24,9 @@ namespace Orleans.AzureUtils
 
         public string TableName { get; }
 
-        private const string INSTANCE_STATUS_CREATED = nameof(SiloStatus.Created);  //“改良”;
-        private const string INSTANCE_STATUS_ACTIVE = nameof(SiloStatus.Active);    //“主动”;
-        private const string INSTANCE_STATUS_DEAD = nameof(SiloStatus.Dead);        //"死";
+        private const string INSTANCE_STATUS_CREATED = nameof(SiloStatus.Created);  //"Created";
+        private const string INSTANCE_STATUS_ACTIVE = nameof(SiloStatus.Active);    //"Active";
+        private const string INSTANCE_STATUS_DEAD = nameof(SiloStatus.Dead);        //"Dead";
 
         private readonly AzureTableDataManager<SiloInstanceTableEntry> storage;
         private readonly IMembershipTableReadStorage membershipTableReadStorage;
@@ -130,9 +130,9 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// 表示网关 URI 格式的 silo 实例条目。
+        /// 以网关 URI 格式表示 Silo 实例记录。
         /// </summary>
-        /// <param name="gateway">输入 silo 实例</param>
+        /// <param name="gateway">输入的 Silo 实例。</param>
         /// <returns></returns>
         private static Uri ConvertToGatewayUri(SiloInstanceTableEntry gateway)
         {
@@ -185,7 +185,7 @@ namespace Orleans.AzureUtils
             var sb = new StringBuilder();
             sb.Append(string.Format(CultureInfo.CurrentCulture, "Deployment {0}. Silos: ", DeploymentId));
 
-            // 浏览结果,显示实体信息
+            // 遍历结果，显示实体的相关信息。
             Array.Sort(entries,
                 (e1, e2) =>
                 {
@@ -232,9 +232,9 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// 删除在截断前 最晚开始、心跳和怀疑时间的死记
-        /// 使用行名表来保护同步更新并保存会籍版本。
-        /// 打电话者在本地争论后,随后安排了尝试。
+        /// 删除最近一次启动、心跳及被怀疑时间均早于截止时间的 Dead 状态记录，
+        /// 使用行 ETag 防止并发更新冲突，并保留成员资格版本。
+        /// 遇到底层存储竞争时，由调用方安排后续尝试。
         /// </summary>
         public async Task CleanupDefunctSiloEntries(DateTimeOffset beforeDate, CancellationToken cancellationToken = default)
         {
@@ -343,9 +343,9 @@ namespace Orleans.AzureUtils
             var version = ValidateAllSiloEntries(entries);
             var opening = entries[0].Entity.RowKey == SiloInstanceTableEntry.TABLE_VERSION_ROW_MIN;
             var closing = entries[^1].Entity.RowKey == SiloInstanceTableEntry.TABLE_VERSION_ROW_MAX;
-            // 两种没有标记的标志都确定了传统格式,即使用传统符号读取语义。
-            // 第一个成员以原子方式撰写新版本的两种标志。
-            // 写时的查询重叠可以看到部分对, 所以重试部分对或不匹配对。
+            // 两个标记均不存在表示采用旧格式，使用旧版读取语义。
+            // 首次成员资格写入将两个标记连同新版本一起原子建立。
+            // 与该写入重叠的查询可能只看到其中一个标记，因此标记不完整或不匹配时应重试。
             if (!opening && !closing)
             {
                 return true;
@@ -361,7 +361,7 @@ namespace Orleans.AzureUtils
             var after = entries[^1].Entity.MembershipVersion
                 ?? throw new InvalidOperationException("The closing boundary row does not contain a membership version.");
 
-            // 边界意识组织写道,所有三个版本都以原子方式提前。
+            // 支持边界标记的写入会原子推进全部三个版本。
             return (string.Equals(before, after, StringComparison.Ordinal)
                 && string.Equals(before, version, StringComparison.Ordinal))
                 || IsLegacyTableVersionAhead(version, before, after);
@@ -369,8 +369,8 @@ namespace Orleans.AzureUtils
 
         private static bool IsLegacyTableVersionAhead(string? tableVersion, string beforeVersion, string afterVersion)
         {
-            // 旧作家只提前 VersionRow。两个标志的版本都具有遗留性
-            // 包括可能撕破的笔记片等读义学,
+            // 旧版写入方只推进 VersionRow。当版本超前于两个标记时，在滚动升级期间仍采用旧版
+            // 读取语义，包括可能不一致的分页快照。
             return int.TryParse(tableVersion, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedTableVersion)
                 && int.TryParse(beforeVersion, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedBeforeVersion)
                 && int.TryParse(afterVersion, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedAfterVersion)
@@ -431,7 +431,7 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// 插入( 创建新) 行条目
+        /// 插入（新建）行记录。
         /// </summary>
         internal async Task<bool> TryCreateTableVersionEntryAsync(CancellationToken cancellationToken = default)
         {
@@ -461,12 +461,12 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// 插入( 创建新) 行条目
+        /// 插入（新建）行记录。
         /// </summary>
-        /// <param name="siloEntry">Silo 条目待写入</param>
-        /// <param name="tableVersionEntry">更新</param>的版本行
-        /// <param name="tableVersionEtag">版本行 eTag</param>
-        /// <param name="cancellationToken">取消牌。</param>
+        /// <param name="siloEntry">要写入的 Silo 记录。</param>
+        /// <param name="tableVersionEntry">要更新的版本行。</param>
+        /// <param name="tableVersionEtag">版本行的 ETag。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
         internal async Task<bool> InsertSiloEntryConditionally(SiloInstanceTableEntry siloEntry, SiloInstanceTableEntry tableVersionEntry, string tableVersionEtag, CancellationToken cancellationToken = default)
         {
             try
@@ -492,12 +492,12 @@ namespace Orleans.AzureUtils
         }
 
         /// <summary>
-        /// 原子取代卡尼科式表格转换电子标签下的一个成员行。
+        /// 在规范表版本 ETag 的保护下原子替换成员资格行。
         /// </summary>
-        /// <param name="siloEntry">Silo 条目待写入</param>
-        /// <param name="tableVersionEntry">更新</param>的版本行
-        /// <param name="versionEtag">版本行</param>的ETag值
-        /// <param name="cancellationToken">取消牌。</param>
+        /// <param name="siloEntry">要写入的 Silo 记录。</param>
+        /// <param name="tableVersionEntry">要更新的版本行。</param>
+        /// <param name="versionEtag">版本行的 ETag 值。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
         /// <returns></returns>
         internal async Task<bool> UpdateSiloEntryConditionally(SiloInstanceTableEntry siloEntry, SiloInstanceTableEntry tableVersionEntry, string versionEtag, CancellationToken cancellationToken = default)
         {

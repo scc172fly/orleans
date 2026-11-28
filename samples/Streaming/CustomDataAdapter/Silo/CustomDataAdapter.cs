@@ -7,7 +7,7 @@ using Orleans.Streams;
 
 namespace Silo;
 
-// 自自自 EventHubDataAdapter 使用 System.Text.Json
+// 使用 System.Text.Json 序列化事件的自定义 EventHubDataAdapter。
 public class CustomDataAdapter : EventHubDataAdapter
 {
     public CustomDataAdapter(Serializer serializer) : base(serializer)

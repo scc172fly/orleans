@@ -22,7 +22,7 @@ using Polly.Timeout;
 namespace Orleans.Runtime.Placement
 {
     /// <summary>
-    /// 安置决定的中心点。
+    /// 放置决策的中心入口。
     /// </summary>
     internal partial class PlacementService : IPlacementContext, ILifecycleParticipant<ISiloLifecycle>, PlacementService.ITestAccessor
     {
@@ -137,7 +137,7 @@ namespace Orleans.Runtime.Placement
         }
 
         /// <summary>
-        /// 启动或设置激活。
+        /// 获取或放置激活实例。
         /// </summary>
         public Task AddressMessage(Message message)
         {
@@ -171,8 +171,8 @@ namespace Orleans.Runtime.Placement
             ThrowIfStopping();
 
             var grainType = target.GrainIdentity.Type;
-            // 仅用于测试:如果我们有 silos 尚未列入组群 TypeMap,我们假定它们相容
-            // 与当前 silo结合
+            // 仅供测试：若有 Silo 尚未出现在集群 TypeMap 中，则假定它们
+            // 与当前 Silo 兼容。
             SiloAddress[] compatibleSilos;
             if (_assumeHomogeneousSilosForTesting)
             {
@@ -185,9 +185,9 @@ namespace Orleans.Runtime.Placement
                 var filters = _filterStrategyResolver.GetPlacementFilterStrategies(grainType);
                 if (filters.Length > 0)
                 {
-                    // 获取父活动环境, 所以每个过滤范围都以
-                    // 当前活动 (e.g. PlaceGrain) 而不是用来为可能
-                    // 推迟计数期间活动。
+                    // 立即捕获父 Activity 上下文，使每个筛选器的跟踪跨度都以
+                    // 当前 Activity（例如 PlaceGrain）为父级，而不是以延迟枚举期间可能
+                    // 处于活动状态的其他同级筛选器的跟踪跨度 为父级。
                     var parentActivityContext = Activity.Current?.Context;
 
                     IEnumerable<SiloAddress> filteredSilos = compatibleSilos;
@@ -254,7 +254,7 @@ namespace Orleans.Runtime.Placement
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool CachedAddressIsValid(Message message, GrainAddress cachedAddress)
         {
-            // 验证缓存的结果是否已被信件所处理而无效 。
+            // 验证缓存结果未被正在寻址的消息置为无效。
             if (message.CacheInvalidationHeader is { } cacheUpdates)
             {
                 lock (cacheUpdates)
@@ -273,7 +273,7 @@ namespace Orleans.Runtime.Placement
 
                 foreach (var update in cacheUpdates)
                 {
-                    // 正在检查时, 无效/ 更新缓存条目 。
+                    // 检查缓存项的同时使相应项失效或更新它们。
                     var invalidAddress = update.InvalidGrainAddress;
                     var validAddress = update.ValidGrainAddress;
                     _grainLocator.UpdateCache(update);
@@ -293,12 +293,12 @@ namespace Orleans.Runtime.Placement
         }
 
         /// <summary>
-        /// 位于 grain 位置,而不考虑 grain现有地点(如果有的话)。
+        /// 放置 Grain，不考虑其已有位置（如果存在）。
         /// </summary>
-        /// <param name="grainId">下 grain 缩写 grain 被放置。</param>
-        /// <param name="requestContextData">申请背景,将提供给安置战略。</param>
-        /// <param name="placementStrategy">使用安置策略。</param>
-        /// <returns>新激活的地点。</returns>
+        /// <param name="grainId">要放置的 Grain 的标识。</param>
+        /// <param name="requestContextData">请求上下文，放置策略可以访问该上下文。</param>
+        /// <param name="placementStrategy">要使用的放置策略。</param>
+        /// <returns>新激活实例的位置。</returns>
         public async Task<SiloAddress> PlaceGrainAsync(GrainId grainId, Dictionary<string, object>? requestContextData, PlacementStrategy placementStrategy)
         {
             using var _ = TryRestoreActivityContext(requestContextData, ActivityNames.PlaceGrain);
@@ -400,7 +400,7 @@ namespace Orleans.Runtime.Placement
                     {
                         try
                         {
-                            // 开始处理新请求
+                            // 开始处理新请求。
                             var messages = GetMessages();
                             if (messages is not null)
                             {
@@ -417,20 +417,20 @@ namespace Orleans.Runtime.Placement
                                         workItem.Messages.Add(message);
                                         if (workItem.Result is null)
                                         {
-                                            // 请注意,第一条电文被用作发送电文的目标,
-                                            // 如果后续信息与第一封电文的接口不一致,则可以
-                                            // 类型或版本,然后它们可发送到不兼容的 silo,即
-                                            // 由远程 silo 处理不兼容的问题,因此被罚款。
+                                            // 注意，放置时以第一条消息为目标，
+                                            // 因此若后续消息的接口类型
+                                            // 或版本与第一条消息不一致，可能将其发送到不兼容的 Silo；
+                                            // 这没有问题，因为远程 Silo 会处理这种不兼容情况。
                                             workItem.Result = GetOrPlaceActivationAsync(message.Message);
 
-                                            // 当任务完成时提醒此处理循环
+                                            // 任务完成时唤醒此处理循环。
                                             workItem.Result.GetAwaiter().UnsafeOnCompleted(signalWaiter);
                                         }
                                     }
                                 }
                             }
 
-                            // 完成处理任何已完成的请求
+                            // 完成对已完成请求的处理。
                             foreach (var pair in _inProgress)
                             {
                                 var workItem = pair.Value;
@@ -592,7 +592,7 @@ namespace Orleans.Runtime.Placement
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // 每次尝试都恢复活动环境,因此重新调查后的调查仍然是请求中的儿童。
+                // 每次尝试时恢复 Activity 上下文，使重试的查找仍然是该请求的子 Activity。
                 using var restoredActivity = TryRestoreActivityContext(firstMessage.RequestContextData, ActivityNames.PlaceGrain);
                 var lookup = _placementService._grainLocator.Lookup(targetGrain);
                 var result = lookup.IsCompletedSuccessfully
@@ -608,7 +608,7 @@ namespace Orleans.Runtime.Placement
                 var director = _placementService._directorResolver.GetPlacementDirector(strategy);
                 var siloAddress = await director.OnAddActivation(strategy, target, _placementService).WaitAsync(cancellationToken);
 
-                // 给 grain 定位器最后一次机会告诉我们 grain 已经放置
+                // 再给 Grain 定位器一次机会，使其告知我们该 Grain 是否已被放置。
                 if (_placementService._grainLocator.TryLookupInCache(targetGrain, out result) && _placementService.CachedAddressIsValid(firstMessage, result))
                 {
                     return result.SiloAddress!;
@@ -626,7 +626,7 @@ namespace Orleans.Runtime.Placement
             private static partial void LogMessageExpiredDuringPlacement(ILogger logger, GrainId grainId);
 
             /// <summary>
-            /// 环境转至复原力管道,以避免分配。
+            /// 传递给弹性处理管道的上下文，以避免内存分配。
             /// </summary>
             private readonly struct PlacementContext(Message firstMessage, PlacementTarget target)
             {
@@ -643,9 +643,9 @@ namespace Orleans.Runtime.Placement
         }
 
         /// <summary>
-        /// 将过滤器的输出以数字方式进行折行,以便当
-        /// 实际列出序列,而不是当过滤器组成时。此选项避免
-        /// 每一过滤器阵列实现,同时仍然提供准确的间隔时间。
+        /// 包装筛选器输出的可枚举序列，使 Activity 跟踪跨度在
+        /// 序列实际被枚举时创建，而不是在组合筛选器时创建。这样既可避免
+        /// 为每个筛选器将序列物化为数组，又能准确记录跟踪跨度的时间。
         /// </summary>
         private IEnumerable<SiloAddress> InstrumentFilteredSilos(
             IEnumerable<SiloAddress> silos,
@@ -668,7 +668,7 @@ namespace Orleans.Runtime.Placement
         }
 
         /// <summary>
-        /// 试图从请求的上下文数据中恢复父活动背景。
+        /// 尝试从请求上下文数据中恢复父 Activity 上下文。
         /// </summary>
         private static Activity? TryRestoreActivityContext(Dictionary<string, object>? requestContextData, string operationName)
         {
@@ -681,7 +681,7 @@ namespace Orleans.Runtime.Placement
 
             if (activityContext is { } parentContext)
             {
-                // 从目录 ActivitySource 开始活动, 以适当将其与激活跟踪连接
+                // 使用 激活实例目录（Catalog）的 ActivitySource 启动 Activity，使其正确关联激活实例跟踪。
                 return ActivitySources.LifecycleGrainSource.StartActivity(operationName, ActivityKind.Internal, parentContext);
             }
 

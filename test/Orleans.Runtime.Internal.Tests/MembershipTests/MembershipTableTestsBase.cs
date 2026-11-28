@@ -16,11 +16,11 @@ namespace UnitTests.MembershipTests
     {
         internal static readonly TimeSpan Timeout = TimeSpan.FromMinutes(1);
 
-        internal static readonly bool DeleteEntriesAfterTest = true; // 假; // 设置为假, 以调试模式
+        internal static readonly bool DeleteEntriesAfterTest = true; // false; // Set to false for Debug mode
 
-        internal static readonly string INSTANCE_STATUS_CREATED = SiloStatus.Created.ToString();  //“改良”;
-        internal static readonly string INSTANCE_STATUS_ACTIVE = SiloStatus.Active.ToString();    //“主动”;
-        internal static readonly string INSTANCE_STATUS_DEAD = SiloStatus.Dead.ToString();        //"死";
+        internal static readonly string INSTANCE_STATUS_CREATED = SiloStatus.Created.ToString();  //"Created";
+        internal static readonly string INSTANCE_STATUS_ACTIVE = SiloStatus.Active.ToString();    //"Active";
+        internal static readonly string INSTANCE_STATUS_DEAD = SiloStatus.Dead.ToString();        //"Dead";
     }
 
     [Collection(TestEnvironmentFixture.DefaultCollection)]
@@ -41,7 +41,7 @@ namespace UnitTests.MembershipTests
         protected ILoggerFactory loggerFactory;
         protected IOptions<SiloOptions>? siloOptions;
         protected IOptions<ClusterOptions> _clusterOptions;
-        protected const string testDatabaseName = "OrleansMembershipTest";//用于连接储存
+        protected const string testDatabaseName = "OrleansMembershipTest";//用于关系型存储。
         protected readonly IOptions<GatewayOptions> _gatewayOptions;
 
         private static int generation;
@@ -81,11 +81,11 @@ namespace UnitTests.MembershipTests
 
         public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
-        /// <summary>明确初始化遗留表格,但不创建网关提供者。</summary>
+        /// <summary>显式初始化旧版表，不创建网关提供程序。</summary>
         protected async Task InitializeLegacyMembershipTableAsync(CancellationToken cancellationToken)
             => _ = await GetLegacyMembershipTableAsync(cancellationToken);
 
-        /// <summary>获得本次测试的单一、缓慢初始化的遗留成员表。</summary>
+        /// <summary>获取此测试唯一的、延迟初始化的旧版成员资格表。</summary>
         protected Task<IMembershipTable> GetLegacyMembershipTableAsync(CancellationToken cancellationToken)
         {
             lock (_legacyLock)
@@ -122,7 +122,7 @@ namespace UnitTests.MembershipTests
             }
         }
 
-        /// <summary>启动实际成员表后,获得遗留的网关提供者。</summary>
+        /// <summary>初始化实际成员资格表后，获取旧版网关提供程序。</summary>
         protected Task<IGatewayListProvider> GetLegacyGatewayListProviderAsync(CancellationToken cancellationToken)
         {
             lock (_legacyLock)
@@ -140,7 +140,7 @@ namespace UnitTests.MembershipTests
             var gateway = CreateGatewayListProvider(logger, table);
             try
             {
-                // 网关 API 没有取消参数:在释放前等待返回的操作。
+                // 网关 API 没有取消参数：释放之前等待其返回的操作完成。
                 await gateway.InitializeGatewayListProvider();
                 _legacyGateway = gateway;
                 return gateway;
@@ -171,7 +171,7 @@ namespace UnitTests.MembershipTests
         private async Task DisposeLegacyResourcesAsync()
         {
             var failures = new List<Exception>();
-            // 初始化器可以清理自己的故障。 只有未完成的操作才需要加入这里 。
+            // 初始化器自行清理其失败的操作。此处仅需等待尚未完成的操作结束。
             foreach (var initialization in new Task?[] { _legacyMembershipInitialization, _legacyGatewayInitialization })
             {
                 if (initialization is { IsCompleted: false })
@@ -211,18 +211,18 @@ namespace UnitTests.MembershipTests
             }
         }
 
-        /// <summary>创建遗留提供者并拥有它所需要的任何额外的本地自定义资源。</summary>
+        /// <summary>创建旧版提供程序，并拥有其所需的额外本机 SDK 资源。</summary>
         protected virtual MembershipTableTestHandle CreateLegacyMembershipTableHandle(ILogger logger)
         {
             var table = CreateMembershipTable(logger);
             return new MembershipTableTestHandle(table, () => DisposeResourceAsync(table));
         }
 
-        /// <summary>创建网关提供者,必要时使用已初始化的遗留成员表。</summary>
+        /// <summary>在需要时使用已初始化的旧版成员资格表创建网关提供程序。</summary>
         protected virtual IGatewayListProvider CreateGatewayListProvider(ILogger logger, IMembershipTable membershipTable)
             => CreateGatewayListProvider(logger);
 
-        /// <summary>释放了建设好的遗留网关提供者和任何适应者拥有的本地资源。</summary>
+        /// <summary>释放已构造的旧版网关提供程序及适配器拥有的所有本机资源。</summary>
         protected virtual ValueTask DisposeLegacyGatewayListProviderAsync(IGatewayListProvider gatewayListProvider)
             => DisposeResourceAsync(gatewayListProvider);
 
@@ -289,10 +289,10 @@ namespace UnitTests.MembershipTests
 
             var entries = new List<string>(gateways.Select(g => g.ToString()));
 
-            // 只有非零网关端成员
+            // 仅包含网关端口非零的成员。
             Assert.DoesNotContain(membershipEntries[3].SiloAddress.ToGatewayUri().ToString(), entries);
 
-            // 只有在职成员
+            // 仅包含 Active 状态的成员。
             Assert.Contains(membershipEntries[5].SiloAddress.ToGatewayUri().ToString(), entries);
             Assert.Contains(membershipEntries[9].SiloAddress.ToGatewayUri().ToString(), entries);
             Assert.Equal(2, entries.Count);
@@ -595,7 +595,7 @@ namespace UnitTests.MembershipTests
             var originalCanonicalEntry = CaptureCanonicalEntry(originalRow.Item1);
             var amAliveTime = DateTime.UtcNow.Add(TimeSpan.FromSeconds(5));
 
-            // 模拟参数 MembershipOracle.OnIAmAliveUpdateInTableTimer 的通过
+            // 模拟 MembershipOracle.OnIAmAliveUpdateInTableTimer 传入的参数。
             var entry = new MembershipEntry
             {
                 SiloAddress = newEntry.SiloAddress,
@@ -608,7 +608,7 @@ namespace UnitTests.MembershipTests
             AssertCanonicalEntryEqual(originalCanonicalEntry, CaptureCanonicalEntry(Assert.Single(tableData.Members).Item1));
             Assert.Equal(beforeHeartbeat.Version, tableData.Version);
 
-            // 仅心跳物理改变不能拒绝使用原始输入的卡通更新。
+            // 仅涉及心跳的物理变更不得使使用原始输入的规范更新遭到拒绝。
             newEntry.Status = SiloStatus.Active;
             Assert.True(await membershipTable.UpdateRowAsync(
                 newEntry, originalRow.Item2, beforeHeartbeat.Version.Next(), cancellationToken));
@@ -699,7 +699,7 @@ namespace UnitTests.MembershipTests
             AssertCanonicalEntriesEqual(afterCleanup, repeated.Members.Select(row => CaptureCanonicalEntry(row.Item1)));
         }
 
-        // 实用方法
+        // 辅助方法
         private sealed record CanonicalFields(
             string Identity, SiloStatus Status, int ProxyPort, string HostName, string SiloName,
             string RoleName, int UpdateZone, int FaultZone, DateTime StartTime);

@@ -31,19 +31,19 @@ internal sealed partial class GrainDirectoryPartition
             var rangeHash = address.GrainId.GetUniformHashCode();
             var isExistingRegistration = currentRegistration is not null && address.Matches(currentRegistration);
 
-            // 租约范围
+            // 范围租约保留。
             for (var i = _rangeLeaseHolds.Count - 1; !isExistingRegistration && i >= 0; i--)
             {
                 var (lockedRange, expiration) = _rangeLeaseHolds[i];
 
                 if (utcNow >= expiration)
                 {
-                    // 我们利用这个机会清理这已过期的租赁合同
+                    // 借此机会清理这个已经过期的范围租约保留。
                     _rangeLeaseHolds.RemoveAt(i);
                     continue;
                 }
 
-                // 如果它仍然在活动,是否阻止这一要求?
+                // 如果仍然有效，是否会阻塞当前请求？
                 if (lockedRange.Contains(rangeHash))
                 {
                     var retryAfter = expiration - utcNow;
@@ -52,14 +52,14 @@ internal sealed partial class GrainDirectoryPartition
                 }
             }
 
-            // Grain 租赁搁置
+            // Grain 租约保留。
             if (_directory.TryGetValue(address.GrainId, out var existingActivation))
             {
                 if (_siloLeaseHolds.TryGetValue(existingActivation.SiloAddress!, out var expiration) && utcNow < expiration)
                 {
-                    // 此 grain 属于此分区, 启动位于有有效租赁权的 silo 。
-                    // 我们需要检查请求是否包含先前的激活代号 如果它确实包含有效的更新/重写
-                    // 否则,这是一个新的激活 试图“偷”ID 而租赁是活动的, 所以我们拒绝它!
+                    // 此 Grain 属于当前分区，且激活实例位于一个仍存在有效租约保留的 Silo 上。
+                    // 需要检查请求是否包含先前的激活实例 ID。如果包含，则是有效的更新/覆盖；
+                    // 否则，这是一个新的激活实例试图在租约有效期间“抢占”该 ID，因此拒绝请求！
                     if (currentRegistration is null || !existingActivation.Matches(currentRegistration))
                     {
                         var retryAfter = expiration - utcNow;
@@ -150,8 +150,8 @@ internal sealed partial class GrainDirectoryPartition
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ShutdownToken);
         while (true)
         {
-            // 申请时如有会员国资格已过时的申请,仍须等待任何飞行所有权
-            // 在决定该分割区是否为它们服务之前,先从当前视图中进行过渡。
+            // 携带过时成员资格版本到达的请求，仍须等待当前视图中任何正在进行的所有权
+            // 转移完成，才能确定此分区能否处理这些请求。
             var currentView = CurrentView;
             var waitVersion = currentView.Version > version ? currentView.Version : version;
             await WaitForRange(grainId, waitVersion, linkedCts.Token);
@@ -171,7 +171,7 @@ internal sealed partial class GrainDirectoryPartition
         {
             if (newAddress.MembershipVersion != currentVersion)
             {
-                // 设定会籍版本, 以与其注册的视图编号相符 。
+                // 将成员资格版本设置为注册时所在视图的版本号。
                 newAddress = new()
                 {
                     GrainId = newAddress.GrainId,

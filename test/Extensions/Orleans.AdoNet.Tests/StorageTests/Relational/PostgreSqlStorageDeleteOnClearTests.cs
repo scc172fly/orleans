@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// 启用删除状态对清选项的 PostgreSQL 持久性测试。
+    /// 启用清除时删除状态选项的 PostgreSQL 持久化测试。
     /// </summary>
     [TestCategory("PostgreSql"), TestCategory("Persistence")]
     [TestSuite("Functional")]

@@ -9,8 +9,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 根任务 ID 运行的运行过程: 每个运行都有自己的化身, 由它来命名结点的信息的身份
-/// 之后的运行既不是用较早的运行方式分享消息, 也不观察早期运行模式的老套答复。
+/// 同一根任务 ID 的多次运行：每次运行都有独立的运行世代标识，该标识包含在标识执行树节点的消息 ID 中，
+/// 因此后续运行既不与先前运行共用消息，也不会看到先前运行的过期回复。
 /// </summary>
 public sealed partial class DurableTaskRuntimeInvariantTests
 {
@@ -22,8 +22,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var rootId = TaskId.CreateRoot("order");
         var callId = rootId.Child("call");
 
-        // 第一个运行的第一个调序调用另一个 grain , 然后取消调用。 它的结果没有保留, 所以下面的写
-        // 呼声的结果是删除了跑树
+        // 首次运行调用另一个 Grain 并取消该调用。其结果无需保留，因此
+        // 在调用产生结果后的写入会删除本次运行的执行树。
         await ((IDurableTaskServer)runtime).ScheduleAsync(rootId, CreateRequest(1, CallAndCancel), cancellationToken);
         await WaitUntilAsync(() => transport.Invocations.Count == 1 && transport.Cancellations.Count == 1);
         var firstWireId = transport.Invocations[0].TaskId;
@@ -34,14 +34,14 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await manager.WriteStateAsync(cancellationToken);
         await WaitUntilAsync(() => !storage.Contains(rootId) && !storage.Contains(callId));
 
-        // 同样的根码在Message的解码窗口内再次运行, 并记录在同一ID下调用。
+        // 在 Messaging 的去重窗口内再次运行同一根任务 ID，并以相同 ID 记录调用。
         await ((IDurableTaskServer)runtime).ScheduleAsync(rootId, CreateRequest(1, CallAndCancel), cancellationToken);
         var handle = runtime.GetScheduledTaskHandle(rootId);
         await WaitUntilAsync(() => transport.Invocations.Count == 2 && transport.Cancellations.Count == 2);
         var secondWireId = transport.Invocations[1].TaskId;
 
-        // 跑跑的调用和取消使用 以跑自己的电线识别码拨打的电话名 所以他们的留言身份与
-        // 第一跑的,目标 储存调用 在另一个身份。
+        // 本次运行的调用和取消消息使用本次运行自己的传输标识符来标识调用，因此其消息 ID 不同于
+        // 首次运行的消息 ID，目标也以另一个 ID 存储该调用。
         Assert.Equal(CallerScope.GetWireId(storage.Get(rootId).Incarnation, callId), secondWireId);
         Assert.NotEqual(firstWireId, secondWireId);
         Assert.Equal(secondWireId, transport.Cancellations[1].TaskId);
@@ -52,8 +52,8 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             DurableTaskMessageTransport.CreateMessageId(runtime.GrainId, RemoteTarget, secondWireId, DurableTaskMessageTypes.CancellationSubject));
         Assert.NotEqual(CallerScope.GetTaskId(runtime.GrainId, firstWireId), CallerScope.GetTaskId(runtime.GrainId, secondWireId));
 
-        // 第一跑的招工退休, 第一次跑的电话完成日期晚到。
-        // 到达第二波的呼叫
+        // 首次运行的调用消息退役，且发往首次运行调用的完成消息迟到。这两者均
+        // 不会传递到第二次运行的调用。
         ((IOutboxMessageSource)runtime).OnRetired(
             firstInvocationId,
             new OutboxMessageRetirement.Rejected("conflict", DurableTaskRejectionCodes.Conflict));
@@ -63,7 +63,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.Null(storage.Get(callId).Result);
         Assert.Null(storage.Get(rootId).Result);
 
-        // 第二波的完成完成
+        // 第二次运行自己的完成消息使其调用完成。
         runtime.AcceptResponseFromInbox(secondWireId, CallerScope.GetTaskId(runtime.GrainId, secondWireId), DurableTaskResponse.Canceled, RemoteTarget);
         await manager.WriteStateAsync(cancellationToken);
         Assert.Equal(nameof(DurableTaskStatus.Canceled), (await WaitForResponseAsync(handle)).GetResult<string>());
@@ -88,11 +88,11 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         await runtime.ScheduleDelayAsync(delayId, TimeSpan.FromMinutes(5), cancellationToken);
         var stale = Assert.Single(transport.Resumes);
 
-        // 运行端, 结果没有保留, 所以后面的写作会删除树 。
+        // 本次运行结束且结果无需保留，因此随后的写入会删除其执行树。
         await runtime.AbortTaskAsync(rootId, "finished", cancellationToken);
         await WaitUntilAsync(() => !storage.Contains(rootId) && !storage.Contains(delayId));
 
-        // 后期记录也出现同样的延迟, 同一代人和适当时间, 由另一个化身。
+        // 后续运行在不同的运行世代下记录相同延迟，具有相同的世代编号和到期时间。
         storage.AddInvoked(rootId);
         await runtime.ScheduleDelayAsync(delayId, TimeSpan.FromMinutes(5), cancellationToken);
         var current = transport.Resumes[1];
@@ -103,7 +103,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
             DurableTaskMessageTransport.CreateResumeMessageId(runtime.GrainId, delayId, stale.Incarnation, stale.Generation, stale.DueTime),
             DurableTaskMessageTransport.CreateResumeMessageId(runtime.GrainId, delayId, current.Incarnation, current.Generation, current.DueTime));
 
-        // 早期运行恢复后,没有改变任何东西; 后一个运行的自身恢复完成延迟。
+        // 先前运行的恢复消息不会改变任何状态；后续运行自己的恢复消息使延迟操作完成。
         var handler = CreateHandler(runtime);
         await HandleAsync(handler, ResumeContext(runtime, delayId, stale.Generation, stale.DueTime, stale.Incarnation));
         Assert.Null(storage.Get(delayId).Result);
@@ -121,12 +121,12 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var earlierWireId = CallerScope.GetWireId(Guid.NewGuid(), callId);
         var wireId = CallerScope.GetWireId(Guid.NewGuid(), callId);
 
-        // 之前的一棵来电树 取消了它的电话 电话的祈祷没有到 所以这个 grain 记录
-        // 在前一运行的范围代号下取消 。
+        // 调用方执行树的先前运行取消了一个调用，但该调用消息从未到达，因此此 Grain 将
+        // 取消记录在先前运行的作用域 ID 下。
         Accept(handler, CancellationMessage(sender, runtime.GrainId, earlierWireId));
         Assert.NotNull(storage.Get(CallerScope.Resolve(sender, earlierWireId)).CancellationRequestedAt);
 
-        // 稍后的调用者用相同的节点识别码来呼唤其呼叫,而这个 grain 在另一个身份识别码下储存。
+        // 调用方的后续运行以相同的节点 ID 发起调用，此 Grain 将其存储在另一个 ID 下。
         Accept(
             handler,
             MessagingTestHelpers.CreateInvocationMessage(
@@ -152,7 +152,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         var (runtime, storage, manager, _) = CreateRuntime();
         var scopedId = CallerScope.GetTaskId(GrainId.Create("caller", "one"), CallerScope.GetWireId(Guid.NewGuid(), TaskId.Parse("starter/call")));
 
-        // 只有另一个 grain的调试在 grain的范围中存储任务。
+        // 只有另一个 Grain 的调用才会在该 Grain 的作用域下存储任务。
         await Assert.ThrowsAsync<ArgumentException>(
             async () => await ((IDurableTaskServer)runtime).ScheduleAsync(scopedId, CreateRequest(1), TestContext.Current.CancellationToken));
 

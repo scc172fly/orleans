@@ -7,7 +7,7 @@ using OpenTelemetry.Trace;
 namespace Microsoft.Extensions.Hosting;
 
 /// <summary>
-/// 将服务默认值(OpenTelemetry、健康检查)添加到 Orleans 项目的扩展。
+/// 向 Orleans 项目添加服务默认配置（OpenTelemetry、健康检查）的扩展方法。
 /// </summary>
 public static class Extensions
 {
@@ -36,7 +36,7 @@ public static class Extensions
                 metrics.AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
-                    .AddMeter("Microsoft.Orleans");  // Orleans 指标
+                    .AddMeter("Microsoft.Orleans");  // Orleans 指标。
             })
             .WithTracing(tracing =>
             {

@@ -5,12 +5,12 @@ using Orleans.Placement;
 namespace Orleans.Runtime.Placement.Filtering;
 
 /// <summary>
-/// 属性可以指定首选匹配的 silo 元数据放置过滤器,该过滤器优先筛选到 silos ,而当元数据与本地(调用) silo 元数据相匹配时。
+/// 用于指定优先匹配 Silo 元数据的放置筛选器的特性；该筛选器优先选择元数据与本地（调用方）Silo 一致的 Silo。
 /// </summary>
-/// <param name="orderedMetadataKeys">一组有顺序的元数据键,以试图匹配。早期条目被认为不太重要,如果足够具体匹配没有足够结果,将丢弃它们寻找不那么具体的匹配。</param>
-/// <param name="minCandidates">需要过滤的最低理想候选人。 这是为了平衡满足元数据偏好与不因激活而超载一小组或一组 silos 的元数据偏好。 如果您只想要最佳匹配, 请将此设为 1, 即使目前只有一个 silo 最符合 。</param>
-/// <param name="order">相对于其他放置过滤器应用此过滤器的顺序。</param>
-/// <remarks>示例: 如果指定密钥 [“第一个” “第二 ” , 它将只尝试返回 silos 两种键都匹配本地 silo元数据值。如果数据不充分, silos 匹配对齐, 并包含 silos 仅匹配第二个密钥。最后,如果仍然小于 minCandidates 包括所有结果 silos.</remarks>
+/// <param name="orderedMetadataKeys">按顺序尝试匹配的元数据键集合。靠前的键重要性较低；如果更具体的匹配结果不足，则逐步舍弃这些键以获得较宽松的匹配。</param>
+/// <param name="minCandidates">希望筛选后保留的最少候选数，用于在元数据偏好与避免少量 Silo 承担过多激活实例之间取得平衡。若只需最佳匹配结果，即使当前只有一个最佳匹配的 Silo，也可设为 1。</param>
+/// <param name="order">此筛选器相对于其他放置筛选器的应用顺序。</param>
+/// <remarks>示例：指定键 ["first","second"] 时，先尝试仅返回两个键均与本地 Silo 元数据值相匹配的 Silo。若数量不足，则同时纳入仅匹配 second 键的 Silo。若结果仍少于 minCandidates，则纳入全部 Silo。</remarks>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 [Experimental("ORLEANSEXP004")]
 public class PreferredMatchSiloMetadataPlacementFilterAttribute(string[] orderedMetadataKeys, int minCandidates = 2, int order = 0)

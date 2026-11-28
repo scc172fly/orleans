@@ -7,7 +7,7 @@ using Xunit;
 namespace ServiceBus.Tests.Streaming
 {
     /// <summary>
-    /// 与多个流供应商测试 EventHub 程序订阅功能。
+    /// 测试 Event Hub 多流提供程序的编程式订阅功能。
     /// </summary>
     [TestCategory("EventHub"), TestCategory("Streaming"), TestCategory("Functional")]
     [TestSuite("Functional")]

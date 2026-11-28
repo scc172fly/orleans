@@ -2,7 +2,7 @@ using Orleans.Runtime;
 
 namespace Timers;
 
-// grain 定时器使用文档示例
+// Grain 定时器用法的文档示例。
 
 // <grain_timer_example>
 public class MyGrain : Grain, IMyGrain
@@ -11,8 +11,8 @@ public class MyGrain : Grain, IMyGrain
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        // 创建一个定时器,每10秒点火,启动后5秒钟
-        // RegisterGrainTimer 是 IGrainBase 的扩展方法(它 Grain 实施)
+        // 创建定时器，在激活后 5 秒首次触发，此后每 10 秒触发一次。
+        // RegisterGrainTimer 是 IGrainBase（由 Grain 实现）的扩展方法。
         _timer = this.RegisterGrainTimer(
             static (state, ct) => state.DoWorkAsync(ct),
             this,
@@ -20,7 +20,7 @@ public class MyGrain : Grain, IMyGrain
             {
                 DueTime = TimeSpan.FromSeconds(5),
                 Period = TimeSpan.FromSeconds(10),
-                KeepAlive = true  // 防止在计时器激活时进行 grain 收藏
+                KeepAlive = true  // 定时器处于活动状态时阻止 Grain 被回收。
             });
 
         return Task.CompletedTask;
@@ -28,7 +28,7 @@ public class MyGrain : Grain, IMyGrain
 
     private Task DoWorkAsync(CancellationToken cancellationToken)
     {
-        // 计时回调工作
+        // 定时器回调工作。
         return Task.CompletedTask;
     }
 }
@@ -41,7 +41,7 @@ public class MyGrainAfter : Grain, IMyGrain
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        // 使用 this.RegisterGrainTimer() - IGrainBase的扩展方法
+        // 使用 this.RegisterGrainTimer()，它是 IGrainBase 的扩展方法。
         _timer = this.RegisterGrainTimer(
             static (state, ct) => state.DoWorkAsync(ct),
             this,
@@ -49,7 +49,7 @@ public class MyGrainAfter : Grain, IMyGrain
             {
                 DueTime = TimeSpan.FromSeconds(5),
                 Period = TimeSpan.FromSeconds(10),
-                Interleave = true  // 设置真实以匹配旧行为
+                Interleave = true  // 设置为 true 以匹配旧行为。
             });
         
         return Task.CompletedTask;
@@ -57,7 +57,7 @@ public class MyGrainAfter : Grain, IMyGrain
 
     private Task DoWorkAsync(CancellationToken cancellationToken)
     {
-        // 计时器工作 - 检查优雅关闭的 cancellationToken
+        // 定时器工作：检查 cancellationToken 以实现优雅关闭。
         return Task.CompletedTask;
     }
 }

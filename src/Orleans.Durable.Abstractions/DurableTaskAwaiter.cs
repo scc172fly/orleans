@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace Orleans.Durable.Tasks;
 
-/// <summary>提供等待持久任务的人,但无结果。</summary>
+/// <summary>为不带返回结果的持久化任务提供等待器。</summary>
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Awaiters are compiler protocol values whose identity and equality are not part of their contract.")]
 public readonly struct DurableTaskAwaiter : ICriticalNotifyCompletion
 {
@@ -20,11 +20,11 @@ public readonly struct DurableTaskAwaiter : ICriticalNotifyCompletion
     /// <inheritdoc />
     public void UnsafeOnCompleted(Action continuation) => _awaiter.UnsafeOnCompleted(continuation);
 
-    /// <summary>成功完成后返回。</summary>
+    /// <summary>在成功完成后返回。</summary>
     public void GetResult() => _awaiter.GetResult().EnsureSuccessfulCompletion();
 }
 
-/// <summary>提供等待者,以便完成持久的任务并取得结果。</summary>
+/// <summary>为带有返回结果的持久化任务提供等待器。</summary>
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Awaiters are compiler protocol values whose identity and equality are not part of their contract.")]
 public readonly struct DurableTaskAwaiter<TResult> : ICriticalNotifyCompletion
 {
@@ -41,6 +41,6 @@ public readonly struct DurableTaskAwaiter<TResult> : ICriticalNotifyCompletion
     /// <inheritdoc />
     public void UnsafeOnCompleted(Action continuation) => _awaiter.UnsafeOnCompleted(continuation);
 
-    /// <summary>返回成功的结果。</summary>
+    /// <summary>返回成功结果。</summary>
     public TResult GetResult() => _awaiter.GetResult().GetResult<TResult>();
 }

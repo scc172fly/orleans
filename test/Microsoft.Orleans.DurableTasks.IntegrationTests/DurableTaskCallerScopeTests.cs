@@ -10,8 +10,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// 证明两个电话用户的边远子女,其工作流程共用根身份识别码和孩子姓名的偏远子女在
-/// 他们同族的同族,
+/// 验证具有相同工作流根 ID 和子任务名称的两个调用方，其远程子执行实例在
+/// 共享的被调用方上保持独立。
 /// </summary>
 public abstract class DurableTaskCallerScopeTests : IAsyncLifetime
 {
@@ -38,7 +38,7 @@ public abstract class DurableTaskCallerScopeTests : IAsyncLifetime
         var childId = TaskId.CreateRoot("place-order").Child(SharedRootCallerGrain.CallId);
         using var events = DurableTaskEventBarriers.Collect();
 
-        // 每个呼叫者的工作流程都是自己 grain的根任务“位置顺序”,并将被调用者称为“保留区”。
+        // 每个调用方的工作流都是其自身 Grain 上的根任务 'place-order'，并以 'reserve' 名称调用被调用方。
         var firstOrder = await first.PlaceOrderAsync(callee.GetPrimaryKey(), 1).WithId("place-order").ScheduleAsync(cancellationToken);
         var secondOrder = await second.PlaceOrderAsync(callee.GetPrimaryKey(), 2).WithId("place-order").ScheduleAsync(cancellationToken);
         await Task.WhenAll(_probe.Started(1), _probe.Started(2)).WaitAsync(Timeout, cancellationToken);
@@ -56,39 +56,39 @@ public abstract class DurableTaskCallerScopeTests : IAsyncLifetime
         Assert.Contains(firstChildId, running);
         Assert.Contains(secondChildId, running);
 
-        // 取消第一个工作流程只取消被调用时的自家孩子。
+        // 取消第一个工作流，仅取消它自己在被调用方上的子任务。
         await firstOrder.CancelAsync(cancellationToken);
         Assert.Equal(DurableTaskStatus.Canceled, (await firstOrder.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken)).Status);
         Assert.Equal(DurableTaskStatus.Canceled, (await events.WaitForCompletedAsync(calleeId, firstChildId)).Status);
         Assert.True(_probe.Canceled(1).IsCompleted);
         Assert.False(_probe.Canceled(2).IsCompleted);
 
-        // 第二个工作流程的孩子在完成时有自己的结果。
+        // 第二个工作流的子任务以自身结果完成。
         _probe.Release(2);
         Assert.Equal(2, (await secondOrder.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken)).GetResult<int>());
         Assert.Equal(2, (await events.WaitForCompletedAsync(calleeId, secondChildId)).GetResult<int>());
 
-        // 被调用者在自己的调用者接受完成后,将每个孩子删除。
+        // 各子任务自己的调用方接受其完成消息后，被调用方删除该子任务。
         await events.WaitForDeletedAsync(calleeId, firstChildId);
         await events.WaitForDeletedAsync(calleeId, secondChildId);
     }
 }
 
-/// <summary>运行调用范围,任务状态以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行调用方作用域相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskCallerScopeTests() : DurableTaskCallerScopeTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行以 Orleans 二进制日记格式存储的任务状态的调用员范围覆盖。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行调用方作用域相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class OrleansBinaryDurableTaskCallerScopeTests() : DurableTaskCallerScopeTests(DurableTaskRecoveryFixture.OrleansBinary);
 
-/// <summary>持有被调用人的任务, 以其值为键, 直到测试释放他们或取消它们。</summary>
+/// <summary>按任务的值为键保留被调用方的任务，直至测试释放或取消这些任务。</summary>
 public sealed class CallerScopeProbe
 {
     private readonly ConcurrentDictionary<(string Kind, int Value), TaskCompletionSource> _signals = new();
@@ -125,7 +125,7 @@ public interface ISharedRootCallerGrain : IGrainWithGuidKey
     DurableTask<int> PlaceOrderAsync(Guid calleeKey, int value);
 }
 
-// 每个打电话的孩子等待释放,没有持久的等待,所以被召唤者同时运行两个部分。
+// 每个调用方的子任务直接等待释放而不进行持久化等待，因此被调用方同时运行两个执行段。
 [Reentrant]
 [GrainType("durable-task-shared-callee-test")]
 public sealed class SharedCalleeGrain(CallerScopeProbe probe) : DurableGrain, ISharedCalleeGrain

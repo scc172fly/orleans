@@ -1,321 +1,516 @@
 [
   {
     "slug": "adventure",
-    "title": "冒险",
-    "description": "文字冒险游戏, 演示 grains、 外部客户端和应用模型。",
+    "title": "文字冒险游戏",
+    "description": "演示 Grain、外部客户端和应用程序建模的文字冒险游戏。",
     "path": "Adventure",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": "Adventure/assets/BoxArt.jpg",
-    "languages": ["C#"],
-    "tags": ["games", "clients", "grains"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "games",
+      "clients",
+      "grains"
+    ],
     "featured": true
   },
   {
     "slug": "aws-kinesis-dynamodb",
-    "title": "AWS 基尼西斯和 DynamoDB",
-    "description": "由WS托管的 Orleans 应用程序,使用 DynamoDB 进行集群、持久性、提醒和Kinesis检查站。",
+    "title": "AWS Kinesis 与 DynamoDB",
+    "description": "托管于 AWS 的 Orleans 应用，使用 DynamoDB 实现集群成员资格管理、持久化、提醒器及 Kinesis 检查点存储。",
     "path": "AWS/KinesisDynamoDB",
     "sourceRepository": "https://github.com/dotnet/orleans",
     "image": null,
-    "languages": ["C#"],
-    "tags": ["aws", "kinesis", "dynamodb", "streaming"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "aws",
+      "kinesis",
+      "dynamodb",
+      "streaming"
+    ],
     "featured": false
   },
   {
     "slug": "bank-account",
     "title": "银行账户",
-    "description": "银行转账模拟模拟,表明ACID交易跨越了所有地点。 grains.",
+    "description": "模拟银行转账，演示跨有状态 Grain 的 ACID 事务。",
     "path": "BankAccount",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": "BankAccount/assets/BankClient.png",
-    "languages": ["C#"],
-    "tags": ["transactions", "persistence"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "transactions",
+      "persistence"
+    ],
     "featured": false
   },
   {
     "slug": "basic-clustering",
-    "title": "基本集群",
-    "description": "由小数量 Orleans 组组成,有两家 silo 复制和 Redis 成员。",
+    "title": "基础集群",
+    "description": "由 Aspire 托管的最小 Orleans 集群，具有两个 Silo 副本，使用 Redis 管理成员资格。",
     "path": "BasicClustering",
     "sourceRepository": "https://github.com/dotnet/orleans",
     "image": null,
-    "languages": ["C#"],
-    "tags": ["clustering", "aspire", "redis", "getting-started"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "clustering",
+      "aspire",
+      "redis",
+      "getting-started"
+    ],
     "featured": false
   },
   {
     "slug": "blazor-server",
-    "title": "Blazor 服务器",
-    "description": "一个互动的 Blazor 服务器应用程序, 后附 Orleans grains。",
+    "title": "Blazor Server",
+    "description": "由 Orleans Grain 提供后端支持的交互式 Blazor Server 应用。",
     "path": "Blazor/BlazorServer",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": "Blazor/BlazorServer/screenshot.png",
-    "languages": ["C#", "Razor"],
-    "tags": ["blazor", "aspnet-core", "web"],
+    "languages": [
+      "C#",
+      "Razor"
+    ],
+    "tags": [
+      "blazor",
+      "aspnet-core",
+      "web"
+    ],
     "featured": false
   },
   {
     "slug": "blazor-webassembly",
-    "title": "布拉佐尔 WebAssembly",
-    "description": "主办布拉佐 WebAssembly 应用 Orleans- 后卫服务器",
+    "title": "Blazor WebAssembly",
+    "description": "托管式 Blazor WebAssembly 应用，服务器以 Orleans 为后端。",
     "path": "Blazor/BlazorWasm",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": "Blazor/BlazorWasm/screenshot.jpeg",
-    "languages": ["C#", "Razor"],
-    "tags": ["blazor", "webassembly", "web"],
+    "languages": [
+      "C#",
+      "Razor"
+    ],
+    "tags": [
+      "blazor",
+      "webassembly",
+      "web"
+    ],
     "featured": false
   },
   {
     "slug": "chat-room",
     "title": "聊天室",
-    "description": "显示 Orleans 流的终端聊天应用程序。",
+    "description": "演示 Orleans Streams 的终端聊天室应用。",
     "path": "ChatRoom",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": "ChatRoom/screenshot.png",
-    "languages": ["C#"],
-    "tags": ["streaming", "client", "terminal"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "streaming",
+      "client",
+      "terminal"
+    ],
     "featured": false
   },
   {
     "slug": "chirper",
-    "title": "螺旋",
-    "description": "使用持久性、观察力和重新加入 grains的社会网络抽样。",
+    "title": "Chirper 社交网络",
+    "description": "使用持久化、观察者和可重入 Grain 的社交网络示例。",
     "path": "Chirper",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": "Chirper/screenshot.png",
-    "languages": ["C#"],
-    "tags": ["observers", "persistence", "reentrancy"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "observers",
+      "persistence",
+      "reentrancy"
+    ],
     "featured": true
   },
   {
     "slug": "custom-grain-call-return-type",
-    "title": "自定义 grain- 调用返回类型",
-    "description": "可等待的 GrainCall<T> 延期,证明请求依据、代理适应和故障传播。",
+    "title": "自定义 Grain 调用返回类型",
+    "description": "使用可等待的 GrainCall<T> 扩展，演示生成的请求基类、代理适配及故障传播。",
     "path": "CustomGrainCallReturnType",
     "sourceRepository": "https://github.com/dotnet/orleans",
     "image": null,
-    "languages": ["C#"],
-    "tags": ["serialization", "code-generation", "grains"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "serialization",
+      "code-generation",
+      "grains"
+    ],
     "featured": false
   },
   {
     "slug": "durable-workflows",
-    "title": "持久流动的劳动力",
-    "description": "由预报托管的显示持久任务工作流程的应用软件:粉丝式、有最后期限的信号、合作取消、沙沙和复制恢复。",
+    "title": "持久化工作流",
+    "description": "由 Aspire 托管的应用，演示持久化任务工作流：扇出、带截止时间的信号、协作式取消、Saga 和副本恢复。",
     "path": "DurableWorkflows",
     "sourceRepository": "https://github.com/dotnet/orleans",
     "image": null,
-    "languages": ["C#"],
-    "tags": ["durable-tasks", "workflows", "aspire", "redis", "azure-storage"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "durable-tasks",
+      "workflows",
+      "aspire",
+      "redis",
+      "azure-storage"
+    ],
     "featured": true
   },
   {
     "slug": "fsharp-hello-world",
-    "title": "# 你好世界",
-    "description": "F# 中执行最小 Orleans 应用程序,其中 grains 在F# 中实施。",
+    "title": "F# Hello World",
+    "description": "使用 F# 实现 Grain 的最小 Orleans 应用。",
     "path": "FSharpHelloWorld",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": null,
-    "languages": ["F#", "C#"],
-    "tags": ["getting-started", "fsharp"],
+    "languages": [
+      "F#",
+      "C#"
+    ],
+    "tags": [
+      "getting-started",
+      "fsharp"
+    ],
     "featured": false
   },
   {
     "slug": "gps-tracker",
     "title": "GPS 跟踪器",
-    "description": "IoT 位置跟踪器将 Orleans 与 ASP.NET 核心 SignalR结合。",
+    "description": "集成 Orleans 与 ASP.NET Core SignalR 的物联网位置跟踪器。",
     "path": "GPSTracker",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": "GPSTracker/screenshot.jpeg",
-    "languages": ["C#", "JavaScript"],
-    "tags": ["iot", "signalr", "web"],
+    "languages": [
+      "C#",
+      "JavaScript"
+    ],
+    "tags": [
+      "iot",
+      "signalr",
+      "web"
+    ],
     "featured": true
   },
   {
     "slug": "google-firestore",
-    "title": "Google 云烟火炉",
-    "description": "A 音 A Orleans 应用消防商店进行集束, grain 目录、持久性和提醒。",
+    "title": "Google Cloud Firestore",
+    "description": "使用 Firestore 实现集群成员资格管理、Grain 目录、持久化和提醒器的 Orleans 应用。",
     "path": "GoogleFirestore",
     "sourceRepository": "https://github.com/dotnet/orleans",
     "image": null,
-    "languages": ["C#"],
-    "tags": ["google-cloud", "firestore", "clustering", "persistence", "reminders"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "google-cloud",
+      "firestore",
+      "clustering",
+      "persistence",
+      "reminders"
+    ],
     "featured": false
   },
   {
     "slug": "hello-world",
-    "title": "你好,世界好",
-    "description": "最小的完整 Orleans 申请程序登记和拨用 grain.",
+    "title": "Hello World",
+    "description": "用于定义和调用 Grain 的最小完整 Orleans 应用。",
     "path": "HelloWorld",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": "HelloWorld/code.png",
-    "languages": ["C#"],
-    "tags": ["getting-started", "grains"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "getting-started",
+      "grains"
+    ],
     "featured": true
   },
   {
     "slug": "journaled-todo-list",
-    "title": "《日刊》待办事宜列表",
-    "description": "由一位精锐人士托管的网络应用程序,显示耐久性日记 grain 状态。",
+    "title": "日志持久化待办事项列表",
+    "description": "由 Aspire 托管的 Web 应用，演示基于日志的持久化 Grain 状态。",
     "path": "JournaledTodoList",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": null,
-    "languages": ["C#", "Razor"],
-    "tags": ["journaling", "aspire", "web"],
+    "languages": [
+      "C#",
+      "Razor"
+    ],
+    "tags": [
+      "journaling",
+      "aspire",
+      "web"
+    ],
     "featured": true
   },
   {
     "slug": "durable-jobs-migration",
-    "title": "提供持久就业的劳动力移徙",
-    "description": "现有工作从 Azure Blob提供商A接受新的工作,程序重新启动和全面库存检查。",
+    "title": "持久化作业提供程序迁移",
+    "description": "在 Azure Blob 提供程序 B 接收新作业的同时，排空提供程序 A 中的现有作业，并执行进程重启及全量清单检查。",
     "path": "DurableJobsMigration",
     "sourceRepository": "https://github.com/dotnet/orleans",
     "image": null,
-    "languages": ["C#"],
-    "tags": ["durable-jobs", "journaling", "azure-storage", "aspire"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "durable-jobs",
+      "journaling",
+      "azure-storage",
+      "aspire"
+    ],
     "featured": false
   },
   {
     "slug": "messaging",
-    "title": "预定通信物资库存",
-    "description": "独立订单和库存工作流程,展示打字对象、稳定的指令标识、信箱重复以及日记确认的答复。",
+    "title": "消息传递：库存预留",
+    "description": "独立的订单与库存工作流，演示类型化主题、稳定的命令 ID、收件箱去重以及经日志确认的回复。",
     "path": "Messaging",
     "sourceRepository": "https://github.com/dotnet/orleans",
     "image": null,
-    "languages": ["C#"],
-    "tags": ["messaging", "journaling", "grains"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "messaging",
+      "journaling",
+      "grains"
+    ],
     "featured": false
   },
   {
     "slug": "journaling-azure-blob-json",
-    "title": "与 Azure 布线 JSON",
-    "description": "使用 Orleans 与 JSON 存储在 Azure 黑洞储藏室",
+    "title": "使用 Azure Blob JSON 的日志持久化",
+    "description": "Aspire 示例，使用 Orleans 日志持久化，将 JSON 事件存储到 Azure Blob Storage。",
     "path": "JournalingAzureBlobJson",
     "sourceRepository": "https://github.com/dotnet/orleans",
     "image": null,
-    "languages": ["C#"],
-    "tags": ["journaling", "azure-storage", "aspire"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "journaling",
+      "azure-storage",
+      "aspire"
+    ],
     "featured": false
   },
   {
     "slug": "presence",
-    "title": "驻外服务处",
-    "description": "利用观察员和多方合作提供博彩服务 grains。",
+    "title": "在线状态服务",
+    "description": "利用观察者和多个协作 Grain 实现的游戏在线状态服务。",
     "path": "Presence",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": "Presence/screenshot.png",
-    "languages": ["C#"],
-    "tags": ["gaming", "observers", "services"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "gaming",
+      "observers",
+      "services"
+    ],
     "featured": true
   },
   {
     "slug": "shopping-cart",
     "title": "购物车",
-    "description": "使用 Orleans 持久性和 Azure 储存的布拉佐尔购物车。",
+    "description": "使用 Orleans 持久化及 Azure Storage 的 Blazor 购物车。",
     "path": "ShoppingCart",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": "ShoppingCart/media/shopping-cart.png",
-    "languages": ["C#", "Razor"],
-    "tags": ["blazor", "persistence", "azure-storage"],
+    "languages": [
+      "C#",
+      "Razor"
+    ],
+    "tags": [
+      "blazor",
+      "persistence",
+      "azure-storage"
+    ],
     "featured": true
   },
   {
     "slug": "stocks",
-    "title": "储存库存",
-    "description": "使用 grain 计时器、HTTP电话和临时缓存的股票价格应用软件。",
+    "title": "股票行情",
+    "description": "使用 Grain 定时器、HTTP 调用和临时缓存的股票价格应用。",
     "path": "Stocks",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": "Stocks/screenshot.png",
-    "languages": ["C#", "Razor"],
-    "tags": ["timers", "http", "caching"],
+    "languages": [
+      "C#",
+      "Razor"
+    ],
+    "tags": [
+      "timers",
+      "http",
+      "caching"
+    ],
     "featured": false
   },
   {
     "slug": "streaming-custom-data-adapter",
-    "title": "流动自定义数据适应器",
-    "description": "活动枢纽流动样本,从非Orleans 出版商处获取数据。",
+    "title": "流式处理自定义数据适配器",
+    "description": "Event Hubs 流式处理示例，从非 Orleans 发布者消费数据。",
     "path": "Streaming/CustomDataAdapter",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": null,
-    "languages": ["C#"],
-    "tags": ["streaming", "event-hubs", "azure"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "streaming",
+      "event-hubs",
+      "azure"
+    ],
     "featured": false
   },
   {
     "slug": "streaming-simple",
-    "title": "简单流流",
-    "description": "使用 Orleans 流的紧凑生产者和消费者例子。",
+    "title": "简单流式处理",
+    "description": "使用 Orleans Streams 的精简生产者与消费者示例。",
     "path": "Streaming/Simple",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": null,
-    "languages": ["C#"],
-    "tags": ["streaming", "getting-started"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "streaming",
+      "getting-started"
+    ],
     "featured": false
   },
   {
     "slug": "tic-tac-toe",
-    "title": "铁脚",
-    "description": "网上游戏,展示游说和 ASP.NET 核心整合。",
+    "title": "井字棋",
+    "description": "基于 Web 的游戏，演示游戏大厅及 ASP.NET Core 集成。",
     "path": "TicTacToe",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": "TicTacToe/logo.png",
-    "languages": ["C#", "JavaScript"],
-    "tags": ["games", "aspnet-core", "web"],
+    "languages": [
+      "C#",
+      "JavaScript"
+    ],
+    "tags": [
+      "games",
+      "aspnet-core",
+      "web"
+    ],
     "featured": false
   },
   {
     "slug": "transport-layer-security",
-    "title": "运输层安全",
-    "description": "由所有网络通讯的TLS组合成",
+    "title": "传输层安全性",
+    "description": "为所有网络通信配置双向 TLS 的 Hello World 集群。",
     "path": "TransportLayerSecurity",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": "TransportLayerSecurity/screenshot.png",
-    "languages": ["C#"],
-    "tags": ["security", "tls", "networking"],
+    "languages": [
+      "C#"
+    ],
+    "tags": [
+      "security",
+      "tls",
+      "networking"
+    ],
     "featured": false
   },
   {
     "slug": "visual-basic-hello-world",
-    "title": "世界喜好",
-    "description": "最小 Orleans 应用 grain 《视觉基础》中合同和执行。",
+    "title": "Visual Basic Hello World",
+    "description": "使用 Visual Basic 编写 Grain 契约和实现的最小 Orleans 应用。",
     "path": "VBHelloWorld",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": null,
-    "languages": ["Visual Basic", "C#"],
-    "tags": ["getting-started", "visual-basic"],
+    "languages": [
+      "Visual Basic",
+      "C#"
+    ],
+    "tags": [
+      "getting-started",
+      "visual-basic"
+    ],
     "featured": false
   },
   {
     "slug": "voting",
-    "title": "表决表决表决 表决表决 表决表决表决 表决表决表决投票 表决表决表决",
-    "description": "A Kubernetes- 与 Orleans 弹板",
+    "title": "投票",
+    "description": "面向 Kubernetes 的投票 Web 应用，包含 Orleans Dashboard。",
     "path": "Voting",
     "sourceRepository": "https://github.com/dotnet/samples",
     "image": "Voting/screenshot.png",
-    "languages": ["C#", "Razor"],
-    "tags": ["kubernetes", "dashboard", "web"],
+    "languages": [
+      "C#",
+      "Razor"
+    ],
+    "tags": [
+      "kubernetes",
+      "dashboard",
+      "web"
+    ],
     "featured": false
   },
   {
     "slug": "azure-app-service-deployment",
-    "title": "Azure 应用程序处部署",
-    "description": "视窗和Linux Azure 应用程序服务处部署,具有管理身份、私营 silo 网络、健康检查、易用自用、比塞普和OIDC。",
+    "title": "Azure App Service 部署",
+    "description": "适用于 Windows 和 Linux 的 Azure App Service 部署，包含托管标识、Silo 专用网络、健康检查、Easy Auth、Bicep 和 OIDC。",
     "path": "Deployment/AzureAppService",
     "sourceRepository": "https://github.com/dotnet/orleans",
     "image": "Deployment/AzureAppService/media/shopping-cart-arch.png",
-    "languages": ["C#", "Razor", "Bicep", "YAML"],
-    "tags": ["deployment", "azure", "app-service", "windows", "linux"],
+    "languages": [
+      "C#",
+      "Razor",
+      "Bicep",
+      "YAML"
+    ],
+    "tags": [
+      "deployment",
+      "azure",
+      "app-service",
+      "windows",
+      "linux"
+    ],
     "featured": true
   },
   {
     "slug": "azure-container-apps-deployment",
-    "title": "Azure 集装箱应用程序部署",
-    "description": "管理下身份 Orleans 群集,客户、仪表板、缩放器和Bicep为 Azure 集装箱应用程序部署。",
+    "title": "Azure Container Apps 部署",
+    "description": "适用于 Azure Container Apps 的托管标识 Orleans 集群，包含客户端、Dashboard、缩放器及 Bicep 部署。",
     "path": "Deployment/AzureContainerApps",
     "sourceRepository": "https://github.com/Azure-Samples/Orleans-Cluster-on-Azure-Container-Apps",
     "image": null,
-    "languages": ["C#", "Bicep", "YAML"],
-    "tags": ["deployment", "azure", "container-apps", "managed-identity", "networking"],
+    "languages": [
+      "C#",
+      "Bicep",
+      "YAML"
+    ],
+    "tags": [
+      "deployment",
+      "azure",
+      "container-apps",
+      "managed-identity",
+      "networking"
+    ],
     "featured": true
   }
 ]

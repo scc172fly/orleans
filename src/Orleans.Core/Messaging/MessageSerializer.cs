@@ -61,7 +61,7 @@ namespace Orleans.Runtime.Messaging
         {
             try
             {
-                // 构建信息
+                // 构建消息。
                 message = new();
                 var headersReader = Reader.Create(readRequest._headers, _deserializationSession);
                 DeserializeHeaders(ref headersReader, message);
@@ -83,7 +83,7 @@ namespace Orleans.Runtime.Messaging
 
                 if (message.Result == ResponseTypes.Success)
                 {
-                    message.Result = ResponseTypes.None; // 重置原始响应指标
+                    message.Result = ResponseTypes.None; // 重置原始响应指示标志。
                     if (!_rawResponseCodecs.TryGetValue(field.FieldType!, out var rawCodec))
                         rawCodec = GetRawCodec(field.FieldType!);
                     message._bodyObject = rawCodec.ReadRaw(ref reader, ref field);
@@ -124,9 +124,9 @@ namespace Orleans.Runtime.Messaging
                 if (headers.ResponseType is ResponseTypes.None && bodyCodec is ResponseCodec responseCodec)
                 {
                     rawCodec = responseCodec;
-                    headers.ResponseType = ResponseTypes.Success; // 表示简单响应(未在回应<T>中包装)
-                    // 原始编码将字段标题中编码的类型从反应<T> 改为 T
-                    // 并且没有编码无效引用值, 否则它和普通编码完全相同。
+                    headers.ResponseType = ResponseTypes.Success; // 指示原始简单响应（未包装在 Response<T> 中）。
+                    // 原始编码将字段头中编码的类型从 Response<T> 改为 T，
+                    // 并且不编码 null 引用值；除此之外与普通编码相同。
                 }
             }
 
@@ -154,7 +154,7 @@ namespace Orleans.Runtime.Messaging
                     bodyLength = writer.Position;
                 }
 
-                // 完成前检查长度
+                // 完成前检查长度。
                 ValidateFrameLengths(headerLength, bodyLength);
 
                 return (headerLength, bodyLength);
@@ -166,8 +166,8 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// 当地请求提供拥有的序列式机构,因为收到的请求已经发出。
-        /// 随后的移徙或转运发送这些字节,而不是再次按序确定其价值。
+        /// 为本地请求提供其拥有的序列化消息体，收到的请求本身已具备此类消息体。
+        /// 后续迁移或转发会发送这些字节，而不再重新序列化其中的值。
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage(
             "Reliability", "CA2000:Dispose objects before losing scope",
@@ -205,11 +205,11 @@ namespace Orleans.Runtime.Messaging
         }
 
         /// <summary>
-        /// 检查有效的当前信头,不消耗任意要求-文本价值。
+        /// 给出有效的当前消息头的大小上界，而不读取任意请求上下文值。
         /// </summary>
         /// <remarks>
-        /// 移民拥有页眉,而请求排队。待回调的本地回调仍然可以重新瞄准 silo,
-        /// ,这样约束可以允许地址增长。不透明请求的上下文使用配置的页眉限制。
+        /// 请求处于排队状态时，迁移操作拥有这些消息头。尚待处理的本地回调仍然可以更改目标 Silo，
+        /// 因此上界允许地址长度增加。不透明的请求上下文使用配置的消息头大小限制。
         /// </remarks>
         internal long GetHeaderSizeBound(ArcBufferWriter buffer, Message message)
         {
@@ -279,7 +279,7 @@ namespace Orleans.Runtime.Messaging
                 WriteCacheInvalidationHeaders(ref writer, value.CacheInvalidationHeader!);
             }
 
-            // 总是向上写 RequestContext
+            // 始终最后写入 RequestContext。
             if (headers.HasFlag(MessageFlags.HasRequestContextData))
             {
                 WriteRequestContext(ref writer, value.RequestContextData!);
@@ -382,7 +382,7 @@ namespace Orleans.Runtime.Messaging
         {
             if (value is null)
             {
-                writer.WriteByte(1); // 等值于 `writer.WriteVarUInt32(0);`
+                writer.WriteByte(1); // 等效于 `writer.WriteVarUInt32(0);`。
                 return;
             }
 

@@ -40,12 +40,12 @@ public class AliasClashAttributeAnalyzer : DiagnosticAnalyzer
                 context => CollectTypeAliases(context, aliasMap, aliasAttributeSymbol!),
                 SymbolKind.NamedType);
 
-            // 我们可以立即检查 grain 接口中的重复方法。
+            // 可以立即检查 Grain 接口中的重复方法别名。
             context.RegisterSymbolAction(
                 context => CheckMethodAliases(context, aliasMap, aliasAttributeSymbol!),
                 SymbolKind.NamedType);
 
-            // 只有在最后,我们只对类型别名冲突做一个单字扫描。
+            // 仅在最后进行一次单线程扫描，专门检查类型别名冲突。
             context.RegisterCompilationEndAction(context =>
             {
                 foreach (var kvp in aliasMap)
@@ -60,7 +60,7 @@ public class AliasClashAttributeAnalyzer : DiagnosticAnalyzer
 
                     if (distinctTypes.Count <= 1)
                     {
-                        continue; // 如果不止一种不同类型的人声称。
+                        continue; // 如果不止一种不同的类型声明了此别名。
                     }
 
                     var firstType = distinctTypes[0];
@@ -82,7 +82,7 @@ public class AliasClashAttributeAnalyzer : DiagnosticAnalyzer
 
         if (typeSymbol.TypeKind == TypeKind.Interface && !typeSymbol.ExtendsGrainInterface())
         {
-            return; // 不扩展 I 地址可访问的界面
+            return; // 跳过未继承 IAddressable 的接口。
         }
 
         foreach (var attr in typeSymbol.GetAttributes())
@@ -136,7 +136,7 @@ public class AliasClashAttributeAnalyzer : DiagnosticAnalyzer
             }
         }
 
-        // 在接口方法中查找重复的别名 。
+        // 查找接口方法中的重复别名。
         var duplicateMethodAliases = methodBags
             .GroupBy(x => x.Alias)
             .Where(g => g.Count() > 1);

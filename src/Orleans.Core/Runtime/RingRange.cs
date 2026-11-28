@@ -5,46 +5,46 @@ using System.Diagnostics;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 代表一个虚拟环周围的幅度或一组范围,其中圆环上的点用 <see cref="uint"/> 值来识别。
+    /// 表示虚拟环上的一个范围或一组范围，其中环上的各个点使用 <see cref="uint"/> 值标识。
     /// </summary>
     public interface IRingRange
     {
         /// <summary>
-        /// 返回一个数值,表示 <paramref name="value"/> 是否在这个环范围内。
+        /// 返回指示 <paramref name="value"/> 是否位于此环范围内的值。
         /// </summary>
         /// <param name="value">
-        /// 检查值 。
+        /// 要检查的值。
         /// </param>
-        /// <returns><see langword="true"/> 如果教诲是分量在我们的应尽的责任范围内, <see langword="false"/> 否则。</returns>
+        /// <returns><see langword="true"/> 表示提醒器位于本节点的负责范围内，否则为 <see langword="false"/>。</returns>
         bool InRange(uint value);
 
         /// <summary>
-        /// 返回一个数值,表示 <paramref name="grainId"/> 是否在这个环范围内。
+        /// 返回指示 <paramref name="grainId"/> 是否位于此环范围内的值。
         /// </summary>
         /// <param name="grainId">要检查的值。</param>
-        /// <returns><see langword="true"/> 如果教诲是分量在我们的应尽的责任范围内, <see langword="false"/> 否则。</returns>
+        /// <returns><see langword="true"/> 表示提醒器位于本节点的负责范围内，否则为 <see langword="false"/>。</returns>
         public sealed bool InRange(GrainId grainId) => InRange(grainId.GetUniformHashCode());
     }
 
-    // 这是只供不同范围的执行使用的内部接口。
+    // 仅供不同范围实现使用的内部接口。
     internal interface IRingRangeInternal : IRingRange
     {
         double RangePercentage();
     }
 
     /// <summary>
-    /// 代表一个单一的毗连区域,围绕虚拟环圈,用 <see cref="uint"/> 值来识别环上各点。
+    /// 表示虚拟环上的单个连续范围，其中环上的各个点使用 <see cref="uint"/> 值标识。
     /// </summary>
     /// <seealso cref="Orleans.Runtime.IRingRange" />
     public interface ISingleRange : IRingRange
     {
         /// <summary>
-        /// 获得范围范围内的排他性下限。
+        /// 获取范围的排他下界。
         /// </summary>
         uint Begin { get; }
 
         /// <summary>
-        /// 获得范围上方的包容性。
+        /// 获取范围的包含性上界。
         /// </summary>
         uint End { get; }
     }
@@ -59,12 +59,12 @@ namespace Orleans.Runtime
         private readonly uint end;
 
         /// <summary>
-        /// 专 专
+        /// 不包含边界值。
         /// </summary>
         public uint Begin { get { return begin; } }
 
         /// <summary>
-        /// 包容性
+        /// 包含边界值。
         /// </summary>
         public uint End { get { return end; } }
 
@@ -75,10 +75,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// n 的选中值是( begin, end) 的元素,同时记住区域在环上
+        /// 检查 n 是否属于 (Begin, End]，同时考虑范围处于环上的情况。
         /// </summary>
         /// <param name="n"></param>
-        /// <returns>真实的 n 在( begin, end) 中, 否则是假</returns>
+        /// <returns>n 位于 (Begin, End] 内时返回 true，否则返回 false。</returns>
         public bool InRange(uint n)
         {
             uint num = n;
@@ -86,7 +86,7 @@ namespace Orleans.Runtime
             {
                 return num > begin && num <= end;
             }
-            // 开始 > 结束
+            // Begin > End
             return num > begin || num <= end;
         }
 
@@ -145,7 +145,7 @@ namespace Orleans.Runtime
             throw new InvalidOperationException("Ranges don't overlap");
         }
 
-        // 其它区域,则根据它结束的位置合并
+        // 另一个范围的起点位于此范围内部，根据它的终点位置合并范围。
         private SingleRange MergeEnds(SingleRange other)
         {
             if (begin == other.end)
@@ -168,43 +168,43 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// 创建 <see cref="IRingRange" /> 值的工具类。
+    /// 用于创建 <see cref="IRingRange" /> 值的实用工具类。
     /// </summary>
     public static class RangeFactory
     {
         /// <summary>
-        /// 戒指的大小。
+        /// 环的大小。
         /// </summary>
         public const long RING_SIZE = (long)uint.MaxValue + 1;
 
         /// <summary>
-        /// 表示空区。
+        /// 表示空范围。
         /// </summary>
         private static readonly GeneralMultiRange EmptyRange = new(new());
         /// <summary>
-        /// 代表全套服务。
+        /// 表示完整范围。
         /// </summary>
         internal static readonly SingleRange FullRange = new(0, 0);
 
         /// <summary>
-        /// 创建全域。
+        /// 创建完整范围。
         /// </summary>
-        /// <returns>IRingRange.</returns>
+        /// <returns>IRingRange。</returns>
         public static IRingRange CreateFullRange() => FullRange;
 
         /// <summary>
-        /// 创建一个新的 <see cref="IRingRange"/> ,代表排他性下限、 <paramref name="begin"/>和包容性上限、 <paramref name="end"/>之间的数值。
+        /// 创建新的 <see cref="IRingRange"/>，表示从排他下界 <paramref name="begin"/> 到包含性上界 <paramref name="end"/> 之间的值。
         /// </summary>
-        /// <param name="begin">排他性下限约束</param>
-        /// <param name="end">包含式上约束。</param>
-        /// <returns>一个新的 <see cref="IRingRange"/> 表示排他性下限之间、 <paramref name="begin"/>和包容性的上约束, <paramref name="end"/>.</returns>
+        /// <param name="begin">不包含的下界。</param>
+        /// <param name="end">包含的上界。</param>
+        /// <returns>一个新的 <see cref="IRingRange"/>，表示从排他下界 <paramref name="begin"/> 到包含性上界 <paramref name="end"/> 之间的值。</returns>
         public static IRingRange CreateRange(uint begin, uint end) => new SingleRange(begin, end);
 
         /// <summary>
-        /// 创建一个新的 <see cref="IRingRange"/> ,代表所有提供范围的联盟。
+        /// 创建新的 <see cref="IRingRange"/>，表示所有提供范围的并集。
         /// </summary>
-        /// <param name="inRanges">范围。</param>
-        /// <returns>一个新的 <see cref="IRingRange"/> 代表所有规定范围的联盟。</returns>
+        /// <param name="inRanges">各个范围。</param>
+        /// <returns>一个新的 <see cref="IRingRange"/>，表示所有提供范围的并集。</returns>
         public static IRingRange CreateRange(List<IRingRange> inRanges) => inRanges.Count switch
         {
             0 => EmptyRange,
@@ -213,20 +213,20 @@ namespace Orleans.Runtime
         };
 
         /// <summary>
-        /// 从所提供的范围中创建平均分隔的子区域,并返回该范围的1个子区域。
+        /// 将提供的范围等分为子范围，并返回其中一个子范围。
         /// </summary>
         /// <param name="range">范围。</param>
-        /// <param name="numSubRanges">子区域的数目。</param>
-        /// <param name="mySubRangeIndex">返回的子序列索引。</param>
-        /// <returns>所确定的子范围。</returns>
+        /// <param name="numSubRanges">子范围的数量。</param>
+        /// <param name="mySubRangeIndex">要返回的子范围的索引。</param>
+        /// <returns>指定的子范围。</returns>
         internal static IRingRange GetEquallyDividedSubRange(IRingRange range, int numSubRanges, int mySubRangeIndex)
             => EquallyDividedMultiRange.GetEquallyDividedSubRange(range, numSubRanges, mySubRangeIndex);
 
         /// <summary>
-        /// 获取以提供范围表示的毗连子区域。
+        /// 获取所提供范围表示的各个连续子范围。
         /// </summary>
         /// <param name="range">范围。</param>
-        /// <returns>以规定范围表示的毗连子区域。</returns>
+        /// <returns>所提供范围表示的各个连续子范围。</returns>
         public static IEnumerable<ISingleRange> GetSubRanges(IRingRange range) => range switch
         {
             ISingleRange single => new[] { single },
@@ -319,9 +319,9 @@ namespace Orleans.Runtime
             uint start = singleRange.Begin;
             for (int i = 0; i < numSubRanges; i++)
             {
-                // ( 开始, 结束)
+                // (Begin, End]
                 uint end = unchecked(start + portion);
-                // 我要它故意溢出,这样会做对的
+                // 此处故意允许溢出，以得到正确的结果。
                 if (remainder > 0)
                 {
                     end++;
@@ -334,7 +334,7 @@ namespace Orleans.Runtime
             throw new ArgumentException("The subrange index must identify one of the divided ranges.", nameof(mySubRangeIndex));
         }
 
-        // 需要一个范围,然后将其分为 numSubRanges 等同范围,并在 mySubRangeIndex返回子范围。
+        // 将一个范围等分为 numSubRanges 个范围，并返回 mySubRangeIndex 处的子范围。
         public static IRingRange GetEquallyDividedSubRange(IRingRange range, int numSubRanges, int mySubRangeIndex)
         {
             if (numSubRanges <= 0) throw new ArgumentOutOfRangeException(nameof(numSubRanges));
@@ -352,7 +352,7 @@ namespace Orleans.Runtime
                     {
                         case 0: return multiRange;
                         default:
-                            // 将每个单项幅度在多个范围内取出,并将每个范围分成相同的子幅度。
+                            // 取多范围中的每个单独范围，将它们各自等分为子范围。
                             var singlesForThisIndex = new List<SingleRange>(multiRange.Ranges.Count);
                             foreach (var singleRange in multiRange.Ranges)
                                 singlesForThisIndex.Add(GetEquallyDividedSubRange(singleRange, numSubRanges, mySubRangeIndex));

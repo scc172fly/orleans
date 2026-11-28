@@ -1,4 +1,4 @@
-//# 设计USE-GENERICS
+//#define USE_GENERICS
 
 using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
@@ -12,12 +12,12 @@ namespace UnitTests.Grains
     [GenerateSerializer]
     public class StreamReliabilityTestGrainState
     {
-        // 生产者和消费者
-        // 只需要储存 因为我们是如何对多个供应商进行单位测试的
+        // 供生产者和消费者使用
+        // -- 仅因单元测试会针对多个提供程序运行，才需要存储此信息
         [Id(0)]
         public string? StreamProviderName { get; set; }
 
-        // 仅供制片人使用。
+        // 仅供生产者使用。
 #if USE_GENERICS
         public IAsyncStream<T> Stream { get; set; }
 #else
@@ -314,34 +314,34 @@ namespace UnitTests.Grains
         }
     }
 
-    //[可排
-    //公共类 MyStreamObserver<T> : IAsyncObserver<T>
+    //[Serializable]
+    //public class MyStreamObserver<T> : IAsyncObserver<T>
     //{
-    //    内部 NumItems {获得; 私有设置;}
-    //    内部 NumErrors {获得; 私有设置;}
+    //    internal int NumItems { get; private set; }
+    //    internal int NumErrors { get; private set; }
 
     //    private readonly Logger logger;
 
-    //    内部 MyStreamObserver(错误日志)
+    //    internal MyStreamObserver(Logger logger)
     //    {
-    //        this.logger = 日志;
+    //        this.logger = logger;
     //    }
 
-    //    公共任务 OnNextAsync(T项目, StreamSequenceToken 符号)
+    //    public Task OnNextAsync(T item, StreamSequenceToken token)
     //    {
     //        NumItems++;
-    //        (如果)logger.IsVerbose)
+    //        if (logger.IsVerbose)
     //            logger.Verbose("Received OnNextAsync - Item={0} - Total Items={1} Errors={2}", item, NumItems, NumErrors);
     //        return Task.CompletedTask;
     //    }
 
-    //    公共任务 OnCompletedAsync()
+    //    public Task OnCompletedAsync()
     //    {
     //        logger.Info("Receive OnCompletedAsync - Total Items={0} Errors={1}", NumItems, NumErrors);
     //        return Task.CompletedTask;
     //    }
 
-    //    公共任务 OnErrorAsync(例外ex)
+    //    public Task OnErrorAsync(Exception ex)
     //    {
     //        NumErrors++;
     //        logger.Warn(1, "Received OnErrorAsync - Exception={0} - Total Items={1} Errors={2}", ex, NumItems, NumErrors);

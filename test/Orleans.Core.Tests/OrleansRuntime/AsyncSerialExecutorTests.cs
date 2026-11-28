@@ -5,7 +5,7 @@ using Xunit;
 namespace UnitTests.OrleansRuntime
 {
     /// <summary>
-    /// 测试序列执行器的同步功能,包括连续任务执行和货币兑换验证。
+    /// 异步串行执行器功能测试，包括任务顺序执行和并发验证。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

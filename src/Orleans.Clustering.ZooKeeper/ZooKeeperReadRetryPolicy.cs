@@ -69,7 +69,7 @@ internal static partial class ZooKeeperReadRetryPolicy
 
                 context.CancellationToken.ThrowIfCancellationRequested();
                 var attemptGeneration = connectionMonitor?.CaptureAttemptGeneration() ?? 0;
-                // 等待当地实际完成:取消停止入境,而不是飞行请求。
+                // 等待原生操作实际完成：取消停止准入新请求，而非终止进行中的请求。
                 try
                 {
                     return await operation();

@@ -9,7 +9,7 @@ using Orleans.Serialization.Buffers.Adaptors;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Grain 使用 Orleans <see cref="Serializer"/>.
+    /// 使用 Orleans <see cref="Serializer"/> 的 Grain 存储序列化器。
     /// </summary>
     public class OrleansGrainStorageSerializer : IGrainStorageStreamingSerializer
     {
@@ -18,7 +18,7 @@ namespace Orleans.Storage
         /// <summary>
         /// 初始化 <see cref="OrleansGrainStorageSerializer"/> 类的新实例。
         /// </summary>
-        /// <param name="serializer">序列器。</param>
+        /// <param name="serializer">序列化器。</param>
         public OrleansGrainStorageSerializer(Serializer serializer)
         {
             this.serializer = serializer;
@@ -52,8 +52,8 @@ namespace Orleans.Storage
         {
             ArgumentNullException.ThrowIfNull(input);
 
-            // 可查找流(e.g.、 MemoryStream、 FileStream)可直接在不缓冲的情况下进行消毒。
-            // 不可寻找的流(e.g., NetworkStream)需要缓冲,以便能够高效率地进行多路读取。
+            // 可定位流（例如 MemoryStream、FileStream）无需缓冲即可直接反序列化。
+            // 不可定位流（例如 NetworkStream）需要缓冲，以便高效地多次读取。
             if (input.CanSeek)
             {
                 return this.serializer.Deserialize<T>(input);

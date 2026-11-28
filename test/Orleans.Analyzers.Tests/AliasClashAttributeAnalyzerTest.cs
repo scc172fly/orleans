@@ -5,9 +5,9 @@ using Xunit;
 namespace Analyzers.Tests;
 
 /// <summary>
-/// 测试 AliasClashAttributeAnalyzer ,确保别名属性没有冲突值。
-/// Orleans 使用别名进行序列和RPC中的类别识别,因此重复的别名将导致 
-/// 运行时冲突。 该分析器在编译时间捕捉这些问题 。
+/// 测试 AliasClashAttributeAnalyzer，该分析器确保别名特性的值不会冲突。
+/// Orleans 在序列化和 RPC 中使用别名标识类型，因此重复的别名会造成
+/// 运行时冲突。此分析器在编译时捕获这些问题。
 /// </summary>
 [TestCategory("BVT"), TestCategory("Analyzer")]
 [TestSuite("BVT")]
@@ -33,7 +33,7 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// 证明分析器检测到两个昆虫具有相同的别名属性值。
+    /// 验证分析器能否检测具有相同别名特性值的两个枚举。
     /// </summary>
     [Fact]
     public Task Enum_ShouldTriggerDiagnostic()
@@ -50,7 +50,7 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// 证明分析器检测到两个记录具有相同的别名属性值。
+    /// 验证分析器能否检测具有相同别名特性值的两个记录类型。
     /// </summary>
     [Fact]
     public Task Record_ShouldTriggerDiagnostic()
@@ -67,7 +67,7 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// 证明分析器检测到两个记录支架具有相同的别名属性值时。
+    /// 验证分析器能否检测具有相同别名特性值的两个记录结构体。
     /// </summary>
     [Fact]
     public Task RecordStruct_ShouldTriggerDiagnostic()
@@ -84,7 +84,7 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// 证明分析器检测到两个类别具有相同的别名属性值。
+    /// 验证分析器能否检测具有相同别名特性值的两个类。
     /// </summary>
     [Fact]
     public Task Class_ShouldTriggerDiagnostic()
@@ -108,7 +108,7 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// 证明分析器检测到两个支架的化名属性值相同时。
+    /// 验证分析器能否检测具有相同别名特性值的两个结构体。
     /// </summary>
     [Fact]
     public Task Struct_ShouldTriggerDiagnostic()
@@ -135,8 +135,8 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// 证明分析器检测到两个 grain 接口具有相同别名属性值时, 即为同一 。
-    /// 测试各种 grain 接口类型(IGrain, IGrainWithIntegerKey等)。
+    /// 验证分析器能否检测具有相同别名特性值的两个 Grain 接口。
+    /// 测试多种 Grain 接口类型（IGrain、IGrainWithIntegerKey 等）。
     /// </summary>
     [Theory]
     [MemberData(nameof(GrainInterfaces))]
@@ -154,8 +154,8 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// 证明分析器不触发与同一别名的非grain 接口,
-    /// 化名仅对 grain 接口 Orleans.
+    /// 验证对于具有相同别名的非 Grain 接口，分析器不会触发诊断，
+    /// 因为在 Orleans 中，接口别名仅对 Grain 接口有意义。
     /// </summary>
     [Fact]
     public Task NonGrainInterface_ShouldNotTriggerDiagnostic()
@@ -172,8 +172,8 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// 证明分析器检测到同一 grain 接口中两种方法有相同的别名时。
-    /// 方法别名必须是接口内唯一的, 以便进行适当的 RPC 发送 。
+    /// 验证分析器能否检测同一 Grain 接口中具有相同别名的两个方法。
+    /// 为了正确分派 RPC，方法别名在同一接口内必须唯一。
     /// </summary>
     [Theory]
     [MemberData(nameof(GrainInterfaces))]
@@ -191,7 +191,7 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// 证明分析器允许在同一 grain 接口中不同方法的不同别名。
+    /// 验证分析器是否允许同一 Grain 接口中不同的方法使用不同别名。
     /// </summary>
     [Theory]
     [MemberData(nameof(GrainInterfaces))]
@@ -209,8 +209,8 @@ public class AliasClashAttributeAnalyzerTest : DiagnosticAnalyzerTestBase<AliasC
     }
 
     /// <summary>
-    /// 证明分析器允许在不同 grain 接口中使用相同方法别名,
-    /// 方法别名只需在每个界面中独有即可。
+    /// 验证分析器是否允许不同的 Grain 接口使用相同的方法别名，
+    /// 因为方法别名只需要在各自接口内唯一。
     /// </summary>
     [Theory]
     [MemberData(nameof(GrainInterfaces))]

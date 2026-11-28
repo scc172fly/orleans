@@ -7,7 +7,7 @@ public static class LoadDriver
 {
     private static Random Random => Random.Shared;
 
-    // 旧金山:大致边界。
+    // 旧金山：大致地理边界。
     private const double SFLatMin = 37.708;
     private const double SFLatMax = 37.78;
     private const double SFLonMin = -122.50;
@@ -17,7 +17,7 @@ public static class LoadDriver
 
     public static async Task DriveLoad(IGrainFactory client, int numDevices, CancellationToken cancellationToken)
     {
-        // 模拟一些设备
+        // 模拟若干设备。
         var deviceModels = new List<Model>();
         for (int i = 0; i < numDevices; i++)
         {
@@ -31,7 +31,7 @@ public static class LoadDriver
             });
         }
 
-        // 以循环方式更新每个设备 。
+        // 在循环中更新每个设备。
         var tasks = new List<Task>();
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -56,17 +56,17 @@ public static class LoadDriver
     {
         await Task.Yield();
 
-        // 将消息发送到服务
+        // 将消息发送给服务。
         IDeviceGrain device = grainFactory.GetGrain<IDeviceGrain>(model.DeviceId);
 
         while (!cancellationToken.IsCancellationRequested && (count == -1 || count-- > 0))
         {
             try
             {
-                // 这些价值观没有什么特别之处,它们只是模拟随机行走。
+                // 这些数值没有特殊含义，仅用于模拟随机游走。
                 double delta = model.TimeSinceLastUpdate.Elapsed.TotalMilliseconds;
 
-                // 模拟设备移动
+                // 模拟设备移动。
                 model.Acceleration = Math.Clamp(model.Acceleration + delta / 100 * NextDouble(-0.0005, 0.0005), -10, 10);
                 model.Speed = Math.Clamp(model.Speed + model.Acceleration * delta / 100, -0.0005, 0.0005);
 
@@ -80,7 +80,7 @@ public static class LoadDriver
 
                 if (lastLat == model.Lat || lastLon == model.Lon)
                 {
-                    // 装置已进入边界,所以改变方向
+                    // 设备已到达边界，因此改变方向。
                     model.Direction += NextDouble(-Math.PI, Math.PI);
 
                     UpdateDevicePosition(model, delta);
@@ -98,7 +98,7 @@ public static class LoadDriver
 
                 Interlocked.Increment(ref s_counter);
 
-                // 确保更新间隔间至少15米的通行证
+                // 确保两次更新之间至少间隔 15 毫秒。
                 await Task.Delay(TimeSpan.FromMilliseconds(Math.Max(0, 15 - model.TimeSinceLastUpdate.ElapsedMilliseconds)));
             }
             catch (Exception exception)

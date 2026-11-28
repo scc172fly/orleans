@@ -6,7 +6,7 @@ using Orleans.Transactions.Abstractions;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// 创建当前 grain 激活的交易承诺方。
+    /// 为当前 Grain 激活实例创建事务提交器。
     /// </summary>
     public class TransactionCommitterFactory : ITransactionCommitterFactory
     {
@@ -15,7 +15,7 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="TransactionCommitterFactory"/> 类的新实例。
         /// </summary>
-        /// <param name="contextAccessor">当前 grain 激活环境的存取器。</param>
+        /// <param name="contextAccessor">当前 Grain 激活实例上下文的访问器。</param>
         public TransactionCommitterFactory(IGrainContextAccessor contextAccessor)
         {
             this.contextAccessor = contextAccessor;

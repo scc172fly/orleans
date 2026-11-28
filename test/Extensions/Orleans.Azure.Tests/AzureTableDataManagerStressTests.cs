@@ -8,7 +8,7 @@ using AzureStoragePolicyOptions = Orleans.Clustering.AzureStorage.AzureStoragePo
 namespace Tester.AzureUtils
 {
     /// <summary>
-    /// 表格存储数据管理员测试高容量读/写操作和性能的 Azure 表存储数据管理员压力测试。
+    /// Azure Table Storage 数据管理器的压力测试，验证高负载读写操作和性能。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Storage"), TestCategory("Stress")]
     [TestSuite("Stress")]
@@ -24,7 +24,7 @@ namespace Tester.AzureUtils
         {
             this.output = output;
 
-            // 必要时,预创建表格
+            // 如有必要，预先创建表
             manager = new UnitTestAzureTableDataManager(TestContext.Current.CancellationToken);
 
             PartitionKey = "AzureTableDataManagerStressTests-" + Guid.NewGuid();
@@ -38,7 +38,7 @@ namespace Tester.AzureUtils
             const int batchSize = 1000;
             const int numPartitions = 1;
 
-            // 写入一些数据
+            // 写入一些数据。
             await WriteAlot_Async(
                 testName,
                 numPartitions,
@@ -55,7 +55,7 @@ namespace Tester.AzureUtils
             const int batchSize = 1000;
             const int numPartitions = 100;
 
-            // 写入一些数据
+            // 写入一些数据。
             await WriteAlot_Async(
                 testName,
                 numPartitions,
@@ -70,7 +70,7 @@ namespace Tester.AzureUtils
             const string testName = "AzureTableDataManagerStressTests_ReadAll";
             const int iterations = 1000;
 
-            // 写入一些数据
+            // 写入一些数据。
             await WriteAlot_Async(
                 testName,
                 1,
@@ -100,7 +100,7 @@ namespace Tester.AzureUtils
             const string testName = "AzureTableDataManagerStressTests_ReadAllTableEntities";
             const int iterations = 2000;
 
-            // 写入一些数据
+            // 写入一些数据。
             await WriteAlot_Async(
                 testName,
                 3,

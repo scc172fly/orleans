@@ -21,7 +21,7 @@
       }
     ]
   },
-  "description": "ASP.NET Core endpoint metrics from OpenTelemetry",
+  "description": "来自 OpenTelemetry 的 ASP.NET Core 终结点指标",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -245,7 +245,7 @@
           "refId": "p99.9"
         }
       ],
-      "title": "Requests Duration - $method $route",
+      "title": "请求耗时 - $method $route",
       "type": "timeseries"
     },
     {
@@ -424,7 +424,7 @@
           "refId": "5XX"
         }
       ],
-      "title": "Errors Rate - $method $route",
+      "title": "错误率 - $method $route",
       "type": "timeseries"
     },
     {
@@ -549,7 +549,7 @@
           "refId": "A"
         }
       ],
-      "title": "Unhandled Exceptions",
+      "title": "未处理的异常",
       "transformations": [
         {
           "id": "organize",
@@ -637,7 +637,7 @@
           "refId": "A"
         }
       ],
-      "title": "Requests HTTP Status Code",
+      "title": "请求的 HTTP 状态码",
       "type": "stat"
     },
     {
@@ -704,7 +704,7 @@
           "refId": "A"
         }
       ],
-      "title": "Requests Secured",
+      "title": "请求是否采用安全传输",
       "type": "stat"
     },
     {
@@ -771,7 +771,7 @@
           "refId": "A"
         }
       ],
-      "title": "Requests HTTP Protocol",
+      "title": "请求使用的 HTTP 协议",
       "type": "stat"
     }
   ],
@@ -814,7 +814,7 @@
         "definition": "label_values(http_server_active_requests,job)",
         "hide": 0,
         "includeAll": true,
-        "label": "Job",
+        "label": "作业",
         "multi": true,
         "name": "job",
         "options": [],
@@ -838,7 +838,7 @@
         "definition": "label_values(http_server_active_requests{job=~\"$job\"},instance)",
         "hide": 0,
         "includeAll": true,
-        "label": "Instance",
+        "label": "实例",
         "multi": true,
         "name": "instance",
         "options": [],
@@ -859,10 +859,10 @@
           "uid": "${datasource}"
         },
         "definition": "label_values(http_server_request_duration_seconds_count,http_route)",
-        "description": "Route",
+        "description": "路由",
         "hide": 0,
         "includeAll": false,
-        "label": "Route",
+        "label": "路由",
         "multi": false,
         "name": "route",
         "options": [],
@@ -885,7 +885,7 @@
         "definition": "label_values(http_server_request_duration_seconds_count{http_route=~\"$route\"},http_request_method)",
         "hide": 0,
         "includeAll": false,
-        "label": "Method",
+        "label": "方法",
         "multi": false,
         "name": "method",
         "options": [],
@@ -921,7 +921,7 @@
     ]
   },
   "timezone": "",
-  "title": "ASP.NET Core Endpoint",
+  "title": "ASP.NET Core 终结点",
   "uid": "aspnetcore-endpoint",
   "version": 2,
   "weekStart": "",

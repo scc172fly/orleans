@@ -3,27 +3,27 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 配置 <see cref="IIncomingGrainCallFilter"/> 和 <see cref="IOutgoingGrainCallFilter"/> 执行的扩展方法。
+    /// 用于配置 <see cref="IIncomingGrainCallFilter"/> 和 <see cref="IOutgoingGrainCallFilter"/> 实现的扩展方法。
     /// </summary>
     public static class GrainCallFilterSiloBuilderExtensions
     {
         /// <summary>
-        /// 在过滤管道中添加 <see cref="IIncomingGrainCallFilter"/> 。
+        /// 向筛选器管道添加 <see cref="IIncomingGrainCallFilter"/>。
         /// </summary>
-        /// <param name="builder">建筑工。</param>
-        /// <param name="filter">过滤器。</param>
-        /// <returns>建筑工。</returns>
+        /// <param name="builder">构建器。</param>
+        /// <param name="filter">筛选器。</param>
+        /// <returns>构建器。</returns>
         public static ISiloBuilder AddIncomingGrainCallFilter(this ISiloBuilder builder, IIncomingGrainCallFilter filter)
         {
             return builder.ConfigureServices(services => services.AddIncomingGrainCallFilter(filter));
         }
 
         /// <summary>
-        /// 在过滤管道中添加 <see cref="IIncomingGrainCallFilter"/> 。
+        /// 向筛选器管道添加 <see cref="IIncomingGrainCallFilter"/>。
         /// </summary>
-        /// <typeparam name="TImplementation">过滤器执行类型。</typeparam>
-        /// <param name="builder">建筑工。</param>
-        /// <returns>建筑工。</returns>
+        /// <typeparam name="TImplementation">筛选器实现类型。</typeparam>
+        /// <param name="builder">构建器。</param>
+        /// <returns>构建器。</returns>
         public static ISiloBuilder AddIncomingGrainCallFilter<
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(
             this ISiloBuilder builder)
@@ -33,33 +33,33 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 通过代表向过滤管道添加 <see cref="IIncomingGrainCallFilter"/> 。
+        /// 通过委托向筛选器管道添加 <see cref="IIncomingGrainCallFilter"/>。
         /// </summary>
-        /// <param name="builder">建筑工。</param>
-        /// <param name="filter">过滤器。</param>
-        /// <returns>建筑工。</returns>
+        /// <param name="builder">构建器。</param>
+        /// <param name="filter">筛选器。</param>
+        /// <returns>构建器。</returns>
         public static ISiloBuilder AddIncomingGrainCallFilter(this ISiloBuilder builder, IncomingGrainCallFilterDelegate filter)
         {
             return builder.ConfigureServices(services => services.AddIncomingGrainCallFilter(filter));
         }
 
         /// <summary>
-        /// 在过滤管道中添加 <see cref="IOutgoingGrainCallFilter"/> 。
+        /// 向筛选器管道添加 <see cref="IOutgoingGrainCallFilter"/>。
         /// </summary>
-        /// <param name="builder">建筑工。</param>
-        /// <param name="filter">过滤器。</param>
-        /// <returns>建筑工。</returns>
+        /// <param name="builder">构建器。</param>
+        /// <param name="filter">筛选器。</param>
+        /// <returns>构建器。</returns>
         public static ISiloBuilder AddOutgoingGrainCallFilter(this ISiloBuilder builder, IOutgoingGrainCallFilter filter)
         {
             return builder.ConfigureServices(services => services.AddOutgoingGrainCallFilter(filter));
         }
 
         /// <summary>
-        /// 在过滤管道中添加 <see cref="IOutgoingGrainCallFilter"/> 。
+        /// 向筛选器管道添加 <see cref="IOutgoingGrainCallFilter"/>。
         /// </summary>
-        /// <typeparam name="TImplementation">过滤器执行类型。</typeparam>
-        /// <param name="builder">建筑工。</param>
-        /// <returns>建筑工。</returns>
+        /// <typeparam name="TImplementation">筛选器实现类型。</typeparam>
+        /// <param name="builder">构建器。</param>
+        /// <returns>构建器。</returns>
         public static ISiloBuilder AddOutgoingGrainCallFilter<
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(
             this ISiloBuilder builder)
@@ -69,11 +69,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 通过代表向过滤管道添加 <see cref="IOutgoingGrainCallFilter"/> 。
+        /// 通过委托向筛选器管道添加 <see cref="IOutgoingGrainCallFilter"/>。
         /// </summary>
-        /// <param name="builder">建筑工。</param>
-        /// <param name="filter">过滤器。</param>
-        /// <returns>建筑工。</returns>
+        /// <param name="builder">构建器。</param>
+        /// <param name="filter">筛选器。</param>
+        /// <returns>构建器。</returns>
         public static ISiloBuilder AddOutgoingGrainCallFilter(this ISiloBuilder builder, OutgoingGrainCallFilterDelegate filter)
         {
             return builder.ConfigureServices(services => services.AddOutgoingGrainCallFilter(filter));

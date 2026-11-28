@@ -3,31 +3,31 @@ using System;
 namespace Orleans
 {
     /// <summary>
-    /// 定义 grain状态
+    /// 定义 Grain 的状态。
     /// </summary>
     /// <typeparam name="T">
-    /// 基本状态类型。
+    /// 底层状态类型。
     /// </typeparam>
     public interface IGrainState<T>
     {
         /// <summary>
-        /// 建立州立或控制
+        /// 获取或设置状态。
         /// </summary>
         T? State { get; set; }
 
-        /// <summary>获取或设置允许在储存提供者一级进行乐观的货币汇率核对的ETag。</summary>
+        /// <summary>获取或设置 ETag，用于在存储提供程序层执行乐观并发检查。</summary>
         string? ETag { get; set; }
 
         /// <summary>
-        /// 获取或设定一个值,以显示记录是否存于存储中。
+        /// 获取或设置指示记录是否存在于存储中的值。
         /// </summary>
         bool RecordExists { get; set; }
     }
 
     /// <summary>
-    /// <see cref="IGrainState{T}"/>的默认执行。
+    /// <see cref="IGrainState{T}"/> 的默认实现。
     /// </summary>
-    /// <typeparam name="T">应用水平有效载荷的类型。</typeparam>
+    /// <typeparam name="T">应用层有效载荷的类型。</typeparam>
     [Serializable]
     [GenerateSerializer]
     public sealed class GrainState<T> : IGrainState<T>
@@ -55,7 +55,7 @@ namespace Orleans
         /// 初始化 <see cref="GrainState{T}"/> 类的新实例。 
         /// </summary>
         /// <param name="state">
-        /// 状态的初始值 。
+        /// 状态的初始值。
         /// </param>
         public GrainState(T? state) : this(state, null)
         {
@@ -65,10 +65,10 @@ namespace Orleans
         /// 初始化 <see cref="GrainState{T}"/> 类的新实例。
         /// </summary>
         /// <param name="state">
-        /// 状态的初始值 。
+        /// 状态的初始值。
         /// </param>
         /// <param name="eTag">
-        /// 最初的电子牌值,可以在储存提供者一级进行乐观的货币汇率核对。
+        /// 用于在存储提供程序层执行乐观并发检查的初始 ETag 值。
         /// </param>
         public GrainState(T? state, string? eTag)
         {

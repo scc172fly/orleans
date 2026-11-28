@@ -5,18 +5,18 @@ using System.Diagnostics;
 namespace Orleans.Runtime.GrainDirectory;
 
 /// <summary>
-/// 代表环上连续值范围为零或以上的。
+/// 表示环上由零个或多个值组成的连续范围。
 /// </summary>
 [GenerateSerializer, Immutable, Alias(nameof(RingRange))]
 internal readonly struct RingRange : IEquatable<RingRange>, ISpanFormattable, IComparable<uint>
 {
-    // 区域的唯一起点。
-    //  注意,启动时间 _sart =_end = 1 用作代表整个范围的特别价值。
+    // 范围的起点（不包含该点）。
+    // 注意：_start == _end == 1 是表示完整范围的特殊值。
     [Id(0)]
     private readonly uint _start;
 
-    // 范围包含的终点。
-    //  注意,启动时间 _sart =_end = 1 用作代表整个范围的特别价值。
+    // 范围的终点（包含该点）。
+    // 注意：_start == _end == 1 是表示完整范围的特殊值。
     [Id(1)]
     private readonly uint _end;
 
@@ -24,7 +24,7 @@ internal readonly struct RingRange : IEquatable<RingRange>, ISpanFormattable, IC
 
     public bool IsFull => _start == _end && _start != 0;
 
-    // 范围是否包含 uint.MaxValue。
+    // 此范围是否包含 uint.MaxValue。
     internal bool IsWrapped => _start >= _end && _start != 0;
 
     public static RingRange Full { get; } = new(1, 1);
@@ -45,14 +45,14 @@ internal readonly struct RingRange : IEquatable<RingRange>, ISpanFormattable, IC
     internal static RingRange Create(uint start, uint end) => new(start, end);
 
     /// <summary>
-    /// 创建代表单一点的区域。
+    /// 创建表示单个点的范围。
     /// </summary>
-    /// <param name="point">范围包括的点。</param>
-    /// <returns>一个范围仅包括 <paramref name="point"/>。</returns>
+    /// <param name="point">要包含在范围中的点。</param>
+    /// <returns>仅包含 <paramref name="point"/> 的范围。</returns>
     public static RingRange FromPoint(uint point) => new(unchecked(point - 1), point);
 
     /// <summary>
-    /// 获取范围覆盖的点数，从 0 到整个环的 2^32。
+    /// 获取范围覆盖的点数，取值从零到完整环的 2 的 32 次方。
     /// </summary>
     public ulong Size
     {
@@ -60,17 +60,17 @@ internal readonly struct RingRange : IEquatable<RingRange>, ISpanFormattable, IC
         {
             if (_start == _end)
             {
-                // 空空
+                // 空范围。
                 if (_start == 0) return 0;
 
-                // 完整
+                // 完整范围。
                 return (ulong)uint.MaxValue + 1;
             }
 
-            // 普通普通
+            // 普通范围。
             if (_end > _start) return _end - _start;
 
-            // 包装包装
+            // 环绕范围。
             return (ulong)uint.MaxValue - _start + _end + 1;
         }
     }
@@ -85,40 +85,40 @@ internal readonly struct RingRange : IEquatable<RingRange>, ISpanFormattable, IC
         var start = Start;
         if (IsWrapped)
         {
-            // 开始 > 结束( 整件整件)
+            // Start > End（环绕情况）
             if (point <= start)
             {
-                // N(范围 > N)后开始的距离
+                // 范围起点在 N 之后（range > N）。
                 return -1;
             }
 
             // n > _end
-            // 距离在 N 前开始结束( 范围 < N)
+            // 范围起点和终点都在 N 之前（range < N）。
             return 1;
         }
 
         if (point <= start)
         {
-            // N(范围 > N)后开始的距离
+            // 范围起点在 N 之后（range > N）。
             return 1;
         }
 
         // n > _end
-        // 距离在 N 前开始结束( 范围 < N)
+        // 范围起点和终点都在 N 之前（range < N）。
         return -1;
     }
 
     /// <summary>
-    /// 检查 n 是 (Start, End) 的元素是否为 n,同时记住区域在环上
+    /// 检查 n 是否属于 (Start, End]，同时考虑范围位于环上。
     /// </summary>
-    /// <returns>真实的, 如果 n在( 启动、 结束) 中, 否则是假</returns>
+    /// <returns>如果 n 属于 (Start, End]，则为 true；否则为 false。</returns>
     internal bool Contains(GrainId grainId) => Contains(grainId.GetUniformHashCode());
 
     /// <summary>
-    /// n 的选中勾中, n 是( Start, end) 的元素,同时记住区域在环上
+    /// 检查 n 是否属于 (Start, End]，同时考虑范围位于环上。
     /// </summary>
     /// <param name="point"></param>
-    /// <returns>真实的, 如果 n在( 启动、 结束) 中, 否则是假</returns>
+    /// <returns>如果 n 属于 (Start, End]，则为 true；否则为 false。</returns>
     public bool Contains(uint point)
     {
         if (IsEmpty)
@@ -132,7 +132,7 @@ internal readonly struct RingRange : IEquatable<RingRange>, ISpanFormattable, IC
             return num > Start && num <= End;
         }
 
-        // 开始 > > 结束
+        // Start > End
         return num > Start || num <= End;
     }
 
@@ -178,13 +178,13 @@ internal readonly struct RingRange : IEquatable<RingRange>, ISpanFormattable, IC
     {
         if (!Intersects(other))
         {
-            // 没有交叉点
+            // 无交集。
             yield break;
         }
 
         if (IsFull)
         {
-            // 一个交叉点,另一个范围
+            // 只有一个交集，即另一个范围。
             yield return other;
         }
         else if (other.IsFull)
@@ -214,21 +214,21 @@ internal readonly struct RingRange : IEquatable<RingRange>, ISpanFormattable, IC
             var (normalStart, normalEnd) = (normal.Start, normal.End);
             var (wrappedStart, wrappedEnd) = (wrapped.Start, wrapped.End);
 
-            // 可能有两个交叉点, 在正常和包装的距离之间。
-            //         低
+            // 普通范围与环绕范围之间可能存在两个交集。
+            //         low         high
             // ...---NB====WE----WB====NE----...
 
-            // 下侧交叉口
+            // 低值侧的交集。
             if (wrappedEnd > normalStart)
             {
-                // - 尼库瓦
+                // ---NB====WE---
                 yield return new RingRange(normalStart, Math.Min(normalEnd, wrappedEnd));
             }
 
-            // 中间交叉在高处。
+            // 高值侧的交集。
             if (wrappedStart < normalEnd)
             {
-                // - 博文尼... - 来
+                // ---WB====NE---
                 yield return new RingRange(Math.Max(normalStart, wrappedStart), normalEnd);
             }
         }
@@ -238,10 +238,10 @@ internal readonly struct RingRange : IEquatable<RingRange>, ISpanFormattable, IC
         }
     }
 
-    // 获取设定的差数:在此范围内但不属于“其他”范围的子范围。
+    // 获取集合差：位于当前范围内但不位于 other 范围内的子范围。
     internal IEnumerable<RingRange> Difference(RingRange other)
     {
-        // 添加的值是此范围与前一范围的反向之间的交叉点。
+        // 新增部分为当前范围与旧范围的补集之间的交集。
         foreach (var addition in Intersections(other.Complement()))
         {
             Debug.Assert(!addition.Intersects(other));

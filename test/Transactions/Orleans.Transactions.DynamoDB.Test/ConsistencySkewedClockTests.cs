@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.DynamoDB.Tests
 {
     /// <summary>
-    /// 使用 DynamoDB测试交易是否与倾斜时钟情景相一致。
+    /// 测试使用 DynamoDB 时存在时钟偏差场景下的事务一致性。
     /// </summary>
     [TestSuite("Nightly")]
     [TestArea("Transactions")]

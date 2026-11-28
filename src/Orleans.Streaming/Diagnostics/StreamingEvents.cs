@@ -9,55 +9,55 @@ using Orleans.Streams;
 namespace Orleans.Streaming.Diagnostics;
 
 /// <summary>
-/// 提供 Orleans 流动事件的诊断听众和事件有效载荷类型。
+/// 提供 Orleans 流处理事件的诊断侦听器及事件有效载荷类型。
 /// </summary>
 /// <remarks>
-/// 这些类型是公开的,但可能在不同版本之间发生变化。
-/// 模拟测试和诊断等先进假设情景。
+/// 这些类型是公开的，但可能在次版本之间发生变化。它们面向
+/// 模拟测试和诊断等高级场景。
 /// </remarks>
 public static class StreamingEvents
 {
     /// <summary>
-    /// 流出事件诊断听众的名字 。
+    /// 流处理事件诊断侦听器的名称。
     /// </summary>
     public const string ListenerName = "Orleans.Streaming";
 
     private static readonly DiagnosticListener Listener = new(ListenerName);
 
     /// <summary>
-    /// 获得所有流动事件的可观测序列。
+    /// 获取所有流处理事件的可观察序列。
     /// </summary>
     public static IObservable<StreamingEvent> AllEvents { get; } = new Observable();
 
     /// <summary>
-    /// 用于流动诊断事件的基准类。
+    /// 流处理诊断事件使用的基类。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="siloAddress">大会主席的地址 silo 如果与事件有关,请予以说明。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="siloAddress">与事件关联的 Silo 地址（如果存在）。</param>
     public abstract class StreamingEvent(
         string streamProvider,
         SiloAddress? siloAddress)
     {
         /// <summary>
-        /// 流源提供者的名称 。
+        /// 流提供程序的名称。
         /// </summary>
         public readonly string StreamProvider = streamProvider;
 
         /// <summary>
-        /// 与事件相关的 silo 地址(如果有的话)。
+        /// 与事件关联的 Silo 地址（如果有）。
         /// </summary>
         public readonly SiloAddress? SiloAddress = siloAddress;
     }
 
     /// <summary>
-    /// 当流信息被发送到消费者时,事件有效载荷。
+    /// 流消息投递给消费者时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="streamId">流代号。</param>
-    /// <param name="subscriptionId">消费者的订阅身份证</param>
-    /// <param name="siloAddress">大会主席的地址 silo 处理此发送。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="streamId">流 ID。</param>
+    /// <param name="subscriptionId">消费者的订阅 ID。</param>
+    /// <param name="siloAddress">处理此次投递的 Silo 地址。</param>
     /// <param name="consumer">消费者端点。</param>
-    /// <param name="batch">交付的批次。</param>
+    /// <param name="batch">已投递的批次。</param>
     public sealed class MessageDelivered(
         string streamProvider,
         StreamId streamId,
@@ -67,33 +67,33 @@ public static class StreamingEvents
         IBatchContainer batch) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 溪的身份证
+        /// 流 ID。
         /// </summary>
         public readonly StreamId StreamId = streamId;
 
         /// <summary>
-        /// 消费者的订阅身份证
+        /// 消费者的订阅 ID。
         /// </summary>
         public readonly Guid SubscriptionId = subscriptionId;
 
         /// <summary>
-        /// 消费者终点
+        /// 消费者端点。
         /// </summary>
         public readonly IAddressable Consumer = consumer;
 
         /// <summary>
-        /// 交付的批次。
+        /// 已投递的批次。
         /// </summary>
         public readonly IBatchContainer Batch = batch;
     }
 
     /// <summary>
-    /// 当溪流因无活动而失去作用时,事件有效载荷。
+    /// 流因没有活动而变为非活动状态时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="streamId">流代号。</param>
-    /// <param name="inactivityPeriod">配置的无活动期。</param>
-    /// <param name="siloAddress">大会主席的地址 silo 发生这种情况的地方。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="streamId">流 ID。</param>
+    /// <param name="inactivityPeriod">配置的非活动时长。</param>
+    /// <param name="siloAddress">发生此事件的 Silo 地址。</param>
     public sealed class StreamInactive(
         string streamProvider,
         StreamId streamId,
@@ -101,24 +101,24 @@ public static class StreamingEvents
         SiloAddress? siloAddress) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 溪的身份证
+        /// 流 ID。
         /// </summary>
         public readonly StreamId StreamId = streamId;
 
         /// <summary>
-        /// 配置的无活动期 。
+        /// 配置的非活动时长。
         /// </summary>
         public readonly TimeSpan InactivityPeriod = inactivityPeriod;
     }
 
     /// <summary>
-    /// 添加串流订阅时的事件有效载荷。
+    /// 添加流订阅时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="streamId">流代号。</param>
-    /// <param name="subscriptionId">订阅编号。</param>
-    /// <param name="consumerGrainId">下 grain 消费者的身份。</param>
-    /// <param name="siloAddress">处理此订阅事宜的 silo 地址。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="streamId">流 ID。</param>
+    /// <param name="subscriptionId">订阅 ID。</param>
+    /// <param name="consumerGrainId">消费者的 Grain ID。</param>
+    /// <param name="siloAddress">处理此订阅的 Silo 地址。</param>
     public sealed class SubscriptionAdded(
         string streamProvider,
         StreamId streamId,
@@ -127,29 +127,29 @@ public static class StreamingEvents
         SiloAddress? siloAddress) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 溪的身份证
+        /// 流 ID。
         /// </summary>
         public readonly StreamId StreamId = streamId;
 
         /// <summary>
-        /// 订阅身份证
+        /// 订阅 ID。
         /// </summary>
         public readonly Guid SubscriptionId = subscriptionId;
 
         /// <summary>
-        /// 消费者的 grain 身份。
+        /// 消费者的 Grain ID。
         /// </summary>
         public readonly GrainId ConsumerGrainId = consumerGrainId;
     }
 
     /// <summary>
-    /// 当一条溪流的订阅在普鲁次次州注册时,该事件的有效载荷。
+    /// 在发布/订阅状态中持久注册流订阅时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="streamId">流代号。</param>
-    /// <param name="subscriptionId">订阅编号。</param>
-    /// <param name="consumerGrainId">下 grain 消费者的身份。</param>
-    /// <param name="siloAddress">大会主席的地址 silo 处理此注册事宜 。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="streamId">流 ID。</param>
+    /// <param name="subscriptionId">订阅 ID。</param>
+    /// <param name="consumerGrainId">消费者的 Grain ID。</param>
+    /// <param name="siloAddress">处理此次注册的 Silo 地址。</param>
     public sealed class SubscriptionRegistered(
         string streamProvider,
         StreamId streamId,
@@ -158,29 +158,29 @@ public static class StreamingEvents
         SiloAddress? siloAddress) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 溪的身份证
+        /// 流 ID。
         /// </summary>
         public readonly StreamId StreamId = streamId;
 
         /// <summary>
-        /// 订阅身份证
+        /// 订阅 ID。
         /// </summary>
         public readonly Guid SubscriptionId = subscriptionId;
 
         /// <summary>
-        /// 消费者的 grain 身份。
+        /// 消费者的 Grain ID。
         /// </summary>
         public readonly GrainId ConsumerGrainId = consumerGrainId;
     }
 
     /// <summary>
-    /// 当连接着一个拉动剂并随时可以接收数据时,用户会使用流的有效载荷。
+    /// 流订阅附加到拉取代理并准备接收数据时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="streamId">流代号。</param>
-    /// <param name="subscriptionId">订阅编号。</param>
-    /// <param name="consumerGrainId">下 grain 消费者的身份。</param>
-    /// <param name="siloAddress">处理此附件的 silo 地址。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="streamId">流 ID。</param>
+    /// <param name="subscriptionId">订阅 ID。</param>
+    /// <param name="consumerGrainId">消费者的 Grain ID。</param>
+    /// <param name="siloAddress">处理此次附加操作的 Silo 地址。</param>
     public sealed class SubscriptionAttached(
         string streamProvider,
         StreamId streamId,
@@ -189,28 +189,28 @@ public static class StreamingEvents
         SiloAddress? siloAddress) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 溪的身份证
+        /// 流 ID。
         /// </summary>
         public readonly StreamId StreamId = streamId;
 
         /// <summary>
-        /// 订阅身份证
+        /// 订阅 ID。
         /// </summary>
         public readonly Guid SubscriptionId = subscriptionId;
 
         /// <summary>
-        /// 消费者的 grain 身份。
+        /// 消费者的 Grain ID。
         /// </summary>
         public readonly GrainId ConsumerGrainId = consumerGrainId;
     }
 
     /// <summary>
-    /// 取消串流订阅时的事件有效载荷 。
+    /// 移除流订阅时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="streamId">流代号。</param>
-    /// <param name="subscriptionId">订阅编号。</param>
-    /// <param name="siloAddress">处理此订阅事宜的 silo 地址。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="streamId">流 ID。</param>
+    /// <param name="subscriptionId">订阅 ID。</param>
+    /// <param name="siloAddress">处理此订阅的 Silo 地址。</param>
     public sealed class SubscriptionRemoved(
         string streamProvider,
         StreamId streamId,
@@ -218,23 +218,23 @@ public static class StreamingEvents
         SiloAddress? siloAddress) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 溪的身份证
+        /// 流 ID。
         /// </summary>
         public readonly StreamId StreamId = streamId;
 
         /// <summary>
-        /// 订阅身份证
+        /// 订阅 ID。
         /// </summary>
         public readonly Guid SubscriptionId = subscriptionId;
     }
 
     /// <summary>
-    /// 当流订阅从阴极状态中永久去除时, 事件有效载荷。
+    /// 从发布/订阅状态中持久移除流订阅时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="streamId">流代号。</param>
-    /// <param name="subscriptionId">订阅编号。</param>
-    /// <param name="siloAddress">处理此清除的 silo 地址。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="streamId">流 ID。</param>
+    /// <param name="subscriptionId">订阅 ID。</param>
+    /// <param name="siloAddress">处理此次移除操作的 Silo 地址。</param>
     public sealed class SubscriptionUnregistered(
         string streamProvider,
         StreamId streamId,
@@ -242,23 +242,23 @@ public static class StreamingEvents
         SiloAddress? siloAddress) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 溪的身份证
+        /// 流 ID。
         /// </summary>
         public readonly StreamId StreamId = streamId;
 
         /// <summary>
-        /// 订阅身份证
+        /// 订阅 ID。
         /// </summary>
         public readonly Guid SubscriptionId = subscriptionId;
     }
 
     /// <summary>
-    /// 当连接流时从拖动剂中分离出来, 事件有效载荷。
+    /// 流订阅从拉取代理分离时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="streamId">流代号。</param>
-    /// <param name="subscriptionId">订阅编号。</param>
-    /// <param name="siloAddress">大会主席的地址 silo 处理这个分遣队。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="streamId">流 ID。</param>
+    /// <param name="subscriptionId">订阅 ID。</param>
+    /// <param name="siloAddress">处理此次分离操作的 Silo 地址。</param>
     public sealed class SubscriptionDetached(
         string streamProvider,
         StreamId streamId,
@@ -266,23 +266,23 @@ public static class StreamingEvents
         SiloAddress? siloAddress) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 溪的身份证
+        /// 流 ID。
         /// </summary>
         public readonly StreamId StreamId = streamId;
 
         /// <summary>
-        /// 订阅身份证
+        /// 订阅 ID。
         /// </summary>
         public readonly Guid SubscriptionId = subscriptionId;
     }
 
     /// <summary>
-    /// 当生产商在阴道状态为流体进行可久性注册时,该物质的有效载荷。
+    /// 为流在发布/订阅状态中持久注册生产者时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="streamId">流代号。</param>
-    /// <param name="producerGrainId">生产者 grain ID。</param>
-    /// <param name="siloAddress">大会主席的地址 silo 处理此注册事宜 。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="streamId">流 ID。</param>
+    /// <param name="producerGrainId">生产者的 Grain ID。</param>
+    /// <param name="siloAddress">处理此次注册的 Silo 地址。</param>
     public sealed class ProducerRegistered(
         string streamProvider,
         StreamId streamId,
@@ -290,23 +290,23 @@ public static class StreamingEvents
         SiloAddress? siloAddress) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 溪的身份证
+        /// 流 ID。
         /// </summary>
         public readonly StreamId StreamId = streamId;
 
         /// <summary>
-        /// 制片人 grain ID。
+        /// 生产者的 Grain ID。
         /// </summary>
         public readonly GrainId ProducerGrainId = producerGrainId;
     }
 
     /// <summary>
-    /// 当生产商从阴道状态中为溪流永久清除时, 事件有效载荷。
+    /// 从流的发布/订阅状态中持久移除生产者时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="streamId">流代号。</param>
-    /// <param name="producerGrainId">生产者 grain ID。</param>
-    /// <param name="siloAddress">处理此清除的 silo 地址。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="streamId">流 ID。</param>
+    /// <param name="producerGrainId">生产者的 Grain ID。</param>
+    /// <param name="siloAddress">处理此次移除操作的 Silo 地址。</param>
     public sealed class ProducerUnregistered(
         string streamProvider,
         StreamId streamId,
@@ -314,23 +314,23 @@ public static class StreamingEvents
         SiloAddress? siloAddress) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 溪的身份证
+        /// 流 ID。
         /// </summary>
         public readonly StreamId StreamId = streamId;
 
         /// <summary>
-        /// 制片人 grain ID。
+        /// 生产者的 Grain ID。
         /// </summary>
         public readonly GrainId ProducerGrainId = producerGrainId;
     }
 
     /// <summary>
-    /// 当消费光标被排干,不再有现有工作时,活动有效载荷。
+    /// 消费者游标已读尽且当前没有更多可用工作时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="streamId">流代号。</param>
-    /// <param name="subscriptionId">订阅编号。</param>
-    /// <param name="siloAddress">处理此光标的 silo 地址。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="streamId">流 ID。</param>
+    /// <param name="subscriptionId">订阅 ID。</param>
+    /// <param name="siloAddress">处理此游标的 Silo 地址。</param>
     public sealed class ConsumerCursorDrained(
         string streamProvider,
         StreamId streamId,
@@ -338,25 +338,25 @@ public static class StreamingEvents
         SiloAddress? siloAddress) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 溪的身份证
+        /// 流 ID。
         /// </summary>
         public readonly StreamId StreamId = streamId;
 
         /// <summary>
-        /// 订阅身份证
+        /// 订阅 ID。
         /// </summary>
         public readonly Guid SubscriptionId = subscriptionId;
     }
 
     /// <summary>
-    /// 当从流批次中将个别物品交付消费者时,事件有效载荷。
+    /// 流批次中的单个数据项投递给消费者时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="streamId">流代号。</param>
-    /// <param name="subscriptionId">消费者的订阅身份证</param>
-    /// <param name="siloAddress">大会主席的地址 silo 处理此发送。</param>
-    /// <param name="clusterId">处理此交付的组群识别符号。</param>
-    /// <param name="sequenceToken">交付项目的序列符号。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="streamId">流 ID。</param>
+    /// <param name="subscriptionId">消费者的订阅 ID。</param>
+    /// <param name="siloAddress">处理此次投递的 Silo 地址。</param>
+    /// <param name="clusterId">处理此次投递的集群标识符。</param>
+    /// <param name="sequenceToken">已投递数据项的序列令牌。</param>
     public sealed class ItemDelivered(
         string streamProvider,
         StreamId streamId,
@@ -366,7 +366,7 @@ public static class StreamingEvents
         StreamSequenceToken? sequenceToken) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 初始化一个没有群集识别的事件 。
+        /// 初始化不含集群标识的事件。
         /// </summary>
         public ItemDelivered(
             string streamProvider,
@@ -379,34 +379,34 @@ public static class StreamingEvents
         }
 
         /// <summary>
-        /// 溪的身份证
+        /// 流 ID。
         /// </summary>
         public readonly StreamId StreamId = streamId;
 
         /// <summary>
-        /// 消费者的订阅身份证
+        /// 消费者的订阅 ID。
         /// </summary>
         public readonly Guid SubscriptionId = subscriptionId;
 
         /// <summary>
-        /// 与交付有关的组别识别符号。
+        /// 与投递关联的集群标识符。
         /// </summary>
         public readonly string ClusterId = clusterId;
 
         /// <summary>
-        /// 交付物品的顺序符号 。
+        /// 已投递数据项的序列令牌。
         /// </summary>
         public readonly StreamSequenceToken? SequenceToken = sequenceToken;
     }
 
     /// <summary>
-    /// 重新平衡结束后,当队列所有权发生变化时,事件有效载荷。
+    /// 再均衡完成后队列所有权发生变化时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="siloAddress">大会主席的地址 silo.</param>
-    /// <param name="previousQueues">更改前的队列所有。</param>
-    /// <param name="currentQueues">更改后所有队列。</param>
-    /// <param name="queueBalancer">队列平衡器实例。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="siloAddress">Silo 的地址。</param>
+    /// <param name="previousQueues">变化前拥有的队列。</param>
+    /// <param name="currentQueues">变化后拥有的队列。</param>
+    /// <param name="queueBalancer">队列均衡器实例。</param>
     public sealed class BalancerChanged(
         string streamProvider,
         SiloAddress? siloAddress,
@@ -415,28 +415,28 @@ public static class StreamingEvents
         IStreamQueueBalancer queueBalancer) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 更改前的队列为所有 。
+        /// 变化前拥有的队列。
         /// </summary>
         public readonly QueueId[] PreviousQueues = previousQueues;
 
         /// <summary>
-        /// 换了之后的队列都归他们所有
+        /// 变化后拥有的队列。
         /// </summary>
         public readonly QueueId[] CurrentQueues = currentQueues;
 
         /// <summary>
-        /// 排队平衡器
+        /// 队列均衡器实例。
         /// </summary>
         public readonly IStreamQueueBalancer QueueBalancer = queueBalancer;
     }
 
     /// <summary>
-    /// 当拉动代理经理报告其当前队列任务时, 事件有效载荷。
+    /// 拉取代理管理器报告其当前队列分配时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="siloAddress">大会主席的地址 silo.</param>
-    /// <param name="currentQueues">管理器目前拥有的队列。</param>
-    /// <param name="runningAgents">运行的拖动代理器数。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="siloAddress">Silo 的地址。</param>
+    /// <param name="currentQueues">管理器当前拥有的队列。</param>
+    /// <param name="runningAgents">正在运行的拉取代理数量。</param>
     public sealed class PullingAgentManagerState(
         string streamProvider,
         SiloAddress? siloAddress,
@@ -444,24 +444,24 @@ public static class StreamingEvents
         int runningAgents) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 管理员目前拥有的队列 。
+        /// 管理器当前拥有的队列。
         /// </summary>
         public readonly QueueId[] CurrentQueues = currentQueues;
 
         /// <summary>
-        /// 运行中的拖车代理商数量 。
+        /// 正在运行的拉取代理数量。
         /// </summary>
         public readonly int RunningAgents = runningAgents;
     }
 
     /// <summary>
-    /// 以部署为基础的队列平衡器完成 silo 成熟期过渡时的事件有效载荷。
+    /// 基于部署的队列均衡器完成 Silo 成熟状态转换时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="siloAddress">运行队列平衡器的 silo 地址。</param>
-    /// <param name="maturedSiloAddress">下 silo 其到期期已满。</param>
-    /// <param name="isLocalSilo">到期的 silo 是否是本地的 silo。</param>
-    /// <param name="queueBalancer">队列平衡器实例。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="siloAddress">运行队列均衡器的 Silo 地址。</param>
+    /// <param name="maturedSiloAddress">成熟期已结束的 Silo。</param>
+    /// <param name="isLocalSilo">已成熟的 Silo 是否为本地 Silo。</param>
+    /// <param name="queueBalancer">队列均衡器实例。</param>
     public sealed class QueueBalancerMaturityCompleted(
         string streamProvider,
         SiloAddress? siloAddress,
@@ -470,29 +470,29 @@ public static class StreamingEvents
         IStreamQueueBalancer queueBalancer) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 到期期已满的 silo 。
+        /// 成熟期已结束的 Silo。
         /// </summary>
         public readonly SiloAddress MaturedSiloAddress = maturedSiloAddress;
 
         /// <summary>
-        /// 成熟的 silo 是本地的 silo。
+        /// 已成熟的 Silo 是否为本地 Silo。
         /// </summary>
         public readonly bool IsLocalSilo = isLocalSilo;
 
         /// <summary>
-        /// 排队平衡器
+        /// 队列均衡器实例。
         /// </summary>
         public readonly IStreamQueueBalancer QueueBalancer = queueBalancer;
     }
 
     /// <summary>
-    /// 当持续流拉动剂开始排队时的事件有效载荷。
+    /// 为队列启动持久化流拉取代理时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="siloAddress">大会主席的地址 silo.</param>
-    /// <param name="queueId">拖拉机处理的队列。</param>
-    /// <param name="dueTime">队列泵计时器的初始到期时间。</param>
-    /// <param name="period">队列泵计时器周期。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="siloAddress">Silo 的地址。</param>
+    /// <param name="queueId">拉取代理处理的队列。</param>
+    /// <param name="dueTime">队列泵定时器的初始触发延迟。</param>
+    /// <param name="period">队列泵定时器的周期。</param>
     public sealed class PullingAgentStarted(
         string streamProvider,
         SiloAddress? siloAddress,
@@ -501,62 +501,62 @@ public static class StreamingEvents
         TimeSpan period) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 由拉车代理处理的队列
+        /// 拉取代理所处理的队列。
         /// </summary>
         public readonly QueueId QueueId = queueId;
 
         /// <summary>
-        /// 队列泵计时器的初始到期时间 。
+        /// 队列泵定时器的初始触发延迟。
         /// </summary>
         public readonly TimeSpan DueTime = dueTime;
 
         /// <summary>
-        /// 排队泵计时周期。
+        /// 队列泵定时器的周期。
         /// </summary>
         public readonly TimeSpan Period = period;
     }
 
     /// <summary>
-    /// 当持续流拉动剂停止排队时, 事件有效载荷。
+    /// 为队列停止持久化流拉取代理时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="siloAddress">大会主席的地址 silo.</param>
-    /// <param name="queueId">拖拉机处理的队列。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="siloAddress">Silo 的地址。</param>
+    /// <param name="queueId">拉取代理处理的队列。</param>
     public sealed class PullingAgentStopped(
         string streamProvider,
         SiloAddress? siloAddress,
         QueueId queueId) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 由拉车代理处理的队列
+        /// 拉取代理所处理的队列。
         /// </summary>
         public readonly QueueId QueueId = queueId;
     }
 
     /// <summary>
-    /// 当持续流动拉动剂队列接收器初始化时的事件有效载荷。
+    /// 持久化流拉取代理的队列接收器初始化时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="siloAddress">大会主席的地址 silo.</param>
-    /// <param name="queueId">初始化队列。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="siloAddress">Silo 的地址。</param>
+    /// <param name="queueId">已初始化的队列。</param>
     public sealed class QueueReceiverInitialized(
         string streamProvider,
         SiloAddress? siloAddress,
         QueueId queueId) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 初始化队列 。
+        /// 已初始化的队列。
         /// </summary>
         public readonly QueueId QueueId = queueId;
     }
 
     /// <summary>
-    /// 当持续流动拉动剂队列接收器无法初始化时的事件有效载荷 。
+    /// 持久化流拉取代理的队列接收器初始化失败时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="siloAddress">大会主席的地址 silo.</param>
-    /// <param name="queueId">无法初始化的队列。</param>
-    /// <param name="exception">初始化例外。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="siloAddress">Silo 的地址。</param>
+    /// <param name="queueId">初始化失败的队列。</param>
+    /// <param name="exception">初始化异常。</param>
     public sealed class QueueReceiverInitializationFailed(
         string streamProvider,
         SiloAddress? siloAddress,
@@ -564,25 +564,25 @@ public static class StreamingEvents
         Exception exception) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 无法初始化的队列 。
+        /// 初始化失败的队列。
         /// </summary>
         public readonly QueueId QueueId = queueId;
 
         /// <summary>
-        /// 初始化例外。
+        /// 初始化异常。
         /// </summary>
         public readonly Exception Exception = exception;
     }
 
     /// <summary>
-    /// 当持久性流流拉动剂登记本地流条目时,事件有效载荷。
+    /// 持久化流拉取代理注册本地流条目时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="siloAddress">大会主席的地址 silo.</param>
-    /// <param name="queueId">拖拉机处理的队列。</param>
-    /// <param name="streamId">流代号。</param>
-    /// <param name="producerGrainId">拖拉机代理 grain 身份证明在酒吧注册为制片人</param>
-    /// <param name="subscriberCount">公共空间分机返回的无过失用户数量。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="siloAddress">Silo 的地址。</param>
+    /// <param name="queueId">拉取代理处理的队列。</param>
+    /// <param name="streamId">流 ID。</param>
+    /// <param name="producerGrainId">在发布/订阅系统中注册为生产者的拉取代理 Grain ID。</param>
+    /// <param name="subscriberCount">发布/订阅系统返回的未处于故障状态的订阅者数量。</param>
     public sealed class PullingAgentStreamRegistered(
         string streamProvider,
         SiloAddress? siloAddress,
@@ -592,34 +592,34 @@ public static class StreamingEvents
         int subscriberCount) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 由拉车代理处理的队列
+        /// 拉取代理所处理的队列。
         /// </summary>
         public readonly QueueId QueueId = queueId;
 
         /// <summary>
-        /// 溪的身份证
+        /// 流 ID。
         /// </summary>
         public readonly StreamId StreamId = streamId;
 
         /// <summary>
-        /// 在酒吧注册为生产者的拉动剂 grain 身份识别证。
+        /// 在发布/订阅系统中注册为生产者的拉取代理 Grain ID。
         /// </summary>
         public readonly GrainId ProducerGrainId = producerGrainId;
 
         /// <summary>
-        /// 公共空间分机返回的无过失用户数量。
+        /// 发布/订阅系统返回的未处于故障状态的订阅者数量。
         /// </summary>
         public readonly int SubscriberCount = subscriberCount;
     }
 
     /// <summary>
-    /// 当持久性流流拉动剂未能注册本地流条目时, 事件有效载荷。
+    /// 持久化流拉取代理注册本地流条目失败时的事件有效载荷。
     /// </summary>
-    /// <param name="streamProvider">流体提供者的名称。</param>
-    /// <param name="siloAddress">大会主席的地址 silo.</param>
-    /// <param name="queueId">拖拉机处理的队列。</param>
-    /// <param name="streamId">流代号。</param>
-    /// <param name="exception">登记例外。</param>
+    /// <param name="streamProvider">流提供程序名称。</param>
+    /// <param name="siloAddress">Silo 的地址。</param>
+    /// <param name="queueId">拉取代理处理的队列。</param>
+    /// <param name="streamId">流 ID。</param>
+    /// <param name="exception">注册异常。</param>
     public sealed class PullingAgentStreamRegistrationFailed(
         string streamProvider,
         SiloAddress? siloAddress,
@@ -628,17 +628,17 @@ public static class StreamingEvents
         Exception exception) : StreamingEvent(streamProvider, siloAddress)
     {
         /// <summary>
-        /// 由拉车代理处理的队列
+        /// 拉取代理所处理的队列。
         /// </summary>
         public readonly QueueId QueueId = queueId;
 
         /// <summary>
-        /// 溪的身份证
+        /// 流 ID。
         /// </summary>
         public readonly StreamId StreamId = streamId;
 
         /// <summary>
-        /// 登记例外。
+        /// 注册异常。
         /// </summary>
         public readonly Exception Exception = exception;
     }

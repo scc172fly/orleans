@@ -1482,7 +1482,7 @@ public sealed class DynamoDBStorageUnitTests
     private static IEnumerable<T> ThrowOnEnumeration<T>(Exception exception)
     {
         throw exception;
-#pragma warning disable CS0162 // Required to make this method a deferred iterator.
+#pragma warning disable CS0162 // 需要此语句才能使该方法成为延迟执行的迭代器。
         yield break;
 #pragma warning restore CS0162
     }

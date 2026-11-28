@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace Orleans.Connections.Transport.Security;
 
 /// <summary>
-/// 配置 TLS 传输的电文传输工厂 。
+/// 用于为消息传输层配置 TLS 的消息传输工厂。
 /// </summary>
 internal sealed partial class TlsMessageTransportConnector(
     MessageTransportConnector innerTransportFactory,

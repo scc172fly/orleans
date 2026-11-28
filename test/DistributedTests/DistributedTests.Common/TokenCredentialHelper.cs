@@ -19,7 +19,7 @@ public static class TokenCredentialHelper
     {
         if (azureTableUri.IsLoopback)
         {
-            // 假设是模拟器/黄润
+            // 假定使用模拟器或 Azurite
             return new TableServiceClient(EmulatorConnectionString);
         }
         return new TableServiceClient(azureTableUri, GetTokenCredential());
@@ -29,7 +29,7 @@ public static class TokenCredentialHelper
     {
         if (azureQueueUri.IsLoopback)
         {
-            // 假设是模拟器/黄润
+            // 假定使用模拟器或 Azurite
             return new QueueServiceClient(EmulatorConnectionString);
         }
         return new QueueServiceClient(azureQueueUri, GetTokenCredential());
@@ -41,12 +41,12 @@ public static class TokenCredentialHelper
         var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
         if (tenantId != null && clientId != null)
         {
-            // 使用联邦红心病,从这里:
+            // 使用联合身份凭据，来源如下：
             // https://review.learn.microsoft.com/en-us/identity/microsoft-identity-platform/federated-identity-credentials?branch=main&tabs=dotnet#azure-sdk-for-net
             return new ClientAssertionCredential(
-              tenantId, // 目的地资源租户身份识别号
-              clientId,  // 客户端 身份 应用程序的用户 身份 我们正在加入
-              () => GetManagedIdentityToken(null, "api://AzureADTokenExchange")) // 在此为默认 MSI 设置无效的无效
+              tenantId, // 目标资源的租户 ID
+              clientId,  // 要建立联合身份关系的应用程序的客户端 ID
+              () => GetManagedIdentityToken(null, "api://AzureADTokenExchange")) // 此处为 null 时使用默认的 MSI
             ;
         }
         else
@@ -56,11 +56,11 @@ public static class TokenCredentialHelper
     }
 
     /// <summary>
-    /// 获取用户指定的管理身份的标记。
+    /// 获取用户分配的托管标识的令牌。
     /// </summary>
-    /// <param name="msiClientId">管理身份的客户端 ID。</param>
-    /// <param name="audience">目标受众:公众云层应pi@AzureADTokenExchange.</param>
-    /// <returns>如果成功, 返回访问标记。</returns>
+    /// <param name="msiClientId">托管标识的客户端 ID。</param>
+    /// <param name="audience">目标受众。对于公有云，应为 api://AzureADTokenExchange。</param>
+    /// <returns>成功时返回访问令牌。</returns>
     public static string GetManagedIdentityToken(string? msiClientId, string audience)
     {
         var managedIdentityId = string.IsNullOrEmpty(msiClientId)

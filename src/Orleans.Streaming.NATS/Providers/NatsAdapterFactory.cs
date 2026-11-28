@@ -25,7 +25,7 @@ internal class NatsAdapterFactory : IQueueAdapterFactory, IAsyncDisposable
     private Task? disposalTask;
 
     /// <summary>
-    /// 应用级别故障处理器控制
+    /// 应用程序级故障处理程序的替代实现。
     /// </summary>
     protected Func<QueueId, Task<IStreamFailureHandler>> StreamFailureHandlerFactory { private get; set; } = default!;
 
@@ -46,7 +46,7 @@ internal class NatsAdapterFactory : IQueueAdapterFactory, IAsyncDisposable
         adapterCache = new SimpleQueueAdapterCache(cacheOptions, this.providerName, this.loggerFactory);
     }
 
-    /// <summary> 工厂开工了</summary>
+    /// <summary>初始化工厂。</summary>
     public virtual void Init()
     {
         if (StreamFailureHandlerFactory == null)
@@ -108,14 +108,14 @@ internal class NatsAdapterFactory : IQueueAdapterFactory, IAsyncDisposable
         return adapterCache;
     }
 
-    /// <summary>创建工厂流队列映像仪。</summary>
+    /// <summary>创建此工厂的流队列映射器。</summary>
     public IStreamQueueMapper GetStreamQueueMapper()
     {
         return streamQueueMapper;
     }
 
     /// <summary>
-    /// 为指定的队列创建发送失败处理器 。
+    /// 为指定队列创建投递失败处理程序。
     /// </summary>
     /// <param name="queueId"></param>
     /// <returns></returns>

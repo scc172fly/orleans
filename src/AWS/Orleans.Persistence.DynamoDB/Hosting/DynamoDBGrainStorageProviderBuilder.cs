@@ -50,7 +50,7 @@ internal sealed class DynamoDBGrainStorageProviderBuilder : IProviderBuilder<ISi
                     options.ProfileName = profileName;
                 }
 
-                // 保留空值: 它选择写入的密钥, 而 ServiceId 默认为空 。
+                // 保留空值：该值用于选择 ServiceId 默认值为空时写入的键。
                 var serviceId = configurationSection[nameof(options.ServiceId)];
                 if (serviceId is not null)
                 {

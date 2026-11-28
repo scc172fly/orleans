@@ -9,7 +9,7 @@ using Orleans.CodeGenerator.Model;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// 生成 Orleans 序列器、复印机、活动器、RPC代号、援引器和登记元数据。
+/// 生成 Orleans 序列化器、复制器、激活器、RPC 代理、调用器及注册元数据。
 /// </summary>
 [Generator]
 public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
@@ -51,7 +51,7 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
                 transform: static (ctx, _) => ctx)
             .Where(static ctx =>
             {
-                // 一种被归为部分自有的一代; 生成读取根和验证整个符号的宣布。
+                // 一个具有特性的分部声明负责生成；Generate 从完整符号读取根并验证声明。
                 var attribute = ctx.TargetSymbol.GetAttributes().First(attribute =>
                     SymbolEqualityComparer.Default.Equals(
                         attribute.AttributeClass?.OriginalDefinition,
@@ -103,7 +103,7 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
                 GeneratedSourceOutput.EmitSource(productionContext, output);
             });
 
-        // 逐步发现[GenerateSerializer]类型
+        // 对 [GenerateSerializer] 类型进行增量发现。
         var serializableTypeContexts = context.SyntaxProvider
             .ForAttributeWithMetadataName<GeneratorAttributeSyntaxContext>(
                 "Orleans.GenerateSerializerAttribute",
@@ -136,8 +136,8 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
             }
         });
 
-        // 属性驱动的[GenerateMethodSerializers]接口发现,加上
-        // 用于从基界面继承属性的接口的制约语法提供者。
+        // 基于特性发现 [GenerateMethodSerializers] 接口，并使用
+        // 受约束的语法提供程序处理从基接口继承特性的接口。
         var directProxyInterfaces = context.SyntaxProvider
             .ForAttributeWithMetadataName<ProxyInterfaceModel?>(
                 "Orleans.GenerateMethodSerializersAttribute",
@@ -169,7 +169,7 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
             .WithComparer(ImmutableArrayComparer<ProxyInterfaceModel>.Instance)
             .WithTrackingName(CollectedProxyInterfacesTrackingName);
 
-        // 提取参考组装数据(应用部分、众所周知的型号识别码、别名)
+        // 提取引用程序集数据（应用程序部件、已知类型 ID、别名）。
         var refAssemblyDataResults = compilationProvider
             .Combine(generatorOptions)
             .Combine(collectedTypes)
@@ -193,7 +193,7 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
             }
         });
 
-        // 只有在发布执行产出时才报告对生成元数据进行的诊断。
+        // 仅在生成实现输出时报告有关生成元数据的诊断。
         context.RegisterImplementationSourceOutput(refAssemblyDataResults, static (productionContext, result) =>
         {
             foreach (var diagnostic in result.ImplementationDiagnostics)
@@ -228,7 +228,7 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
             .Select(static (result, _) => result.ProxyOutputModels)
             .WithComparer(ImmutableArrayComparer<ProxyOutputModel>.Instance);
 
-        // 元数据生成前将源/参考模型组合在一起。
+        // 生成元数据前合并源代码模型和引用模型。
         var metadataAggregate = collectedTypes
             .Combine(preparedProxyOutputModels)
             .Combine(refAssemblyData)
@@ -239,8 +239,8 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
                 input.Right))
             .WithTrackingName(MetadataAggregateTrackingName);
 
-        // 环境元件有一个声明,所以它们的排放计划 可以保留发现提供者的每个拥有者的身份。
-        // 当类型失效时保留空格: 过滤这里会腐蚀Roslyn 4. 5 在松散状态跟踪 。
+        // 枚举只有一个声明，因此其生成计划可保留发现提供程序按所有者分配的标识。
+        // 类型失效时保留 null 槽位：在此处筛选可能在重新解析时破坏 Roslyn 4.5 的跟踪状态。
         var enumSerializerPlans = serializableTypeResults
             .Select(static (result, _) => result.EnumSerializerPlan)
             .WithTrackingName(EnumSerializerPlansTrackingName);
@@ -271,7 +271,7 @@ public sealed class OrleansSerializationSourceGenerator : IIncrementalGenerator
             .WithComparer(ImmutableArrayComparer<SourceOutputResult>.Instance)
             .WithTrackingName(SerializerOutputsTrackingName);
 
-        // 将已拆卸的批次保持原样:Roslyn 4.5在平整前一批相同批次时,可能会失去再加条目。
+        // 保持去重后的批次完整：Roslyn 4.5 在展平与此前相等的批次时可能丢失重新添加的条目。
         context.RegisterSourceOutput(serializerOutputs, static (productionContext, outputs) =>
         {
             foreach (var output in outputs)

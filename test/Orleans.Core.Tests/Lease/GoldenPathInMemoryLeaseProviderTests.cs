@@ -6,7 +6,7 @@ using TestExtensions.Runners;
 namespace DefaultCluster.Tests
 {
     /// <summary>
-    /// 采用金路测试模式进行租赁供应商实施模拟测试。
+    /// 按照黄金路径测试模式测试内存租约提供程序的实现。
     /// </summary>
     [TestCategory("BVT"), TestCategory("Lease")]
     [TestSuite("BVT")]

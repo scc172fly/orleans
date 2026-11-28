@@ -248,15 +248,15 @@ public sealed class NatsOptionsTests
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // 保留在受约束的清理后取消原试验。
+                // 在有界清理后保留原始测试的取消状态。
             }
         }
     }
 
-    // 注:测试 NumReplicas > 1 (e.g.R3)需要一个多节NATS JetStream
-    // 组。 光支持一个 NATS 节点只支持 NumReplicas = 1. R3 整合
-    // 测试应在配置了3节组群的光学环境内进行
-    // 经由多克合成或类似的基础设施。
+    // 注意：测试 NumReplicas > 1（例如 R3）需要多节点 NATS JetStream
+    // 集群。单个 NATS 节点仅支持 NumReplicas = 1。R3 集成
+    // 测试应在 CI 环境中执行，并通过 docker-compose 或类似基础设施
+    // 配置一个三节点集群。
 
     [Theory]
     [InlineData(StreamConfigStorage.File)]
@@ -310,7 +310,7 @@ public sealed class NatsOptionsTests
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // 保留在受约束的清理后取消原试验。
+                // 在有界清理后保留原始测试的取消状态。
             }
         }
     }

@@ -47,7 +47,7 @@ namespace Orleans.Analyzers
 
             if (methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
             {
-                // TODO: 检查IGrain 的界面继承
+                // TODO：检查接口是否继承 IGrain。
                 return;
             }
 

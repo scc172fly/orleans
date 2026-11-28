@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 
 //
-// #ifs 数量可以减少(或删除), 一旦我们按照特性/区域分开测试项目, 否则我们会最终出现大错特错。
+// 一旦按功能或领域拆分测试项目，就可以减少甚至移除 #if；否则会产生类型歧义及生成错误。
 //
 
 #if ORLEANS_CLUSTERING
@@ -23,7 +23,7 @@ namespace Orleans.Transactions.AzureStorage.Utilities
 #elif ORLEANS_DIRECTORY
 namespace Orleans.GrainDirectory.AzureStorage.Utilities
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
@@ -50,7 +50,7 @@ namespace Orleans.GrainDirectory.AzureStorage.Utilities
         AzureTable_18 = AzureTableBase + 18,
         AzureTable_19 = AzureTableBase + 19,
         AzureTable_37 = AzureTableBase + 37,
-        // Azure 与储存供应商有关的
+        // Azure 存储提供程序相关。
         AzureTable_DataNotFound = AzureTableBase + 50,
         AzureTable_TableNotCreated = AzureTableBase + 51,
     }

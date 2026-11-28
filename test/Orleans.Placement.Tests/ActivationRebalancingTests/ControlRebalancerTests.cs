@@ -6,7 +6,7 @@ using Xunit;
 namespace UnitTests.ActivationRebalancingTests;
 
 /// <summary>
-/// 控制激活再平衡器的测试,包括暂停/恢复操作和报告订阅。
+/// 测试激活实例再均衡器的控制功能，包括暂停、恢复和报告订阅。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]
@@ -35,7 +35,7 @@ public class ControlRebalancerTests(RebalancerFixture fixture, ITestOutputHelper
         Assert.Null(report.SuspensionDuration);
         Assert.Equal(host, report.Host);
 
-        // Publish-Subscribe
+        // 发布/订阅
         var listener = new Listener();
         rebalancer.SubscribeToReports(listener);
         Assert.Equal(0, listener.Snapshot.ReportCount);
@@ -91,14 +91,14 @@ public class ControlRebalancerTests(RebalancerFixture fixture, ITestOutputHelper
         Assert.Equal(unsubscribedSnapshot.ReportCount, afterResumeSnapshot.ReportCount);
         Assert.Equal(unsubscribedSnapshot.Report, afterResumeSnapshot.Report);
 
-        // Request-Reply
+        // 请求/应答
         var duration = TimeSpan.FromSeconds(2);
-        await rebalancer.SuspendRebalancing(duration); // 暂停一段时间
+        await rebalancer.SuspendRebalancing(duration); // 暂停一段时间。
         report = await rebalancer.GetRebalancingReport();
 
         Assert.Equal(RebalancerStatus.Suspended, report.Status);
         Assert.True(report.SuspensionDuration.HasValue);
-        // 粗糙的时钟可以报告整个时间段,直到其时间戳预付款。
+        // 粒度较粗的时钟在时间戳更新之前可能仍报告完整的时长。
         Assert.InRange(report.SuspensionDuration.Value, TimeSpan.FromTicks(1), duration);
         Assert.Equal(host, report.Host);
 
@@ -107,7 +107,7 @@ public class ControlRebalancerTests(RebalancerFixture fixture, ITestOutputHelper
             WaitTimeout).WaitAsync(cancellationToken);
         await resumed;
 
-        await rebalancer.SuspendRebalancing(); // 无限期中止
+        await rebalancer.SuspendRebalancing(); // 无限期暂停。
         report = await rebalancer.GetRebalancingReport();
         Assert.Equal(RebalancerStatus.Suspended, report.Status);
         Assert.True(report.SuspensionDuration.HasValue);

@@ -35,9 +35,9 @@ internal class RollingUpgradeTestGrain : Grain, IRollingUpgradeTestGrain
 }
 
 /// <summary>
-/// 测试滚动升级,从 LegacyGrainDirectory 升至 <see cref="DistributedGrainDirectory"/>。
-/// 使用 LegacyGrainDirectory,然后加 silos 与 DistributedGrainDirectory
-/// 旧删除时 silos,核查 grain 每一步后都打通电话
+/// 测试从 LegacyGrainDirectory 滚动升级至 <see cref="DistributedGrainDirectory"/>。
+/// 首先启动使用 LegacyGrainDirectory 的集群，随后添加使用 DistributedGrainDirectory 的 Silo，
+/// 同时移除旧 Silo，并验证每一步之后 Grain 调用都能成功。
 /// </summary>
 [TestSuite("Functional")]
 [TestProvider("None")]
@@ -51,7 +51,7 @@ public sealed class GrainDirectoryRollingUpgradeTests(ITestOutputHelper output)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var builder = new InProcessTestClusterBuilder(3);
-        // 初始 silos 使用 LegacyGrainDirectory;后 silos 选择加入 DistributedGrainDirectory。
+        // 初始 Silo 使用 LegacyGrainDirectory；后续 Silo 选择使用 DistributedGrainDirectory。
         builder.Options.UseTestClusterGrainDirectory = false;
         var initialSiloCount = builder.Options.InitialSilosCount;
         var clusterId = builder.Options.ClusterId;
@@ -89,11 +89,11 @@ public sealed class GrainDirectoryRollingUpgradeTests(ITestOutputHelper output)
 
             try
             {
-                // 第1阶段:在 LegacyGrainDirectory 组群上载运车。
+                // 阶段 1：在 LegacyGrainDirectory 集群上施加负载。
                 output.WriteLine("Phase 1: Driving load on LegacyGrainDirectory cluster...");
                 await DriveLoad(client, nextGrainId, count: 100, cancellationToken, id => failingGrainKey = id);
 
-                // 阶段2:一次添加 DistributedGrainDirectory silos 一个。
+                // 阶段 2：逐个添加使用 DistributedGrainDirectory 的 Silo。
                 output.WriteLine("Phase 2: Rolling upgrade — adding DistributedGrainDirectory silos...");
 
                 var oldSilos = cluster.Silos.ToList();
@@ -128,7 +128,7 @@ public sealed class GrainDirectoryRollingUpgradeTests(ITestOutputHelper output)
                 await cluster.InitializeClientAsync(cancellationToken);
                 client = cluster.Client!;
 
-                // 第三阶段:一次停止老 silos ,非小学阶段。
+                // 阶段 3：逐个停止旧 Silo，先停止非主 Silo。
                 output.WriteLine($"Phase 3: Removing {oldSilos.Count} LegacyGrainDirectory silos...");
                 var transitionIndex = 0;
                 foreach (var oldSilo in oldSilos.OrderBy(static s => s.InstanceNumber == 0 ? 1 : 0))
@@ -152,7 +152,7 @@ public sealed class GrainDirectoryRollingUpgradeTests(ITestOutputHelper output)
                     await DriveLoad(client, nextGrainId, count: 100, cancellationToken, id => failingGrainKey = id);
                 }
 
-                // 第4阶段:对全面升级的集群进行最后核查——必须成功,而不重试。
+                // 阶段 4：在全部升级后的集群上执行最终验证，必须无需重试即可成功。
                 output.WriteLine("Phase 4: Verifying fully-upgraded DistributedGrainDirectory cluster...");
                 await DriveLoad(client, nextGrainId, count: 200, cancellationToken, id => failingGrainKey = id);
                 await ValidateDirectoryPhaseInvariantsAsync(cluster, "after final verification", cancellationToken);
@@ -195,7 +195,7 @@ public sealed class GrainDirectoryRollingUpgradeTests(ITestOutputHelper output)
             }
         }
 
-        // 发信人没有错误级别日志 。
+        // 断言未出现错误级别的日志。
         var capturedErrors = errorLogs.ToArray();
         var initialConnectivityRetries = capturedErrors.Where(static error => IsExpectedInitialConnectivityRetry(error)).ToArray();
         if (initialConnectivityRetries.Length > 0)
@@ -438,8 +438,8 @@ public sealed class GrainDirectoryRollingUpgradeTests(ITestOutputHelper output)
         var isMixedDirectoryCluster = distributedSiloCount > 0 && distributedSiloCount < cluster.Silos.Count;
         if (isMixedDirectoryCluster)
         {
-            // 混合遗留/分配指令升级可临时产生重复激活。
-            // 最后的分布式检查站要求解决这些重复检查的问题。
+            // 混合使用旧版目录和分布式目录的升级过程可能暂时存在重复激活实例。
+            // 最终全部使用分布式目录的检查点要求这些重复激活实例已得到解决。
             output.WriteLine(
                 $"  Observed {activations.Count} activations across {distributedSiloCount} DistributedGrainDirectory "
                 + $"and {cluster.Silos.Count - distributedSiloCount} LegacyGrainDirectory silos {stage}; "
@@ -587,24 +587,24 @@ public sealed class GrainDirectoryRollingUpgradeTests(ITestOutputHelper output)
         && error.Contains("not active on this silo", StringComparison.Ordinal);
 
     /// <summary>
-    /// 合并 silo 验证每个活动 silo 激活前,在定时器上重试
-    /// 直到 <c>ClusterMembershipOptions.MaxJoinAttemptTime</c> 倒闭。每次尝试——包括最后的,
-    /// 无法恢复的检查 - - 在重新尝试过精密检查运行之前记录此错误, 所以要匹配此信件
-    /// 启动只有在以下两种情况下才达到这一检验标准的最后结论。
-    /// 成功启动等待 silo ; 用尽连接验证
-    /// <c>OrleansClusterConnectivityCheckFailedException</c> 从 <c>ValidateInitialConnectivity</c> 生命周期周期
-    /// 阶段(在 <c>BecomeActive</c>之前运行),而失败
-    /// <see cref="InProcessTestCluster.DeployAsync"/> 或 <see cref="InProcessTestCluster.StartAdditionalSiloAsync"/>
-    /// 此过滤器在被评估之前, 尚未被过此筛选器。 因此, 达到此点可以保证在此匹配的日志是
-    /// 恢复,非终结性再研究。
+    /// 加入集群的 Silo 在进入活动状态之前，会验证与每个活动 Silo 的连通性，并按定时器重试，
+    /// 直至 <c>ClusterMembershipOptions.MaxJoinAttemptTime</c> 到期。每次尝试（包括最后一次
+    /// 无法恢复的尝试）都会在检查重试机会是否耗尽之前记录此错误，因此仅匹配此消息
+    /// 并不能证明该次尝试可恢复。仅当每个
+    /// 等待的 Silo 启动操作均成功时，才会到达此测试的最终断言；若连通性验证耗尽重试机会，则会抛出
+    /// <c>OrleansClusterConnectivityCheckFailedException</c>，该异常来自 <c>ValidateInitialConnectivity</c> 生命周期
+    /// 阶段（在 <c>BecomeActive</c> 之前运行），从而导致
+    /// <see cref="InProcessTestCluster.DeployAsync"/> 或 <see cref="InProcessTestCluster.StartAdditionalSiloAsync"/> 失败，
+    /// 此时该过滤器根本不会执行。因此，到达这里即可保证此处匹配的所有日志均来自
+    /// 已恢复的非终止性重试。
     /// </summary>
     private static bool IsExpectedInitialConnectivityRetry(string error) =>
         error.StartsWith("[Orleans.Runtime.MembershipService.MembershipAgent] Failed to get ping responses from", StringComparison.Ordinal)
         && error.Contains("Will continue attempting to validate connectivity until", StringComparison.Ordinal);
 
     /// <summary>
-    /// 以调用每个调用 grains 来激活。 重试使用瞬时失败的单个调用
-    /// 在滚动升级过程中目录所有权过渡期间,预期有例外。
+    /// 通过逐个调用激活 Grain。对因滚动升级期间目录所有权转换而出现的预期暂时性
+    /// 异常，仅重试失败的调用。
     /// </summary>
     private async Task DriveLoad(
         IGrainFactory client,
@@ -631,7 +631,7 @@ public sealed class GrainDirectoryRollingUpgradeTests(ITestOutputHelper output)
             }
             catch
             {
-                // 有些电话失败——重试那些失败的电话。
+                // 部分调用失败，重试失败的调用。
             }
 
             var failedIds = new List<long>();
@@ -782,8 +782,8 @@ public sealed class GrainDirectoryRollingUpgradeTests(ITestOutputHelper output)
             {
                 if (logLevel >= LogLevel.Error)
                 {
-                    // 预计信息传输层的SiloUnavailableException 错误会出错
-                    // 当滚动升级过程中删除 silos 时。
+                    // 滚动升级期间移除 Silo 时，消息传递层的 SiloUnavailableException 错误
+                    // 属于预期情况。
                     if (exception is SiloUnavailableException)
                     {
                         return;
@@ -1338,7 +1338,7 @@ public sealed class GrainDirectoryRollingUpgradeTests(ITestOutputHelper output)
         StaleCacheEvidenceCapture staleCacheEvidence,
         CancellationToken cancellationToken)
     {
-        // 使用新目录查询方法对封存 grains 进行验证,然后检查全阶段的活化变量。
+        // 在检查整个阶段的激活实例不变量之前，使用新的目录查找验证有限范围内的 Grain。
         await ValidateObservedAddressesAsync(
             cluster,
             observations,

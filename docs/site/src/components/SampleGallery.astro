@@ -15,14 +15,14 @@ const samples = [...preparedGallery.items].sort(
       <div class="sample-gallery__empty">
         <h2>示例目录暂不可用</h2>
         <p>
-          当前开发分支缺少 <code>samples/gallery.json</code>. 示例库
+          当前开发分支缺少 <code>samples/gallery.json</code>。示例库
           会在目录可用后自动显示内容。
         </p>
       </div>
     ) : preparedGallery.items.length === 0 ? (
       <div class="sample-gallery__empty">
         <h2>尚未发布示例</h2>
-        <p>示例目录为空。</p>
+        <p>示例目录已存在，但不包含任何条目。</p>
       </div>
     ) : (
       <>

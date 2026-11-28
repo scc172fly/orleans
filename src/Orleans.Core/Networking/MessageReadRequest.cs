@@ -38,7 +38,7 @@ internal sealed partial class MessageReadRequest(MessageHandlerShared shared) : 
     }
 
     /// <summary>
-    /// 以一条电文的序列页头和体形来初始化请求,这些信头和体状是从连接以外的来源读取的。
+    /// 使用从连接以外的来源读取的消息序列化头部和消息体初始化此请求。
     /// </summary>
     internal void Initialize(ArcBuffer headers, ArcBuffer body)
     {
@@ -144,11 +144,11 @@ internal sealed partial class MessageReadRequest(MessageHandlerShared shared) : 
             connection.MarkMessageReceived();
             connection.RecordMessageReceive(message, PayloadLength, HeaderLength);
 
-            // 机体消毒比头部消毒更有可能失败。
-            // 将两者分开,可以将这些错误传播回给打电话者。
+            // 消息体反序列化比消息头反序列化更容易失败。
+            // 将两者分开使此类错误可以传播回调用方。
             if (_bodyLength > 0)
             {
-                // 此实例为信件所拥有, 所以不会立即重置 。
+                // 此实例现在由消息拥有，因此不会立即重置。
                 message.SetMessageReadRequest(this);
                 shouldReset = false;
             }
@@ -195,25 +195,25 @@ internal sealed partial class MessageReadRequest(MessageHandlerShared shared) : 
 
             LogExceptionReadingMessage(Shared.ConnectionTrace, exception, message, connection);
 
-            // 信息正文没有成功解码,但信头是。
+            // 消息体未成功解码，但消息头已成功解码。
             Shared.MessagingInstruments.OnRejectedMessage(message);
 
             if (message.HasDirection)
             {
                 if (message.Direction == Message.Directions.Request)
                 {
-                    // 给打电话的人发送快速故障
+                    // 向调用方快速返回失败。
                     var response = Shared.MessageFactory.CreateResponseMessage(message);
                     response.Result = Message.ResponseTypes.Error;
                     response.BodyObject = Response.FromException(exception);
 
-                    // 发送错误回复并继续处理下一条消息。
+                    // 发送错误响应，然后继续处理下一条消息。
                     connection.Send(response);
                     message.Dispose();
                 }
                 else if (message.Direction == Message.Directions.Response)
                 {
-                    // 如果信息是回应,则向预定收件人宣传例外情形。
+                    // 如果消息为响应，则将异常传播给预期的接收方。
                     message.Result = Message.ResponseTypes.Error;
                     message.BodyObject = Response.FromException(exception);
                     Shared.MessageCenter.DispatchLocalMessage(message);

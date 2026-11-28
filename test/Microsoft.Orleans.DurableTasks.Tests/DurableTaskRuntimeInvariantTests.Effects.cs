@@ -32,7 +32,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         Assert.True(effect.RemoteTarget.IsDefault);
         Assert.Equal(reference, storage.Get(taskId).Result!.GetResult<Guid>());
 
-        // 完成任务时删除了树, 树记录着效果。
+        // 投递任务的完成消息会删除其执行树，其中保存了效果的记录。
         ((IOutboxMessageSource)runtime).OnRetired(Assert.Single(transport.Completions).MessageId, OutboxMessageRetirement.Delivered.Instance);
 
         Assert.False(storage.Contains(taskId));
@@ -70,7 +70,7 @@ public sealed partial class DurableTaskRuntimeInvariantTests
         ((IDurableTaskGrainStorage)storage).SetRemoteRequest(callId, recorded, target, IDurableTaskRequest.GetMethod(new RuntimeTestOtherMethodRequest()), "recorded-fingerprint");
         using var stalls = new StallRecorder(taskId);
 
-        // 部署改变了呼叫方法,因此重播要求根据记录识别特征进行另一次操作。
+        // 部署更改了调用的方法，因此重放使用已记录的标识符请求另一个操作。
         _ = await runtime.ScheduleChildAsync(
             taskId,
             DurableTask.Run(async () => await CreateRemoteChild(2).WithId("charge")),

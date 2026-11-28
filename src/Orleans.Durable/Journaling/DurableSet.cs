@@ -5,11 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 代表一个在日记中记录突变的集。
+/// 表示一个集合，其变更记录在持久化日志中。
 /// </summary>
-/// <typeparam name="T">集中元素的类型。</typeparam>
+/// <typeparam name="T">集合中元素的类型。</typeparam>
 /// <remarks>
-/// 集将元素的所有权传给它, 而日记记录每个突变时进行。 要更改元素, 需要删除并添加新实例 。
+/// 集合取得传入元素的所有权，并在每次变更发生时将其记入日志。若要改变某个元素，请移除它并添加新实例。
 /// </remarks>
 public interface IDurableSet<T> : ISet<T>, IReadOnlyCollection<T>, IReadOnlySet<T>
 {
@@ -81,7 +81,7 @@ internal sealed class DurableSet<T> : IDurableSet<T>, IStateMachine, IDurableSet
 
     void IStateMachine.WritePendingEntries(JournalStreamWriter writer)
     {
-        // 此状态的实施随着数据结构的修改而附加日记条目, 因此在此无需单独写入 。
+        // 此状态实现会在数据结构被修改时追加日志条目，因此不需要在此处单独执行写入。
     }
 
     void IStateMachine.WriteSnapshot(JournalStreamWriter snapshotWriter)

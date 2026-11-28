@@ -3,12 +3,12 @@ using System.Data.Common;
 namespace Orleans.Configuration;
 
 /// <summary>
-/// ADO.NET 流的选项。
+/// ADO.NET 流选项。
 /// </summary>
 public class AdoNetStreamOptions
 {
     /// <summary>
-    /// 获取或设置 ADO.NET 变量。
+    /// 获取或设置 ADO.NET 固定名称（invariant name）。
     /// </summary>
     public string Invariant { get; set; } = default!;
 
@@ -19,50 +19,50 @@ public class AdoNetStreamOptions
     public string? ConnectionString { get; set; }
 
     /// <summary>
-    /// 获取或设置打开数据库连接所使用的数据源。
+    /// 获取或设置用于打开数据库连接的数据源。
     /// </summary>
     /// <remarks>
-    /// 数据源由调用者拥有, Orleans不处置。
+    /// 数据源由调用方拥有，Orleans 不负责释放它。
     /// </remarks>
     [Redact]
     public DbDataSource? DataSource { get; set; }
 
     /// <summary>
-    /// 传递信息尝试的最大次数。
-    /// 如果这些多次尝试没有成功,最终信息就会变成一纸空文。
+    /// 消息的最大投递尝试次数。
+    /// 达到此次数仍未成功时，消息最终会移入死信。
     /// </summary>
     public int MaxAttempts { get; set; } = 5;
 
     /// <summary>
-    /// 超时, 如果尚未确认的话, 允许再次解密信件 。
+    /// 消息尚未确认时，允许再次出队前的超时时长。
     /// </summary>
     public TimeSpan VisibilityTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// 过期超时, 直到信件被视为过期并移动到已绝信, 不管尝试过与否 。
-    /// 只有在当前尝试也超过其可见度超时的情况下,才移动信息。
+    /// 消息被视为过期并移入死信的超时时长，与尝试次数无关。
+    /// 只有当前尝试也已超过可见性超时时，才会移动该消息。
     /// </summary>
     public TimeSpan ExpiryTimeout { get; set; } = TimeSpan.FromMinutes(10);
 
     /// <summary>
-    /// 删除超时, 直到从废信表中删除失败的信件 。
+    /// 失败消息从死信表中删除前的超时时长。
     /// </summary>
     public TimeSpan DeadLetterEvictionTimeout { get; set; } = TimeSpan.FromDays(7);
 
     /// <summary>
-    /// 迁离活动之间的时间间隔。
-    /// 其中包括将过期信息移至死信,在他们自己的一生中删除死亡信件。
-    /// 这一时期的组群范围很广,不会随着 silos的数量而变化。
+    /// 两次清理活动之间的时间间隔。
+    /// 这些活动包括将过期消息移入死信，以及在死信自身的生存期结束后移除死信。
+    /// 此周期在整个集群范围内生效，不会随 Silo 数量而改变。
     /// </summary>
     public TimeSpan EvictionInterval { get; set; } = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// 受驱逐批次影响的信息的最大数量。
+    /// 每批清理操作所影响的最大消息数量。
     /// </summary>
     public int EvictionBatchSize { get; set; } = 1000;
 
     /// <summary>
-    /// 数据库初始化的安全超时。
+    /// 底层数据库初始化的安全超时时长。
     /// </summary>
     public TimeSpan InitializationTimeout { get; set; } = TimeSpan.FromSeconds(30);
 }

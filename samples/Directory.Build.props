@@ -3,9 +3,8 @@
 
   <PropertyGroup>
     <!--
-      将引用的样本 Orleans 作为 NuGet 包包,以便从
-      并按原样构建了仓库。 Samples.slnx 在恢复当前源
-      样本,然后从本地种子中恢复 Orleans 包。
+      示例将 Orleans 作为 NuGet 包引用，以便将示例目录复制到仓库之外并原样构建。
+      Samples.slnx 在还原示例前打包当前源码，然后从该本地包源还原 Orleans 包。
     -->
     <RestoreAdditionalProjectSources Condition="'$(OrleansSamplePackageSource)' != ''">$(OrleansSamplePackageSource);$(RestoreAdditionalProjectSources)</RestoreAdditionalProjectSources>
     <IsPackable>false</IsPackable>

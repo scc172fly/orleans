@@ -174,7 +174,7 @@ public sealed class CassandraMembershipTableInitializationTests
         using var table = backend.CreateTable(false);
         backend.Session.ClearReceivedCalls();
         var address = SiloAddress.New(System.Net.IPAddress.Loopback, 11111, 1);
-#pragma warning disable CS0618 // Verify retirement before initialization and cancellation precedence.
+#pragma warning disable CS0618 // 验证初始化之前的退役行为以及取消请求的优先级。
         var legacy = ((IMembershipTable)table).ReadRow(address);
         var current = table.ReadRowAsync(address, TestContext.Current.CancellationToken);
         Assert.True(legacy.IsFaulted);
@@ -518,7 +518,7 @@ public sealed class CassandraMembershipTableInitializationTests
             if (ownsSession)
             {
                 options.ConfigureClient("127.0.0.1");
-                // 保持内置所有权政策,同时用控制会话取代网络创建。
+                // 在将网络连接创建替换为可控会话的同时，保留内置所有权策略。
                 typeof(CassandraClusteringOptions)
                     .GetProperty("CreateSessionAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
                     .SetValue(options, (Func<IServiceProvider, Task<ISession>>)CreateSession);

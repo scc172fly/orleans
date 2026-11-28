@@ -122,7 +122,7 @@ public sealed class DurableTaskStorageTests
         Assert.NotNull(typedState.RequestPayload);
         Assert.NotNull(typedState.ResultPayload);
 
-        // 替换有效载荷会丢弃缓存值,因此下一次访问将存储的有效载荷解码。
+        // 替换有效载荷会丢弃缓存值，因此下次访问时将解码已存储的有效载荷。
         typedState.ResultPayload = typedState.ResultPayload;
         var decoded = Assert.IsType<DurableTaskResponse<int>>(typedState.Result);
         Assert.NotSame(response, decoded);
@@ -140,11 +140,11 @@ public sealed class DurableTaskStorageTests
         storage.SetResponse(taskId, state, DurableTaskResponse.FromResult(42));
         storage.AddCompletionDestination(taskId, state, destination);
 
-        // 储存的结果不再解码,例如其类型被删除。
+        // 不再能够解码的已存储结果，例如其类型已被移除的结果。
         var typedState = Assert.IsType<DurableTaskState>(state);
         typedState.ResultPayload = [0xFF, 0xFF, 0xFF, 0xFF];
 
-        // 发信箱的废纸字母 完成它无法实现, 而运行时间退休了。
+        // 发件箱将无法具体化的完成消息转入死信，运行时使该消息退役。
         storage.RemoveCompletionDestination(taskId, state, destination);
         storage.RetainResult(taskId, state);
 
@@ -168,13 +168,13 @@ public sealed class DurableTaskStorageTests
             storage.GetOrCreateTask(taskId, DurableTaskRecordKind.LocalStep, request: null);
         }
 
-        // 任务和它最近的储存子孙之间的识别器,例如组合器的操作, 都没有被存储。
+        // 任务与其最近的已存储后代任务之间的标识符（例如组合器操作的标识符）不会被存储。
         Assert.Equal(
             new HashSet<TaskId> { childId, operationChildId, nestedOperationChildId },
             storage.GetChildren(rootId).Select(child => child.Id).ToHashSet());
         Assert.Equal([grandchildId], storage.GetChildren(childId).Select(child => child.Id));
 
-        // 被清除的任务的存储后代 成为它最接近的存储祖先的孩子
+        // 被移除任务的已存储后代任务成为其最近的已存储祖先任务的子任务。
         Assert.True(storage.RemoveTask(childId));
         Assert.Equal(
             new HashSet<TaskId> { grandchildId, operationChildId, nestedOperationChildId },
@@ -209,7 +209,7 @@ public sealed class DurableTaskStorageTests
 
         await using (var activation = await harness.ActivateAsync(cancellationToken))
         {
-            // 等级指数是根据回收的任务建立的。
+            // 层次结构索引根据恢复的任务构建。
             var storage = activation.Storage;
             Assert.Equal(
                 new HashSet<TaskId> { deletedId, retainedId },
@@ -385,7 +385,7 @@ public sealed class DurableTaskStorageTests
             await recovery.Storage.WriteAsync(cancellationToken);
         }
 
-        // 删除内容已日记。
+        // 删除操作被写入日志。
         await using var deleted = await harness.ActivateAsync(cancellationToken);
         Assert.False(deleted.Storage.TryGetTask(taskId, out _));
         Assert.Empty(deleted.Storage.Tasks);
@@ -431,7 +431,7 @@ public sealed class DurableTaskStorageTests
             resultPayload = Assert.IsType<DurableTaskState>(state).ResultPayload!;
         }
 
-        // 其中一个州输入带有指纹,结果的有效载荷被日记一次。
+        // 一条状态条目携带指纹，结果的有效载荷仅写入日志一次。
         var journal = await ReadJournalAsync(harness, cancellationToken);
         Assert.Equal(1, CountOccurrences(journal, "$record-kind"u8));
         Assert.Equal(1, CountPayload(journal, resultPayload));
@@ -452,7 +452,7 @@ public sealed class DurableTaskStorageTests
         return consumer.Bytes.ToArray();
     }
 
-    // JSON 日记格式将字节数组写成基数64字符串。
+    // JSON 日志格式将字节数组写成 Base64 字符串。
     private static int CountPayload(byte[] journal, byte[] payload) =>
         CountOccurrences(journal, payload) + CountOccurrences(journal, System.Text.Encoding.UTF8.GetBytes(Convert.ToBase64String(payload)));
 

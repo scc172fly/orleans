@@ -62,7 +62,7 @@ namespace OrleansCodeGen.Orleans.Serialization.UnitTests.TaggedUnions
         [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public void WriteField<TBufferWriter>(ref global::Orleans.Serialization.Buffers.Writer<TBufferWriter> writer, uint fieldIdDelta, global::System.Type expectedType, global::Orleans.Serialization.UnitTests.TaggedUnions.Sensor value) where TBufferWriter : global::System.Buffers.IBufferWriter<byte>
         {
-            // 空值是空的联盟字段, 也就是写入空联盟数值的方式。
+            // A null value is an empty union field, which is also how an empty union value is written.
             global::Orleans.Serialization.GeneratedCodeHelpers.OrleansGeneratedCodeHelper.WriteStartUnion(ref writer, fieldIdDelta, expectedType, _codecFieldType);
             switch (value)
             {
@@ -94,7 +94,7 @@ namespace OrleansCodeGen.Orleans.Serialization.UnitTests.TaggedUnions
             if (field.IsReference)
                 return global::Orleans.Serialization.Codecs.ReferenceCodec.ReadReference<global::Orleans.Serialization.UnitTests.TaggedUnions.Sensor, TReaderInput>(ref reader, field);
 
-            // 在使用类型的案件识别符号之前写好的数值,将运行时间类型编码在字段信头中。
+            // Values written before the type used case identifiers encode their runtime type in the field header.
             if (field.FieldType is { } fieldType && fieldType != _codecFieldType)
                 return global::Orleans.Serialization.GeneratedCodeHelpers.OrleansGeneratedCodeHelper.DeserializeUnexpectedType<TReaderInput, global::Orleans.Serialization.UnitTests.TaggedUnions.Sensor>(ref reader, ref field);
 

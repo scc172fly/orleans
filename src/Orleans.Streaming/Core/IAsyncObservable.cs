@@ -4,36 +4,36 @@ using System.Threading.Tasks;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 此界面对标准 .NET IO可观测接口进行通用,以便允许物品的同步消耗。
-    /// 这里的不同步性意味着消费者可以不同步地处理物品,并信号完成物品 
-    /// 制片人完成返回的任务。
+    /// 此接口扩展标准 .NET IObservable 接口，支持异步消费数据项。
+    /// 此处的异步指消费者可以异步处理数据项，并通过完成返回的 Task
+    /// 向生产者通知数据项已处理完成。
     /// <para>
-    /// 请注意,该接口被物品消费者所援引(使用),并由物品生产者加以实施。
-    /// 这意味着流的生产者端点执行此接口 。
+    /// 注意，此接口由数据项的生产者实现，由消费者调用。
+    /// 因此，流的生产端实现此接口。
     /// </para>
     /// </summary>
-    /// <typeparam name="T">可见观测到的物体类型。</typeparam>
+    /// <typeparam name="T">可观察对象生成的对象类型。</typeparam>
     public interface IAsyncObservable<T>
     {
         /// <summary>
-        /// 将消费者加入这一可见的商品。
+        /// 将消费者订阅到此可观察对象。
         /// </summary>
-        /// <param name="observer">无法同步的订阅观察员 。</param>
-        /// <returns>承诺签署 StreamSubscriptionHandle ,表示订阅。
-        /// 消费者可以使用此把手取消订阅。
-        /// 只要不是明确未订阅,订阅活动就一直有效。
+        /// <param name="observer">要订阅的异步观察者。</param>
+        /// <returns>表示该订阅的 StreamSubscriptionHandle 的异步获取任务。
+        /// 使用此句柄，消费者可以取消订阅。
+        /// 只要未显式取消订阅，订阅就会保持活动状态。
         /// </returns>
         Task<StreamSubscriptionHandle<T>> SubscribeAsync(IAsyncObserver<T> observer);
 
         /// <summary>
-        /// 将消费者加入这一可见的商品。
+        /// 将消费者订阅到此可观察对象。
         /// </summary>
-        /// <param name="observer">无法同步的订阅观察员 。</param>
-        /// <param name="token">用于抵消启动订阅的流序序列。</param>
-        /// <param name="filterData">数据对象将传递到过滤器。</param>
-        /// <returns>承诺签署 StreamSubscriptionHandle ,表示订阅。
-        /// 消费者可以使用此把手取消订阅。
-        /// 只要不是明确未订阅,订阅活动就一直有效。
+        /// <param name="observer">要订阅的异步观察者。</param>
+        /// <param name="token">用作订阅起始偏移位置的流序列令牌。</param>
+        /// <param name="filterData">传递给筛选器的数据对象。</param>
+        /// <returns>表示该订阅的 StreamSubscriptionHandle 的异步获取任务。
+        /// 使用此句柄，消费者可以取消订阅。
+        /// 只要未显式取消订阅，订阅就会保持活动状态。
         /// </returns>
         Task<StreamSubscriptionHandle<T>> SubscribeAsync(IAsyncObserver<T> observer, StreamSequenceToken? token, string? filterData = null);
     }

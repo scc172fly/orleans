@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 namespace Orleans.Analyzers;
 
 /// <summary>
-/// 将 grain 接口添加到 OrleansContracts.txt 或更新其版本的代码固定服务商。
+/// 将 Grain 接口添加到 OrleansContracts.txt 或更新其版本的代码修复提供程序。
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(GrainInterfaceVersionCodeFix)), Shared]
 public class GrainInterfaceVersionCodeFix : CodeFixProvider
@@ -52,14 +52,14 @@ public class GrainInterfaceVersionCodeFix : CodeFixProvider
 
     /// <inheritdoc/>
     public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
-        GrainInterfaceVersionAnalyzer.RuleId0016,  // 未声明的界面
-        GrainInterfaceVersionAnalyzer.RuleId0017,  // 版本错配
-        GrainInterfaceVersionAnalyzer.RuleId0018,  // 未申报成员
-        GrainInterfaceVersionAnalyzer.RuleId0019,  // 删除接口未退出
-        GrainInterfaceVersionAnalyzer.RuleId0020,  // 合同档案丢失
-        GrainInterfaceVersionAnalyzer.RuleId0022,  // Grain 类未申报
-        GrainInterfaceVersionAnalyzer.RuleId0023,  // Grain 类别别名不匹配
-        GrainInterfaceVersionAnalyzer.RuleId0024); // 删除了 grain 类未退
+        GrainInterfaceVersionAnalyzer.RuleId0016,  // 接口未声明。
+        GrainInterfaceVersionAnalyzer.RuleId0017,  // 版本不匹配。
+        GrainInterfaceVersionAnalyzer.RuleId0018,  // 成员未声明。
+        GrainInterfaceVersionAnalyzer.RuleId0019,  // 已删除的接口未退役。
+        GrainInterfaceVersionAnalyzer.RuleId0020,  // 缺少契约文件。
+        GrainInterfaceVersionAnalyzer.RuleId0022,  // Grain 类未声明。
+        GrainInterfaceVersionAnalyzer.RuleId0023,  // Grain 类别名不匹配。
+        GrainInterfaceVersionAnalyzer.RuleId0024); // 已删除的 Grain 类未退役。
 
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider() => OrleansContractsFixAllProvider.Instance;
@@ -573,7 +573,7 @@ public class GrainInterfaceVersionCodeFix : CodeFixProvider
                     }
                     else
                     {
-                        // 在源界面存在时记录已过期遗留声明的身份。
+                        // 趁源码接口仍存在，记录已退役的旧式声明的标识。
                         result.Add(isInterface
                             && GrainInterfaceFileParser.TryRecordLegacyGrainInterfaceType(
                                 declaration,
@@ -1245,7 +1245,7 @@ public class GrainInterfaceVersionCodeFix : CodeFixProvider
         var project = document.Project;
         var solution = project.Solution;
 
-        // 从源代码获取版本和别名
+        // 从源码获取版本及别名。
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -1285,7 +1285,7 @@ public class GrainInterfaceVersionCodeFix : CodeFixProvider
             ? interfaceName
             : null;
 
-        // 构建界面声明行
+        // 构造接口声明行。
         var sb = new StringBuilder();
         sb.Append("interface ");
         if (!string.IsNullOrEmpty(grainInterfaceType))
@@ -1296,7 +1296,7 @@ public class GrainInterfaceVersionCodeFix : CodeFixProvider
         sb.Append($" [Version({version})]");
         var interfaceLine = sb.ToString();
 
-        // 构建成员行
+        // 构造成员行。
         var memberLines = new List<(string Signature, MethodWireIdentity WireIdentity)>();
         foreach (var member in symbol.GetMembers().OfType<IMethodSymbol>())
         {
@@ -1311,12 +1311,12 @@ public class GrainInterfaceVersionCodeFix : CodeFixProvider
                 GrainInterfaceVersionAnalyzer.GetMethodWireIdentity(member)));
         }
 
-        // 查找或创建 OrleansContracts.txt 文件
+        // 查找或创建 OrleansContracts.txt 文件。
         var grainInterfacesFile = FindContractsDocument(project);
 
         if (grainInterfacesFile is not null)
         {
-            // 附加到现有文件
+            // 追加到现有文件。
             var text = await grainInterfacesFile.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var existingContent = text?.ToString() ?? "";
             var newLine = text is null ? DefaultNewLine : GetNewLine(text);
@@ -1417,10 +1417,10 @@ public class GrainInterfaceVersionCodeFix : CodeFixProvider
         {
             var trimmedLine = line.Trim();
 
-            // 检查此行是否包含接口声明
+            // 检查此行是否包含接口声明。
             if (IsMatchingInterface(trimmedLine, interfaceName, grainInterfaceType, legacyGrainInterfaceTypes))
             {
-                // 替换版本号
+                // 替换版本号。
                 var declaration = GrainInterfaceFileParser.StripClrComment(trimmedLine);
                 var versionStart = declaration.LastIndexOf("[Version(", StringComparison.Ordinal);
                 var versionEnd = trimmedLine.IndexOf(")]", versionStart, StringComparison.Ordinal);
@@ -1437,7 +1437,7 @@ public class GrainInterfaceVersionCodeFix : CodeFixProvider
             AppendLine(newLines, line, newLine);
         }
 
-        // 删除 AppendLine添加的末端新行
+        // 移除 AppendLine 添加的末尾换行符。
         var newContent = newLines.ToString();
         if (newContent.EndsWith(newLine, StringComparison.Ordinal))
         {
@@ -1496,7 +1496,7 @@ public class GrainInterfaceVersionCodeFix : CodeFixProvider
                 insertedMember = true;
             }
 
-            // 检查此行是否包含接口声明
+            // 检查此行是否包含接口声明。
             if (!foundInterface && IsMatchingInterface(trimmedLine, interfaceName, grainInterfaceType, legacyGrainInterfaceTypes))
             {
                 foundInterface = true;
@@ -1505,13 +1505,13 @@ public class GrainInterfaceVersionCodeFix : CodeFixProvider
             AppendLine(newLines, line, newLine);
         }
 
-        // 如果我们还没有插入成员, 应该在最后附加
+        // 如果尚未插入成员，则追加到末尾。
         if (foundInterface && !insertedMember)
         {
             AppendMember(newLines, memberSignature, memberWireIdentity, newLine);
         }
 
-        // 删除 AppendLine添加的末端新行
+        // 移除 AppendLine 添加的末尾换行符。
         var newContent = newLines.ToString();
         if (newContent.EndsWith(newLine, StringComparison.Ordinal))
         {
@@ -1556,7 +1556,7 @@ public class GrainInterfaceVersionCodeFix : CodeFixProvider
         {
             var trimmedLine = line.Trim();
 
-            // 检查此行是否包含接口声明
+            // 检查此行是否包含接口声明。
             if (IsMatchingInterface(trimmedLine, interfaceName, grainInterfaceType, legacyGrainInterfaceTypes: null) &&
                 !trimmedLine.StartsWith(GrainInterfaceVersionAnalyzer.RetiredPrefix, StringComparison.Ordinal))
             {
@@ -1570,7 +1570,7 @@ public class GrainInterfaceVersionCodeFix : CodeFixProvider
             AppendLine(newLines, line, newLine);
         }
 
-        // 删除 AppendLine添加的末端新行
+        // 移除 AppendLine 添加的末尾换行符。
         var newContent = newLines.ToString();
         if (newContent.EndsWith(newLine, StringComparison.Ordinal))
         {
@@ -1624,8 +1624,8 @@ public class GrainInterfaceVersionCodeFix : CodeFixProvider
                         StringComparison.Ordinal);
         }
 
-        // 没有身份,只有同名的遗声声明;有记录的
-        // 名称描述不同的合同。
+        // 未指定标识时，仅匹配同名的旧式声明；记录了标识的同名声明
+        // 描述的是另一个契约。
         return !GrainInterfaceFileParser.TryGetGrainInterfaceType(line, out _)
             && string.Equals(declaredInterfaceName, interfaceName, StringComparison.Ordinal);
     }

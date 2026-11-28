@@ -23,8 +23,8 @@ public sealed class AdoNetMembershipUpgradeTests
     private const string ClusterId = "membership-compatibility";
     private static readonly DateTime StartTime = new(2030, 1, 2, 3, 4, 5, DateTimeKind.Utc);
 
-    // 弧/ 弧AdoNet/Orleans.Clustering.AdoNet/*-Clustering.sql 发自d515d75eaaaa30390a74cb11c96a758358b5a67,
-    // 仅删除尾行空格/ 拖字, 并提取。 Hashes 还实现结账结束的常规化 。
+    // 取自提交 d515d75eaaa3a0390a74cb11c96aa758358b5a67 中的 src/AdoNet/Orleans.Clustering.AdoNet/*-Clustering.sql，
+    // 提取时仅删除行尾的空格和制表符；计算哈希时也会对检出文件的换行符进行规范化。
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -67,7 +67,7 @@ public sealed class AdoNetMembershipUpgradeTests
         var connectionString = database.CurrentConnectionString;
         if (engine == "PostgreSQL")
         {
-            // 新鲜 SQL 必须无选择性地倒回;冻结的原始 SQL 保留其遗留行为。
+            // 新版本 SQL 必须回滚，无须依赖可选断言；冻结的原始 SQL 则保留其旧版行为。
             connectionString = new NpgsqlConnectionStringBuilder(connectionString) { Options = "-c plpgsql.check_asserts=off" }.ConnectionString;
         }
 
@@ -111,7 +111,7 @@ public sealed class AdoNetMembershipUpgradeTests
             Assert.True(await current.UpdateRowAsync(entry, Assert.IsType<Tuple<MembershipEntry, string>>(row.TryGet(entry.SiloAddress)).Item2, row.Version.Next(), cancellationToken));
         }
 
-        // 原安装支持软件包升级, 且没有目录编辑 。
+        // 已填充数据的原始安装支持软件包升级，无须修改任何目录元数据。
         var populated = await ReadSnapshotAsync(storage, cancellationToken);
         AssertStored(populated, 9, entries);
         await current.InitializeMembershipTableAsync(true, cancellationToken);
@@ -139,7 +139,7 @@ public sealed class AdoNetMembershipUpgradeTests
         active.SuspectTimes = [Tuple.Create(joining.SiloAddress, StartTime.AddMinutes(4))];
         active.IAmAliveTime = StartTime.AddMinutes(5);
         Assert.True(await current.UpdateRowAsync(active, originalRowToken, captured.Version.Next(), cancellationToken));
-        // 原始 SQL 可以覆盖较新的心跳; 只有增强的全线写 maX 保留 。
+        // 原始 SQL 可能覆盖较新的心跳；只有增强后的整行写入才会保留最大值（MAX）。
         active.IAmAliveTime = StartTime.AddMinutes(enhanced ? 10 : 5);
         var afterUpdate = await ReadSnapshotAsync(storage, cancellationToken);
         AssertStored(afterUpdate, 10, entries);
@@ -184,7 +184,7 @@ public sealed class AdoNetMembershipUpgradeTests
             AssertUnchanged(stable, await ReadSnapshotAsync(storage, cancellationToken));
         }
 
-        // 原始清理保留了原来的语义学, 所以使用安全无操作的截断方式。
+        // 原始清理逻辑保留其原有语义，因此在该模式下使用不会删除数据的安全截止值。
         await current.CleanupDefunctSiloEntriesAsync(new DateTimeOffset(enhanced ? cutoff : StartTime), cancellationToken);
         var afterCleanup = await ReadSnapshotAsync(storage, cancellationToken);
         var survivors = enhanced ? entries.Where(entry => entry != dead && entry != oldSuspect).ToArray() : entries;
@@ -237,7 +237,7 @@ public sealed class AdoNetMembershipUpgradeTests
 
         if (!enhanced)
         {
-            // 冻结原件 SQL 可在缺失的行上进行仅版本更新。 不要隐藏它 。
+            // 冻结的原始 SQL 可能在目标行不存在时提交仅更新版本号的操作。不要掩盖这一行为。
             var beforeMissing = await ReadSnapshotAsync(storage, cancellationToken);
             var missing = await current.UpdateRowAsync(
                 Entry(20, SiloStatus.Dead), beforeMissing.Etag, beforeMissing.NextVersion, cancellationToken);

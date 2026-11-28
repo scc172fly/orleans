@@ -11,38 +11,38 @@ using Orleans.Runtime;
 namespace Orleans.TestingHost
 {
     /// <summary>
-    /// 独立 silo 进程切入点。见 <see cref="StandaloneSiloHandle" />。
+    /// 独立 Silo 进程的入口点。参见 <see cref="StandaloneSiloHandle" />。
     /// </summary>
     public static class StandaloneSiloHost
     {
         /// <summary>
-        /// 在 silo 地址前的标准输出前缀。
+        /// 标准输出中位于 Silo 地址之前的前缀。
         /// </summary>
         public const string SiloAddressLog = "#### SILO ";
 
         /// <summary>
-        /// 网关地址前的标准输出前缀。
+        /// 标准输出中位于网关地址之前的前缀。
         /// </summary>
         public const string GatewayAddressLog = "#### GATEWAY ";
 
         /// <summary>
-        /// 标准输出信息,其中显示 silo 已经开始。
+        /// 指示 Silo 已启动的标准输出消息。
         /// </summary>
         public const string StartedLog = "#### STARTED";
 
         /// <summary>
-        /// 要求关闭 silo 的标准输入命令。
+        /// 请求 Silo 关闭的标准输入命令。
         /// </summary>
         public const string ShutdownCommand = "#### SHUTDOWN";
 
         /// <summary>
-        /// 运行独立 silo 进程。
+        /// 运行独立 Silo 进程。
         /// </summary>
         /// <param name="args">
-        /// 命令行参数。 第一个参数是监测程序的标识符,第二个参数是
-        /// 序列化的 silo 配置 。
+        /// 命令行参数。第一个参数是要监控的进程的标识符，第二个参数是
+        /// 序列化后的 Silo 配置。
         /// </param>
-        /// <returns>一项任务,当它完成的时候, silo 关闭了</returns>
+        /// <returns>Silo 关闭后完成的任务。</returns>
         public static async Task Main(string[] args)
         {
             if (args.Length < 2)
@@ -73,11 +73,11 @@ namespace Orleans.TestingHost
 
                 await host.StartAsync(cts.Token);
 
-                // 这是特别的标记线
+                // 这是一个特殊标记行。
                 var localSiloDetails = (ILocalSiloDetails)host.Services.GetService(typeof(ILocalSiloDetails))!;
                 Console.WriteLine($"{SiloAddressLog}{localSiloDetails.SiloAddress.ToParsableString()}");
                 Console.WriteLine($"{GatewayAddressLog}{localSiloDetails.GatewayAddress.ToParsableString()}");
-#pragma warning disable CA1303 // The parent process matches this machine-readable readiness marker exactly.
+#pragma warning disable CA1303 // 父进程精确匹配此机器可读的就绪标记。
                 Console.WriteLine(StartedLog);
 #pragma warning restore CA1303
 
@@ -125,7 +125,7 @@ namespace Orleans.TestingHost
                     }
                     catch
                     {
-                        // 忽略所有错误 。
+                        // 忽略所有错误。
                     }
                 },
                 null,
@@ -137,7 +137,7 @@ namespace Orleans.TestingHost
 
         private static void ListenForShutdownCommand(CancellationTokenSource cts)
         {
-            // 从标准输入开始显示关闭命令的线条监测 。
+            // 启动线程以监控来自标准输入的关闭命令。
             _ = Task.Factory.StartNew(_ =>
             {
                 try
@@ -155,7 +155,7 @@ namespace Orleans.TestingHost
                 }
                 catch
                 {
-                    // 忽略所有错误 。
+                    // 忽略所有错误。
                 }
             },
             null,

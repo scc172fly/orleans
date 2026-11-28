@@ -1,12 +1,12 @@
 ### YamlMime:Hub
 
 title: "Microsoft Orleans 文档"
-summary: "了解如何使用 .NET Orleans SDK，浏览 API 参考、示例代码、教程、快速入门和概念文档。"
+summary: "了解如何使用 .NET Orleans SDK。浏览 API 参考、示例代码、教程、快速入门、概念文章等内容。"
 brand: dotnet
 
 metadata:
     title: "Microsoft Orleans 文档"
-    description: "Microsoft 的 .NET 云原生分布式系统平台。提供示例、教程和学习资料。"
+    description: "面向 .NET Orleans 的示例、教程和学习资料。Orleans 是 Microsoft 的云原生分布式系统平台。"
     ms.topic: hub-page
     ms.service: dotnet-orleans
     ms.date: 08/12/2026
@@ -68,9 +68,9 @@ conceptualContent:
                 text: "代码生成"
                 url: grains/code-generation.md
               - itemType: how-to-guide
-                text: "无状态工作 Grain"
+                text: "无状态工作者 Grain"
                 url: grains/stateless-worker-grains.md
-        - title: "开发 Grain"
+        - title: "使用 Grain"
           links:
               - itemType: overview
                 text: "Grain 持久化"
@@ -151,7 +151,7 @@ conceptualContent:
                 text: "激活实例生命周期与迁移"
                 url: implementation/activation-lifecycle.md
               - itemType: architecture
-                text: "集群成员关系"
+                text: "集群成员资格"
                 url: implementation/cluster-management.md
               - itemType: architecture
                 text: "序列化与代码生成"
@@ -168,7 +168,7 @@ conceptualContent:
               text: "使用 Orleans 构建实际应用"
               url: https://learn.microsoft.com/shows/on-net/building-real-applications-with-orleans
             - itemType: video
-              text: "使用 Orleans 构建应用"
+              text: "使用 Orleans 构建分布式应用"
               url: https://learn.microsoft.com/shows/on-net/orleans-onnet
             - itemType: video
               text: "将 Orleans 应用部署到 Kubernetes"
@@ -184,27 +184,27 @@ additionalContent:
     sections:
         - title: ".NET 社区资源"
           items:
-              - title: "文档"
+              - title: ".NET"
                 links:
                     - text: ".NET 文档"
                       url: https://learn.microsoft.com/dotnet/
                     - text: "ASP.NET 文档"
                       url: https://learn.microsoft.com/aspnet/
-                    - text: "文档"
+                    - text: "Azure 文档"
                       url: https://learn.microsoft.com/azure/
                     - text: "C# 文档"
                       url: https://learn.microsoft.com/dotnet/csharp/
-              - title: "网络节目"
+              - title: "网络讲座与节目"
                 links:
                     - text: "Azure Friday"
                       url: https://learn.microsoft.com/shows/azure-friday/
-                    - text: "云原生节目"
+                    - text: "The Cloud Native Show（云原生节目）"
                       url: https://learn.microsoft.com/shows/the-cloud-native-show/
                     - text: "On .NET"
                       url: https://learn.microsoft.com/shows/on-net/
-                    - text: ".NET 社区支持"
+                    - text: ".NET Community Standup（.NET 社区例会）"
                       url: https://dotnet.microsoft.com/platform/community/standup
-                    - text: ".NET 直播"
+                    - text: "On .NET Live"
                       url: https://dotnet.microsoft.com/live/on-dotnet-live
               - title: "开源项目"
                 links:
@@ -229,8 +229,8 @@ additionalContent:
                     - text: "评论拉取请求"
                       url: https://github.com/dotnet/orleans/pulls
 
-        - title: "API 与语言参考"
-          summary: "搜索 .NET API 和语言参考文档。"
+        - title: "API 与语言参考" # 少于 60 个字符（可选）
+          summary: "搜索 .NET API 和语言参考文档。" # 少于 160 个字符（可选）
           items:
 
           - title: "Orleans Core API 参考"
@@ -266,5 +266,5 @@ additionalContent:
             url: https://scc172fly.github.io/orleans/docs/api/csharp/microsoft.orleans.transactions/
 
 
-    # 脚( 可选择)
-    footer: "Are you interested in contributing to the .NET docs? For more information, see our [contributor guide](https://learn.microsoft.com/contribute/content/dotnet/dotnet-contribute)."
+    # 页脚（可选）
+    footer: "有兴趣为 .NET 文档作出贡献吗？有关详细信息，请参阅[贡献指南](https://learn.microsoft.com/contribute/content/dotnet/dotnet-contribute)。"

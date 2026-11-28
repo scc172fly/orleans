@@ -15,7 +15,7 @@ using Orleans.Statistics;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 此类收集当前部署中所有 silos 的运行时统计,供安插使用。
+    /// 此类收集当前部署中所有 Silo 的运行时统计信息，供放置决策使用。
     /// </summary>
     internal sealed partial class DeploymentLoadPublisher : SystemTarget, IDeploymentLoadPublisher, ISiloStatusListener, ILifecycleParticipant<ISiloLifecycle>
     {
@@ -76,8 +76,8 @@ namespace Orleans.Runtime
 
             if (_statisticsRefreshTime > TimeSpan.Zero)
             {
-                // 随机化计时器 PublishStatistics ,
-                // 并且从一开始,我公布给每个人的统计数据 并拿大家的数据来让我先做点什么。
+                // 随机化 PublishStatistics 定时器的触发时间，
+                // 同时在启动时向所有成员发布本地统计信息，并获取所有成员的统计信息作为初始数据。
                 var randomTimerOffset = RandomTimeSpan.Next(_statisticsRefreshTime);
                 await this.RunOrQueueTask(() =>
                 {
@@ -99,7 +99,7 @@ namespace Orleans.Runtime
             {
                 LogTracePublishStatistics(_logger);
 
-                // 确保我们的时标单调增加。
+                // 确保时间戳单调递增。
                 var ticks = _lastUpdateDateTimeTicks = Math.Max(_lastUpdateDateTimeTicks + 1, DateTime.UtcNow.Ticks);
 
                 var myStats = new SiloRuntimeStatistics(
@@ -110,17 +110,17 @@ namespace Orleans.Runtime
                     _connectedClients.Count,
                     new DateTime(ticks, DateTimeKind.Utc));
 
-                // 在当地更新统计数据。
+                // 在本地更新统计信息。
                 LocalRuntimeStatistics = myStats;
                 UpdateRuntimeStatisticsInternal(_siloDetails.SiloAddress, myStats);
                 DeploymentLoadPublisherEvents.EmitPublished(_siloDetails.SiloAddress, myStats);
 
-                // 向其他分组成员通报我们的最新统计数据。
+                // 将更新后的统计信息通知其他集群成员。
                 var members = _siloStatusOracle.GetApproximateSiloStatuses(true).Keys;
                 var tasks = new List<Task>(members.Count);
                 foreach (var siloAddress in members)
                 {
-                    // 不需要做一个 grain 呼唤我们自己。
+                    // 无需向自身发起 Grain 调用。
                     if (siloAddress.Equals(_siloDetails.SiloAddress))
                     {
                         continue;
@@ -172,7 +172,7 @@ namespace Orleans.Runtime
                 return;
             }
 
-            // 只有在更新了才吃
+            // 仅接受更新的统计信息。
             if (_periodicStats.TryGetValue(siloAddress, out var old) && old.DateTime > siloStats.DateTime)
             {
                 return;

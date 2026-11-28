@@ -29,7 +29,7 @@ export function buildApiSidebar(
   currentPackageName?: string,
   currentType?: ApiType,
 ): SidebarItem[] {
-  const root: SidebarLink = { label: 'API packages', link: `${apiRoot}/` };
+  const root: SidebarLink = { label: 'API 包', link: `${apiRoot}/` };
   const sorted = [...packages].sort((left, right) =>
     left.package.name.localeCompare(right.package.name),
   );
@@ -42,7 +42,7 @@ export function buildApiSidebar(
           label: current.package.name,
           collapsed: false,
           items: [
-            { label: 'Package overview', link: packagePath(current.package.name) },
+            { label: '包概述', link: packagePath(current.package.name) },
             typeSidebar(current.package.name, currentType),
           ],
         },
@@ -79,7 +79,7 @@ function packageSidebar(pkg: PackageApiDocument, collapsed: boolean): SidebarGro
     label: pkg.package.name,
     collapsed,
     items: [
-      { label: 'Overview', link: packagePath(pkg.package.name) },
+      { label: '概述', link: packagePath(pkg.package.name) },
       ...typeItems,
     ],
   };
@@ -104,7 +104,7 @@ function typeSidebar(packageName: string, type: ApiType): SidebarItem {
     collapsed: true,
     items: [
       {
-        label: 'Overview',
+        label: '概述',
         link: `${packagePath(packageName)}${typeSlug(type)}/`,
       },
       ...memberItems,

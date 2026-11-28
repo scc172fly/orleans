@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Orleans.Durable.Messaging.Tests.Functional;
 
-/// <summary>通过两个支持的日记编码运行持续存取的允许边界。</summary>
+/// <summary>通过两种受支持的日志编码验证持久化的准入边界。</summary>
 [Collection(MessagingClusterCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -41,7 +41,7 @@ public sealed class InboxAdmissionRecoveryTests
         var retained = Message("recent", fixture.JobClock.GetUtcNow());
         DeliveryResultAssert.IsCase<DeliveryResult.Accepted>(await DeliverAsync(receiver, retained));
         if (snapshot) fixture.Storage.RequestSnapshot(JournalId.FromGrainId(receiver.GetGrainId()));
-        // 日记命令(或其快照)可持久地推进同一层楼。
+        // 日志命令（或其快照）持久化推进相同的下限。
         DeliveryResultAssert.IsCase<DeliveryResult.Expired>(await DeliverAsync(receiver, Message("expired-by-floor", floor)));
         await fixture.CrashAsync(receiver);
         fixture.JobClock.Advance(started - fixture.JobClock.GetUtcNow());
@@ -51,7 +51,7 @@ public sealed class InboxAdmissionRecoveryTests
         Assert.DoesNotContain(original.Envelope.MessageId,
             await fixture.OnGrainAsync(receiver, () => InboxTestAccess.GetProcessedKeys(inbox)));
         DeliveryResultAssert.IsCase<DeliveryResult.Expired>(await DeliverAsync(receiver, original));
-        // 两天后,最近的记录才开始制作;在重播记录之前恢复一个合法的接收器钟。
+        // 较新的记录是在两天后暂存的；重放前先将接收方时钟恢复至合法时间。
         fixture.JobClock.Advance(retained.SentAt - fixture.JobClock.GetUtcNow());
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await DeliverAsync(receiver, retained));
         Assert.Equal(retained.SentAt, await fixture.OnGrainAsync(receiver, () =>

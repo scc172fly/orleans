@@ -4,26 +4,26 @@ using System.Threading.Tasks;
 namespace Orleans.Streams;
 
 /// <summary>
-/// 利用有条件更新,储存一个持久性流检查站。
+/// 使用条件更新存储持久化流检查点。
 /// </summary>
 public interface IStreamCheckpointStore
 {
     /// <summary>
-    /// 装入当前检查点及其版本。
+    /// 加载当前检查点及其版本。
     /// </summary>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>目前的检查站状态。</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>当前检查点状态。</returns>
     ValueTask<StreamCheckpointStoreState> Load(CancellationToken cancellationToken);
 
     /// <summary>
-    /// 如果 <paramref name="expectedVersion"/> 符合持续版本,则更新检查站。
+    /// 如果 <paramref name="expectedVersion"/> 与持久化版本匹配，则更新检查点。
     /// </summary>
-    /// <param name="checkpoint">检查站将继续存在。</param>
-    /// <param name="expectedVersion">预期的已存在版本。</param>
-    /// <param name="cancellationToken">取消牌。</param>
+    /// <param name="checkpoint">要持久化的检查点。</param>
+    /// <param name="expectedVersion">预期的持久化版本。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>
-    /// 更新尝试后的持续状态。 如果预期版本不匹配,
-    /// 返回的州内有冲突持续的检查站和版本。
+    /// 尝试更新后的持久化状态。如果预期版本不匹配，
+    /// 返回的状态包含发生冲突的持久化检查点及其版本。
     /// </returns>
     ValueTask<StreamCheckpointStoreState> Update(
         string checkpoint,

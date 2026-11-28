@@ -6,17 +6,17 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Runtime.ConsistentRing
 {
     /// <summary>
-    /// 我们用“后向/时时针”的定义来分配环上的责任。
-    /// E.g.在结点 {5,10,15} 的环中,关键7的责任是 10 (节点负责前一个范围)。
-    /// 后向/时时制办法与许多重叠一致, e.g.,和弦,卡珊德拉等
-    /// 注: MembershipOracle 使用“前向/逆时针”定义来分配责任。
-    /// E.g.在结点 {5,10,15}的环中,键7的责任是5(节点负责其随后的范围)。
+    /// 我们采用“向后/顺时针”的定义分配环上的责任范围。
+    /// 例如，在由节点 {5, 10, 15} 组成的环中，键 7 由节点 10 负责（节点负责其前面的范围）。
+    /// 向后/顺时针的方式与许多覆盖网络一致，例如 Chord、Cassandra 等。
+    /// 注意：MembershipOracle 采用“向前/逆时针”的定义分配责任范围。
+    /// 例如，在节点 {5, 10, 15} 的环中，键 7 由节点 5 负责（节点负责其后面的范围）。
     /// </summary>
     internal sealed partial class VirtualBucketsRingProvider :
         IConsistentRingProvider, ISiloStatusListener, IDisposable
     {
         private readonly SortedDictionary<uint, SiloAddress> bucketsMap = new();
-        private (uint Hash, SiloAddress SiloAddress)[] sortedBucketsList = null!; // 用于快速无锁计算 CalculateTargetSilo的已平定分类桶列表
+        private (uint Hash, SiloAddress SiloAddress)[] sortedBucketsList = null!; // 展平并排序的桶列表，以便 CalculateTargetSilo 快速进行无锁计算。
         private readonly ILogger logger;
         private readonly SiloAddress myAddress;
         private readonly int numBucketsPerSilo;
@@ -49,7 +49,7 @@ namespace Orleans.Runtime.ConsistentRing
                 return size == 0 ? 0 : ((float)100.0 / size);
             });
 
-            // 将我加入成员名单
+            // 将当前 Silo 添加到成员列表。
             AddServer(myAddress);
             siloStatusOracle.SubscribeToSiloStatusEvents(this);
         }
@@ -102,7 +102,7 @@ namespace Orleans.Runtime.ConsistentRing
                 {
                     if (bucketsMap.TryGetValue(hash, out var other))
                     {
-                        // 如果两次 silos 冲突,取两者中较轻者(通常是较老者,即较低时代)
+                        // 如果两个 Silo 发生冲突，取两者中较小的一个（通常是较早的 Silo，即 epoch 较小者）。
                         if (silo.CompareTo(other) > 0) continue;
                     }
                     bucketsMap[hash] = silo;
@@ -123,16 +123,16 @@ namespace Orleans.Runtime.ConsistentRing
             RingRangeListenerManager.NotificationWorkItem notification;
             lock (bucketsMap)
             {
-                if (!bucketsMap.ContainsValue(silo)) return; // 我们已经删除了此 silo
+                if (!bucketsMap.ContainsValue(silo)) return; // 此 Silo 已被移除。
 
                 var hashes = silo.GetUniformHashCodes(numBucketsPerSilo);
                 foreach (var hash in hashes)
                 {
                     if (bucketsMap.Remove(hash, out var removedSilo) && !removedSilo.Equals(silo))
                     {
-                        // 散状碰撞非常罕见 所以最好先把桶子拿掉 再追溯
-                        // 如果 silos 不同,而不是做2次调查(1次检查是否 silos
-                        // 等值, 然后第二秒再除去桶)
+                        // 由于哈希冲突非常罕见，先移除桶，再在发现 Silo 不同时补回该桶，
+                        // 比每次执行两次查找更合适（第一次检查 Silo 是否相等，
+                        // 第二次移除桶）。
                         bucketsMap[hash] = removedSilo;
                     }
                 }
@@ -155,7 +155,7 @@ namespace Orleans.Runtime.ConsistentRing
             foreach (var pair in bucketsMap) bucketsList[idx++] = (pair.Key, pair.Value);
             var myNewRange = CalculateRange(bucketsList, myAddress);
 
-            // 捕捉我的区域, sortedBucketsList 以后可以进入无锁通道
+            // 捕获当前责任范围及 sortedBucketsList，供之后无锁访问。
             myRange = myNewRange;
             sortedBucketsList = bucketsList;
             return myNewRange;
@@ -168,7 +168,7 @@ namespace Orleans.Runtime.ConsistentRing
             {
                 var curr = list[i];
                 var next = list[(i + 1) % list.Length];
-                // 背向/时针”的定义,以分配环上的责任。
+                // 采用“向后/顺时针”的定义分配环上的责任范围。
                 if (next.SiloAddress.Equals(silo))
                 {
                     IRingRange range = RangeFactory.CreateRange(curr.Hash, next.Hash);
@@ -178,7 +178,7 @@ namespace Orleans.Runtime.ConsistentRing
             return RangeFactory.CreateRange(ranges);
         }
 
-        // 用于调试/博客
+        // 用于调试和日志记录。
         public override string ToString()
         {
             var sortedList = GetRanges();
@@ -186,7 +186,7 @@ namespace Orleans.Runtime.ConsistentRing
             return Utils.EnumerableToString(sortedList, kv => $"{kv.Key} -> {kv.Value}");
         }
 
-        // 内部: 只用于测试/ 博客!
+        // internal：仅供测试和日志记录使用！
         internal List<(SiloAddress Key, IRingRangeInternal Value)> GetRanges()
         {
             List<SiloAddress> silos;
@@ -208,7 +208,7 @@ namespace Orleans.Runtime.ConsistentRing
 
         public void SiloStatusChangeNotification(SiloAddress updatedSilo, SiloStatus status)
         {
-            // 此 silo状态已更改
+            // 当前 Silo 的状态发生了变化。
             if (updatedSilo.Equals(myAddress))
             {
                 if (status.IsTerminating())
@@ -216,13 +216,13 @@ namespace Orleans.Runtime.ConsistentRing
                     Stop();
                 }
             }
-            else // 其他一些 silo的状况变化
+            else // 其他 Silo 的状态发生了变化。
             {
                 if (status.IsTerminating())
                 {
                     RemoveServer(updatedSilo);
                 }
-                else if (status == SiloStatus.Active)      // 与 SiloStatus.Created 或 SiloStatus.Joining 不做任何不做任何事 -- -- 等到它实际生效
+                else if (status == SiloStatus.Active)      // 对 SiloStatus.Created 或 SiloStatus.Joining 不作处理，等待其真正进入活动状态。
                 {
                     AddServer(updatedSilo);
                 }
@@ -235,36 +235,36 @@ namespace Orleans.Runtime.ConsistentRing
         }
 
         /// <summary>
-        /// 查找拥有给定散列值的 silo 。
-        /// 此程序将总是返回一个非null silo 地址, 除非 excludeThisSiloIfStopping 参数是真实的,
-        /// 这是唯一的 silo 已知,和此 silo 停止了。 停止了。
+        /// 查找拥有给定哈希值的 Silo。
+        /// 此方法始终返回非 null 的 Silo 地址，除非 excludeThisSiloIfStopping 参数为 true，
+        /// 当前 Silo 是唯一已知的 Silo，且它正在停止。
         /// </summary>
         /// <param name="hash"></param>
         /// <param name="excludeThisSiloIfStopping"></param>
         /// <returns></returns>
         private SiloAddress? CalculateTargetSilo(uint hash, bool excludeThisSiloIfStopping = true)
         {
-            // 将私有引用点置于 sortedBucketsList,
-            // 所以如果有人在更改 sortedBucketsList 参考, 我们不会在行动过程中改变它。
-            // 写无锁密码的把戏!
+            // 保存一个指向 sortedBucketsList 的私有引用，
+            // 这样即使其他代码正在更改 sortedBucketsList 引用，也不会在当前操作进行到一半时改变我们使用的引用。
+            // 这是编写无锁代码的技巧！
             var snapshotBucketsList = sortedBucketsList;
 
-            // excludeMySelf 开始为 TargetSilo 如果我们不运行, excludeThisSIloIfStopping 标记为是真实的。请在“停止”方法中看到注释。
+            // 如果当前 Silo 未运行且 excludeThisSIloIfStopping 标志为 true，则将自身排除在 TargetSilo 候选之外。参见 Stop 方法中的注释。
             bool excludeMySelf = excludeThisSiloIfStopping && !running;
 
             if (snapshotBucketsList.Length == 0)
             {
-                // 如果会员圈空了 我们就是默认的所有人 除非我们停止
+                // 如果成员环为空，默认由当前 Silo 负责，除非它正在停止。
                 return excludeMySelf ? null : myAddress;
             }
 
-            // 使用时钟... membershipOracle.CalculateTargetSilo() 中的当前代码会逆时针.
-            // 如果您想要坚持逆时针反时针, 请在 OrleansReminderMemory中更改“ in()” 方法中的责任定义和责任代数
-            // 需要执行二进搜索, 但目前只需跳过按其杂列排序的 silos 列表
+            // 采用顺时针方向；membershipOracle.CalculateTargetSilo() 当前的代码采用逆时针方向。
+            // 若要继续采用逆时针方向，需要修改 In() 方法及 OrleansReminderMemory 中责任范围的定义。
+            // 应实现二分查找，但目前仅遍历按哈希值排序的 Silo 列表。
             (uint Hash, SiloAddress? SiloAddress) s = default;
             foreach (var tuple in snapshotBucketsList)
             {
-                if (tuple.Hash >= hash && // 用于反时针责任的hash
+                if (tuple.Hash >= hash && // 逆时针责任范围使用 <= hash。
                     (!tuple.SiloAddress.Equals(myAddress) || !excludeMySelf))
                 {
                     s = tuple;
@@ -274,13 +274,13 @@ namespace Orleans.Runtime.ConsistentRing
 
             if (s.SiloAddress == null)
             {
-                // 如果在跨经中找不到,则首先应返回 silo (我们在一个环上)
-                // 如果您回到反时针政策, 请在 OrleansReminderMemory中更改“ in()” 方法
-                s = snapshotBucketsList[0]; // v [membershipRingList.Count - 1];反时针政策
-                // 确定不是我们...
+                // 若遍历未找到匹配项，则返回第一个 Silo（因为这是一个环）。
+                // 若恢复逆时针策略，则需要修改 OrleansReminderMemory 中的 In() 方法。
+                s = snapshotBucketsList[0]; // 对比：逆时针策略使用 [membershipRingList.Count - 1];
+                // 确保选中的不是当前 Silo……
                 if (s.SiloAddress!.Equals(myAddress) && excludeMySelf)
                 {
-                    // vs [membershipRingList.Count - 2]; 反时针政策
+                    // 对比：逆时针策略使用 [membershipRingList.Count - 2];
                     s = snapshotBucketsList.Length > 1 ? snapshotBucketsList[1] : default;
                 }
             }

@@ -1,13 +1,13 @@
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 系统目标所使用的安置战略。
+    /// 系统目标使用的放置策略。
     /// </summary>
     [GenerateSerializer, Immutable, SuppressReferenceTracking]
     public sealed class SystemTargetPlacementStrategy : PlacementStrategy
     {
         /// <summary>
-        /// 获得这一策略的单核体实例。
+        /// 获取此策略的单例实例。
         /// </summary>
         public static SystemTargetPlacementStrategy Instance { get; } = new();
 

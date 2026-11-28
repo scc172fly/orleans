@@ -24,22 +24,22 @@ public class LifecycleStageInspectorTests
         lifecycle.Subscribe("A", ServiceLifecycleStage.RuntimeInitialize, Start, Stop);
         lifecycle.Subscribe("B", ServiceLifecycleStage.RuntimeServices, Start, Stop);
         lifecycle.Subscribe("C", ServiceLifecycleStage.RuntimeServices, Start, Stop);
-        lifecycle.Subscribe("D", 4242, Start, Stop); // 仅数级
+        lifecycle.Subscribe("D", 4242, Start, Stop); // 仅有数字编号的阶段
 
         var stages = LifecycleStageInspector.GetStages(lifecycle);
 
-        // 三个不同的阶段,按顺序升
+        // 3 个不同阶段，按升序排列
         Assert.Equal(3, stages.Length);
         Assert.Equal(ServiceLifecycleStage.RuntimeInitialize, stages[0].Stage);
         Assert.Equal(ServiceLifecycleStage.RuntimeServices, stages[1].Stage);
         Assert.Equal(4242, stages[2].Stage);
 
-        // 标注为此的命名阶段; 数字化的阶段不是。
+        // 标记具有名称的阶段；仅有数字编号的阶段不作此标记。
         Assert.True(stages[0].IsNamedStage);
         Assert.True(stages[1].IsNamedStage);
         Assert.False(stages[2].IsNamedStage);
 
-        // 观察员按登记姓名的每个阶段分组。
+        // 按阶段对观察者分组，并保留其注册名称。
         Assert.Single(stages[0].Observers);
         Assert.Equal("A", stages[0].Observers[0].Name);
         Assert.Equal(2, stages[1].Observers.Length);
@@ -47,7 +47,7 @@ public class LifecycleStageInspectorTests
         Assert.Single(stages[2].Observers);
         Assert.Equal("D", stages[2].Observers[0].Name);
 
-        // 代表制用户披露 OnStart/OnStop的方法名称。
+        // 基于委托的订阅者公开 OnStart 和 OnStop 的方法名称。
         var aObserver = stages[0].Observers[0];
         Assert.True(aObserver.HasOnStart);
         Assert.True(aObserver.HasOnStop);
@@ -60,7 +60,7 @@ public class LifecycleStageInspectorTests
     {
         var lifecycle = new SiloLifecycleSubject(NullLogger<SiloLifecycleSubject>.Instance);
 
-        // 订阅超载而不设置 onStop 创建 StartupObserver。
+        // 不带 onStop 的 Subscribe 重载会创建 StartupObserver。
         lifecycle.Subscribe("StartOnly", ServiceLifecycleStage.ApplicationServices, Start);
 
         var stages = LifecycleStageInspector.GetStages(lifecycle);
@@ -82,9 +82,9 @@ public class LifecycleStageInspectorTests
     [Fact]
     public void GetStages_PrettyPrintsStaticLocalFunctionNames_EvenInExplicitInterfaceImplementations()
     {
-        // 通过 Orleans.ILifecycleParticipant<ISiloLifecycle>订阅的类型。
-        // ( 直径界面) 。 此练习嵌套的外名路径
-        // LifecycleStageInspector.CleanMethodName中。
+        // 通过 Orleans.ILifecycleParticipant<ISiloLifecycle>.Participate 订阅的类型
+        // （显式接口实现）。此测试验证 LifecycleStageInspector.CleanMethodName 中
+        // 处理嵌套泛型外部名称的路径。
         var subject = new SiloLifecycleSubject(NullLogger<SiloLifecycleSubject>.Instance);
         var participant = new ExplicitInterfaceParticipant();
         ((ILifecycleParticipant<ISiloLifecycle>)participant).Participate(subject);
@@ -107,9 +107,9 @@ public class LifecycleStageInspectorTests
         var stages = LifecycleStageInspector.GetStages(subject);
         var observer = Assert.Single(Assert.Single(stages).Observers);
 
-        // 应在该测试方法内报告匿名羊排,作为
-        // `<lambda in GetStages_LabelsAnonymousLambdas_AsLambdaInOuterMethod>` 而不是
-        // 曝光编译器生成的 b__N_N 后缀。
+        // 此测试方法内的匿名 Lambda 应显示为
+        // `<lambda in GetStages_LabelsAnonymousLambdas_AsLambdaInOuterMethod>`，而不是
+        // 暴露编译器生成的 b__N_N 后缀。
         Assert.Contains("<lambda in", observer.OnStartMethod ?? string.Empty, System.StringComparison.Ordinal);
         Assert.Contains("<lambda in", observer.OnStopMethod ?? string.Empty, System.StringComparison.Ordinal);
         Assert.DoesNotContain("b__", observer.OnStartMethod ?? string.Empty, System.StringComparison.Ordinal);

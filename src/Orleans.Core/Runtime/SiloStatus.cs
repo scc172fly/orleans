@@ -1,57 +1,57 @@
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 可能状况的 silo.
+    /// Silo 可能具有的状态。
     /// </summary>
     [GenerateSerializer]
     public enum SiloStatus
     {
         /// <summary>
-        /// 未知状态 。
+        /// 状态未知。
         /// </summary>
         None = 0,
 
         /// <summary>
-        /// 此 silo 刚刚创建, 但还没有启动 。
+        /// 此 Silo 刚刚创建，但尚未启动。
         /// </summary>
         Created = 1,
 
         /// <summary>
-        /// 今 silo 刚刚开始,但还没有准备好。它正试图加入这一组。
+        /// 此 Silo 刚刚启动，但尚未就绪，正在尝试加入集群。
         /// </summary>
         Joining = 2,
 
         /// <summary>
-        /// 这个 silo 是活的,功能正常。
+        /// 此 Silo 存活且能够正常工作。
         /// </summary>
         Active = 3,
 
         /// <summary>
-        /// 今 silo 自己关闭了
+        /// 此 Silo 正在关闭自身。
         /// </summary>
         ShuttingDown = 4,
 
         /// <summary>
-        /// 今 silo 自己也停止了下来
+        /// 此 Silo 正在停止自身。
         /// </summary>
         Stopping = 5,
 
         /// <summary>
-        /// 这 silo 已被解除了作用/被认为已死亡。
+        /// 此 Silo 已停用或被视为死亡。
         /// </summary>
         Dead = 6
     }
 
     /// <summary>
-    /// <see cref="SiloStatus"/>的扩展期。
+    /// <see cref="SiloStatus"/> 的扩展方法。
     /// </summary>
     public static class SiloStatusExtensions
     {
         /// <summary>
-        /// 如果此 silo 正在终止 ShuttingDown、 停止或死亡, 请返回真实的 。
+        /// 如果此 Silo 当前正在终止（ShuttingDown、Stopping 或 Dead），则返回 true。
         /// </summary>
-        /// <param name="siloStatus"> silo 状态。</param>
-        /// <returns><c>true</c> 如果指定 silo 状态终止;否则, <c>false</c>.</returns>
+        /// <param name="siloStatus">Silo 状态。</param>
+        /// <returns><c>true</c> 表示指定 Silo 状态为正在终止；否则为 <c>false</c>。</returns>
         public static bool IsTerminating(this SiloStatus siloStatus)
         {
             return siloStatus == SiloStatus.ShuttingDown || siloStatus == SiloStatus.Stopping || siloStatus == SiloStatus.Dead;

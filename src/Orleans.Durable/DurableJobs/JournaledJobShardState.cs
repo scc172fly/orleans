@@ -246,12 +246,12 @@ internal sealed class JournaledJobShardState : IStateMachine, IDurableValueComma
 internal enum DurableJobShardJournalRecordKind : byte
 {
     /// <summary>
-    /// 保存的哨点。记录,其中的 <see cref="DurableJobShardJournalRecord.Kind"/>
-    /// 是 <see cref="None"/> 无效,它表示默认构建实例或
-    /// 错误的日记日记有效载荷(例如 JSON 记录 <c>kind</c> 省略
-    /// 原因是序列器会降低默认价值属性。 应用路径必须拒绝它 。
-    /// 将此值保留在值 0 值, 这样默认表面将显示为明显故障而不是
-    /// 默默地用别种名
+    /// 保留的哨兵值。若记录的 <see cref="DurableJobShardJournalRecord.Kind"/>
+    /// 为 <see cref="None"/>，则该记录无效，表明它是默认构造的实例，或者来自
+    /// 格式错误的日志有效载荷（例如 JSON 记录中的 <c>kind</c> 被省略，
+    /// 原因是序列化程序省略默认值属性）。应用记录的代码路径必须拒绝此值。
+    /// 将此值保持为 0，使默认值表现为明确的失败，而不是
+    /// 悄然映射为其他种类。
     /// </summary>
     None = 0,
     Schedule = 1,

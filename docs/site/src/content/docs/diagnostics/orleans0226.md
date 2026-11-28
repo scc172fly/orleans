@@ -1,25 +1,25 @@
 ---
-title: "ORLEANS0226:继续按时间表安排设立持久任务机构"
-description: "理解 ORLEANS0226,报告 ConfigureAwait 调用将一个持久任务机构继续其 grain排期表上调出的工作单位,并在不填 ConfigureAwait的情况下进行等待来修正。"
+title: "ORLEANS0226: 使持久化任务主体在其调度器上继续执行"
+description: 了解 ORLEANS0226，它报告导致持久化任务主体的延续操作离开其 Grain 调度器的 ConfigureAwait 调用，并介绍通过不使用 ConfigureAwait 直接等待来修复。
 ms.date: 10/19/2026
 ms.topic: reference
 ---
 
 <a id="orleans0226-continue-durable-task-bodies-on-their-scheduler"></a>
 
-# ORLEANS0226:继续按时间表安排设立持久任务机构
+# ORLEANS0226: 使持久化任务主体在其调度器上继续执行
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 严重性 | 错误错误 |
-| 类别类 | 用法 |
-| 代码修正 | 无无无无 |
+| 严重性 | 错误 |
+| 类别 | 用法 |
+| 代码修复 | 无 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-包括一个步骤在内的持久任务机构等待 `ConfigureAwait(false)`或 `ConfigureAwaitOptions` ,而其中省略了 `ContinueOnCapturedContext`:
+持久化任务主体（包括步骤）使用 `ConfigureAwait(false)` 等待，或使用未设置 `ConfigureAwaitOptions` 枚举中 `ContinueOnCapturedContext` 标志的方式等待：
 
 :::code source="snippets/durable-tasks/Orleans0226.cs" id="orleans0226_violation" language="csharp":::
 
@@ -27,30 +27,30 @@ ms.topic: reference
 
 ## 规则说明
 
-耐久任务机构在 grain 激活的调度器上运行, 它一次运行 grain代码的一部分。 排程者命令机的耐久操作及其状态变化, 运行时间将身体结果与身体尾部进行的国家变化连接起来 。
+持久化任务主体在其 Grain 激活实例的调度器上运行，该调度器一次只运行一段 Grain 代码。调度器对主体的持久化操作和状态变更排序，运行时将主体的结果与主体尾部所做的状态变更一起提交。
 
-等待时间持续,没有被捕获的上下文,尸体又重新留在线条池中:
+如果等待操作在不使用所捕获上下文的情况下继续执行，则主体会在线程池上恢复：
 
-- 诸如 `DurableTask.RunInline`等持久操作,任务开始和 `DurableTask.GetVersion`,在那里投掷 `InvalidOperationException` ,因为执行命令并记录在时间表上。
-- 国家改变与 grain其他回合的种族,包括方式和其他处决。
-- 尾巴的状态变化和身体结果分别承诺。在示例中, `_lastRate` 发生后和结果产生前的崩溃再次运行尾巴, 以获取一个利率并再次指定 `_lastRate` 。
+- 持久化操作（例如 `DurableTask.RunInline`、任务启动及 `DurableTask.GetVersion`）会在那里抛出 `InvalidOperationException`，因为执行实例在自己的调度器上对操作排序并记录操作。
+- 状态变更会与 Grain 的其他执行轮次发生竞态，包括 Grain 方法及其他执行实例。
+- 尾部的状态变更与主体的结果分别提交。在示例中，`_lastRate` 提交后、结果提交前发生崩溃，会导致尾部再次运行，从而再次获取汇率并为 `_lastRate` 赋值。
 
-ORLEANS0014 报告 `ConfigureAwait(false)` ,以一般 grain 代码填报。
+ORLEANS0014 报告一般 Grain 代码中的 `ConfigureAwait(false)`。
 
-身体的尾巴见 [重放代码、记录操作和尾尾](../grains/durable-tasks-replay-rules.md#replayed-code-recorded-operations-and-the-tail)。
+有关主体尾部，请参阅[重放代码、已记录操作与尾部](../grains/durable-tasks-replay-rules.md#replayed-code-recorded-operations-and-the-tail)。
 
 <a id="how-to-fix-violations"></a>
 
-## 如何纠正违反情况
+## 如何修复违规
 
-**等不等 `ConfigureAwait`.** 继续返回激活的调度器 `ConfigureAwait(true)` 和 `ConfigureAwaitOptions.ContinueOnCapturedContext` 继续:
+**不使用 `ConfigureAwait`，直接等待。** 延续操作返回激活实例的调度器。`ConfigureAwait(true)` 和 `ConfigureAwaitOptions.ContinueOnCapturedContext` 也会在那里继续执行：
 
 :::code source="snippets/durable-tasks/Orleans0226.cs" id="orleans0226_fix" language="csharp":::
 
-身体等待保存自己的 `ConfigureAwait(false)`的图书馆方法:规则检查身体等待的情况,而身体等待图书馆的方法恢复在排程器上。
+主体等待的库方法保留其自身的 `ConfigureAwait(false)`：此规则检查主体中的等待操作，而主体对库方法的等待会在调度器上恢复。
 
 <a id="when-to-suppress"></a>
 
-## 何时压缩
+## 何时抑制诊断
 
-保持诊断功能: 耐用操作会让调度器停用, 并且状态会随着 grain的其他工作而发生变化。
+请保持此诊断启用：持久化操作在调度器之外会抛出异常，而那里的状态变更会与 Grain 的其他工作发生竞态。

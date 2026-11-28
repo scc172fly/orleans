@@ -6,32 +6,32 @@ using Orleans.Runtime;
 
 namespace Orleans.Durable.Http;
 
-/// <summary>读取启动操作和启动继电器的请求的回溯登记。</summary>
+/// <summary>读取启动操作的请求中注册的回调，并启动相应的中继。</summary>
 internal sealed class DurableCallbackRegistrar(IGrainFactory grainFactory, IDataProtectionProvider dataProtection, IOptions<DurableHttpOptions> options)
 {
     private readonly IDataProtector _headers = dataProtection.CreateProtector(DurableCallback.HeaderProtectionPurpose);
 
-    /// <summary>交付文件本身设置或连接信头的名称和名称前缀。</summary>
+    /// <summary>交付过程自行设置的请求头以及涉及连接的请求头的名称和名称前缀。</summary>
     private static readonly string[] ReservedHeaders =
         ["host", "connection", "keep-alive", "te", "trailer", "transfer-encoding", "upgrade", "expect", "operation-location"];
 
     private static readonly string[] ReservedHeaderPrefixes = ["proxy-", "content-", "webhook-", "nexus-operation-"];
 
     /// <summary>
-    /// 读取请求登记册所使用的回调 <paramref name="url"/> 和页眉,以
-    /// <paramref name="headerPrefix"/>,当应用程序不时返回 <see langword="false"/> 并附加描述
-    /// 接受它。
+    /// 读取请求通过 <paramref name="url"/> 注册的回调及以下列前缀开头的请求头：
+    /// <paramref name="headerPrefix"/>。若应用不接受该回调，则返回 <see langword="false"/>，
+    /// 并给出原因说明。
     /// </summary>
     /// <remarks>
-    /// 交付货物携带注册信头作为请求信头,因此,一个标有连接的页头,例如
-    /// <c>Host</c>,它将发送到另一个服务器发送发送文件,而不是应用程序所接受的或
-    /// 交付装置本身,如 <c>webhook-signature</c>等,不接受。
+    /// 交付时将注册的请求头作为实际请求头发送，因此涉及连接的请求头（如
+    /// <c>Host</c>，可能使交付发往应用接受的 URL 之外的服务器），以及
+    /// 交付过程自行设置的请求头（如 <c>webhook-signature</c>）均不被接受。
     /// </remarks>
     /// <param name="context">请求。</param>
-    /// <param name="url">回调 URL,或 <see langword="null"/> 当请求没有登记时。</param>
-    /// <param name="headerPrefix">每一交付货物携带的页眉的前缀,没有前缀。</param>
-    /// <param name="registration">登记,或 <see langword="null"/> 当请求没有登记时。</param>
-    /// <param name="error">应用程序不接受的回调描述。</param>
+    /// <param name="url">回调 URL；若请求未注册回调，则为 <see langword="null"/>。</param>
+    /// <param name="headerPrefix">每次交付携带的请求头的名称前缀；实际交付时去掉此前缀。</param>
+    /// <param name="registration">回调注册信息；若请求未注册回调，则为 <see langword="null"/>。</param>
+    /// <param name="error">对应用不接受的回调的说明。</param>
     public bool TryRead(
         HttpContext context,
         string? url,
@@ -80,9 +80,9 @@ internal sealed class DurableCallbackRegistrar(IGrainFactory grainFactory, IData
     }
 
     /// <summary>
-    /// 启动中继,向注册的 <paramref name="host"/> 主机提供操作结果
-    /// 重复注册接收器,例如重试启动程序, 到达相同的中继, 保持
-    /// 第一次注册的页眉。
+    /// 启动中继，将 <paramref name="host"/> 承载的操作的结果交付给已注册的
+    /// 回调。对同一接收方重复注册（例如重试启动请求）会到达同一个中继，
+    /// 该中继保留首次注册的请求头。
     /// </summary>
     public async ValueTask RegisterAsync(
         DurableCallbackRegistration registration,
@@ -107,13 +107,13 @@ internal sealed class DurableCallbackRegistrar(IGrainFactory grainFactory, IData
         }
         catch (DurableTaskConflictException)
         {
-            // 接收器的登记较早时开始中继。
-            // 登记,所以继电器保留了第一个登记
+            // 接收方先前的注册已启动中继。各次注册中经过保护的请求头值可能不同，
+            // 因此中继保留首次注册的值。
         }
     }
 }
 
-/// <summary>请求登记册的回调。</summary>
-/// <param name="Url">收到回调的 URL。</param>
-/// <param name="Headers">每件交货的页头都受到保护,其价值得到保护。</param>
+/// <summary>请求注册的回调。</summary>
+/// <param name="Url">接收回调的 URL。</param>
+/// <param name="Headers">每次交付携带的请求头，其值均受到保护。</param>
 internal sealed record DurableCallbackRegistration(Uri Url, IReadOnlyDictionary<string, string> Headers);

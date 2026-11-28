@@ -38,15 +38,15 @@ public sealed record CatalogItem(
     int ReservedStock,
     int SoldStock);
 
-/// <summary>保留命令的保留请求和结果,不考虑其持久任务。</summary>
+/// <summary>独立于订单的持久化任务，保留该订单的库存预留请求及其结果。</summary>
 [GenerateSerializer, Immutable]
 public sealed record StockReservation(int Units, bool Confirmed);
 
 [GenerateSerializer, Immutable]
 public sealed record BasketItem(int ProductId, string ProductName, decimal UnitPrice, int Quantity);
 
-// POST/api/订单的体质,它们检查买方篮子作为新的订单。
-// 命令的身份证。
+// POST /api/orders 的请求体，将买家的购物车结算为新订单。请求的 Idempotency-Key 是
+// 订单 ID。
 public sealed record CheckoutRequest(string BuyerId, Address Address, string CardNumber);
 
 [GenerateSerializer, Immutable]
@@ -69,8 +69,8 @@ public sealed record OrderState(
 [GenerateSerializer, Immutable]
 public sealed record StockLine(int ProductId, StockLineStatus Status);
 
-// 命令的简略简况:命令工作流程的每一步骤向历史报告的记录。
-// 返回下一个快照,作为当前快照及其输入的纯函数,并推进顺序版本。
+// 订单快照：订单工作流的每个步骤都将其作为条目写入历史记录。每次状态转换
+// 都将当前快照及其输入作为纯函数的参数，返回下一个快照，并递增订单版本。
 [GenerateSerializer, Immutable]
 public sealed record OrderDetails(OrderState Order, StockLine[] Stock)
 {
@@ -90,8 +90,8 @@ public sealed record OrderDetails(OrderState Order, StockLine[] Stock)
     public OrderDetails BeginValidation() =>
         Next(OrderStatus.AwaitingValidation, [.. Order.Lines.Select(line => new StockLine(line.ProductId, StockLineStatus.Pending))]);
 
-    // 订单确认其库存,但每条线保留时都确认;否则,它的地位
-    // 保持不变, 直到工作流程取消它 。
+    // 记录每个订单明细的库存预留情况。只有全部明细均成功预留时，订单才确认库存；否则其状态
+    // 保持不变，直到工作流取消订单。
     public OrderDetails RecordStock(bool[] confirmed)
     {
         StockLine[] stock = [.. Order.Lines.Select((line, i) =>
@@ -113,7 +113,7 @@ public sealed record OrderDetails(OrderState Order, StockLine[] Stock)
         new(Order with { Status = status, Version = Order.Version + 1, Description = description }, stock);
 }
 
-// 长期任务参数和结果。运行时将它们保存在 Orleans 连环器
+// 持久化任务的参数和结果。运行时使用 Orleans 序列化器存储这些数据。
 [GenerateSerializer, Immutable]
 public sealed record PlaceOrder(string BuyerId, Address Address, string CardLast4);
 
@@ -129,32 +129,32 @@ public sealed record OrderSummary(
     DateTimeOffset OrderDate,
     string? Description);
 
-// 付款授权的结果,付款网关的状况监测报告。
+// 支付网关的状态监视器报告的支付授权结果。
 [GenerateSerializer, Immutable]
 public sealed record PaymentResult(bool Succeeded, string? Reason);
 
-// 订单 PlaceOrder 工作流程的结果。
+// 订单 PlaceOrder 工作流的结果。
 [GenerateSerializer, Immutable]
 public sealed record OrderResult(OrderStatus Status, string? Description);
 
-// 订单发送信号的价值,托运人确认其身份。
-// 同一批货物成功,重复发出信号,另一批货物与之发生冲突。
+// 订单发货信号的值，由发货方标识。工作流记录首次发货，因此
+// 重复发送相同发货信息的信号会成功，而不同的发货信息会发生冲突。
 [GenerateSerializer, Immutable]
 public sealed record Shipment(Guid ShipmentId);
 
 public sealed class OrderingOptions
 {
-    // eShop的 GracePeriodManager 等一分钟;较短的默认使降压反应。
+    // eShop 的 GracePeriodManager 等待一分钟；此处采用较短的默认时间，以便演示更快响应。
     public TimeSpan GracePeriod { get; set; } = TimeSpan.FromSeconds(10);
 
-    // 如果付款授权书没有在此期限内完成, 命令将被取消 。
+    // 如果支付授权未在此时间内完成，则取消订单。
     public TimeSpan PaymentTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
-    // 付款授权的民意测验间隔 不向Retry-after公司做广告
+    // 对未通过 Retry-After 指明轮询间隔的支付授权，采用此轮询间隔。
     public TimeSpan PaymentPollInterval { get; set; } = TimeSpan.FromSeconds(1);
 }
 
-// 日记状态以 JSON 行存储, 所以每个类型都存在需要源生成的元数据。
+// 日志化状态以 JSON Lines 格式存储，因此每种持久化类型都需要通过源生成提供元数据。
 [JsonSerializable(typeof(int))]
 [JsonSerializable(typeof(Guid))]
 [JsonSerializable(typeof(CatalogItem))]

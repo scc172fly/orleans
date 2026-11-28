@@ -7,7 +7,7 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.Tests;
 
 /// <summary>
-/// 验证哪个日记写了工作流程的状态变化, 以及激活结束后重播观察的内容。
+/// 验证哪些日志写入会提交工作流的状态变更，以及激活实例结束后重放会观察到什么。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -31,7 +31,7 @@ public sealed class DurableTaskReplaySafetyTests
             AssertTailCommitsWithResult(activation);
         }
 
-        // 下一次启动会恢复结果,所以没有东西能重弹尾巴。
+        // 下一个激活实例恢复结果，因此不会发生尾部代码的重放。
         await using var recovered = await harness.ActivateAsync(TestCancellation);
         Assert.Equal(1, recovered.Grain.Counter.Value);
         Assert.Equal(1, (await recovered.GetResponseAsync(WorkflowId, TestCancellation)).GetResult<int>());
@@ -41,7 +41,7 @@ public sealed class DurableTaskReplaySafetyTests
         {
             await DurableTask.Run(static _ => { }).WithId("first");
 
-            // 尾巴的状态变化和写作 其他 grain 工作请求。
+            // 尾部代码的状态变更，以及其他 Grain 工作请求的一次写入。
             grain.Harness.CountEffectRun();
             grain.Counter.Value++;
             grain.RequestUnrelatedWrite();
@@ -69,8 +69,8 @@ public sealed class DurableTaskReplaySafetyTests
     });
 
     /// <summary>
-    /// 确信每写一个导致尾尾尾的更改的文字, 也都意味着工作流程的结果, 所以没有应用重放
-    /// 又是变化
+    /// 断言每次提交尾部变更的写入也会提交工作流的结果，因此重放不会再次应用
+    /// 该变更。
     /// </summary>
     private static void AssertTailCommitsWithResult(ReplayActivation activation)
     {
@@ -90,8 +90,8 @@ public sealed class DurableTaskReplaySafetyTests
             await activation.Grain.AtGate.WaitAsync(TimeSpan.FromSeconds(10), TestCancellation);
             var writesBefore = activation.Writes.Count;
 
-            // 与 grain 无关的工作在工作流程等待效果后写入日记;写入收集
-            // 和它的纪录一起变化
+            // 工作流在效果之后等待时，不相关的 Grain 工作写入日志；该写入将
+            // 效果的状态变更与其记录一起收集。
             activation.Grain.RequestUnrelatedWrite();
             await activation.Grain.UnrelatedWrites;
 
@@ -102,8 +102,8 @@ public sealed class DurableTaskReplaySafetyTests
                 write => Assert.Contains(effectId, write.Completed));
         }
 
-        // 工作流等待时激活结束。重放返回记录值,而不运行
-        // 反面维持着效果的单一变化
+        // 工作流等待期间，激活实例结束。重放返回已记录的值，不运行
+        // 效果，计数器保留该效果仅有的一次变更。
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await replay.Grain.AtGate.WaitAsync(TimeSpan.FromSeconds(10), TestCancellation);
         Assert.Equal(1, replay.Grain.Counter.Value);
@@ -125,7 +125,7 @@ public sealed class DurableTaskReplaySafetyTests
             Assert.Equal(1, activation.Grain.Counter.Value);
         }
 
-        // 并没有写入效果, 所以它的国家变化随着记录而丢失了, 而重播又再次运行。
+        // 没有写入提交该效果，因此其状态变更与记录一同丢失，重放会再次运行它。
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await replay.Grain.AtGate.WaitAsync(TimeSpan.FromSeconds(10), TestCancellation);
         Assert.Equal(2, harness.EffectRuns);
@@ -173,7 +173,7 @@ public sealed class DurableTaskReplaySafetyTests
 
             int Charge()
             {
-                // 日记状态没有倒退,因此这一变化与记录失败有关。
+                // 日志化状态没有回滚机制，因此该变更会与已记录的失败一起提交。
                 grain.Harness.CountEffectRun();
                 grain.Counter.Value++;
                 throw new InvalidOperationException($"declined at {grain.Counter.Value}");
@@ -195,12 +195,12 @@ public sealed class DurableTaskReplaySafetyTests
             await activation.Grain.UnrelatedWrites;
         }
 
-        // 后一版本在效果记录的名称下安排一个步骤,即效果识别符。
+        // 较新版本以效果曾记录的名称调度步骤，该名称即效果的标识符。
         var stalled = await AssertReplayStallsAsync(harness, static grain => Changed(grain));
         Assert.Contains("'workflow/increment'", stalled.Exception.Message, StringComparison.Ordinal);
         Assert.Contains("It records a DurableTask.RunInline effect, and this attempt requested a local child task.", stalled.Exception.Message, StringComparison.Ordinal);
 
-        // 代码与记录重放执行的代码相符,该代码完成后不会再次运行效果。
+        // 与记录匹配的代码重放执行实例，该实例完成而不会再次运行效果。
         Assert.Equal(1, await CompleteAtGateAsync(harness));
         Assert.Equal(1, harness.EffectRuns);
 
@@ -219,7 +219,7 @@ public sealed class DurableTaskReplaySafetyTests
             await activation.Grain.AtGate.WaitAsync(TimeSpan.FromSeconds(10), TestCancellation);
         }
 
-        // 后一版本以同一名称取代所记录的步骤。
+        // 较新版本将已记录的步骤替换为同名效果。
         var stalled = await AssertReplayStallsAsync(harness, IncrementOnce);
         Assert.Contains("It records a local child task, and this attempt requested a DurableTask.RunInline effect.", stalled.Exception.Message, StringComparison.Ordinal);
         Assert.Equal(0, harness.EffectRuns);
@@ -246,9 +246,9 @@ public sealed class DurableTaskReplaySafetyTests
             await activation.Grain.AtGate.WaitAsync(TimeSpan.FromSeconds(10), TestCancellation);
         }
 
-        // 后一个版本保留第一步, 将名称的第二次发生转换为效果。 Name
-        // 不同种类的发生, 所以效果识别符号是记录加薪2美元, 以该步骤或
-        // 组合输入,而不是第一步。
+        // 较新版本保留第一个步骤，将该名称第二次出现的位置改为效果。名称跨不同操作类型统计
+        // 出现次数，因此效果的标识符为已记录的 increment$2，即保存该步骤或
+        // 组合器输入的标识符，而非第一个步骤的标识符。
         var stalled = await AssertReplayStallsAsync(harness, static grain => Changed(grain));
         Assert.Contains("'workflow/increment$2'", stalled.Exception.Message, StringComparison.Ordinal);
         Assert.Contains("this attempt requested a DurableTask.RunInline effect.", stalled.Exception.Message, StringComparison.Ordinal);
@@ -295,7 +295,7 @@ public sealed class DurableTaskReplaySafetyTests
             await activation.Grain.UnrelatedWrites;
         }
 
-        // 稍后版本将效果转换成同名组合体,其输入会低于效果。
+        // 较新版本将效果改为同名组合器，该组合器的输入原本会在效果之下运行。
         var stalled = await AssertReplayStallsAsync(harness, static grain => Changed(grain));
         Assert.Contains("'workflow/increment/0' runs beneath 'workflow/increment'", stalled.Exception.Message, StringComparison.Ordinal);
         Assert.Contains("It records a DurableTask.RunInline effect, and this attempt requested a local child task.", stalled.Exception.Message, StringComparison.Ordinal);
@@ -323,7 +323,7 @@ public sealed class DurableTaskReplaySafetyTests
             await activation.Grain.UnrelatedWrites;
         }
 
-        // 其代码不再解码记录值的部署重播执行的重放。
+        // 一次部署使代码不再能够解码已记录的值，随后该代码重放执行实例。
         DecodingProbe.FailsDecoding = true;
         try
         {
@@ -336,7 +336,7 @@ public sealed class DurableTaskReplaySafetyTests
             DecodingProbe.FailsDecoding = false;
         }
 
-        // 代码解码值重放执行的值,该代码完成后不再次运行效果。
+        // 能够解码该值的代码重放执行实例，该实例完成而不会再次运行效果。
         Assert.Equal(7, await CompleteAtGateAsync(harness));
         Assert.Equal(1, harness.EffectRuns);
 
@@ -365,7 +365,7 @@ public sealed class DurableTaskReplaySafetyTests
             await activation.Grain.UnrelatedWrites;
         }
 
-        // 记录显示失败, 因此重播丢弃它而不再次运行效果 。
+        // 记录保存了失败，因此重放抛出该失败异常，不再运行效果。
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await replay.Grain.AtGate.WaitAsync(TimeSpan.FromSeconds(10), TestCancellation);
         replay.Grain.OpenGate();
@@ -418,7 +418,7 @@ public sealed class DurableTaskReplaySafetyTests
             Assert.Equal("$effect", GetTask(activation, effectId).RequestFingerprint);
         }
 
-        // 重播创造了未命名的孩子 和未命名的效果 在同一顺序, 所以每个人都发现自己的记录。
+        // 重放以相同顺序创建未命名子任务和未命名效果，因此各自都能找到对应记录。
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await replay.Grain.AtGate.WaitAsync(TimeSpan.FromSeconds(10), TestCancellation);
         Assert.Equal(1, harness.EffectRuns);
@@ -451,7 +451,7 @@ public sealed class DurableTaskReplaySafetyTests
             await activation.Grain.AtGate.WaitAsync(TimeSpan.FromSeconds(10), TestCancellation);
         }
 
-        // 后一版本将未命名的步替换为无名效果, 以该步生成的身份识别符代替。
+        // 较新版本将未命名步骤替换为未命名效果，后者取得步骤原先生成的标识符。
         var stalled = await AssertReplayStallsAsync(harness, static grain => Changed(grain));
         Assert.Contains("'workflow/$child-1'", stalled.Exception.Message, StringComparison.Ordinal);
         Assert.Contains("It records a local child task, and this attempt requested a DurableTask.RunInline effect.", stalled.Exception.Message, StringComparison.Ordinal);
@@ -491,7 +491,7 @@ public sealed class DurableTaskReplaySafetyTests
             await activation.Grain.UnrelatedWrites;
         }
 
-        // 后一版本将未命名效果替换为无名称步骤,该步骤采用效应生成的识别符号。
+        // 较新版本将未命名效果替换为未命名步骤，后者取得效果原先生成的标识符。
         var stalled = await AssertReplayStallsAsync(harness, grain => Changed(grain, () => childRuns++));
         Assert.Contains("'workflow/$child-1'", stalled.Exception.Message, StringComparison.Ordinal);
         Assert.Contains("It records a DurableTask.RunInline effect", stalled.Exception.Message, StringComparison.Ordinal);
@@ -533,7 +533,7 @@ public sealed class DurableTaskReplaySafetyTests
         Assert.Equal(["start:False", "a:False", "b:False"], observed);
         observed.Clear();
 
-        // 重播达到第一次尝试所记录的效果和步骤,按顺序排列。
+        // 重放按顺序到达首次执行尝试所记录的效果和步骤。
         await using var replay = await harness.ActivateAsync(TestCancellation);
         await replay.Grain.AtGate.WaitAsync(TimeSpan.FromSeconds(10), TestCancellation);
         replay.Grain.OpenGate();
@@ -554,7 +554,7 @@ public sealed class DurableTaskReplaySafetyTests
             await activation.Grain.AtGate.WaitAsync(TimeSpan.FromSeconds(10), TestCancellation);
         }
 
-        // 稍后版本在记录之间添加了效果,因此其重播在达到“b”之前正在进行新的工作。
+        // 较新版本在已记录的效果之间添加一个效果，因此重放在到达 "b" 之前会运行新的工作。
         observed.Clear();
         insertOperation = true;
         await using var replay = await harness.ActivateAsync(TestCancellation);
@@ -585,7 +585,7 @@ public sealed class DurableTaskReplaySafetyTests
         void Observe(string point) => observed.Add($"{point}:{DurableTask.Current.IsReplaying}");
     }
 
-    /// <summary>将 grain柜台加装成效果,然后在 grain门等候。</summary>
+    /// <summary>在效果中递增 Grain 的计数器，随后在 Grain 的门控处等待。</summary>
     private static DurableTask IncrementOnce(ReplayGrain grain) => IncrementOnceAsync(grain);
 
     private static async DurableTask<int> IncrementOnceAsync(ReplayGrain grain)
@@ -600,9 +600,9 @@ public sealed class DurableTaskReplaySafetyTests
     }
 
     /// <summary>
-    /// 重用 <paramref name="changed"/> 代码重放所记录的工作流程,声称尝试的摊位有差异,
-    /// 任务保持未执行, 并恢复该工具的工作流程, 所以下一次激活运行代码时匹配
-    /// 记录。
+    /// 使用 <paramref name="changed"/> 代码重放已记录的工作流，断言执行尝试因重放偏离而停滞且
+    /// 任务保持待处理状态，然后恢复测试工具的工作流，以便下一个激活实例运行与
+    /// 记录匹配的代码。
     /// </summary>
     private static async Task<DurableTaskEvents.ExecutionStalled> AssertReplayStallsAsync(
         DurableTaskReplayHarness harness,
@@ -620,7 +620,7 @@ public sealed class DurableTaskReplaySafetyTests
             Assert.True(replay.Storage.TryGetTask(WorkflowId, out var state));
             Assert.False(state.Result is { IsCompleted: true });
 
-            // grain 保持在配置间隔的提醒, 所以稍后激活会重播停止执行的播放 。
+            // Grain 按配置的时间间隔保留唤醒操作，因此后续激活实例会重放停滞的执行实例。
             var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(10);
             while (replay.Runtime.GetWakeupDelay() != harness.Options.StalledExecutionRetryInterval)
             {
@@ -633,7 +633,7 @@ public sealed class DurableTaskReplaySafetyTests
         return stalled;
     }
 
-    /// <summary>激活 grain,让回收的工作流程通过其大门并返回工作流程的结果。</summary>
+    /// <summary>激活 Grain，让恢复的工作流通过其门控，并返回工作流的结果。</summary>
     private static async Task<int> CompleteAtGateAsync(DurableTaskReplayHarness harness)
     {
         await using var activation = await harness.ActivateAsync(TestCancellation);
@@ -642,7 +642,7 @@ public sealed class DurableTaskReplaySafetyTests
         return (await activation.GetResponseAsync(WorkflowId, TestCancellation)).GetResult<int>();
     }
 
-    /// <summary>记录值,其编码在 <see cref="FailsDecoding"/> 期间发生故障,与部署后一样,被设定。</summary>
+    /// <summary>在设置 <see cref="FailsDecoding"/> 时解码失败的已记录值，模拟部署后的情形。</summary>
     [GenerateSerializer]
     [Alias("Microsoft.Orleans.DurableTasks.Tests.DecodingProbe")]
     internal sealed class DecodingProbe
@@ -650,7 +650,7 @@ public sealed class DurableTaskReplaySafetyTests
         [NonSerialized]
         private int _value;
 
-        /// <summary>获取或设定解码失败与否,哪一个测试组。</summary>
+        /// <summary>获取或设置解码是否失败，由一个测试进行设置。</summary>
         public static volatile bool FailsDecoding;
 
         [Id(0)]
@@ -661,7 +661,7 @@ public sealed class DurableTaskReplaySafetyTests
         }
     }
 
-    /// <summary>一个没有序列器的结果类型。</summary>
+    /// <summary>没有序列化器的结果类型。</summary>
     private sealed class UnserializableResult;
 
     private static IDurableTaskState GetTask(ReplayActivation activation, TaskId taskId)

@@ -1,3 +1,3 @@
 [*.cs]
-# Extension methods live in the namespaces of the builders which they extend, such as Microsoft.AspNetCore.Builder.
+# 扩展方法位于其所扩展的构建器所在的命名空间中，例如 Microsoft.AspNetCore.Builder。
 dotnet_diagnostic.IDE0130.severity = none

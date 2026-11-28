@@ -163,7 +163,7 @@ namespace Orleans.Streaming.Kinesis
 
             foreach (var record in getRecordsResponse.Records)
             {
-                // Kinesis只有长字符串序列ID 所以我们根据分区的顺序伪造一个
+                // Kinesis 仅提供长字符串形式的序列标识，因此根据从分区读取的顺序构造一个本地序列号。
                 batch.Add(KinesisBatchContainer.FromKinesisRecord(_serializer, record, _lastReadMessage++));
             }
 

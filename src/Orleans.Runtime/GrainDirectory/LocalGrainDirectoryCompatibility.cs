@@ -8,8 +8,8 @@ using Orleans.GrainDirectory;
 namespace Orleans.Runtime.GrainDirectory;
 
 /// <summary>
-/// 兼容系统目标,允许分布式指令 silos 与本地指令 silos互动
-/// 滚动升级期间。
+/// 兼容性系统目标，允许使用分布式目录的 Silo 与使用本地目录的 Silo
+/// 在滚动升级期间相互通信。
 /// </summary>
 internal sealed class LocalGrainDirectoryClientCompatibility : SystemTarget, IGrainDirectoryClient
 {
@@ -132,8 +132,8 @@ internal sealed class LocalGrainDirectoryPartitionCompatibility : SystemTarget, 
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        // LocalGrainDirectory 使用遗留的单环独环所有权计划存储条目,因此这个本地
-        // 分区不能为分布式虚拟分区范围生成完整的快照 。
+        // LocalGrainDirectory 按旧版单环所有权方案存储条目，因此此本地
+        // 分区无法为分布式虚拟分区范围生成完整快照。
         return new((GrainDirectoryPartitionSnapshot?)null);
     }
 

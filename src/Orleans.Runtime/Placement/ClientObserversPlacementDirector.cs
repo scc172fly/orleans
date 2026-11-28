@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 namespace Orleans.Runtime.Placement
 {
     /// <summary>
-    /// ClientObserversPlacementDirector 用于防止客户观察员启动。
+    /// ClientObserversPlacementDirector 用于阻止放置客户端观察者的激活实例。
     /// </summary>
     internal class ClientObserversPlacementDirector : IPlacementDirector
     {

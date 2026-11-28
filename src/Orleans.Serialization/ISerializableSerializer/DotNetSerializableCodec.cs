@@ -14,7 +14,7 @@ using System.Security;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// 用于执行 <see cref="ISerializable"/> 模式类型类型的序列器。
+    /// 实现 <see cref="ISerializable"/> 模式的类型的序列化器。
     /// </summary>
     [Alias("ISerializable")]
 #if NET5_0_OR_GREATER
@@ -25,7 +25,7 @@ namespace Orleans.Serialization
     public class DotNetSerializableCodec : IGeneralizedCodec
     {
         /// <summary>
-        /// 用于识别此编码器的类型 。
+        /// 用于标识此编解码器的类型。
         /// </summary>
         public static readonly Type CodecType = typeof(DotNetSerializableCodec);
         private static readonly Type SerializableType = typeof(ISerializable);
@@ -43,7 +43,7 @@ namespace Orleans.Serialization
         /// <summary>
         /// 初始化 <see cref="DotNetSerializableCodec"/> 类的新实例。
         /// </summary>
-        /// <param name="typeResolver">类型解答器。</param>
+        /// <param name="typeResolver">类型解析器。</param>
         public DotNetSerializableCodec(TypeConverter typeResolver)
         {
 #pragma warning disable SYSLIB0050 // Type or member is obsolete
@@ -108,7 +108,7 @@ namespace Orleans.Serialization
             var header = reader.ReadFieldHeader();
             if (header.FieldIdDelta == 1)
             {
-                // 这是一个例外类型,所以作为例外将其消除。
+                // 这是异常类型，因此按异常进行反序列化。
                 var typeName = StringCodec.ReadValue(ref reader, header);
                 if (!_typeConverter.TryParse(typeName!, out type))
                 {
@@ -131,7 +131,7 @@ namespace Orleans.Serialization
 
         private object ReadFallbackException<TInput>(ref Reader<TInput> reader, string typeName, uint placeholderReferenceId)
         {
-            // 降为未知例外的后退类型。 这意味着缺失字段将不会被代表 。
+            // 将未知异常反序列化为回退类型。这意味着缺失的字段不会被表示。
             var result = (UnavailableExceptionFallbackException)ReadObject(ref reader, typeof(UnavailableExceptionFallbackException), placeholderReferenceId);
             result.ExceptionType = typeName;
             return result;
@@ -194,10 +194,10 @@ namespace Orleans.Serialization
             var info = new SerializationInfo(type, _formatterConverter);
 #pragma warning restore SYSLIB0050 // Type or member is obsolete
 
-            // 根据 SerializationInfo中所含值对类型名称进行序列化。
+            // 根据 SerializationInfo 中填充的值序列化类型名称。
             if (value is Exception)
             {
-                // 对于例外情况,这种类型被按序号编号,以便于安全地消除空气流失。
+                // 对于异常，将类型序列化为字符串，以便安全地反序列化。
                 var typeName = _typeConverter.Format(info.ObjectType);
                 StringCodec.WriteField(ref writer, 1, typeName);
             }

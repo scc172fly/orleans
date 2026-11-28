@@ -1,163 +1,163 @@
 ---
-title: "Orleans中交易"
-description: "使用已分配的ACID交易,交易状态 Orleans 。"
+title: "Orleans 中的事务"
+description: "使用 Orleans 事务状态实现分布式 ACID 事务。"
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
 <a id="orleans-transactions"></a>
 
-# Orleans 交易
+# Orleans 事务
 
-[`Microsoft.Orleans.Transactions`](https://www.nuget.org/packages/Microsoft.Orleans.Transactions) 软件包提供分布式ACID交易,涉及一个或多个 grain 电话和交易国家记录。交易状态不同于 <xref:Orleans.Runtime.IPersistentState`1>:使用 <xref:Orleans.Transactions.Abstractions.ITransactionalState`1> 用于参与 Orleans 交易的数据。
+[`Microsoft.Orleans.Transactions`](https://www.nuget.org/packages/Microsoft.Orleans.Transactions) 包支持跨一个或多个 Grain 调用及事务状态记录的分布式 ACID 事务。事务状态不同于 <xref:Orleans.Runtime.IPersistentState`1>：需要参与 Orleans 事务的数据应使用 <xref:Orleans.Transactions.Abstractions.ITransactionalState`1>。
 
 <a id="enable-transactions"></a>
 
-## 启用交易
+## 启用事务
 
-启用每个参与 silo 的交易 <xref:Orleans.Hosting.SiloBuilderExtensions.UseTransactions*>:
+通过 <xref:Orleans.Hosting.SiloBuilderExtensions.UseTransactions*> 在每个参与事务的 Silo 中启用事务：
 
 :::code language="csharp" source="../snippets/compiled/Grains/TransactionSnippets.cs" id="enable_silo_transactions":::
-创建或传播交易的外部客户端 Orleans 也必须调用 <xref:Orleans.Hosting.ClientBuilderExtensions.UseTransactions*>:
+创建或传播事务的外部 Orleans 客户端也必须调用 <xref:Orleans.Hosting.ClientBuilderExtensions.UseTransactions*>：
 
 :::code language="csharp" source="../snippets/compiled/Grains/TransactionSnippets.cs" id="enable_client_transactions":::
-没有交易服务的交易电话与 <xref:Orleans.Transactions.OrleansTransactionsDisabledException>发生故障。
+如果未配置事务服务，事务调用将因 <xref:Orleans.Transactions.OrleansTransactionsDisabledException> 而失败。
 
 <a id="configure-transactional-storage"></a>
 
-## 配置交易存储
+## 配置事务存储
 
-交易存储工具 <xref:Orleans.Transactions.Abstractions.ITransactionalStateStorage`1>支持的提供方一揽子计划 `Microsoft.Orleans.Transactions.AzureStorage` 登记册登记 Azure 表格交易储存:
+事务存储实现 <xref:Orleans.Transactions.Abstractions.ITransactionalStateStorage`1>。受支持的提供程序包 `Microsoft.Orleans.Transactions.AzureStorage` 用于注册基于 Azure Table 的事务存储：
 
 :::code language="csharp" source="../snippets/compiled/Grains/TransactionSnippets.cs" id="configure_transaction_storage":::
-如果没有指定交易提供者, Orleans 可以连接交易状态到配置的 <xref:Orleans.Storage.IGrainStorage>。桥梁效率较低,用于发展和兼容性设想方案。
+如果不存在对应的具名事务存储提供程序，Orleans 可以将事务状态桥接到已配置的 <xref:Orleans.Storage.IGrainStorage>。桥接机制的效率较低，主要用于开发和兼容性场景。生产环境工作负载应优先使用专用事务存储提供程序。
 
 <a id="declare-transaction-behavior"></a>
 
-## 申报交易行为
+## 声明事务行为
 
-应用 <xref:Orleans.TransactionAttribute> 到 grain 接口方法 :
+将 <xref:Orleans.TransactionAttribute> 应用于 Grain 接口方法：
 
-| 选项 | 行为行为 |
+| 选项 | 行为 |
 |---|---|
-| <xref:Orleans.TransactionOption.Create> | 总是启动新的交易, 并禁止此电话的任何环境交易 。 |
-| <xref:Orleans.TransactionOption.CreateOrJoin> | 加入环境交易,或在不存在时启动。 |
-| <xref:Orleans.TransactionOption.Join> | 需要环境交易。 |
-| <xref:Orleans.TransactionOption.Suppress> | 执行不包含环境交易。 |
-| <xref:Orleans.TransactionOption.Supported> | 环境交易存在但不需要时,接收该交易。 |
-| <xref:Orleans.TransactionOption.NotAllowed> | 当被召入交易时失败 。 |
+| <xref:Orleans.TransactionOption.Create> | 始终启动一个新事务，并在本次调用中抑制任何现有环境事务（ambient transaction）。 |
+| <xref:Orleans.TransactionOption.CreateOrJoin> | 加入环境事务；如果不存在则启动新事务。 |
+| <xref:Orleans.TransactionOption.Join> | 要求存在环境事务。 |
+| <xref:Orleans.TransactionOption.Suppress> | 不使用环境事务执行。 |
+| <xref:Orleans.TransactionOption.Supported> | 如果存在环境事务，则接收该事务，但不要求必须存在。 |
+| <xref:Orleans.TransactionOption.NotAllowed> | 在事务中调用时失败。 |
 
 :::code source="snippets/transactions/Abstractions/IAccountGrain.cs" id="transactions_account_grain_interface":::
 
-<xref:Orleans.TransactionOption.Join> outside a transaction and <xref:Orleans.TransactionOption.NotAllowed> inside a transaction throw <xref:System.NotSupportedException>.
+在事务之外调用使用 <xref:Orleans.TransactionOption.Join> 的方法，或在事务之内调用使用 <xref:Orleans.TransactionOption.NotAllowed> 的方法，都会抛出 <xref:System.NotSupportedException>。
 
 <a id="read-only-transactions"></a>
 
-### 只读交易
+### 只读事务
 
-对不执行交易状态更新的交易方法应用 <xref:Orleans.Concurrency.ReadOnlyAttribute> :
+将 <xref:Orleans.Concurrency.ReadOnlyAttribute> 应用于不更新事务状态的事务方法：
 
 :::code language="csharp" source="../snippets/compiled/Grains/TransactionSnippets.cs" id="transactional_read":::
-Orleans 开始只读交易, 并使用一个缩放的提交路径。 以只读的交易中止为尝试的写入会与 <xref:Orleans.Transactions.OrleansReadOnlyViolatedException>发生中断。 <xref:Orleans.TransactionAttribute.ReadOnly> 属性已经过时; 使用 <xref:Orleans.Concurrency.ReadOnlyAttribute>。
+Orleans 会启动只读事务，并且可以采用简化的提交路径。只读事务尝试写入时，将因 <xref:Orleans.Transactions.OrleansReadOnlyViolatedException> 而中止。<xref:Orleans.TransactionAttribute.ReadOnly> 属性已过时，请改用 <xref:Orleans.Concurrency.ReadOnlyAttribute>。
 
 <a id="exclusive-locks"></a>
 
-### 独家锁
+### 排他锁
 
-交易状态通常允许同时读取并升级为交易写作时的独家锁。 竞争升级可以在争议下中止。 请使用 <xref:Orleans.UseExclusiveLockAttribute> 获取独家锁, 其内容如下:
+事务状态通常允许多个事务并发读取，并在事务需要写入时升级为排他锁。在资源争用时，相互竞争的锁升级可能导致事务中止。应用 <xref:Orleans.UseExclusiveLockAttribute>，可使读取操作也获取排他锁：
 
 :::code language="csharp" source="../snippets/compiled/Grains/TransactionSnippets.cs" id="exclusive_transactional_read":::
-这样可以避免以较低读取通货价格为代价的锁定冲突。 使用它来进行阅读后可能写作的方法或测量争议热点,而不是作为一揽子违约。
+这样可以避免锁升级冲突，但会降低读取并发度。适用于读取后很可能执行写入的方法，或经过测量确定的争用热点，不应将其作为普遍的默认设置。
 
 <a id="access-transactional-state"></a>
 
-## 进入交易状态
+## 访问事务状态
 
-使用 <xref:Orleans.Transactions.Abstractions.TransactionalStateAttribute>注射命名状态表 :
+使用 <xref:Orleans.Transactions.Abstractions.TransactionalStateAttribute> 注入具名状态组件（facet）：
 
 :::code source="snippets/transactions/Grains/AccountGrain.cs" id="transactions_account_grain":::
 
-通过 <xref:Orleans.Transactions.Abstractions.ITransactionalState`1.PerformRead*> 阅读并通过 <xref:Orleans.Transactions.Abstractions.ITransactionalState`1.PerformUpdate*>更新。代表是同步的,因为 Orleans 控制了状态快照的读、承诺或丢弃。不要保留所提供的状态对象或在这些代表之外进行变换。
+通过 <xref:Orleans.Transactions.Abstractions.ITransactionalState`1.PerformRead*> 读取状态，通过 <xref:Orleans.Transactions.Abstractions.ITransactionalState`1.PerformUpdate*> 更新状态。这些委托都是同步的，因为 Orleans 控制状态快照的读取、提交和丢弃时机。不要保留传入的状态对象，也不要在这些委托之外修改它。
 
 > [!NOTE]
-> 交易 grain 不需要 <xref:Orleans.Concurrency.ReentrantAttribute>。再入是一个独立的时间安排选择。只有当 grain 的实施对断开电话安全且能理解输送效益时,才启用它。
+> 事务 Grain 不需要标记 <xref:Orleans.Concurrency.ReentrantAttribute>。可重入性是独立的调度选择。只有当 Grain 实现可以安全地处理交错调用，并且明确其吞吐量收益时，才启用可重入性。
 
-<xref:Orleans.Grain.OnActivateAsync*>期间没有交易状态;交易设置是作为交易请求的一部分发生的。
+在 <xref:Orleans.Grain.OnActivateAsync*> 执行期间，事务状态不可用；事务初始化发生在处理事务请求的过程中。
 
 <a id="start-a-transaction"></a>
 
-## 开始交易
+## 启动事务
 
 <a id="from-a-grain-call"></a>
 
-### 从 a grain 调
+### 从 Grain 调用启动
 
-标记 <xref:Orleans.TransactionOption.Create> 或 <xref:Orleans.TransactionOption.CreateOrJoin> 的方法在没有环境交易时开始交易。该方法发出的呼吁根据每个目标方法 <xref:Orleans.TransactionOption>传播上下文。
+标记为 <xref:Orleans.TransactionOption.Create> 或 <xref:Orleans.TransactionOption.CreateOrJoin> 的方法在不存在环境事务时会启动新事务。从该方法发出的调用，根据各目标方法的 <xref:Orleans.TransactionOption> 传播事务上下文。
 
 :::code source="snippets/transactions/Grains/AtmGrain.cs" id="transactions_atm_grain":::
 
 <a id="from-an-external-client"></a>
 
-### 来自外部客户端
+### 从外部客户端启动
 
-解决 <xref:Orleans.ITransactionClient> 并管理一名代表:
+解析 <xref:Orleans.ITransactionClient> 并执行委托：
 
 :::code source="snippets/transactions/Client/Program.cs" id="transactions_client_program" highlight="11-12,30-31,38-44":::
 
-<xref:Orleans.ITransactionClient.RunTransaction*> 要求代表返回 <xref:System.Threading.Tasks.Task> 和 <xref:System.Threading.Tasks.Task`1>。通用任务表格仅在代表返回 `true`时才承诺;返回 `false` 中止时承诺。超载也接受 `useExclusiveLock`。
+<xref:Orleans.ITransactionClient.RunTransaction*> 支持返回 <xref:System.Threading.Tasks.Task> 和 <xref:System.Threading.Tasks.Task`1> 的委托。对于泛型任务形式，仅当委托返回 `true` 时才提交事务；返回 `false` 时中止事务。另一个重载还接受 `useExclusiveLock`。
 
 <a id="commit-and-abort-semantics"></a>
 
-## 提交和中止语义
+## 提交与中止语义
 
-启动交易的请求在返回前解决:
+启动事务的请求会在返回前确定事务结果：
 
-- 成功的代表承诺,除非明确返回 `false`。
-- 应用程序例外记录失败并中止交易。
-- 中止会丢弃交易中所有交易状态更新。
-- 原始申请例外可以作为 <xref:Orleans.Transactions.OrleansTransactionException>的内侧例外出现。
+- 委托成功执行时提交事务，除非显式返回 `false`。
+- 应用程序异常会记录失败并中止事务。
+- 中止事务会丢弃该事务中的所有事务状态更新。
+- 原始应用程序异常可能作为 <xref:Orleans.Transactions.OrleansTransactionException> 的内部异常出现。
 
-<xref:Orleans.Transactions.OrleansTransactionAbortedException> 报告了已知的中止, 如果应用程序命令可以安全重试, 可以重新尝试。 <xref:Orleans.Transactions.OrleansTransactionInDoubtException> 表示协调员无法确定最终结果。 在进行检测后, 不要立即重复非权宜人的命令; 在响应时间窗口结束后使用操作标识符和查询应用程序状态 。
+<xref:Orleans.Transactions.OrleansTransactionAbortedException> 表示事务已确定中止；如果应用程序命令可以安全重试，则可以重试。<xref:Orleans.Transactions.OrleansTransactionInDoubtException> 表示协调器无法确定最终结果。收到结果不确定的响应后，不要立即重复非幂等命令；应使用操作标识符，并在响应超时时间窗口结束后查询应用程序状态。
 
-重整交易必须重新尝试整个交易,而不是个人参与者更新。 试图并使用回扣。 高争议、锁式冲突、超负荷和存储中断都可能造成复选风暴。
+重试必须针对整个事务，而不是单独重试某个参与者的更新操作。限制重试次数并使用退避策略，否则高争用、锁升级冲突、过载及存储服务故障都可能造成重试风暴。
 
 <a id="contention-and-timeouts"></a>
 
-## 内容和超时
+## 资源争用与超时
 
-交易国使用读者/作家锁和僵局预防规则。
+事务状态使用读写锁及死锁预防规则。常见的事务中止原因包括：
 
-- 在 <xref:Orleans.Configuration.TransactionalStateOptions.LockAcquireTimeout>之前未获取锁定 。
-- 锁定时间超过 <xref:Orleans.Configuration.TransactionalStateOptions.LockTimeout>。
-- 一场关禁状态的冲突
-- 未在 <xref:Orleans.Configuration.TransactionalStateOptions.PrepareTimeout>之前完成准备。
-- 无法提供参与人或交易服务。
+- 未能在 <xref:Orleans.Configuration.TransactionalStateOptions.LockAcquireTimeout> 规定的时间内获取锁。
+- 持有锁的时间超过 <xref:Orleans.Configuration.TransactionalStateOptions.LockTimeout>。
+- 发生锁升级冲突。
+- 未能在 <xref:Orleans.Configuration.TransactionalStateOptions.PrepareTimeout> 规定的时间内完成准备阶段。
+- 事务参与者或事务服务变得不可用。
 
-默认 <xref:Orleans.Configuration.TransactionalStateOptions> 值为:
+<xref:Orleans.Configuration.TransactionalStateOptions> 的默认值如下：
 
-| 选项 | 默认默认 |
+| 选项 | 默认值 |
 |---|---|
-| <xref:Orleans.Configuration.TransactionalStateOptions.LockTimeout> | 8秒8秒 |
-| <xref:Orleans.Configuration.TransactionalStateOptions.LockAcquireTimeout> | 10秒 |
-| <xref:Orleans.Configuration.TransactionalStateOptions.PrepareTimeout> | 20秒 |
-| <xref:Orleans.Configuration.TransactionalStateOptions.RemoteTransactionPingFrequency> | 60秒 |
-| <xref:Orleans.Configuration.TransactionalStateOptions.ConfirmationRetryDelay> | 30秒 |
+| <xref:Orleans.Configuration.TransactionalStateOptions.LockTimeout> | 8 秒 |
+| <xref:Orleans.Configuration.TransactionalStateOptions.LockAcquireTimeout> | 10 秒 |
+| <xref:Orleans.Configuration.TransactionalStateOptions.PrepareTimeout> | 20 秒 |
+| <xref:Orleans.Configuration.TransactionalStateOptions.RemoteTransactionPingFrequency> | 60 秒 |
+| <xref:Orleans.Configuration.TransactionalStateOptions.ConfirmationRetryDelay> | 30 秒 |
 | <xref:Orleans.Configuration.TransactionalStateOptions.MaxLockGroupSize> | 20 |
 
-提交确认使用 <xref:Orleans.Configuration.TransactionalStateOptions.ConfirmationRetryLimit>,其默认为3。 新启动的交易在不附加调试器时使用10秒交易超时。
+提交确认使用 <xref:Orleans.Configuration.TransactionalStateOptions.ConfirmationRetryLimit>，默认值为 3。未附加调试器时，新启动事务的事务超时时间为 10 秒。
 
-参与 silos时连贯一致的配置状态选项 :
+在参与事务的各个 Silo 中使用一致的状态选项配置：
 
 :::code language="csharp" source="../snippets/compiled/Grains/TransactionSnippets.cs" id="configure_transaction_timeouts":::
-更短的超时时间越快失效,但可以在负载高峰期间中止健康的工作。 更长的超时时间保留了锁和资源的时间越长。 在改变违约之前先测量交易期限和争议。
+较短的超时时间能让失败更快显现，但在负载高峰期也可能中止本可正常完成的工作。较长的超时时间会使锁及资源被占用更久。修改默认值前，应测量事务持续时间及资源争用情况。
 
 <a id="design-guidance"></a>
 
-## 设计指导设计指南
+## 设计指南
 
-- 保持交易的短时间, 并避免不相关的远程电话, 同时保持交易锁定 。
-- 获得资源,在可行的情况下按稳定的应用级别顺序进行。
-- 使用 <xref:Orleans.Concurrency.ReadOnlyAttribute> 来进行真正只读操作。
-- 当锁定升级是测量的中止源时,有选择地使用 <xref:Orleans.UseExclusiveLockAttribute> 。
-- 使启动命令的天能者成为启动命令的天能者,并包含操作识别符。
-- 监测中止、 内疑结果、 锁定超时、 准备超时和存储延迟 单独 。
+- 尽量缩短事务持续时间，并避免在持有事务锁时执行无关的远程调用。
+- 在可行的情况下，按稳定的应用层顺序获取资源。
+- 对真正的只读操作使用 <xref:Orleans.Concurrency.ReadOnlyAttribute>。
+- 当测量结果表明锁升级是事务中止的原因之一时，有选择地使用 <xref:Orleans.UseExclusiveLockAttribute>。
+- 确保发起事务的命令具有幂等性，并包含操作标识符。
+- 分别监控事务中止、结果不确定、锁超时、准备阶段超时及存储延迟。

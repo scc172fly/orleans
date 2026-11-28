@@ -1,23 +1,23 @@
-// 耐久operations.js:从浏览器开始并观察到永久性 HTTP 操作, 即自动。
+// durable-operations.js：以幂等方式从浏览器启动并观察持久化 HTTP 操作。
 //
-// 每个用户的意图,例如检查篮子,都得到一个备用钥匙,而帮助者在发送前就坚持了这个关键
-// 请求的顺序,在网络故障后,双击或页面刷新时,带有相同的键,
-// 服务器将进入第一个尝试启动的操作。一旦服务器确认开始,
-// 帮助助手忘记了意图的密钥, 并持续运行操作 操作位置直到操作为终端, 所以
-// 刷新页面继续观察它。
+// 每个用户意图（例如购物车结账）都有一个幂等键，辅助工具在发送请求之前将其持久化。
+// 网络故障、双击或页面刷新后重试请求时，仍携带同一个键，
+// 因此服务器会定位到首次尝试所启动的操作。一旦服务器确认启动，
+// 辅助工具便删除该意图的键，并持久化操作的 Operation-Location，直到操作进入终态，
+// 这样刷新后的页面可以继续观察该操作。
 //
-// 协助者说 Orleans 持久作业的协议,该协议与 Azure 长期作业相符:
-// 开始返回 200 确定结果, 或 202 接受, 或 424 失败依赖 。
-// 操作- 运行位置; 监视器报告 { id, status, 结果、 结果、 错误}; { monitor}/ 活动将状态流到
-// 服务器- 发送事件; 获取 { 监测} , 使用优先: wait= N long-polls; POST { monitor} : cancel 取消 ;
-// POST {监测}/ 信号/{ name} 发送信号 。
+// 辅助工具使用 Orleans 持久化操作协议，该协议与 Azure 长时间运行操作兼容：
+// 启动请求返回带结果的 200 OK，或返回 202 Accepted 或 424 Failed Dependency，并通过
+// Operation-Location 提供状态监视器；监视器报告 { id, status, result, error }；{monitor}/events 以
+// 服务器发送事件（SSE）的方式流式传输状态；GET {monitor} 携带 Prefer: wait=N 进行长轮询；POST {monitor}:cancel 取消操作；
+// POST {monitor}/signals/{name} 投递信号。
 
 const terminalStatuses = new Set(["Succeeded", "Failed", "Canceled"]);
 
-/** 返回状态监视器是否为终端。 */
+/** 返回状态监视器的状态是否为终态。 */
 export const isTerminal = operation => terminalStatuses.has(operation?.status);
 
-/** 答复既未完成也未找到行动地点。 */
+/** 报告既未完成操作也未提供操作位置的响应。 */
 export class OperationError extends Error {
   constructor(response, problem) {
     super(problem?.detail ?? problem?.title ?? `${response.status} ${response.statusText}`);
@@ -29,13 +29,13 @@ export class OperationError extends Error {
 
 export class DurableOperations {
   /**
-   * @ 参数{ 对象} [选项]
-   * @ param { storage} [options.storage] 坚持者意图和运行操作; sessionStorage 默认,
-   *   复习标签。
-   * @ param{string} [options.prefix] 将存储键提前固定。
-   * @ param {编号} [options.retryDelays] 延迟, 以毫秒计, 每次重试请求失败前的延误
-   *   网络错误或 503 服务 没有 Retry-after 无法使用。
-   * @param {number} [options.wait] 秒, 长时间的民意测验要求服务器等待 。
+   * @param {object} [options]
+   * @param {Storage} [options.storage] 持久化意图和正在运行的操作；默认为 sessionStorage，
+   *   可以在标签页刷新后保留数据。
+   * @param {string} [options.prefix] 存储键的前缀。
+   * @param {number[]} [options.retryDelays] 请求因网络错误或未携带 Retry-After 的
+   *   503 Service Unavailable 而失败时，每次重试前等待的毫秒数。
+   * @param {number} [options.wait] 长轮询请求服务器等待的秒数。
    */
   constructor({ storage = sessionStorage, prefix = "durable-operations", retryDelays = [250, 1000, 3000], wait = 30 } = {}) {
     this.storage = storage;
@@ -44,41 +44,41 @@ export class DurableOperations {
     this.wait = wait;
   }
 
-  /** 返回一个意图的持续键,为新的意图创建关键字。 */
+  /** 返回意图的持久化键；如果是新意图，则创建一个键。 */
   key(intent) {
     const record = this.#read(`intent:${intent}`) ?? { key: crypto.randomUUID() };
     this.#write(`intent:${intent}`, record);
     return record.key;
   }
 
-  /** 忘记了意图,所以它的下一个开始得到一个新的钥匙。 */
+  /** 删除意图记录，使其下一次启动时获得一个新键。 */
   forget(intent) {
     this.storage.removeItem(this.#name(`intent:${intent}`));
   }
 
-  /** 返回服务器尚未确认的启动时间: [{意向、密钥、请求}]。 */
+  /** 返回服务器尚未确认的启动请求：[{ intent, key, request }]。 */
   pending() {
     return this.#entries("intent:")
       .filter(([, record]) => record.request)
       .map(([intent, record]) => ({ intent, ...record }));
   }
 
-  /** 返回帮助者所观察到的运行中的操作 [{位置、意图、数据}]。 */
+  /** 返回辅助工具正在观察的运行中操作：[{ location, intent, data }]。 */
   watching() {
     return Object.entries(this.#read("watching") ?? {}).map(([location, entry]) => ({ location, ...entry }));
   }
 
   /**
-   * 开始实施意图,或达到先前意图尝试启动的操作。
+   * 启动某个意图对应的操作，或定位到该意图先前尝试所启动的操作。
    *
-   * @ param{string} 意向书 命名用户意图, 如 `checkout:alice`。
-   * @ palam {( 关键: 字符串) {{ URL: 字符串, 方法? : 字符串, body? : 未知, 数据? : 未知 } 构建请求
-   *   帮助者坚持了请求,所以重新开始就发出同样的请求。
-   * @ 参数{ 对象} [选项]
-   * @ palam {( 尝试: 编号) } { 记录<string, string>} [options.headers加上标头来图谋
-   * @ param {number} [options.wait] 开始要求服务器等待结果的秒数 。
-   * @ returns {promise}} 密钥: string, 位置?: string, 操作???: 对象, 结果?: 未知, 数据?: 未知
-   *   运行期间或一旦失败,或成功后的结果,操作状态监视器。
+   * @param {string} intent 用户意图的名称，例如 `checkout:alice`。
+   * @param {(key: string) => { url: string, method?: string, body?: unknown, data?: unknown }} build 根据
+   *   意图的键构建请求。辅助工具会持久化请求，因此恢复启动时发送的是同一个请求。
+   * @param {object} [options]
+   * @param {(attempt: number) => Record<string, string>} [options.headers] 为某次尝试添加请求标头。
+   * @param {number} [options.wait] 启动请求要求服务器等待结果的秒数。
+   * @returns {Promise<{ key: string, location?: string, operation?: object, result?: unknown, data?: unknown }>}
+   *   操作运行中或失败时返回其状态监视器，成功时返回操作结果。
    */
   async start(intent, build, { headers, wait } = {}) {
     const name = `intent:${intent}`;
@@ -89,23 +89,23 @@ export class DurableOperations {
   }
 
   /**
-   * 发送服务器没有确认的启动程序, 并用他们的密钥发送启动程序, 例如在 A
-   * 开始。返回启动结果,按未完成()顺序排列。
+   * 重新发送服务器尚未确认的启动请求，并携带各自的键，例如启动过程中页面刷新后。
+   * 按 pending() 的顺序返回各启动请求的结果。
    */
   async resume() {
     return Promise.all(this.pending().map(({ intent, ...record }) => this.#send(intent, record, {})));
   }
 
   /**
-   * 观察一项运行,直至其终端为止,并有服务器已到的事件或长期民意调查,但情况却如此
-   * 无法使用, 一旦它成为终端或服务器不再持有, 就会忘记它 。
+   * 使用服务器发送事件观察操作，直到其进入终态；事件不可用时使用长轮询。
+   * 操作进入终态或服务器不再保留该操作时，删除其观察记录。
    *
-   * 行动状态监视器
-   * @ 参数{ 对象} [选项]
-   * @ palam {( 操作: 对象) { 无效} [options.onStatus接收每个状态。
-   * @param {AbortSignal}options.signal] 停止观察。
-   * @ returns {promise<object>} 运行终端状态监视器 。
-   * @ 发射 {OperationError以404状态 当操作不存在或保留结束时
+   * @param {string} location 操作状态监视器的位置。
+   * @param {object} [options]
+   * @param {(operation: object) => void} [options.onStatus] 接收每次状态更新。
+   * @param {AbortSignal} [options.signal] 停止观察。
+   * @returns {Promise<object>} 操作处于终态时的状态监视器。
+   * @throws {OperationError} 操作不存在或保留期结束时，状态码为 404。
    */
   async observe(location, { onStatus, signal } = {}) {
     let operation = typeof EventSource === "undefined" ? undefined : await this.#observeEvents(location, onStatus, signal);
@@ -124,13 +124,13 @@ export class DurableOperations {
     return operation;
   }
 
-  /** 读取操作状态监视器,在运行时用长的邮箱等待秒。 */
+  /** 读取操作的状态监视器；运行期间执行等待 wait 秒的长轮询。 */
   async get(location, { wait = 0, signal } = {}) {
     const response = await this.#fetch(location, { headers: wait > 0 ? { Prefer: `wait=${wait}` } : {}, signal });
     return this.#readOperation(response);
   }
 
-  /** 要求取消一项行动,并附有理由,并返回其地位监测器。 */
+  /** 携带原因请求取消操作，并返回其状态监视器。 */
   async cancel(location, reason) {
     const response = await this.#fetch(`${location}:cancel`, {
       method: "POST",
@@ -141,8 +141,8 @@ export class DurableOperations {
   }
 
   /**
-   * 向操作发送一个 JSON 值的信号。一个具有等值的重复信号成功,因此重试
-   * 安全; 从密钥( 意图) 中获取意向值, 所以恢复的意向会发送相同的值 。
+   * 向操作投递带有 JSON 值的信号。重复投递值相同的信号会成功，因此可以安全重试；
+   * 从 key(intent) 派生意图的值，使恢复后的意图发送相同的值。
    */
   async signal(location, name, value) {
     const response = await this.#fetch(`${location}/signals/${encodeURIComponent(name)}`, {
@@ -166,7 +166,7 @@ export class DurableOperations {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
 
-    // 服务器回答,所以它能控制启动结果 目标的钥匙已经达到了目的
+    // 服务器已响应，因此持有启动请求的结果，意图的键已完成其用途。
     const location = response.headers.get("Operation-Location") ?? undefined;
     if (response.status === 202 || response.status === 424) {
       const operation = await response.json();
@@ -181,13 +181,13 @@ export class DurableOperations {
       return { key: record.key, location, result, data };
     }
 
-    // 服务器错误使启动无法识别, 因此重试发送相同的密钥; 客户端错误为最终错误 。
+    // 服务器错误意味着启动尚未得到确认，因此重试时发送同一个键；客户端错误则是最终结果。
     if (response.status < 500) this.forget(intent);
     throw new OperationError(response, await readProblem(response));
   }
 
-  // 观察操作事件直到它为终端。当串流关闭时,返回最后状态或未定义状态
-  // 终端状态之前, 例如服务器不为事件服务, 所以呼叫者长号 。
+  // 观察操作的事件直至进入终态。如果事件流在终态之前关闭（例如服务器不提供事件），
+  // 返回最后一次状态或 undefined，以便调用方改用长轮询。
   #observeEvents(location, onStatus, signal) {
     return new Promise(resolve => {
       const events = new EventSource(`${location}/events`);
@@ -204,15 +204,15 @@ export class DurableOperations {
         if (isTerminal(last)) finish();
       });
 
-      // 浏览器将中断的流与 Last- Event-ID 重新连接; 它关闭的流结束事件 。
+      // 浏览器使用 Last-Event-ID 重新连接中断的事件流；浏览器关闭事件流时，事件传输结束。
       events.onerror = () => {
         if (events.readyState === EventSource.CLOSED) finish();
       };
     });
   }
 
-  // 发送请求、重试网络故障和503服务无可用,使操作保持不变
-  // 设置的延迟,或回复的 Retry-after。页眉可能会因尝试而变化。
+  // 发送请求；发生网络故障或不改变操作状态的 503 Service Unavailable 时，按配置的延迟
+  // 或响应的 Retry-After 进行重试。每次尝试的请求头可以不同。
   async #fetch(url, { method = "GET", headers = {}, body, signal } = {}) {
     for (let attempt = 0; ; attempt++) {
       let delay;

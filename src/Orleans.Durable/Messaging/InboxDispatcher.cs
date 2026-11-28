@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Orleans.Durable.Messaging;
 
-/// <summary>将每个收件箱信件发送到第一个可以处理该邮件的注册处理器。</summary>
+/// <summary>将每条收件箱消息分派给首个能够处理它的已注册处理器。</summary>
 internal readonly struct InboxDispatcher
 {
     private readonly List<IInboxHandler> _handlers;

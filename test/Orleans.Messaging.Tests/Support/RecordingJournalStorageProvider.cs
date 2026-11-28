@@ -6,7 +6,7 @@ using Orleans.Durable.Journaling;
 
 namespace Orleans.Durable.Messaging.Tests.Support;
 
-/// <summary>储存在记忆中的期刊,记录每个成功日记的字节。</summary>
+/// <summary>在内存中存储日志，并记录每次成功日志写入的字节。</summary>
 public sealed class RecordingJournalStorageProvider : IJournalStorageProvider, IJournalStorageCatalog
 {
     private readonly ConcurrentDictionary<JournalId, ConcurrentQueue<byte[]>> _writes = new();
@@ -15,7 +15,7 @@ public sealed class RecordingJournalStorageProvider : IJournalStorageProvider, I
 
     public void Configure(IOptions<JournaledStateManagerOptions> options) => _inner ??= new VolatileJournalStorageProvider(options);
 
-    /// <summary>请求将日记的下一封信以快照替换。</summary>
+    /// <summary>请求在日志下一次写入时以快照替换日志。</summary>
     public void RequestSnapshot(JournalId journalId) => _snapshots[journalId] = 0;
 
     public IJournalStorage CreateStorage(JournalId journalId) =>
@@ -26,12 +26,12 @@ public sealed class RecordingJournalStorageProvider : IJournalStorageProvider, I
         CancellationToken cancellationToken = default) =>
         Inner.ListAsync(options, cancellationToken);
 
-    /// <summary>将每个成功写入的字节按写序发送到日记。</summary>
+    /// <summary>按写入顺序获取日志每次成功写入的字节。</summary>
     public byte[][] GetWrites(JournalId journalId) => _writes.TryGetValue(journalId, out var writes) ? [.. writes] : [];
 
     /// <summary>
-    /// 计算日记写入的 <paramref name="payload"/> 发生时间,作为 Orleans 二进制中的原始字节
-    /// 或作为 JSON 格式为字节数组书写的 base64 字符串。
+    /// 统计 <paramref name="payload"/> 在日志各次写入中的出现次数：对于 Orleans 二进制格式按原始字节统计，
+    /// 对于 JSON 格式按其写入字节数组时使用的 Base64 字符串统计。
     /// </summary>
     public int CountPayloadOccurrences(JournalId journalId, byte[] payload)
     {

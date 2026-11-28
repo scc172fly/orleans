@@ -1,86 +1,86 @@
 ---
-title: "执行长期催复通知"
-description: "运行提醒触发的工作, 其时间超过 grain 调用超时, 并在背景中继续 。"
+title: 实现长期运行的提醒器
+description: 通过在后台继续执行，使提醒器触发的工作能够运行超过 Grain 调用超时的时长。
 ms.date: 08/21/2026
 ms.topic: how-to
 ---
 
 <a id="implement-long-running-reminders"></a>
 
-# 执行长期催复通知
+# 实现长期运行的提醒器
 
-Orleans 发送提醒, 以调用 <xref:Orleans.IRemindable.ReceiveReminder*> 的方式作为 grain 的呼叫。 保持该响应不全的通话时间超过配置的反应超时可以导致发送提醒的时间过长 。
+Orleans 以 Grain 调用的方式调用 <xref:Orleans.IRemindable.ReceiveReminder*> 来投递提醒器。如果该调用持续未完成的时间超过已配置的响应超时，提醒器投递可能超时。
 
-对于长期提醒工作, 请使用回调来启动一个合作背景循环并迅速返回。 循环继续运行在 grain 调度器上, 并在有约束的工作单位之间产生效果。 如果循环停止或激活被替换, 稍后的提醒勾起再次开始 。
+对于长期运行的提醒器工作，使用回调启动一个协作式后台循环，并立即返回。循环继续在 Grain 调度器上运行，并在各个有界工作单元之间让出执行权。如果循环停止或激活实例被替换，后续提醒器触发会再次启动它。
 
-当一个 grain 身份拥有可恢复的工作, 应在提醒勾勾之间继续。 将每次迭代都作为捆绑的、 无同步操作, 并持续足够进展, 在激活后或处理丢失后可以恢复 。
+当一个 Grain 标识拥有可重新启动、需要在多次提醒器触发之间持续执行的工作时，使用此方案。将每次迭代建模为有界异步操作，并持久化足够的进度，以便在激活实例或进程丢失后恢复。
 
 > [!IMPORTANT]
-> 提醒的定义是耐久的, 而背景任务属于当前激活的任务。 在群集更改时, 提醒勾点可以错失或不止一次执行。 让每个工作单位都具备最佳能力, 并与持久的商业状态进行调和 。
+> 提醒器定义是持久化的，而后台任务属于当前激活实例。集群变化期间，提醒器触发可能被遗漏或重复投递。使每个工作单元具备幂等性，并根据持久化业务状态进行核对及恢复。
 
 <a id="prerequisites"></a>
 
-## 先决条件
+## 前置条件
 
-- 配置 a [提醒提醒提供者](../grains/reminders.md#configure-reminder-storage) 上每 silo.
-- 在 <xref:Orleans.Hosting.ReminderOptions.MinimumReminderPeriod?displayProperty=nameWithType> 或以上选择提醒期,且时间短于 grain的 [激活收集年龄](../host/configuration-guide/activation-collection.md)。
-- 设计工作循环,使每个迭代都接受取消、不同步地产生结果并记录持久进展。
+- 在每个 Silo 上配置[提醒器提供程序](../grains/reminders.md#configure-reminder-storage)。
+- 选择不小于 <xref:Orleans.Hosting.ReminderOptions.MinimumReminderPeriod?displayProperty=nameWithType> 且短于该 Grain [激活实例回收时限](../host/configuration-guide/activation-collection.md)的提醒器周期。
+- 设计工作循环，使每次迭代都支持取消、异步让出执行权，并记录持久化进度。
 
 <a id="schedule-a-frequent-reminder"></a>
 
-## 经常安排提醒通知
+## 调度频繁触发的提醒器
 
-提醒计数为激活活动。提醒时间短于启动收集年龄,提醒时间使 grain 在正常闲置收藏中有效,允许背景任务继续取得进展。如果由于关闭、故障、迁移或明确停止功能而终止激活,稍后的答题再次激活 grain 并开始新工人。
+提醒器触发计入激活实例活动。短于激活实例回收时限的提醒器周期，会在正常空闲回收机制下保持 Grain 活跃，使后台任务能够持续推进。如果激活实例因关闭、故障、迁移或显式停用而终止，后续触发会再次激活该 Grain 并启动新的工作任务。
 
-登记短时期的提醒:
+以较短周期注册提醒器：
 
 :::code language="csharp" source="../snippets/compiled/HowTo/LongRunningReminderSnippets.cs" id="schedule_long_running_reminder":::
 
-此示例使用默认最小提醒时间为1分钟, 短于15分钟的默认激活收集年龄。 如果应用程序配置不同值, 请将提醒时间保持在支持的最低和低于采集年龄的最小 。
+此示例使用默认的最短提醒器周期，即一分钟，该周期短于默认的激活实例回收时限 15 分钟。如果应用为任一值配置了不同设置，应确保提醒器周期不小于受支持的最短周期，且短于回收时限。
 
-提醒期控制激活活动,停止的工人恢复工作的速度有多快。背景循环控制了工作的处理频率。
+提醒器周期控制激活实例活动频率以及停止的工作任务重新启动的速度。后台循环控制实际工作的处理频率。
 
 <a id="implement-the-worker"></a>
 
-## 落实工人
+## 实现工作任务
 
-以下 grain 登记提醒,每次启动最多开始一名工人,观察工人的失败情况,并在停止工作时停止工作:
+以下 Grain 注册提醒器，在每个激活实例中最多启动一个工作任务，观察工作任务的故障，并在停用期间停止该任务：
 
 :::code language="csharp" source="../snippets/compiled/HowTo/LongRunningReminderSnippets.cs" id="long_running_reminder_grain":::
 
-执行取决于以下行为:
+该实现依赖以下行为：
 
-1. <xref:Orleans.IRemindable.ReceiveReminder*> 执行请求 grain 。返回 <xref:System.Threading.Tasks.Task.CompletedTask?displayProperty=nameWithType> 完成提醒发送,无需等待背景循环。
-1. <xref:System.Threading.Tasks.ConfigureAwaitOptions> 控制首次等待后的续执行方式。`ForceYielding` 确保循环在 `ReceiveReminder` 返回后开始，`ContinueOnCapturedContext` 让循环在 Grain 调度器上继续执行，以便安全访问 Grain 状态。
-1. `_backgroundTask` 限制一个工人的激活。 如果该工人在失败后完成, 下次提醒会选中开始一个新的工人 。
-1. <xref:Orleans.Grain.OnDeactivateAsync*> 取消工人的取消,并在运行期的终止期限内等待。 程序中断可能跳过此回召, 因此持久进展仍然是恢复的来源 。
+1. <xref:Orleans.IRemindable.ReceiveReminder*> 作为 Grain 请求执行。返回 <xref:System.Threading.Tasks.Task.CompletedTask?displayProperty=nameWithType> 会完成此次提醒器投递，无须等待后台循环。
+1. <xref:System.Threading.Tasks.ConfigureAwaitOptions> 控制首次 await 如何恢复执行。`ForceYielding` 确保循环在 `ReceiveReminder` 返回后启动，而 `ContinueOnCapturedContext` 使其在 Grain 调度器上恢复，在那里可以安全地访问 Grain 状态。
+1. `_backgroundTask` 将每个激活实例限制为一个工作任务。如果工作任务在故障后完成，下一次提醒器触发会启动新的工作任务。
+1. <xref:Orleans.Grain.OnDeactivateAsync*> 取消工作任务，并在运行时停用截止时间内等待它结束。进程突然终止可能跳过此回调，因此持久化进度仍是恢复依据。
 
-将 `ProcessNextBatch` 替换为一个约束的应用程序工作单位。 每次迭代应等待 I/O 或以其他方式产生,以便其它队列的工作能够运行。由于其他 grain 转弯可以在循环等待时执行,因此重新检查其值影响下一个操作的任何 grain 状态。
+将 `ProcessNextBatch` 替换为一个有界应用工作单元。每次迭代都应等待 I/O 或以其他方式让出执行权，使队列中的其他工作能够运行。由于循环等待期间可能执行其他 Grain 执行轮次，因此应重新检查任何会影响下一项操作的 Grain 状态。
 
-调调 `Start` 一次通过 a grain 参考。 <xref:Orleans.GrainReminderExtensions.RegisterOrUpdateReminder*> 创建耐久时间表;调用 `Start` 再次更新同一命名的提醒通知。
+通过 Grain 引用调用一次 `Start`。<xref:Orleans.GrainReminderExtensions.RegisterOrUpdateReminder*> 创建持久化调度；再次调用 `Start` 会更新同一个命名提醒器。
 
 <a id="handle-failures-and-recovery"></a>
 
-## 处理失败和复原
+## 处理故障及恢复
 
-工人观察和记录意外例外,因为 `ReceiveReminder` 返回 <xref:System.Threading.Tasks.Task.CompletedTask?displayProperty=nameWithType> 提醒运行时间。 完成失败的工人, 让下次提醒时再重新激活它 。
+工作任务观察并记录意外异常，因为 `ReceiveReminder` 已将 <xref:System.Threading.Tasks.Task.CompletedTask?displayProperty=nameWithType> 返回给提醒器运行时。故障工作任务完成后，下一次提醒器触发可以将其重新启动。
 
-向下一级单位推进前,先维持一个检查站。
+推进到下一个工作单元之前，持久化检查点。典型迭代过程：
 
-1. 从耐久状态读取下一个不完整的项目 。
-1. 使用稳定的操作识别符,执行一无所能的副作用。
-1. 记录完成时间可久。
-1. 继续下一个项目。
+1. 从持久化状态读取下一个未完成的项。
+1. 使用稳定的操作标识符执行幂等副作用。
+1. 持久化完成记录。
+1. 继续处理下一项。
 
-此序列可以让新激活调节采集、迁移、 silo 关闭或进程失败后中断的操作。
+这一顺序使新激活实例能够在回收、迁移、Silo 关闭或进程故障后核对并恢复中断的操作。
 
 <a id="verify-the-recipe"></a>
 
-## 校验食谱
+## 验证方案
 
-1. 拨打 `Start` 并确认第一个提醒键开始一个工人。
-1. 让另一个提醒在工人积极活动时滴答到,并证实一名工人仍然活跃。
-1. 关闭主机或重新启动主机 silo ,并确认后一个提醒滴答会产生新的启动并恢复从耐用检查站的运行。
-1. 使一个重复工作失败,确认例外被登录,下次提醒勾将重新启动工人。
+1. 调用 `Start`，确认首次提醒器触发启动一个工作任务。
+1. 在该工作任务活跃时让另一次提醒器触发到达，确认仍然只有一个工作任务处于活跃状态。
+1. 停用 Grain 或重启托管 Silo，确认后续提醒器触发会创建新激活实例，并从持久化检查点恢复。
+1. 使一次工作迭代失败，确认异常已记录，并且下一次提醒器触发会重新启动工作任务。
 
-只有在 grain 活动期间才运行的定期回调,使用 [grain 计时器](../grains/timers.md)。对于在一次提醒中完成的工作,请直接从 `ReceiveReminder`返回工作任务。
+对于只在 Grain 活跃时执行的周期回调，使用 [Grain 定时器](../grains/timers.md)。对于可在一次提醒器调用内完成的工作，直接从 `ReceiveReminder` 返回工作任务。

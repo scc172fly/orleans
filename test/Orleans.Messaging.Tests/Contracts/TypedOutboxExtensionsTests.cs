@@ -420,7 +420,7 @@ public sealed class TypedOutboxExtensionsTests
         var key = variation switch
         {
             "messageId" or "unset-parent" => default,
-            // 答复中增加了7个 UTF8 字节(“/结果”)。
+            // 回复增加七个 UTF-8 字节（"/result"）。
             "bytes" => MessageId.Create(new string('k', reply ? 1018 : 1025)),
             "multibyte-bytes" => MessageId.Create(new string('\u20ac', reply ? 339 : 341) + (reply ? "a" : "ab")),
             _ => CommandId
@@ -466,7 +466,7 @@ public sealed class TypedOutboxExtensionsTests
         Assert.Empty(realOutbox.Messages);
         Assert.Equal(0, realOutbox.Count);
         if (context is not null) Assert.Equal(0, context.CompletionCount);
-        // 积极控制:相同的编码仍然在编码和拒绝后阶段进行编码。
+        // 阳性对照：同一编解码器在拒绝之后仍能编码并暂存操作。
         var positive = new StoringOutbox();
         Invoke(positive,
             new MessageType<string>(Subject, new Serializer<string>(codec, sessions)),

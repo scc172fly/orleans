@@ -3,7 +3,7 @@ using Orleans.Concurrency;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 坐标 用于验证独家锁定行为 的读写时写交易模式
+    /// 协调用于验证排他锁行为的先读后写事务模式。
     /// </summary>
     [StatelessWorker]
     [Reentrant]
@@ -14,7 +14,7 @@ namespace Orleans.Transactions.TestKit
         {
             ArgumentNullException.ThrowIfNull(grain);
             await grain.Get();
-            await Task.Delay(TimeSpan.FromMilliseconds(100)); // 添加一些延迟,使 tx 同时互插
+            await Task.Delay(TimeSpan.FromMilliseconds(100)); // 增加一些延迟，使并发事务交错执行
             await grain.Add(value);
         }
 
@@ -23,7 +23,7 @@ namespace Orleans.Transactions.TestKit
         {
             ArgumentNullException.ThrowIfNull(grain);
             await grain.Get();
-            await Task.Delay(TimeSpan.FromMilliseconds(100)); // 添加一些延迟,使 tx 同时互插
+            await Task.Delay(TimeSpan.FromMilliseconds(100)); // 增加一些延迟，使并发事务交错执行
             await grain.Add(value);
         }
     }

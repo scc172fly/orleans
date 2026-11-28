@@ -11,7 +11,7 @@ internal static class BufferWriterExtensions
     {
         var destination = writer.GetSpan();
 
-        // 快路径, 尝试直接复制到可用内存
+        // 快速路径：尝试直接复制到可用内存中。
         if (value.Length <= destination.Length)
         {
             value.CopyTo(destination);

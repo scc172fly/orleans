@@ -6,7 +6,7 @@ using Xunit;
 namespace Orleans.Serialization.TestKit
 {
     /// <summary>
-    /// 序列化测试助手的基础类。
+    /// 序列化测试辅助工具的基类。
     /// </summary>
     [ExcludeFromCodeCoverage]
     public abstract class SerializationTester : IDisposable
@@ -17,9 +17,9 @@ namespace Orleans.Serialization.TestKit
         private int _disposed;
 
         /// <summary>
-        /// 初始化一个新的 <see cref="SerializationTester"/> 实例。
+        /// 初始化新的 <see cref="SerializationTester"/> 实例。
         /// </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="output"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="output"/> 为 <see langword="null"/>。</exception>
         protected SerializationTester(ITestOutputHelper output)
         {
             if (output is null)
@@ -34,9 +34,9 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// 初始化一个新的 <see cref="SerializationTester"/> 实例。
+        /// 初始化新的 <see cref="SerializationTester"/> 实例。
         /// </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="output"/> 或 <paramref name="fixture"/> 是 <see langword="null"/>。</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="output"/> 或 <paramref name="fixture"/> 为 <see langword="null"/>。</exception>
         protected SerializationTester(ITestOutputHelper output, SerializationTesterFixture fixture)
         {
             if (output is null)
@@ -65,14 +65,14 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// 随机获得数字生成器。
+        /// 获取随机数生成器。
         /// </summary>
         protected Random Random { get; }
 
         internal int RandomSeed { get; }
 
         /// <summary>
-        /// 得到了服务供应商。
+        /// 获取服务提供程序。
         /// </summary>
         protected IServiceProvider ServiceProvider
         {
@@ -90,7 +90,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// 创建此测试类的序列器服务供应商。
+        /// 创建此测试类的序列化器服务提供程序。
         /// </summary>
         protected abstract IServiceProvider CreateServiceProvider();
 
@@ -109,7 +109,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// 释放本例所使用的资源。
+        /// 释放此实例使用的资源。
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {
@@ -133,7 +133,7 @@ namespace Orleans.Serialization.TestKit
     }
 
     /// <summary>
-    /// 定着物,拥有一个序列器服务提供商 由所有试验级的 情况共享。
+    /// 测试夹具，拥有由测试类所有实例共享的序列化器服务提供程序。
     /// </summary>
     [ExcludeFromCodeCoverage]
     public class SerializationTesterFixture : IDisposable
@@ -144,18 +144,18 @@ namespace Orleans.Serialization.TestKit
         private bool _isCreatingServiceProvider;
 
         /// <summary>
-        /// 初始化一个新的 <see cref="SerializationTesterFixture"/> 实例。
+        /// 初始化新的 <see cref="SerializationTesterFixture"/> 实例。
         /// </summary>
         public SerializationTesterFixture()
         {
         }
 
         /// <summary>
-        /// 获取由测试者使用此固定装置的验证实例共享的服务供应商。
-        /// 在创建之前,最新的测试器提供服务提供者配置。
+        /// 获取使用此测试夹具的测试器实例共享的服务提供程序。
+        /// 创建服务提供程序之前，由最近构造的测试器提供其配置。
         /// </summary>
-        /// <exception cref="InvalidOperationException">没有测试器可以创建服务提供人,或者服务提供人工厂可以反复进入该属性。</exception>
-        /// <exception cref="ObjectDisposedException">可用于创建服务供应商的测试器已经处理。</exception>
+        /// <exception cref="InvalidOperationException">没有可用于创建服务提供程序的测试器，或者服务提供程序工厂递归访问了此属性。</exception>
+        /// <exception cref="ObjectDisposedException">可用于创建服务提供程序的测试器已被释放。</exception>
         public IServiceProvider ServiceProvider
         {
             get
@@ -211,7 +211,7 @@ namespace Orleans.Serialization.TestKit
         }
 
         /// <summary>
-        /// 释放本例所使用的资源。
+        /// 释放此实例使用的资源。
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {

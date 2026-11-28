@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Orleans.Serialization.UnitTests;
 
-#pragma warning disable SYSLIB0050, SYSLIB0051 // Exercise the legacy serialization constructor contract.
+#pragma warning disable SYSLIB0050, SYSLIB0051 // 验证旧版序列化构造函数契约。
 
 [Trait("Category", "BVT")]
 [TestSuite("BVT")]

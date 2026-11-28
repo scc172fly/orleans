@@ -4,7 +4,7 @@ using Xunit;
 namespace Orleans.Transactions.DynamoDB.Tests
 {
     /// <summary>
-    /// 使用 DynamoDB进行交易与随机错入一致的测试。
+    /// 测试使用 DynamoDB 时随机故障注入场景下的事务一致性。
     /// </summary>
     [TestSuite("Nightly")]
     [TestArea("Transactions")]

@@ -5,7 +5,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.BroadcastChannel
 {
     /// <summary>
-    /// 默认实施内部支持的流流上游 <see cref="IChannelNamespacePredicateProvider"/> 。
+    /// 用于内部支持的流谓词的 <see cref="IChannelNamespacePredicateProvider"/> 默认实现。
     /// </summary>
     public class DefaultChannelNamespacePredicateProvider : IChannelNamespacePredicateProvider
     {
@@ -33,17 +33,17 @@ namespace Orleans.BroadcastChannel
     }
 
     /// <summary>
-    /// 支持可构造对象的流命名空间上游提供者,可选择接受字符串作为构建参数。
+    /// 流命名空间谓词提供程序，支持可通过构造函数创建且可选择接受字符串构造函数参数的对象。
     /// </summary>
     public class ConstructorChannelNamespacePredicateProvider : IChannelNamespacePredicateProvider
     {
         /// <summary>
-        /// 用于识别该上游供应商的前缀。
+        /// 用于标识此谓词提供程序的前缀。
         /// </summary>
         public const string Prefix = "ctor";
 
         /// <summary>
-        /// 格式化流命名空间前置,该前置表示要构造的混凝土 <see cref="IChannelNamespacePredicate"/> 类型,并加上一个可选参数。
+        /// 将流命名空间谓词格式化为指定要构造的具体 <see cref="IChannelNamespacePredicate"/> 类型及可选参数的表示形式。
         /// </summary>
         public static string FormatPattern(Type predicateType, string? constructorArgument)
         {

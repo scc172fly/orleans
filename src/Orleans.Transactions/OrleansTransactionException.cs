@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Transactions
 {
     /// <summary>
-    /// 所有交易例外的基准类
+    /// 所有事务异常的基类。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -19,21 +19,21 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansTransactionException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">描述错误的电文。</param>
+        /// <param name="message">描述错误的消息。</param>
         public OrleansTransactionException(string message) : base(message) { }
 
         /// <summary>
         /// 初始化 <see cref="OrleansTransactionException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">描述错误的电文。</param>
-        /// <param name="innerException">造成当前例外的例外。</param>
+        /// <param name="message">描述错误的消息。</param>
+        /// <param name="innerException">导致当前异常的异常。</param>
         public OrleansTransactionException(string message, Exception? innerException) : base(message, innerException!) { }
 
         /// <summary>
-        /// 从序列数据初始化了 <see cref="OrleansTransactionException"/> 类的新实例。
+        /// 从序列化数据初始化 <see cref="OrleansTransactionException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">序列物体数据。</param>
-        /// <param name="context">序号来源或目的地的背景资料。</param>
+        /// <param name="info">序列化后的对象数据。</param>
+        /// <param name="context">关于序列化源或目标的上下文信息。</param>
         [Obsolete]
         protected OrleansTransactionException(SerializationInfo info, StreamingContext context)
             : base(info, context)
@@ -42,7 +42,7 @@ namespace Orleans.Transactions
     }
 
     /// <summary>
-    /// Orleans 交易已禁用。
+    /// Orleans 事务已禁用。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -64,7 +64,7 @@ namespace Orleans.Transactions
     }
 
     /// <summary>
-    /// 表示运行时间无法启动交易 。
+    /// 表示运行时无法启动事务。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -73,7 +73,7 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansStartTransactionFailedException"/> 类的新实例。
         /// </summary>
-        /// <param name="innerException">阻止交易启动的例外。</param>
+        /// <param name="innerException">阻止事务启动的异常。</param>
         public OrleansStartTransactionFailedException(Exception innerException)
             : base("Failed to start transaction. Check InnerException for details", innerException)
         {
@@ -87,7 +87,7 @@ namespace Orleans.Transactions
     }
 
     /// <summary>
-    /// 表示交易运行时间超负荷
+    /// 表示事务运行时过载。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -103,15 +103,15 @@ namespace Orleans.Transactions
     }
 
     /// <summary>
-    /// 表示运行时间无法确定交易是否
-    /// 已经承诺。
+    /// 表示运行时无法确定事务是否
+    /// 已提交。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class OrleansTransactionInDoubtException : OrleansTransactionException
     {
         /// <summary>
-        /// 获取无法确定结果的交易识别符。
+        /// 获取无法确定结果的事务的标识符。
         /// </summary>
         [Id(0)]
         public string TransactionId { get; private set; }
@@ -119,7 +119,7 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansTransactionInDoubtException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">无法确定结果的交易识别特征。</param>
+        /// <param name="transactionId">无法确定结果的事务的标识符。</param>
         public OrleansTransactionInDoubtException(string transactionId) : base(string.Format("Transaction {0} is InDoubt", transactionId))
         {
             this.TransactionId = transactionId;
@@ -128,8 +128,8 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansTransactionInDoubtException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">无法确定结果的交易识别特征。</param>
-        /// <param name="exc">例外规定妨碍了结果的确定。</param>
+        /// <param name="transactionId">无法确定结果的事务的标识符。</param>
+        /// <param name="exc">导致无法确定结果的异常。</param>
         public OrleansTransactionInDoubtException(string transactionId, Exception? exc) : base(string.Format("Transaction {0} is InDoubt", transactionId), exc)
         {
             this.TransactionId = transactionId;
@@ -138,9 +138,9 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansTransactionInDoubtException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">无法确定结果的交易识别特征。</param>
-        /// <param name="msg">有关不确定结果的补充资料。</param>
-        /// <param name="innerException">例外规定妨碍了结果的确定。</param>
+        /// <param name="transactionId">无法确定结果的事务的标识符。</param>
+        /// <param name="msg">关于不确定结果的附加信息。</param>
+        /// <param name="innerException">导致无法确定结果的异常。</param>
         public OrleansTransactionInDoubtException(string transactionId, string msg, Exception? innerException) : base(string.Format("Transaction {0} is InDoubt: {1}", transactionId, msg), innerException)
         {
             this.TransactionId = transactionId;
@@ -163,14 +163,14 @@ namespace Orleans.Transactions
     }
 
     /// <summary>
-    /// 表示执行交易已中止。
+    /// 表示正在执行的事务已中止。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public class OrleansTransactionAbortedException : OrleansTransactionException
     {
         /// <summary>
-        /// 中止交易的唯一标识符 。
+        /// 已中止事务的唯一标识符。
         /// </summary>
         [Id(0)]
         public string TransactionId { get; private set; }
@@ -178,9 +178,9 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansTransactionAbortedException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">中止的交易的标识符。</param>
-        /// <param name="msg">描述中止的邮件。</param>
-        /// <param name="innerException">导致交易中止的例外。</param>
+        /// <param name="transactionId">已中止事务的标识符。</param>
+        /// <param name="msg">描述中止情况的消息。</param>
+        /// <param name="innerException">导致事务中止的异常。</param>
         public OrleansTransactionAbortedException(string transactionId, string msg, Exception? innerException) : base(msg, innerException)
         {
             this.TransactionId = transactionId;
@@ -189,19 +189,19 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansTransactionAbortedException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">中止的交易的标识符。</param>
-        /// <param name="msg">描述中止的邮件。</param>
+        /// <param name="transactionId">已中止事务的标识符。</param>
+        /// <param name="msg">描述中止情况的消息。</param>
         public OrleansTransactionAbortedException(string transactionId, string msg) : base(msg)
         {
             this.TransactionId = transactionId;
         }
 
         /// <summary>
-        /// 初始化一个新实例 <see cref="OrleansTransactionAbortedException"/> 类,以适应导致的中止
-        /// 以无处理的, grain 方法例外。
+        /// 初始化 <see cref="OrleansTransactionAbortedException"/> 类的新实例，表示由
+        /// 未处理的 Grain 方法异常导致的事务中止。
         /// </summary>
-        /// <param name="transactionId">中止的交易的标识符。</param>
-        /// <param name="innerException">导致交易中止的例外。</param>
+        /// <param name="transactionId">已中止事务的标识符。</param>
+        /// <param name="innerException">导致事务中止的异常。</param>
         public OrleansTransactionAbortedException(string transactionId, Exception? innerException)
             : base($"Transaction {transactionId} Aborted because of an unhandled exception in a grain method call. See InnerException for details.", innerException)
         {
@@ -209,10 +209,10 @@ namespace Orleans.Transactions
         }
 
         /// <summary>
-        /// 从序列数据初始化了 <see cref="OrleansTransactionAbortedException"/> 类的新实例。
+        /// 从序列化数据初始化 <see cref="OrleansTransactionAbortedException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">序列物体数据。</param>
-        /// <param name="context">序号来源或目的地的背景资料。</param>
+        /// <param name="info">序列化后的对象数据。</param>
+        /// <param name="context">关于序列化源或目标的上下文信息。</param>
         [Obsolete]
         protected OrleansTransactionAbortedException(SerializationInfo info, StreamingContext context)
             : base(info, context)
@@ -230,14 +230,14 @@ namespace Orleans.Transactions
     }
 
     /// <summary>
-    /// 表示执行交易已经中止,因为附属交易中断。
+    /// 表示正在执行的事务因其依赖的事务中止而中止。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
     public sealed class OrleansCascadingAbortException : OrleansTransactionTransientFailureException
     {
         /// <summary>
-        /// 如果知道,则获取中止的附属交易的身份识别符。
+        /// 获取已中止的依赖事务的标识符（如果已知）。
         /// </summary>
         [Id(0)]
         public string? DependentTransactionId { get; private set; }
@@ -245,8 +245,8 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansCascadingAbortException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">中止的交易的标识符。</param>
-        /// <param name="dependentId">中止的附属交易标识。</param>
+        /// <param name="transactionId">已中止事务的标识符。</param>
+        /// <param name="dependentId">已中止的依赖事务的标识符。</param>
         public OrleansCascadingAbortException(string transactionId, string dependentId)
             : base(transactionId, string.Format("Transaction {0} aborted because its dependent transaction {1} aborted", transactionId, dependentId))
         {
@@ -256,7 +256,7 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansCascadingAbortException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">中止的交易的标识符。</param>
+        /// <param name="transactionId">已中止事务的标识符。</param>
         public OrleansCascadingAbortException(string transactionId)
             : base(transactionId, string.Format("Transaction {0} aborted because a dependent transaction aborted", transactionId))
         {
@@ -265,8 +265,8 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansCascadingAbortException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">中止的交易的标识符。</param>
-        /// <param name="innerException">与附属交易中止有关的例外。</param>
+        /// <param name="transactionId">已中止事务的标识符。</param>
+        /// <param name="innerException">与依赖事务中止相关的异常。</param>
         public OrleansCascadingAbortException(string transactionId, Exception? innerException)
             : base(transactionId, string.Format("Transaction {0} aborted because a dependent transaction aborted", transactionId), innerException)
         {
@@ -289,7 +289,7 @@ namespace Orleans.Transactions
     }
 
     /// <summary>
-    /// 这表明,由于一种方法没有等待所有待发电话,执行交易已经中止。
+    /// 表示正在执行的事务因某个方法未等待其所有待处理调用而中止。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -298,8 +298,8 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansOrphanCallException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">中止的交易的标识符。</param>
-        /// <param name="pendingCalls">交易结束时未完成的通话次数。</param>
+        /// <param name="transactionId">已中止事务的标识符。</param>
+        /// <param name="pendingCalls">事务结束时尚未完成的调用数量。</param>
         public OrleansOrphanCallException(string transactionId, int pendingCalls)
             : base(
                 transactionId,
@@ -315,7 +315,7 @@ namespace Orleans.Transactions
     }
 
     /// <summary>
-    /// 表示执行只读交易已中止, 因为它试图写入 grain。
+    /// 表示正在执行的只读事务因尝试写入 Grain 而中止。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -324,7 +324,7 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansReadOnlyViolatedException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">尝试写入的只读交易标识符。</param>
+        /// <param name="transactionId">尝试写入的只读事务的标识符。</param>
         public OrleansReadOnlyViolatedException(string transactionId)
             : base(transactionId, string.Format("Transaction {0} aborted because it attempted to write a grain", transactionId))
         {
@@ -338,7 +338,7 @@ namespace Orleans.Transactions
     }
 
     /// <summary>
-    /// 表示没有所需的交易服务。
+    /// 表示所需的事务服务不可用。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -359,7 +359,7 @@ namespace Orleans.Transactions
     }
 
     /// <summary>
-    /// 表示执行交易已中止,因为其执行锁被打破
+    /// 表示正在执行的事务因其执行锁被解除而中止。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -368,8 +368,8 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansBrokenTransactionLockException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">中止的交易的标识符。</param>
-        /// <param name="situation">检测破锁的交易阶段或条件。</param>
+        /// <param name="transactionId">已中止事务的标识符。</param>
+        /// <param name="situation">检测到锁被解除时的事务阶段或条件。</param>
         public OrleansBrokenTransactionLockException(string transactionId, string situation)
             : base(transactionId, $"Transaction {transactionId} aborted because a broken lock was detected, {situation}")
         {
@@ -378,9 +378,9 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansBrokenTransactionLockException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">中止的交易的标识符。</param>
-        /// <param name="situation">检测破锁的交易阶段或条件。</param>
-        /// <param name="innerException">与断锁相关的例外。</param>
+        /// <param name="transactionId">已中止事务的标识符。</param>
+        /// <param name="situation">检测到锁被解除时的事务阶段或条件。</param>
+        /// <param name="innerException">与锁被解除相关的异常。</param>
         public OrleansBrokenTransactionLockException(string transactionId, string situation, Exception? innerException)
             : base(transactionId, $"Transaction {transactionId} aborted because a broken lock was detected, {situation}", innerException)
         {
@@ -394,7 +394,7 @@ namespace Orleans.Transactions
     }
 
     /// <summary>
-    /// 表示执行交易已中止, 因为它无法升级某些锁定
+    /// 表示正在执行的事务因无法升级某个锁而中止。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -403,7 +403,7 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansTransactionLockUpgradeException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">无法更新其锁定的交易标识符。</param>
+        /// <param name="transactionId">无法升级其锁的事务的标识符。</param>
         public OrleansTransactionLockUpgradeException(string transactionId) :
             base(transactionId, $"Transaction {transactionId} Aborted because it could not upgrade a lock, because of a higher-priority conflicting transaction")
         {
@@ -417,7 +417,7 @@ namespace Orleans.Transactions
     }
 
     /// <summary>
-    /// 表示执行交易已中止,因为TMM没有及时收到所有准备好的信件
+    /// 表示正在执行的事务因 TM 未及时收到所有已准备消息而中止。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -426,8 +426,8 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansTransactionPrepareTimeoutException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">交易的识别特征,其准备阶段已超时。</param>
-        /// <param name="innerException">与准备超时有关的例外。</param>
+        /// <param name="transactionId">准备阶段超时的事务的标识符。</param>
+        /// <param name="innerException">与准备超时相关的异常。</param>
         public OrleansTransactionPrepareTimeoutException(string transactionId, Exception? innerException)
             : base(transactionId, $"Transaction {transactionId} Aborted because the prepare phase did not complete within the timeout limit", innerException)
         {
@@ -441,8 +441,8 @@ namespace Orleans.Transactions
     }
 
     /// <summary>
-    /// 执行交易中止是因为某些可能暂时的问题,如内部问题
-    /// 锁定或协议反应或投机失败的超时。
+    /// 表示正在执行的事务因某些可能是暂时性的问题而中止，例如内部
+    /// 锁或协议响应超时，或推测执行失败。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -451,9 +451,9 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansTransactionTransientFailureException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">中止的交易的标识符。</param>
-        /// <param name="msg">描述瞬时故障的电文。</param>
-        /// <param name="innerException">导致短暂故障的例外。</param>
+        /// <param name="transactionId">已中止事务的标识符。</param>
+        /// <param name="msg">描述暂时性故障的消息。</param>
+        /// <param name="innerException">导致暂时性故障的异常。</param>
         public OrleansTransactionTransientFailureException(string transactionId, string msg, Exception? innerException)
             : base(transactionId, msg, innerException)
         {
@@ -462,18 +462,18 @@ namespace Orleans.Transactions
         /// <summary>
         /// 初始化 <see cref="OrleansTransactionTransientFailureException"/> 类的新实例。
         /// </summary>
-        /// <param name="transactionId">中止的交易的标识符。</param>
-        /// <param name="msg">描述瞬时故障的电文。</param>
+        /// <param name="transactionId">已中止事务的标识符。</param>
+        /// <param name="msg">描述暂时性故障的消息。</param>
         public OrleansTransactionTransientFailureException(string transactionId, string msg)
             : base(transactionId, msg)
         {
         }
 
         /// <summary>
-        /// 从序列数据初始化了 <see cref="OrleansTransactionTransientFailureException"/> 类的新实例。
+        /// 从序列化数据初始化 <see cref="OrleansTransactionTransientFailureException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">序列物体数据。</param>
-        /// <param name="context">序号来源或目的地的背景资料。</param>
+        /// <param name="info">序列化后的对象数据。</param>
+        /// <param name="context">关于序列化源或目标的上下文信息。</param>
         [Obsolete]
         protected OrleansTransactionTransientFailureException(SerializationInfo info, StreamingContext context)
             : base(info, context)

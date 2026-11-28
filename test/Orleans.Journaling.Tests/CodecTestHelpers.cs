@@ -21,7 +21,7 @@ public static class CodecTestHelpers
         write(batch.CreateJournalStreamWriter(new JournalStreamId(1)));
         using var committed = batch.GetBuffer();
 
-        // 将 OrleansBinary 条目框除去,并返回运行有效载荷。
+        // 移除 OrleansBinary 条目的帧封装，返回操作的有效载荷。
         if (!OrleansBinaryJournalReader.TryReadVersionAndLength(committed, out var version, out var bodyLength, out var lengthPrefixLength))
         {
             throw new InvalidOperationException("The binary journal entry stream is malformed.");

@@ -16,54 +16,54 @@ namespace Orleans.Streaming.Cosmos;
 #elif ORLEANS_DIRECTORY
 namespace Orleans.GrainDirectory.Cosmos;
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 
 /// <summary>
-/// Azure 宇宙DB储存的选项。
+/// Azure Cosmos DB 存储选项。
 /// </summary>
 public abstract class CosmosOptions
 {
     /// <summary>
-    /// 如果数据库不存在, 尝试创建数据库和用于分组的容器。 默认为 <see langword="false"/>。
+    /// 尝试在集群管理所用的数据库及容器不存在时创建它们。默认为 <see langword="false"/>。
     /// </summary>
     public bool IsResourceCreationEnabled { get; set; }
 
     /// <summary>
-    /// 数据库配置传输。 如果设置为 <see langword="null"/>, 即默认值, 它将不会被配置 。 
+    /// 数据库配置的吞吐量。如果设置为默认值 <see langword="null"/>，则不配置吞吐量。
     /// </summary>
     /// <seealso href="https://learn.microsoft.com/azure/cosmos-db/set-throughput"/>
     public int? DatabaseThroughput { get; set; }
 
     /// <summary>
-    /// 用于分组信息的数据库名称。默认为 <c>Orleans</c>。
+    /// 用于集群信息的数据库名称。默认为 <c>Orleans</c>。
     /// </summary>
     public string DatabaseName { get; set; } = "Orleans";
 
     /// <summary>
-    /// 存储集群信息所使用的容器名称。
+    /// 用于存储集群信息的容器名称。
     /// </summary>
     public string ContainerName { get; set; } = default!;
 
     /// <summary>
-    /// 容器的传输量属性。默认值为 <see langword="null"/>,表示将使用无服务器传输模式。
+    /// 容器的吞吐量属性。默认值为 <see langword="null"/>，表示使用无服务器吞吐量模式。
     /// </summary>
     /// <seealso href="https://learn.microsoft.com/azure/cosmos-db/set-throughput"/>
     public ThroughputProperties? ContainerThroughputProperties { get; set; }
 
     /// <summary>
-    /// 删除初始化数据库。 只用于测试情景。
+    /// 初始化时删除数据库。仅用于测试场景。
     /// </summary>
-    /// <remarks>仅用于试验设想方案。</remarks>
+    /// <remarks>此选项仅用于测试场景。</remarks>
     public bool CleanResourcesOnInitialization { get; set; }
 
     /// <summary>
-    /// 选项传递给 Cosmos DB 客户端 。
+    /// 传递给 Cosmos DB 客户端的选项。
     /// </summary>
     public CosmosClientOptions ClientOptions { get; set; } = new();
 
     /// <summary>
-    /// 使用 Cosmos DB 客户端执行操作操作执行器 。
+    /// 用于通过 Cosmos DB 客户端执行操作的操作执行器。
     /// </summary>
     public ICosmosOperationExecutor OperationExecutor { get; set; } = DefaultCosmosOperationExecutor.Instance;
 
@@ -80,8 +80,8 @@ public abstract class CosmosOptions
     /// <summary>
     /// 配置 Cosmos DB 客户端。
     /// </summary>
-    /// <param name="accountEndpoint">帐户终结点，格式为 <code>https://{databaseaccount}.documents.azure.com:443/</code>。参见 <see href="https://learn.microsoft.com/rest/api/cosmos-db/cosmosdb-resource-uri-syntax-for-rest"/>。</param>
-    /// <param name="authKeyOrResourceTokenCredential"><see cref="AzureKeyCredential"/> ,带有主钥或资源符号。</param>
+    /// <param name="accountEndpoint">账户终结点，格式为 <code>https://{databaseaccount}.documents.azure.com:443/</code>。参见 <see href="https://learn.microsoft.com/rest/api/cosmos-db/cosmosdb-resource-uri-syntax-for-rest"/>。</param>
+    /// <param name="authKeyOrResourceTokenCredential"><see cref="AzureKeyCredential"/>，使用主密钥或资源令牌。</param>
     /// <see cref="CosmosClient(string, AzureKeyCredential, CosmosClientOptions)"/>
     public void ConfigureCosmosClient(string accountEndpoint, AzureKeyCredential authKeyOrResourceTokenCredential)
     {
@@ -91,8 +91,8 @@ public abstract class CosmosOptions
     /// <summary>
     /// 配置 Cosmos DB 客户端。
     /// </summary>
-    /// <param name="accountEndpoint">帐户终结点，格式为 <code>https://{databaseaccount}.documents.azure.com:443/</code>。参见 <see href="https://learn.microsoft.com/rest/api/cosmos-db/cosmosdb-resource-uri-syntax-for-rest"/>。</param>
-    /// <param name="tokenCredential">提供 AAD 授权的标记。</param>
+    /// <param name="accountEndpoint">账户终结点，格式为 <code>https://{databaseaccount}.documents.azure.com:443/</code>。参见 <see href="https://learn.microsoft.com/rest/api/cosmos-db/cosmosdb-resource-uri-syntax-for-rest"/>。</param>
+    /// <param name="tokenCredential">提供给 AAD 用于授权的令牌。</param>
     /// <see cref="CosmosClient(string, TokenCredential, CosmosClientOptions)"/>
     public void ConfigureCosmosClient(string accountEndpoint, TokenCredential tokenCredential)
     {
@@ -102,8 +102,8 @@ public abstract class CosmosOptions
     /// <summary>
     /// 配置 Cosmos DB 客户端。
     /// </summary>
-    /// <param name="accountEndpoint">帐户终结点，格式为 <code>https://{databaseaccount}.documents.azure.com:443/</code>。参见 <see href="https://learn.microsoft.com/rest/api/cosmos-db/cosmosdb-resource-uri-syntax-for-rest"/>。</param>
-    /// <param name="authKeyOrResourceToken">Cosmos 账户密钥或用于创建客户端的资源代号。</param>
+    /// <param name="accountEndpoint">账户终结点，格式为 <code>https://{databaseaccount}.documents.azure.com:443/</code>。参见 <see href="https://learn.microsoft.com/rest/api/cosmos-db/cosmosdb-resource-uri-syntax-for-rest"/>。</param>
+    /// <param name="authKeyOrResourceToken">用于创建客户端的 Cosmos 账户密钥或资源令牌。</param>
     /// <see cref="CosmosClient(string, TokenCredential, CosmosClientOptions)"/>
     public void ConfigureCosmosClient(string accountEndpoint, string authKeyOrResourceToken)
     {
@@ -113,46 +113,46 @@ public abstract class CosmosOptions
     /// <summary>
     /// 配置 Cosmos DB 客户端。
     /// </summary>
-    /// <param name="createClient">代表曾创建宇宙 DB 客户端。</param>
+    /// <param name="createClient">用于创建 Cosmos DB 客户端的委托。</param>
     public void ConfigureCosmosClient(Func<IServiceProvider, ValueTask<CosmosClient>> createClient)
     {
         CreateClient = createClient ?? throw new ArgumentNullException(nameof(createClient));
     }
 
     /// <summary>
-    /// 创建 <see cref="CosmosClient"/>的工厂方法。
+    /// 用于创建 <see cref="CosmosClient"/> 的工厂方法。
     /// </summary>
     internal Func<IServiceProvider, ValueTask<CosmosClient>> CreateClient { get; private set; } = null!;
 }
 
 /// <summary>
-/// 利用宇宙DB客户执行业务的职能。
+/// 使用 Cosmos DB 客户端执行操作的功能。
 /// </summary>
 public interface ICosmosOperationExecutor
 {
     /// <summary>
-    /// 执行所提供的宇宙DB操作。
+    /// 执行提供的 Cosmos DB 操作。
     /// </summary>
-    /// <typeparam name="TArg">函数参数。</typeparam>
-    /// <typeparam name="TResult">结果值。</typeparam>
-    /// <param name="func">执行代表。</param>
-    /// <param name="arg">将这一论点转至代表的传教。</param>
-    /// <returns>援引代表职务的结果。</returns>
+    /// <typeparam name="TArg">函数参数的类型。</typeparam>
+    /// <typeparam name="TResult">结果值的类型。</typeparam>
+    /// <param name="func">要执行的委托。</param>
+    /// <param name="arg">传递给委托调用的参数。</param>
+    /// <returns>调用委托的结果。</returns>
     Task<TResult> ExecuteOperation<TArg, TResult>(Func<TArg, Task<TResult>> func, TArg arg);
 
 #if ORLEANS_PERSISTENCE
     /// <summary>
-    /// 执行提供的 Cosmos DB 操作并取消。
+    /// 执行提供的 Cosmos DB 操作，支持取消。
     /// </summary>
-    /// <typeparam name="TArg">函数参数。</typeparam>
-    /// <typeparam name="TResult">结果值。</typeparam>
-    /// <param name="func">执行代表。</param>
-    /// <param name="arg">将这一论点转至代表的传教。</param>
-    /// <param name="cancellationToken">用于取消操作和重试等待的标记。</param>
-    /// <returns>援引代表职务的结果。</returns>
+    /// <typeparam name="TArg">函数参数的类型。</typeparam>
+    /// <typeparam name="TResult">结果值的类型。</typeparam>
+    /// <param name="func">要执行的委托。</param>
+    /// <param name="arg">传递给委托调用的参数。</param>
+    /// <param name="cancellationToken">用于取消操作及重试等待的令牌。</param>
+    /// <returns>调用委托的结果。</returns>
     /// <remarks>
-    /// 检查取消后,默认执行代表给现有执行器。
-    /// 执行器可以执行此超载来取消他们的重试等待 。
+    /// 默认实现检查取消状态后，委托给现有执行器。
+    /// 执行器可以实现此重载以取消其重试等待。
     /// </remarks>
     Task<TResult> ExecuteOperation<TArg, TResult>(Func<TArg, Task<TResult>> func, TArg arg, CancellationToken cancellationToken)
     {
@@ -175,7 +175,7 @@ internal sealed class DefaultCosmosOperationExecutor : ICosmosOperationExecutor
     public async Task<TResult> ExecuteOperation<TArg, TResult>(Func<TArg, Task<TResult>> func, TArg arg)
 #endif
     {
-        // 发讯人: https://blogs.msdn.microsoft.com/bigdatasupport/2015/09/02/dealing-with-requestratetoolarge-errors-in-azure-documentdb-and-testing-performance/
+        // 来源：https://blogs.msdn.microsoft.com/bigdatasupport/2015/09/02/dealing-with-requestratetoolarge-errors-in-azure-documentdb-and-testing-performance/
         while (true)
         {
 #if ORLEANS_PERSISTENCE

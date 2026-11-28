@@ -5,11 +5,11 @@ using Orleans.Serialization.Session;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 保存遗留的 Orleans 双线格式。
+/// 持久化任务完成源日志条目的二进制编解码器，保留旧版 Orleans 二进制传输格式。
 /// </summary>
 /// <remarks>
-/// 与其他耐久型代码编码器不同,TCCS格式使用状态字节而不是
-/// VarUInt32 命令歧视者。
+/// 与其他持久化类型编解码器不同，TCS 格式使用状态字节，而不是
+/// VarUInt32 命令鉴别符。
 /// </remarks>
 internal sealed class OrleansBinaryDurableTaskCompletionSourceCommandCodec<T>(
     IFieldCodec<T> codec,

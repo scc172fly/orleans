@@ -4,12 +4,12 @@ using System.Runtime.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 表示 grain 处于超载状态,目前超过某些运行时限规定,
-    /// 因而, grain 无法接收正在发送的信件。
+    /// 表示某个 Grain 处于过载状态，当前已超出运行时的某项限制设置，
+    /// 因而该 Grain 目前无法接收正在发送的消息。
     /// </summary>
     /// <remarks>
-    /// 这种情况往往是暂时性的。
-    /// 如果该电文在稍后时间再次发送,本 grain 可能接受。
+    /// 这种情况通常是暂时的。
+    /// 如果稍后重新发送该消息，该 Grain 很可能会接收它。
     /// </remarks>
     [Serializable]
     [GenerateSerializer]
@@ -27,7 +27,7 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="LimitExceededException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// 信息
+        /// 消息。
         /// </param>
         public LimitExceededException(string message)
             : base(message)
@@ -38,10 +38,10 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="LimitExceededException"/> 类的新实例。
         /// </summary>
         /// <param name="message">
-        /// 信息
+        /// 消息。
         /// </param>
         /// <param name="innerException">
-        /// 内在的例外
+        /// 内部异常。
         /// </param>
         public LimitExceededException(string message, Exception innerException)
             : base(message, innerException)
@@ -52,16 +52,16 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="LimitExceededException"/> 类的新实例。
         /// </summary>
         /// <param name="limitName">
-        /// 限号
+        /// 限制项名称。
         /// </param>
         /// <param name="current">
-        /// 现值。
+        /// 当前值。
         /// </param>
         /// <param name="threshold">
-        /// 门槛值。
+        /// 阈值。
         /// </param>
         /// <param name="extraInfo">
-        /// 额外,描述性信息。
+        /// 额外的描述性信息。
         /// </param>
         public LimitExceededException(string limitName, int current, int threshold, object extraInfo)
             : base($"Limit exceeded {limitName} Current={current} Threshold={threshold} {extraInfo}")
@@ -72,10 +72,10 @@ namespace Orleans.Runtime
         /// 初始化 <see cref="LimitExceededException"/> 类的新实例。
         /// </summary>
         /// <param name="info">
-        /// 序列信息
+        /// 序列化信息。
         /// </param>
         /// <param name="context">
-        /// 背景。
+        /// 上下文。
         /// </param>
         [Obsolete]
         private LimitExceededException(SerializationInfo info, StreamingContext context)

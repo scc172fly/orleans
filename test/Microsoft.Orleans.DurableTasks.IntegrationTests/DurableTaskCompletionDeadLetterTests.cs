@@ -13,12 +13,12 @@ using Orleans.Durable.Tasks.Runtime;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// 证明如果完成后储存的结果不再编码,则其字母已用废字编号,不会干扰其 grain。
+/// 验证已存储结果无法再解码的完成消息会被转入死信，而不会扰乱其 Grain。
 /// </summary>
 /// <remarks>
-/// 后部署后失效的后结果类型模式。被调用者持有解码结果
-/// 启动完成任务的任务的激活寿命, 所以测试通过拨号来保持未完成的完成时间
-/// 无法使用, 直到新调用人激活时必须解码存储的结果才能交付它 。
+/// 结果类型模拟在后续部署后反序列化失败的类型。完成任务的激活仍存活时，被调用方持有已解码结果，
+/// 因此测试通过使其调用方不可用，让完成消息保持待处理状态，
+/// 直到被调用方的新激活必须解码已存储结果才能传递该消息。
 /// </remarks>
 public abstract class DurableTaskCompletionDeadLetterTests : IAsyncLifetime
 {
@@ -33,8 +33,8 @@ public abstract class DurableTaskCompletionDeadLetterTests : IAsyncLifetime
             silo.Services.AddSingleton(_probe);
             silo.Services.AddSingleton<FragileResultHooks>();
 
-            // 第一次被调用者激活时,一次送货尝试失败;只有在测试时才进行重试
-            // 推进 " 持久工作钟 " 。
+            // 第一次被调用方激活中的一次传递尝试失败；只有测试
+            // 推进持久化作业时钟后，重试才到期。
             silo.Services.Configure<DurableMessagingOptions>(options => options.RetryInitialInterval = RetryDelay);
         });
     }
@@ -55,7 +55,7 @@ public abstract class DurableTaskCompletionDeadLetterTests : IAsyncLifetime
         await caller.CallAsync(callee.GetPrimaryKey()).WithId("fragile-root").ScheduleAsync(cancellationToken);
         await probe.ProduceStarted.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
 
-        // 无法接听电话 所以被调用的人第一次启动 无法完成
+        // 调用方变得不可用，因此被调用方的第一次激活无法传递完成消息。
         probe.BlockCallerActivation = true;
         await caller.RequestDeactivationAsync();
         await probe.CallerDeactivated.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
@@ -67,9 +67,9 @@ public abstract class DurableTaskCompletionDeadLetterTests : IAsyncLifetime
             cancellationToken);
         Assert.Empty(await callee.GetOutboxDeadLettersAsync());
 
-        // 一个新的被调用者激活程序恢复了完成的完成, 并且必须解码其存储的结果才能交付。 它的重试到期
-        // 时间一到,就用死信 来观察退休事件而不是阅读
-        // 列表,该列表的恢复激活重试可能已经填满。
+        // 被调用方的新激活恢复完成消息，必须解码已存储结果才能传递它。时钟推进后
+        // 重试到期，因此通过死信的退役事件观察死信，而不是通过读取
+        // 可能已被恢复激活的重试填充的列表来观察。
         await callee.RequestDeactivationAsync();
         await probe.CalleeDeactivated.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
         _fixture.JobClock.Advance(RetryDelay * 2);
@@ -89,14 +89,14 @@ public abstract class DurableTaskCompletionDeadLetterTests : IAsyncLifetime
         Assert.Contains(FragileResultHooks.Error, letter.Reason, StringComparison.Ordinal);
         Assert.Equal(2, letter.AttemptCount);
 
-        // 被调用者保持其激活并处理以后的工作。
+        // 被调用方保持其激活，并处理后续工作。
         var later = await callee.DoubleAsync(21).WithId("later").ScheduleAsync(cancellationToken);
         var response = await later.GetResponseAsync(cancellationToken).WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
         Assert.Equal(42, response.GetResult<int>());
         Assert.Equal(2, probe.CalleeActivations);
         Assert.Single(await callee.GetOutboxDeadLettersAsync());
 
-        // 以字母为单位的完成结果保留在投票结果中,
+        // 转入死信的完成消息仍保留结果以供轮询，而轮询会呈现解码失败。
         var diagnostics = new Dictionary<TaskId, DurableTaskDiagnosticState>();
         await foreach (var (taskId, state) in callee.AsReference<IDurableTaskGrainExtension>().GetTasksAsync(cancellationToken))
         {
@@ -110,7 +110,7 @@ public abstract class DurableTaskCompletionDeadLetterTests : IAsyncLifetime
         Assert.Contains(FragileResultHooks.Error, error.ToString(), StringComparison.Ordinal);
         Assert.Equal(2, probe.CalleeActivations);
 
-        // 诊断报告不可辨别的结果,并不断列出其他任务。
+        // 诊断报告无法解码的结果，并继续列出其他任务。
         Assert.Equal("Unreadable", diagnostics[childId].Status);
         Assert.Contains(FragileResultHooks.Error, diagnostics[childId].Response, StringComparison.Ordinal);
         Assert.Equal("Completed", diagnostics[TaskId.CreateRoot("later")].Status);
@@ -118,21 +118,21 @@ public abstract class DurableTaskCompletionDeadLetterTests : IAsyncLifetime
     }
 }
 
-/// <summary>运行完成的不字母单覆盖,任务状态以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行完成消息转入死信相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskCompletionDeadLetterTests() : DurableTaskCompletionDeadLetterTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行完成的不字母单覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行完成消息转入死信相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class OrleansBinaryDurableTaskCompletionDeadLetterTests() : DurableTaskCompletionDeadLetterTests(DurableTaskRecoveryFixture.OrleansBinary);
 
-/// <summary>其存储的形态不再能够解码,因为其类型发生不相容的变化。</summary>
+/// <summary>存储形式无法再解码的结果，例如其类型发生不兼容变更后。</summary>
 [GenerateSerializer, Immutable, Alias("durable-task-fragile-result-test")]
 [SerializationCallbacks(typeof(FragileResultHooks))]
 public sealed class FragileResult

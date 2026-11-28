@@ -5,7 +5,7 @@ using Orleans.Runtime;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// 配置 Silo 终点选项
+    /// 配置 Silo 终结点选项。
     /// </summary>
     public class EndpointOptions
     {
@@ -13,7 +13,7 @@ namespace Orleans.Configuration
         private int siloPort = DEFAULT_SILO_PORT;
 
         /// <summary>
-        /// 分组所使用的 IP 地址 。
+        /// 用于集群通信的 IP 地址。
         /// </summary>
         public IPAddress AdvertisedIPAddress
         {
@@ -41,7 +41,7 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// 获取或设置 silo 用于 silo- - 至silo 通信的端口。
+        /// 获取或设置此 Silo 用于 Silo 间通信的端口。
         /// </summary>
         public int SiloPort
         {
@@ -60,29 +60,29 @@ namespace Orleans.Configuration
         }
 
         /// <summary>
-        /// <see cref="SiloPort"/>的默认值。
+        /// <see cref="SiloPort"/> 的默认值。
         /// </summary>
         public const int DEFAULT_SILO_PORT = 11111;
 
         /// <summary>
-        /// 获取或设置此端口 silo 用途的用途 silo- 客户(门路)通信。指定 0 来禁用网关功能 。
+        /// 获取或设置此 Silo 用于 Silo 与客户端（网关）通信的端口。指定 0 可禁用网关功能。
         /// </summary>
         public int GatewayPort { get; set; } = DEFAULT_GATEWAY_PORT;
 
         /// <summary>
-        /// <see cref="GatewayPort"/>的默认值。
+        /// <see cref="GatewayPort"/> 的默认值。
         /// </summary>
         public const int DEFAULT_GATEWAY_PORT = 30000;
 
         /// <summary>
-        /// 获取或设置用于收听 silo 到 silo 通信的端点。
-        /// 如果未设定, 默认值将为 <see cref="AdvertisedIPAddress"/> + <see cref="SiloPort"/>
+        /// 获取或设置用于监听 Silo 间通信的终结点。
+        /// 如果未设置，则默认为 <see cref="AdvertisedIPAddress"/> + <see cref="SiloPort"/>。
         /// </summary>
         public IPEndPoint? SiloListeningEndpoint { get; set; }
 
         /// <summary>
-        /// 获取或设置用于倾听客户端 silo 通信的端点。
-        /// 如果未设定, 默认值将为 <see cref="AdvertisedIPAddress"/> + <see cref="GatewayPort"/>
+        /// 获取或设置用于监听客户端到 Silo 通信的终结点。
+        /// 如果未设置，则默认为 <see cref="AdvertisedIPAddress"/> + <see cref="GatewayPort"/>。
         /// </summary>
         public IPEndPoint? GatewayListeningEndpoint { get; set; }
 

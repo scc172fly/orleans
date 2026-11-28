@@ -3,14 +3,14 @@ using Orleans.Runtime;
 namespace Orleans;
 
 /// <summary>
-/// 提供一种方法检查 grain 是否本地激活。
+/// 提供检查 Grain 是否已在本地激活的方法。
 /// </summary>
 public interface ILocalActivationStatusChecker
 {
     /// <summary>
-    /// 返回 <see langword="true"/> 如果已提供 grain 本地激活; 否则, <see langword="false"/>.
+    /// 如果指定 Grain 已在本地激活，则返回 <see langword="true"/>；否则返回 <see langword="false"/>。
     /// </summary>
-    /// <param name="grainId">识别符号 grain 检查。</param>
-    /// <returns><see langword="true"/> ,如果所提供的 grain 是本地激活的;否则, <see langword="false"/>。</returns>
+    /// <param name="grainId">要检查的 Grain 的标识符。</param>
+    /// <returns>如果指定 Grain 已在本地激活，则返回 <see langword="true"/>；否则返回 <see langword="false"/>。</returns>
     bool IsLocallyActivated(GrainId grainId);
 }

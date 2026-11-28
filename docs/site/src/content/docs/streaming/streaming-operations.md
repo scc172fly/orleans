@@ -1,86 +1,86 @@
 ---
-title: "运行和调制 Orleans 流"
-description: "施压、调控耐用供应商,并观察 Orleans 流体健康。"
+title: 运维和调优 Orleans 流
+description: 应用背压、调优持久化流提供程序，并观测 Orleans 流处理健康状况。
 ms.date: 09/10/2026
 ms.topic: concept-article
 ---
 
 <a id="operate-and-tune-orleans-streams"></a>
 
-# 运行和调制 Orleans 流
+# 运维和调优 Orleans 流
 
-由时间差、吞吐量、故障和记忆压力等衡量的时滞、输液量、失败和记忆压力来计算。 供应商违约是起点,而不是普遍生产设置。
+根据实测的滞后、吞吐量、故障和内存压力进行调优。提供程序的默认值只是起点，并非通用生产环境配置。
 
 <a id="backpressure"></a>
 
-## 后压
+## 背压
 
-持久性提供者将事件拖到 silo- 端缓存并交付订阅。 消费者在接受项目责任之前不完成 <xref:Orleans.Streams.IAsyncObserver`1.OnNextAsync*> ,从而施加后压。 因此,慢消费者可以增加保留队列数据、缓存压力和端至端滞后。
+持久化流提供程序将事件拉取到 Silo 端缓存并投递给各订阅。消费者在接管数据项的处理责任之前不完成 <xref:Orleans.Streams.IAsyncObserver`1.OnNextAsync*>，以此施加背压。因此，缓慢的消费者可能增加队列中保留的数据量、缓存压力和端到端滞后。
 
-保持消费者旋转框框 :
+限制消费者每个执行轮次的工作量：
 
-- 坚持要求保持状态,并迅速完成。
-- 将独立、长期的工作置于明确模型的搭接后。
-- 避免同步阻塞和无限制平行工作。
-- 选择足够多的提供者队列或分区, 并分配流键来缩放。 一个针对一个状态 grain 的热流仍然受 grain处理率的限制 。
+- 持久化所需状态并及时完成处理。
+- 将独立的长时间运行工作交由显式建模的后续流程处理。
+- 避免同步阻塞和无界并行工作。
+- 通过选择足够多的提供程序队列或分区并分散流键来扩展。单个热门流如果指向一个有状态 Grain，仍受该 Grain 处理速率限制。
 
-消费者方面的后压并不意味着生产者完成生产。 `OnNextAsync` 生产者报告供应商接受,而不是下游消费者赶上。
+消费者端的背压并不意味着生产者完成情况与消费进度同步。生产者的 `OnNextAsync` 报告提供程序已接受数据，而非下游消费者已追上进度。
 
 <a id="protect-a-slow-event-hubs-consumer"></a>
 
-### 保护慢事件枢纽消费者
+### 保护缓慢的 Event Hubs 消费者
 
-事件枢纽提供商为每次订阅维持独立的缓存光标,这样快速订阅就可以继续,而另一个用户则落后。 但是,所有事件枢纽分区的光标共享相同的 silo- 侧边快取。 默认情况下, 服务商使用这些光标压力贡献的加权平均值: 流量控制阈值或以上的捐款获得比低压捐款重三倍的分量。 较快的订阅者重复缴纳的会费仍然可以超过少数滞后的订阅数量。
+Event Hubs 提供程序为每个订阅维护独立的缓存游标，因此即使某个订阅落后，较快的订阅仍能继续。但一个 Event Hubs 分区的所有游标共享同一 Silo 端缓存。默认情况下，提供程序使用这些游标压力贡献值的加权平均值：达到或超过流量控制阈值的贡献值权重是较低压力贡献值的三倍。较快订阅反复产生的贡献值仍可能盖过少数落后订阅产生的压力。
 
-<xref:Orleans.Configuration.StreamCacheEvictionOptions.DataMinTimeInCache> and <xref:Orleans.Configuration.StreamCacheEvictionOptions.DataMaxAgeInCache> control time-based cache eviction; they don't guarantee that every subscription remains within the cache. If eviction advances past a lagging cursor, delivery reports `Item not found in cache`.
+<xref:Orleans.Configuration.StreamCacheEvictionOptions.DataMinTimeInCache> 和 <xref:Orleans.Configuration.StreamCacheEvictionOptions.DataMaxAgeInCache> 控制基于时间的缓存淘汰；它们并不保证每个订阅都处于缓存范围内。如果淘汰进度超过某个落后游标，投递将报告 `Item not found in cache`。
 
-慢耗监测器让一个观察到的滞后光标应用缓存压力,而不是用更快的光标平均地承受这种压力:
+慢速消费监视器允许单个已观测到的落后游标施加缓存压力，而非将其压力与较快游标的压力求平均：
 
 :::code source="snippets/streaming/EventHubCachePressure.cs" id="event_hub_slow_consumer_pressure":::
 
-显示器在分区缓存至少覆盖10,000个事件枢纽序列编号后开始计算光标压力。 例如,当 Orleans 读取下一个订阅的缓存项目时, 其光标超过缓存位置70%的缓存点位于最新缓存位置之后, 提供者会停止新的“ 事件枢纽” 至少10秒。 以测量的滞后和处理时间来调试数值。 缓慢消费的政策故意限制分割摄取以保护最慢的被观察订阅: 缓存误差的可能性较小, 但每次订阅的端到端滞后可能会增加, 积压可以移到“ 事件枢纽” 中。 确保“ 事件枢纽” 保留能够吸收积压和持续不增不超出最慢的所需订阅能力 。
+当分区缓存至少跨越 10,000 个 Event Hubs 序列号时，监视器开始计算游标压力。在本例中，当 Orleans 为某个订阅读取下一条缓存数据，且该订阅的游标比最新缓存位置落后超过缓存跨度的 70% 时，提供程序至少暂停新的 Event Hubs 读取 10 秒。根据实测滞后和处理时间调优这两个值。慢速消费策略有意限制分区接收速率，以保护观测到的最慢订阅：缓存未命中的可能性降低，但所有订阅的端到端滞后都可能增大，积压可能转移到 Event Hubs。确保 Event Hubs 的保留期限能够承受该积压，并且持续流入的事件速率不超过必须支持的最慢订阅的处理能力。
 
-压力通过 Orleans 缓存项目作为预购用户样本进行抽样, 以便让消费者转圈以保持检测时速。 首先减少 CPU 饱和性和热 -grain 瓶颈。 如果工作量需要独立的吞吐或保留政策, 请使用单独的 Orleans 流提供者和事件枢纽消费群体来孤立它们, 而不是通过一个分隔缓存将它们连接在一起 。
+Orleans 在推进各订阅以处理缓存数据项时采样压力，因此应限制消费者执行轮次的工作量，使检测保持及时。首先缓解 CPU 饱和及热点 Grain 瓶颈。如果工作负载需要独立吞吐量或保留策略，使用不同的 Orleans 流提供程序及 Event Hubs 消费者组将其隔离，而不是通过一个分区缓存将其耦合在一起。
 
 <a id="tune-the-pulling-pipeline"></a>
 
-## 调出管道管道
+## 调优拉取流水线
 
-持续提供商通过流配置程序披露共同配置:
+持久化流提供程序通过各自的流配置器公开公共配置：
 
-- <xref:Orleans.Configuration.StreamPullingAgentOptions.GetQueueMsgsTimerPeriod> trades polling frequency against latency and service calls.
-- <xref:Orleans.Configuration.StreamPullingAgentOptions.BatchContainerBatchSize> controls how many queue batches are grouped for delivery.
-- <xref:Orleans.Configuration.StreamPullingAgentOptions.MaxEventDeliveryTime> bounds delivery attempts before the configured failure handler is involved.
-- <xref:Orleans.Configuration.SimpleQueueCacheOptions.CacheSize> controls item capacity for providers using the simple queue cache.
+- <xref:Orleans.Configuration.StreamPullingAgentOptions.GetQueueMsgsTimerPeriod> 用于在轮询频率与延迟、服务调用次数之间权衡。
+- <xref:Orleans.Configuration.StreamPullingAgentOptions.BatchContainerBatchSize> 控制每次投递时合并多少个队列批次。
+- <xref:Orleans.Configuration.StreamPullingAgentOptions.MaxEventDeliveryTime> 限制调用已配置故障处理程序之前的投递尝试时长。
+- <xref:Orleans.Configuration.SimpleQueueCacheOptions.CacheSize> 控制使用简单队列缓存的提供程序的数据项容量。
 
-具体供应商控制措施与共同控制一样重要: <xref:Orleans.Configuration.AzureQueueOptions.QueueNames>、事件枢纽分割和缓冲压力设置、 Redis `ReadCount` 和保留、NATS `BatchSize` 和 `PartitionCount`,以及 ADO.NET 可见度、过期和空白字母设置。
+提供程序专用的控制项与通用控制项同样重要：<xref:Orleans.Configuration.AzureQueueOptions.QueueNames>、Event Hubs 分区及缓存压力设置、Redis `ReadCount` 及保留策略、NATS `BatchSize` 和 `PartitionCount`，以及 ADO.NET 的可见性、过期与死信设置。
 
-一次换一个瓶颈。 更多的排队可以增加平行关系,但也能够增加中介成本、投票负荷、缓存和重新平衡工作。 减少选举延迟既能降低延缓率又能增加空读数。
+每次仅调整一个瓶颈。更多队列可以提高并行度，但也会增加消息中间件成本、轮询负载、缓存内存用量和再均衡工作量。缩短轮询延迟可降低延迟，但会增加空读取次数。
 
 <a id="tune-memory-stream-dequeue-batches"></a>
 
-### Tunne 内存流解结队批量
+### 调优内存流出队批次
 
-每个命名的记忆流提供者, <xref:Orleans.Configuration.MemoryStreamCacheOptions.MaxAddCount> 框中,在单个取消后操作中要求的队列记录数的内框。默认值是 `100`,并且选项验证需要大于零值的数值。将其配置在 silo 使用 <xref:Orleans.Hosting.MemoryStreamConfiguratorExtensions.ConfigureCache*> 提供商的 `AddMemoryStreams` 回回调。 用于基于配置的供应商注册,设置 `MaxAddCount` 在命名的内存提供者配置部分。
+对于每个具名内存流提供程序，<xref:Orleans.Configuration.MemoryStreamCacheOptions.MaxAddCount> 限制单次出队操作请求的队列记录数。默认值为 `100`，且选项验证要求其大于零。使用 <xref:Orleans.Hosting.MemoryStreamConfiguratorExtensions.ConfigureCache*> 在提供程序的 `AddMemoryStreams` 回调中配置 Silo 上的此选项。对于基于配置的提供程序注册，在具名内存提供程序的配置节中设置 `MaxAddCount`。
 
-每个记录包含一个已公布的系列事件。 诸如 `25` 这样的数值减少了每个队列-grain 响应中合并的记录数量,而成本是更多的解压要求相同的传输量。 更大的价值在更多记录之间摊合调用电话管理费,并可以增加序列化工作、响应大小和每通电话记忆的使用。
+每条记录包含一个已发布的事件批次。类似 `25` 的值会减少每个队列 Grain 响应中合并的记录数，但要达到相同吞吐量，就需要进行更多出队调用。较大的值将调用开销分摊到更多记录上，但可能增加每次调用的序列化工作量、响应大小及内存使用量。
 
-集字节大小取决于这些记录中的序列有效载荷,包括每一批已出版的物品中的所有事件。 Orleans 信件- body 限制。 队列 grain 在回复被序列化之前删除记录;因此,如果序列化失败,超大响应可能会丢失这些记录。 计数与测量的响应大小和队列滞后同时进行。
+此限制以记录数计量。总字节数取决于这些记录中的序列化有效载荷，包括各已发布批次中的所有事件。合理设置生产者的批次和有效载荷大小，使完整出队响应符合已配置的 Orleans 消息正文大小限制。队列 Grain 在响应序列化之前就已移除记录；因此，响应过大导致序列化失败时可能丢失这些记录。结合实测响应大小及队列滞后调优该数量。
 
 <a id="observe-health"></a>
 
-## 健康观察
+## 观测健康状况
 
-出口出口出口 Orleans 并且与经纪人的度量和应用程序事件ID相连接。 Orleans 包括:
+导出 Orleans 指标计量器，并将其与消息中间件指标及应用程序事件 ID 关联。有用的 Orleans 度量工具包括：
 
-| 信号信号 | 文书文书文书文书 |
+| 信号 | 度量工具 |
 |---|---|
-| 活性地表 | `orleans-streams-pubsub-producers`, `orleans-streams-pubsub-consumers`, `orleans-streams-persistent-stream-pulling-agents` |
-| 投入 | `orleans-streams-persistent-stream-messages-read`, `orleans-streams-persistent-stream-messages-sent`, `orleans-streams-queue-messages-received` |
-| 保健队 | `orleans-streams-queue-read-failures`, `orleans-streams-queue-read-exceptions`, `orleans-streams-queue-oldest-message-enqueue-age` |
-| 缓缓健康 | `orleans-streams-queue-cache-size`, `orleans-streams-queue-cache-length`, `orleans-streams-queue-cache-pressure`, `orleans-streams-queue-cache-under-pressure` |
-| 内存 | `orleans-streams-block-pool-total-memory`, `orleans-streams-block-pool-available-memory` |
+| 活动拓扑 | `orleans-streams-pubsub-producers`、`orleans-streams-pubsub-consumers`、`orleans-streams-persistent-stream-pulling-agents` |
+| 吞吐量 | `orleans-streams-persistent-stream-messages-read`、`orleans-streams-persistent-stream-messages-sent`、`orleans-streams-queue-messages-received` |
+| 队列健康状况 | `orleans-streams-queue-read-failures`、`orleans-streams-queue-read-exceptions`、`orleans-streams-queue-oldest-message-enqueue-age` |
+| 缓存健康状况 | `orleans-streams-queue-cache-size`、`orleans-streams-queue-cache-length`、`orleans-streams-queue-cache-pressure`、`orleans-streams-queue-cache-under-pressure` |
+| 内存 | `orleans-streams-block-pool-total-memory`、`orleans-streams-block-pool-available-memory` |
 
-有关持续最老消息时代、缓冲压力、阅读失败、消费者的例外、死字母增长以及预期订阅和主动订阅数量不匹配的警报依然必要。 中间商积压和保留提醒仍然有必要,因为 Orleans 只能报告适应者所观察到的东西。
+对持续增大的最早消息存留时长、缓存压力、读取失败、重复消费者异常、死信增长，以及预期订阅数与活动订阅数不符的情况发出警报。仍需配置消息中间件侧的积压和保留期限告警，因为 Orleans 只能报告适配器所观测到的情况。
 
-这些信号背后的部件见 [Orleans 流执行](../implementation/streams-implementation/index.md)。
+有关这些信号背后的组件，参见[Orleans 流处理实现](../implementation/streams-implementation/index.md)。

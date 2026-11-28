@@ -14,7 +14,7 @@ namespace TestGrains
         public const string StreamNamespace = "RecoverableStream";
         public const string StorageProviderName = "AzureStorage";
 
-        // grain 实例状态
+        // Grain 实例状态
         private readonly ILogger logger;
         private IAsyncStream<GeneratedEvent> stream = null!;
 
@@ -38,7 +38,7 @@ namespace TestGrains
             }
 
             var streamProvider = this.GetStreamProvider(GeneratedStreamTestConstants.StreamProviderName);
-            stream = streamProvider.GetStream<GeneratedEvent>(State.StreamNamespace!, State.StreamGuid); // 命名空间在获取流之前先于上面初始化 。
+            stream = streamProvider.GetStream<GeneratedEvent>(State.StreamNamespace!, State.StreamGuid); // 在获取流之前，已在上方初始化命名空间。
 
             await stream.SubscribeAsync(OnNextAsync, OnErrorAsync, State.RecoveryToken!);
         }
@@ -46,8 +46,8 @@ namespace TestGrains
         private async Task OnNextAsync(GeneratedEvent evt, StreamSequenceToken? sequenceToken)
         {
 
-            // 忽略重复
-            if (State.IsDuplicate(sequenceToken!)) // 生成的流总是提供序列符号 。
+            // 忽略重复事件
+            if (State.IsDuplicate(sequenceToken!)) // 生成的流始终提供序列令牌。
             {
                 logger.LogInformation("Received duplicate event. StreamGuid: {StreamGuid}, SequenceToken: {SequenceToken}", State.StreamGuid, sequenceToken);
                 return;
@@ -55,9 +55,9 @@ namespace TestGrains
 
             logger.LogInformation("Received event. StreamGuid: {StreamGuid}, SequenceToken: {SequenceToken}", State.StreamGuid, sequenceToken);
 
-            // 我们只会更新启动代号, 如果这是我们处理的第一个事件
-            // 如果那样的话,我们会想保存启动标志 以防出事
-            if (State.TryUpdateStartToken(sequenceToken!)) // 生成的流总是提供序列符号 。
+            // 仅当这是处理的第一个事件时，才更新起始令牌
+            // 在这种情况下，需要保存起始令牌，以便发生故障时恢复。
+            if (State.TryUpdateStartToken(sequenceToken!)) // 生成的流始终提供序列令牌。
             {
                 await WriteStateAsync();
             }
@@ -66,7 +66,7 @@ namespace TestGrains
             State.LastProcessedToken = sequenceToken;
             if (evt.EventType != GeneratedEvent.GeneratedEventType.Report)
             {
-                // 每10次事件,检查我们的 grain 状态
+                // 每处理 10 个事件，就为 Grain 状态建立检查点
                 if (State.Accumulator % 10 != 0) return;
                 logger.LogInformation("Checkpointing: StreamGuid: {StreamGuid}, StreamNamespace: {StreamNamespace}, SequenceToken: {SequenceToken}, Accumulator: {Accumulator}.", State.StreamGuid, State.StreamNamespace, sequenceToken, State.Accumulator);
                 await WriteStateAsync();

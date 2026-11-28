@@ -26,8 +26,8 @@ public sealed class MigrationGrain(ILocalDurableJobManager jobs, MigrationRun ru
             throw new InvalidOperationException("One intentional failure demonstrates retry in the original A shard.");
         }
 
-        // 盖上同一张收据 样本的副作用就太无能了
-        // 收据独立于工作日记账,生存过程重新开始。
+        // 覆盖同一份回执，使示例的副作用具有幂等性。
+        // 回执独立于作业日志，并在进程重启后保留。
         var receipt = $"{run.Phase}|{context.Job.ShardId}|{context.DequeueCount}";
         await run.ReceiptBlob(context.Job).UploadAsync(BinaryData.FromString(receipt),
             overwrite: true, cancellationToken: attemptCancellationToken);

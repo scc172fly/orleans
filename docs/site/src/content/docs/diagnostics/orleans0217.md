@@ -1,25 +1,25 @@
 ---
-title: "ORLEANS0217:通过 AttemptCancellationToken 电话来清理任务取消的清除"
-description: "理解 ORLEANS0217, 其中报告任务取消后清理工作, 将已经排出 CancellationToken 的调用通过一个调用, 并用 AttemptCancellationToken 或屏蔽步骤来修正它。"
+title: "ORLEANS0217: 在任务取消后的清理调用中传入 AttemptCancellationToken"
+description: 了解 ORLEANS0217，它报告任务取消后的清理代码将已经取消的 CancellationToken 传给调用的情况，并介绍如何使用 AttemptCancellationToken 或受取消屏蔽保护的步骤修复。
 ms.date: 10/19/2026
 ms.topic: reference
 ---
 
 <a id="orleans0217-pass-attemptcancellationtoken-to-calls-in-task-cancellation-cleanup"></a>
 
-# ORLEANS0217:通过 AttemptCancellationToken 电话来清理任务取消的清除
+# ORLEANS0217: 在任务取消后的清理调用中传入 AttemptCancellationToken
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
 | 严重性 | 警告 |
-| 类别类 | 用法 |
-| 代码修正 | 可用 |
+| 类别 | 用法 |
+| 代码修复 | 可用 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-仅在任务取消后运行的代码通过 `DurableTaskContext.CancellationToken` 呼叫。该代码是 `catch` 条款或 `if` 语句或有条件表达的真正分支的处理者,其过滤器或条件为 `DurableTaskContext.IsTaskCancellationRequested`,单独或作为 `&&`的操作:
+仅在任务取消后运行的代码将 `DurableTaskContext.CancellationToken` 传给调用。这类代码位于 `catch` 子句的处理程序、`if` 语句或条件表达式的真分支中，其筛选条件或判断条件为 `DurableTaskContext.IsTaskCancellationRequested`（单独出现或作为 `&&` 的操作数）：
 
 :::code source="snippets/durable-tasks/Orleans0217.cs" id="orleans0217_violation" language="csharp":::
 
@@ -27,33 +27,33 @@ ms.topic: reference
 
 ## 规则说明
 
-长期任务的背景包含两个取消标记:
+持久化任务的上下文包含两个取消令牌：
 
-- `CancellationToken` 被取消任务和尝试取消取消,因此普通任务代码在这两种情况下迅速终止的电话。
-- `AttemptCancellationToken` 仅通过尝试取消来取消, 例如当任务启动停止时 。
+- `CancellationToken` 在任务取消或执行尝试取消时都会被取消，因此普通任务代码发起的调用在这两种情况下都能及时结束。
+- `AttemptCancellationToken` 仅在执行尝试取消时被取消，例如任务所属的激活实例停止时。
 
-任务取消会随任务记录, 所以 `IsTaskCancellationRequested` 将保留 `true`, `CancellationToken` 也将在取消的尝试中和以后每一次尝试中继续取消。 在任务取消后进行的清理会传递一个取消的牌子, 以及一个同时结束观察的电话。 例如, `ReleaseAsync` 在释放房间之前扔出 `OperationCanceledException` , 例外就会脱离身体, 而任务结束时仍然保持着房间。
+任务取消会与任务一起记录，因此在被取消的执行尝试及其后每次执行尝试中，`IsTaskCancellationRequested` 始终为 `true`，而 `CancellationToken` 始终处于已取消状态。因此，任务取消后执行的清理代码传入的是已取消的令牌，观察该令牌的调用会立即结束。在示例中，`ReleaseAsync` 在释放房间之前引发 `OperationCanceledException`，异常传播出任务主体，最终任务以已取消状态结束，但房间仍被占用。
 
-规则检查了区域本身的代码。 区域中的兰巴兹和当地功能可以在另一个任务背景下运行, 比如一步, 因此规则可以跳过它们 。
+此规则检查该代码区域本身。区域中的 Lambda 表达式和局部函数可能在其他任务的上下文中运行（例如步骤的上下文），因此规则会跳过它们。
 
-两只牌子,见 [任务取消和任务取消](../grains/durable-tasks-structured-concurrency.md#task-cancellation-and-attempt-cancellation),清理见 [当工作流程取消时进行内线补偿](../grains/durable-tasks-recipes.md#compensate-inline-when-the-workflow-is-canceled)。
+有关这两个令牌，请参阅[任务取消与执行尝试取消](../grains/durable-tasks-structured-concurrency.md#task-cancellation-and-attempt-cancellation)；有关清理，请参阅[在工作流取消时执行内联补偿](../grains/durable-tasks-recipes.md#compensate-inline-when-the-workflow-is-canceled)。
 
 <a id="how-to-fix-violations"></a>
 
-## 如何纠正违反情况
+## 如何修复违规
 
-**通行证通过 `AttemptCancellationToken`.** 代码修正替换 `CancellationToken` 与 `AttemptCancellationToken` 并保留接收器。 呼叫会运行到完成, 当主机取消尝试时仍然会迅速结束:
+**传入 `AttemptCancellationToken`。** 代码修复将 `CancellationToken` 替换为 `AttemptCancellationToken`，并保留接收方表达式。调用能够运行至完成，同时在宿主取消执行尝试时仍会及时结束：
 
 :::code source="snippets/durable-tasks/Orleans0217.cs" id="orleans0217_fix_attempt_token" language="csharp":::
 
-**以屏蔽的步数释放。** 一步收到自己的取消标记, 而任务取消没有达到屏蔽的步数。 步骤记录了结果, 因此一个处理器的重放返回它并一次性释放房间:
+**在受取消屏蔽保护的步骤中释放资源。** 步骤接收自己的取消令牌，任务取消不会传递到受屏蔽保护的步骤。步骤记录其结果，因此处理程序重放时会直接返回结果，只释放一次房间：
 
 :::code source="snippets/durable-tasks/Orleans0217.cs" id="orleans0217_fix_shielded_step" language="csharp":::
 
-流程中的清理,如释放一个血肿或处置资源,属于 `finally` 区块和 `using` 语句中,这两种语句都适用取消。
+进程内清理（例如释放信号量或释放资源）应放在 `finally` 块和 `using` 语句中，它们在两种取消情况下都会执行。
 
 <a id="when-to-suppress"></a>
 
-## 何时压缩
+## 何时抑制诊断
 
-任务取消后, 终止该通话的诊断, 例如任务取消后清理会跳过的任选工作 。
+如果调用在任务取消后本就应该立即结束，例如任务取消后清理过程应跳过的可选工作，则可抑制此诊断。

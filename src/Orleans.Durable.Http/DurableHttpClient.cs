@@ -9,14 +9,14 @@ using Orleans.Durable.Tasks;
 
 namespace Orleans.Durable.Http;
 
-/// <summary>运行 HTTP 请求和业务,作为与指定 <see cref="HttpClient"/>.</summary>
+/// <summary>使用命名的 <see cref="HttpClient"/> 将 HTTP 请求和操作作为持久化任务的步骤执行。</summary>
 /// <remarks>
-/// 指定客户的处理器从 <see cref="DurableIdempotencyKeyHandler"/>开始,使每个步骤不安全
-/// 要求使用 <c>Idempotency-Key</c>。
+/// 命名客户端的处理程序链以 <see cref="DurableIdempotencyKeyHandler"/> 开头，它为每个步骤中使用非安全方法的
+/// 请求设置该步骤的 <c>Idempotency-Key</c>。
 /// </remarks>
 internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string name, DurableHttpClientOptions options) : IDurableHttpClient
 {
-    /// <summary>不作广告的事件流作为浏览器 <c>EventSource</c> 的</summary>用途而使用的重连间隔。
+    /// <summary>事件流未指定重连间隔时使用的间隔，与浏览器的 <c>EventSource</c> 一致。</summary>
     private static readonly TimeSpan DefaultReconnectionInterval = TimeSpan.FromSeconds(3);
 
     private readonly DurableHttpClientOptions _options = options;
@@ -29,7 +29,7 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
             static async (state, cancellationToken) =>
             {
                 using var request = state.createRequest();
-                // 客户端缓冲回复内容,最多不超过 DurableHttpClientOptions.MaxResponseContentLength。
+                // 客户端缓冲响应内容，最大不超过 DurableHttpClientOptions.MaxResponseContentLength。
                 using var response = await state.client.CreateClient().SendAsync(request, cancellationToken);
                 return await DurableHttpResponse.ReadAsync(response, cancellationToken);
             },
@@ -113,7 +113,7 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
                 }
                 catch (HttpRequestException exception) when (exception.StatusCode is null && !cancellationToken.IsCancellationRequested)
                 {
-                    // 服务器无法访问服务器, 所以在间隔后重新连接, 作为 EventSource 确实如此。
+                    // 服务器不可达，因此像 EventSource 一样等待该间隔后重新连接。
                     response = null;
                 }
 
@@ -121,7 +121,7 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
                 {
                     using (response)
                     {
-                        // 服务器在终端状态后回答重连204无内容。
+                        // 在终态之后进行重连时，服务器返回 204 No Content。
                         if (response.StatusCode == HttpStatusCode.NoContent)
                         {
                             yield break;
@@ -145,8 +145,8 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
                             }
                         }
 
-                        // 流在操作终端状态之前结束, 例如代理关闭时, 代理关闭时结束, 所以
-                        // 服务器广告间隔后, 与最后一个事件的身份识别符重新连接 。
+                        // 在操作进入终态前流已结束（例如代理关闭连接），因此
+                        // 携带最后一个事件的标识符，等待服务器声明的间隔后重新连接。
                         lastEventId = parser.LastEventId is { Length: > 0 } id ? id : lastEventId;
                         reconnectionInterval = parser.ReconnectionInterval is var interval && interval > TimeSpan.Zero && interval != Timeout.InfiniteTimeSpan
                             ? interval
@@ -158,7 +158,7 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
             await Task.Delay(reconnectionInterval, cancellationToken);
         }
 
-        // 读取下一个事件,或者在流结束时返回错误,包括连接中流下降时。
+        // 读取下一个事件；流结束时返回 false，包括连接在流传输途中断开的情况。
         static async ValueTask<bool> MoveNextAsync(IAsyncEnumerator<SseItem<DurableOperation?>> events, CancellationToken cancellationToken)
         {
             try
@@ -188,7 +188,7 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
                 : throw new UnreachableException("A completed start response carries its result or its failure.");
         }
 
-        // 运行中的操作总是有一个位置, FromStart 能够建立。
+        // 正在运行的操作总是具有一个位置，由 FromStart 确定。
         var location = operation.Location!;
         if (options.Mode == DurableHttpWaitMode.Events && operation.IsStatusMonitor)
         {
@@ -212,7 +212,7 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
         var response = operation.Response;
         while (true)
         {
-            // 应用民意测验的等待优先选择的服务器已经等待, 因此下一次民意测验会同时进行。
+            // 服务器已按轮询请求的等待偏好完成等待，因此客户端立即发起下一次轮询。
             if (response.GetHeader(DurableHttpHeaders.PreferenceApplied) is null)
             {
                 await DurableTask.Delay(GetPollDelay(response, options));
@@ -229,8 +229,8 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
                 return request;
             });
 
-            // 一次民意调查的短暂失败,如429项请求过多或503项服务无可用,使
-            // 之后的民意测验
+            // 一次轮询发生暂时性故障（例如 429 Too Many Requests 或 503 Service Unavailable）不会改变
+            // 操作状态，因此下次轮询遵循其 Retry-After。
             if (IsTransient(response.StatusCode))
             {
                 continue;
@@ -243,13 +243,13 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
         }
     }
 
-    /// <summary>读取完成操作或返回运行期间的 <see langword="false"/> 响应的结果。</summary>
+    /// <summary>读取结束操作的响应结果；若操作仍在运行，则返回 <see langword="false"/>。</summary>
     private bool TryComplete<TResult>(DurableHttpResponse response, bool isStatusMonitorResponse, out TResult result)
     {
         result = default!;
         if (isStatusMonitorResponse && response.IsSuccessStatusCode)
         {
-            // 状况监测员报告该机构的运作,无论成功状态代码对调查做出何种答复。
+            // 无论轮询状态监视器得到哪个成功状态码，其响应体均报告操作状态。
             var operation = DurableOperation.Read(response.Content.Span);
             if (!operation.IsTerminal)
             {
@@ -296,9 +296,9 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
     }
 
     /// <summary>
-    /// 返回下次民调前的延迟时间:至少回复 <c>Retry-After</c>
-    /// <see cref="DurableHttpOperationOptions.PollInterval"/> 和最多 <see cref="DurableHttpOperationOptions.MaxPollInterval"/>,
-    /// 服务器的短或过去 <c>Retry-After</c> 调查的速度不会比任务选择的快 很长的任务也不会拖住它
+    /// 返回下次轮询前的等待时长：取响应中的 <c>Retry-After</c>，至少为
+    /// <see cref="DurableHttpOperationOptions.PollInterval"/>，至多为 <see cref="DurableHttpOperationOptions.MaxPollInterval"/>，
+    /// 避免服务器给出的过短或已过期的 <c>Retry-After</c> 使轮询快于任务设定的频率，也避免过长的值使任务停滞。
     /// </summary>
     internal static TimeSpan GetPollDelay(DurableHttpResponse response, DurableHttpOperationOptions options)
     {
@@ -309,10 +309,10 @@ internal sealed class DurableHttpClient(IHttpClientFactory clientFactory, string
         return retryAfter is not { } delay || delay < options.PollInterval ? options.PollInterval : delay > max ? max : delay;
     }
 
-    /// <summary>返回民意测验是否报告暂时失败,然后重新进行调查。</summary>
+    /// <summary>返回轮询状态是否表示暂时性故障；此类故障之后会重试轮询。</summary>
     private static bool IsTransient(HttpStatusCode statusCode) => statusCode is HttpStatusCode.RequestTimeout or HttpStatusCode.TooManyRequests
         or HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout;
 
-    /// <summary>附录 <paramref name="suffix"/> 和 <paramref name="location"/>,保留其查询。</summary>
+    /// <summary>将 <paramref name="suffix"/> 追加至 <paramref name="location"/> 的路径末尾，同时保留其查询字符串。</summary>
     private static Uri Append(Uri location, string suffix) => new(location.GetLeftPart(UriPartial.Path) + suffix + location.Query);
 }

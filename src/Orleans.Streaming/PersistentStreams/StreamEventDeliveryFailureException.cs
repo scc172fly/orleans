@@ -5,7 +5,7 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 这一例外表明,流事件没有成功地向消费者提供。
+    /// 此异常表示流事件未成功投递给消费者。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -22,27 +22,27 @@ namespace Orleans.Streams
         /// <summary>
         /// 初始化 <see cref="StreamEventDeliveryFailureException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">电文。</param>
+        /// <param name="message">消息。</param>
         public StreamEventDeliveryFailureException(string message) : base(message) { }
 
         /// <summary>
         /// 初始化 <see cref="StreamEventDeliveryFailureException"/> 类的新实例。
         /// </summary>
-        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="streamId">流标识符。</param>
         internal StreamEventDeliveryFailureException(QualifiedStreamId streamId)
             : base(string.Format(ErrorStringFormat, streamId.GetNamespace(), streamId.StreamId)) { }
 
         /// <summary>
         /// 初始化 <see cref="StreamEventDeliveryFailureException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">电文。</param>
-        /// <param name="innerException">内在的例外</param>
+        /// <param name="message">消息。</param>
+        /// <param name="innerException">内部异常。</param>
         public StreamEventDeliveryFailureException(string message, Exception innerException) : base(message, innerException) { }
 
         /// <summary>
         /// 初始化 <see cref="StreamEventDeliveryFailureException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">序列号信息。</param>
+        /// <param name="info">序列化信息。</param>
         /// <param name="context">上下文。</param>
         [Obsolete]
         public StreamEventDeliveryFailureException(SerializationInfo info, StreamingContext context) : base(info, context) { }

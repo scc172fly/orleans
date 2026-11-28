@@ -7,8 +7,8 @@ namespace Orleans.Streams
     [Serializable]
     internal enum StreamConsumerDataState
     {
-        Active, // 表示事件正在被主动交付给该消费者。
-        Inactive, // 显示事件并非主动交付给消费者。 如果适应器在这个消费者流上产生任何活动,代理器将需要开始交付活动
+        Active, // 表示正在主动向此消费者投递事件。
+        Inactive, // 表示当前未主动向此消费者投递事件。如果适配器在该消费者的流上产生事件，代理将需要开始投递事件。
     }
 
     [Serializable]
@@ -40,8 +40,8 @@ namespace Orleans.Streams
         public bool StartPositionIsProviderDefault;
 
         /// <summary>
-        /// 订阅此文件所处理的最后一批( 交付或过滤) 的序列符号 。
-        /// 由拉动剂定期扫描 用来计算以送货为基础的检查站水印
+        /// 此订阅最后处理（已投递或已筛除）的批次的序列令牌。
+        /// 拉取代理的周期性扫描使用此令牌计算基于投递进度的检查点水位线。
         /// </summary>
         [NonSerialized]
         public StreamSequenceToken? LastProcessedToken;
@@ -69,7 +69,7 @@ namespace Orleans.Streams
             if (Cursor is { } cursor)
             {
                 Cursor = null;
-                // 杀死光标活动,并确保它不再从此消费数据开始。
+                // 终止游标活动，并确保其不再针对此消费者数据重新启动。
                 try
                 {
                     cursor.Dispose();

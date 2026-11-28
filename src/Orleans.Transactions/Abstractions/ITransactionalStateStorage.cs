@@ -5,65 +5,65 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.Abstractions
 {
     /// <summary>
-    /// 交易状态存储界面
+    /// 事务状态的存储接口。
     /// </summary>
-    /// <typeparam name="TState">国家类型</typeparam>
+    /// <typeparam name="TState">状态类型。</typeparam>
     public interface ITransactionalStateStorage<TState>
         where TState : class, new()
     {
         /// <summary>
-        /// 将权威交易状态从耐久存储中加载。
+        /// 从持久化存储加载权威事务状态。
         /// </summary>
         /// <returns>
-        /// 其结果是提供一份连贯的简况,其中列有目前的ETag、承诺状态和序列号。
-        /// 并准备记录 序列编号顺序。
+        /// 返回一个任务，其结果为一致的快照，包含当前 ETag、已提交状态及序列号、
+        /// 事务元数据，以及按序列号排序的待定准备记录。
         /// </returns>
         /// <remarks>
-        /// 退回的快照必须适合交易收回。
-        /// 可恢复的耐久状态,不得将不兼容储存版本的数值合并。
+        /// 返回的快照必须适用于事务恢复，尤其必须表示同一个
+        /// 可恢复的持久化状态，不得混合来自不兼容存储版本的值。
         /// <para>
-        /// 呼叫 <see cref="Store"/> 时,零后会失败,一些或要求的更改全部成为耐久的。
-        /// 因此, <see cref="Load"/> 必须读取权威的持久国,并取代任何供应商-当地国
-        /// 用于随后拨打的缓存 <see cref="Store"/>。在失败后,调用此操作的用户会使用此操作
-        /// <see cref="Store"/> ,以便在发布另一份更新之前解决结果。
+        /// 调用 <see cref="Store"/> 可能在请求的变更尚未持久化、部分持久化或全部持久化后失败。
+        /// 因此，<see cref="Load"/> 必须读取权威的持久化状态，并替换提供程序在本地缓存的状态，
+        /// 该缓存用于后续 <see cref="Store"/> 调用。调用方在
+        /// <see cref="Store"/> 失败后使用此操作确定结果，然后再发出更新。
         /// </para>
         /// </remarks>
         Task<TransactionalStorageLoadResponse<TState>> Load();
 
         /// <summary>
-        /// 商店交易状态的变化
+        /// 存储事务状态变更。
         /// </summary>
         /// <param name="expectedETag">
-        /// 最近的 <see cref="Load"/> 或成功的 <see cref="Store"/>的ETag,确定耐久性
-        /// 版本要更新。
+        /// 来自最近一次 <see cref="Load"/> 或成功的 <see cref="Store"/> 的 ETag，用于标识要更新的
+        /// 持久化版本。
         /// </param>
-        /// <param name="metadata">取代当前存储元数据的交易元数据。</param>
+        /// <param name="metadata">用于替换当前已存储元数据的事务元数据。</param>
         /// <param name="statesToPrepare">
-        /// 准备添加或替换的记录,以序列号为键。
-        /// 与相同的序列编号。 A <see langword="null"/> 或空列表不添加准备记录。
+        /// 要添加或替换的准备记录，以序列号为键。新记录会替换
+        /// 具有相同序列号的现有记录。<see langword="null"/> 或空列表表示不添加准备记录。
         /// </param>
         /// <param name="commitUpTo">
-        /// 当无Null时,通过该序列号的预准备状态推进承诺状态并
-        /// 记录在序列或以下编制已过时。
+        /// 非空时，将已提交状态推进至该序列号对应的已准备状态，并使
+        /// 序列号小于或等于该值的准备记录失效。
         /// </param>
         /// <param name="abortAfter">
-        /// 当非核时,删除待备好的记录,其序列号严格高于该数值。
+        /// 非空时，移除序列号严格大于该值的待定准备记录。
         /// </param>
         /// <returns>
-        /// 其结果是完成的行动所形成的持久状态的ETag。
-        /// 下次更新时使用 <paramref name="expectedETag"/> 。
+        /// 返回一个任务，其结果为操作完成后产生的持久化状态的 ETag。返回的 ETag
+        /// 用作下一次更新的 <paramref name="expectedETag"/>。
         /// </returns>
         /// <remarks>
-        /// 执行必须使用 <paramref name="expectedETag"/> 来达成乐观的货币货币,但操作失败
-        /// 而不是静默覆盖不同的耐久版本。 报告不匹配所使用的例外类型是
-        /// 具体供应商。
+        /// 实现必须使用 <paramref name="expectedETag"/> 进行乐观并发控制，遇到版本不匹配时必须使操作失败，
+        /// 而不能静默覆盖不同的持久化版本。用于报告不匹配的异常类型
+        /// 由各提供程序自行定义。
         /// <para>
-        /// 实施阶段可将一项作业分成提供方规模的原子批量。
-        /// 保存可恢复性,但 <see cref="Store"/> 整个呼叫无需
-        /// 原原子: 如果投出, 零, 部分或所有要求的更改可能已经可以持久, 包括
-        /// 未能完成批次之前填写的批次在未完成批次中未失效的批次之前完成。因此,一项例外情形不能证明没有持久的更改
-        /// 发生。调用者不得使用其缓存状态或ETag盲目重试;它必须调用 <see cref="Load"/>
-        /// 并首先从权威快照中恢复过来
+        /// 实现可以将操作拆分为符合提供程序容量限制的原子批次。这些批次按照
+        /// 保持可恢复性的顺序执行，但并不要求 <see cref="Store"/> 调用整体具有
+        /// 原子性：如果抛出异常，请求的变更可能尚未持久化、部分持久化或全部持久化，包括
+        /// 失败批次之前已完成的批次中的变更。因此，异常并不能证明未发生持久化变更。
+        /// 调用方不得使用缓存的状态或 ETag 盲目重试，而必须调用 <see cref="Load"/>，
+        /// 首先根据权威快照进行恢复。
         /// </para>
         /// </remarks>
         Task<string> Store(
@@ -76,59 +76,59 @@ namespace Orleans.Transactions.Abstractions
     }
 
     /// <summary>
-    /// 表示由交易编制但尚未承诺的国家版本。
+    /// 表示由事务准备好但尚未提交的状态版本。
     /// </summary>
-    /// <typeparam name="TState">交易状态类型。</typeparam>
+    /// <typeparam name="TState">事务状态类型。</typeparam>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class PendingTransactionState<TState>
         where TState : class, new()
     {
         /// <summary>
-        /// 交易按本地的密序编号1,2,3,4...
-        /// 如果新交易的编制与a 
-        /// 此前准备的交易,替换。
+        /// 为事务分配连续的本地序列号 1、2、3、4……
+        /// 如果新事务在准备时使用了与某个
+        /// 先前已准备事务相同的序列号，则它会替换先前的事务。
         /// </summary>
         [Id(0)]
         public long SequenceId { get; set; }
 
         /// <summary>
-        /// 全球独特的交易识别码。 
+        /// 事务的全局唯一标识符。
         /// </summary>
         [Id(1)]
         public string TransactionId { get; set; } = null!;
 
         /// <summary>
-        /// 交易的逻辑时间戳 。
-        /// 时标保证单调增加。
+        /// 事务的逻辑时间戳。
+        /// 保证时间戳单调递增。
         /// </summary>
         [Id(2)]
         public DateTime TimeStamp { get; set; }
 
         /// <summary>
-        /// 交易经理知道该交易的状况
-        /// 如果这是交易管理器,则无效。
-        /// 用于调查交易的去向。
+        /// 掌握此已准备事务状态的事务管理器；
+        /// 如果当前参与者就是事务管理器，则为 null。
+        /// 用于在恢复期间查询事务的最终结果。
         /// </summary>
         [Id(3)]
         public ParticipantId TransactionManager { get; set; }
 
         /// <summary>
-        /// 交易完成后国家状况的简况
+        /// 此事务执行完毕后的状态快照。
         /// </summary>
         [Id(4)]
         public TState State { get; set; } = null!;
     }
 
     /// <summary>
-    /// 代表从耐久储存中装载的权威性交易状态。
+    /// 表示从持久化存储加载的权威事务状态。
     /// </summary>
-    /// <typeparam name="TState">交易状态类型。</typeparam>
+    /// <typeparam name="TState">事务状态类型。</typeparam>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class TransactionalStorageLoadResponse<TState>
         where TState : class, new()
     {
         /// <summary>
-        /// 初始化空状态的 <see cref="TransactionalStorageLoadResponse{TState}"/> 类的新实例。
+        /// 使用空状态初始化 <see cref="TransactionalStorageLoadResponse{TState}"/> 类的新实例。
         /// </summary>
         public TransactionalStorageLoadResponse() : this(null, new TState(), 0, new TransactionalStateMetaData(), Array.Empty<PendingTransactionState<TState>>()) { }
 
@@ -136,10 +136,10 @@ namespace Orleans.Transactions.Abstractions
         /// 初始化 <see cref="TransactionalStorageLoadResponse{TState}"/> 类的新实例。
         /// </summary>
         /// <param name="etag">存储版本标识符。</param>
-        /// <param name="committedState">最近承诺的状态。</param>
-        /// <param name="committedSequenceId">最近承诺状态的序列号。</param>
-        /// <param name="metadata">交易协议元数据</param>
-        /// <param name="pendingStates">尚未承诺的已准备好的州文本。</param>
+        /// <param name="committedState">最近一次提交的状态。</param>
+        /// <param name="committedSequenceId">最近一次提交状态的序列号。</param>
+        /// <param name="metadata">事务协议元数据。</param>
+        /// <param name="pendingStates">尚未提交的已准备状态版本。</param>
         public TransactionalStorageLoadResponse(string? etag, TState committedState, long committedSequenceId, TransactionalStateMetaData metadata, IReadOnlyList<PendingTransactionState<TState>> pendingStates)
         {
             this.ETag = etag;
@@ -156,64 +156,64 @@ namespace Orleans.Transactions.Abstractions
         public string? ETag { get; set; }
 
         /// <summary>
-        /// 获取或设置最近承诺状态。
+        /// 获取或设置最近一次提交的状态。
         /// </summary>
         [Id(1)]
         public TState CommittedState { get; set; }
 
         /// <summary>
-        /// 上次交易的本地序列代号,如果无则为零
+        /// 最后一次提交的事务的本地序列 ID；若无则为零。
         /// </summary>
         [Id(2)]
         public long CommittedSequenceId { get; set; }
 
         /// <summary>
-        /// 交易算法维持的额外状态,例如承诺记录
+        /// 事务算法维护的额外状态，例如提交记录。
         /// </summary>
         [Id(3)]
         public TransactionalStateMetaData Metadata { get; set; }
 
         /// <summary>
-        /// 待定国家名单,按顺序编号
+        /// 按序列 ID 排序的待定状态列表。
         /// </summary>
         [Id(4)]
         public IReadOnlyList<PendingTransactionState<TState>> PendingStates { get; set; }
     }
 
     /// <summary>
-    /// 元数据作为 JSON 对象存储在存储中
+    /// 元数据以 JSON 对象的形式存储。
     /// </summary>
     [GenerateSerializer]
     [Serializable]
     public sealed class TransactionalStateMetaData
     {
         /// <summary>
-        /// 获取或设置交易状态所观察到的最新逻辑时间戳。
+        /// 获取或设置事务状态所观察到的最新逻辑时间戳。
         /// </summary>
         [Id(0)]
         public DateTime TimeStamp { get; set; } = default;
 
         /// <summary>
-        /// 获取或建立为收回交易而保留的承付记录。
+        /// 获取或设置为事务恢复而保留的提交记录。
         /// </summary>
         [Id(1)]
         public Dictionary<Guid, CommitRecord> CommitRecords { get; set; } = new Dictionary<Guid, CommitRecord>();
     }
 
     /// <summary>
-    /// 记录一次交易的登记时间和写入参与者。
+    /// 记录已提交事务的时间戳和写入参与者。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class CommitRecord
     {
         /// <summary>
-        /// 获取或设置交易执行时间戳。
+        /// 获取或设置事务的提交时间戳。
         /// </summary>
         [Id(0)]
         public DateTime Timestamp { get; set; }
 
         /// <summary>
-        /// 获取或设置交易期间所写的参与者。
+        /// 获取或设置在事务期间执行过写入的参与者。
         /// </summary>
         [Id(1)]
         public List<ParticipantId> WriteParticipants { get; set; } = null!;

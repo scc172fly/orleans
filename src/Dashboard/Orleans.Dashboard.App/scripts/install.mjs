@@ -52,9 +52,9 @@ try {
       console.error('npm did not return a complete JSON error report; preserving the failure.');
     }
 
-    // 获取响应信头上的回溯完成。 npm 的油布提取层
-    // 在流体中不重试 EONNRESET, 所以重新开始干净
-    // 。 npm 使用脚本的数值代码来报告生命周期故障。
+    // Fetch 的重试仅覆盖到收到响应头为止。npm 的 tarball 解包层
+    // 在流式读取响应正文时遇到 ECONNRESET 不会重试，因此需要重新执行干净的
+    // 安装。npm 使用脚本的数字退出码报告生命周期脚本失败。
     if (!result.signal && npmError?.code === 'ECONNRESET' && attempt < 3) {
       console.error('Retrying npm ci in 5 seconds after npm reported ECONNRESET.');
       await setTimeout(5000);

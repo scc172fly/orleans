@@ -11,7 +11,7 @@ using Xunit;
 namespace AWSUtils.Tests.Streaming
 {
     /// <summary>
-    /// 测试SQS流式供应商,在 grains 和客户之间有不同的生产者/消费者配置。
+    /// 测试 Grain 和客户端之间采用不同生产者/消费者配置时的 SQS 流提供程序。
     /// </summary>
     [TestCategory("AWS"), TestCategory("SQS")]
     [TestSuite("Functional")]
@@ -123,7 +123,7 @@ namespace AWSUtils.Tests.Streaming
             }
         }
 
-        ////------------------------ One to One ----------------------//
+        //// ------------------------ 一对一 ----------------------//
 
         [Fact]
         public async Task SQS_01_OneProducerGrainOneConsumerGrain()
@@ -149,7 +149,7 @@ namespace AWSUtils.Tests.Streaming
             await runner.StreamTest_04_OneProducerClientOneConsumerClient(TestContext.Current.CancellationToken);
         }
 
-        //和很多不同的人 grains ----------------------//
+        // ------------------------ 不同 Grain 的多对多测试 ----------------------//
 
         [Fact]
         public async Task SQS_05_ManyDifferent_ManyProducerGrainsManyConsumerGrains()
@@ -175,7 +175,7 @@ namespace AWSUtils.Tests.Streaming
             await runner.StreamTest_08_ManyDifferent_ManyProducerClientsManyConsumerClients(TestContext.Current.CancellationToken);
         }
 
-        //和... 和很多相同 grains ----------------------//
+        // ------------------------ 相同 Grain 的多对多测试 ----------------------//
         [Fact]
         public async Task SQS_09_ManySame_ManyProducerGrainsManyConsumerGrains()
         {
@@ -200,7 +200,7 @@ namespace AWSUtils.Tests.Streaming
             await runner.StreamTest_12_ManySame_ManyProducerClientsManyConsumerGrains(TestContext.Current.CancellationToken);
         }
 
-        //------------------------ MANY to Many producer consumer same grain ----------------------//
+        // ------------------------ 同一 Grain 中的多生产者、多消费者 ----------------------//
 
         [Fact]
         public async Task SQS_13_SameGrain_ConsumerFirstProducerLater()

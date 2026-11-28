@@ -1,89 +1,89 @@
 ---
-title: "Grain 持久性"
-description: "持久性 Orleans grain 状态使用 IPersistentState 储存提供者和储存提供者。"
+title: "Grain 持久化"
+description: "使用 IPersistentState 和存储提供程序持久化 Orleans Grain 状态。"
 ms.date: 08/17/2026
 ms.topic: overview
 ---
 
 <a id="grain-persistence"></a>
 
-# Grain 持久性
+# Grain 持久化
 
-Orleans grain 持久性存储应用程序状态独立于 grain 激活。启动时, Orleans 在调用 <xref:Orleans.Grain.OnActivateAsync*>之前读取其配置的状态记录。当操作达到耐久点时, grain 明确写出更改 。
+Orleans Grain 持久化独立于 Grain 激活实例存储应用程序状态。激活实例启动时，Orleans 会在调用 <xref:Orleans.Grain.OnActivateAsync*> 之前读取已配置的状态记录。当操作达到需要保证数据持久性的时点时，Grain 显式写入变更。
 
-持久性是有意的,它是一个记录取向的抽象,而不是一个目标关系映像仪。 A grain 可以使用多个命名的国家记录,使用不同的提供者获取不同的记录,或者当数据库需要查询或数据模型而该数据库不适合 grain 存储时直接访问。
+持久化机制特意设计为面向记录的抽象，而非对象关系映射（ORM）。Grain 可以使用多个具名状态记录，为不同记录选择不同的提供程序，也可以在所需查询或数据模型不适合 Grain 存储时直接访问数据库。
 
 <a id="choose-a-provider"></a>
 
-## 选择提供者
+## 选择存储提供程序
 
-官方提供者来自 [NuGet](https://www.nuget.org/packages?q=Orleans+Persistence) ,包括:
+官方提供程序可通过 [NuGet](https://www.nuget.org/packages?q=Orleans+Persistence) 获取，包括：
 
-| 提供商 | 套包 | 典型使用 |
+| 提供程序 | 包 | 典型用途 |
 |---|---|---|
-| [Azure 表格和布束存储](azure-storage.md) | [`Microsoft.Orleans.Persistence.AzureStorage`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AzureStorage) | Azure-- -- 托管国家记录 |
-| [Azure 宇宙 DB NoSQL](azure-cosmos-db.md) | [`Microsoft.Orleans.Persistence.Cosmos`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.Cosmos) | 全球分布 Azure NoSQL 储存 |
-| [亚马逊 DynamoDB](dynamodb-storage.md) | [`Microsoft.Orleans.Persistence.DynamoDB`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.DynamoDB) | AWS托管的关键价值存储 |
-| [Google 云烟火炉](google-firestore-storage.md) | [`Microsoft.Orleans.Persistence.Firestore`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.Firestore) | Google云托管文件存储 |
-| [ADO.NET](relational-storage.md) | [`Microsoft.Orleans.Persistence.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AdoNet) | SQL 服务器、 MySQL/MariaDB、 PostgreSQL、甲骨文和SQLite |
-| [Redis](redis-storage.md) | [`Microsoft.Orleans.Persistence.Redis`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.Redis) | 以 Redis 支持的低延迟状态  |
-| [内存](memory-storage.md) | `Microsoft.Orleans.Persistence.Memory` | 试验和可支配发展环境 |
+| [Azure Table 和 Blob Storage](azure-storage.md) | [`Microsoft.Orleans.Persistence.AzureStorage`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AzureStorage) | 托管在 Azure 上的状态记录 |
+| [Azure Cosmos DB for NoSQL](azure-cosmos-db.md) | [`Microsoft.Orleans.Persistence.Cosmos`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.Cosmos) | 全球分布式 Azure NoSQL 存储 |
+| [Amazon DynamoDB](dynamodb-storage.md) | [`Microsoft.Orleans.Persistence.DynamoDB`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.DynamoDB) | AWS 托管的键值存储 |
+| [Google Cloud Firestore](google-firestore-storage.md) | [`Microsoft.Orleans.Persistence.Firestore`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.Firestore) | Google Cloud 托管的文档存储 |
+| [ADO.NET](relational-storage.md) | [`Microsoft.Orleans.Persistence.AdoNet`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AdoNet) | SQL Server、MySQL/MariaDB、PostgreSQL、Oracle 和 SQLite |
+| [Redis](redis-storage.md) | [`Microsoft.Orleans.Persistence.Redis`](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.Redis) | 基于 Redis 的低延迟状态存储 |
+| [内存](memory-storage.md) | `Microsoft.Orleans.Persistence.Memory` | 测试和可丢弃的开发环境 |
 
-基于耐久性、可用性、延时性、记录大小限制、操作工具、成本选择。 存储在集重开中无法持久。 Redis 到期应只用于有意短暂的国家 。
+根据持久性、可用性、延迟、记录大小限制、运维工具及成本进行选择。内存存储无法在集群重启后保留数据。Redis 过期机制仅应当用于明确允许丢失的临时状态。
 
 <a id="use-persistent-state"></a>
 
-## 使用持久性状态
+## 使用持久化状态
 
-注射 <xref:Orleans.Runtime.IPersistentState`1> 和 grain 并标明国家记录和供应商 <xref:Orleans.Runtime.PersistentStateAttribute>:
+将 <xref:Orleans.Runtime.IPersistentState`1> 注入 Grain 构造函数，并使用 <xref:Orleans.Runtime.PersistentStateAttribute> 指定状态记录及存储提供程序：
 
 :::code language="csharp" source="./snippets/persistence/GrainExamples.cs" id="user_grain_multiple_states":::
 
-国家无法在构建器内使用。 Orleans 在 <xref:Orleans.Grain.OnActivateAsync*>之前就装载它。 从那时起:
+构造函数中还无法访问已加载的状态。Orleans 在调用 <xref:Orleans.Grain.OnActivateAsync*> 之前加载状态。此后：
 
-- <xref:Orleans.Core.IStorage`1.State> 包含记忆值。
-- <xref:Orleans.Core.IStorage.RecordExists> indicates whether the provider read an existing record.
-- <xref:Orleans.Core.IStorage.Etag> contains the provider's concurrency token, when supported.
-- <xref:Orleans.Core.IStorage.ReadStateAsync*> 以最新存储值取代内存值。
-- <xref:Orleans.Core.IStorage.WriteStateAsync*> 维持当前值。
-- <xref:Orleans.Core.IStorage.ClearStateAsync*> 根据供应商配置清除或删除记录。
+- <xref:Orleans.Core.IStorage`1.State> 包含内存中的状态值。
+- <xref:Orleans.Core.IStorage.RecordExists> 指示提供程序是否读取到了已存在的记录。
+- <xref:Orleans.Core.IStorage.Etag> 包含提供程序的并发控制令牌（如果支持）。
+- <xref:Orleans.Core.IStorage.ReadStateAsync*> 使用最新的存储值替换内存中的值。
+- <xref:Orleans.Core.IStorage.WriteStateAsync*> 持久化当前值。
+- <xref:Orleans.Core.IStorage.ClearStateAsync*> 根据提供程序的配置清空或删除记录。
 
-每个操作都有一个 <xref:System.Threading.CancellationToken> 超载。 提供者可以执行取消, 但默认接口执行代表超载无符号的代理 。
+每个操作还有一个接受 <xref:System.Threading.CancellationToken> 的重载。提供程序可以实现取消支持，但接口的默认实现会调用不带取消令牌的重载。
 
 > [!IMPORTANT]
-> 变异 <xref:Orleans.Core.IStorage`1.State> 只更改激活的模拟副本。 在调用者必须观察持久结果时, 请在返回前等待 <xref:Orleans.Core.IStorage.WriteStateAsync*> 。
+> 修改 <xref:Orleans.Core.IStorage`1.State> 只会改变激活实例的内存副本。如果调用方必须获得已持久化的结果，应在返回之前等待 <xref:Orleans.Core.IStorage.WriteStateAsync*> 完成。
 
 <a id="configure-named-state"></a>
 
-## 配置名称状态
+## 配置具名状态
 
-配置每个引用的提供者名 `[PersistentState]` 排在《公约》 silo:
+在 Silo 中配置 `[PersistentState]` 引用的每一个存储提供程序名称：
 
 :::code language="csharp" source="./snippets/persistence/StorageConfiguration.cs" id="configure_managed_identity":::
 
-状态名称区分了同一 grain拥有的记录。 服务商名选择了密钥 <xref:Orleans.Storage.IGrainStorage> 注册。 共享服务商或支持存储不需要不同的记录 。
+状态名称用于区分同一个 Grain 拥有的不同记录。提供程序名称用于选择对应的带键 <xref:Orleans.Storage.IGrainStorage> 服务注册。不同记录不必共享同一提供程序或底层存储。
 
-当 `[PersistentState]` 省略存储名称时, Orleans 将解决默认的 <xref:Orleans.Storage.IGrainStorage> 登记。配置该注册时使用提供者的 `Add*GrainStorageAsDefault` 扩展名,或将 <xref:Orleans.Providers.ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME> (`"Default"`) 转接到相应的 `Add*GrainStorage` 扩展名。任何其他名字只添加了指定供应商;它不配置默认。
+当 `[PersistentState]` 省略存储名称时，Orleans 会改为解析默认的 <xref:Orleans.Storage.IGrainStorage> 注册。使用提供程序的 `Add*GrainStorageAsDefault` 扩展方法配置默认注册，或向相应的 `Add*GrainStorage` 扩展方法传入 <xref:Orleans.Providers.ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME> (`"Default"`)。其他任何名称都只会添加对应的具名提供程序，而不会配置默认提供程序。
 
-默认和命名的注册代表了不同的角色,即使它们使用相同的提供者类型和辅助数据库。例如, grain- 基于流条的阴道/子常规使用指定的提供者 `PubSubStore`,而不受 grain 状态使用的默认提供者的影响。当 silo 需要两种角色同时:
+默认注册和具名注册代表不同的用途，即使它们使用相同的提供程序类型及底层数据库。例如，基于 Grain 的流发布/订阅通常使用名为 `PubSubStore` 的提供程序，与 Grain 状态使用的默认提供程序彼此独立。如果一个 Silo 同时需要这两种用途，则应分别注册：
 
 :::code language="csharp" source="./snippets/persistence/StorageConfiguration.cs" id="configure_adonet_default_and_pubsub":::
 
-默认和 `PubSubStore` 注册可以共享配置, 但两个角色都不以其他别名为别名。 关于流动作用的细节, 请参见 [配置 PubSub 存储](../../streaming/pubsub-storage)。
+默认注册和 `PubSubStore` 注册可以共享配置，但二者并非彼此的别名。有关流服务的存储用途，请参阅[配置 PubSub 存储](../../streaming/pubsub-storage)。
 
 <a id="consistency-and-atomicity"></a>
 
-## 一致性和原子化
+## 一致性与原子性
 
-存储操作适用于一个国家记录。 <xref:Orleans.Core.IStorage.Etag> 使用乐观的组合货币, 后端支持它。 带有废旧 Etag 失败的写或清晰 <xref:Orleans.Storage.InconsistentStateException> 而不是覆盖更新值。
+一次存储操作只针对一条状态记录。如果后端支持，提供程序会使用记录的 <xref:Orleans.Core.IStorage.Etag> 实现乐观并发控制。使用过期 ETag 执行写入或清除操作时，将引发 <xref:Orleans.Storage.InconsistentStateException>，而不是覆盖较新的值。
 
-以下不是一次原子操作:
+以下操作不构成一个原子操作：
 
-- 写入两个 <xref:Orleans.Runtime.IPersistentState`1> 同一 grain.
-- 给不同 grains拥有的国家的写作。
-- 存储书写和外部副作用,例如发布信息。
+- 写入同一个 Grain 的两个 <xref:Orleans.Runtime.IPersistentState`1> 实例。
+- 写入不同 Grain 拥有的状态。
+- 一次存储写入与一个外部副作用，例如发布消息。
 
-如果操作需要多个 grain 状态的原子更新, 请使用 [Orleans 交易](../transactions.md) 和交易状态。 对于存储附加信息, 请设计一个应用级别发件箱、 信箱或应急协议 。
+如果操作要求跨多个 Grain 状态进行原子更新，请使用 [Orleans 事务](../transactions.md)和事务状态。对于存储与消息传递的组合操作，应设计应用层的 Outbox（发件箱）、Inbox（收件箱）或幂等协议。
 
 <a id="failure-semantics"></a>
 
@@ -91,59 +91,59 @@ Orleans grain 持久性存储应用程序状态独立于 grain 激活。启动�
 
 <a id="activation-reads"></a>
 
-### 活动读作
+### 激活时读取
 
-如果初始读作失败, 激活失败且 Orleans 不调用 <xref:Orleans.Grain.OnActivateAsync*>。 导致激活的请求会收到失败。 错误或缺失的供应商配置导致 <xref:Orleans.Storage.BadProviderConfigException>。
+如果初始读取失败，激活也会失败，Orleans 不会调用 <xref:Orleans.Grain.OnActivateAsync*>。触发该激活的请求将收到失败结果。错误或缺失的提供程序配置会导致 <xref:Orleans.Storage.BadProviderConfigException>。
 
 <a id="explicit-reads-writes-and-clears"></a>
 
-### 明确读写、写写和清楚
+### 显式读取、写入和清除
 
-存储失败 错误 返回的任务 。 等待每次操作, 以便让失败到达 grain 调用机及其调用器。 在写失败后, 不要假设存储的价值已经改变 。 准确的结果取决于提供者和潜在的服务故障 。
+存储操作失败时，返回的任务将进入故障状态。等待每个操作完成，以便将失败传递给 Grain 调用及其调用方。写入失败后，不要假定存储中的值已经发生改变。确切结果取决于提供程序和底层服务的故障情况。
 
-<xref:Orleans.Storage.InconsistentStateException> 是指自激活此操作后又一个作家更改了记录。 不要盲目地重写与旧状态相同的文字。 重新读取, 重新评价命令以适应新状态, 并且只有在操作仍然有效时才写入 。
+<xref:Orleans.Storage.InconsistentStateException> 表示自当前激活实例上次读取记录以来，其他写入方已修改该记录。不要盲目使用过期状态重试同一次写入。应重新读取数据，根据新状态重新评估命令，只有当操作仍然有效时才执行写入。
 
-对于瞬时服务故障, 重试属于理解不合格状态的应用边界。 在重新输入任意存储写入时, 最好先用操作标识符重试原始命令。 断转、 添加回卸并在重试预算用尽后保留例外 。 Orleans 不自动重试应用程序的 <xref:Orleans.Runtime.IPersistentState`1> 操作 。
+对于暂时性服务故障，应在了解幂等性的应用层边界执行重试。相比重试任意一次存储写入，更推荐使用操作标识符重试原始命令。限制重试次数，采用退避策略，并在重试预算耗尽时保留异常。Orleans 不会为应用程序自动重试 <xref:Orleans.Runtime.IPersistentState`1> 操作。
 
 <a id="state-and-schema-evolution"></a>
 
-## 国家和政体演变
+## 状态与架构演进
 
-持久性超过活性活性及部署。
+持久化数据的生命周期长于激活实例及部署周期。应将存储的数据表示形式视为具有版本的契约：
 
-1. 以后向兼容的形式添加成员,并保存缺漏数据的默认值。
-1. 部署读者,在只写新书之前接受新的和新的陈述。
-1. 不要重新命名、删除或重新解释 储存的成员 没有移民计划。
-1. 使用目前部署版本所写数据测试消毒。
-1. 使用事件来源时保留旧事件类型和过渡行为。
+1. 以向后兼容的方式添加成员，并为缺失的数据保留默认值。
+1. 在开始仅写入新表示形式之前，先部署能同时读取新旧两种表示形式的读取方。
+1. 没有迁移方案时，不要重命名、删除或重新解释已存储的成员。
+1. 使用当前部署版本写入的数据测试反序列化。
+1. 使用事件溯源时，保留旧的事件类型及状态转换行为。
 
-存储提供者通过选项暴露 <xref:Orleans.Storage.IGrainStorageSerializer> 。默认提供者使用 JSON序列器。自定义序列器可以执行清晰信封、版本字段或迁移,但更改序列器不会自动迁移现有记录。
+存储提供程序通过其选项公开 <xref:Orleans.Storage.IGrainStorageSerializer>。默认提供程序序列化器使用 JSON。自定义序列化器可以实现显式封装格式、版本字段或迁移逻辑，但更换序列化器不会自动迁移现有记录。
 
 <span id="redis-grain-persistence"></span>
 
-Redis 配置已移到 [Redis grain 持久性](redis-storage.md)。
+Redis 配置已移至 [Redis Grain 持久化](redis-storage.md)。
 
 <span id="memory-storage"></span>
 
-内存存储配置已移到 [内存 grain 持久性](memory-storage.md)。
+内存存储配置已移至[内存 Grain 持久化](memory-storage.md)。
 
 <a id="legacy-grain-state-base-class"></a>
 
-## 遗产 grain 国家基准等级
+## 旧版 Grain 状态基类
 
-<xref:Orleans.Grain`1> 基级和 <xref:Orleans.Providers.StorageProviderAttribute> 仍然支持兼容性,但新代码应使用 <xref:Orleans.Runtime.IPersistentState`1>。构造注入支持多个国家记录,并明确储存依赖性。
+为保持兼容性，仍支持 <xref:Orleans.Grain`1> 基类和 <xref:Orleans.Providers.StorageProviderAttribute>，但新代码应使用 <xref:Orleans.Runtime.IPersistentState`1>。构造函数注入支持多条状态记录，并使存储依赖关系更加明确。
 
 <a id="implement-a-storage-provider"></a>
 
-## 实施存储提供者
+## 实现存储提供程序
 
-自定义提供者实施 <xref:Orleans.Storage.IGrainStorage>。使用 Orleans的存储登记助手注册一个名牌供应商,该助手使用 .NET 键入服务:
+自定义提供程序需要实现 <xref:Orleans.Storage.IGrainStorage>。使用 Orleans 的存储注册辅助方法注册具名提供程序，该方法使用 .NET 带键服务：
 
 :::code language="csharp" source="../../snippets/compiled/Grains/PersistenceSnippets.cs" id="register_custom_grain_storage":::
-提供商必须:
+提供程序必须：
 
-- 读取时弹出 <xref:Orleans.IGrainState`1.State>、 <xref:Orleans.IGrainState`1.RecordExists>和 <xref:Orleans.IGrainState`1.ETag> 。
-- 保护乐观货币语义学,并引发 <xref:Orleans.Storage.InconsistentStateException> 对埃塔格冲突的冲击。
-- 只有在储存作业完成后,才完成每个返回的任务。
-- 表面后端失败, 而不是返回成功 。
-- 定义并记录删除或重置记录是否 <xref:Orleans.Storage.IGrainStorage.ClearStateAsync*> 。
+- 读取时填充 <xref:Orleans.IGrainState`1.State>、<xref:Orleans.IGrainState`1.RecordExists> 和 <xref:Orleans.IGrainState`1.ETag>。
+- 保证乐观并发控制语义，并在 ETag 冲突时抛出 <xref:Orleans.Storage.InconsistentStateException>。
+- 仅在存储操作实际完成后，才将返回的任务标记为完成。
+- 将后端故障传递给调用方，而不是返回成功结果。
+- 明确定义并记录 <xref:Orleans.Storage.IGrainStorage.ClearStateAsync*> 是删除记录还是重置记录。

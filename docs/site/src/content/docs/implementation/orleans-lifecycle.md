@@ -1,25 +1,25 @@
 ---
-title: "生命周期实施"
-description: "理解 Orleans 运行时组件的启动和关闭命令 。"
+title: 生命周期实现
+description: 了解 Orleans 运行时组件有序启动及关闭的机制。
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
 <a id="lifecycle-implementation"></a>
 
-# 生命周期实施
+# 生命周期实现
 
-Orleans 将许多独立注册的服务组成一个 silo 或客户。有些服务只有在依赖性已经准备好并在该依赖性消失之前停止后才能启动。生命周期抽象化赋予这些组成部分有序的协议,而没有把每一个依赖性置于核心起始法中。
+Orleans 将多个独立注册的服务组合到一个 Silo 或客户端中。有些服务必须等到依赖项就绪之后才启动，并在依赖项消失之前停止。生命周期抽象为这些组件提供有序协议，无需将每个依赖项都放入统一的启动方法中。
 
 <a id="observable-and-observers-"></a>
 
-## 观察和观察员 <a name="observable-lifecycle"></a>
+## 可观察对象与观察者 <a name="observable-lifecycle"></a>
 
 <a name="lifecycle-observer"></a>
 
-<xref:Orleans.ILifecycleObservable> accepts subscriptions at integer stages. During startup it visits stages in ascending order; during shutdown it visits them in descending order. Every observer at a stage completes before the lifecycle advances.
+<xref:Orleans.ILifecycleObservable> 接受在整数阶段的订阅。启动期间按阶段值升序访问，关闭期间按降序访问。某阶段的所有观察者都完成后，生命周期才进入下一阶段。
 
-<xref:Orleans.ILifecycleObserver> provides asynchronous <xref:Orleans.ILifecycleObserver.OnStart*> and <xref:Orleans.ILifecycleObserver.OnStop*> callbacks. <xref:Orleans.ILifecycleParticipant`1> is the enrollment contract: a participant receives the lifecycle and subscribes itself. Silo and client hosting discover their registered participants through dependency injection; grain-scoped services have an explicit enrollment owner.
+<xref:Orleans.ILifecycleObserver> 提供异步 <xref:Orleans.ILifecycleObserver.OnStart*> 和 <xref:Orleans.ILifecycleObserver.OnStop*> 回调。<xref:Orleans.ILifecycleParticipant`1> 是参与者登记契约：参与者获得生命周期并自行订阅。Silo 和客户端宿主通过依赖注入发现已注册的参与者；Grain 作用域服务具有明确的登记责任方。
 
 ```mermaid
 sequenceDiagram
@@ -42,58 +42,58 @@ sequenceDiagram
     Lifecycle->>Membership: Low stage OnStop
 ```
 
-反向关闭令是关键不变性。 服务可以继续使用早期开始的附属关系,直到自己停止回电结束为止。
+关闭顺序与启动顺序相反是关键不变量。服务可以继续使用较早阶段启动的依赖项，直到自己的停止回调完成。
 
 <a id="silo-and-client-lifecycles"></a>
 
-## Silo 和客户生命周期
+## Silo 与客户端生命周期
 
-<xref:Orleans.Runtime.SiloLifecycleSubject> drives silo startup and shutdown. Membership, messaging, grain directory, activation collection, statistics, providers, and other runtime components participate at named <xref:Orleans.ServiceLifecycleStage> values.
+<xref:Orleans.Runtime.SiloLifecycleSubject> 驱动 Silo 的启动和关闭。成员资格、消息传递、Grain 目录、激活实例回收、统计信息、提供程序及其他运行时组件在命名的 <xref:Orleans.ServiceLifecycleStage> 值对应的阶段参与生命周期。
 
-客户对网关发现、连接、流源提供者和外部运行时间客户使用相同的模式。通用 <xref:Orleans.ILifecycleObservable> 也允许供应商在没有必要使用 silo- 特定界面时组成私人生命周期。
+客户端对网关发现、连接、流提供程序及外部运行时客户端使用同样的模式。通用的 <xref:Orleans.ILifecycleObservable> 还允许提供程序在无需 Silo 专用接口时组合自己的私有生命周期。
 
-[silo 生命周期](../host/silo-lifecycle.md)中记录了以主机为对象的阶段列表和配置示例。本页的重点是协议,而不是应注册应用程序启动代码的地方。
+面向宿主的阶段列表及配置示例参见 [Silo 生命周期](../host/silo-lifecycle.md)。本页侧重生命周期协议，而不是应用启动代码应注册到何处。
 
 <a id="grain-activation-composition"></a>
 
-## Grain 启动构成
+## Grain 激活实例的组成
 
-<xref:Orleans.Runtime.IConfigureGrainTypeComponents> configures a shared plan for a grain type. A configurator can use <xref:Orleans.Metadata.GrainClassMap> to select implementation classes, then add synchronous actions with <xref:Orleans.Runtime.GrainTypeSharedContext.AddActivationSetup*>. Selection and composition occur when creating the shared context; activations execute the cached actions.
+<xref:Orleans.Runtime.IConfigureGrainTypeComponents> 为某个 Grain 类型配置共享方案。配置器可使用 <xref:Orleans.Metadata.GrainClassMap> 选择实现类，再通过 <xref:Orleans.Runtime.GrainTypeSharedContext.AddActivationSetup*> 添加同步操作。选择与组合在创建共享上下文时发生；激活实例执行缓存的操作。
 
-<xref:Orleans.Runtime.GrainTypeSharedContext> seals setup registration after the configurators finish. When constructing an activation, the runtime assigns the fully constructed grain object and records creation before invoking setup actions in addition order. It then enrolls the grain object and starts the lifecycle. This boundary also applies to custom grain activators and to individual stateless workers.
+<xref:Orleans.Runtime.GrainTypeSharedContext> 在配置器完成后封闭设置操作的注册。构造激活实例时，运行时先赋予完整构造的 Grain 对象并记录创建，再按添加顺序调用设置操作。之后登记该 Grain 对象并启动生命周期。此边界同样适用于自定义 Grain 激活器和各个无状态工作者实例。
 
-设置代表共享, 并可以同时运行于激活中。 在动作中通过 <xref:Orleans.Runtime.IGrainContext.ActivationServices> 解决每个启动状态。 现有的 DI 注册保留明确的输入路径。 安装失败后会发生启动工程故障处理: 随后的设置和生命周期启动被跳过, 指定的 grain 和范围被处置 。
+设置委托由多个激活实例共享，可以并发运行。在操作内部通过 <xref:Orleans.Runtime.IGrainContext.ActivationServices> 解析每个激活实例专属的状态。现有 DI 注册保留显式登记路径。设置失败遵循激活实例构造失败处理：跳过后续设置和生命周期启动，并释放已经赋予的 Grain 对象及其作用域。
 
-编译的界面选择示例见 [共享激活设置](../grains/grain-lifecycle.md#shared-activation-setup) 。
+参见[共享激活设置](../grains/grain-lifecycle.md#shared-activation-setup)，其中提供了经过编译的接口选择示例。
 
 <a id="subscription-rules-"></a>
 
 ## 订阅规则 <a name="lifecycle-participation"></a>
 
-生命周期参与者应:
+生命周期参与者应：
 
-- 组成期间、生命周期开始之前的用户;
-- 诊断使用稳定观察名;
-- 选择其先决条件得到保障的最新阶段;
-- 混和 <xref:Orleans.ILifecycleObserver.OnStop*> 部分后安全 <xref:Orleans.ILifecycleObserver.OnStart*>;
-- 履行提供的取消标记;
-- 释放依赖关系 在他们下阶段停止之前
+- 在组合期间、生命周期启动之前订阅；
+- 使用稳定的观察者名称以便诊断；
+- 选择满足所有前置条件的最晚阶段；
+- 确保在 <xref:Orleans.ILifecycleObserver.OnStop*> 被调用时能够安全处理 <xref:Orleans.ILifecycleObserver.OnStart*> 仅部分完成的情况；
+- 遵守提供的取消令牌；以及
+- 在较低阶段的依赖项停止之前释放这些依赖项。
 
-避免通过手工解决并启动另一位参与者来创建隐藏的订单。 阶段依赖性应该保留在生命周期订阅中。
+避免通过手动解析和启动其他参与者来形成隐式顺序。阶段依赖关系应在生命周期订阅中保持可见。
 
 <a id="failure-behavior"></a>
 
-## 失行为
+## 失败行为
 
-启动不会跳过失败的观察者,而是继续到成功形状状态。 例外中止了生命周期进度和主机报告启动失败。 关闭尝试在取消期限内松开初始阶段 。
+启动流程不会跳过失败的观察者并继续进入看似成功的状态。异常将中止生命周期推进，宿主报告启动失败。关闭流程尝试在取消截止时间内逆序撤销已初始化的阶段。
 
-取消合同将观察生命周期;它不能保证立即清理外部资源。 提供商代码应该保持关闭功能,并且不应该吞噬那些让永久所有权模糊不清的失败。
+取消限制生命周期等待观察的时长，但不能保证外部资源立即清理完毕。提供程序代码应确保关闭操作幂等，不应吞掉会使持久化所有权不明确的故障。
 
 <a id="source"></a>
 
-## 来源来源
+## 源码
 
-- <xref:Orleans.LifecycleSubject> implements stage traversal; see its [implementation](https://github.com/dotnet/orleans/blob/main/src/Orleans.Core/Lifecycle/LifecycleSubject.cs).
-- <xref:Orleans.Runtime.SiloLifecycleSubject> is the silo lifecycle; see its [implementation](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/Lifecycle/SiloLifecycleSubject.cs).
-- [`DefaultSiloServices`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/Hosting/DefaultSiloServices.cs) 显示参与人登记。
-- <xref:Orleans.Providers.Streams.Common.PersistentStreamProvider> is a named-provider example with separate initialize and active stages; see its [lifecycle participation implementation](https://github.com/dotnet/orleans/blob/main/src/Orleans.Streaming/PersistentStreams/PersistentStreamProvider.cs).
+- <xref:Orleans.LifecycleSubject> 实现阶段遍历；参见其[实现](https://github.com/dotnet/orleans/blob/main/src/Orleans.Core/Lifecycle/LifecycleSubject.cs)。
+- <xref:Orleans.Runtime.SiloLifecycleSubject> 是 Silo 生命周期；参见其[实现](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/Lifecycle/SiloLifecycleSubject.cs)。
+- [`DefaultSiloServices`](https://github.com/dotnet/orleans/blob/main/src/Orleans.Runtime/Hosting/DefaultSiloServices.cs) 展示参与者注册。
+- <xref:Orleans.Providers.Streams.Common.PersistentStreamProvider> 是具有独立初始化阶段及活跃阶段的命名提供程序示例；参见其[生命周期参与实现](https://github.com/dotnet/orleans/blob/main/src/Orleans.Streaming/PersistentStreams/PersistentStreamProvider.cs)。

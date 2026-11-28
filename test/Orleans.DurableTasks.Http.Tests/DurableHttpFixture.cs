@@ -18,8 +18,8 @@ using Xunit;
 namespace Orleans.Durable.Http.Tests;
 
 /// <summary>
-/// 主持一个运行耐久任务的进程内集集和一个 ASP.NET 核心测试服务器,将它们暴露为 HTTP
-/// 操作。 Silos 通过 HTTP 客户端调用测试服务器,该客户端将添加耐久的应急密钥。
+/// 托管一个运行持久化任务的进程内集群和一个 ASP.NET Core 测试服务器，后者将这些任务公开为 HTTP
+/// 操作。Silo 通过添加持久化幂等键的 HTTP 客户端调用该测试服务器。
 /// </summary>
 public sealed class DurableHttpFixture : IAsyncLifetime
 {
@@ -30,28 +30,28 @@ public sealed class DurableHttpFixture : IAsyncLifetime
     public const string ApprovalsScope = "approvals";
     public const string ApprovalRootId = "approval";
 
-    /// <summary>获取 <c>/dropped</c>的事件流。</summary>
+    /// <summary>获取 <c>/dropped</c> 的事件流。</summary>
     public static ConcurrentDictionary<string, DroppedStream> DroppedStreams { get; } = new();
 
-    /// <summary>获得工作 <c>/jobs</c> API,和有多少次 每人被调查。</summary>
+    /// <summary>获取 <c>/jobs</c> API 的作业及各作业的轮询次数。</summary>
     public static ConcurrentDictionary<string, (string Value, int Polls)> Jobs { get; } = new();
 
-    /// <summary>得到请求 <c>/effects/{id}</c>,按标识符: <c>Idempotency-Key</c> 每项请求。</summary>
+    /// <summary>按标识符获取 <c>/effects/{id}</c> 的请求：每个请求的 <c>Idempotency-Key</c>。</summary>
     /// <remarks>
-    /// 第一次请求识别符号,从所持 <c>held-</c> 等待客户放弃,作为请求
-    /// 服务器应用了哪个选项, 但失事回复丢失了, 确实如此 。
+    /// 标识符以 <c>held-</c> 开头的首次请求一直等待，直到其客户端放弃该请求，模拟服务器
+    /// 已应用请求但响应因崩溃丢失的情况。
     /// </remarks>
     public static ConcurrentDictionary<string, ConcurrentQueue<string>> Effects { get; } = new();
 
     /// <summary>
-    /// 获得工作 <c>/held-jobs</c> API,按数值:每个请求有多少个开始,测试是否释放
-    /// 之后它的监视器返回结果
+    /// 按值获取 <c>/held-jobs</c> API 的作业：每个作业由多少个请求启动，以及测试是否已释放
+    /// 该作业；释放后，其监视器返回结果。
     /// </summary>
     public static ConcurrentDictionary<string, HeldJob> HeldJobs { get; } = new();
 
     /// <summary>
-    /// 保护测试服务器中的回调头头,在 silos中取消对它们的保护,作为主机和 silos的键环
-    /// 共享是。
+    /// 在测试服务器中保护回调请求头，并在 Silo 中解除保护，就像宿主与 Silo
+    /// 共享密钥环时一样。
     /// </summary>
     private static readonly IDataProtectionProvider DataProtection = new EphemeralDataProtectionProvider();
 
@@ -61,7 +61,7 @@ public sealed class DurableHttpFixture : IAsyncLifetime
 
     public DurableHttpFixture()
     {
-        // 下 silos 共享一个日记商店, 所以a grain 而在另一端又恢复 silo 恢复了状态
+        // Silo 共享一个日志存储，因此 Grain 在另一 Silo 上重新激活时可以恢复其状态。
         var journals = new VolatileJournalStorageProvider(Options.Create(new JournaledStateManagerOptions()));
         var builder = new InProcessTestClusterBuilder();
         builder.ConfigureClient(clientBuilder => clientBuilder.AddDurableTasks());
@@ -78,7 +78,7 @@ public sealed class DurableHttpFixture : IAsyncLifetime
             siloBuilder.Services.AddHttpClient(RawClientName, static client => client.BaseAddress = new Uri("http://localhost/"))
                 .AddDurableIdempotencyKey()
                 .ConfigurePrimaryHttpMessageHandler(() => Server.CreateHandler());
-            // 测试服务器的操作器没有插座, 所以连接就留给它了 。
+            // 测试服务器的处理器不使用套接字，因此将连接处理交给该处理器。
             siloBuilder.Services.AddDurableHttpCallbacks(static options =>
                 {
                     options.InitialRetryInterval = TimeSpan.FromMilliseconds(100);
@@ -97,7 +97,7 @@ public sealed class DurableHttpFixture : IAsyncLifetime
 
     public IClusterClient Client => _cluster.Client;
 
-    /// <summary>获取耐久 HTTP客户端,该客户端 silos 用于调用测试服务器。</summary>
+    /// <summary>获取 Silo 调用测试服务器所用的持久化 HTTP 客户端。</summary>
     public IDurableHttpClient DurableHttp => _cluster.GetSiloServiceProvider().GetRequiredKeyedService<IDurableHttpClient>(ApiClientName);
 
     public TestServer Server => _server ?? throw new InvalidOperationException("The test server has not started.");
@@ -120,7 +120,7 @@ public sealed class DurableHttpFixture : IAsyncLifetime
 
         _app = builder.Build();
 
-        // 验证用户请求姓名,以便测试每个用户的业务范围和授权。
+        // 对请求指定的用户进行身份验证，使测试覆盖按用户划分的操作作用域和授权行为。
         _app.Use((context, next) =>
         {
             if (context.Request.Headers[TestUserHeader] is [{ } user])
@@ -130,8 +130,8 @@ public sealed class DurableHttpFixture : IAsyncLifetime
 
             return next(context);
         });
-        // 每个顺序的组组开始运行其 grain耐久方法的操作。
-        // 包括观察、取消或信号其作业的团体的请求:“软件”不得进入任何订单。
+        // 每个订单的路由组启动运行其 Grain 持久化方法的操作。端点筛选器对路由组的每个
+        // 请求进行授权，包括观察、取消操作或向操作发送信号的请求：'mallory' 无权访问任何订单。
         var orders = _app.MapGroup("/orders/{orderId}")
             .WithDurableOperations("orders")
             .AddEndpointFilter(static (context, next) =>
@@ -149,7 +149,7 @@ public sealed class DurableHttpFixture : IAsyncLifetime
         orders.MapPost("/fail-later", static (string orderId, EchoRequest request, IGrainFactory grains) =>
             grains.GetGrain<IDurableHttpTestGrain>(orderId).FailLaterAsync(request.Value));
 
-        // 同意订单的核准, 另一人开始打电话, 而不是开始工作。
+        // 订阅由另一调用者启动的订单审批，而不是启动新工作。
         orders.MapPost("/approval/watch", static (string orderId, IGrainFactory grains) =>
             grains.GetGrain<IDurableHttpTestGrain>(orderId).GetDurableTask<string>(ApprovalRootId));
         orders.MapGet("/summary", static (string orderId) => $"order {orderId}");
@@ -160,11 +160,11 @@ public sealed class DurableHttpFixture : IAsyncLifetime
         orders.MapDurableSignal(DurableHttpTestGrain.Approved);
         orders.MapDurableSignal(DurableHttpTestGrain.Shipped);
         orders.MapDurableSignal(DurableHttpTestGrain.Confirmed);
-        // 接收回调,测试通过回调进行。
+        // 接收回调，测试通过 Callbacks 等待这些回调。
         _app.MapPost("/callbacks/{name}", static async (string name, HttpRequest request) =>
             await Callbacks.ReceiveAsync(name, request));
 
-        // Azure 资源管理器样式 API,其 Azure-AsyncOperation 在成功之前监测报告 InProgress 。
+        // Azure Resource Manager 风格的 API，其 Azure-AsyncOperation 监视器在成功前报告 InProgress。
         _app.MapPost("/arm/jobs", static (EchoRequest request, HttpResponse response) =>
         {
             var id = Guid.NewGuid().ToString("N");
@@ -173,7 +173,7 @@ public sealed class DurableHttpFixture : IAsyncLifetime
             response.Headers.RetryAfter = "0";
             return Results.Accepted();
         });
-        // 创建 Azure ,它能解答201个问题。
+        // Azure 创建操作：返回 201 Created，同时返回仍在预配的资源及其状态监视器。
         _app.MapPost("/arm/resources", static (EchoRequest request, HttpResponse response) =>
         {
             var id = Guid.NewGuid().ToString("N");
@@ -191,7 +191,7 @@ public sealed class DurableHttpFixture : IAsyncLifetime
                 : Results.Json(new { name = id, status = "succeeded", result = value });
         });
 
-        // 一份 API 报告其所在地的运行中工作,直到该工作第二次民意测验结果返回。
+        // API 在 Location 指定的位置报告作业正在运行，直至作业的第二次轮询返回结果。
         _app.MapPost("/jobs", static (EchoRequest request) =>
         {
             var id = Guid.NewGuid().ToString("N");
@@ -211,15 +211,15 @@ public sealed class DurableHttpFixture : IAsyncLifetime
             return Results.Ok(value);
         });
 
-        // Nexus通过批准,其请求的识别特征说明标明了“核准”范围的业务,而后者是:
-        // /批准小组也提供服务,因此其路线流和信号。
+        // 通过 Nexus 进行审批，其请求标识符标识 'approvals' 作用域的操作，该作用域也由
+        // '/approvals' 路由组提供，因此其路由可以流式传输这些操作的事件并向它们发送信号。
         var nexus = _app.MapGroup("/nexus").MapNexusService("orders.v1", scope: ApprovalsScope);
         nexus.MapNexusOperation("approval", static (NexusApprovalInput input, IGrainFactory grains) =>
             grains.GetGrain<IDurableHttpTestGrain>(input.OrderId).WaitForApprovalAsync(input.Item));
         _app.MapGroup("/approvals").WithDurableOperations(ApprovalsScope).MapDurableSignal(DurableHttpTestGrain.Approved);
 
-        // 运行状态后, 操作事件一旦试验释放, 第一个连接就会下降,
-        // 重新连接报告终端状态
+        // 某个操作的事件：首次连接在报告运行中状态之后，由测试释放时断开；
+        // 重新连接时报告终态。
         _app.MapGet("/dropped/{id}/events", static async (string id, HttpContext context) =>
         {
             var stream = DroppedStreams.GetOrAdd(id, static _ => new());
@@ -237,7 +237,7 @@ public sealed class DurableHttpFixture : IAsyncLifetime
             await context.Response.WriteAsync($"event: status\nid: Succeeded\ndata: {{\"id\":\"{id}\",\"status\":\"Succeeded\",\"result\":\"done\"}}\n\n");
         });
 
-        // 记录每个请求的主管单位-钥匙,并返回服务器应用的对识别码要求的数量。
+        // 记录每个请求的 Idempotency-Key，并返回服务器针对其标识符已应用的请求数量。
         _app.MapPost("/effects/{id}", static async (string id, HttpContext context) =>
         {
             var requests = Effects.GetOrAdd(id, static _ => new());
@@ -251,7 +251,7 @@ public sealed class DurableHttpFixture : IAsyncLifetime
             return Results.Ok(requests.Count);
         });
 
-        // 工作持续到测试释放为止
+        // 运行直至测试释放的作业。
         _app.MapPost("/held-jobs", static (EchoRequest request) =>
         {
             var job = HeldJobs.GetOrAdd(request.Value, static _ => new());
@@ -265,7 +265,7 @@ public sealed class DurableHttpFixture : IAsyncLifetime
             return job.Released.Task.IsCompleted ? Results.Ok(value) : Results.Accepted($"/held-jobs/{value}");
         });
 
-        // 以方法对每项请求的应急关键键进行响应,即按能力关键测试读取的方法。
+        // 按请求方法回显各请求的幂等键，供幂等键测试读取。
         _app.MapMethods("/echo-idempotency-key", [HttpMethods.Get, HttpMethods.Post], static (HttpRequest request) => request.Headers[DurableHttpHeaders.IdempotencyKey].ToString());
 
         await _app.StartAsync();
@@ -273,12 +273,12 @@ public sealed class DurableHttpFixture : IAsyncLifetime
         Http = _app.GetTestClient();
     }
 
-    /// <summary>获取测试服务器收到的回调。</summary>
+    /// <summary>获取测试服务器接收到的回调。</summary>
     public static CallbackReceiver Callbacks { get; } = new();
 
     private static void ConfigureOperations(DurableHttpOptions options)
     {
-        // 测试 grain的例外描述客户的结果。
+        // 测试 Grain 的异常向客户端描述操作结果。
         options.CreateError = static exception => exception switch
         {
             OperationCanceledException => new("Canceled", exception.Message),
@@ -286,7 +286,7 @@ public sealed class DurableHttpFixture : IAsyncLifetime
             _ => DurableHttpOptions.DefaultCreateError(exception),
         };
 
-        // 只接受对测试服务器接收器的回调 。
+        // 只接受发送到测试服务器接收端点的回调。
         options.AllowCallback = static (_, url) => url.Host == "localhost" && url.AbsolutePath.StartsWith("/callbacks/", StringComparison.Ordinal);
     }
 
@@ -308,7 +308,7 @@ public sealed class DurableHttpCollection : ICollectionFixture<DurableHttpFixtur
     public const string Name = "DurableHttp";
 }
 
-/// <summary>符号 Webhooks 带有一个用于测试重新计算值的信号。</summary>
+/// <summary>使用测试会重新计算的值对 Webhook 签名。</summary>
 public sealed class TestWebhookSigner : IDurableWebhookSigner
 {
     public static string Expected(string webhookId, long timestamp, int bodyLength) => $"v1,test:{webhookId}:{timestamp}:{bodyLength}";
@@ -317,21 +317,21 @@ public sealed class TestWebhookSigner : IDurableWebhookSigner
         Expected(webhookId, timestamp, body.Length);
 }
 
-/// <summary>记录测试服务器收到的回调,让测试按名称等待。</summary>
+/// <summary>记录测试服务器接收到的回调，并允许测试按名称等待回调。</summary>
 /// <remarks>
-/// 姓名开头的接收器 <c>flaky-</c> 第一次尝试时 <c>503 Service Unavailable</c>, 一个
-/// 姓名以 <c>slow-</c> 在发件人超时后第一次尝试回答,名字开头的是
-/// <c>moved-</c> 将第一次尝试方向转向另一个接收器;发送者分别重试。
+/// 名称以 <c>flaky-</c> 开头的接收端首次返回 <c>503 Service Unavailable</c>；
+/// 名称以 <c>slow-</c> 开头的接收端在发送方超时后才响应首次尝试；名称以
+/// <c>moved-</c> 开头的接收端将首次尝试重定向至其他接收端；发送方会分别重试这些请求。
 /// </remarks>
 public sealed class CallbackReceiver
 {
     private readonly ConcurrentDictionary<string, Receiver> _receivers = new();
 
-    /// <summary>返回一个任务,该任务随着第一个调回 <paramref name="name"/> 所接受的填充而完成。</summary>
-    /// <remarks>启动回拨前先打开等待。</remarks>
+    /// <summary>返回一个任务，在 <paramref name="name"/> 接受首个回调时以该回调作为结果完成。</summary>
+    /// <remarks>在触发回调之前启动等待。</remarks>
     public Task<ReceivedCallback> ExpectAsync(string name) => _receivers.GetOrAdd(name, static _ => new()).Accepted.Task;
 
-    /// <summary>返回收到多少次尝试 <paramref name="name"/> 。</summary>
+    /// <summary>返回 <paramref name="name"/> 已收到的执行尝试次数。</summary>
     public int GetAttempts(string name) => _receivers.TryGetValue(name, out var receiver) ? receiver.Attempts : 0;
 
     internal async Task<IResult> ReceiveAsync(string name, HttpRequest request)
@@ -346,7 +346,7 @@ public sealed class CallbackReceiver
 
             if (name.StartsWith("slow-", StringComparison.Ordinal))
             {
-                // 延后回调客户端的超时; 请求中止结束等待 。
+                // 等待时长超过回调客户端的超时时间；请求中止会结束等待。
                 await Task.Delay(System.Threading.Timeout.InfiniteTimeSpan, request.HttpContext.RequestAborted).ContinueWith(static _ => { });
                 return Results.Empty;
             }
@@ -373,19 +373,19 @@ public sealed class CallbackReceiver
 
 public sealed record ReceivedCallback(IReadOnlyDictionary<string, string> Headers, string Body);
 
-/// <summary>事件流 <c>/dropped</c>,其第一个连接会下降一次 <see cref="Drop"/> 完整。</summary>
+/// <summary>属于 <c>/dropped</c> 的事件流，在 <see cref="Drop"/> 完成时断开首次连接。</summary>
 public sealed class DroppedStream
 {
     public readonly TaskCompletionSource Drop = new(TaskCreationOptions.RunContinuationsAsynchronously);
     public int Connections;
 
-    /// <summary>获取重新连接的 <c>Last-Event-ID</c> 。</summary>
+    /// <summary>获取重新连接时的 <c>Last-Event-ID</c>。</summary>
     public string? LastEventId { get; set; }
 }
 
 /// <summary>
-/// 跟随方向的转向,如 <see cref="HttpClientHandler"/> 和 <see cref="HttpClientHandler.AllowAutoRedirect"/>, 过
-/// 测试服务器,它不跟随它们, 所以测试观察回击传送是否禁用它们。
+/// 模拟具有 <see cref="HttpClientHandler"/> 及 <see cref="HttpClientHandler.AllowAutoRedirect"/> 重定向行为的处理器，通过
+/// 本身不跟随重定向的测试服务器发送请求，使测试能够观察回调投递是否禁用了重定向。
 /// </summary>
 public sealed class RedirectingHandler(HttpMessageHandler inner) : HttpClientHandler
 {
@@ -405,7 +405,7 @@ public sealed class RedirectingHandler(HttpMessageHandler inner) : HttpClientHan
     }
 }
 
-/// <summary>一份 <c>/held-jobs</c>。</summary>
+/// <summary>属于 <c>/held-jobs</c> 的作业。</summary>
 public sealed class HeldJob
 {
     public readonly TaskCompletionSource Released = new(TaskCreationOptions.RunContinuationsAsynchronously);

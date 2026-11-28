@@ -1,11 +1,11 @@
 namespace Orleans.Durable.Messaging.Tests.Support;
 
 /// <summary>
-/// 持久工作钟,目前的时间只有在测试推进时才能移动。
+/// 一个 Durable Jobs 时钟，其当前时间仅在测试显式推进时变化。
 /// </summary>
 /// <remarks>
-/// 实时计时器跟踪实时, 至少每发 <see cref="PollInterval"/>火, 所以持久工作重读时钟,
-/// 开始碎片, 测试一旦推进后立即启动提醒, 而测试会决定何时完成工作 。
+/// 定时器以实际时间为准，至少每 <see cref="PollInterval"/> 触发一次，使 Durable Jobs 重新读取时钟，
+/// 启动分片，并在测试推进时钟后及时执行唤醒，同时由测试精确决定工作何时到期。
 /// </remarks>
 public sealed class ManualJobClock(DateTimeOffset start) : TimeProvider
 {
@@ -21,7 +21,7 @@ public sealed class ManualJobClock(DateTimeOffset start) : TimeProvider
 
     private static TimeSpan Clamp(TimeSpan dueTime) => dueTime > PollInterval ? PollInterval : dueTime;
 
-    // Task.Delay 制造出它的定时器 解除了它的武装 通过变革武装 它,所以两条路的夹子。
+    // Task.Delay 创建尚未启用的定时器，并通过 Change 启用它，因此两个路径都施加限制。
     private sealed class PollingTimer(ITimer timer) : ITimer
     {
         public bool Change(TimeSpan dueTime, TimeSpan period) => timer.Change(Clamp(dueTime), Clamp(period));

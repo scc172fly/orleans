@@ -114,18 +114,18 @@ namespace Orleans.Streams
 
             GuidId subscriptionId = pubSub.CreateSubscriptionId(stream.InternalStreamId, myGrainReference!.GetGrainId());
 
-            // 乐观货币:
-            // 一般来说,我们首先应在公子处登记分解(pubSub.RegisterConsumer)
-            // 仅在成功存储的情况下, 才能在本地存储(myExtension.SetObserver) 。
-            // 基本上,这2项行动应作为一次原子交易进行 -- -- 要么两者兼有要么不进行,并且与同时读的文字分开。
-            // 但:这里有分布式种族:第一组兆克可能赶在等待电话之前到达
-            // (因为公证机构通知可能生产副产品的生产商)
-            // 因而没有发现 subriptionHandle 基本上违反了"隔离"
-            // 因此,我们在此采用乐观货币管制,以保证孤立:
-            // 我们乐观地储存 subscriptionId 调用前在手柄中先拨打 pubSub.RegisterConsumer
-            // 万一失败,就把它撤销。
-            // 没有任何问题,我们打电话 myExtension.SetObserver 太早了,然后把把手登记在酒吧的地下一层,
-            // 这是因为 subscriptionId 是独一无二的(《吉吉大雅特》),而且无人知道,除非在酒吧里成功订阅。
+            // 乐观并发控制：
+            // 一般而言，应先通过发布/订阅系统注册订阅（pubSub.RegisterConsumer），
+            // 仅在注册成功后才在本地保存订阅（myExtension.SetObserver）。
+            // 本质上，这两个操作应作为一个原子事务执行：要么全部执行，要么都不执行，并且与并发读取隔离。
+            // 但是，这里存在分布式竞态：第一条消息可能在对该调用的等待完成之前到达。
+            // （因为发布/订阅系统会通知生产者，而生产者可能立即生产数据），
+            // 因而无法在扩展中找到 subscriptionHandle，实际上违反了“隔离性”。
+            // 因此，此处采用乐观并发控制来保证隔离性：
+            // 在调用 pubSub.RegisterConsumer 之前，先以乐观方式在句柄中保存 subscriptionId，
+            // 并在失败时撤销该操作。
+            // 在句柄尚未注册到发布/订阅系统时过早调用 myExtension.SetObserver 不会产生问题，
+            // 因为 subscriptionId 是唯一的（随机 Guid）；除非在发布/订阅系统中成功订阅，否则其他参与者并不知道它。
             var subriptionHandle = myExtension!.SetObserver(subscriptionId, stream, observer, batchObserver, token, startPosition, filterData);
             try
             {
@@ -134,7 +134,7 @@ namespace Orleans.Streams
             }
             catch (Exception)
             {
-                // 撤消上一个调用 myExtension.SetObserver。
+                // 撤销之前对 myExtension.SetObserver 的调用。
                 myExtension!.RemoveObserver(subscriptionId);
                 throw;
             }
@@ -186,7 +186,7 @@ namespace Orleans.Streams
                 oldHandleImpl.FilterData,
                 handshakeState: token is null ? oldHandleImpl.SharedHandshake : null);
 
-            // 失败时, 电话人应该能够使用原始控件重新尝试, 所以只有在一切成功后才能失效旧控件 。
+            // 失败时，调用方应能使用原句柄重试，因此仅在全部操作成功后才使旧句柄失效。
             oldHandleImpl.Invalidate();
 
             return newHandle;
@@ -203,7 +203,7 @@ namespace Orleans.Streams
             LogDebugUnsubscribe(handle);
 
             myExtension!.RemoveObserver(handleImpl.SubscriptionId);
-            // UnregisterConsumer 允许 UnsubscribeAsync 重试。
+            // 即使本地不存在此句柄，也从发布/订阅系统中调用 UnregisterConsumer，以支持 UnsubscribeAsync 重试。
 
             LogDebugUnsubscribeRendezvous(pubSub, myGrainReference!);
 
@@ -260,16 +260,16 @@ namespace Orleans.Streams
             return Task.FromResult(myExtension!.DiagCountStreamObservers<T>(stream.InternalStreamId));
         }
 
-        // 设置 myExtension 和 myGrainReference 作为副作用。以下的担保下的懒惰约束模式
-        // 两种方法都非null 。 一旦此方法返回, 两者都不无效, 但汇编者无法在等待中证明这一点
-        // 使用无效操作者,等待此方法后,
+        // 以副作用方式设置 myExtension 和 myGrainReference。下面的延迟绑定模式保证
+        // 此方法返回时二者均不为 null，但编译器无法跨越 await
+        // 边界证明这一点，因此调用方在等待此方法后使用 null 包容运算符（!）。
         private async Task BindExtensionLazy()
         {
             if (myExtension == null)
             {
                 using (await bindExtLock.LockAsync())
                 {
-#pragma warning disable CA1508 // Another caller can bind the extension while this caller awaits bindExtLock.
+#pragma warning disable CA1508 // 当前调用方等待 bindExtLock 时，其他调用方可能完成扩展绑定。
                     if (myExtension == null)
 #pragma warning restore CA1508
                     {

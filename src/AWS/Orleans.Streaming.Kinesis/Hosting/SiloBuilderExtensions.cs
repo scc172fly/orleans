@@ -6,21 +6,21 @@ using Orleans.Streams;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 提供用于配置 Orleans silos上亚马逊 Kinesis数据流支持的持久性流的扩展方法。
+    /// 提供用于在 Orleans Silo 上配置 Amazon Kinesis Data Streams 持久化流的扩展方法。
     /// </summary>
     public static class SiloBuilderExtensions
     {
         /// <summary>
-        /// 配置 silo 使用亚马逊 Kinesis 数据流支持的持久性流提供者。
+        /// 配置 Silo 使用由 Amazon Kinesis Data Streams 支持的持久化流提供程序。
         /// </summary>
         /// <remarks>
-        /// 此超过超载使用 Orleans grain- 基点检查器。
-        /// <c>PubSubStore</c> grain 储存提供方,不要求 DynamoDB 或 Kinesis 客户端库。
+        /// 此重载使用基于 Orleans Grain 的检查点记录器。检查点通过
+        /// <c>PubSubStore</c> Grain 存储提供程序持久化，无需 DynamoDB 或 Kinesis Client Library。
         /// </remarks>
-        /// <param name="builder">下 silo 建筑商</param>
-        /// <param name="name">流体提供者的名称。</param>
-        /// <param name="configureOptions">代表用于配置 Kinesis 选项。</param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <param name="builder">Silo 构建器。</param>
+        /// <param name="name">流提供程序名称。</param>
+        /// <param name="configureOptions">用于配置 Kinesis 选项的委托。</param>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder AddKinesisStreams(this ISiloBuilder builder, string name, Action<KinesisStreamOptions> configureOptions)
         {
             builder.AddKinesisStreams(name, b =>
@@ -34,12 +34,12 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 silo 使用亚马逊 Kinesis 数据流支持的持久性流提供者。
+        /// 配置 Silo 使用由 Amazon Kinesis Data Streams 支持的持久化流提供程序。
         /// </summary>
-        /// <param name="builder">下 silo 建筑商</param>
-        /// <param name="name">流体提供者的名称。</param>
-        /// <param name="configure">用于配置流提供方的代表。</param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <param name="builder">Silo 构建器。</param>
+        /// <param name="name">流提供程序名称。</param>
+        /// <param name="configure">用于配置流提供程序的委托。</param>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder AddKinesisStreams(this ISiloBuilder builder, string name, Action<SiloKinesisStreamConfigurator> configure)
         {
             var configurator = new SiloKinesisStreamConfigurator(name,

@@ -7,7 +7,7 @@ using StackExchange.Redis;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// <see cref="RedisGrainDirectory"/>配置选项
+    /// <see cref="RedisGrainDirectory"/> 的配置选项。
     /// </summary>
     public class RedisGrainDirectoryOptions
     {
@@ -18,25 +18,25 @@ namespace Orleans.Configuration
         public ConfigurationOptions? ConfigurationOptions { get; set; }
 
         /// <summary>
-        /// 该代表用来创建 Redis 连接多路驱动器,并表明该多路转换器是否共享。
+        /// 用于创建 Redis 连接多路复用器并指明其是否共享的委托。
         /// </summary>
         /// <remarks>
-        /// 当 <c>IsShared</c> 是 <see langword="true"/>时,供应商将不处置返回的多路驱动器。
+        /// 当 <c>IsShared</c> 为 <see langword="true"/> 时，提供程序不会释放返回的连接多路复用器。
         /// </remarks>
         public Func<RedisGrainDirectoryOptions, Task<(IConnectionMultiplexer Multiplexer, bool IsShared)>> CreateMultiplexer { get; set; } = DefaultCreateMultiplexer;
 
         /// <summary>
-        /// 输入过期, 默认为无效。 值应该只为短时间环境设定( 如测试中) 。
-        /// 设定一个不同于无效的值将导致集群中重复激活。
+        /// 条目过期时间，默认为 null。仅应在临时环境（例如测试）中设置此值。
+        /// 将其设置为非 null 值会导致集群中出现重复激活实例。
         /// </summary>
         public TimeSpan? EntryExpiry { get; set; } = null;
 
         /// <summary>
-        /// 默认的多路驱动器创建代表 。
+        /// 默认连接多路复用器创建委托。
         /// </summary>
-        /// <param name="options"> Redis grain 目录选项。</param>
-        /// <returns>返回一个自供应商拥有的连接多路驱动器的任务。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="options"/> 是 <see langword="null"/>.</exception>
+        /// <param name="options">Redis Grain 目录选项。</param>
+        /// <returns>返回由提供程序拥有的连接多路复用器的任务。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="options"/> 为 <see langword="null"/>。</exception>
         public static async Task<(IConnectionMultiplexer Multiplexer, bool IsShared)> DefaultCreateMultiplexer(RedisGrainDirectoryOptions options)
         {
             ArgumentNullException.ThrowIfNull(options);
@@ -50,7 +50,7 @@ namespace Orleans.Configuration
     }
 
     /// <summary>
-    /// <see cref="RedisGrainDirectoryOptions"/>的配置验证符 。
+    /// <see cref="RedisGrainDirectoryOptions"/> 的配置验证器。
     /// </summary>
     public class RedisGrainDirectoryOptionsValidator : IConfigurationValidator
     {
@@ -60,8 +60,8 @@ namespace Orleans.Configuration
         /// <summary>
         /// 初始化 <see cref="RedisGrainDirectoryOptionsValidator"/> 类的新实例。
         /// </summary>
-        /// <param name="options">验证的选项。</param>
-        /// <param name="name"> grain 目录的名称。</param>
+        /// <param name="options">要验证的选项。</param>
+        /// <param name="name">Grain 目录名称。</param>
         public RedisGrainDirectoryOptionsValidator(RedisGrainDirectoryOptions options, string name)
         {
             _options = options;

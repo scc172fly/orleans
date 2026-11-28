@@ -6,7 +6,7 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// A <see cref="IConsistentRingStreamQueueMapper"/> 因此 <see cref="IStreamQueueMapper"/> 将阵列绘制成散星环,以平衡队列的平衡, silos.
+    /// 一个 <see cref="IConsistentRingStreamQueueMapper"/>，因此也是 <see cref="IStreamQueueMapper"/>，通过将队列映射到由 Silo 组成的哈希环上来均衡队列。
     /// </summary>
     public class HashRingBasedStreamQueueMapper : IConsistentRingStreamQueueMapper
     {
@@ -70,17 +70,17 @@ namespace Orleans.Streams
     }
 
     /// <summary>
-    /// 将分区被映射到 QueueId的音轨的绘图器排队
+    /// 跟踪分区到 QueueId 映射关系的队列映射器。
     /// </summary>
     public sealed class HashRingBasedPartitionedStreamQueueMapper : HashRingBasedStreamQueueMapper
     {
         private readonly Dictionary<QueueId, string> _partitions;
 
         /// <summary>
-        /// 将分区被映射到 QueueId的音轨的绘图器排队
+        /// 跟踪分区到 QueueId 映射关系的队列映射器。
         /// </summary>
-        /// <param name="partitionIds">分区列表</param>
-        /// <param name="queueNamePrefix">用于 QueueIds。每个流端提供者必须独一</param>
+        /// <param name="partitionIds">分区列表。</param>
+        /// <param name="queueNamePrefix">QueueId 的前缀，各流提供程序之间必须唯一。</param>
         public HashRingBasedPartitionedStreamQueueMapper(IReadOnlyList<string> partitionIds, string queueNamePrefix)
             : base((partitionIds ?? throw new ArgumentNullException(nameof(partitionIds))).Count, queueNamePrefix)
         {
@@ -91,7 +91,7 @@ namespace Orleans.Streams
         }
 
         /// <summary>
-        /// 以 QueueId获取分区
+        /// 根据 QueueId 获取分区。
         /// </summary>
         /// <param name="queue"></param>
         /// <returns></returns>

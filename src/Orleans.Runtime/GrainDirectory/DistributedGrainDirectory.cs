@@ -16,45 +16,45 @@ using Orleans.Runtime.Scheduler;
 namespace Orleans.Runtime.GrainDirectory;
 
 /*
-下 grain 目录 Orleans 键是一个关键值仓库,该关键值是 grain 和值的标识符,是显示活动 silo (可能)
-主机 grain。
+Orleans 中的 Grain 目录是一个键值存储：键为 Grain 标识符，值为注册条目，该条目指向一个可能
+托管该 Grain 的活动 Silo。
 
-目录使用一个一致的散列环分割,将区域分配到集组中活动 silos 。 Grain 识别符号被散置以寻找 silo ,即
-拥有与散列相对应的环段。每个活动单位 silo 拥有预先配置的幅度数,默认为每 silo30个范围。这与方案类似。
-亚马逊迪纳摩(见 https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf)和阿帕奇·卡桑德拉(见
-https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/architecture/archDataDistributeVnodesUsing.html), where multiple "virtual nodes" (ranges) are created for each node
-分区的大小取决于其散列和下一个分割的散列之间的距离。
-组合组合。分组成员配置被称为“视图”,每个视图都有单逐个增加版本数。随着 silos 加入和离开该组,连续
-创建了视图, 从而导致区域所有权的更改。 这被称为视图变更。 目录分区有两种操作模式: 正常操作和查看变化 。
-在正常操作期间,目录分区处理程序在本地请求时没有与其他主机协调。在视图更改时,主机相互协调以传输
-目录所有目录区域。 一旦完成此传输, 正常操作将恢复。 该目录的两阶段设计遵循虚拟同步方法( 参见
-https://www.microsoft.com/en-us/research/publication/virtually-synchronous-methodology-for-dynamic-service-replication/) and has some similarities to Vertical Paxos (see
-https://www.microsoft.com/en-us/research/publication/vertical-paxos-and-primary-backup-replication/). Both proceed in two phases: a normal operation phase where a fixed set of
-处理申请过程时没有失败,以及观察改变阶段,在成员变动期间,国家和控制权在不同观点之间转移。
+目录使用一致性哈希环进行分区，各范围分配给集群中的活动 Silo。对 Grain 标识符计算哈希，以找到
+拥有其哈希值所在环区段的 Silo。每个活动 Silo 拥有预先配置数量的范围，默认为每个 Silo 30 个。这与
+Amazon Dynamo（参见 https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf）及 Apache Cassandra（参见
+https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/architecture/archDataDistributeVnodesUsing.html）的方案类似，即为每个节点
+（主机）创建多个“虚拟节点”（范围）。分区大小取决于其哈希值与下一个分区哈希值之间的距离。范围所有权由集群成员资格
+配置决定。集群成员资格配置称为“视图”，每个视图都有单调递增的版本号。随着 Silo 加入和离开集群，会依次创建
+新视图，从而改变范围所有权，这称为视图变更。目录分区有两种工作模式：正常运行和视图变更。
+正常运行时，目录分区在本地处理请求，无需与其他主机协调。视图变更期间，各主机相互协调以转移
+目录范围的所有权。转移完成后恢复正常运行。目录的两阶段设计遵循 Virtual Synchrony（虚拟同步）方法（参见
+https://www.microsoft.com/en-us/research/publication/virtually-synchronous-methodology-for-dynamic-service-replication/），与 Vertical Paxos（参见
+https://www.microsoft.com/en-us/research/publication/vertical-paxos-and-primary-backup-replication/）也有一些相似之处。两者都分为两个阶段：正常运行阶段由固定的
+进程集合在无故障情况下处理请求；视图变更阶段在成员资格发生变化时，在视图之间转移状态和控制权。
 
-当视图发生变化时,分割段既可以生长也可以缩小。如果是新 silo 加入了该组,然后分割可能会缩小,为新的组合 silo分区分割区。如果
-a silo 已经离开数据组, 然后分割段可能会增长以接管左 silo的分区。 当分割段缩缩时, 以前的所有人封存丢失的范围并创建
-包含此范围内目录条目的快照。 新范围所有人( 其分区已经增长, 可能从零开始) 要求向上一个所有者及新区域所有人提供快照
-使用快照后,新所有人可以开始服务请求。新的所有人承认将转让给前所有人,因此上一个
-所有人可以删除快照。 如果前一位所有人看到快照传输已被废弃, 也可以删除快照 。
+发生视图变更时，分区可能扩大，也可能缩小。如果新的 Silo 加入集群，分区可能缩小，以便为新 Silo 的分区腾出空间。如果
+某个 Silo 离开集群，分区可能扩大，以接管离开的 Silo 的分区。当分区缩小时，原所有者会封闭失去的范围，并创建
+包含该范围内目录条目的快照。新的范围所有者（其分区已扩大，可能是从空范围开始扩大）向原所有者请求快照，并
+在本地应用它。快照应用后，新所有者就可以开始处理请求。新所有者向原所有者确认转移，使原所有者
+可以删除快照。如果原所有者发现快照转移已被放弃，也会删除快照。
 
-当主机在未先卸载目录分区的情况下发生碰撞时, 其后拥有崩溃 silo 先前所属分区的东道方必须执行恢复 。
-恢复涉及要求每个积极的人 silo 一组内 grain 驱逐登记 silos 无需追回,因为登记
-仅对活动有效 silos.回收程序确保数据没有损失,目录保持前后一致(无重复) grain ) (激活)。
+如果主机在移交目录分区之前崩溃，则之后拥有该故障 Silo 原有分区的主机必须执行恢复。
+恢复过程向集群中每个活动 Silo 查询其拥有的 Grain 注册记录。被逐出集群的 Silo 的注册记录无需恢复，因为注册记录
+仅对活动 Silo 有效。恢复过程确保不会丢失数据，并使目录保持一致（不存在重复的 Grain 激活实例）。
 
-集群成员的组成可保证一意一行,但不能保证所有 silos 参看所有成员的意见:可以 silos 中位会籍观点
-成员数目迅速变化的,则必须放弃即时转移,恢复工作,而不是通常的分划至分划交接,
-至2011年 silo 今后改进分组成员制,可通过确保:
-所有人能看见所有的观点 silos.
+集群成员资格保证单调性，但不保证所有 Silo 都看到所有成员资格视图：Silo 可能跳过中间视图，
+例如成员资格迅速变化时。在这种情况下，应放弃快照转移，执行恢复而非正常的分区间移交，
+因为 Silo 无法确定哪个分区是原所有者。将来可以改进集群成员资格机制，确保
+所有 Silo 都看到所有视图，以减少或消除此情形。
 
-目录分区( 在 GrainDirectoryPartition中执行)目录分区使用版本的域锁定,以防止在视图更改时无法对区域进行无效访问。
-视图更改完成后, 将打开修改视图视图并发布。 这些锁定类似于虚拟同步方法中使用的“ wedge” 。
-分为多个 silos 查看更改期间的视图变化。 这增加了视图修改程序的一些复杂性, 因为每个分割区必须有可能与多个其它分隔区协调
-完成视图更改的分区。
+目录分区（由 GrainDirectoryPartition 实现）使用带版本的范围锁，防止视图变更期间对范围进行无效访问。范围锁在
+视图变更期间创建，在视图变更完成后释放。这些锁类似虚拟同步方法中的楔入（wedge）机制。某个范围可能
+在视图变更期间拆分到多个 Silo。这为视图变更过程增加了一些复杂性，因为每个分区可能需要与多个其他
+分区协调，才能完成视图变更。
 
-对目录分区的所有请求都包含呼叫器的视图编号,而目录中的所有回复包括目录分区的查看编号。当目录分区被调用时,
-显示比它本身高的目录分区, 它会刷新它的视图并启动视图修改。 同样, 当调用者看到一个带有更高查看编号的答复时
-用户可更新视图,必要时重试请求,以确保所有请求都由目录分区的正确所有人处理。
+所有发往目录分区的请求都包含调用方的视图版本号，目录的所有响应都包含目录分区的视图版本号。如果
+目录分区发现某个视图版本号高于自己的版本号，则刷新视图并启动视图变更。同样，如果调用方收到的响应所带视图版本号
+高于自己的版本号，则刷新视图，并在必要时重试请求。这确保所有请求均由目录分区的正确所有者处理。
 */
 internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDirectory, IGrainDirectoryClient, ILifecycleParticipant<ISiloLifecycle>, DistributedGrainDirectory.ITestHooks
 {
@@ -73,13 +73,13 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
     internal ClusterMembershipSnapshot ClusterMembershipSnapshot => _membershipService.CurrentView.ClusterMembershipSnapshot;
     internal ClusterMembershipSnapshot LatestClusterMembershipSnapshot => _membershipService.ClusterMembershipService.CurrentSnapshot;
 
-    // 回收成员价值被用来避免同时登记和回收作业之间的竞争,这可能导致登记丢失。
-    // 发生这种情况时,新启动程序创建后开始向崩溃的宿主注册。
-    // 并询问所有 silos 激活。当此 silo 处理该请求时,它将在内部启动
-    // 'ActivationDirectory即便这些引爆装置可能尚未完成登记。 silos 同一条目可返回
-    // grain.通过确保任何登记至少以与回收版本相同的一个版本进行,我们避免了这一问题。
-    // 精确跟踪需要回收的成套范围,从而准确追踪这些范围的各组情况,但这样做会使事情有些复杂化,因为需要跟踪范围
-    // 每个回收版本。
+    // 恢复成员资格版本值用于避免并发注册和恢复操作之间的竞态导致注册记录丢失。
+    // 例如，创建新的激活实例并开始向随后崩溃的主机注册时，就可能发生这种情况。与此同时，新所有者启动
+    // 恢复并向所有 Silo 查询其激活实例。当前 Silo 处理该请求时，其内部的
+    // ActivationDirectory 已包含该激活实例，即使这些激活实例可能还未完成注册。因此，多个 Silo 可能返回同一
+    // Grain 的条目。通过确保所有相关注册操作的版本至少与恢复版本一样新，可以避免此问题。还可以进一步提高精确度，
+    // 同时跟踪需要恢复的范围集合，但会使逻辑变得更复杂，因为这需要跟踪
+    // 每个恢复版本对应的范围。
     private long _recoveryMembershipVersion;
     internal long RecoveryMembershipVersion => Volatile.Read(ref _recoveryMembershipVersion);
     private Task _runTask = Task.CompletedTask;
@@ -267,7 +267,7 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
                 && attempts < MaxAttempts
                 && !cancellationToken.IsCancellationRequested)
             {
-                // 这很可能表明目标 silo 已被宣布死亡。
+                // 这可能表明目标 Silo 已被宣告死亡。
                 ++attempts;
                 var latestClusterMembership = LatestClusterMembershipSnapshot;
                 if (!CanInvokeClusterMember(latestClusterMembership, owner))
@@ -283,8 +283,8 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
 
             if (invokeResult.RetryAfterDelay > TimeSpan.Zero)
             {
-                // 安全租赁持有对于此 grain 或范围是有效的。
-                // 装上延迟的装置,然后通知观察员,以便该事件可以用作同步屏障。
+                // 此 Grain 或范围存在有效的安全租约保留。
+                // 在通知观察者之前先启动延迟计时，以便该事件可用作同步屏障。
                 var retryDelay = Task.Delay(invokeResult.RetryAfterDelay, _timeProvider, cancellationToken);
                 GrainDirectoryEvents.EmitOperationDelayedByLeaseHold(Silo, grainId, operation, invokeResult.RetryAfterDelay);
                 await retryDelay;
@@ -293,15 +293,15 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
 
             if (initialRecoveryMembershipVersion != _recoveryMembershipVersion)
             {
-                // 如果回收版本发生更改,请进行查看更新并重新发布操作。
-                // 详情见“回收成员VersionValue”声明的评论。
+                // 如果恢复版本发生变化，则刷新视图并重新发起操作。
+                // 有关详情，请参见 _recoveryMembershipVersionValue 声明处的注释。
                 continue;
             }
 
             if (!invokeResult.TryGetResult(view.Version, out var result))
             {
-                // 远程复制对成员资格有较新的了解,不再拥有请求书中指明的 grain 。
-                // 重新确定成员并重新评估。
+                // 远程副本具有更新的成员资格视图，已经不再是请求所指定 Grain 的所有者。
+                // 刷新成员资格并重新评估。
                 view = await _membershipService.RefreshViewAsync(invokeResult.Version, cancellationToken);
                 continue;
             }
@@ -326,8 +326,8 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
                 return (view, owner, partitionReference);
             }
 
-            // 群集会成员在目录非同步视图之前提前。 如果最近的群集会
-            // 仍然有一个活跃的成员, 这个空目录视图是静止的; 否则它就是终端, 如关闭时一样 。
+            // 集群成员资格的更新先于目录的异步视图。如果最新集群视图
+            // 仍包含活动成员，则当前空目录视图已过时；否则，它是终止状态下的空视图，例如关闭时。
             if (view.Members.Length == 0
                 && view.Version.Value > 0
                 && !HasActiveMembers(LatestClusterMembershipSnapshot))
@@ -390,7 +390,7 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
         var recoveryMembershipVersion = _recoveryMembershipVersion;
         if (recoveryMembershipVersion < membershipVersion.Value)
         {
-            // 确保该值在登记激活的任何线索中立即可见。
+            // 确保该值立即对任何正在注册激活实例的线程可见。
             Interlocked.CompareExchange(ref _recoveryMembershipVersion, membershipVersion.Value, recoveryMembershipVersion);
         }
 
@@ -460,7 +460,7 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
     {
         _grainDirectoryResolver = _serviceProvider.GetRequiredService<GrainDirectoryResolver>();
 
-        // 遗留远程端点在滚动升级期间为默认目录服务。
+        // 滚动升级期间，旧版远程端点为默认目录提供服务。
         if (_grainDirectoryResolver.DefaultGrainDirectory == this)
         {
             DistributedRemoteGrainDirectory.Create(this, _membershipService, _serviceProvider.GetRequiredService<SystemTargetShared>());
@@ -468,7 +468,7 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
 
         observer.Subscribe(nameof(DistributedGrainDirectory), ServiceLifecycleStage.RuntimeInitialize, OnRuntimeInitializeStart, OnRuntimeInitializeStop);
 
-        // 将目录保持可用到关闭触发时 grain 移民已经完成。
+        // 保持目录可用，直到关闭触发的 Grain 迁移全部完成。
         observer.Subscribe(nameof(DistributedGrainDirectory), ServiceLifecycleStage.GrainDirectoryShutdown, NoOpStart, OnShuttingDown);
 
         static Task NoOpStart(CancellationToken _) => Task.CompletedTask;
@@ -496,7 +496,7 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
 
             if (_runTask is { } task)
             {
-                // 尝试等待交接完成 。
+                // 尝试等待移交完成。
                 await this.RunOrQueueTask(async () => await task.WaitAsync(cancellationToken).SuppressThrowing());
             }
 
@@ -519,7 +519,7 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
 
     private async Task ProcessMembershipUpdates()
     {
-        // 确保所有儿童任务在离开之前完成,并在此跟踪。
+        // 在退出之前确保所有子任务均已完成，在此处跟踪它们。
         List<Task> tasks = [];
         ClusterMembershipSnapshot? previousUpdate = null;
         while (!_stoppedCts.IsCancellationRequested)
@@ -607,13 +607,13 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
     {
         Debug.Assert(_deadSiloLeaseDuration > TimeSpan.Zero);
 
-        // 我们要求定期清理,以免过期租约留在目录中太久。
-        // 我们在这里这样做,而不是在分区中这样做,以避免有30个计时器(默认情况下,也许更多)。
+        // 定期请求清理，避免过期租约在目录中保留过久。
+        // 在这里统一清理，而不是在各分区内清理，以免需要 30 个（默认值，可能更多）定时器。
         var period = 1.1 * _deadSiloLeaseDuration;
 
         if (period < TimeSpan.FromMinutes(1))
         {
-            // 我们创建了一个低管区 以避免在隔断区造成太多的间接成本
+            // 设置一个下界，以免给分区带来过多开销。
             period = TimeSpan.FromMinutes(1);
         }
 
@@ -631,7 +631,7 @@ internal sealed partial class DistributedGrainDirectory : SystemTarget, IGrainDi
         }
         catch (OperationCanceledException) when (_stoppedCts.IsCancellationRequested)
         {
-            // 忽略忽略
+            // 忽略。
         }
     }
 

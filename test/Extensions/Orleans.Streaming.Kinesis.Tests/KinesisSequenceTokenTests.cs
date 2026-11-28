@@ -18,8 +18,8 @@ namespace Orleans.Streaming.Kinesis.Tests;
 [Collection(TestEnvironmentFixture.DefaultCollection)]
 public sealed class KinesisSequenceTokenTests
 {
-    // 真正的 Kinesis 碎片序列号(最多128位)代表,远远超出
-    // long.MaxValue (~9.22e18,19位数)。
+    // 这些数值代表真实的 Kinesis 分片序列号（最多 128 位），其范围远超
+    // long.MaxValue（约 9.22e18，19 位数字）。
     private const string HugeShardSequence = "170141183460469231731687303715884105727";
     private const string SlightlyLargerShardSequence = "170141183460469231731687303715884105728";
 

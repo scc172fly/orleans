@@ -13,7 +13,7 @@ using Orleans.Runtime.MembershipService;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 定期监测运行时间和健康组成部分,报告投诉。
+    /// 定期监控运行时及组件的健康状况，并报告异常情况。
     /// </summary>
     internal partial class Watchdog(
         IOptions<ClusterMembershipOptions> clusterMembershipOptions,
@@ -34,7 +34,7 @@ namespace Orleans.Runtime
         private long _platformWatchdogTimestamp;
         private long _componentWatchdogTimestamp;
 
-        // 自程序开始以来GC暂停期。
+        // 自进程启动以来的 GC 暂停时长。
         private TimeSpan _cumulativeGCPauseDuration;
 
         private DateTime _lastComponentHealthCheckTime;
@@ -163,7 +163,7 @@ namespace Orleans.Runtime
             var numFailedChecks = 0;
             StringBuilder? complaints = null;
 
-            // 检查前重新启动计时器, 以减少对拖拉板检查的假正数 。
+            // 在检查之前重启定时器，以减少停顿检查器的误报。
             _componentWatchdogTimestamp = _timeProvider.GetTimestamp();
             foreach (var participant in _participants)
             {
@@ -208,7 +208,7 @@ namespace Orleans.Runtime
                 if (_cancellation.IsCancellationRequested) return;
 
                 _cancellation.Cancel();
-                // 启动在任一线索开始之前可能失败 。
+                // 启动可能在任一线程启动前就失败。
                 if (_componentWatchdogThread is { IsAlive: true } componentThread)
                 {
                     componentThread.Join();

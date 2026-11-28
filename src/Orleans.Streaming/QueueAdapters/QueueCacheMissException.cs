@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 例外表示请求的邮件不在队列缓存中 。
+    /// 表示所请求的消息不在队列缓存中的异常。
     /// </summary>
     [Serializable]
     [GenerateSerializer]
@@ -14,20 +14,20 @@ namespace Orleans.Streams
         private const string MESSAGE_FORMAT = "Item not found in cache.  Requested: {0}, Low: {1}, High: {2}";
 
         /// <summary>
-        /// 获取请求的序列符号 。
+        /// 获取请求的序列令牌。
         /// </summary>
-        /// <value>请求的序列符号。</value>
+        /// <value>请求的序列令牌。</value>
         [Id(0)]
         public string? Requested { get; private set; }
 
         /// <summary>
-        /// 获得最早可用的序列符号 。
+        /// 获取最早可用的序列令牌。
         /// </summary>
         [Id(1)]
         public string? Low { get; private set; }
 
         /// <summary>
-        /// 获取最新可用的序列符号 。
+        /// 获取最新可用的序列令牌。
         /// </summary>
         [Id(2)]
         public string? High { get; private set; }
@@ -40,22 +40,22 @@ namespace Orleans.Streams
         /// <summary>
         /// 初始化 <see cref="QueueCacheMissException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">电文。</param>
+        /// <param name="message">消息。</param>
         public QueueCacheMissException(string message) : base(message) { }
 
         /// <summary>
         /// 初始化 <see cref="QueueCacheMissException"/> 类的新实例。
         /// </summary>
-        /// <param name="message">电文。</param>
-        /// <param name="innerException">内在的例外</param>
+        /// <param name="message">消息。</param>
+        /// <param name="innerException">内部异常。</param>
         public QueueCacheMissException(string message, Exception innerException) : base(message, innerException) { }
 
         /// <summary>
         /// 初始化 <see cref="QueueCacheMissException"/> 类的新实例。
         /// </summary>
-        /// <param name="requested">请求的序列符号。</param>
-        /// <param name="low">最早可用的序列符号。</param>
-        /// <param name="high">最新的可用序列符号。</param>
+        /// <param name="requested">请求的序列令牌。</param>
+        /// <param name="low">最早可用的序列令牌。</param>
+        /// <param name="high">最新可用的序列令牌。</param>
         public QueueCacheMissException(StreamSequenceToken requested, StreamSequenceToken low, StreamSequenceToken high)
             : this(GetTokenString(requested, nameof(requested)), GetTokenString(low, nameof(low)), GetTokenString(high, nameof(high)))
         {
@@ -70,9 +70,9 @@ namespace Orleans.Streams
         /// <summary>
         /// 初始化 <see cref="QueueCacheMissException"/> 类的新实例。
         /// </summary>
-        /// <param name="requested">请求的序列符号。</param>
-        /// <param name="low">最早可用的序列符号。</param>
-        /// <param name="high">最新的可用序列符号。</param>
+        /// <param name="requested">请求的序列令牌。</param>
+        /// <param name="low">最早可用的序列令牌。</param>
+        /// <param name="high">最新可用的序列令牌。</param>
         public QueueCacheMissException(string? requested, string? low, string? high)
             : this(string.Format(CultureInfo.InvariantCulture, MESSAGE_FORMAT, requested, low, high))
         {
@@ -84,7 +84,7 @@ namespace Orleans.Streams
         /// <summary>
         /// 初始化 <see cref="QueueCacheMissException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">序列号信息。</param>
+        /// <param name="info">序列化信息。</param>
         /// <param name="context">上下文。</param>
         [Obsolete]
         private QueueCacheMissException(SerializationInfo info, StreamingContext context)

@@ -15,15 +15,15 @@ namespace TestGrains
     {
         public const string StreamNamespace = "TransientError_RecoverableStream";
 
-        // 失职注射
-        // 模拟简单的瞬态故障 。
-        // 每一次失败都发生一次。
-        // 我们把失败放在关键点,以检验恢复能力。
-        // - 一开始 grain 启动
-        // - 激活后,但在存储开始标记之前。
-        // - 开始后,标语已经存储, 但因为它的信息已经被处理。
-        // - 中流处理(本次测试的第33条信息, 但真实取决于流)
-        // - 最后一条信息在流中。
+        // 故障注入
+        // 模拟简单的暂时性故障。
+        // 每种故障仅发生一次。
+        // 在关键位置注入故障，以测试可恢复性。
+        // - 首次激活 Grain 时。
+        // - 激活后、存储起始令牌之前。
+        // - 存储起始令牌之后、处理其对应消息之前。
+        // - 流处理过程中（本测试为第 33 条消息，实际位置取决于流）。
+        // - 流中的最后一条消息。
         private class FireOnNthTry
         {
             private readonly int attemptToFireOn;
@@ -66,7 +66,7 @@ namespace TestGrains
         private FaultsState? myFaults;
         private FaultsState Faults { get { return myFaults ?? (myFaults = FaultInjectionTracker.GetOrAdd(this.GetPrimaryKey(), key => new FaultsState())); } }
 
-        // grain 实例状态
+        // Grain 实例状态
         private readonly ILogger logger;
         private IAsyncStream<GeneratedEvent> stream = null!;
 
@@ -91,7 +91,7 @@ namespace TestGrains
             }
 
             var streamProvider = this.GetStreamProvider(GeneratedStreamTestConstants.StreamProviderName);
-            stream = streamProvider.GetStream<GeneratedEvent>(State.StreamNamespace!, State.StreamGuid); // 命名空间在获取流之前先于上面初始化 。
+            stream = streamProvider.GetStream<GeneratedEvent>(State.StreamNamespace!, State.StreamGuid); // 在获取流之前，已在上方初始化命名空间。
             foreach (StreamSubscriptionHandle<GeneratedEvent> handle in await stream.GetAllSubscriptionHandles())
             {
                 await handle.ResumeAsync(OnNextAsync, OnErrorAsync, State.RecoveryToken);
@@ -101,8 +101,8 @@ namespace TestGrains
         private async Task OnNextAsync(GeneratedEvent evt, StreamSequenceToken? sequenceToken)
         {
 
-            // 忽略重复
-            if (State.IsDuplicate(sequenceToken!)) // 生成的流总是提供序列符号 。
+            // 忽略重复事件
+            if (State.IsDuplicate(sequenceToken!)) // 生成的流始终提供序列令牌。
             {
                 logger.LogInformation("Received duplicate event.  StreamGuid: {StreamGuid}, SequenceToken: {SequenceToken}", State.StreamGuid, sequenceToken);
                 return;
@@ -110,12 +110,12 @@ namespace TestGrains
 
             logger.LogInformation("Received event.  StreamGuid: {StreamGuid}, SequenceToken: {SequenceToken}", State.StreamGuid, sequenceToken);
 
-            // 试图注射过失前加积蓄积器
+            // 尝试注入故障前先递增累加器
             State.Accumulator++;
 
-            // 我们只会更新启动代号, 如果这是我们处理的第一个事件
-            // 如果那样的话,我们会想保存启动标志 以防出事
-            if (State.TryUpdateStartToken(sequenceToken!)) // 生成的流总是提供序列符号 。
+            // 仅当这是处理的第一个事件时，才更新起始令牌
+            // 在这种情况下，需要保存起始令牌，以便发生故障时恢复。
+            if (State.TryUpdateStartToken(sequenceToken!)) // 生成的流始终提供序列令牌。
             {
                 Faults.onFirstMessageFault.TryFire(InjectFault);
                 await WriteStateAsync();
@@ -126,7 +126,7 @@ namespace TestGrains
             {
                 Faults.onFirstMessageProcessedFault.TryFire(InjectFault);
                 Faults.on33rdMessageFault.TryFire(InjectFault);
-                // 每10次事件,检查我们的 grain 状态
+                // 每处理 10 个事件，就为 Grain 状态建立检查点
                 if (State.Accumulator % 10 != 0) return;
                 logger.LogInformation(
                     "Checkpointing: StreamGuid: {StreamGuid}, StreamNamespace: {StreamNamespace}, SequenceToken: {SequenceToken}, Accumulator: {Accumulator}.",
@@ -168,7 +168,7 @@ namespace TestGrains
 
             if (!activating)
             {
-                DeactivateOnIdle(); // 杀死 grain ,从检查站重新装载
+                DeactivateOnIdle(); // 终止 Grain 激活实例，并从检查点重新加载
             }
 
             throw new ApplicationException("Injecting Fault");

@@ -7,7 +7,7 @@ using Azure.Data.Tables;
 using Azure.Data.Tables.Models;
 
 //
-// #ifs 数量可以减少(或删除),一旦我们按特性/区域分开测试项目,否则最终会出现模糊的类型和错误。
+// 一旦按功能或领域拆分测试项目，就可以减少甚至移除 #if；否则会产生类型歧义及生成错误。
 //
 
 #if ORLEANS_CLUSTERING
@@ -27,11 +27,11 @@ namespace Orleans.Transactions.AzureStorage
 #elif ORLEANS_DIRECTORY
 namespace Orleans.GrainDirectory.AzureStorage
 #else
-// 如果某事物没有定义, 没有默认的命名空间, 故意引起编辑错误
+// 有意不使用默认命名空间，以便未定义某项内容时产生编译错误。
 #endif
 {
     /// <summary>
-    /// 与 Azure 表格存储有关的常数(也适用于宇宙DB中的表端点)。
+    /// 与 Azure Table Storage 相关的常量（也适用于 Cosmos DB 的 Table 终结点）。
     /// </summary>
     internal static class AzureTableConstants
     {
@@ -44,20 +44,20 @@ namespace Orleans.GrainDirectory.AzureStorage
     }
 
     /// <summary>
-    /// 与 Azure 表格储存有关的一般功用功能(也适用于宇宙DB中的表端点)。
+    /// 与 Azure Table Storage 相关的通用实用函数（也适用于 Cosmos DB 的 Table 终结点）。
     /// </summary>
     internal static partial class AzureTableUtils
     {
         /// <summary>
-        /// 值ETag "*" ,以匹配任何条件表格操作的egag(更新、合并、删除)。
+        /// 值为 "*" 的 ETag，用于在有条件的表操作（更新、合并、删除）中匹配任意 ETag。
         /// </summary>
         public const string ANY_ETAG = AzureTableConstants.ANY_ETAG;
 
         /// <summary>
-        /// 检查从 Azure 存储库返回的例外情况,以核实是否试图阅读储存表中不存在的一些数据。
+        /// 检查 Azure Storage 库返回的异常，判断它是否表示尝试读取存储表中不存在的数据。
         /// </summary>
-        /// <param name="exc">被 Azure 存储库操作</param>
-        /// <returns><c>True</c> 如果该例外是指正在阅读的数据没有在 Azure 表格存储表储存</returns>
+        /// <param name="exc">Azure Storage 库操作返回的异常。</param>
+        /// <returns><c>True</c> 表示此异常意味着要读取的数据在 Azure Table Storage 中不存在。</returns>
         public static bool TableStorageDataNotFound(Exception exc)
         {
             if (EvaluateException(exc, out var httpStatusCode, out var restStatus, true))
@@ -75,10 +75,10 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 从 DataServiceClientException 或 DataServiceQueryException提取 REST 错误代码
+        /// 从 DataServiceClientException 或 DataServiceQueryException 提取 REST 错误代码。
         /// </summary>
-        /// <param name="exc">需要检查的例外。</param>
-        /// <returns>如果找到,返回 REST 错误代码, 否则返回 REST 错误代码 <c>null</c></returns>
+        /// <param name="exc">要检查的异常。</param>
+        /// <returns>找到 REST 错误代码时返回该代码，否则返回 <c>null</c></returns>
         private static string? ExtractRestErrorCode(Exception? exc)
         {
             while (exc != null && exc is not RequestFailedException)
@@ -90,13 +90,13 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 审查储存例外,如果适用,将提取HTTP状态代码和 <c>getRESTErrors=true</c>的REST错误代码。
+        /// 检查存储异常，并在适用时提取 HTTP 状态码；如果 <c>getRESTErrors=true</c>，还会提取 REST 错误代码。
         /// </summary>
-        /// <param name="e">需要检查的例外。</param>
-        /// <param name="httpStatusCode">输出 HTTP 状态代码(如果适用),否则 HttpStatusCode.Unused (306)</param>
-        /// <param name="restStatus">当 <c>getRESTErrors=true</c>]将酌情输出中试源错误代码时,否则 <c>null</c></param>
-        /// <param name="getRESTErrors">是否也应检查/提取 REST 错误代码。</param>
-        /// <returns>如果 HTTP 状态代码和 REST 错误被提取, 返回真实的 <c>true</c> 。</returns>
+        /// <param name="e">要检查的异常。</param>
+        /// <param name="httpStatusCode">输出适用的 HTTP 状态码，否则输出 HttpStatusCode.Unused (306)。</param>
+        /// <param name="restStatus">当 <c>getRESTErrors=true</c> 时，输出适用的 REST 错误代码，否则输出 <c>null</c></param>
+        /// <param name="getRESTErrors">是否也应检查和提取 REST 错误代码。</param>
+        /// <returns>成功提取 HTTP 状态码和 REST 错误时返回 <c>true</c>。</returns>
         public static bool EvaluateException(
             Exception? e,
             out HttpStatusCode httpStatusCode,
@@ -124,21 +124,21 @@ namespace Orleans.GrainDirectory.AzureStorage
             }
             catch
             {
-                // 如果我们没有分析例外, 把它当做我们无法处理 EvaluateException.
+                // 如果未能解析异常，则将其视为无法执行 EvaluateException。
                 return false;
             }
             return false;
         }
 
         /// <summary>
-        /// 如果指定的 HTTP 状态/错误代码在瞬态/ 可回取错误条件下返回时返回为真
+        /// 如果指定的 HTTP 状态码或错误代码是在瞬时或可重试错误情况下返回的，则返回 true。
         /// </summary>
-        /// <param name="httpStatusCode">HTTP 错误代码值</param>
-        /// <param name="restStatusCode">REST 错误代码值</param>
-        /// <returns><c>true</c> ,如果这是短暂/可重误</returns>
+        /// <param name="httpStatusCode">HTTP 错误代码值。</param>
+        /// <param name="restStatusCode">REST 错误代码值。</param>
+        /// <returns><c>true</c> 表示这是瞬时或可重试错误。</returns>
         public static bool IsRetriableHttpError(HttpStatusCode httpStatusCode, string? restStatusCode)
         {
-            // 注:我们忽略20X值,因为它们是成功的结果,而不是错误
+            // 注意：忽略 20X 值，因为它们表示成功结果，而非错误。
 
             return (
                 httpStatusCode == HttpStatusCode.RequestTimeout /* 408 */
@@ -152,34 +152,34 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 检查从 REST 调用返回的 HTTP 状态代码是否是由于存储争议( 临时) 错误所致 。
+        /// 检查 REST 调用返回的 HTTP 状态码是否可能由临时的存储竞争错误导致。
         /// </summary>
-        /// <param name="httpStatusCode">需要检查HTTP状态代码。</param>
-        /// <returns>返回 <c>true</c> 如果HTTP状态代码是由于储存争议所致。</returns>
+        /// <param name="httpStatusCode">要检查的 HTTP 状态码。</param>
+        /// <returns>HTTP 状态码由存储竞争导致时返回 <c>true</c>。</returns>
         public static bool IsContentionError(HttpStatusCode httpStatusCode)
         {
-            // 状态和错误代码
+            // 状态和错误代码。
             // http://msdn.microsoft.com/en-us/library/dd179382.aspx
 
             if (httpStatusCode == HttpStatusCode.PreconditionFailed) return true;
-            if (httpStatusCode == HttpStatusCode.Conflict) return true;     //应用程序试图插入一个实体,但表格上有一个实体,其 PartitionKey 和 RowKey 属性的数值相同。
+            if (httpStatusCode == HttpStatusCode.Conflict) return true;     // 主键冲突。应用程序尝试插入实体，但表中已存在 PartitionKey 和 RowKey 值均与待插入实体相同的实体。
             if (httpStatusCode == HttpStatusCode.NotFound) return true;
-            if (httpStatusCode == HttpStatusCode.NotImplemented) return true; // 新表格: Azure 表预案尚未初始化, 所以需要先创建
+            if (httpStatusCode == HttpStatusCode.NotImplemented) return true; // 新表：Azure 表架构尚未初始化，因此需要先创建表。
             return false;
         }
 
         /// <summary>
-        /// 检查从 REST 调用返回的 HTTP 状态代码是否是由于存储争议( 临时) 错误所致 。
+        /// 检查 REST 调用返回的 HTTP 状态码是否可能由临时的存储竞争错误导致。
         /// </summary>
-        /// <param name="httpStatusCode">需要检查HTTP状态代码。</param>
-        /// <returns>返回 <c>true</c> 如果HTTP状态代码是由于储存争议所致。</returns>
+        /// <param name="httpStatusCode">要检查的 HTTP 状态码。</param>
+        /// <returns>HTTP 状态码由存储竞争导致时返回 <c>true</c>。</returns>
         public static bool IsNotFoundError(HttpStatusCode httpStatusCode)
         {
-            // 状态和错误代码
+            // 状态和错误代码。
             // http://msdn.microsoft.com/en-us/library/dd179382.aspx
 
             if (httpStatusCode == HttpStatusCode.NotFound) return true;
-            if (httpStatusCode == HttpStatusCode.NotImplemented) return true; // 新表格: Azure 表预案尚未初始化, 所以需要先创建
+            if (httpStatusCode == HttpStatusCode.NotImplemented) return true; // 新表：Azure 表架构尚未初始化，因此需要先创建表。
             return false;
         }
 
@@ -188,7 +188,7 @@ namespace Orleans.GrainDirectory.AzureStorage
 
         internal static void ValidateTableName(string tableName)
         {
-            // 文档中的正则表达式: https://learn.microsoft.com/rest/api/storageservices/understanding-the-table-service-data-model#table-names
+            // 文档中的正则表达式：https://learn.microsoft.com/rest/api/storageservices/understanding-the-table-service-data-model#table-names
             if (!TableNameRegex().IsMatch(tableName))
             {
                 throw new ArgumentException($"Table name \"{tableName}\" is invalid according to the following rules:"
@@ -199,19 +199,19 @@ namespace Orleans.GrainDirectory.AzureStorage
         }
 
         /// <summary>
-        /// 删除无法用于 Azure PartitionKey 或 RowKey 值的任何字符。
+        /// 移除 Azure PartitionKey 或 RowKey 值中不允许使用的字符。
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
         public static string SanitizeTableProperty(string key)
         {
-            // 删除无法用于 Azure PartitionKey 或 RowKey 数值的任何字符
+            // 移除 Azure PartitionKey 或 RowKey 值中不允许使用的字符。
             // http://www.jamestharpe.com/web-development/azure-table-service-character-combinations-disallowed-in-partitionkey-rowkey/
             key = key
-                .Replace('/', '_')        // 向前斜线
-                .Replace('\\', '_')       // 反斜斜斜
-                .Replace('#', '_')        // 英镑符号
-                .Replace('?', '_');       // 问号
+                .Replace('/', '_')        // 正斜杠。
+                .Replace('\\', '_')       // 反斜杠。
+                .Replace('#', '_')        // 井号。
+                .Replace('?', '_');       // 问号。
 
             if (key.Length >= 1024)
                 throw new ArgumentException(string.Format(

@@ -6,7 +6,7 @@ param baseName string = 'orleansaca'
 
 param location string = resourceGroup().location
 
-@description('Object ID of the service principal used by the routine GitHub Actions deployment.')
+@description('例行 GitHub Actions 部署所用服务主体的对象 ID。')
 param deploymentPrincipalId string
 
 var normalizedBaseName = toLower(baseName)

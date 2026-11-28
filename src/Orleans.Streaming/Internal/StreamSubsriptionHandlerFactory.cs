@@ -5,7 +5,7 @@ using Orleans.Streams.Core;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 创建 <see cref="StreamSubscriptionHandle{T}"/> 实例的工厂。
+    /// 用于创建 <see cref="StreamSubscriptionHandle{T}"/> 实例的工厂。
     /// </summary>
     public class StreamSubscriptionHandlerFactory : IStreamSubscriptionHandleFactory
     {
@@ -24,16 +24,16 @@ namespace Orleans.Streams
         /// 初始化 <see cref="StreamSubscriptionHandlerFactory"/> 类的新实例。
         /// </summary>        
         /// <param name="streamProvider">
-        /// 溪流供应商
+        /// 流提供程序。
         /// </param>
         /// <param name="streamId">
-        /// 溪流身份
+        /// 流标识。
         /// </param>
         /// <param name="providerName">
-        /// 流源提供者名称 。
+        /// 流提供程序名称。
         /// </param>
         /// <param name="subscriptionId">
-        /// 订阅身份。
+        /// 订阅标识。
         /// </param>
         public StreamSubscriptionHandlerFactory(IStreamProvider streamProvider, StreamId streamId, string providerName, GuidId subscriptionId)
         {
@@ -47,7 +47,7 @@ namespace Orleans.Streams
         public StreamSubscriptionHandle<T> Create<T>()
         {
             var stream = this.streamProvider.GetStream<T>(StreamId) as StreamImpl<T>;
-            // Orleans.Streaming 提供者从 StreamImpl<T> 实例创建流控控。
+            // Orleans.Streaming 提供程序从 StreamImpl<T> 实例创建流句柄。
             return new StreamSubscriptionHandleImpl<T>(SubscriptionId, stream!);
         }
     }

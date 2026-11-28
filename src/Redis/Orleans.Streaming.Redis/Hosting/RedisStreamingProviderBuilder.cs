@@ -27,14 +27,14 @@ internal sealed class RedisStreamingProviderBuilder : IProviderBuilder<ISiloBuil
                     var serviceKey = configurationSection["ServiceKey"];
                     if (!string.IsNullOrEmpty(serviceKey))
                     {
-                        // 获取连接多路驱动方实例的名称 。
+                        // 按名称获取连接多路复用器实例。
                         var multiplexer = services.GetRequiredKeyedService<IConnectionMultiplexer>(serviceKey);
                         options.CreateMultiplexer = _ => Task.FromResult((Multiplexer: multiplexer, IsShared: true));
                         options.ConfigurationOptions = new ConfigurationOptions();
                     }
                     else
                     {
-                        // 构造连接字符串中的连接多路驱动器。
+                        // 根据连接字符串构造连接多路复用器。
                         var connectionName = configurationSection["ConnectionName"];
                         var connectionString = configurationSection["ConnectionString"];
                         if (!string.IsNullOrEmpty(connectionName) && string.IsNullOrEmpty(connectionString))
@@ -68,14 +68,14 @@ internal sealed class RedisStreamingProviderBuilder : IProviderBuilder<ISiloBuil
                 var serviceKey = configurationSection["ServiceKey"];
                 if (!string.IsNullOrEmpty(serviceKey))
                 {
-                    // 获取连接多路驱动方实例的名称 。
+                    // 按名称获取连接多路复用器实例。
                     var multiplexer = services.GetRequiredKeyedService<IConnectionMultiplexer>(serviceKey);
                     options.CreateMultiplexer = _ => Task.FromResult((Multiplexer: multiplexer, IsShared: true));
                     options.ConfigurationOptions = new ConfigurationOptions();
                 }
                 else
                 {
-                    // 构造连接字符串中的连接多路驱动器。
+                    // 根据连接字符串构造连接多路复用器。
                     var connectionName = configurationSection["ConnectionName"];
                     var connectionString = configurationSection["ConnectionString"];
                     if (!string.IsNullOrEmpty(connectionName) && string.IsNullOrEmpty(connectionString))

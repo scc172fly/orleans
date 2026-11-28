@@ -1,5 +1,5 @@
-// 根据一项或多项协定获得 .NET 基金会许可证。
-// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
 using System.Text;
@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 namespace PackageJsonGenerator.Helpers;
 
 /// <summary>
-/// 构建金库 API 由Roslyn符号制作的模型。
+/// 根据 Roslyn 符号构建规范化的 API 模型。
 /// </summary>
 internal sealed class CanonicalModelBuilder(Compilation compilation)
 {
@@ -45,13 +45,13 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
             IsReadOnly = symbol.IsReadOnly && symbol.IsValueType,
         };
 
-        // 通用参数
+        // 泛型参数
         if (symbol.IsGenericType)
         {
             type.GenericParameters = [.. symbol.TypeParameters.Select(BuildGenericParameter)];
         }
 
-        // 基型
+        // 基类型
         if (symbol.BaseType is not null &&
             symbol.BaseType.SpecialType != SpecialType.System_Object &&
             symbol.BaseType.SpecialType != SpecialType.System_ValueType &&
@@ -65,13 +65,13 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
             .Select(i => i.ToDisplayString())
             .OrderBy(i => i)];
 
-        // 成员成员 成员 成员 成员 成员 成员 成员 成员 成员
+        // 成员
         type.Members = BuildMembers(symbol);
 
-        // XML  docs 数据
+        // XML 文档注释
         type.Docs = ExtractDocumentation(symbol);
 
-        // 成员
+        // 枚举成员
         if (isEnum)
         {
             type.EnumMembers = [.. symbol.GetMembers()
@@ -85,19 +85,19 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
                 })];
         }
 
-        // 代表签名
+        // 委托签名
         if (symbol.TypeKind == TypeKind.Delegate && symbol.DelegateInvokeMethod is { } invokeMethod)
         {
             type.DelegateReturnType = invokeMethod.ReturnsVoid ? "void" : invokeMethod.ReturnType.ToDisplayString();
             type.DelegateParameters = [.. invokeMethod.Parameters.Select(parameter => BuildParameter(parameter))];
         }
 
-        // 属性
+        // 特性
         type.Attributes = ExtractRelevantAttributes(symbol);
 
-        // 内嵌式类型——Roslyn合并部分声明,所以 GetTypeMembers()
-        // 返回每个部分源文件(e.g)所贡献的嵌套类型。
-        // FoundryModel + FoundryModel.Generated.cs).
+        // 嵌套类型：Roslyn 会合并分部声明，因此 GetTypeMembers()
+        // 返回每个分部源文件贡献的嵌套类型（例如
+        // FoundryModel + FoundryModel.Generated.cs）。
         var nestedNames = symbol.GetTypeMembers()
             .Where(IsPublicNestedType)
             .Select(t => t.ToDisplayString())
@@ -271,8 +271,8 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
     };
 
     /// <summary>
-    /// 格式化方法签名,确保扩展方法包括 `this`
-    /// 第一个参数 - Roslyn的 MinimallyQualifiedFormat 省略了它。
+    /// 格式化方法签名，确保扩展方法的第一个参数带有 `this`，
+    /// 因为 Roslyn 的 MinimallyQualifiedFormat 会将其省略。
     /// </summary>
     private static string FormatMethodSignature(IMethodSymbol method)
     {
@@ -280,8 +280,8 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
 
         if (method.IsExtensionMethod && method.Parameters.Length > 0)
         {
-            // 签名看起来像: ReturnType Class.Method(ParamType paramName,......)
-            // 我们需要在括号内的第一个参数类型之前插入 " this " 。
+            // 签名形如：ReturnType Class.Method(ParamType paramName, ...)
+            // 需要在括号内的第一个参数类型之前插入 "this "。
             var openParen = sig.IndexOf('(');
             if (openParen >= 0 && openParen + 1 < sig.Length && sig[openParen + 1] != ')')
             {
@@ -295,9 +295,9 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
     }
 
     /// <summary>
-    /// 用于构建一个属性、字段或事件
-    /// C# 式修饰器(可及性、静态等)
-    /// Roslyn <c>MinimallyQualifiedFormat</c> 字符串。
+    /// 通过在
+    /// Roslyn 的
+    /// <c>MinimallyQualifiedFormat</c> 字符串前添加 C# 风格的修饰符（可访问性、static 等），为属性、字段或事件构建便于显示的签名。
     /// </summary>
     private static string PrependModifiers(
         string rawSignature,
@@ -313,7 +313,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
     {
         var sb = new StringBuilder();
 
-        // 无障碍
+        // 可访问性
         var access = accessibility switch
         {
             Accessibility.Public => "public",
@@ -330,7 +330,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
             sb.Append(' ');
         }
 
-        // 常规C#顺序中的修饰器
+        // 按 C# 惯例排序的修饰符
         if (isConst) sb.Append("const ");
         if (isStatic && !isConst) sb.Append("static ");
         if (isAbstract) sb.Append("abstract ");
@@ -382,7 +382,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
             var root = doc.Root;
             if (root is null) return null;
 
-            // 检查 <inheritdoc/> -支持可选的正折列属性
+            // 检查是否有 <inheritdoc/>，支持可选的 cref 属性。
             var inheritDocElement = root.Element("inheritdoc");
             CanonicalDocumentation? inherited = null;
             if (inheritDocElement is not null && inheritDepth < 3)
@@ -390,7 +390,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
                 var cref = inheritDocElement.Attribute("cref")?.Value;
                 inherited = TryResolveInheritDoc(symbol, cref, inheritDepth);
 
-                // 如果仅包含 <inheritdoc/> (无其他章节),则直接返还
+                // 如果文档仅包含 <inheritdoc/>（没有其他章节），直接返回继承的文档。
                 var hasExplicitContent = root.Element("summary") is not null ||
                     root.Element("remarks") is not null ||
                     root.Element("returns") is not null ||
@@ -455,7 +455,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
                 if (docs.TypeParameters.Count == 0) docs.TypeParameters = null;
             }
 
-            // 例外例外例外例外
+            // 异常
             var exceptionElements = root.Elements("exception").ToList();
             if (exceptionElements.Count > 0)
             {
@@ -486,7 +486,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
                 if (docs.Examples.Count == 0) docs.Examples = null;
             }
 
-            // SeeAlso
+            // 另请参阅
             var seeAlsoElements = root.Elements("seealso").ToList();
             if (seeAlsoElements.Count > 0)
             {
@@ -497,7 +497,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
                     .ToList();
             }
 
-            // 合并:填充从继承的 docs 中缺失的部分
+            // 合并：从继承的文档中补齐缺失章节。
             if (inherited is not null)
             {
                 MergeInheritedDocs(docs, inherited);
@@ -512,8 +512,8 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
     }
 
     /// <summary>
-    /// 填补文件缺失部分 <paramref name="target"/> 调自
-    /// <paramref name="inherited"/>. 。明确的部分从不被覆盖。
+    /// 补齐 <paramref name="target"/> 中缺失的文档章节，内容来自
+    /// <paramref name="inherited"/>。显式指定的章节绝不会被覆盖。
     /// </summary>
     private static void MergeInheritedDocs(CanonicalDocumentation target, CanonicalDocumentation inherited)
     {
@@ -524,7 +524,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
         target.Examples ??= inherited.Examples;
         target.SeeAlso ??= inherited.SeeAlso;
 
-        // 合并参数 docs - 只填入缺失的参数
+        // 合并参数文档，仅补齐缺失的参数说明。
         if (inherited.Parameters is not null)
         {
             target.Parameters ??= new Dictionary<string, List<DocNode>>();
@@ -534,7 +534,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
             }
         }
 
-        // 合并类型参数 docs
+        // 合并类型参数文档。
         if (inherited.TypeParameters is not null)
         {
             target.TypeParameters ??= new Dictionary<string, List<DocNode>>();
@@ -544,7 +544,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
             }
         }
 
-        // 合并例外——只附加唯一的例外类型
+        // 合并异常说明，仅追加尚未出现的异常类型。
         if (inherited.Exceptions is { Count: > 0 })
         {
             if (target.Exceptions is null)
@@ -588,8 +588,8 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
     }
 
     /// <summary>
-    /// 解析文档折叠字符串(e.g. " T:Namespace.Type" 或
-    /// “M:Namespace.Type.Method”改为Roslyn的符号,使用汇编。
+    /// 使用编译信息将文档中的 cref 字符串（例如 "T:Namespace.Type" 或
+    /// "M:Namespace.Type.Method"）解析为 Roslyn 符号。
     /// </summary>
     private ISymbol? ResolveCrefSymbol(ISymbol context, string cref)
     {
@@ -600,39 +600,39 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
             return resolvedSymbol;
         }
 
-        // 区文件编号 ID 前缀(T:、M:、P:、F:、E:)
+        // 去除文档 ID 前缀（T:、M:、P:、F:、E:）。
         var docId = cref;
         if (docId.Length > 2 && docId[1] == ':')
         {
             docId = docId[2..];
         }
 
-        // 用于类型搜索的条形方法参数
+        // 去除方法参数，以便查找类型。
         var parenIdx = docId.IndexOf('(');
         var nameWithoutParams = parenIdx >= 0 ? docId[..parenIdx] : docId;
 
-        // 尝试先查找类型
+        // 先尝试按类型查找。
         var typeSymbol = _compilation.GetTypeByMetadataName(nameWithoutParams);
         if (typeSymbol is not null)
         {
             return typeSymbol;
         }
 
-        // 尝试作为成员身份: 在最后一个点上拆分以获得包含类型+成员名的文本
+        // 尝试按成员查找：在最后一个点号处分割，得到所属类型和成员名称。
         var lastDot = nameWithoutParams.LastIndexOf('.');
         if (lastDot > 0)
         {
             var containingTypeName = nameWithoutParams[..lastDot];
             var memberName = nameWithoutParams[(lastDot + 1)..];
 
-            // 处理通用对称(e.g.,清单`1])
+            // 处理泛型元数（例如 List`1）。
             var backtickIdx = containingTypeName.IndexOf('`');
             var metadataName = backtickIdx >= 0 ? containingTypeName : containingTypeName;
 
             var containingType = _compilation.GetTypeByMetadataName(metadataName);
             if (containingType is not null)
             {
-                // 查找成员姓名
+                // 根据名称查找成员。
                 var members = containingType.GetMembers(memberName);
                 if (members.Length > 0)
                 {
@@ -641,7 +641,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
             }
         }
 
-        // 后退: 尝试默认继承链
+        // 回退：尝试默认继承链。
         return FindInheritDocSource(context);
     }
 
@@ -721,7 +721,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
                 return FindInterfaceMemberImplementation(evt);
 
             case IFieldSymbol field:
-                // 字段无法覆盖, 但可以执行接口成员
+                // 字段不能重写，但可能实现接口成员。
                 return FindInterfaceMemberImplementation(field);
 
             case INamedTypeSymbol type:
@@ -753,8 +753,8 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
     }
 
     /// <summary>
-    /// 从 XML 元素中提取结构化文档节点,
-    /// 保留前端富集的语义结构。
+    /// 从 XML 元素提取结构化文档节点，
+    /// 保留语义结构，以便前端进行富文本渲染。
     /// </summary>
     private static List<DocNode>? ExtractDocNodes(XElement? element)
     {
@@ -765,8 +765,8 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
     }
 
     /// <summary>
-    /// 递归将 XML 元素的子节点收集到平坦列表中
-    /// 结构式 DocNode 对象,保存内嵌和块语义。
+    /// 递归收集 XML 元素的子节点，生成由
+    /// 结构化 DocNode 对象组成的扁平列表，同时保留行内与块级语义。
     /// </summary>
     private static List<DocNode> CollectNodes(XElement element)
     {
@@ -778,7 +778,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
             {
                 case XText textNode:
                     var text = textNode.Value;
-                    // 文本运行中的白空( 新行 ++++ 空格, 折叠运行) 中将空白平整为普通化
+                    // 规范化连续文本中的空白字符（将换行替换为空格，合并连续空白）。
                     text = text.Replace("\r\n", " ").Replace("\n", " ").Replace("\r", " ");
                     while (text.Contains("  ")) text = text.Replace("  ", " ");
                     if (!string.IsNullOrEmpty(text))
@@ -857,7 +857,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
                                 Kind = "codeblock",
                                 Text = child.Value,
                                 Language = lang,
-                                Value = region, // 区域再利用值
+                                Value = region, // 复用 Value 属性来存储 region。
                             });
                             break;
                         }
@@ -895,7 +895,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
                                 listNode.Header = BuildDocListItem(headerElem);
                             }
 
-                            // 项目项目项目项目 项目
+                            // 条目
                             var items = child.Elements("item").ToList();
                             if (items.Count > 0)
                             {
@@ -922,7 +922,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
                         }
 
                         case "example":
-                            // 嵌在其它要素内——作为儿童收集
+                            // 收集嵌套在其他元素中的示例，作为子元素。
                             var exChildren = CollectNodes(child);
                             if (exChildren.Count > 0)
                             {
@@ -931,7 +931,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
                             break;
 
                         default:
-                            // 未知元素- 返回到子女体内
+                            // 未知元素：递归处理其子元素。
                             var defaultChildren = CollectNodes(child);
                             nodes.AddRange(defaultChildren);
                             break;
@@ -948,8 +948,8 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
         var term = ExtractDocNodes(element.Element("term"));
         var description = ExtractDocNodes(element.Element("description"));
 
-        // 支持 XML doc 列表项目, 包含纯文本/ 段落内容
-        // 直接在 <item> 内,而不是嵌套的 <description> 节点。
+        // 支持 XML 文档列表项中的纯文本或段落内容，
+        // 即直接包含在 <item> 内，而不是嵌套的 <description> 节点内。
         if (term is null && description is null)
         {
             description = ExtractDocNodes(element);
@@ -963,16 +963,16 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
     }
 
     /// <summary>
-    /// 从 XML 元素 &lt;示例&gt; 中提取一个结构化示例。
-    /// 将代码块与描述性文字分开。
+    /// 从 &lt;example&gt; XML 元素中提取结构化示例。
+    /// 将代码块与说明文字分离。
     /// </summary>
     private static DocExample? ExtractDocExample(XElement exampleElement)
     {
-        // 查找第一个 <code> 元素，其中包含示例代码
+        // 查找第一个 <code> 元素，它就是示例代码。
         var codeElement = exampleElement.Descendants("code").FirstOrDefault();
         if (codeElement is null)
         {
-            // 没有代码块块 。 尝试将全部内容用作代码
+            // 无代码块时，尝试将全部内容用作代码。
             var plainText = ExtractPlainText(exampleElement);
             return plainText is not null ? new DocExample { Code = plainText } : null;
         }
@@ -983,7 +983,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
             ?? "csharp");
         var region = codeElement.Attribute("region")?.Value;
 
-        // 收藏描述节点:非代码元素的所有信息
+        // 收集说明节点：即不属于代码元素的所有内容。
         var descNodes = new List<DocNode>();
         foreach (var node in exampleElement.Nodes())
         {
@@ -1025,8 +1025,8 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
     }
 
     /// <summary>
-    /// 从 XML 元素中提取纯文本, 折断所有结构 。
-    /// 用于简单的环境, 如 enum 成员描述 。
+    /// 从 XML 元素提取纯文本，并将所有结构扁平化。
+    /// 用于枚举成员说明等简单场景。
     /// </summary>
     private static string? ExtractPlainText(XElement? element)
     {
@@ -1041,7 +1041,7 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
             .Replace("\r", " ")
             .Trim();
 
-        // 折叠多个空格
+        // 将连续空格合并为一个空格。
         while (text.Contains("  "))
         {
             text = text.Replace("  ", " ");
@@ -1110,27 +1110,27 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
 
     private static string ExtractShortNameFromCref(string cref)
     {
-        // 区文件编号 ID 前缀(T:、M:、P:、F:、E:、N:)
+        // 去除文档 ID 前缀（T:、M:、P:、F:、E:、N:）。
         if (cref.Length > 2 && cref[1] == ':')
         {
             cref = cref[2..];
         }
 
-        // 脱带方法参数
+        // 去除方法参数。
         var parenIdx = cref.IndexOf('(');
         if (parenIdx >= 0)
         {
             cref = cref[..parenIdx];
         }
 
-        // 获取上一个段(类型或成员名称)
+        // 获取最后一段（类型或成员名称）。
         var lastDot = cref.LastIndexOf('.');
         if (lastDot >= 0)
         {
             cref = cref[(lastDot + 1)..];
         }
 
-        // 条形通用异性后缀(e.g.,清单1_________________)
+        // 去除泛型元数后缀（例如 List`1 → List）。
         var backtickIdx = cref.IndexOf('`');
         if (backtickIdx >= 0)
         {
@@ -1263,8 +1263,8 @@ internal sealed class CanonicalModelBuilder(Compilation compilation)
     }
 
     /// <summary>
-    /// 将 XML doc 语言标识符正常化为预期的较小大小写别名
-    /// 语法加亮符( 和e.g. "C#" → "csharp").
+    /// 将 XML 文档中的语言标识符规范化为
+    /// 语法高亮器所需的小写别名（例如 "C#" → "csharp"）。
     /// </summary>
     private static string NormalizeLanguage(string lang) => lang switch
     {

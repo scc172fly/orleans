@@ -7,47 +7,47 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// 字段编码器的标记类型。
+    /// 字段编解码器的标记类型。
     /// </summary>
     public interface IFieldCodec
     {
         /// <summary>
-        /// 使用提供的未输入值写入字段。该类型必须仍然匹配编码实例!
+        /// 使用给定的无类型值写入字段。该值的实际类型仍必须与编解码器实例匹配！
         /// </summary>
         void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] object? value) where TBufferWriter : IBufferWriter<byte>;
 
         /// <summary>
-        /// 读取值并返回未输入的数值。 此类型必须仍然匹配编码实例!
+        /// 读取值并以无类型形式返回。该值的实际类型仍必须与编解码器实例匹配！
         /// </summary>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         object? ReadValue<TInput>(ref Reader<TInput> reader, Field field);
     }
 
     /// <summary>
-    /// 提供特定类型读写值的功能。
-    /// 执行 <see cref="Orleans.Serialization.Codecs.IFieldCodec" />
+    /// 提供读写指定类型的值的功能。
+    /// 实现 <see cref="Orleans.Serialization.Codecs.IFieldCodec" />。
     /// </summary>
-    /// <typeparam name="T">此执行可读写的类型 。</typeparam>
+    /// <typeparam name="T">此实现能够读写的类型。</typeparam>
     /// <seealso cref="Orleans.Serialization.Codecs.IFieldCodec" />
     public interface IFieldCodec<T> : IFieldCodec
     {
         /// <summary>
-        /// 写一个字段。
+        /// 写入一个字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="expectedType">预想的类型。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="expectedType">预期类型。</param>
+        /// <param name="value">值。</param>
         void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [AllowNull] Type expectedType, [AllowNull] T value) where TBufferWriter : IBufferWriter<byte>;
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [return: MaybeNull]
         new T ReadValue<TInput>(ref Reader<TInput> reader, Field field);
 
@@ -59,54 +59,54 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// 直接支持所有衍生类型(指定类型)序列的编码器标记界面。
+    /// 标记接口，表示编解码器直接支持序列化指定类型的所有派生类型。
     /// </summary>
     public interface IDerivedTypeCodec : IFieldCodec
     {
     }
 
     /// <summary>
-    /// 系列和复制阶段的钩子。
+    /// 序列化及复制各阶段的挂钩。
     /// </summary>
-    /// <typeparam name="T">底值类型。</typeparam>
+    /// <typeparam name="T">底层值的类型。</typeparam>
     public interface ISerializationCallbacks<T>
     {
         /// <summary>
-        /// 连环处理时被调用
+        /// 序列化时调用。
         /// </summary>
-        /// <param name="value">数值。</param>
+        /// <param name="value">值。</param>
         void OnSerializing(T value);
 
         /// <summary>
-        /// 某个值被序列化后调用。
+        /// 值序列化完成后调用。
         /// </summary>
-        /// <param name="value">数值。</param>
+        /// <param name="value">值。</param>
         void OnSerialized(T value);
 
         /// <summary>
-        /// 被召回时, 正在消毒。
+        /// 反序列化时调用。
         /// </summary>
-        /// <param name="value">数值。</param>
+        /// <param name="value">值。</param>
         void OnDeserializing(T value);
 
         /// <summary>
-        /// 当一个值被淡化后调用 。
+        /// 值反序列化完成后调用。
         /// </summary>
-        /// <param name="value">数值。</param>
+        /// <param name="value">值。</param>
         void OnDeserialized(T value);
 
         /// <summary>
-        /// 复制时呼叫 。
+        /// 复制时调用。
         /// </summary>
-        /// <param name="original">原始价值。</param>
-        /// <param name="result">拷贝</param>
+        /// <param name="original">原始值。</param>
+        /// <param name="result">副本。</param>
         void OnCopying(T original, T result);
 
         /// <summary>
-        /// 复制一个值时调用 。
+        /// 值复制完成后调用。
         /// </summary>
-        /// <param name="original">原始价值。</param>
-        /// <param name="result">拷贝</param>
+        /// <param name="original">原始值。</param>
+        /// <param name="result">副本。</param>
         void OnCopied(T original, T result);
     }
 

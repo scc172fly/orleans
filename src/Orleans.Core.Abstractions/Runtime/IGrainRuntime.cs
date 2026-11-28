@@ -5,59 +5,59 @@ using Orleans.Timers;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// <see cref="Grain"/> 至 Orleans 运行时间的网关。 <see cref="Grain"/> 仅应在此界面中与运行时间进行互动。
+/// <see cref="Grain"/> 与 Orleans 运行时交互的入口。<see cref="Grain"/> 应仅通过此接口与运行时交互。
 /// </summary>
 public interface IGrainRuntime
 {
     /// <summary>
-    /// 获取当前 silo的独特标识符。
-    /// 此字符串没有语义内容, 但可能对记录有用 。
+    /// 获取当前 Silo 的唯一标识符。
+    /// 此字符串本身不具有语义含义，但可用于日志记录。
     /// </summary>
     string SiloIdentity { get; }
 
     /// <summary>
-    /// 获取与此实例相关的 silo 地址。
+    /// 获取与此实例关联的 Silo 地址。
     /// </summary>
     SiloAddress SiloAddress { get; }
 
     /// <summary>
-    /// 得到 grain 工厂。
+    /// 获取 Grain 工厂。
     /// </summary>
     IGrainFactory GrainFactory { get; }
 
     /// <summary>
-    /// 获得计时器登记簿。
+    /// 获取定时器注册表。
     /// </summary>
     ITimerRegistry TimerRegistry { get; }
 
     /// <summary>
-    /// 得到了服务供应商。
+    /// 获取服务提供程序。
     /// </summary>
     IServiceProvider ServiceProvider { get; }
 
     /// <summary>
-    /// 时间提供商。
+    /// 获取时间提供程序。
     /// </summary>
     TimeProvider TimeProvider => TimeProvider.System;
 
     /// <summary>
-    /// 取消提供 grain 当它闲着的时候,
+    /// 在指定 Grain 进入空闲状态时停用它。
     /// </summary>
-    /// <param name="grainContext"> grain 上下文。</param>
+    /// <param name="grainContext">Grain 上下文。</param>
     void DeactivateOnIdle(IGrainContext grainContext);
 
     /// <summary>
-    /// 延迟闲置启动所提供设备 grain 直至至少规定时间结束。
+    /// 延迟因不活动而对指定 Grain 的激活实例执行的空闲回收，至少等待指定时间。
     /// </summary>
-    /// <param name="grainContext"> grain 上下文。</param>
-    /// <param name="timeSpan">延迟闲置激活收藏的时间。</param>
+    /// <param name="grainContext">Grain 上下文。</param>
+    /// <param name="timeSpan">延迟空闲回收的时长。</param>
     void DelayDeactivation(IGrainContext grainContext, TimeSpan timeSpan);
 
     /// <summary>
-    /// 获取 grain 提供的储存 grain.
+    /// 获取指定 Grain 的存储。
     /// </summary>
-    /// <typeparam name="TGrainState"> grain 状态类型。</typeparam>
-    /// <param name="grainContext"> grain 上下文。</param>
-    /// <returns>下 grain 提供的储存 grain.</returns>
+    /// <typeparam name="TGrainState">Grain 状态类型。</typeparam>
+    /// <param name="grainContext">Grain 上下文。</param>
+    /// <returns>指定 Grain 的存储。</returns>
     IStorage<TGrainState> GetStorage<TGrainState>(IGrainContext grainContext);
 }

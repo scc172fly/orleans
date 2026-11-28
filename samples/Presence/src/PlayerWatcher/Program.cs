@@ -9,10 +9,10 @@ await Host.CreateDefaultBuilder()
     .UseOrleansClient(builder => builder.UseLocalhostClustering())
     .ConfigureServices(services =>
     {
-        // 添加经常服务
+        // 添加常规服务。
         services.AddTransient<IGameObserver, LoggerGameObserver>();
 
-        // 服务主机运行的逻辑样本
+        // 此托管服务运行示例逻辑。
         services.AddSingleton<IHostedService, PlayerWatcherHostedService>();
     })
     .RunConsoleAsync();

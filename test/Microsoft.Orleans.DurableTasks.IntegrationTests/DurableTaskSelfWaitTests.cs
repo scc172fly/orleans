@@ -5,8 +5,8 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
 /// <summary>
-/// 证明等待服务员自己完成的任务 grain 当当 grain 允许任务段与
-/// 等待请求:一个居间服务员,一个复发者 grain和耐久守则。
+/// 验证当 Grain 允许任务的执行段与等待请求交错执行时，等待自身 Grain 上的任务能够完成：
+/// 包括可交错执行的等待方、可重入 Grain 和持久化代码三种情况。
 /// </summary>
 public abstract class DurableTaskSelfWaitTests(string journalFormatKey) : IAsyncLifetime
 {
@@ -61,7 +61,7 @@ public abstract class DurableTaskSelfWaitTests(string journalFormatKey) : IAsync
         var blocking = grain.BlockAsync();
         await SelfWaitingGrain.WaitUntilBlockedAsync(key).WaitAsync(Timeout, cancellationToken);
 
-        // 另一项请求是任务的各个部分,而不是居间服务员,所以服务员等待这一请求。
+        // 阻塞任务执行段的是另一个请求，而非可交错执行的等待方，因此等待方等待该请求完成。
         var waiter = grain.InterleavingScheduleAndAwaitOwnTaskAsync(2);
         await SelfWaitingGrain.WaitUntilWaitStartedAsync(key).WaitAsync(Timeout, cancellationToken);
         Assert.False(waiter.IsCompleted);
@@ -72,14 +72,14 @@ public abstract class DurableTaskSelfWaitTests(string journalFormatKey) : IAsync
     }
 }
 
-/// <summary>运行自等待覆盖,任务状态以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行自身任务等待相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskSelfWaitTests() : DurableTaskSelfWaitTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行自备覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行自身任务等待相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -123,7 +123,7 @@ public sealed class SelfWaitingGrain(IDurableTaskManager tasks) : DurableGrain, 
 
     public static Task WaitUntilBlockedAsync(Guid key) => GetGate(key).Blocked.Task;
 
-    /// <summary>一旦 grain的交接服务员安排了自己的任务并等待完成, 便将完成。</summary>
+    /// <summary>Grain 中可交错执行的等待方调度自身任务并开始等待后即完成。</summary>
     public static Task WaitUntilWaitStartedAsync(Guid key) =>
         WaitsStarted.GetOrAdd(key, _ => new(TaskCreationOptions.RunContinuationsAsynchronously)).Task;
 
@@ -134,7 +134,7 @@ public sealed class SelfWaitingGrain(IDurableTaskManager tasks) : DurableGrain, 
 
     public DurableTask<int> TripleAsync(int value) => DurableTask.FromResult(value * 3);
 
-    // 向 grain 发出的持久呼吁本身是一个分离的根,其结果就是身体等待着一个持久的等待。
+    // 对 Grain 自身的持久化调用是分离根任务，主体在持久化等待点等待其结果。
     public async DurableTask<int> AwaitOwnCallAsync(int value) =>
         await this.AsReference<ISelfWaitingGrain>().TripleAsync(value).Detached("own-call") + 1;
 
@@ -174,7 +174,7 @@ internal static class SelfWaiting
 {
     private static readonly DurableSignal<int> Never = new("never");
 
-    // 任务公园的信号是持久的, 永远无法到达, 所以只有取消它才能结束。
+    // 任务挂起在永远不会到达的持久化信号处，因此只有取消任务才会结束等待。
     public static async DurableTask<int> WaitForCancellationAsync()
     {
         await Never.WaitAsync();

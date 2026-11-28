@@ -1,6 +1,6 @@
 <Project>
-  <!-- 前端是用 `npm run build` 建造的,在DET/DVT下投入。 CI重建它并核实
-       承诺的文件匹配, 因此普通 .NET 建立不设 Node.js 或 npm 嵌入资产。 -->
+  <!-- 前端通过 `npm run build` 构建并提交到 dist/ 目录。
+       CI 会重新构建并验证已提交文件一致，因此普通 .NET 构建无需 Node.js 或 npm 即可嵌入这些资产。 -->
   <PropertyGroup>
     <DashboardFrontendOutput>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', 'Orleans.Dashboard.App', 'dist'))</DashboardFrontendOutput>
   </PropertyGroup>

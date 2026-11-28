@@ -11,7 +11,7 @@ using UnitTests.GrainInterfaces;
 #pragma warning disable 612,618
 namespace UnitTests.Grains
 {
-    // 注:如果在此做出任何修改,请将其复制到 ReminderTestCopyGrain
+    // 注意：如果在此处进行任何修改，请将其复制到 ReminderTestCopyGrain
     public class ReminderTestGrain2 : Grain, IReminderTestGrain2, IRemindable
     {
         private readonly IReminderTable reminderTable;
@@ -21,12 +21,12 @@ namespace UnitTests.Grains
         private Dictionary<string, long> sequence = null!;
         private TimeSpan period;
 
-        private static readonly long aCCURACY = 50 * TimeSpan.TicksPerMillisecond; // 当我们使用 滴数来计算序列编号时, 我们可能会得到错误的结果, 因为时间过错不会发生与 滴数精确性不发生... 我们保持它作为回旋余地
+        private static readonly long aCCURACY = 50 * TimeSpan.TicksPerMillisecond; // 使用时钟刻度计算序号时可能得到错误结果，因为超时发生的时刻无法精确到单个刻度……保留此值作为容差
 
         private readonly IOptions<ReminderOptions> reminderOptions;
 
         private readonly ILogger logger;
-        private string _id = null!; // 用于在调试期间区分同一 grain多个激活之间的调试
+        private string _id = null!; // 在调试期间用于区分同一个 Grain 的多个激活实例
 
         private string filePrefix = null!;
 
@@ -84,20 +84,20 @@ namespace UnitTests.Grains
             this.sequence[reminderName] = 0;
 
             string fileName = GetFileName(reminderName);
-            File.Delete(fileName); // 如果成功启动, 将删除任何旧数据
+            File.Delete(fileName); // 如果成功启动，则删除所有旧数据
             this.logger.LogInformation("Started reminder {Reminder}", r);
             return r;
         }
 
         public async Task ReceiveReminder(string reminderName, TickStatus status)
         {
-            // 可能发生的情况是,由于失败, 当新激活被创建时,
-            // 不知哪些提醒通知被登记在 grain
-            // 因此,这个激活可能会收到提醒 提醒它自己没有注册 但是
-            // 之前的激活( grain注册了... 所以,要小心
+            // 发生故障后可能出现这种情况：创建新的激活实例时，
+            // 它不知道曾为此 Grain 注册过哪些提醒器
+            // 因此，这个激活实例可能收到并非由自身注册、而是由
+            // 上一个激活实例（Grain 的上一轮实例化）注册的提醒……所以需要谨慎处理
             if (!this.sequence.ContainsKey(reminderName))
             {
-                this.sequence.Add(reminderName, 0); // 处理此选中项时, 我们会更新最新序列编号
+                this.sequence.Add(reminderName, 0); // 处理本次提醒器触发时，将更新到最新的序号
             }
 
             if (!this.allReminders.ContainsKey(reminderName))
@@ -111,20 +111,20 @@ namespace UnitTests.Grains
 
             allReminders[reminderName].Fired.Add(status.CurrentTickTime);
 
-            // 计算秒序列数
+            // 计算提醒器触发序号
 
-            // 我们用长转换法来计算 DateTime 的计算,因为我们没有在 DateTime上进行分割操作
-            // 使用 dateTime.Ticks 两次援引 ReceiveReminder(),也许(那里) < period.Ticks
-            // 如果连续两个 ReceiveReminder() 之间的勾点大于 period.Ticks,则一切正常...问题在于小于
-            // 因此,我们降低我们的准确度 由ACCURACY... 我们在这里准备所有使用的变量
-            long now = status.CurrentTickTime.Ticks / aCCURACY; //DateTime.UtcNow.Ticks ACCACY; 反种族主义;
+            // 通过将 DateTime 转换为 long 来执行全部运算，因为 DateTime 不支持除法运算
+            // 使用 dateTime.Ticks 并不精确，两次 ReceiveReminder() 调用之间的刻度数可能小于 period.Ticks
+            // 如果两次连续 ReceiveReminder() 调用间的刻度数大于 period.Ticks，则一切正常；问题出现在刻度数更小时
+            // 因此按 ACCURACY 降低精度……这里将用到的所有变量调整到指定精度
+            long now = status.CurrentTickTime.Ticks / aCCURACY; //DateTime.UtcNow.Ticks / ACCURACY;
             long first = status.FirstTickTime.Ticks / aCCURACY;
             long per = status.Period.Ticks / aCCURACY;
             long sequenceNumber = 1 + ((now - first) / per);
 
-            // 计算秒序列数结束
+            // 提醒器触发序号计算结束
 
-            // 在此切换
+            // 在此处执行分支选择
             if (sequenceNumber < this.sequence[reminderName])
             {
                 this.logger.LogInformation("ReceiveReminder: {Reminder} Incorrect tick {ExpectedSequenceNumber} vs. {SequenceNumber} with status {Status}.", reminderName, this.sequence[reminderName], sequenceNumber, status);
@@ -143,7 +143,7 @@ namespace UnitTests.Grains
         public async Task StopReminder(string reminderName)
         {
             this.logger.LogInformation("Stopping reminder {ReminderName}.", reminderName);
-            // 我们希望测试方法能够在停止提醒后也能读取它,所以我们不重置对称
+            // 不重置计数器，因为希望测试方法在停止提醒器后仍能读取它。
             //return UnregisterReminder(allReminders[reminderName]);
             ReminderState? state;
             if (this.allReminders.TryGetValue(reminderName, out state))
@@ -154,8 +154,8 @@ namespace UnitTests.Grains
             }
             else
             {
-                // 发生故障时,可能发生提前启动的提醒通知登记,我们没有在当地藏匿
-                // 因此,我们需要更新本地的缓存
+                // 发生故障时，先前的激活实例可能注册过本地未缓存的提醒器
+                // 因此需要更新本地缓存
                 await GetMissingReminders();
                 if (this.allReminders.TryGetValue(reminderName, out state))
                 {
@@ -188,7 +188,7 @@ namespace UnitTests.Grains
         public async Task StopReminder(IGrainReminder reminder)
         {
             this.logger.LogInformation("Stopping reminder (using ref) {Reminder}.", reminder);
-            // 我们希望测试方法能够在停止提醒后也能读取它,所以我们不重置对称
+            // 不重置计数器，因为希望测试方法在停止提醒器后仍能读取它。
             await this.UnregisterReminder(reminder);
             var state = allReminders[reminder.ReminderName];
             state.Log.Add((DateTime.UtcNow, $"Stopping {reminder.ReminderName}"));
@@ -230,7 +230,7 @@ namespace UnitTests.Grains
 
         public static TimeSpan GetDefaultPeriod(ILogger log)
         {
-            int period = 12; // 秒数
+            int period = 12; // 秒
             var reminderPeriod = TimeSpan.FromSeconds(period);
             log.LogInformation("Using reminder period of {Period} in ReminderTestGrain", reminderPeriod);
             return reminderPeriod;
@@ -242,10 +242,10 @@ namespace UnitTests.Grains
         }
     }
 
-    // 注:此处不作更改.这是 ReminderTestGrain的副本。
-    // 复制时要做的修改 :
-    //      1. 将重命名日志器重命名为 ReminderCopyGrain
-    //      2. filePrefix 应首先以“gc”而不是“g”开头。
+    // 注意：不要在此处进行修改……这是 ReminderTestGrain 的副本
+    // 复制时需要进行以下修改：
+    //      1. 将 logger 重命名为 ReminderCopyGrain
+    //      2. filePrefix 应以 "gc" 而非 "g" 开头
     public class ReminderTestCopyGrain : Grain, IReminderTestCopyGrain, IRemindable
     {
         private readonly IReminderRegistry unvalidatedReminderRegistry;
@@ -253,10 +253,10 @@ namespace UnitTests.Grains
         private Dictionary<string, long> sequence = null!;
         private TimeSpan period;
 
-        private static readonly long aCCURACY = 50 * TimeSpan.TicksPerMillisecond; // 当我们使用 滴数来计算序列编号时, 我们可能会得到错误的结果, 因为时间过错不会发生与 滴数精确性不发生... 我们保持它作为回旋余地
+        private static readonly long aCCURACY = 50 * TimeSpan.TicksPerMillisecond; // 使用时钟刻度计算序号时可能得到错误结果，因为超时发生的时刻无法精确到单个刻度……保留此值作为容差
 
         private readonly ILogger logger;
-        private long myId; // 用于在调试期间区分同一 grain多个激活之间的调试
+        private long myId; // 在调试期间用于区分同一个 Grain 的多个激活实例
 
         private string filePrefix = null!;
 
@@ -306,22 +306,22 @@ namespace UnitTests.Grains
                 this.allReminders.Add(reminderName, r);
                 this.sequence.Add(reminderName, 0);
             }
-            File.Delete(GetFileName(reminderName)); // 如果成功启动, 将删除任何旧数据
+            File.Delete(GetFileName(reminderName)); // 如果成功启动，则删除所有旧数据
             this.logger.LogInformation("Started reminder {Reminder}.", r);
             return r;
         }
 
         public async Task ReceiveReminder(string reminderName, TickStatus status)
         {
-            // 可能发生的情况是,由于失败, 当新激活被创建时,
-            // 不知哪些提醒通知被登记在 grain
-            // 因此,这个激活可能会收到提醒 提醒它自己没有注册 但是
-            // 之前的激活( grain注册了... 所以,要小心
+            // 发生故障后可能出现这种情况：创建新的激活实例时，
+            // 它不知道曾为此 Grain 注册过哪些提醒器
+            // 因此，这个激活实例可能收到并非由自身注册、而是由
+            // 上一个激活实例（Grain 的上一轮实例化）注册的提醒……所以需要谨慎处理
             if (!this.sequence.ContainsKey(reminderName))
             {
-                // allReminders.Add(reminderName, r);//目前未使用 allReminders
+                // allReminders.Add(reminderName, r); // not using allReminders at the moment
                 //counters.Add(reminderName, 0);
-                this.sequence.Add(reminderName, 0); // 处理此选中项时, 我们会更新最新序列编号
+                this.sequence.Add(reminderName, 0); // 处理本次提醒器触发时，将更新到最新的序号
             }
 
             if (!this.allReminders.ContainsKey(reminderName))
@@ -333,20 +333,20 @@ namespace UnitTests.Grains
                 }
             }
 
-            // 计算秒序列数
+            // 计算提醒器触发序号
 
-            // 我们用长转换法来计算 DateTime 的计算,因为我们没有在 DateTime上进行分割操作
-            // 使用 dateTime.Ticks 两次援引 ReceiveReminder(),也许(那里) < period.Ticks
-            // 如果连续两个 ReceiveReminder() 之间的勾点大于 period.Ticks,则一切正常...问题在于小于
-            // 因此,我们降低我们的准确度 由ACCURACY... 我们在这里准备所有使用的变量
-            long now = status.CurrentTickTime.Ticks / aCCURACY; //DateTime.UtcNow.Ticks ACCACY; 反种族主义;
+            // 通过将 DateTime 转换为 long 来执行全部运算，因为 DateTime 不支持除法运算
+            // 使用 dateTime.Ticks 并不精确，两次 ReceiveReminder() 调用之间的刻度数可能小于 period.Ticks
+            // 如果两次连续 ReceiveReminder() 调用间的刻度数大于 period.Ticks，则一切正常；问题出现在刻度数更小时
+            // 因此按 ACCURACY 降低精度……这里将用到的所有变量调整到指定精度
+            long now = status.CurrentTickTime.Ticks / aCCURACY; //DateTime.UtcNow.Ticks / ACCURACY;
             long first = status.FirstTickTime.Ticks / aCCURACY;
             long per = status.Period.Ticks / aCCURACY;
             long sequenceNumber = 1 + ((now - first) / per);
 
-            // 计算秒序列数结束
+            // 提醒器触发序号计算结束
 
-            // 在此切换
+            // 在此处执行分支选择
             if (sequenceNumber < this.sequence[reminderName])
             {
                 this.logger.LogInformation("{ReminderName} Incorrect tick {ExpectedSequenceNumber} vs. {SequenceNumber} with status {Status}.", reminderName, this.sequence[reminderName], sequenceNumber, status);
@@ -363,7 +363,7 @@ namespace UnitTests.Grains
         public async Task StopReminder(string reminderName)
         {
             this.logger.LogInformation("Stopping reminder {Reminder}.", reminderName);
-            // 我们希望测试方法能够在停止提醒后也能读取它,所以我们不重置对称
+            // 不重置计数器，因为希望测试方法在停止提醒器后仍能读取它。
             //return UnregisterReminder(allReminders[reminderName]);
             IGrainReminder? reminder;
             if (this.allReminders.TryGetValue(reminderName, out reminder))
@@ -372,8 +372,8 @@ namespace UnitTests.Grains
             }
             else
             {
-                // 发生故障时,可能发生提前启动的提醒通知登记,我们没有在当地藏匿
-                // 因此,我们需要更新本地的缓存
+                // 发生故障时，先前的激活实例可能注册过本地未缓存的提醒器
+                // 因此需要更新本地缓存
                 await GetMissingReminders();
                 await this.UnregisterReminder(this.allReminders[reminderName]);
             }
@@ -394,7 +394,7 @@ namespace UnitTests.Grains
         public async Task StopReminder(IGrainReminder reminder)
         {
             this.logger.LogInformation("Stopping reminder (using ref) {Reminder}.", reminder);
-            // 我们希望测试方法能够在停止提醒后也能读取它,所以我们不重置对称
+            // 不重置计数器，因为希望测试方法在停止提醒器后仍能读取它。
             await this.UnregisterReminder(reminder);
         }
 

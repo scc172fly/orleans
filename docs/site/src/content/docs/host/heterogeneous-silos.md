@@ -1,75 +1,75 @@
 ---
-title: "异异 Orleans silos"
-description: "不同的主机主机 Orleans grain 不同类型上的 silos."
+title: 异构 Orleans Silo
+description: 在不同 Silo 上承载不同的 Orleans Grain 类型。
 ms.date: 08/02/2026
 ms.topic: how-to
 ---
 
 <a id="heterogeneous-orleans-silos"></a>
 
-# 异异 Orleans silos
+# 异构 Orleans Silo
 
-一组中的Silos 可以存放不同组 grain 类。 这样可以分离工作量、 使用专门硬件或独立部署 grain 执行, 同时保留一个 Orleans 组。
+同一集群中的 Silo 可以承载不同的 Grain 类集合。这样既能隔离工作负载、使用专用硬件或独立部署 Grain 实现，又能保持单个 Orleans 集群。
 
-:::image type="content" source="media/heterogeneous.png" alt-text="其 silos 支持不同 grain 类型组的集。":::
+:::image type="content" source="media/heterogeneous.png" alt-text="集群中的各个 Silo 支持不同的 Grain 类型集合。":::
 
-全部 silos 客户应参考他们可以交换的接口和序列合同。 silo 仅应提及 grain 它可以主办执行大会。
+所有 Silo 和客户端都应引用它们可能交换的接口与序列化契约。Silo 应仅引用自身能够承载的 Grain 实现程序集。
 
 <a id="prefer-assembly-boundaries"></a>
 
-## 预装配的边界
+## 优先使用程序集边界
 
-最简单的模式是将专门 grain 类放在单独的项目中,并仅从运行该项目的 silo 主机中引用每个执行项目。 Orleans 发现由生成的元数据类型支持的 grain 类。
+最简单的方式是将专用 Grain 类放在独立项目中，仅由负责运行相应实现的 Silo 宿主引用各实现项目。Orleans 根据生成的类型元数据发现受支持的 Grain 类。
 
-例如:
+例如：
 
-- 普通用途 silos 参考 `Orders.Grains`。
-- GPU silos 参考 `Recommendations.Grains`。
-- 客户参考 `Orders.Contracts` 和 `Recommendations.Contracts`,但都没有实施大会。
+- 通用 Silo 引用 `Orders.Grains`。
+- GPU Silo 引用 `Recommendations.Grains`。
+- 客户端引用 `Orders.Contracts` 和 `Recommendations.Contracts`，但不引用这两个实现程序集中的任何一个。
 
-相同 grain 执行必须兼容于每个 silo 广告支持 grain 类型。
+所有公布支持某个 Grain 类型的 Silo 都必须使用彼此兼容的该 Grain 实现。
 
 <a id="configuration"></a>
 
 ## 配置
 
-当一个二进制可以运行多个角色时, 请配置 <xref:Orleans.Configuration.GrainTypeOptions.Classes>:
+当同一个二进制文件能够以多个角色运行时，配置 <xref:Orleans.Configuration.GrainTypeOptions.Classes>：
 
 :::code language="csharp" source="snippets/hosting/HostingExamples.cs" id="configure_grain_types":::
 
-<xref:Orleans.Configuration.GrainTypeOptions.Classes> is a set of <xref:System.Type> values. Use it to include the exact grain classes the process can host or remove discovered classes that a role must not host:
+<xref:Orleans.Configuration.GrainTypeOptions.Classes> 是一组 <xref:System.Type> 值。使用它精确指定进程可承载的 Grain 类，或者移除某个角色不得承载的已发现类：
 
 :::code language="csharp" source="snippets/hosting/HostingExamples.cs" id="exclude_grain_type":::
 
-不要用过时的 grain- 早先的类别排除选项名称 Orleans 版本。
+不要使用 Orleans 早期版本中已过时的 Grain 类排除选项名称。
 
 <a id="direct-placement-by-capability"></a>
 
-## 按能力分列的直接安置
+## 按能力引导放置
 
-使用 [silo 元元数据](configuration-guide/silo-metadata.md) 和 [grain 放置过滤器](../grains/grain-placement-filtering.md) 多个当多 silos 相同负载 grain 实施时只有部分符合安置要求,如区域、硬件、租户或预订类型。
+当许多 Silo 加载相同的 Grain 实现，但只有部分 Silo 满足区域、硬件、租户或预留类型等放置要求时，使用 [Silo 元数据](configuration-guide/silo-metadata.md)和 [Grain 放置筛选](../grains/grain-placement-filtering.md)。
 
-使用差异化 grain 当当 silo 无法将执行设置为全部。 当它可以将类型安装为主时使用位置过滤, 但放置应该更喜欢或需要元数据 。
+如果 Silo 完全无法承载某个实现，应使用异构 Grain 类型注册。如果它能够承载该类型，但放置需要优先匹配或强制匹配元数据，则使用放置筛选。
 
 <a id="deployment-rules"></a>
 
 ## 部署规则
 
-- 保留 <xref:Orleans.Configuration.ClusterOptions.ServiceId>, <xref:Orleans.Configuration.ClusterOptions.ClusterId>、集群和协议配置,在所有角色之间保持一致。
-- 部署至少一个健康 silo 每一援助的, grain 类型,然后客户援引。
-- 独立维持每套专门 grain 成套部件的能力和冗余。
-- 在执行之前提出合同修改,然后执行这些修改。
-- 避免删除最后一个 silo a 的a grain 选择请求或持久工作时仍然针对它。
+- 在所有角色之间保持 <xref:Orleans.Configuration.ClusterOptions.ServiceId>、<xref:Orleans.Configuration.ClusterOptions.ClusterId>、集群配置及协议配置一致。
+- 在客户端调用某个受支持的 Grain 类型之前，至少部署一个支持该类型的健康 Silo。
+- 分别维护每个专用 Grain 集合的容量与冗余。
+- 先部署契约变更，再部署依赖这些变更的实现。
+- 如果仍有请求或持久化工作以某个 Grain 类型为目标，应避免移除支持该类型的最后一个 Silo。
 
-客户在连接后获得集束类型信息。 grain 支持前的 UR 类型 silos 已有。
+客户端在连接后获取集群类型信息。部署时应避免客户端在支持某个 Grain 类型的 Silo 可用之前依赖该类型。
 
 <a id="limitations"></a>
 
 ## 限制
 
-- 当没有活动 silo 支持目标 grain 类型时请求失败。
-- 每一 silo 支持一个 grain 类型必须使用兼容的执行和合同。
-- 无国籍工人 grains 应始终贯穿于该组群,而不是分成不兼容的多种不同组别。
-- 暗流订阅要求兼容 grain 可用性;当部署情况不同,所有权不明确时使用 [明确订阅](../streaming/streams-programming-apis.md) 。
+- 当没有活动 Silo 支持请求目标 Grain 类型时，请求会失败。
+- 所有支持同一 Grain 类型的 Silo 都必须使用兼容的实现及契约。
+- 无状态工作者 Grain 应在集群内一致可用，而不是被拆分为互不兼容的异构集合。
+- 隐式流订阅要求兼容的 Grain 可用性；当异构部署导致归属关系不明确时，使用[显式订阅](../streaming/streams-programming-apis.md)。
 
-测试表层变化,包括生产类角色计数,特别是损失和替换支持某一类型的最后一个 silo 。
+使用接近生产环境的各角色实例数量测试拓扑变更，尤其是支持某个类型的最后一个 Silo 丢失及替换的情况。

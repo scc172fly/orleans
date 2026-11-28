@@ -7,7 +7,7 @@ using Orleans.Serialization.TypeSystem;
 namespace Orleans.Serialization.Session
 {
     /// <summary>
-    /// <see cref="SerializerSession"/> 对象的集合。
+    /// <see cref="SerializerSession"/> 对象的对象池。
     /// </summary>
     public sealed class SerializerSessionPool : IDisposable
     {
@@ -16,9 +16,9 @@ namespace Orleans.Serialization.Session
         /// <summary>
         /// 初始化 <see cref="SerializerSessionPool"/> 类的新实例。
         /// </summary>
-        /// <param name="typeCodec">型号编码器。</param>
-        /// <param name="wellKnownTypes">众所周知的类型收藏。</param>
-        /// <param name="codecProvider">编码器提供者。</param>
+        /// <param name="typeCodec">类型编解码器。</param>
+        /// <param name="wellKnownTypes">已知类型集合。</param>
+        /// <param name="codecProvider">编解码器提供程序。</param>
         public SerializerSessionPool(TypeCodec typeCodec, WellKnownTypeCollection wellKnownTypes, CodecProvider codecProvider)
         {
             CodecProvider = codecProvider;
@@ -27,23 +27,23 @@ namespace Orleans.Serialization.Session
         }
 
         /// <summary>
-        /// 找到编码提供者
+        /// 获取编解码器提供程序。
         /// </summary>
         public CodecProvider CodecProvider { get; }
 
         /// <summary>
-        /// 从池子里取出一个连环报道片
+        /// 从池中获取序列化器会话。
         /// </summary>
-        /// <returns>序列器会话。</returns>
+        /// <returns>序列化器会话。</returns>
         public SerializerSession GetSession() => _sessionPool.Get();
 
         /// <inheritdoc/>
         public void Dispose() => _sessionPool.Dispose();
 
         /// <summary>
-        /// 返回池内的一个会话。
+        /// 将会话归还到池中。
         /// </summary>
-        /// <param name="session">本届会议。</param>
+        /// <param name="session">会话。</param>
         private void ReturnSession(SerializerSession session) => _sessionPool.Return(session);
 
         private readonly struct SerializerSessionPoolPolicy : IPooledObjectPolicy<SerializerSession>

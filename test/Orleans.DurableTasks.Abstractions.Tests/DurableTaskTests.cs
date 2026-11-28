@@ -279,7 +279,7 @@ public class DurableTaskTests
             }
             else
             {
-                // 东道方取消延迟 结束了取消尝试的操作
+                // 宿主取消延迟，使已取消的执行尝试的操作结束。
                 var attemptCanceled = Assert.IsType<DurableTaskAttemptCanceledException>(exception);
                 Assert.Equal(DurableTaskAttemptCancellationReason.TaskDeleted, attemptCanceled.Reason);
                 Assert.Equal(context.AttemptCancellationToken, attemptCanceled.CancellationToken);
@@ -2245,7 +2245,7 @@ public class SchedulingTests
         await waiting.Task.WaitAsync(TimeSpan.FromSeconds(10), Xunit.TestContext.Current.CancellationToken);
         context.RequestTaskCancellation(null);
 
-        // 忽略取消的输入仍然完整, 组合返回两个结果 。
+        // 忽略取消的输入仍然完成，组合器返回两个结果。
         second.SetResult(2);
         var response = await execution.WaitAsync(TimeSpan.FromSeconds(10), Xunit.TestContext.Current.CancellationToken);
         Assert.Equal([1, 2], response.GetResult<IReadOnlyList<int>>());
@@ -2264,7 +2264,7 @@ public class SchedulingTests
             whenAny ? (await DurableTask.WhenAny(inputs)).Result : (await DurableTask.WhenAll(inputs)).Sum()));
         var scheduled = await root.WithId("root").ScheduleAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
-        // 输入的进度在完成之前就开始了 所以主机可以一起进行批次
+        // 每个输入都在其中任何一个完成调度之前开始调度，因此宿主可以将该批操作一同提交。
         var deadline = DateTime.UtcNow.AddSeconds(10);
         while (host.ScheduleRequestCount < inputs.Length && DateTime.UtcNow < deadline)
         {
@@ -3766,10 +3766,10 @@ internal sealed class TestHost(DateTimeOffset utcNow)
     private int _scheduleRequestCount;
     public int ExecutionCount;
 
-    /// <summary>获得儿童日程安排申请的数量,在每次申请开始时计算。</summary>
+    /// <summary>获取子任务调度请求数，在每次请求开始时计数。</summary>
     public int ScheduleRequestCount => Volatile.Read(ref _scheduleRequestCount);
 
-    /// <summary>执行儿童时间安排在计划前等待的任务。</summary>
+    /// <summary>获取子任务调度在实际调度之前等待的任务。</summary>
     public Task? ScheduleGate { get; init; }
 
     public DateTimeOffset? LastDelayDueTime { get; private set; }
@@ -3784,12 +3784,12 @@ internal sealed class TestHost(DateTimeOffset utcNow)
 
     public Func<CancellationToken, ValueTask<DurableTaskResponse>>? DelayCallback { get; init; }
 
-    /// <summary>获取或设定从现在开始东道方创造的处决的逻辑时间。</summary>
+    /// <summary>获取或设置宿主从现在起创建的执行实例的逻辑时间。</summary>
     public DateTimeOffset UtcNow { get; set; } = utcNow;
 
     /// <summary>
-    /// 了解手柄的撤消请求是否达到执行任务的程度,并附有请求的理由,因为
-    /// 它在运行此项任务的东道主中执行。
+    /// 获取句柄的取消请求是否会携带请求原因传递给其任务的执行实例，
+    /// 就像实际运行该任务的宿主所执行的操作一样。
     /// </summary>
     public bool PropagatesCancellation { get; init; }
 
@@ -3799,7 +3799,7 @@ internal sealed class TestHost(DateTimeOffset utcNow)
 
     public bool Contains(TaskId id) => _entries.ContainsKey(id);
 
-    /// <summary>获得的结果 <c>DurableTask.RunInline</c> 以有效识别符号记录。</summary>
+    /// <summary>按效果标识符获取 <c>DurableTask.RunInline</c> 记录的结果。</summary>
     public ConcurrentDictionary<TaskId, DurableTaskResponse> Effects { get; } = new();
 
     public bool IsCancellationRequested(TaskId id) => _entries.TryGetValue(id, out var entry) && entry.CancellationRequested;
@@ -3909,10 +3909,10 @@ internal sealed class TestHost(DateTimeOffset utcNow)
 
         public bool CancellationRequested { get; private set; }
 
-        /// <summary>获取第一次取消请求的理由。</summary>
+        /// <summary>获取第一次取消请求的原因。</summary>
         public string? CancellationReason { get; private set; }
 
-        /// <summary>一旦主机运行, 获取或设置任务执行的背景。</summary>
+        /// <summary>在宿主运行任务后，获取或设置该任务执行实例的上下文。</summary>
         public TestContext? Context { get; set; }
 
         public Exception? WaitException { get; set; }

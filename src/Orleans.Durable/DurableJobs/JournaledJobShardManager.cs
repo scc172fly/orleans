@@ -42,10 +42,10 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
     private readonly TimeProvider _timeProvider;
     private readonly ConcurrentDictionary<string, JournaledJobShard> _jobShardCache = new();
     private readonly ConcurrentDictionary<string, ShardOpen> _openingShards = new();
-    // IsShardOwnedByLocalSiloAsync的粘固正缓存。一旦碎片被添加条目
-    // 以此确认为所有 silo,并且只有在所有权在当地释放时才能删除
-    // (通过 UnregisterShardAsync.每个被追回案例之前都使用日记内容围栏
-    // 所以接管撤销了先前的 有条件储存突变
+    // IsShardOwnedByLocalSiloAsync 的持久保留正向结果缓存。一旦确认分片
+    // 由此 Silo 拥有，就添加缓存项；仅在本地释放所有权时才移除
+    // （通过 UnregisterShardAsync）。每个恢复的实例在发布之前提交日志内容栅栏，
+    // 因此接管操作会使旧实例的条件式存储变更失效。
     private readonly ConcurrentDictionary<string, bool> _ownedShards = new(StringComparer.Ordinal);
     public JournaledJobShardManager(
         ILocalSiloDetails localSiloDetails,
@@ -135,7 +135,7 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
         };
         foreach (var provider in _providers.Providers)
         {
-            // 只有在供应商的查点成功完成后才公布其候选人。
+            // 仅在提供程序的枚举成功完成后才发布其候选分片。
             var entries = _providers.Providers.Length == 1
                 ? storageEntries
                 : new SortedDictionary<JournalId, (DurableJobsJournalProvider Provider, JournalCatalogEntry Entry)>(storageEntries.Comparer);
@@ -162,7 +162,7 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
             }
         }
 
-        // 供应商可以按任何顺序返回身份。 姓名会通过 UTC 启动时间排序选中的碎片 。
+        // 提供程序可以任意顺序返回标识；名称使选定的分片按 UTC 开始时间排序。
         var newClaimCount = 0;
         HashSet<DurableJobsJournalProvider>? failedProviders = null;
         foreach (var (provider, entry) in storageEntries.Values)
@@ -208,7 +208,7 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
             && !_jobShardCache.TryGetValue(descriptor.ShardId.Value, out cachedShard)
             && entry.Metadata is { ETag: not null })
         {
-            // 名单所列本地业主本可以释放照片拍摄后被撕裂的碎片。
+            // 从获取快照到当前时刻，列出的本地所有者可能已经释放了该分片。
             descriptor = await GetDescriptorAsync(provider, entry.Id, cancellationToken);
         }
 
@@ -263,7 +263,7 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
             isAdopted = ownerStatus == SiloStatus.Dead;
         }
 
-        // 索赔预算的耗尽仍然使后来发现的地方拥有的碎片进一步被发现。
+        // 即使认领预算已耗尽，发现过程仍会继续查找后续由本地拥有的分片。
         if (!canClaim)
         {
             return default;
@@ -317,7 +317,7 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
                 throw new InvalidOperationException($"Cannot unregister DurableJobs shard '{shard.Id}' because it is not the current local instance.");
             }
 
-            // 排队排水沟接受突变;陈旧的参考文献拒绝新的突变。
+            // 队列屏障处理完已接受的变更；陈旧引用拒绝新的变更。
             await journaledShard.RetireAsync(cancellationToken);
 
             var descriptor = await GetDescriptorAsync(journaledShard.Provider, journaledShard.StorageId, cancellationToken)
@@ -331,12 +331,12 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
             var count = await shard.GetJobCountAsync();
             if (count == 0)
             {
-                // 没有工作了,我们可以删除碎片。
+                // 没有剩余作业，可以删除分片。
                 await journaledShard.DeleteStateAsync(cancellationToken);
             }
             else
             {
-                // 碎片里还有工作, 体面地释放所有权。
+                // 分片中仍有作业，因此正常释放所有权。
                 var updatedMetadata = await UpdateMetadataAsync(
                     descriptor,
                     new Dictionary<string, string>(StringComparer.Ordinal)
@@ -461,7 +461,7 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
 
     private async ValueTask<JournaledJobShard?> TryClaimShardAsync(ShardCatalogProperties descriptor, bool isAdopted, CancellationToken cancellationToken)
     {
-        // 登记人保留了官阶,同时释放所有权。
+        // 注销操作在释放所有权期间保留规范实例。
         if (_jobShardCache.ContainsKey(descriptor.ShardId.Value))
         {
             return null;
@@ -472,18 +472,18 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
         {
             [OwnerProperty] = SiloAddress.ToParsableString(),
             [MembershipVersionProperty] = GetMembershipVersionString(),
-            // 我们不想给刚刚拥有的碎片增加新的工作。
+            // 不应向刚刚接管所有权的分片添加新作业。
             [ClosedProperty] = bool.TrueString
         };
         List<string>? remove = null;
 
         if (isAdopted)
         {
-            // 死者的碎片被加分
+            // 对从已死亡所有者处接管的分片增加接管计数。
             adoptedCount++;
             if (adoptedCount > _options.MaxAdoptedCount)
             {
-                // 固态毒药标记 所以这个碎片不会被反复重新评价为新中毒
+                // 持久化有毒分片标记，避免反复将此分片作为新出现的有毒分片进行判定。
                 await TryMarkShardPoisonedAsync(descriptor, adoptedCount, cancellationToken);
                 return null;
             }
@@ -493,7 +493,7 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
         }
         else
         {
-            // 重置被采纳的数数,因为我们是优雅地释放。
+            // 正常释放所有权，因此重置接管计数。
             set[AdoptedCountProperty] = "0";
             remove = [LastAdoptedTimeProperty];
         }
@@ -591,9 +591,9 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
             manager.RegisterStateMachine(JournaledJobShardState.StateName, state);
             manager.RegisterStateMachine(JournaledJobShardOwnershipFence.StateName, fence);
 
-            // 管理器在初始化调度调度器上处理日记。 从线索库初始化, 不
-            // 电击人的处决环境,所以碎片独立于其呼喊者运行,而呼喊者可能是 grain
-            // 启动工作时间安排
+            // 管理器在执行初始化的调度器上处理日志。请从线程池进行初始化，不携带
+            // 调用方的执行上下文，因此分片独立于其调用方运行；调用方可能是负责
+            // 调度作业的 Grain 激活实例。
             Task initializeTask;
             using (new ExecutionContextSuppressor())
             {
@@ -606,8 +606,8 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
             {
                 descriptor = await RequireLocalOwnershipAsync(descriptor, cancellationToken).ConfigureAwait(false);
 
-                // 包括写道
-                // 接收前先通过所有权检查。 只有元数据更新仍可以重试 。
+                // 非空的内容提交为较早的重放实例设置栅栏，包括
+                // 在接管之前已通过所有权检查的写入。仅修改元数据的更新仍可重试。
                 fence.Write(SiloAddress.ToParsableString());
                 await manager.WriteStateAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -620,8 +620,8 @@ internal sealed partial class JournaledJobShardManager : JobShardManager
             throw;
         }
 
-        // 当描述符确认拥有碎片时, 预先配置所有权缓存 silo
-        // 因此第一批冲水量不会支付 Azure 元数据往返旅行费用。
+        // 当描述符确认此 Silo 拥有该分片时，预先填充所有权缓存，
+        // 使第一次批量刷新无须额外执行 Azure 元数据往返请求。
         if (descriptor is { Poisoned: false, Owner: { } owner } && owner.Equals(SiloAddress))
         {
             _ownedShards[descriptor.ShardId.Value] = true;

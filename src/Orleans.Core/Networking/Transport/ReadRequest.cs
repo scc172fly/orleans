@@ -4,28 +4,28 @@ using Orleans.Serialization.Buffers;
 namespace Orleans.Connections.Transport;
 
 /// <summary>
-/// 表示向 <see cref="MessageTransport"/>提交的读作作业。
+/// 表示提交给 <see cref="MessageTransport"/> 的读取操作。
 /// </summary>
 /// <remarks>
-/// 一旦一运输接受,该请求在一次最后回召完成之前仍为运输所有。
+/// 传输层接受请求后，直至其中一个终止回调完成，该请求始终归传输层所有。
 /// </remarks>
 public abstract class ReadRequest
 {
     /// <summary>
-    /// 满足这一请求所需的可用投入。
+    /// 消耗此请求可用的输入数据。
     /// </summary>
-    /// <param name="buffer">可用输入。 执行时会将此读器作为字节进行, 以消耗方式向该读者推进 。</param>
-    /// <returns><see langword="true"/> 请求完成后;否则, <see langword="false"/> 等待更多投入。</returns>
+    /// <param name="buffer">可用的输入数据。实现应随字节的消耗推进此读取器。</param>
+    /// <returns><see langword="true"/> 表示请求已完成，否则返回 <see langword="false"/> 以等待更多输入。</returns>
     public abstract bool OnRead(ArcBufferReader buffer);
 
     /// <summary>
-    /// 错误填写请求。
+    /// 以错误结束请求。
     /// </summary>
     /// <param name="error">终止读取的错误。</param>
     public abstract void OnError(Exception error);
 
     /// <summary>
-    /// 完成请求,因为运输被取消或关闭。
+    /// 因传输层被取消或关闭而结束请求。
     /// </summary>
     public abstract void OnCanceled();
 }

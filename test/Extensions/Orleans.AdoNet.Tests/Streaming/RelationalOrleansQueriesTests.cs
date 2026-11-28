@@ -12,7 +12,7 @@ using static System.String;
 namespace Tester.AdoNet.Streaming;
 
 /// <summary>
-/// 通过 Sql 服务器测试 <see cref="RelationalOrleansQueries"/> 的关联存储层。
+/// 通过 <see cref="RelationalOrleansQueries"/> 测试 SQL Server 上的关系型存储层。
 /// </summary>
 [TestCategory("SqlServer"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("SqlServer")]
@@ -25,7 +25,7 @@ public class SqlServerRelationalOrleansQueriesTests() : RelationalOrleansQueries
 }
 
 /// <summary>
-/// 通过 <see cref="RelationalOrleansQueries"/> 测试 MySQL的关联储存层。
+/// 通过 <see cref="RelationalOrleansQueries"/> 测试 MySQL 上的关系型存储层。
 /// </summary>
 [TestCategory("MySql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("MySql")]
@@ -43,7 +43,7 @@ public class MySqlRelationalOrleansQueriesTests : RelationalOrleansQueriesTests
 }
 
 /// <summary>
-/// 通过 <see cref="RelationalOrleansQueries"/> 测试 PostgreSQL的关联储存层。
+/// 通过 <see cref="RelationalOrleansQueries"/> 测试 PostgreSQL 上的关系型存储层。
 /// </summary>
 [TestCategory("PostgreSql"), TestCategory("Functional"), TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestProvider("PostgreSql")]
@@ -57,7 +57,7 @@ public class PostgreSqlRelationalOrleansQueriesTests : RelationalOrleansQueriesT
 }
 
 /// <summary>
-/// 通过 <see cref="RelationalOrleansQueries"/>测试相关储存层。
+/// 通过 <see cref="RelationalOrleansQueries"/> 测试关系型存储层。
 /// </summary>
 [TestCategory("AdoNet"), TestCategory("Streaming")]
 [TestSuite("Functional")]
@@ -260,31 +260,31 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// 测试是否排队了单个信件 。
+    /// 测试单条消息是否入队。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_QueuesMessage()
     {
-        // 安排
+        // 准备
         var serviceId = RandomServiceId();
         var providerId = RandomProviderId();
         var queueId = RandomQueueId();
         var expiryTimeout = RandomExpiryTimeout();
         var payload = RandomPayload();
 
-        // 行为
+        // 执行
         var before = DateTime.UtcNow.AddSeconds(-1);
         var ack = await _queries.QueueStreamMessageAsync(serviceId, providerId, queueId, payload, expiryTimeout);
         var after = DateTime.UtcNow.AddSeconds(1);
 
-        // 索赔 - ack
+        // 断言 - 入队回执（ack）
         Assert.NotNull(ack);
         Assert.Equal(serviceId, ack.ServiceId);
         Assert.Equal(providerId, ack.ProviderId);
         Assert.Equal(queueId, ack.QueueId);
         Assert.Equal(1, ack.MessageId);
 
-        // - 储存
+        // 断言 - 存储状态
         var messages = await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             TestContext.Current.CancellationToken);
@@ -304,7 +304,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// 测试许多信件在相同的队列上平行排队 。
+    /// 测试在同一队列上并行将大量消息入队。
     /// </summary>
     [TestSuite("Stress")]
     [TestCategory("Stress")]
@@ -313,7 +313,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     {
         var cancellationToken = TestContext.Current.CancellationToken;
 
-        // 安排
+        // 准备
         var serviceId = RandomServiceId();
         var providerId = RandomProviderId();
         var queueId = RandomQueueId();
@@ -321,10 +321,10 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         var payload = RandomPayload(1000);
         var count = 10000;
 
-        // 将请求保留在默认连接集合限制下,以避免因连接超时而进行不相干测试
+        // 将请求数限制在默认连接池容量之内，避免连接超时造成测试不稳定。
         using var semaphore = new SemaphoreSlim(concurrency);
 
-        // 行为
+        // 执行
         var before = DateTime.UtcNow.AddSeconds(-1);
         var acks = await Task.WhenAll(Enumerable
             .Range(0, count)
@@ -338,7 +338,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
             .ToList());
         var after = DateTime.UtcNow.AddSeconds(1);
 
-        // 自动输入 - 顺序插入信件。
+        // 断言 - 消息按顺序插入。
         var ordered = acks
             .OrderBy(x => x.ServiceId)
             .ThenBy(x => x.ProviderId)
@@ -354,7 +354,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
             Assert.Equal(messageId++, ordered[i].MessageId);
         }
 
-        // 平面 - 信件按预期存储
+        // 断言 - 消息按预期存储
         var stored = (await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             cancellationToken))
@@ -381,7 +381,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// 测试许多信件在多个队列中同时排队。
+    /// 测试在多个队列上并行将大量消息入队。
     /// </summary>
     [TestSuite("Stress")]
     [TestCategory("Stress")]
@@ -390,7 +390,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     {
         var cancellationToken = TestContext.Current.CancellationToken;
 
-        // - 安排创建最多27个随机分区密钥,每个分区以随机顺序创建约1000个随机信件
+        // 准备 - 以随机顺序创建最多 27 个随机分区键，每个分区包含约 1000 条随机消息
         var expiryTimeout = RandomExpiryTimeout();
         var count = 3 * 3 * 3 * 1000;
         var partitions = Enumerable
@@ -404,10 +404,10 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
             ))
             .ToList();
 
-        // 将请求保留在默认连接集合限制下,以避免因连接超时而进行不相干测试
+        // 将请求数限制在默认连接池容量之内，避免连接超时造成测试不稳定。
         using var semaphore = new SemaphoreSlim(concurrency);
 
-        // 动作 - 将随机消息平行排列
+        // 执行 - 并行将随机消息入队
         var before = DateTime.UtcNow.AddSeconds(-1);
         var results = await Task.WhenAll(partitions
             .Select(p => Task.Run(async () =>
@@ -421,7 +421,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
             .ToList());
         var after = DateTime.UtcNow.AddSeconds(1);
 
-        // - 所有信息均得到确认
+        // 断言 - 所有消息均已获得入队确认
         var messageIds = new SortedSet<long>();
         foreach (var (partition, ack) in results)
         {
@@ -431,12 +431,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
             Assert.True(messageIds.Add(ack.MessageId), $"Duplicate {ack.MessageId}");
         }
 
-        // 即正对 - 生成的电文代号一致
+        // 断言 - 生成的消息 ID 一致
         Assert.Equal(count, messageIds.Count);
         Assert.Equal(1, messageIds.Min);
         Assert.Equal(messageIds.Count, messageIds.Max);
 
-        // 平面 - 信件按预期存储
+        // 断言 - 消息按预期存储
         var stored = (await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             cancellationToken))
@@ -460,12 +460,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// 测试单个信件是否正确解密 。
+    /// 测试单条消息能否正确出队。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_DequeuesSingleMessage()
     {
-        // 安排
+        // 准备
         await _storage.ExecuteAsync("DELETE FROM OrleansStreamMessage", TestContext.Current.CancellationToken);
         var serviceId = RandomServiceId();
         var providerId = RandomProviderId();
@@ -479,12 +479,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         var evictionInterval = 10;
         var evictionBatchSize = 1000;
 
-        // - 安排信件的后排
+        // 准备：将消息加入队列。
         var beforeQueueing = DateTime.UtcNow.AddSeconds(-1);
         var ack = await _queries.QueueStreamMessageAsync(serviceId, providerId, queueId, payload, expiryTimeout);
         var afterQueueing = DateTime.UtcNow.AddSeconds(1);
 
-        // - 行为 - 删除消息
+        // 执行 - 将一条消息出队
         var beforeDequeuing = DateTime.UtcNow.AddSeconds(-1);
         var message = Assert.Single(await _queries.GetStreamMessagesAsync(
             serviceId,
@@ -498,7 +498,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
             evictionBatchSize));
         var afterDequeuing = DateTime.UtcNow.AddSeconds(1);
 
-        // 声明 - 电文相同
+        // 断言 - 消息一致
         Assert.Equal(ack.ServiceId, message.ServiceId);
         Assert.Equal(ack.ProviderId, message.ProviderId);
         Assert.Equal(ack.QueueId, message.QueueId);
@@ -514,7 +514,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         Assert.True(message.ModifiedOn <= afterDequeuing);
         Assert.Equal(payload, message.Payload);
 
-        // 已经更改 - 服务器上的信件
+        // 断言 - 存储中的消息已变更
         var stored = Assert.Single(await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             TestContext.Current.CancellationToken));
@@ -531,12 +531,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// 测试信件的排队分批清除
+    /// 测试消息能否批量出队。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_DequeuesMessageBatches()
     {
-        // 安排
+        // 准备
         var serviceId = RandomServiceId();
         var providerId = RandomProviderId();
         var queueId = RandomQueueId();
@@ -550,7 +550,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         var evictionBatchSize = 1000;
         var total = 100;
 
-        // - 同时安排对信件的排列
+        // 准备 - 并发将消息入队
         var beforeQueueing = DateTime.UtcNow.AddSeconds(-1);
         var acks = await QueueMessagesAsync(
             serviceId,
@@ -562,14 +562,14 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
             TestContext.Current.CancellationToken);
         var afterQueueing = DateTime.UtcNow.AddSeconds(1);
 
-        // 动作 - 删除所有信件
+        // 执行 - 将所有消息出队
         var beforeDequeuing = DateTime.UtcNow.AddSeconds(-1);
         var first = await _queries.GetStreamMessagesAsync(serviceId, providerId, queueId, maxCount, maxAttempts, visibilityTimeout, removalTimeout, evictionInterval, evictionBatchSize);
         var second = await _queries.GetStreamMessagesAsync(serviceId, providerId, queueId, maxCount, maxAttempts, visibilityTimeout, removalTimeout, evictionInterval, evictionBatchSize);
         var third = await _queries.GetStreamMessagesAsync(serviceId, providerId, queueId, maxCount, maxAttempts, visibilityTimeout, removalTimeout, evictionInterval, evictionBatchSize);
         var afterDequeuing = DateTime.UtcNow.AddSeconds(1);
 
-        // - 批次计数
+        // 断言 - 各批次的消息数
         Assert.Equal(maxCount, first.Count);
         Assert.Equal(total - maxCount, second.Count);
         Assert.Empty(third);
@@ -577,7 +577,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         var messages = first.Concat(second).Concat(third).ToList();
         Assert.Equal(messages.OrderBy(message => message.MessageId), messages);
 
-        // 即 - 解排信件与 acks 一致
+        // 断言 - 出队消息与入队回执一致
         var ackLookup = acks.ToDictionary(x => (x.ServiceId, x.ProviderId, x.QueueId, x.MessageId));
         foreach (var message in messages)
         {
@@ -600,7 +600,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
             ackLookup.Remove((message.ServiceId, message.ProviderId, message.QueueId, message.MessageId));
         }
 
-        // 维护 - 存储的邮件与已解排的邮件一致
+        // 断言 - 存储中的消息与出队消息一致
         var messageLookup = messages.ToDictionary(x => (x.ServiceId, x.ProviderId, x.QueueId, x.MessageId));
         var stored = await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
@@ -623,12 +623,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// 测试在可见度超时后, 单条信件会重新删除, 直到尝试最大一次 。
+    /// 测试单条消息在可见性超时后再次出队，直到达到最大尝试次数。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_DequeuesSingleMessageAgainAfterVisibilityTimeout()
     {
-        // 安排
+        // 准备
         var serviceId = RandomServiceId();
         var providerId = RandomProviderId();
         var queueId = RandomQueueId();
@@ -641,12 +641,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         var evictionInterval = 100;
         var evictionBatchSize = 0;
 
-        // - 安排信件的后排
+        // 准备：将消息加入队列。
         var beforeQueueing = DateTime.UtcNow.AddSeconds(-1);
         var ack = await _queries.QueueStreamMessageAsync(serviceId, providerId, queueId, payload, expiryTimeout);
         var afterQueueing = DateTime.UtcNow.AddSeconds(1);
 
-        // 动作 - 删除信件,直到最大尝试加一次
+        // 执行 - 反复将消息出队，直至最大尝试次数再加一次
         var beforeDequeuing = DateTime.UtcNow.AddSeconds(-1);
         var results = new List<IList<AdoNetStreamMessage>>();
         for (var i = 0; i < maxAttempts + 1; i++)
@@ -655,7 +655,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         }
         var afterDequeuing = DateTime.UtcNow.AddSeconds(1);
 
-        // - 分批处理符合预期要求
+        // 断言 - 各批次符合预期
         for (var i = 0; i < maxAttempts; i++)
         {
             var message = Assert.Single(results[i]);
@@ -676,10 +676,10 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
             Assert.Equal(payload, message.Payload);
         }
 
-        // 确定 - 最后批次为空
+        // 断言 - 最后一批为空
         Assert.Empty(results[maxAttempts]);
 
-        // - 最终存储的电文与最后解排的电文一致
+        // 断言 - 最终存储的消息与最后一次出队的消息一致
         var stored = Assert.Single(await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             TestContext.Current.CancellationToken));
@@ -697,12 +697,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// 测试在可见度超时前, 单个信息不会再次被解密 。
+    /// 测试单条消息在可见性超时之前不会再次出队。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_DoesNotDequeueSingleMessageBeforeVisibilityTimeout()
     {
-        // 安排
+        // 准备
         var serviceId = RandomServiceId();
         var providerId = RandomProviderId();
         var queueId = RandomQueueId();
@@ -715,20 +715,20 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         var evictionInterval = 10;
         var evictionBatchSize = 1000;
 
-        // - 安排信件的后排
+        // 准备：将消息加入队列。
         var ack = await _queries.QueueStreamMessageAsync(serviceId, providerId, queueId, payload, expiryTimeout);
 
-        // 动作 - 删除信件
+        // 执行 - 将消息出队
         var first = Assert.Single(await _queries.GetStreamMessagesAsync(serviceId, providerId, queueId, maxCount, maxAttempts, visibilityTimeout, removalTimeout, evictionInterval, evictionBatchSize));
         var second = await _queries.GetStreamMessagesAsync(serviceId, providerId, queueId, maxCount, maxAttempts, visibilityTimeout, removalTimeout, evictionInterval, evictionBatchSize);
 
-        // 声明 - 首次解排的邮件符合 ack
+        // 断言 - 首次出队的消息与入队回执一致
         Assert.Equal(ack.ServiceId, first.ServiceId);
         Assert.Equal(ack.ProviderId, first.ProviderId);
         Assert.Equal(ack.QueueId, first.QueueId);
         Assert.Equal(ack.MessageId, first.MessageId);
 
-        // 即时 - 已存储的电文与第一封电文一致
+        // 断言 - 存储中的消息与首次出队的消息一致
         var stored = Assert.Single(await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             TestContext.Current.CancellationToken));
@@ -743,12 +743,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         Assert.Equal(first.ModifiedOn, stored.ModifiedOn);
         Assert.Equal(first.Payload, stored.Payload);
 
-        // 指定 - 信件不再取消排队
+        // 断言 - 消息未再次出队
         Assert.Empty(second);
     }
 
     /// <summary>
-    /// 测试信息能通过解结接收器 被发布以立即再投送
+    /// 测试能否使用消息的出队回执将其释放，以便立即重新投递。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_ReleasesMessageUsingDequeueReceipt()
@@ -785,12 +785,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// 测试单一条电文在过期后不再解排
+    /// 测试单条消息过期后不会再次出队。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_DoesNotDequeueSingleMessageAfterExpiry()
     {
-        // 安排
+        // 准备
         var serviceId = RandomServiceId();
         var providerId = RandomProviderId();
         var queueId = RandomQueueId();
@@ -803,18 +803,18 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         var evictionInterval = 10;
         var evictionBatchSize = 0;
 
-        // - 安排信件的后排
+        // 准备：将消息加入队列。
         var before = DateTime.UtcNow.AddSeconds(-1);
         var ack = await _queries.QueueStreamMessageAsync(serviceId, providerId, queueId, payload, expiryTimeout);
         var after = DateTime.UtcNow.AddSeconds(1);
 
-        // 动作 - 删除信件
+        // 执行 - 将消息出队
         var messages = await _queries.GetStreamMessagesAsync(serviceId, providerId, queueId, maxCount, maxAttempts, visibilityTimeout, removalTimeout, evictionInterval, evictionBatchSize);
 
-        // 平面 - 没有取消信件排队
+        // 断言 - 没有消息出队
         Assert.Empty(messages);
 
-        // 声明 - 存储的邮件如预期
+        // 断言 - 存储中的消息符合预期
         var stored = Assert.Single(await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             TestContext.Current.CancellationToken));
@@ -835,12 +835,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// 测试信件是否得到确认。
+    /// 测试消息能否被确认。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_ConfirmsMessages()
     {
-        // 安排
+        // 准备
         var serviceId = RandomServiceId();
         var providerId = RandomProviderId();
         var queueId = RandomQueueId();
@@ -853,20 +853,20 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         var evictionInterval = 10;
         var evictionBatchSize = 1000;
 
-        // - 安排对许多信件进行排列
+        // 准备 - 将大量消息入队
         var acks = await Task.WhenAll(Enumerable
             .Range(0, maxCount)
             .Select(i => _queries.QueueStreamMessageAsync(serviceId, providerId, queueId, payload, expiryTimeout))
             .ToList());
 
-        // - 安排取消所有信件的排队
+        // 准备 - 将所有消息出队
         var messages = await _queries.GetStreamMessagesAsync(serviceId, providerId, queueId, maxCount, maxAttempts, visibilityTimeout, removalTimeout, evictionInterval, evictionBatchSize);
 
-        // 动作 - 确认所有消息
+        // 执行 - 确认所有消息
         var items = messages.Select(x => new AdoNetStreamConfirmation(x.MessageId, x.Dequeued)).ToList();
         var results = await _queries.ConfirmStreamMessagesAsync(serviceId, providerId, queueId, items);
 
-        // - 肯定书与预期相同
+        // 断言 - 确认结果符合预期
         Assert.Equal(maxCount, acks.Length);
         Assert.Equal(maxCount, messages.Count);
         Assert.Equal(maxCount, results.Count);
@@ -877,7 +877,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
             Assert.True(lookup.Remove((result.ServiceId, result.ProviderId, result.QueueId, result.MessageId)), "Unexpected Confirmation");
         }
 
-        // - 数据没有留存
+        // 断言 - 存储中没有剩余数据
         var stored = await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             TestContext.Current.CancellationToken);
@@ -885,12 +885,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// 测试信件接收不正确时未被确认 。
+    /// 测试回执不正确时消息不会被确认。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_DoesNotConfirmMessagesWithWrongReceipt()
     {
-        // 安排
+        // 准备
         var serviceId = RandomServiceId();
         var providerId = RandomProviderId();
         var queueId = RandomQueueId();
@@ -903,25 +903,25 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         var evictionInterval = 10;
         var evictionBatchSize = 1000;
 
-        // - 安排对许多信件进行排列
+        // 准备 - 将大量消息入队
         var acks = await Task.WhenAll(Enumerable
             .Range(0, maxCount)
             .Select(i => _queries.QueueStreamMessageAsync(serviceId, providerId, queueId, payload, expiryTimeout))
             .ToList());
 
-        // - 安排取消所有信件的排队
+        // 准备 - 将所有消息出队
         var messages = await _queries.GetStreamMessagesAsync(serviceId, providerId, queueId, maxCount, maxAttempts, visibilityTimeout, removalTimeout, evictionInterval, evictionBatchSize);
 
-        // 动作 - 以错误的方式确认所有信件
+        // 执行 - 使用错误的方式确认所有消息
         var faulty = messages.Select(x => new AdoNetStreamConfirmation(x.MessageId, x.Dequeued - 1)).ToList();
         var results = await _queries.ConfirmStreamMessagesAsync(serviceId, providerId, queueId, faulty);
 
-        // - 肯定书与预期相同
+        // 断言 - 确认结果符合预期
         Assert.Equal(maxCount, acks.Length);
         Assert.Equal(maxCount, messages.Count);
         Assert.Empty(results);
 
-        // - 数据仍在储存中
+        // 断言 - 数据仍保留在存储中
         var stored = await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             TestContext.Current.CancellationToken);
@@ -929,12 +929,12 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// 测试有些信息可以确认,而另一些则不能证实。
+    /// 混沌测试，验证部分消息可以被确认而其他消息不被确认。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_ConfirmsSomeMessagesAndNotOthers()
     {
-        // 安排
+        // 准备
         var serviceId = RandomServiceId();
         var providerId = RandomProviderId();
         var queueId = RandomQueueId();
@@ -948,25 +948,25 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         var evictionBatchSize = 1000;
         var partial = 30;
 
-        // - 安排对许多信件进行排列
+        // 准备 - 将大量消息入队
         var acks = await Task.WhenAll(Enumerable
             .Range(0, maxCount)
             .Select(i => _queries.QueueStreamMessageAsync(serviceId, providerId, queueId, payload, expiryTimeout))
             .ToList());
 
-        // - 安排全部信件的排队
+        // 准备 - 将所有消息出队
         var messages = await _queries.GetStreamMessagesAsync(serviceId, providerId, queueId, maxCount, maxAttempts, visibilityTimeout, removalTimeout, evictionInterval, evictionBatchSize);
 
-        // - 随机确认一些信件
+        // 执行 - 随机确认部分消息
         var completed = Randomize(messages).Take(partial).Select(x => new AdoNetStreamConfirmation(x.MessageId, x.Dequeued)).ToList();
         var confirmed = await _queries.ConfirmStreamMessagesAsync(serviceId, providerId, queueId, completed);
 
-        // - 索赔要求---- 各项索赔都如预期
+        // 断言 - 数量符合预期
         Assert.Equal(maxCount, acks.Length);
         Assert.Equal(maxCount, messages.Count);
         Assert.Equal(partial, confirmed.Count);
 
-        // 声明 - 确认信息与预期的相同
+        // 断言 - 已确认的消息符合预期
         var lookup = acks.ToDictionary(x => (x.ServiceId, x.ProviderId, x.QueueId, x.MessageId));
         var stored = (await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
@@ -978,21 +978,21 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
             Assert.False(stored.TryGetValue((item.ServiceId, item.ProviderId, item.QueueId, item.MessageId), out _), "Message still in storage");
         }
 
-        // - 保留未证实的信息
+        // 断言 - 未确认的消息仍保留在存储中
         Assert.Equal(maxCount - partial, stored.Count);
         Assert.Equal(lookup.Keys.Order(), stored.Keys.Order());
     }
 
     /// <summary>
-    /// 混杂的测试在复杂的随机情况下同时进行排队、脱队、确认和驱逐工作。
-    /// 这需要同时出现易碎,特别是容易陷入数据库僵局,而不是一个具体的条件。
-    /// 如果这一测试失误是由于僵局造成的,那么很可能存在一些需要调查的执行问题。
+    /// 混沌测试，验证在复杂随机场景中入队、出队、确认和逐出能否并行工作。
+    /// 此测试旨在发现并发处理的脆弱性，尤其是数据库死锁倾向，而非检查某个特定条件。
+    /// 如果此测试因死锁而失败，则实现很可能存在需要调查的问题。
     /// </summary>
     /// <remarks>
-    /// 在早期,这一试验一直导致僵局,直到基本查询完成。
-    /// 这是一项昂贵的运行测试,
-    /// 特别是对于 MySQL ,这一测试还发现驱动器连接池本身陷入僵局,需要升级包件。
-    /// 见: https://bugs.mysql.com/bug.php?id=114272
+    /// 在早期开发阶段，此测试曾持续引发死锁，直至底层查询得到完善。
+    /// 此测试运行开销较大，但可防止查询逻辑出现回归。
+    /// 特别是 MySQL，此测试还发现了驱动程序连接池本身的死锁，需要升级软件包才能解决。
+    /// 参见：https://bugs.mysql.com/bug.php?id=114272
     /// </remarks>
     [TestSuite("Stress")]
     [TestCategory("Stress")]
@@ -1001,7 +1001,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     {
         var cancellationToken = TestContext.Current.CancellationToken;
 
-        // - 安排 - 生成测试数据
+        // 准备 - 生成测试数据
         var total = 10000;
         var serviceIds = Enumerable.Range(0, 3).Select(x => $"ServiceId{x}").ToList();
         var providerIds = Enumerable.Range(0, 3).Select(x => $"ProviderId{x}").ToList();
@@ -1014,11 +1014,11 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         var evictionInterval = 1;
         var evictionBatchSize = 1000;
 
-        // 将请求保留在默认连接集合限制下,以避免因连接超时而进行不相干测试
+        // 将请求数限制在默认连接池容量之内，避免连接超时造成测试不稳定。
         using var semaphore = new SemaphoreSlim(concurrency);
 
-        // - 混乱的登记、取消、确认
-        // 如下任务预计不会产生计划成果,但预期会产生一致的成果
+        // 执行 - 以混沌方式进行入队、出队和确认
+        // 下列任务不要求产生预先计划的结果，但预期最终结果应保持一致性。
         var acks = new ConcurrentBag<AdoNetStreamMessageAck>();
         var dequeued1 = new ConcurrentBag<AdoNetStreamMessage>();
         var dequeued2 = new ConcurrentBag<AdoNetStreamMessage>();
@@ -1027,7 +1027,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
             .Range(0, total)
             .Select(async i =>
             {
-                // 旋转随机排队任务
+                // 启动一个随机入队任务
                 var enqueue = Task.Run(async () =>
                 {
                     var serviceId = serviceIds[Random.Shared.Next(serviceIds.Count)];
@@ -1042,7 +1042,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
                     acks.Add(ack);
                 }, cancellationToken);
 
-                // 随机脱排任务, 无法确认
+                // 启动一个随机出队但不进行确认的任务
                 var dequeue = Task.Run(async () =>
                 {
                     var serviceId = serviceIds[Random.Shared.Next(serviceIds.Count)];
@@ -1060,7 +1060,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
                     }
                 }, cancellationToken);
 
-                // 随机脱排任务,该任务也确认
+                // 启动一个随机出队并进行确认的任务
                 var confirm = Task.Run(async () =>
                 {
                     var serviceId = serviceIds[Random.Shared.Next(serviceIds.Count)];
@@ -1092,67 +1092,67 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
                     }
                 }, cancellationToken);
 
-                // 等待全部完成
+                // 等待全部任务完成
                 await Task.WhenAll(enqueue, dequeue, confirm);
             })
             .ToList());
 
-        // 平面 - 所有信件都排入了队列
+        // 断言 - 所有消息均已入队
         Assert.Equal(total, acks.Count);
 
-        // - 某些信息被解密(rng 依附者,如果不注意则删除)
+        // 断言 - 部分消息已出队（取决于随机数生成器，如果测试不稳定则移除此断言）
         Assert.NotEmpty(dequeued1);
         Assert.NotEmpty(dequeued2);
 
-        // - 某些信息得到确认(rng受扶养人,如果不确定则删除)
+        // 断言 - 部分消息已确认（取决于随机数生成器，如果测试不稳定则移除此断言）
         Assert.NotEmpty(confirmed);
 
-        // - 一些信息被遗漏(rng受扶养人,如果不注意就删除)
+        // 断言 - 部分消息仍然留存（取决于随机数生成器，如果测试不稳定则移除此断言）
         var stored = await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             cancellationToken);
         Assert.NotEmpty(stored);
 
-        // - 确认信息没有被遗漏
+        // 断言 - 已确认的消息没有残留
         Assert.Empty(confirmed.IntersectBy(stored.Select(x => x.MessageId), x => x.MessageId));
 
-        // 指定 - 确认信件所有匹配 acks
+        // 断言 - 所有已确认的消息均与入队回执匹配
         Assert.Empty(confirmed.ExceptBy(acks.Select(x => x.MessageId), x => x.MessageId));
     }
 
     /// <summary>
-    /// 测试毒物信息可以移到死字
+    /// 测试毒性消息能否移入死信队列。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_MovesPoisonedMessageToDeadLetters()
     {
-        // 安排
+        // 准备
         var serviceId = "ServiceId";
         var providerId = "ProviderId";
         var streamOptions = new AdoNetStreamOptions();
         var cacheOptions = new SimpleQueueCacheOptions();
 
-        // 排列过期信件的队列
+        // 准备 - 将一条已过期的消息入队
         var queueId = "QueueId";
         var payload = new byte[] { 0xFF };
 
         var ack = await _queries.QueueStreamMessageAsync(serviceId, providerId, queueId, payload, streamOptions.ExpiryTimeout.TotalSecondsCeiling());
 
-        // - 安排将信件解排并立即提供
+        // 准备 - 将消息出队并使其立即可再次投递
         await _queries.GetStreamMessagesAsync(ack.ServiceId, ack.ProviderId, ack.QueueId, cacheOptions.CacheSize, streamOptions.MaxAttempts, 0, streamOptions.DeadLetterEvictionTimeout.TotalSecondsCeiling(), streamOptions.EvictionInterval.TotalSecondsCeiling(), streamOptions.EvictionBatchSize);
         Assert.Empty(await _storage.ReadAsync<AdoNetStreamDeadLetter>(
             "SELECT * FROM OrleansStreamDeadLetter",
             TestContext.Current.CancellationToken));
 
-        // - 清理最大尝试的操作, 这样上面的信息会被标记
+        // 执行 - 以最大尝试次数为 1 执行清理，使上述消息被标记
         await _queries.FailStreamMessageAsync(ack.ServiceId, ack.ProviderId, ack.QueueId, ack.MessageId, 1, streamOptions.DeadLetterEvictionTimeout.TotalSecondsCeiling());
 
-        // 中指定 - 消息已不在信息表格中
+        // 断言 - 消息已不在消息表中
         Assert.Empty(await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             TestContext.Current.CancellationToken));
 
-        // 平面 - 信件被移动
+        // 断言 - 消息已被转移
         var dead = Assert.Single(await _storage.ReadAsync<AdoNetStreamDeadLetter>(
             "SELECT * FROM OrleansStreamDeadLetter",
             TestContext.Current.CancellationToken));
@@ -1168,29 +1168,29 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
     }
 
     /// <summary>
-    /// 测试健康信息不会被移动到死字
+    /// 测试正常消息不会被移入死信队列。
     /// </summary>
     [Fact]
     public async Task RelationalOrleansQueries_DoesNotMoveHealthyMessageToDeadLetters()
     {
-        // 安排
+        // 准备
         var serviceId = "ServiceId";
         var providerId = "ProviderId";
         var queueId = "QueueId";
         var streamOptions = new AdoNetStreamOptions();
         var cacheOptions = new SimpleQueueCacheOptions();
 
-        // - 排列普通信件
+        // 准备 - 将一条正常消息入队
         var payload = new byte[] { 0xFF };
         var ack = await _queries.QueueStreamMessageAsync(serviceId, providerId, queueId, payload, streamOptions.ExpiryTimeout.TotalSecondsCeiling());
 
-        // - 安排取消消息的排队
+        // 准备 - 将消息出队
         await _queries.GetStreamMessagesAsync(ack.ServiceId, ack.ProviderId, ack.QueueId, cacheOptions.CacheSize, streamOptions.MaxAttempts, streamOptions.VisibilityTimeout.TotalSecondsCeiling(), streamOptions.DeadLetterEvictionTimeout.TotalSecondsCeiling(), streamOptions.EvictionInterval.TotalSecondsCeiling(), streamOptions.EvictionBatchSize);
 
-        // - 行为失败信息
+        // 执行 - 将消息标记为处理失败
         await _queries.FailStreamMessageAsync(ack.ServiceId, ack.ProviderId, ack.QueueId, ack.MessageId, streamOptions.MaxAttempts, streamOptions.DeadLetterEvictionTimeout.TotalSecondsCeiling());
 
-        // e. 电文仍然在表格中,并且再次可见
+        // 断言 - 消息仍在表中，并已恢复为可见状态
         var saved = Assert.Single(await _storage.ReadAsync<AdoNetStreamMessage>(
             "SELECT * FROM OrleansStreamMessage",
             TestContext.Current.CancellationToken));
@@ -1201,7 +1201,7 @@ public abstract class RelationalOrleansQueriesTests(string invariant, int concur
         Assert.Equal(1, saved.Dequeued);
         Assert.Equal(saved.ModifiedOn, saved.VisibleOn);
 
-        // - 没有发出过任何信息,
+        // 断言 - 没有消息进入死信队列
         Assert.Empty(await _storage.ReadAsync<AdoNetStreamDeadLetter>(
             "SELECT * FROM OrleansStreamDeadLetter",
             TestContext.Current.CancellationToken));

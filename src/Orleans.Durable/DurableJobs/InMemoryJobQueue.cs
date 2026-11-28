@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// 提供一份即时优先排队,根据应到的时间管理耐久工作。
-/// 工作按时间分成桶,在到期时以不同步的方式列出。
+/// 提供按到期时间管理持久化作业的内存优先队列。
+/// 作业按时间分桶，并在到期时异步枚举。
 /// </summary>
 internal sealed class InMemoryJobQueue : IAsyncEnumerable<IJobRunContext>
 {
@@ -26,17 +26,17 @@ internal sealed class InMemoryJobQueue : IAsyncEnumerable<IJobRunContext>
     }
 
     /// <summary>
-    /// 获取当前队列中的工作总数 。
+    /// 获取当前队列中的作业总数。
     /// </summary>
     public int Count => Volatile.Read(ref _jobCount);
 
     /// <summary>
-    /// 将一个耐久任务添加到队列中,并带有指定的排队取消计数。
+    /// 使用指定的出队计数将持久化作业添加到队列中。
     /// </summary>
-    /// <param name="job">长久的工作来排队。</param>
-    /// <param name="dequeueCount">先前取消此工作排队的次数。</param>
-    /// <exception cref="InvalidOperationException">尝试将工作排入完整队列时丢弃。</exception>
-    /// <exception cref="ArgumentNullException">工作无效时丢弃。</exception>
+    /// <param name="job">要入队的持久化作业。</param>
+    /// <param name="dequeueCount">此作业此前的出队次数。</param>
+    /// <exception cref="InvalidOperationException">尝试向已标记完成的队列添加作业时抛出。</exception>
+    /// <exception cref="ArgumentNullException">job 为 null 时抛出。</exception>
     public void Enqueue(DurableJob job, int dequeueCount)
     {
         ArgumentNullException.ThrowIfNull(job);
@@ -74,8 +74,8 @@ internal sealed class InMemoryJobQueue : IAsyncEnumerable<IJobRunContext>
     }
 
     /// <summary>
-    /// 标记队列为完整, 防止任何其它任务被排入队列 。
-    /// 标记完成后,队列将完成剩余工作的处理,然后终止查点。
+    /// 将队列标记为完成，阻止后续作业入队。
+    /// 标记为完成后，队列将处理完剩余作业，然后终止枚举。
     /// </summary>
     public void MarkAsComplete()
     {
@@ -87,12 +87,12 @@ internal sealed class InMemoryJobQueue : IAsyncEnumerable<IJobRunContext>
     }
 
     /// <summary>
-    /// 从队列中删除一个耐久的工作 。
+    /// 从队列中移除持久化作业。
     /// </summary>
-    /// <param name="jobId">要删除的任务的唯一标识符。</param>
-    /// <returns>如果找到并删除了工作, 则正确; 如果找不到工作, 则虚假。</returns>
+    /// <param name="jobId">要移除的作业的唯一标识符。</param>
+    /// <returns>找到并移除作业时为 true；未找到时为 false。</returns>
     /// <remarks>
-    /// 这份工作在处理之前,仍排在优先排队的排队中,但立即撤换了这份工作。
+    /// 作业所在的时间桶仍留在优先队列中，直到该桶得到处理，但作业本身会立即移除。
     /// </remarks>
     public bool RemoveJob(string jobId)
     {
@@ -103,11 +103,11 @@ internal sealed class InMemoryJobQueue : IAsyncEnumerable<IJobRunContext>
             var previousNextDueTime = wakeCheckRequired ? GetNextDueTime() : null;
             if (_jobsIdToBucket.TryGetValue(jobId, out var bucket))
             {
-                // 尝试从桶中移除( 可能已经解排)
+                // 尝试从时间桶中移除作业（可能已出队）。
                 bucket.RemoveJob(jobId);
                 _jobsIdToBucket.Remove(jobId);
                 Volatile.Write(ref _jobCount, _jobCount - 1);
-                // 注:桶子在排队排队后一直留在优先位置,直至处理完毕
+                // 注意：时间桶仍留在优先队列中，直到得到处理。
                 if (wakeCheckRequired)
                 {
                     SignalQueueChangedIfNextDueTimeChanged(previousNextDueTime);
@@ -121,7 +121,7 @@ internal sealed class InMemoryJobQueue : IAsyncEnumerable<IJobRunContext>
     }
 
     /// <summary>
-    /// 返回队列是否仍然包含已提供的持久工作。
+    /// 返回队列中是否仍包含指定的持久化作业。
     /// </summary>
     public bool ContainsJob(string jobId)
     {
@@ -133,13 +133,13 @@ internal sealed class InMemoryJobQueue : IAsyncEnumerable<IJobRunContext>
     }
 
     /// <summary>
-    /// 重新安排工作, 以在新的到期时间重试 。
+    /// 将作业重新调度至新的到期时间以供重试。
     /// </summary>
-    /// <param name="jobContext">要重新尝试的工作的上下文。</param>
-    /// <param name="newDueTime">新的工作到期时间。</param>
+    /// <param name="jobContext">要重试的作业的上下文。</param>
+    /// <param name="newDueTime">作业的新到期时间。</param>
     /// <remarks>
-    /// 这项工作从现有桶中移走,根据规定的时间添加到新的桶里。
-    /// 保留了上下文的减缩计数。
+    /// 将作业从当前时间桶移除，并根据指定的到期时间添加到新时间桶中。
+    /// 保留上下文中的出队计数。
     /// </remarks>
     public void RetryJobLater(IJobRunContext jobContext, DateTimeOffset newDueTime)
     {
@@ -148,12 +148,12 @@ internal sealed class InMemoryJobQueue : IAsyncEnumerable<IJobRunContext>
     }
 
     /// <summary>
-    /// 重新安排工作, 以在新的到期时间重试 。
+    /// 将作业重新调度至新的到期时间以供重试。
     /// </summary>
-    /// <param name="jobId">要重新尝试的工作的唯一标识符。</param>
-    /// <param name="newDueTime">新的工作到期时间。</param>
-    /// <param name="dequeueCount">与重新审阅的工作关联的已存在取消计数。</param>
-    /// <returns>如果找到工作并重新安排了时间,是真实的;如果找不到工作,是虚假的。</returns>
+    /// <param name="jobId">要重试的作业的唯一标识符。</param>
+    /// <param name="newDueTime">作业的新到期时间。</param>
+    /// <param name="dequeueCount">与重试作业关联的已持久化出队计数。</param>
+    /// <returns>找到作业并重新调度时为 true；未找到时为 false。</returns>
     public bool RetryJobLater(string jobId, DateTimeOffset newDueTime, int dequeueCount)
         => RetryJobLater(jobId, newDueTime, dequeueCount, executionGeneration: null);
 
@@ -202,9 +202,9 @@ internal sealed class InMemoryJobQueue : IAsyncEnumerable<IJobRunContext>
     }
 
     /// <summary>
-    /// 获得一份即时的活工作简况,
+    /// 获取当前存续作业及其已持久化出队计数在某一时刻的快照。
     /// </summary>
-    /// <returns>现有活的工作和取消计数。</returns>
+    /// <returns>当前存续的作业及其出队计数。</returns>
     public IReadOnlyList<(DurableJob Job, int DequeueCount)> GetSnapshot()
     {
         lock (_syncLock)
@@ -223,7 +223,7 @@ internal sealed class InMemoryJobQueue : IAsyncEnumerable<IJobRunContext>
     }
 
     /// <summary>
-    /// 清除所有队列状态 。
+    /// 清除所有队列状态。
     /// </summary>
     public void Clear()
     {
@@ -244,12 +244,12 @@ internal sealed class InMemoryJobQueue : IAsyncEnumerable<IJobRunContext>
     }
 
     /// <summary>
-    /// 返回一个不同步的计算器, 产生当期可持久的工作。
+    /// 返回一个在持久化作业到期时产出作业的异步枚举器。
     /// </summary>
-    /// <param name="cancellationToken">用于监测取消请求的标记。</param>
+    /// <param name="cancellationToken">用于监视取消请求的令牌。</param>
     /// <returns>
-    /// 返回到期任务 <see cref="IJobRunContext"/> 例的同步计算器。
-    /// 当队列更改或下一个任务到期时, 数字员会醒来, 当队列标记完整和空时终止 。
+    /// 一个为到期作业返回 <see cref="IJobRunContext"/> 实例的异步枚举器。
+    /// 当队列发生变化或下一个作业到期时唤醒枚举器；当队列已标记完成且为空时终止枚举。
     /// </returns>
     public async IAsyncEnumerator<IJobRunContext> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
@@ -268,7 +268,7 @@ internal sealed class InMemoryJobQueue : IAsyncEnumerable<IJobRunContext>
                 {
                     if (_isComplete)
                     {
-                        yield break; // 如果队列被冻结和空, 退出
+                        yield break; // 如果队列已冻结且为空，则退出。
                     }
 
                     queueChanged = GetQueueChangedTask();
@@ -279,16 +279,16 @@ internal sealed class InMemoryJobQueue : IAsyncEnumerable<IJobRunContext>
                     var now = _timeProvider.GetUtcNow();
                     if (nextBucket.DueTime <= now)
                     {
-                        // 卸下桶子,从原子上将其从 _bucket 中移除, 以同时方式将桶子脱下来
-                        // 以同 DueTime 入队时,无法再使用此桶。没有这个,
-                        // GetJobBucket 将发现桶里还有桶,并加添桶中。
-                        // 桶已经不在了,所以新工作会被搁置
+                        // 以原子方式将时间桶出队并从 _buckets 中移除，确保并发的
+                        // Enqueue 调用不能复用相同 DueTime 的此时间桶。否则，
+                        // GetJobBucket 会在 _buckets 中找到仍然存在的时间桶并向其中添加作业，
+                        // 但时间桶已不在 _queue 中，新作业将无法得到处理。
                         var bucketToProcess = _queue.Dequeue();
                         bucketBeingProcessed = bucketToProcess;
                         _buckets.Remove(bucketToProcess.DueTime);
 
-                        // 抓图锁定下的工作, 并同时取消/ 重试突变
-                        // 与列举的不相竞。
+                        // 在锁保护下获取作业快照，避免并发的 Cancel/Retry 变更操作
+                        // 与枚举发生竞争。
                         jobsToYield = new List<(DurableJob Job, int DequeueCount)>(bucketToProcess.Jobs);
                     }
                     else
@@ -305,10 +305,10 @@ internal sealed class InMemoryJobQueue : IAsyncEnumerable<IJobRunContext>
 
             if (jobsToYield is not null)
             {
-                // 处理门外桶里的所有工作,以更好地计算货币
+                // 在锁外处理时间桶中的所有作业，以提高并发能力。
                 foreach (var (job, dequeueCount) in jobsToYield)
                 {
-                    // 核查我们处理期间没有取消工作
+                    // 确认作业未在处理期间被移除。
                     bool shouldYield;
                     lock (_syncLock)
                     {
@@ -316,7 +316,7 @@ internal sealed class InMemoryJobQueue : IAsyncEnumerable<IJobRunContext>
                             && _jobsIdToBucket.TryGetValue(job.Id, out var currentBucket)
                             && ReferenceEquals(currentBucket, bucketBeingProcessed)
                             && bucketBeingProcessed.ContainsJob(job);
-                        // 保持在 _ jobsIdToBucket 的工作, 通过 CancelJob/RetryJobLater明确删除
+                        // 在 _jobsIdToBucket 中保留作业，以便通过 CancelJob/RetryJobLater 显式移除。
                     }
 
                     if (shouldYield)

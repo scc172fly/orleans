@@ -29,7 +29,7 @@ namespace Tester.AzureUtils.TimerTests
     }
 
     /// <summary>
-    /// Azure 表格基于存储的提醒服务测试,包括基本操作、故障和多grain 情景。
+    /// 测试基于 Azure Table Storage 的提醒器服务，包括基本操作、故障转移和多 Grain 场景。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("AzureStorage")]
@@ -107,7 +107,7 @@ namespace Tester.AzureUtils.TimerTests
             fixture.EnsurePreconditionsMet();
         }
 
-        // 基本测试
+        // 基础测试
 
         [Fact, TestCategory("Functional")]
         public void Fixture_WaitsForReminderServicesToStart()
@@ -134,7 +134,7 @@ namespace Tester.AzureUtils.TimerTests
             await Test_Reminders_Basic_ListOps(TestContext.Current.CancellationToken);
         }
 
-        // 单单合并测试... 多个 grain、多提醒
+        // 单次加入测试：多个 Grain、多个提醒器。
 
         [Fact, TestCategory("Functional")]
         public async Task Rem_Azure_1J_MultiGrainMultiReminders()
@@ -185,7 +185,7 @@ namespace Tester.AzureUtils.TimerTests
             await AdvanceReminderTimeAsync(period, cts.Token);
             await AssertReminderCountersAsync([grain], (DR, 2));
 
-            // 重新启动相同的提醒
+            // 再次启动同一个提醒器
             await grain.StartReminder(DR);
             await AdvanceRemindersByTicksAsync(2, cts.Token, (grain, DR));
             await AssertReminderCountersAsync([grain], (DR, 2));
@@ -237,7 +237,7 @@ namespace Tester.AzureUtils.TimerTests
 
             await PrepareForGrainFailureAsync(cts.Token, g1);
 
-            // 二级中点 silo
+            // 停止次要 Silo
             await using (await PauseReminderTimeAsync(cts.Token))
             {
                 var reminderOwner = this.GetReminderOwner(g1, DR);
@@ -269,7 +269,7 @@ namespace Tester.AzureUtils.TimerTests
             IAddressable[] grains = [g1, g2, g3, g4, g5];
             await PrepareForGrainFailureAsync(cts.Token, grains);
 
-            // 停止一对夫妇 silos
+            // 停止两个 Silo
             await using (await PauseReminderTimeAsync(cts.Token))
             {
                 log.LogInformation("Stopping 2 silos");
@@ -301,7 +301,7 @@ namespace Tester.AzureUtils.TimerTests
             await PrepareForGrainFailureAsync(cts.Token, grains);
 
             var siloToKill = this.GetReminderOwner(g1, DR);
-            // 停止 silo 并平行加入新的
+            // 并行停止一个 Silo 并加入一个新的 Silo
             await using (await PauseReminderTimeAsync(cts.Token))
             {
                 log.LogInformation("Stopping a silo and joining a silo");
@@ -326,7 +326,7 @@ namespace Tester.AzureUtils.TimerTests
                 TimeSpan.FromSeconds(15),
                 TestContext.Current.CancellationToken);
             //Assert.NotEqual(promise1.Result, promise2.Result);
-            // TODO: 更改提醒时间的写测试
+            // TODO：编写改变提醒器周期的测试
         }
 
         [Fact, TestCategory("Functional")]

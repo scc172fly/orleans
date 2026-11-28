@@ -94,7 +94,7 @@ namespace OrleansAWSUtils.Streams
         internal static SQSBatchContainer FromSQSMessage(Serializer<SQSBatchContainer> serializer, SQSMessage msg, long sequenceNumber)
         {
             var json = JObject.Parse(msg.Body);
-            // 有效的 SQS 流信息包含一个序列式批量有效载荷。
+            // 有效的 SQS 流消息包含序列化后的批次有效载荷。
             var sqsBatch = serializer.Deserialize(json["payload"]!.ToObject<byte[]>()!)!;
             if (msg.Attributes is { } attributes
                 && attributes.TryGetValue(MessageSystemAttributeName.SequenceNumber, out var fifoSeqNum))

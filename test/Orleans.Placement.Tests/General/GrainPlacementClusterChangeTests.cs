@@ -7,7 +7,7 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// 当集束地表变化时, 测试 grain 安置行为。
+    /// 测试集群拓扑变化时的 Grain 放置行为。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -54,7 +54,7 @@ namespace UnitTests.General
             IPreferLocalPlacementTestGrain grain = GrainFactory.GetGrain<IPreferLocalPlacementTestGrain>(grainKey);
             IPEndPoint actual = await grain.GetEndpoint();
             output.WriteLine("PreferLocalPlacement grain was originally located on silo {0}", actual);
-            Assert.Equal(expected, actual);  // "PreferLocalPlacement 战略应该在当地 silo上创建启动程序"
+            Assert.Equal(expected, actual);  // "PreferLocalPlacement strategy should create activations on the local silo."
 
             SiloHandle siloToKill = HostedCluster.GetActiveSilos().First(s => s.SiloAddress.Endpoint.Equals(expected));
             output.WriteLine("Killing silo {0} hosting locally placed grain", siloToKill);
@@ -63,7 +63,7 @@ namespace UnitTests.General
 
             IPEndPoint newActual = await grain.GetEndpoint();
             output.WriteLine("PreferLocalPlacement grain was recreated on silo {0}", newActual);
-            Assert.NotEqual(expected, newActual);  // "PreferLocalPlacement 战略应该重新生成激活 于其它 silo 如果本地失败。"
+            Assert.NotEqual(expected, newActual);  // "PreferLocalPlacement strategy should recreate activations on other silo if local fails."
         }
     }
 }

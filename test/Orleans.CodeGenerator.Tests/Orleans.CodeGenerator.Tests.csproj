@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- 应付应付应付应付 Verify.XunitV3 需要这些图书馆的新版本 -->
+    <!-- 因为 Verify.XunitV3 需要这些库的较新版本。 -->
     <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="System.CodeDom" />
     <PackageReference Include="Verify.XunitV3" />

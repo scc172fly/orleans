@@ -9,7 +9,7 @@ using Xunit;
 namespace Orleans.Durable.Messaging.Tests.Functional;
 
 /// <summary>
-/// 收件箱的持久唤醒功能重新启动了 grain ,而回调则登记在 <see cref="IInbox.RegisterWakeup"/> 报告工作上。
+/// 当通过 <see cref="IInbox.RegisterWakeup"/> 注册的回调报告存在工作时，收件箱的持久化唤醒会重新激活 Grain。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -58,7 +58,7 @@ public sealed class InboxRegisteredWakeupTests() : MessagingBehaviorTestBase(rec
         await grain.GetPendingAsync();
         var crashed = Fixture.GetGrainContext(grain);
 
-        // 写作变得耐久,但承认失败了 所以启动的围栏和停止。
+        // 写入已持久化，但其确认失败，因此激活实例被隔离并停止。
         Fixture.Storage.FailAfterWrite(Journal(grain));
         await Assert.ThrowsAsync<IOException>(() => grain.AddWorkAsync(TimeSpan.Zero));
         await crashed.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), Token);
@@ -90,7 +90,7 @@ public sealed class InboxRegisteredWakeupTests() : MessagingBehaviorTestBase(rec
         var grain = NewWorkGrain();
         await grain.AddWorkAsync(delay);
 
-        // 工作长途的时钟上的抽水机改期
+        // 消息泵依据 Durable Jobs 时钟重新调度。
         var before = Fixture.JobNow;
         var pending = await Fixture.RunPumpAsync(grain);
         var after = Fixture.JobNow;
@@ -132,7 +132,7 @@ public interface IWorkSourceTestGrain : IGrainWithGuidKey
     Task DeactivateAsync();
 }
 
-/// <summary>以日记状态搁置待处理的工作,并通过登记提醒报告。</summary>
+/// <summary>在日志化状态中保存挂起工作，并通过已注册的唤醒回调报告该工作。</summary>
 public sealed class WorkSourceTestGrain : Grain, IWorkSourceTestGrain
 {
     private static readonly ConcurrentDictionary<GrainId, ActivationLog> Activations = new();
@@ -155,7 +155,7 @@ public sealed class WorkSourceTestGrain : Grain, IWorkSourceTestGrain
         inbox.RegisterWakeup(GetWakeupDelay);
     }
 
-    /// <summary>完成 grain 至少启动 <paramref name="expected"/> 次后完成。</summary>
+    /// <summary>Grain 至少激活 <paramref name="expected"/> 次后完成。</summary>
     internal static async Task WaitForActivationsAsync(GrainId grainId, int expected)
     {
         var log = Activations.GetOrAdd(grainId, static _ => new());

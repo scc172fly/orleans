@@ -5,8 +5,8 @@ using Orleans.CodeGenerator.Model;
 namespace Orleans.CodeGenerator;
 
 /// <summary>
-/// 提取 <see cref="Model.SerializableTypeModel"/> 和其他增量管道模式
-/// 产生适合管道缓存的价值型代表
+/// 从 Roslyn 符号提取 <see cref="Model.SerializableTypeModel"/> 和其他增量管道模型，
+/// 生成适用于管道缓存的值类型表示。
 /// </summary>
 internal static class ModelExtractor
 {

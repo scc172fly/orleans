@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
-/// <summary>运行 ORLEANS0219 页面的独立启动固定装置,以对着一个集。</summary>
+/// <summary>在集群上运行 ORLEANS0219 页面中的分离启动修复示例。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -36,8 +36,8 @@ public sealed class DurableTaskDiagnosticSnippetTests : IAsyncLifetime
         Assert.Equal(DurableTaskStatus.CompletedSuccessfully,
             (await dispatch.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken)).Status);
 
-        // 调查是客户调查的一项根本任务。 grain,其根由 ID 发件人来自 grain, 其
-        // 和操作名称; 它在发送完成后继续运行 。
+        // 调查任务是客户调查 Grain 上的根任务，其根 ID 由派发任务根据自己的 Grain、
+        // ID 及操作名称派生；派发任务完成后，调查任务继续运行。
         var message = await _email.Started.Task.WaitAsync(Timeout, cancellationToken);
         Assert.Equal((customer, "How was your order?"), (message.Recipient, message.Subject));
         var surveyId = TaskId.CreateRoot($"{TaskId.CreateRoot(dispatcher.GetGrainId().ToString())}/{TaskId.CreateRoot("dispatch").Child("survey")}");

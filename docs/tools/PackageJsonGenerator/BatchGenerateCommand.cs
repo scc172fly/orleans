@@ -1,5 +1,5 @@
-// 根据一项或多项协定获得 .NET 基金会许可证。
-// 下 .NET 基金会根据麻省理工学院的许可证 将这个文件发给你
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Concurrent;
 using System.CommandLine;
@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis;
 namespace PackageJsonGenerator;
 
 /// <summary>
-/// 子命令, 从 JSON 列表平行处理多个包 。
+/// 并行处理 JSON 清单中多个包的子命令。
 /// </summary>
 internal static class BatchGenerateCommand
 {
@@ -70,8 +70,8 @@ internal static class BatchGenerateCommand
 
         var sw = Stopwatch.StartNew();
 
-        // 共享引用缓存 - 避免重新装入 ~167 运行时间参考
-        // 每个包件都装配组(和共同依赖性低剂量值)
+        // 共享引用缓存：避免为每个包重新加载约 167 个运行时引用
+        // 程序集（以及常用依赖 DLL）。
         var referenceCache = new ConcurrentDictionary<string, PortableExecutableReference>(
             StringComparer.OrdinalIgnoreCase);
 

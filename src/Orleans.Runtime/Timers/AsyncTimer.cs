@@ -11,7 +11,7 @@ namespace Orleans.Runtime
     internal partial class AsyncTimer : IAsyncTimer
     {
         /// <summary>
-        /// 计时器可在发出警告之前提前3秒钟点火,而且情况被认为不健康。
+        /// 定时器最多可以延迟 3 秒触发；超过后会发出警告，并认为该实例不健康。
         /// </summary>
         private static readonly TimeSpan TimerDelaySlack = TimeSpan.FromSeconds(3);
 
@@ -34,10 +34,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 返回在规定延迟后完成的任务。
+        /// 返回在所需延迟之后完成的任务。
         /// </summary>
-        /// <param name="overrideDelay">用于此定时器配置的期间的可选覆盖。</param>
-        /// <returns><see langword="true"/> 如果计时器完成或 <see langword="false"/> 如果取消计时器</returns>
+        /// <param name="overrideDelay">可选值，用于覆盖此定时器已配置的周期。</param>
+        /// <returns>若定时器已完成则为 <see langword="true"/>；若定时器已取消则为 <see langword="false"/>。</returns>
         public async Task<bool> NextTick(TimeSpan? overrideDelay = default)
         {
             var source = Volatile.Read(ref cancellation);
@@ -46,7 +46,7 @@ namespace Orleans.Runtime
             CancellationToken cancellationToken;
             lock (source)
             {
-                // 同步获取待发物品并进行处置;此待发物品在事后仍可用。
+                // 使令牌获取与释放同步；之后令牌仍然可用。
                 if (Volatile.Read(ref cancellation) is null) return false;
                 cancellationToken = source.Token;
             }

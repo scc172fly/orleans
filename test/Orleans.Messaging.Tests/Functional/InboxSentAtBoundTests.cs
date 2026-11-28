@@ -8,9 +8,9 @@ using Xunit;
 namespace Orleans.Durable.Messaging.Tests.Functional;
 
 /// <summary>
-/// 收件箱如何评价交货发送时间:未来约束只适用于未跟踪的身份,而该身份
-/// 登记后,记录身份从记录中得到答复,可兑换货币或以下的未追踪身份得到答复。
-/// 进入最低允许限额期满。
+/// 固定收件箱评估投递发送时间的规则：未来时间上限仅适用于本来会被准入的未跟踪标识；
+/// 已记录的标识根据其记录答复；未跟踪标识的发送时间若处于持久化准入
+/// 下限或更早，则视为过期。
 /// </summary>
 [Collection(MessagingClusterCollection.Name)]
 [TestSuite("BVT")]
@@ -20,7 +20,7 @@ public sealed class InboxSentAtBoundTests() : MessagingBehaviorTestBase(new Sent
 {
     private static readonly TimeSpan Window = TimeSpan.FromMinutes(10);
 
-    // 约束只精确地定在一个钟头上,它仍然处于读取和交付之间。
+    // 只有在读取时钟与投递之间保持时钟不变，才能精确验证该边界。
     private ManualJobClock JobClock => ((SentAtBoundFixture)Fixture).JobClock;
 
     [Fact]
@@ -44,7 +44,7 @@ public sealed class InboxSentAtBoundTests() : MessagingBehaviorTestBase(new Sent
         await receiver.RetryWriteStateAsync();
         writes = Fixture.Storage.GetSuccessfulWriteCount(journal);
 
-        // 记录的身份从记录中被回答 不管送货时间如何
+        // 已记录的标识根据其记录答复，不论本次投递的发送时间为何。
         DeliveryResultAssert.IsCase<DeliveryResult.Duplicate>(await DeliverAsync(receiver, message with { SentAt = bound.AddTicks(1) }));
         Assert.Equal(writes, Fixture.Storage.GetSuccessfulWriteCount(journal));
         Assert.Equal(bound, await Fixture.OnGrainAsync(receiver, () => InboxTestAccess.GetProcessedSentAt(inbox, message.Envelope.MessageId)));

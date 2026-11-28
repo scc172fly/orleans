@@ -219,7 +219,7 @@ public sealed class DynamoDBTestClientOwnerTests
     {
         if (owner is IMembershipTable table)
         {
-#pragma warning disable CS0618 // Verify ownership through the existing tokenless interface slot too.
+#pragma warning disable CS0618 // 也通过现有的不带令牌的接口成员验证所有权。
             return legacy
                 ? table.InitializeMembershipTable(false)
                 : table.InitializeMembershipTableAsync(false, TestContext.Current.CancellationToken);
@@ -241,7 +241,7 @@ public sealed class DynamoDBTestClientOwnerTests
         var clients = GetClients(owner).ToArray();
         foreach (var client in clients)
         {
-            // 失败的所有权主张不能向任何后端发送请求。
+            // 所有权断言失败时，不得向任何后端发送请求。
             client.BeforeRequestEvent += (_, _) => throw new InvalidOperationException("Unexpected backend request.");
         }
 

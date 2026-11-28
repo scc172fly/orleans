@@ -8,7 +8,7 @@ using Xunit;
 namespace Tester
 {
     /// <summary>
-    /// 定制选项格式和事项分辨率测试,包括对指定选项的支持和敏感数据的编辑。
+    /// 测试自定义选项格式化器和格式化器解析，包括对命名选项及敏感数据脱敏的支持。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -19,10 +19,10 @@ namespace Tester
         [Fact]
         public void CanResolveFormatter()
         {
-            // 预期成果产出
+            // 预期输出
             TestLoggerFactory expected = BuildOptionsExpectedResult();
 
-            // 实际实际产出
+            // 实际输出
             var services = new ServiceCollection();
             services.AddOptions();
             services.AddSingleton<TestLoggerFactory>();
@@ -38,7 +38,7 @@ namespace Tester
             Assert.Single(logFormatters);
             Assert.True(logFormatters.First() is TestOptionsFormatter);
             Assert.True(logFormatters.First() is IOptionFormatter<TestOptions>);
-            // 确保伐木产出如预期的那样
+            // 确保日志输出符合预期。
             var actual = servicesProvider.GetRequiredService<TestLoggerFactory>();
             Assert.Equal(expected.ToString(), actual.ToString());
         }
@@ -76,10 +76,10 @@ namespace Tester
         [Fact]
         public void CanResolveGenericFormatter()
         {
-            // 预期成果产出
+            // 预期输出
             TestLoggerFactory expected = BuildOptionsExpectedResult();
 
-            // 实际实际产出
+            // 实际输出
             var services = new ServiceCollection();
             services.AddOptions();
             services.AddSingleton<TestLoggerFactory>();
@@ -95,7 +95,7 @@ namespace Tester
             var logFormatters = servicesProvider.GetServices<IOptionFormatter>();
             Assert.Single(logFormatters);
             Assert.True(logFormatters.First() is IOptionFormatter<TestOptions>);
-            // 确保伐木产出如预期的那样
+            // 确保日志输出符合预期。
             var actual = servicesProvider.GetRequiredService<TestLoggerFactory>();
             Assert.Equal(expected.ToString(), actual.ToString());
         }
@@ -103,7 +103,7 @@ namespace Tester
         [Fact]
         public void GenericFormatterRedact()
         {
-            // 实际实际产出
+            // 实际输出
             var services = new ServiceCollection();
             services.AddOptions();
             services.AddSingleton<TestLoggerFactory>();
@@ -114,7 +114,7 @@ namespace Tester
             services.Configure<TestOptionsWithSecrets>(options =>
             {
                 options.Data = "Hello";
-                // SuppressMessage( "Microsoft.Security" , "CS002:SecretInNextLine" ,说明=`非秘密'
+                // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Not a secret")]
                 options.Password = "v3ryS3cur3!!!";
                 options.SomeConnectionString = "DefaultEndpointsProtocol=https;AccountName=someAccount;AccountKey=someKey;EndpointSuffix=core.windows.net";
             });
@@ -125,7 +125,7 @@ namespace Tester
             var logFormatters = servicesProvider.GetServices<IOptionFormatter>();
             Assert.Single(logFormatters);
             Assert.True(logFormatters.First() is IOptionFormatter<TestOptionsWithSecrets>);
-            // 确保伐木产出如预期的那样
+            // 确保日志输出符合预期。
             var actual = servicesProvider.GetRequiredService<TestLoggerFactory>();
             Assert.Contains("Hello", actual.ToString());
             Assert.Contains("Password: REDACTED", actual.ToString());
@@ -135,7 +135,7 @@ namespace Tester
         [Fact]
         public void GenericFormatterWithListAndDictionary()
         {
-            // 实际实际产出
+            // 实际输出
             var services = new ServiceCollection();
             services.AddOptions();
             services.AddSingleton<TestLoggerFactory>();
@@ -158,7 +158,7 @@ namespace Tester
             var logFormatters = servicesProvider.GetServices<IOptionFormatter>();
             Assert.Single(logFormatters);
             Assert.True(logFormatters.First() is IOptionFormatter<TestOptionsWithListAndDictionary>);
-            // 确保伐木产出如预期的那样
+            // 确保日志输出符合预期。
             var actual = servicesProvider.GetRequiredService<TestLoggerFactory>();
             var txt = actual.ToString();
             Assert.Contains("SomeList.0: 10", actual.ToString());
@@ -173,10 +173,10 @@ namespace Tester
         [Fact]
         public void FormatterConfiguredTwiceDoesNotLeadToDuplicatedFormatter()
         {
-            // 预期成果产出
+            // 预期输出
             TestLoggerFactory expected = BuildOptionsExpectedResult();
 
-            // 实际实际产出
+            // 实际输出
             var services = new ServiceCollection();
             services.AddOptions();
             services.AddSingleton<TestLoggerFactory>();
@@ -185,21 +185,21 @@ namespace Tester
             services.AddSingleton<OptionsLogger, TestOptionsLogger>();
             services.Configure<TestOptions>(options => options.IntField = 1);
             services.ConfigureFormatter<TestOptions, TestOptionsFormatter2>();
-            //和
-            //DI最终将产生两个同一选项的要事项
+            //第二次配置的格式化器会在 DI 中覆盖第一个，并且
+            //DI 最终会针对同一个选项具有两个格式化器
             services.ConfigureFormatter<TestOptions, TestOptionsFormatter>();
             var servicesProvider = services.BuildServiceProvider();
             servicesProvider.GetRequiredService<OptionsLogger>().LogOptions();
 
-            // 只有一个选项格式化器, 它指向右边的
+            // 只有一个选项格式化器，并且它指向正确的实例
             var logFormatters = servicesProvider.GetServices<IOptionFormatter>();
             Assert.Single(logFormatters);
             Assert.True(logFormatters.First() is TestOptionsFormatter);
             Assert.True(logFormatters.First() is IOptionFormatter<TestOptions>);
-            // 当解决单类类型特定事项时, 我们得到正确的
+            // 解析单个特定类型的格式化器时，得到正确的实例
             var logFormatter = servicesProvider.GetService<IOptionFormatter<TestOptions>>();
             Assert.True(logFormatter is TestOptionsFormatter);
-            // 确保伐木产出如预期的那样
+            // 确保日志输出符合预期。
             var actual = servicesProvider.GetRequiredService<TestLoggerFactory>();
             Assert.Equal(expected.ToString(), actual.ToString());
         }
@@ -207,10 +207,10 @@ namespace Tester
         [Fact]
         public void CustomFormatterOverridesDefaultFormatter_PreRegistration()
         {
-            // 预期成果产出
+            // 预期输出
             TestLoggerFactory expected = BuildOptionsExpectedResult();
 
-            // 实际实际产出
+            // 实际输出
             var services = new ServiceCollection();
             services.AddOptions();
             services.AddSingleton<TestLoggerFactory>();
@@ -218,9 +218,9 @@ namespace Tester
             services.AddSingleton(typeof(ILogger<>), typeof(TestLogger<>));
             services.AddSingleton<OptionsLogger, TestOptionsLogger>();
             services.Configure<TestOptions>(options => options.IntField = 1);
-            // 预登记前登记覆盖
+            // 预先注册覆盖项
             services.ConfigureFormatter<TestOptions, TestOptionsFormatter>();
-            // 默认缺缺缺
+            // 默认值
             services.TryConfigureFormatter<TestOptions, TestOptionsFormatter2>();
             var servicesProvider = services.BuildServiceProvider();
             servicesProvider.GetRequiredService<OptionsLogger>().LogOptions();
@@ -229,7 +229,7 @@ namespace Tester
             Assert.Single(logFormatters);
             Assert.True(logFormatters.First() is TestOptionsFormatter);
             Assert.True(logFormatters.First() is IOptionFormatter<TestOptions>);
-            // 确保伐木产出如预期的那样
+            // 确保日志输出符合预期。
             var actual = servicesProvider.GetRequiredService<TestLoggerFactory>();
             Assert.Equal(expected.ToString(), actual.ToString());
         }
@@ -237,10 +237,10 @@ namespace Tester
         [Fact]
         public void CustomFormatterOverridesDefaultFormatter_PostRegistration()
         {
-            // 预期成果产出
+            // 预期输出
             TestLoggerFactory expected = BuildOptionsExpectedResult();
 
-            // 实际实际产出
+            // 实际输出
             var services = new ServiceCollection();
             services.AddOptions();
             services.AddSingleton<TestLoggerFactory>();
@@ -248,9 +248,9 @@ namespace Tester
             services.AddSingleton(typeof(ILogger<>), typeof(TestLogger<>));
             services.AddSingleton<OptionsLogger, TestOptionsLogger>();
             services.Configure<TestOptions>(options => options.IntField = 1);
-            // 默认缺缺缺
+            // 注册默认格式化器
             services.TryConfigureFormatter<TestOptions, TestOptionsFormatter2>();
-            // 邮件登记超
+            // 随后注册覆盖项
             services.ConfigureFormatter<TestOptions, TestOptionsFormatter>();
             var servicesProvider = services.BuildServiceProvider();
             servicesProvider.GetRequiredService<OptionsLogger>().LogOptions();
@@ -259,10 +259,10 @@ namespace Tester
             Assert.Single(logFormatters);
             Assert.True(logFormatters.First() is TestOptionsFormatter);
             Assert.True(logFormatters.First() is IOptionFormatter<TestOptions>);
-            // 当解决单类类型特定事项时, 我们得到正确的
+            // 解析单个特定类型的格式化器时，得到正确的实例
             var logFormatter = servicesProvider.GetService<IOptionFormatter<TestOptions>>();
             Assert.True(logFormatter is TestOptionsFormatter);
-            // 确保伐木产出如预期的那样
+            // 确保日志输出符合预期。
             var actual = servicesProvider.GetRequiredService<TestLoggerFactory>();
             Assert.Equal(expected.ToString(), actual.ToString());
         }
@@ -270,10 +270,10 @@ namespace Tester
         [Fact]
         public void NamedFormatterGoldenPath()
         {
-            // 预期成果产出
+            // 预期输出
             TestLoggerFactory expected = BuildNamedOptionsExpectedResult();
 
-            // 实际实际产出
+            // 实际输出
             var services = new ServiceCollection();
             services.AddOptions();
             services.AddSingleton<TestLoggerFactory>();
@@ -307,10 +307,10 @@ namespace Tester
         [Fact]
         public void NamedGenericFormatterGoldenPath()
         {
-            // 预期成果产出
+            // 预期输出
             TestLoggerFactory expected = BuildNamedOptionsExpectedResult();
 
-            // 实际实际产出
+            // 实际输出
             var services = new ServiceCollection();
             services.AddOptions();
             services.AddSingleton<TestLoggerFactory>();
@@ -341,17 +341,17 @@ namespace Tester
         [Fact]
         public void CustomFormatterResolverOverridesDefaultFormatter_PreRegistration()
         {
-            // 预期成果产出
+            // 预期输出
             TestLoggerFactory expected = BuildNamedOptionsExpectedResult();
 
-            // 实际实际产出
+            // 实际输出
             var services = new ServiceCollection();
             services.AddOptions();
             services.AddSingleton<TestLoggerFactory>();
             services.AddSingleton<ILoggerFactory>(sp => sp.GetRequiredService<TestLoggerFactory>());
             services.AddSingleton(typeof(ILogger<>), typeof(TestLogger<>));
             services.AddSingleton<OptionsLogger, TestOptionsLogger>();
-            // 预登记前登记覆盖
+            // 预先注册覆盖项
             services.ConfigureFormatterResolver<TestOptions, TestOptionsFormatter.Resolver>();
             // 配置选项
             Enumerable
@@ -363,7 +363,7 @@ namespace Tester
                     services.Configure<TestOptions>(name, (options => options.IntField = i));
                     services.ConfigureNamedOptionForLogging<TestOptions>(name);
                 });
-            // 默认缺缺缺
+            // 注册默认格式化器解析器
             services.TryConfigureFormatterResolver<TestOptions, TestOptionsFormatter2.Resolver>();
             var servicesProvider = services.BuildServiceProvider();
             servicesProvider.GetRequiredService<OptionsLogger>().LogOptions();
@@ -382,17 +382,17 @@ namespace Tester
         [Fact]
         public void CustomFormatterResolverOverridesDefaultFormatter_PostRegistration()
         {
-            // 预期成果产出
+            // 预期输出
             TestLoggerFactory expected = BuildNamedOptionsExpectedResult();
 
-            // 实际实际产出
+            // 实际输出
             var services = new ServiceCollection();
             services.AddOptions();
             services.AddSingleton<TestLoggerFactory>();
             services.AddSingleton<ILoggerFactory>(sp => sp.GetRequiredService<TestLoggerFactory>());
             services.AddSingleton(typeof(ILogger<>), typeof(TestLogger<>));
             services.AddSingleton<OptionsLogger, TestOptionsLogger>();
-            // 默认缺省
+            // 默认值
             services.TryConfigureFormatterResolver<TestOptions, TestOptionsFormatter2.Resolver>();
             // 配置选项
             Enumerable
@@ -404,7 +404,7 @@ namespace Tester
                     services.Configure<TestOptions>(name, (options => options.IntField = i));
                     services.ConfigureNamedOptionForLogging<TestOptions>(name);
                 });
-            // 邮件登记超
+            // 随后注册覆盖项
             services.ConfigureFormatterResolver<TestOptions, TestOptionsFormatter.Resolver>();
             var servicesProvider = services.BuildServiceProvider();
             servicesProvider.GetRequiredService<OptionsLogger>().LogOptions();

@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Orleans.Serialization.Configuration
 {
     /// <summary>
-    /// 定义此组件的元数据提供者。
+    /// 定义此程序集的元数据提供程序。
     /// </summary>
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public sealed class TypeManifestProviderAttribute : Attribute
@@ -14,7 +14,7 @@ namespace Orleans.Serialization.Configuration
         /// <summary>
         /// 初始化 <see cref="TypeManifestProviderAttribute"/> 类的新实例。
         /// </summary>
-        /// <param name="providerType">元数据提供者类型。</param>
+        /// <param name="providerType">元数据提供程序类型。</param>
         public TypeManifestProviderAttribute(
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
@@ -35,7 +35,7 @@ namespace Orleans.Serialization.Configuration
         }
 
         /// <summary>
-        /// 获得舱单提供者的类型。
+        /// 获取清单提供程序的类型。
         /// </summary>
 #if NET5_0_OR_GREATER
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]

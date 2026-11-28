@@ -28,7 +28,7 @@ internal sealed class EmbeddedAssetProvider
 
     public EmbeddedAssetProvider()
     {
-        // 为所有嵌入资源构建资源缓存
+        // 为所有嵌入资源构建资源缓存。
         var resourceNamePrefix = $"{Assembly.GetName().Name}.wwwroot.";
         _resourceCache = Assembly
             .GetManifestResourceNames()
@@ -41,7 +41,7 @@ internal sealed class EmbeddedAssetProvider
 
     public IResult ServeAsset(string name, HttpContext context)
     {
-        // 嵌入资源使用点而不是用于目录分隔符的斜线
+        // 嵌入资源使用点号而不是斜杠作为目录分隔符。
         var resourceKey = name.Replace('/', '.');
 
         if (!_resourceCache.TryGetValue(resourceKey, out var entry))
@@ -49,7 +49,7 @@ internal sealed class EmbeddedAssetProvider
             return Results.NotFound();
         }
 
-        // 检查客户端是否已缓存版本
+        // 检查客户端是否已有缓存版本。
         if (context.Request.Headers.IfNoneMatch == entry.ETag)
         {
             return Results.StatusCode(StatusCodes.Status304NotModified);
@@ -101,14 +101,14 @@ internal sealed class EmbeddedAssetProvider
         resourceStream.CopyTo(decompressedContent);
         var decompressedArray = decompressedContent.ToArray();
 
-        // 压缩内容
+        // 压缩内容。
         using var compressedContent = new MemoryStream();
         using (var gzip = new GZipStream(compressedContent, CompressionMode.Compress, leaveOpen: true))
         {
             gzip.Write(decompressedArray);
         }
 
-        // 只有实际压缩大小时才使用压缩
+        // 仅在压缩确实减小体积时使用压缩结果。
         byte[]? compressedArray = compressedContent.Length < decompressedArray.Length
             ? compressedContent.ToArray()
             : null;
@@ -116,7 +116,7 @@ internal sealed class EmbeddedAssetProvider
         var hash = SHA256.HashData(compressedArray ?? decompressedArray);
         var eTag = $"\"{Convert.ToBase64String(hash)}\"";
 
-        // 仅提取带有内容类型探测扩展名的文件名
+        // 仅提取带扩展名的文件名，以检测内容类型。
         var fileName = fullResourceName.Split('.').TakeLast(2).FirstOrDefault() + "." + fullResourceName.Split('.').Last();
         var contentType = ContentTypeProvider.TryGetContentType(fileName, out var ct)
             ? ct

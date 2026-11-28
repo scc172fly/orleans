@@ -1,22 +1,22 @@
 <a id="microsoft-orleans-streaming-for-adonet"></a>
 
-# Microsoft Orleans 流来 ADO.NET
+# Microsoft Orleans ADO.NET 流提供程序
 
 <a id="introduction"></a>
 
 ## 简介
-Microsoft Orleans 流来 ADO.NET 提供流源提供者实施 Orleans 使用 ADO.NET- 兼容数据库(C)SQL 服务器 MySQL, PostgreSQL这样可以出版和订阅以关系数据库作为基本基础设施的事件流。
+Microsoft Orleans ADO.NET 流提供程序使用与 ADO.NET 兼容的数据库（SQL Server、MySQL、PostgreSQL 等）实现 Orleans 流提供程序，以关系数据库为底层基础设施，支持事件流的发布与订阅。
 
 <a id="getting-started"></a>
 
 ## 入门
-要使用此软件包, 请通过 NuGet安装 :
+要使用此包，请通过 NuGet 安装：
 
 ```shell
 dotnet add package Microsoft.Orleans.Streaming.AdoNet
 ```
 
-您还需要为您的数据库安装合适的 ADO.NET 提供者:
+还需要为所用数据库安装相应的 ADO.NET 提供程序：
 
 ```shell
 # For SQL Server
@@ -58,7 +58,7 @@ await builder.RunAsync();
 
 <a id="example---using-adonet-streams-in-a-grain"></a>
 
-## 实例 - 使用 ADO.NET 流成一股 Grain
+## 示例 - 在 Grain 中使用 ADO.NET 流
 ```csharp
 // Producer grain
 public class ProducerGrain : Grain, IProducerGrain
@@ -122,24 +122,24 @@ public class ConsumerGrain : Grain, IConsumerGrain, IAsyncObserver<string>
 
 ## 接收器关闭
 
-在停机或排队调任期间,每个接收器关闭收件程序,等待接受的卸货和确认操作完成,包括批次转换和收据簿记,然后使用现有收据发布待发信息,以便另一个接收器能够迅速解压。
+关闭或重新分配队列时，每个接收器停止接纳新操作，并等待已接纳的出队和确认操作完成，包括批次转换与回执记录。然后使用当前回执释放待处理消息，使另一接收器能够及时将其出队。
 
-关闭超时将排水管的等待和随后的排气孔分开。 如果排水管的抽出时间过长,接收器会记录警告信息,而待定的信息则可以通过数据库可见度的超时来重新发送。
+关闭超时分别限制排空等待以及随后释放查询的耗时。如果排空超时，接收器将记录警告；待处理消息将在数据库中的可见性超时到期后可以重新投递。
 
 <a id="documentation"></a>
 
-## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
-关于更全面的文件,请参见:
+## 文档
+有关更全面的文档，请参阅：
 - [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
 - [Orleans 流](https://dotnet.github.io/orleans/docs/streaming/)
-- [流源供应商](https://dotnet.github.io/orleans/docs/streaming/stream-providers/)
+- [流提供程序](https://dotnet.github.io/orleans/docs/streaming/stream-providers/)
 - [ADO.NET 数据库设置](https://dotnet.github.io/orleans/docs/host/configuration-guide/adonet-configuration/)
 
 <a id="feedback--contributing"></a>
 
-## 反馈和贡献
-- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
-- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
-- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
-- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证
+## 反馈与贡献
+- 如果遇到问题或希望提供反馈，请[在 GitHub 上创建 Issue](https://github.com/dotnet/orleans/issues)
+- 加入我们的 [Discord](https://aka.ms/orleans-discord) 社区
+- 关注 Twitter 上的 [@msftorleans](https://twitter.com/msftorleans) 账号，获取 Orleans 公告
+- 欢迎贡献！请阅读我们的[贡献指南](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 本项目采用 [MIT 许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)

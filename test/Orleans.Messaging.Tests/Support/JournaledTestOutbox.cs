@@ -8,7 +8,7 @@ using Orleans.Serialization.Session;
 
 namespace Orleans.Durable.Messaging.Tests.Support;
 
-// 抓取与收件箱效果相同的日记中的不透明处理器输出。 调度属于发件箱层 。
+// 在与收件箱效果相同的日志中捕获不透明的处理程序输出。分派归发件箱层负责。
 internal sealed class JournaledTestOutbox(IDurableDictionary<MessageId, OutboxMessage> messages)
     : IOutbox, ILifecycleObserver, IEnumerable<KeyValuePair<MessageId, OutboxMessage>>
 {

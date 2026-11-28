@@ -21,8 +21,8 @@ namespace Orleans.Runtime
         private readonly MessagingProcessingInstruments _messagingProcessingInstruments;
         private ISiloStatusOracle _siloStatusOracle = null!;
 
-        // 使用锁带条纹来启动创建,以减少争议
-        private const int LockCount = 32; // 一定是2的能量
+        // 创建激活实例时使用分段锁，以减少争用。
+        private const int LockCount = 32; // 必须为 2 的幂。
         private const int LockMask = LockCount - 1;
         private readonly Lock[] _locks = new Lock[LockCount];
 
@@ -45,13 +45,13 @@ namespace Orleans.Runtime
             _catalogInstruments = catalogInstruments;
             _messagingProcessingInstruments = messagingProcessingInstruments;
 
-            // 初始化锁定条纹阵列
+            // 初始化分段锁数组。
             for (var i = 0; i < LockCount; i++)
             {
                 _locks[i] = new();
             }
 
-            GC.GetTotalMemory(true); // 需要拨打一次 w/ true / true 来保证虚假返回
+            GC.GetTotalMemory(true); // 需要先以 true 调用一次，以确保传入 false 时返回有效值。
 
             _messagingProcessingInstruments.RegisterActivationDataAllObserve(() =>
             {
@@ -70,10 +70,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 使用一致的散列获取指定 grain ID的锁。
+        /// 使用一致性哈希获取特定 Grain ID 对应的锁。
         /// </summary>
-        /// <param name="grainId">用于获取锁定的 grain ID。</param>
-        /// <returns>指定 grain ID 的锁定对象。</returns>
+        /// <param name="grainId">要获取其锁的 Grain ID。</param>
+        /// <returns>指定 Grain ID 对应的锁对象。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Lock GetStripedLock(in GrainId grainId)
         {
@@ -83,7 +83,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 取消对信件目标的登记, 停止发送给它的信件
+        /// 注销消息目标，停止向其投递消息。
         /// </summary>
         /// <param name="activation"></param>
         public void UnregisterMessageTarget(IGrainContext activation)
@@ -92,14 +92,14 @@ namespace Orleans.Runtime
             {
                 LogTraceUnregisteredActivation(activation);
 
-                // 一旦我们重新设置了解除代码路径, 便应该删除此选项。 现在安全保存 。
+                // 重构停用代码路径后应移除此项，目前保留是安全的。
                 activationCollector.TryCancelCollection(activation as ICollectibleGrainContext);
                 _catalogInstruments.OnActivationDestroyed(GetGrainTypeMetricName(activation));
             }
         }
 
         /// <summary>
-        /// 仅试验目的!
+        /// 仅供测试使用！！
         /// </summary>
         /// <param name="grain"></param>
         internal int UnregisterGrainForTesting(GrainId grain)
@@ -112,18 +112,18 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 如果已经启动, 退回它 。
-        /// 否则,创造新的激活, 开始补水并启动它, 然后返回它。
+        /// 如果激活实例已存在，则返回它。
+        /// 否则创建新的激活实例，开始恢复其状态并进行激活，然后返回它。
         /// </summary>
         /// <remarks>
-        /// 无法保证所归还的激活的有效性。
-        /// 活动负责处理收到的任何信息。
+        /// 不保证返回的激活实例处于有效状态。
+        /// 激活实例负责处理收到的所有消息。
         /// </remarks>
-        /// <param name="grainId"> grain 身份。</param>
-        /// <param name="requestContextData">请求提供任择背景数据。</param>
-        /// <param name="migration">选择性移徙状态和申请。
-        /// 在新激活开始补水和启动之前。 接收会删除软件包中的请求 。
-        /// 如果返回无效, 调用者保留请求。 未处理未被接纳的请求。</param>
+        /// <param name="grainId">Grain 标识。</param>
+        /// <param name="requestContextData">可选的请求上下文数据。</param>
+        /// <param name="migration">可选的迁移状态及请求。返回的激活实例通过常规准入流程接收请求，
+        /// 此过程发生在新激活实例开始恢复状态和激活之前。准入会将请求从数据包移除。
+        /// 如果返回 null，则调用方保留请求；发生失败时，释放尚未接纳的请求。</param>
         public IGrainContext? GetOrCreateActivation(
             in GrainId grainId,
             Dictionary<string, object>? requestContextData,
@@ -160,7 +160,7 @@ namespace Orleans.Runtime
                         activations.RecordNewTarget(result);
                         created = true;
                     }
-                } // 结束锁定
+                } // 结束持锁区段。
 
                 if (result is null)
                 {
@@ -169,14 +169,14 @@ namespace Orleans.Runtime
 
                 if (!created)
                 {
-                    // 入境可以拒绝申请,同时完成一个呼叫员的接通,所以在目录锁外交付。
+                    // 准入可能拒绝请求并同步完成调用方，因此在激活实例目录锁之外进行投递。
                     ReceiveRequests(result, migration);
                     return result;
                 }
 
                 try
                 {
-                    // 启动激活时, 如果有请求, 启动时间与父上下文的启动间隔
+                    // 启动激活跟踪跨度，如果请求提供了父上下文则使用它。
                     var parentContext = requestContextData.TryGetActivityContext();
                     var activationActivity = parentContext.HasValue
                         ? ActivitySources.LifecycleGrainSource.StartActivity(ActivityNames.ActivateGrain, ActivityKind.Internal, parentContext.Value)
@@ -197,12 +197,12 @@ namespace Orleans.Runtime
 
                     _catalogInstruments.OnActivationCreated(GetGrainTypeMetricName(result));
 
-                    // 在再水处理之前,在重新补充之前应接受申请,并可在目录中登记。
+                    // 在状态恢复可能释放上下文、激活实例可能注册到目录之前接纳请求。
                     ReceiveRequests(result, migration);
                 }
                 finally
                 {
-                    // 促使我们承诺要安排启动时间 这些电话转换工作要靠背景来进行,因为环境本身就有故障
+                    // 创建实例后必须安排激活。这些调用将工作移交给上下文，由其负责处理失败。
                     if (rehydrationContext is not null)
                     {
                         result.Rehydrate(rehydrationContext);
@@ -245,14 +245,14 @@ namespace Orleans.Runtime
                 {
                     foreach (var request in requests)
                     {
-                        // ReceiveMessage 即使处理请求后失败,也拥有所有权。
+                        // 即使后续处理请求失败，ReceiveMessage 也已取得消息所有权。
                         admitted++;
                         destination.ReceiveMessage(request);
                     }
                 }
                 finally
                 {
-                    // 如果入场失败,只有剩下的后缀属于包件。
+                    // 如果准入过程在中途失败，只有尚未接纳的后续请求仍归数据包所有。
                     requests.RemoveRange(0, admitted);
                 }
             }
@@ -260,7 +260,7 @@ namespace Orleans.Runtime
             [MethodImpl(MethodImplOptions.NoInlining)]
             static IGrainContext? UnableToCreateActivation(Catalog self, GrainId grainId)
             {
-                // 未找到, 也没有开始放置新
+                // 未找到实例，也未开始放置新实例。
                 var status = self._siloStatusOracle.CurrentStatus;
                 var isTerminating = status.IsTerminating();
                 if (status is not SiloStatus.Active)
@@ -285,11 +285,11 @@ namespace Orleans.Runtime
                 grainLocator.InvalidateCache(grainId);
                 if (!isTerminating)
                 {
-                    // 解除目标启动的登记 这样我们就不会收到虚假信息
-                    // 时间的延迟(截至本文撰写时为一分钟)是为了处理不可能但可能进行的比赛,因为
-                    // 请求之前,请求启动同一程序,并请求新的位置。
-                    // 如果新安置的启动登记申请 不知怎么地在取消登记之前溜走了
-                    // 我们要确保我们不会解除刚发明的激活
+                    // 注销目标激活实例，避免持续收到不应到达的消息。
+                    // 时间延迟（编写此处时为一分钟）用于处理一种虽然不太可能但仍可能发生的竞态：
+                    // 此请求抢在同一激活实例的另一条要求重新放置的请求之前到达。
+                    // 如果新放置产生的激活实例注册请求意外抢在此注销操作之前完成，
+                    // 必须确保不会注销刚创建的激活实例。
                     var address = new GrainAddress { SiloAddress = self.Silo, GrainId = grainId };
                     _ = self.UnregisterNonExistentActivation(address);
                 }
@@ -319,7 +319,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 尝试获取激活运行时间数据
+        /// 尝试获取激活实例的运行时数据。
         /// </summary>
         private bool TryGetGrainContext(GrainId grainId, [NotNullWhen(true)] out IGrainContext? data)
         {
@@ -328,9 +328,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 优优美的解除引爆装置,等待它们完成
-        /// 完成并进行未结交易,然后删除。
-        /// 不得在启动范围内被召唤,因此可以等待。
+        /// 优雅停用激活实例，等待其完成
+        /// 并提交尚未完成的事务，然后将其删除。
+        /// 不应从激活上下文内部调用，以便能够等待此操作完成。
         /// </summary>
         internal async Task DeactivateActivations(DeactivationReason reason, List<IGrainContext> list, CancellationToken cancellationToken)
         {
@@ -355,11 +355,11 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 解除目录中每个激活的功能,等待其失效完成。
+        /// 停用激活实例目录中的所有激活实例，并等待停用完成。
         /// </summary>
         /// <remarks>
-        /// 激活使目录处于最后同步的解除步骤,除非被弃置为卡住,
-        /// 等待已经启动的拆除,包括他们排队申请的迁移。
+        /// 除非因卡住而被放弃，否则激活实例在停用流程的最后一个同步步骤才离开激活实例目录，
+        /// 因此这也会等待已经开始的停用流程，包括其排队请求的迁移。
         /// </remarks>
         public async Task DeactivateAllActivations(CancellationToken cancellationToken)
         {
@@ -397,7 +397,7 @@ namespace Orleans.Runtime
                 if (TryGetGrainContext(activationAddress.GrainId, out var grainContext)
                     && grainContext.Address.Equals(activationAddress))
                 {
-                    // 停止活动同步使失败者无法通行;拆卸和取消登记继续无休止地进行。
+                    // Deactivate 同步使确切的落选实例无法再被路由；拆除和注销继续异步进行。
                     grainContext.Deactivate(deactivationReason, CancellationToken.None);
                 }
             }
@@ -407,7 +407,7 @@ namespace Orleans.Runtime
 
         void ILifecycleParticipant<ISiloLifecycle>.Participate(ISiloLifecycle lifecycle)
         {
-            // 什么都不做, 只要确保创建此实例, 这样它就可以在激活目录中注册 。
+            // 不执行任何操作，仅确保创建此实例，以使其能够自行注册到激活实例目录中。
             _siloStatusOracle = serviceProvider.GetRequiredService<ISiloStatusOracle>();
         }
 

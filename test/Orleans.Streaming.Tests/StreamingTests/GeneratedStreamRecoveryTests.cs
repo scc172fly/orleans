@@ -15,7 +15,7 @@ using Xunit;
 namespace UnitTests.StreamingTests
 {
     /// <summary>
-    /// 测试用户订阅流的默认回收情景,包括生成事件,包括瞬时和非短暂错误处理。
+    /// 测试使用生成事件的隐式订阅流恢复场景，包括暂时性和非暂时性错误的处理。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

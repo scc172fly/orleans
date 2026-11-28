@@ -11,10 +11,10 @@ namespace BenchmarkGrains.MapReduce
 
         private const bool ProcessOnThreadPool = true;
 
-        // 应将它列为清单
+        // 这里应该使用列表
         private ITargetGrain<TOutput> _target = null!;
 
-        // BlockingCollection 此类工作量类型的结果更差
+        // 对于此类工作负载，BlockingCollection 的性能测试结果较差
         private readonly ConcurrentQueue<TInput> _input = new ConcurrentQueue<TInput>();
 
         private readonly ConcurrentQueue<TOutput> _output = new ConcurrentQueue<TOutput>();
@@ -49,7 +49,7 @@ namespace BenchmarkGrains.MapReduce
             return Task.CompletedTask;
         }
 
-#pragma warning disable CS0618 // Preserve the legacy token benchmark implementation.
+#pragma warning disable CS0618 // 保留旧版令牌的基准测试实现。
         public Task SendAsync(TInput t, GrainCancellationToken gct)
 #pragma warning restore CS0618
         {

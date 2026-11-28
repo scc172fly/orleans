@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 namespace HelloWorld.Grains;
 
 /// <summary>
-/// Orleans grain 执行类别 HelloGrain。
+/// Orleans Grain 实现类 HelloGrain。
 /// </summary>
 public sealed class HelloGrain : Grain, IHelloGrain
 {

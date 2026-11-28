@@ -1,5 +1,5 @@
-//# 设计USE-GENERICS
-//之后的销毁行动
+//#define USE_GENERICS
+//#define DELETE_AFTER_TEST
 
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -153,7 +153,7 @@ namespace UnitTests.Streaming.Reliability
         [Fact, TestCategory("Functional")]
         public void Baseline_StreamRel()
         {
-            // 此测试案例只是正常判断 silo 测试配置是否正常。
+            // 此测试用例仅用于基本检查 Silo 测试配置是否正确。
             const string testName = "Baseline_StreamRel";
             StreamTestUtils.LogStartTest(testName, _streamId, _streamProviderName, Logger, HostedCluster);
             StreamTestUtils.LogEndTest(testName, Logger);
@@ -163,7 +163,7 @@ namespace UnitTests.Streaming.Reliability
         [Fact, TestCategory("Functional")]
         public async Task Baseline_StreamRel_RestartSilos()
         {
-            // 此测试案例只是正常判断 silo 测试配置是否正常。
+            // 此测试用例仅用于基本检查 Silo 测试配置是否正确。
             const string testName = "Baseline_StreamRel_RestartSilos";
             StreamTestUtils.LogStartTest(testName, _streamId, _streamProviderName, Logger, HostedCluster);
 
@@ -173,7 +173,7 @@ namespace UnitTests.Streaming.Reliability
 
             CheckSilosRunning("After Restart", _numExpectedSilos);
 
-            Assert.NotEqual(silos, this.HostedCluster.Silos); // 重新启动后应不同 silos
+            Assert.NotEqual(silos, this.HostedCluster.Silos); // 重启后应为不同的 Silo
 
             StreamTestUtils.LogEndTest(testName, Logger);
         }
@@ -182,14 +182,14 @@ namespace UnitTests.Streaming.Reliability
         [Fact, TestCategory("Functional")]
         public async Task SMS_Baseline_StreamRel()
         {
-            // 这个测试案例只是个理智的检查 即短消息测试配置是正常的
+            // 此测试用例仅用于基本检查 SMS 测试配置是否正确。
             const string testName = "SMS_Baseline_StreamRel";
             _streamId = Guid.NewGuid();
             _streamProviderName = MEMORY_STREAM_PROVIDER_NAME;
 
             StreamTestUtils.LogStartTest(testName, _streamId, _streamProviderName, Logger, HostedCluster);
 
-            // Grain 生产者 - > Grain 消费者
+            // Grain 生产者 -> Grain 消费者
 
             long consumerGrainId = Random.Shared.Next();
             long producerGrainId = Random.Shared.Next();
@@ -204,7 +204,7 @@ namespace UnitTests.Streaming.Reliability
         [Fact, TestCategory("Functional"), TestCategory("AzureStorage")]
         public async Task AQ_Baseline_StreamRel()
         {
-            // 此测试案例只是正常判断 AzureQueue 测试配置是否正常。
+            // 此测试用例仅用于基本检查 AzureQueue 测试配置是否正确。
             const string testName = "AQ_Baseline_StreamRel";
             _streamId = Guid.NewGuid();
             _streamProviderName = AZURE_QUEUE_STREAM_PROVIDER_NAME;
@@ -243,7 +243,7 @@ namespace UnitTests.Streaming.Reliability
             const string testName = "SMS_PubSub_MultiConsumerSameGrain";
             await Test_PubSub_MultiConsumerSameGrain(testName, MEMORY_STREAM_PROVIDER_NAME);
         }
-        // 不需要 APubSub_MultiCumamerSameGrain - 不使用 PubSub
+        // 不需要 AQ_PubSub_MultiConsumerSameGrain，因为不使用 PubSub
 
         [TestSuite("Functional")]
         [Fact, TestCategory("Functional")]
@@ -252,7 +252,7 @@ namespace UnitTests.Streaming.Reliability
             const string testName = "SMS_PubSub_MultiProducerSameGrain";
             await Test_PubSub_MultiProducerSameGrain(testName, MEMORY_STREAM_PROVIDER_NAME);
         }
-        // 不需要 APubSub_Multi ProducerSameGrain - 不使用 PubSub
+        // 不需要 AQ_PubSub_MultiProducerSameGrain，因为不使用 PubSub
 
         [TestSuite("Functional")]
         [Fact, TestCategory("Functional")]
@@ -261,9 +261,9 @@ namespace UnitTests.Streaming.Reliability
             const string testName = "SMS_PubSub_Unsubscribe";
             await Test_PubSub_Unsubscribe(testName, MEMORY_STREAM_PROVIDER_NAME);
         }
-        // 不需要的 AubSub_ 订阅 - 不使用 PubSub
+        // 不需要 AQ_PubSub_Unsubscribe，因为不使用 PubSub
 
-        //TODO: 此测试失败, 因为重新启动后重新订阅流创建了新订阅, 从而丢失上一个订阅的事件。 当添加“ 更新” 订阅功能时应该固定 。 - jbragg
+        //TODO：此测试失败，因为重启后重新订阅流会创建新订阅，丢失先前订阅中的事件。添加订阅 'renew' 功能后应能修复。- jbragg
         [TestSuite("Functional")]
         [Fact, TestCategory("Functional"), TestCategory("Failures")]
         public async Task SMS_StreamRel_AllSilosRestart_PubSubCounts()
@@ -271,7 +271,7 @@ namespace UnitTests.Streaming.Reliability
             const string testName = "SMS_StreamRel_AllSilosRestart_PubSubCounts";
             await Test_AllSilosRestart_PubSubCounts(testName, MEMORY_STREAM_PROVIDER_NAME);
         }
-        // 不需要 AstaramRel_ allSilos 重新启动- PubSubCounts - 不使用 PubSub
+        // 不需要 AQ_StreamRel_AllSilosRestart_PubSubCounts，因为不使用 PubSub
 
         [TestSuite("Functional")]
         [Fact, TestCategory("Functional")]
@@ -366,7 +366,7 @@ namespace UnitTests.Streaming.Reliability
         }
 
         // -------------------
-        // 测试辅助工具方法
+        // 测试辅助方法
 
 #if USE_GENERICS
         private async Task<IStreamReliabilityTestGrain<int>> Do_BaselineTest(long consumerGrainId, long producerGrainId)
@@ -462,7 +462,7 @@ namespace UnitTests.Streaming.Reliability
             _usedGrains.Add(consumerGrain);
 #endif
 
-            // 注:这首先 SendItem
+            // 注意：此处执行第一次 SendItem
             await Do_BaselineTest(consumerGrainId, producerGrainId);
 
             int baseId = 10000 * ++_baseConsumerId;
@@ -477,9 +477,9 @@ namespace UnitTests.Streaming.Reliability
             string when1 = "AddConsumers-Send-2";
             await WaitForItemDeliveriesAsync(when1, _subscriptionId, numLoops, deliverySnapshots1[_subscriptionId]);
             await Task.WhenAll(consumers1.Select(consumer => WaitForItemDeliveriesAsync(when1, consumer.SubscriptionId, numLoops, deliverySnapshots1[consumer.SubscriptionId])));
-            // 原始消费者收到的电文 grain
+            // 原消费者 Grain 接收的消息
             await CheckReceivedCounts(when1, consumerGrain, numLoops + 1, 0);
-            // 新消费者收到的电文 grains
+            // 新消费者 Grain 接收的消息
             // ReSharper disable once AccessToModifiedClosure
             await Task.WhenAll(consumers1.Select(async consumer =>
             {
@@ -499,11 +499,11 @@ namespace UnitTests.Streaming.Reliability
                 await producerGrain.SendItem(3);
             }
             ////Thread.Sleep(TimeSpan.FromSeconds(2));
-            // 原始消费者收到的电文 grain
+            // 原消费者 Grain 接收的消息
             await WaitForItemDeliveriesAsync(when2, _subscriptionId, numLoops, deliverySnapshots2[_subscriptionId]);
             await Task.WhenAll(consumers2.Select(consumer => WaitForItemDeliveriesAsync(when2, consumer.SubscriptionId, numLoops, deliverySnapshots2[consumer.SubscriptionId])));
             await CheckReceivedCounts(when2, consumerGrain, numLoops * 2 + 1, 0);
-            // 新消费者收到的电文 grains
+            // 新消费者 Grain 接收的消息
             await Task.WhenAll(consumers2.Select(consumer => CheckReceivedCounts(when2, consumer.Grain, numLoops, 0)));
 
             StreamTestUtils.LogEndTest(testName, Logger);
@@ -516,7 +516,7 @@ namespace UnitTests.Streaming.Reliability
 
             StreamTestUtils.LogStartTest(testName, _streamId, _streamProviderName, Logger, HostedCluster);
 
-            // Grain 生产者 - > Grain 2 x消费者
+            // Grain 生产者 -> 同一 Grain 中的两个消费者
 
             long consumerGrainId = Random.Shared.Next();
             long producerGrainId = Random.Shared.Next();
@@ -530,7 +530,7 @@ namespace UnitTests.Streaming.Reliability
             await producerGrain.BecomeProducer(_streamId, _streamProviderName);
 
             when = "After BecomeProducer";
-            // 注:生产商仅使用语义测量法,即当第一批MSG发送时,它们将已经登记。
+            // 注意：对生产者唯一保证的语义是，到发送第一条消息时，生产者已经完成注册。
             await producerGrain.SendItem(0);
             await WaitForPubSubProducerRegisteredAsync(when);
             await StreamTestUtils.CheckPubSubCounts(this.InternalClient, _output, when, 1, 0, _streamId, _streamProviderName, StreamTestsConstants.StreamReliabilityNamespace);
@@ -556,7 +556,7 @@ namespace UnitTests.Streaming.Reliability
 
             StreamTestUtils.LogStartTest(testName, _streamId, _streamProviderName, Logger, HostedCluster);
 
-            // Grain 生产者 - > Grain 2 x消费者
+            // Grain 生产者 -> 同一 Grain 中的两个消费者
 
             long consumerGrainId = Random.Shared.Next();
             long producerGrainId = Random.Shared.Next();
@@ -569,7 +569,7 @@ namespace UnitTests.Streaming.Reliability
             Logger.LogInformation("BecomeProducer: StreamId={StreamId} Provider={Provider}", _streamId, _streamProviderName);
             await producerGrain.BecomeProducer(_streamId, _streamProviderName);
             when = "After first BecomeProducer";
-            // 注:生产商仅使用语义测量法,即当第一批MSG发送时,它们将已经登记。
+            // 注意：对生产者唯一保证的语义是，到发送第一条消息时，生产者已经完成注册。
             await producerGrain.SendItem(0);
             await WaitForPubSubProducerRegisteredAsync(when);
             await StreamTestUtils.CheckPubSubCounts(this.InternalClient, _output, when, 1, 0, _streamId, _streamProviderName, StreamTestsConstants.StreamReliabilityNamespace);
@@ -601,8 +601,8 @@ namespace UnitTests.Streaming.Reliability
 
             StreamTestUtils.LogStartTest(testName, _streamId, _streamProviderName, Logger, HostedCluster);
 
-            // Grain 生产者 - > Grain 2 x消费者
-            // 注: PubSub 只应计算不同的 grains,即使 grain 有多个消费者控件
+            // Grain 生产者 -> 同一 Grain 中的两个消费者
+            // 注意：PubSub 应只统计不同的 Grain，即使一个 Grain 有多个消费者句柄。
 
             long consumerGrainId = Random.Shared.Next();
             long producerGrainId = Random.Shared.Next();
@@ -616,7 +616,7 @@ namespace UnitTests.Streaming.Reliability
             await producerGrain.BecomeProducer(_streamId, _streamProviderName);
             await producerGrain.BecomeProducer(_streamId, _streamProviderName);
             when = "After BecomeProducer";
-            // 注:只有语义平衡法规定,生产者在发送第一枚毫西格时将已经登记。
+            // 注意：唯一保证的语义是，到发送第一条消息时，生产者已经完成注册。
             await producerGrain.SendItem(0);
             await WaitForPubSubProducerRegisteredAsync(when);
             await StreamTestUtils.CheckPubSubCounts(this.InternalClient, _output, when, 1, 0, _streamId, _streamProviderName, StreamTestsConstants.StreamReliabilityNamespace);
@@ -674,7 +674,7 @@ namespace UnitTests.Streaming.Reliability
             Logger.LogInformation("Subscribe: StreamId={StreamId} Provider={Provider}", _streamId, _streamProviderName);
             await consumerGrain.Subscribe(_streamId, _streamProviderName);
 
-            // 重新启动 silos
+            // 重启 Silo
             await RestartAllSilos();
 
             string when = "After restart all silos";
@@ -698,7 +698,7 @@ namespace UnitTests.Streaming.Reliability
 
             await Do_BaselineTest(consumerGrainId, producerGrainId);
 
-            // 重新启动 silos
+            // 重启 Silo
             await RestartAllSilos();
 
             string when = "After restart all silos";
@@ -738,7 +738,7 @@ namespace UnitTests.Streaming.Reliability
             string when = "Before restart all silos";
             await StreamTestUtils.CheckPubSubCounts(this.InternalClient, _output, when, 1, 1, _streamId, _streamProviderName, StreamTestsConstants.StreamReliabilityNamespace);
 
-            // 重新启动 silos
+            // 重启 Silo
             //RestartDefaultSilosButKeepCurrentClient(testName);
             await RestartAllSilos();
 
@@ -750,8 +750,8 @@ namespace UnitTests.Streaming.Reliability
                 TestContext.Current.CancellationToken,
                 producerGrainId,
                 consumerGrainId);
-            // 注:无法保证在 silo 停产期间,生产者名单不会被修改/清理,因此不能假定这里的计算数为1。
-            // i'm not care. 预言 -1意味着不在乎
+            // 注意：无法保证生产者列表在 Silo 关闭期间不被修改或清理，因此不能假定此处的数量为 1。
+            // Expected == -1 表示不关心该值。
             await StreamTestUtils.CheckPubSubCounts(this.InternalClient, _output, when, -1, 1, _streamId, _streamProviderName, StreamTestsConstants.StreamReliabilityNamespace);
 
             when = "After SendItem";
@@ -781,18 +781,18 @@ namespace UnitTests.Streaming.Reliability
             when = "Before kill one silo";
             CheckSilosRunning(when, _numExpectedSilos);
 
-            // 查找 silo 消费者 grain 位于
+            // 查找消费者 Grain 所在的 Silo
             var consumerGrain = GetGrain(consumerGrainId);
             SiloAddress siloAddress = await consumerGrain.GetLocation();
             SiloAddress producerAddress = await producerGrain.GetLocation();
 
             _output.WriteLine("Consumer grain is located on silo {0} ; Producer grain is located on silo {1}", siloAddress, producerAddress);
 
-            // 杀死含有消费者的 silo grain
+            // 强制终止包含消费者 Grain 的 Silo
             var siloToKill = this.HostedCluster.Silos.First(s => s.SiloAddress.Equals(siloAddress));
             await StopSilo(siloToKill, true, false);
-            // 注:本测试案例的重开失败 silo
-            // 注:不要重新恢复客户端的初始化
+            // 注意：此测试用例不重启发生故障的 Silo
+            // 注意：不要重新初始化客户端。
 
             when = "After kill one silo";
             CheckSilosRunning(when, _numExpectedSilos - 1);
@@ -826,17 +826,17 @@ namespace UnitTests.Streaming.Reliability
             when = "Before kill one silo";
             CheckSilosRunning(when, _numExpectedSilos);
 
-            // 查找 silo 制 制 作 人 grain 位于
+            // 查找生产者 Grain 所在的 Silo
             SiloAddress siloAddress = await producerGrain.GetLocation();
             var consumerGrain = GetGrain(consumerGrainId);
             SiloAddress consumerAddress = await consumerGrain.GetLocation();
             _output.WriteLine("Producer grain is located on silo {0} ; Consumer grain is located on silo {1}", siloAddress, consumerAddress);
 
-            // 杀 silo 包含制片人 grain
+            // 强制终止包含生产者 Grain 的 Silo
             var siloToKill = this.HostedCluster.Silos.First(s => s.SiloAddress.Equals(siloAddress));
             await StopSilo(siloToKill, true, false);
-            // 注:本测试案例的重开失败 silo
-            // 注:不要重新恢复客户端的初始化
+            // 注意：此测试用例不重启发生故障的 Silo
+            // 注意：不要重新初始化客户端。
 
             when = "After kill one silo";
             CheckSilosRunning(when, _numExpectedSilos - 1);
@@ -870,17 +870,17 @@ namespace UnitTests.Streaming.Reliability
             when = "Before restart one silo";
             CheckSilosRunning(when, _numExpectedSilos);
 
-            // 查找 silo 消费者 grain 位于
+            // 查找消费者 Grain 所在的 Silo
             var consumerGrain = GetGrain(consumerGrainId);
             SiloAddress siloAddress = await consumerGrain.GetLocation();
             SiloAddress producerAddress = await producerGrain.GetLocation();
 
             _output.WriteLine("Consumer grain is located on silo {0} ; Producer grain is located on silo {1}", siloAddress, producerAddress);
 
-            // 重新启动含有消费者的 silo grain
+            // 重启包含消费者 Grain 的 Silo
             var siloToKill = this.HostedCluster.Silos.First(s => s.SiloAddress.Equals(siloAddress));
             await StopSilo(siloToKill, true, true);
-            // 注:不要重新恢复客户端的初始化
+            // 注意：不要重新初始化客户端。
 
             when = "After restart one silo";
             CheckSilosRunning(when, _numExpectedSilos);
@@ -914,17 +914,17 @@ namespace UnitTests.Streaming.Reliability
             when = "Before restart one silo";
             CheckSilosRunning(when, _numExpectedSilos);
 
-            // 查找 silo 制 制 作 人 grain 位于
+            // 查找生产者 Grain 所在的 Silo
             SiloAddress siloAddress = await producerGrain.GetLocation();
             var consumerGrain = GetGrain(consumerGrainId);
             SiloAddress consumerAddress = await consumerGrain.GetLocation();
 
             _output.WriteLine("Producer grain is located on silo {0} ; Consumer grain is located on silo {1}", siloAddress, consumerAddress);
 
-            // 重新启动含有消费者的 silo grain
+            // 重启包含消费者 Grain 的 Silo
             var siloToKill = this.HostedCluster.Silos.First(s => s.SiloAddress.Equals(siloAddress));
             await StopSilo(siloToKill, true, true);
-            // 注:不要重新恢复客户端的初始化
+            // 注意：不要重新初始化客户端。
 
             when = "After restart one silo";
             CheckSilosRunning(when, _numExpectedSilos);
@@ -962,7 +962,7 @@ namespace UnitTests.Streaming.Reliability
 
             _output.WriteLine("Grain silo locations: Producer={0} Consumer={1}", producerLocation, consumerLocation);
 
-            // 注:这首先 SendItem
+            // 注意：此处执行第一次 SendItem
             await Do_BaselineTest(consumerGrainId, producerGrainId);
             int expectedReceived = 1;
 
@@ -977,7 +977,7 @@ namespace UnitTests.Streaming.Reliability
             await CheckConsumerProducerStatus(when, producerGrainId, consumerGrainId, true, true);
             await CheckReceivedCounts(when, consumerGrain, expectedReceived, 0);
 
-            // 添加新 silo
+            // 添加新的 Silo
             //SiloHandle newSilo = StartAdditionalOrleans();
             //WaitForLivenessToStabilize();
             var newSilo = await this.HostedCluster.StartAdditionalSiloAsync();
@@ -990,9 +990,9 @@ namespace UnitTests.Streaming.Reliability
             CheckSilosRunning(when, _numExpectedSilos + 1);
             await WaitForStreamingProviderReadyAsync(when);
 
-            //= " 时SendItem-3";
+            //when = "SendItem-3";
             //output.WriteLine(when);
-            //用于 (一= 0; i < numLoops; i++)
+            //for (int i = 0; i < numLoops; i++)
             //{
             //    await producerGrain.SendItem(3);
             //}
@@ -1000,7 +1000,7 @@ namespace UnitTests.Streaming.Reliability
             //await CheckConsumerProducerStatus(when, producerGrainId, consumerGrainId, true, true);
             //await CheckReceivedCounts(when, consumerGrain, expectedReceived, 0);
 
-            // 寻找消费者 Grain 新建 silo
+            // 在新 Silo 上查找一个消费者 Grain
             IStreamReliabilityTestGrain newConsumer = CreateGrainOnSilo(newSilo.SiloAddress);
             var newConsumerSubscription = await newConsumer.AddConsumer(_streamId, _streamProviderName);
             await WaitForSubscriptionRegisteredAsync("After new consumer AddConsumer", newConsumerSubscription.HandleId);
@@ -1018,15 +1018,15 @@ namespace UnitTests.Streaming.Reliability
             expectedReceived += numLoops;
             await WaitForItemDeliveriesAsync(when + "-Old", _subscriptionId, numLoops, deliverySnapshots[_subscriptionId]);
             await WaitForItemDeliveriesAsync(when + "-New", newConsumerSubscription.HandleId, numLoops, deliverySnapshots[newConsumerSubscription.HandleId]);
-            // 旧消费者收到新发布的信息
+            // 旧消费者已接收新发布的消息
             await CheckReceivedCounts(when + "-Old", consumerGrain, expectedReceived, 0);
-            // 新消费者收到新发布的信息
+            // 新消费者已接收新发布的消息
             await CheckReceivedCounts(when + "-New", newConsumer, numLoops, 0);
 
             StreamTestUtils.LogEndTest(testName, Logger);
         }
 
-        // 效用功能...
+        // ---------- 工具函数 ----------
 
         private async Task RestartAllSilos()
         {
@@ -1073,7 +1073,7 @@ namespace UnitTests.Streaming.Reliability
 
                 Logger.LogInformation("Restarted new {SiloType} silo {SiloAddress}", siloType, newSilo.SiloAddress);
 
-                Assert.NotEqual(oldSilo, newSilo.SiloAddress); //“ 重新启动后应该不同 silo 地址”
+                Assert.NotEqual(oldSilo, newSilo.SiloAddress); //"重启后的 Silo 地址应不同"
             }
             else if (kill)
             {
@@ -1110,7 +1110,7 @@ namespace UnitTests.Streaming.Reliability
         private IStreamReliabilityTestGrain CreateGrainOnSilo(SiloAddress silo)
 #endif
         {
-            // 查找 Grain 指定 silo
+            // 查找一个位于指定 Silo 上的 Grain 供使用
             IStreamReliabilityTestGrain newGrain;
             long kp = Random.Shared.Next();
             while (true)
@@ -1393,7 +1393,7 @@ namespace UnitTests.Streaming.Reliability
         {
             foreach (var task in tasks)
             {
-                // 即使在测试取消后, 也必须进行错误观察 。
+                // 即使测试被取消，也必须执行故障观察。
                 _ = task.ContinueWith(
                     static completed => _ = completed.Exception,
                     CancellationToken.None,

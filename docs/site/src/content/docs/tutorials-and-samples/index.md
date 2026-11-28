@@ -1,119 +1,119 @@
 ---
-title: "Orleans 辅导和样品"
-description: "通过教程、解释和储存库支持的样本学习 Orleans 。"
+title: Orleans 教程和示例
+description: 通过教程、原理说明及仓库中的示例学习 Orleans。
 ms.date: 08/02/2026
 ms.topic: sample
 ---
 
 <a id="orleans-tutorials-and-samples"></a>
 
-# Orleans 辅导和样品
+# Orleans 教程和示例
 
-使用此页面选择正确的学习材料类型 :
+使用此页面选择适合的学习资料：
 
-- **快速启动** 带领您完成一项重点突出的任务。
-- **教程** 逐步教授能力。
-- **解释** 说明如何模拟完整应用。
-- **样本** 是可建构的应用,您可以检查和运行。
+- **快速入门** 引导你完成一项具体任务。
+- **教程** 逐步讲解一种能力。
+- **原理说明** 介绍如何对完整应用程序进行建模。
+- **示例** 是可供查看、构建和运行的应用程序。
 
 <a id="start-here"></a>
 
 ## 从这里开始
 
-对于最起码的应用程序,从 [Orleans 你好世界](hello-world.md)开始。它会主机一个 silo ,并从一个进程调用一个 grain 。
+若要学习最精简的应用程序，请从 [Orleans Hello World](hello-world.md) 开始。它在同一进程内托管 Silo 并调用 Grain。
 
-对于较为典型的项目结构, [构建您的第一个 Orleans 应用程序](../quickstarts/build-your-first-orleans-app.md) 使用单独的 grain 合同、执行、 silo和外部客户项目。
+若要了解更典型的项目结构，请参阅 [构建第一个 Orleans 应用程序](../quickstarts/build-your-first-orleans-app.md)，其中使用独立的 Grain 契约、实现、Silo 和外部客户端项目。
 
 <a id="tutorials"></a>
 
-## 教学
+## 教程
 
-| 教学 | 教它教什么 |
+| 教程 | 学习内容 |
 | --- | --- |
-| [将 Orleans 应用程序安装到 Azure 容器应用软件](production-application.md) | 运行、部署、观察和核查多过程 Orleans 应用程序。 |
-| [测试 Orleans 应用程序的结束](testing-walkthrough.md) | 从第一次集束试验到可再使用固定装置和地形变化的进展。 |
-| [构建并回收流化应用程序](streaming-walkthrough.md) | 通过真正的供应商跟踪事件,核实从检查站恢复的情况。 |
-| [自定义 grain 存储](custom-grain-storage.md) | 实施并登记 <xref:Orleans.Storage.IGrainStorage> 提供者。 |
-| [Azure部署和规模](../quickstarts/deploy-scale-orleans-on-azure.md) | 部署 a Orleans 应用到 Azure 集装箱应用和配置共享供应商。 |
+| [将 Orleans 应用程序部署到 Azure 容器应用](production-application.md) | 运行、部署、观测并验证多进程 Orleans 应用程序。 |
+| [对 Orleans 应用程序进行端到端测试](testing-walkthrough.md) | 从第一个集群测试逐步扩展到可复用的测试夹具及拓扑变更测试。 |
+| [构建和恢复流式应用程序](streaming-walkthrough.md) | 跟踪事件在实际提供程序中的流转，并验证从检查点恢复的过程。 |
+| [自定义 Grain 存储](custom-grain-storage.md) | 实现和注册 <xref:Orleans.Storage.IGrainStorage> 提供程序。 |
+| [在 Azure 上部署和扩展](../quickstarts/deploy-scale-orleans-on-azure.md) | 将 Orleans 应用部署到 Azure 容器应用并配置共享提供程序。 |
 
 <a id="explanations"></a>
 
-## 解释解释
+## 原理说明
 
-| 第1条 | 为何解释 |
+| 文章 | 说明内容 |
 | --- | --- |
-| [冒险游戏样板](adventure.md) | 房间、玩家和对象如何映射到 grains 和普通值 。 |
-| [为什么 Orleans](../benefits.md) | 虚拟行为体模式的好处和取舍。 |
-| [Orleans 建筑设计原则](../resources/orleans-architecture-principles-and-approach.md) | 设计目标,它决定了 Orleans APIs和运行时行为。 |
+| [Adventure 冒险游戏示例](adventure.md) | 如何将房间、玩家及物品映射为 Grain 和普通值。 |
+| [为什么选择 Orleans](../benefits.md) | 虚拟 Actor 模型的优势与权衡。 |
+| [Orleans 架构设计原则](../resources/orleans-architecture-principles-and-approach.md) | 决定 Orleans API 及运行时行为的设计目标。 |
 
 <a id="samples"></a>
 
-## 样本样本
+## 示例
 
-[`samples` 目录](https://github.com/dotnet/orleans/tree/main/samples) 包含官方 Orleans 样本,其 [样本目录](https://github.com/dotnet/orleans/blob/main/samples/README.md) 来自存储库清单,并与抽样项目一起得到验证。
+[`samples` 目录](https://github.com/dotnet/orleans/tree/main/samples) 包含 Orleans 官方示例。[示例目录](https://github.com/dotnet/orleans/blob/main/samples/README.md) 由仓库清单生成，并与示例项目一起进行验证。
 
 <a id="fundamentals"></a>
 
-### 基本原理
+### 基础知识
 
-| 抽样样本 | 演示 |
+| 示例 | 演示内容 |
 | --- | --- |
-| [你好,世界好](https://github.com/dotnet/orleans/tree/main/samples/HelloWorld) | 单一项目 silo、 grain 合同、执行、参考和呼叫。 |
-| [冒险](https://github.com/dotnet/orleans/tree/main/samples/Adventure) | 与 grains 和独立客户进行域名建模。 |
-| [螺旋](https://github.com/dotnet/orleans/tree/main/samples/Chirper) | 常住、观察和重新加入 grains。 |
-| [简单流流](https://github.com/dotnet/orleans/tree/main/samples/Streaming/Simple) | 溪流生产者、消费者和订阅者。 |
+| [Hello World](https://github.com/dotnet/orleans/tree/main/samples/HelloWorld) | 单项目中的 Silo、Grain 契约、实现、引用和调用。 |
+| [Adventure](https://github.com/dotnet/orleans/tree/main/samples/Adventure) | 使用 Grain 和独立客户端进行领域建模。 |
+| [Chirper](https://github.com/dotnet/orleans/tree/main/samples/Chirper) | 持久化、观察者和可重入 Grain。 |
+| [Simple Streaming](https://github.com/dotnet/orleans/tree/main/samples/Streaming/Simple) | 流生产者、消费者及订阅。 |
 
 <a id="web-and-application-integration"></a>
 
-### 网络和应用整合
+### Web 和应用程序集成
 
-| 抽样样本 | 演示 |
+| 示例 | 演示内容 |
 | --- | --- |
-| [购物车](https://github.com/dotnet/orleans/tree/main/samples/ShoppingCart) | 布拉佐尔,持久性和多项目应用。 |
-| [Blazor 服务器](https://github.com/dotnet/orleans/tree/main/samples/Blazor/BlazorServer) | A Blazor 服务器应用程序, 后附 grains。 |
-| [布拉佐尔 WebAssembly](https://github.com/dotnet/orleans/tree/main/samples/Blazor/BlazorWasm) | 主机 WebAssembly 客户端, 带有 Orleans- 支持服务器 。 |
-| [GPS 跟踪器](https://github.com/dotnet/orleans/tree/main/samples/GPSTracker) | ASP.NET 核心核心核心核心核心 SignalR 和 IoT- 设备更新风格 |
-| [驻外服务处](https://github.com/dotnet/orleans/tree/main/samples/Presence) | 观察员和合作 grains 以游戏的情境而行。 |
+| [Shopping Cart](https://github.com/dotnet/orleans/tree/main/samples/ShoppingCart) | Blazor、持久化及多项目应用程序。 |
+| [Blazor Server](https://github.com/dotnet/orleans/tree/main/samples/Blazor/BlazorServer) | 由 Grain 提供后端支持的 Blazor Server 应用程序。 |
+| [Blazor WebAssembly](https://github.com/dotnet/orleans/tree/main/samples/Blazor/BlazorWasm) | 托管的 WebAssembly 客户端以及以 Orleans 为后端的服务器。 |
+| [GPS Tracker](https://github.com/dotnet/orleans/tree/main/samples/GPSTracker) | ASP.NET Core SignalR 及类似物联网设备的数据更新。 |
+| [Presence Service](https://github.com/dotnet/orleans/tree/main/samples/Presence) | 游戏场景中的观察者及协作 Grain。 |
 
 <a id="state-scheduling-and-messaging"></a>
 
-### 国家、时间安排和发文
+### 状态、调度和消息传递
 
-| 抽样样本 | 演示 |
+| 示例 | 演示内容 |
 | --- | --- |
-| [银行账户](https://github.com/dotnet/orleans/tree/main/samples/BankAccount) | ACID在有声 grains之间进行交易。 |
-| [《日刊》待办事宜列表](https://github.com/dotnet/orleans/tree/main/samples/JournaledTodoList) | 事件由 `JournaledGrain`、 日志一致性提供者和 高级主管 进行。 |
-| [与 Azure 布线 JSON](https://github.com/dotnet/orleans/tree/main/samples/JournalingAzureBlobJson) | 与 Azure 布洛布存储器一起对API进行实验性日记。 |
-| [通信通信](https://github.com/dotnet/orleans/tree/main/samples/Messaging) | 输入对象、稳定的指令身份、日记确认的答复和一份对重复提交文件的库存保留。 |
-| [聊天室](https://github.com/dotnet/orleans/tree/main/samples/ChatRoom) | 使用 Orleans 流的终端聊天应用程序。 |
-| [储存库存](https://github.com/dotnet/orleans/tree/main/samples/Stocks) | Grain 计时器、 HTTP 呼叫和临时缓存 |
+| [Bank Account](https://github.com/dotnet/orleans/tree/main/samples/BankAccount) | 跨多个有状态 Grain 的 ACID 事务。 |
+| [Journaled Todo List](https://github.com/dotnet/orleans/tree/main/samples/JournaledTodoList) | 使用 `JournaledGrain`、日志一致性提供程序和 Aspire 的事件溯源。 |
+| [Journaling with Azure Blob JSON](https://github.com/dotnet/orleans/tree/main/samples/JournalingAzureBlobJson) | 与 Azure Blob 存储配合使用的实验性 Journaling API。 |
+| [Messaging](https://github.com/dotnet/orleans/tree/main/samples/Messaging) | 类型化主题、稳定命令 ID、经日志确认的回复，以及重复提交时仅执行一次库存预留。 |
+| [Chat Room](https://github.com/dotnet/orleans/tree/main/samples/ChatRoom) | 使用 Orleans Streams 的终端聊天应用程序。 |
+| [Stocks](https://github.com/dotnet/orleans/tree/main/samples/Stocks) | Grain 定时器、HTTP 调用及临时缓存。 |
 
-下 Azure 布团 JSON 利用试验样本 `Microsoft.Orleans.Durable` 。《日刊待办事宜列表》使用支持的 [Orleans 事件抛星](../grains/event-sourcing/index.md) 模型。 [日刊样本指南](../grains/journaling/samples.md) 要运行 Azure 和 Redis 耐久状态样本。
+Azure Blob JSON 示例使用 `Microsoft.Orleans.Durable` 包中的实验性 Journaling。Journaled Todo List 使用受支持的 [Orleans 事件溯源](../grains/event-sourcing/index.md) 模型。请参阅 [Journaling 示例指南](../grains/journaling/samples.md)，了解如何运行 Azure Blob 和 Redis 持久化状态示例。
 
-下 [通讯食谱](../grains/messaging-recipes.md#run-the-stock-reservation-sample)
-显示如何根据本地包装的 Orleans 包进行库存保留抽样。
+[Messaging 操作示例](../grains/messaging-recipes.md#run-the-stock-reservation-sample)
+介绍如何使用本地打包的 Orleans 包运行库存预留示例。
 
 <a id="deployment-and-operations"></a>
 
-### 部署和行动
+### 部署和运维
 
-| 抽样样本 | 演示 |
+| 示例 | 演示内容 |
 | --- | --- |
-| [Azure 集装箱套件](https://github.com/dotnet/orleans/tree/main/samples/Deployment/AzureContainerApps) | 一组、客户、仪表板、天平仪表和比塞普的部署。 |
-| [Azure 服务处](https://github.com/dotnet/orleans/tree/main/samples/Deployment/AzureAppService) | 申请服务处的多级 Orleans 应用程序。 |
-| [运输层安全](https://github.com/dotnet/orleans/tree/main/samples/TransportLayerSecurity) | Orleans 网络通信的相互TLS。 |
-| [表决表决表决 表决表决 表决表决表决 表决表决表决投票 表决表决表决](https://github.com/dotnet/orleans/tree/main/samples/Voting) | Kubernetes- 面向方向的部署和 Orleans 机板。 |
+| [Azure Container Apps](https://github.com/dotnet/orleans/tree/main/samples/Deployment/AzureContainerApps) | 集群、客户端、仪表板、扩缩容组件及 Bicep 部署。 |
+| [Azure App Service](https://github.com/dotnet/orleans/tree/main/samples/Deployment/AzureAppService) | 在 App Service 上运行多实例 Orleans 应用程序。 |
+| [Transport Layer Security](https://github.com/dotnet/orleans/tree/main/samples/TransportLayerSecurity) | Orleans 网络通信的双向 TLS。 |
+| [Voting](https://github.com/dotnet/orleans/tree/main/samples/Voting) | 面向 Kubernetes 的部署及 Orleans 仪表板。 |
 
-存储目录还包括F#、视觉基础、游戏、自定义流适配器和其他重点实例。
+仓库的示例目录还包含 F#、Visual Basic、游戏、自定义流适配器及其他针对特定功能的示例。
 
 <a id="validate-samples-locally"></a>
 
-## 在当地验证样本
+## 在本地验证示例
 
-在克隆 Orleans 仓库后,从储存库根运行样本验证脚本:
+克隆 Orleans 仓库后，从仓库根目录运行示例验证脚本：
 
 ```powershell
 pwsh ./samples/Validate-Samples.ps1
 ```
 
-剧本验证了画廊清单,并在 `samples/Samples.slnx`中构建了每个项目。只需要云证即可运行连接到云服务的样本,而不是编译这些样本。
+该脚本验证示例展示清单，并构建 `samples/Samples.slnx` 中的每个项目。仅在运行连接云服务的示例时才需要云凭据，编译这些示例不需要云凭据。

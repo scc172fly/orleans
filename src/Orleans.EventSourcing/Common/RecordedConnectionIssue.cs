@@ -5,25 +5,25 @@ using System.Threading.Tasks;
 namespace Orleans.EventSourcing.Common
 {
     /// <summary>
-    /// 记录连接问题的实用等级。
-    /// 该系统是公开的,而不是内部的,因为它是落实其他一致性提供者的一个有用组成部分。
+    /// 用于记录连接问题的实用类。
+    /// 此类是 public 而非 internal，因为它是实现其他一致性提供程序时有用的基础组件。
     /// </summary>
     [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "This mutable coordinator tracks connection state and notifications rather than representing a comparable value.")]
     public struct RecordedConnectionIssue
     {
         /// <summary>
-        /// 记录的连接问题,如果没有,则无效
+        /// 已记录的连接问题；如果没有则为 null。
         /// </summary>
         public ConnectionIssue? Issue { get; private set; }
 
         /// <summary>
-        /// 记录连接问题,填写时间戳等。
-        /// 通知听众
+        /// 记录连接问题，并填充时间戳等信息，
+        /// 然后通知侦听器。
         /// </summary>
-        /// <param name="newIssue">连接问题要记录</param>
-        /// <param name="listener">连接问题收听器</param>
-        /// <param name="services">记录收听器中例外报告</param>
-        /// <exception cref="ArgumentNullException">所需论点是 <see langword="null"/>.</exception>
+        /// <param name="newIssue">要记录的连接问题。</param>
+        /// <param name="listener">连接问题的侦听器。</param>
+        /// <param name="services">用于报告侦听器中发生的异常。</param>
+        /// <exception cref="ArgumentNullException">必需的参数为 <see langword="null"/>。</exception>
         public void Record(ConnectionIssue newIssue, IConnectionIssueListener listener, ILogConsistencyProtocolServices services)
         {
             ArgumentNullException.ThrowIfNull(newIssue);
@@ -57,11 +57,11 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <summary>
-        /// 如果有记录,通知听众并澄清。
+        /// 如果存在已记录的问题，则通知侦听器并清除该问题。
         /// </summary>
-        /// <param name="listener">连接问题收听器</param>
-        /// <param name="services">记录收听器中例外报告</param>
-        /// <exception cref="ArgumentNullException">所需论点是 <see langword="null"/>.</exception>
+        /// <param name="listener">连接问题的侦听器。</param>
+        /// <param name="services">用于报告侦听器中发生的异常。</param>
+        /// <exception cref="ArgumentNullException">必需的参数为 <see langword="null"/>。</exception>
         public void Resolve(IConnectionIssueListener listener, ILogConsistencyProtocolServices services)
         {
             ArgumentNullException.ThrowIfNull(listener);
@@ -82,7 +82,7 @@ namespace Orleans.EventSourcing.Common
         }
 
         /// <summary>
-        /// 如果在最后一次尝试中出现问题,则在重新试拖延规定的期限内出现延误
+        /// 如果上一次尝试出现问题，则按重试延迟所指定的时长等待。
         /// </summary>
         /// <returns></returns>
         public async readonly Task DelayBeforeRetry()

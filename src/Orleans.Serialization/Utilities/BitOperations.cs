@@ -7,9 +7,9 @@ namespace Orleans.Serialization.Utilities
 #if NETCOREAPP3_1_OR_GREATER
 #else
     /// <summary>
-    /// BitOperations 复方填充。
+    /// BitOperations 的兼容性实现（polyfill）。
     /// </summary>
-    // 摘自 https://github.com/dotnet/runtime/blob/e13871cb275b9f53fa82285b2a81ada28a859b50/src/libraries/System.Private.CoreLib/src/System/Numerics/BitOperations.cs
+    // 提取自 https://github.com/dotnet/runtime/blob/e13871cb275b9f53fa82285b2a81ada28a859b50/src/libraries/System.Private.CoreLib/src/System/Numerics/BitOperations.cs
     internal static class BitOperations
     {
         private static ReadOnlySpan<byte> TrailingZeroCountDeBruijn => new byte[32]
@@ -29,26 +29,26 @@ namespace Orleans.Serialization.Utilities
         };
 
         /// <summary>
-        /// 返回指定值的整数(底)日志,基数2。
-        /// 请注意,根据常规,输入值 0 返回 0, 因为对日志( 0) 未定义 。
+        /// 返回指定值以 2 为底的对数，结果向下取整。
+        /// 注意，按照约定，输入值为 0 时返回 0，因为 log(0) 未定义。
         /// </summary>
-        /// <param name="value">数值。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int Log2(uint value)
         {
-            // 履行0->0合同的办法是将LSB设为1。
-            // 日志(1)为0,而设定值 > 1的 LSB 不改变对日志结果。
+            // 通过将最低有效位（LSB）设为 1，满足输入 0 时返回 0 的约定。
+            // Log(1) 为 0；对于大于 1 的值，将最低有效位设为 1 不会改变 log2 的结果。
             value |= 1;
 
-            // 后退合同为0- >0
+            // 回退实现约定输入 0 时返回 0。
             return Log2SoftwareFallback(value);
         }
 
         /// <summary>
-        /// 返回指定值的整数(底)日志,基数2。
-        /// 请注意,根据常规,输入值 0 返回 0, 因为对日志( 0) 未定义 。
+        /// 返回指定值以 2 为底的对数，结果向下取整。
+        /// 注意，按照约定，输入值为 0 时返回 0，因为 log(0) 未定义。
         /// </summary>
-        /// <param name="value">数值。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int Log2(ulong value)
         {
@@ -65,58 +65,58 @@ namespace Orleans.Serialization.Utilities
         }
 
         /// <summary>
-        /// 返回指定值的整数(底)日志,基数2。
-        /// 请注意,根据常规,输入值 0 返回 0, 因为日志( 0) 未定义 。
-        /// 不直接使用任何硬件的内在特性,也不产生分支。
+        /// 返回指定值以 2 为底的对数，结果向下取整。
+        /// 注意，按照约定，输入值为 0 时返回 0，因为 Log(0) 未定义。
+        /// 不直接使用任何硬件内部函数，也不会产生分支。
         /// </summary>
-        /// <param name="value">数值。</param>
+        /// <param name="value">值。</param>
         private static int Log2SoftwareFallback(uint value)
         {
-            // 无 AggressiveInlining 由于方法大小大
-            // 合同为0- >0(记录(0)未定义)
+            // 方法体较大，因此不使用 AggressiveInlining。
+            // 遵循输入 0 时返回 0 的约定（Log(0) 未定义）。
 
-            // 填充末端零, 以一个填充零, eg00010010 变成00011111
+            // 将最高有效位之后的所有位填充为 1，例如 00010010 变为 00011111。
             value |= value >> 01;
             value |= value >> 02;
             value |= value >> 04;
             value |= value >> 08;
             value |= value >> 16;
 
-            // uint.MaxValue 27总是在范围[0 -31],所以我们使用 Unsafe.AddByteOffset 避免边框检查
+            // uint.MaxValue >> 27 的结果始终在 [0 - 31] 范围内，因此使用 Unsafe.AddByteOffset 避免边界检查。
             return Unsafe.AddByteOffset(
-                // 使用 deBruijn sequence, k=2, n=5 (2^5=32) : 0b_0000_0111_1100_0100_1010_1100_1101_1101u
+                // 使用 de Bruijn 序列，k=2，n=5 (2 的 5 次方 = 32)：0b_0000_0111_1100_0100_1010_1100_1101_1101u。
                 ref MemoryMarshal.GetReference(Log2DeBruijn),
-                // 昆特隆 ->32位平台上 IntPtr 的投影使用昂贵的溢出检查,此处不需要
+                // 在 32 位平台上将 uint|long 转换为 IntPtr 会执行开销较高且此处不需要的溢出检查。
                 (IntPtr)(int)((value * 0x07C4ACDDu) >> 27));
         }
 
         /// <summary>
-        /// 以整数值计算末端零位数。
-        /// 类似x86指令TZCNT的行为。
+        /// 计算整数值末尾连续零位的数量。
+        /// 行为类似于 x86 指令 TZCNT。
         /// </summary>
-        /// <param name="value">数值。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int TrailingZeroCount(uint value)
         {
-            // 无担保的后退合同为0->0, BSF合同为0>未定义
+            // 未加保护的回退实现约定输入 0 时返回 0，而 BSF 指令在输入 0 时结果未定义。
             if (value == 0)
             {
                 return 32;
             }
 
-            // uint.MaxValue 27总是在范围[0 -31],所以我们使用 Unsafe.AddByteOffset 避免边框检查
+            // uint.MaxValue >> 27 的结果始终在 [0 - 31] 范围内，因此使用 Unsafe.AddByteOffset 避免边界检查。
             return Unsafe.AddByteOffset(
-                // 使用 deBruijn 序列, k=2, n=5 (2°5=32) : 0b_ 0000_ 011_0111_ 1100_ 1011_ 0101_ 0011_0001u
+                // 使用 de Bruijn 序列，k=2，n=5 (2 的 5 次方 = 32)：0b_0000_0111_0111_1100_1011_0101_0011_0001u。
                 ref MemoryMarshal.GetReference(TrailingZeroCountDeBruijn),
-                // 昆特隆 ->32位平台上 IntPtr 的投影使用昂贵的溢出检查,此处不需要
-                (IntPtr)(int)(((value & (uint)-(int)value) * 0x077CB531u) >> 27)); // 多播减轻冗余 conv.u8
+                // 在 32 位平台上将 uint|long 转换为 IntPtr 会执行开销较高且此处不需要的溢出检查。
+                (IntPtr)(int)(((value & (uint)-(int)value) * 0x077CB531u) >> 27)); // 通过多次类型转换减少冗余的 conv.u8 指令。
         }
 
         /// <summary>
-        /// 计算面具中末端零位数。
-        /// 类似x86指令TZCNT的行为。
+        /// 计算位掩码末尾连续零位的数量。
+        /// 行为类似于 x86 指令 TZCNT。
         /// </summary>
-        /// <param name="value">数值。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int TrailingZeroCount(ulong value)
         {
@@ -130,11 +130,11 @@ namespace Orleans.Serialization.Utilities
             return TrailingZeroCount(lo);
         }
 
-        /// <summary>将给定整体值四舍五入至2.</summary>
-        /// <param name="value">数值。</param>
+        /// <summary>将给定整数向上取整到 2 的整数次幂。</summary>
+        /// <param name="value">值。</param>
         /// <returns>
-        /// 2个最小功率大于或等于 <paramref name="value"/>。
-        /// 如果 <paramref name="value"/> 是 0 或结果溢出,返回 0。
+        /// 大于或等于 <paramref name="value"/> 的最小 2 的整数次幂。
+        /// 如果 <paramref name="value"/> 为 0 或计算结果溢出，则返回 0。
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint RoundUpToPowerOf2(uint value)

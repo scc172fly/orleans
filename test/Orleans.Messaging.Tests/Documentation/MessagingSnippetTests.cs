@@ -512,7 +512,7 @@ public sealed class MessagingSnippetTests : IDisposable
         await grain.SendAsync(Command, Receiver, "hello");
         await grain.SendAsync(Command, Receiver, "hello");
 
-        // 发件箱和接收器通过ID进行重复式等同信息。
+        // 发件箱和接收方按 ID 对等价消息去重。
         Assert.Equal(2, output.Count);
         Assert.All(output, message => Assert.Equal(Command, message.Envelope.MessageId));
         Assert.Equal(output[0].Envelope.Payload, output[1].Envelope.Payload);

@@ -4,7 +4,7 @@ using Orleans.Runtime.Placement.Repartitioning;
 namespace UnitTests.ActivationRepartitioningTests;
 
 /// <summary>
-/// 忽略客户端信息,使测试更容易
+/// 忽略客户端消息，以简化测试。
 /// </summary>
 internal sealed class TestMessageFilter(GrainMigratabilityChecker checker) : IRepartitionerMessageFilter
 {

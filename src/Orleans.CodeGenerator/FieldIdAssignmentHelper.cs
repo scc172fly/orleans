@@ -166,7 +166,7 @@ internal class FieldIdAssignmentHelper
     {
         name = PropertyUtility.GetCanonicalName(name);
 
-        // 从类型名称( 没有命名空间, 允许它移动)和名称中计算 hash 。
+        // 根据类型名称（不含命名空间，以便类型可以移动）及名称计算哈希。
         var typeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
         var hashCode = ComputeHash($"{typeName}%{name}");
         return (name, (uint)hashCode);
@@ -195,7 +195,7 @@ internal class FieldIdAssignmentHelper
             _ => false
         };
 
-        // - 验证 - 我们只能使用生成的字段代号, 如果没有碰撞的话
+        // 验证：仅当没有冲突时才可以使用生成的字段 ID。
         if (success && _symbols.Values.Distinct().Count() != _symbols.Count)
         {
             FailureReason = "hash collision (consider using explicit [Id] annotations for this type)";
@@ -211,15 +211,15 @@ internal class FieldIdAssignmentHelper
                 var (canonicalName, fieldId) = GetCanonicalNameAndFieldId(property.Type, property.Name);
                 var isConstructorParameter = constructorFieldIds.TryGetValue(canonicalName, out var constructorFieldId);
 
-                // 当检测到不一致时中止
+                // 检测到不一致时中止。
                 if (isConstructorParameter && fieldId != constructorFieldId)
                 {
                     FailureReason = $"type mismatch for property {property.Name} and its corresponding constructor parameter";
                     return false;
                 }
 
-                // 不可改变类型,我们目前必须使用公共财产的支撑领域作为序列化
-                // 引擎引擎不调用自定义构建器来重建实例
+                // 对于不可变类型，目前必须使用公共属性的后备字段，因为序列化
+                // 引擎不会调用自定义构造函数来重新创建实例。
                 var mustUseField = property.SetMethod == null || property.IsReadOnly
                                                               || property.SetMethod.IsInitOnly
                                                               || property.IsStatic

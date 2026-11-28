@@ -8,40 +8,40 @@ namespace Orleans.Durable.Tasks.Protocol;
 internal interface IDurableTaskState
 {
     /// <summary>
-    /// 获取任务记录所要操作的类型, 当运行时间创建记录时, 运行时间会设置操作 。
+    /// 获取任务所记录的操作类型，由运行时在创建记录时设置。
     /// </summary>
     public DurableTaskRecordKind Kind { get; }
 
     /// <summary>
-    /// 如果任务尚未完成,则该任务的结果将是 <see langword="null"/> 。
+    /// 任务的结果；如果任务尚未完成，则为 <see langword="null"/>。
     /// </summary>
     public DurableTaskResponse? Result { get; }
 
     /// <summary>
-    /// 其他 grains或本 grain的任务,必须从中获取结果。
+    /// 需要接收此任务结果的其他 Grain 或本 Grain 的任务。
     /// </summary>
     /// <remarks>
-    /// 援引者在它用来处理这项任务的识别符号下订阅,并等待一个持久的执行,等待
-    /// 此项任务有 <c>GetDurableTask</c> 在其子子的标识符下订阅;另一个 grain的用户
-    /// 使用其线条标识符命名任务。
-    /// grain 在发件箱中有一个待完成的完成,直到发件箱将它留存,任务保留到那时;
-    /// 订阅者 grain 本地嵌套任务没有
-    /// 订户。
+    /// 调用方以用于寻址此任务的标识符订阅；通过
+    /// <c>GetDurableTask</c> 等待此任务的持久化执行则以自己的子任务标识符订阅。位于其他 Grain 的订阅者
+    /// 用传输标识符指定自身任务。终态任务在其他 Grain 上的每个订阅者
+    /// 在发件箱中均有待处理的完成通知，直到发件箱将其退役；在此之前任务会得到保留。
+    /// 本 Grain 上的订阅者在存储结果的同一次写入中收到结果。本地嵌套任务没有
+    /// 订阅者。
     /// </remarks>
     public IReadOnlySet<DurableTaskSubscriber> CompletionDestinations { get; }
 
     /// <summary>
-    /// 不可置疑的要求
+    /// 可调用请求。
     /// </summary>
-    /// <exception cref="Exception">存储的请求不再解码,例如因为其类型被删除。</exception>
+    /// <exception cref="Exception">已存储的请求无法再解码，例如其类型已被删除。</exception>
     public IDurableTaskRequest? Request { get; }
 
     /// <summary>
-    /// 获取任务是否存储请求, 而不解码 。
+    /// 在不解码请求的情况下，获取任务是否存储了请求。
     /// </summary>
     /// <remarks>
-    /// 运行时根据任务类型和种类分类任务,因此存储的请求不再解码只会影响
-    /// 解码操作,例如开始任务。
+    /// 运行时依据此属性和任务类型对任务分类，因此无法再解码的已存储请求只会影响
+    /// 需要解码它的操作，例如启动其任务。
     /// </remarks>
     public bool HasRequest { get; }
 
@@ -56,20 +56,20 @@ internal interface IDurableTaskState
     public DateTimeOffset? CancellationRequestedAt { get; }
 
     /// <summary>
-    /// 任务取消请求随附的理由,或 <see langword="null"/> 取消时间
-    /// 请求或请求没有任何理由。
+    /// 任务的取消请求携带的原因；若未请求取消，则为 <see langword="null"/>，
+    /// 请求不携带原因时也是如此。
     /// </summary>
-    /// <remarks>第一次取消请求决定了原因。</remarks>
+    /// <remarks>第一次取消请求决定原因。</remarks>
     public string? CancellationReason { get; }
 
     /// <summary>
-    /// 了解任务的父母是否开始保护它 所以它的祖先的持久取消没有达到
+    /// 获取任务的父任务是否以屏蔽保护方式启动它，使祖先的持久化取消不会传播到该任务。
     /// </summary>
-    /// <remarks>其自己取消、树被中止、树木被砍掉,</remarks>
+    /// <remarks>任务自身的取消、执行树的中止及执行树的删除仍会作用于该任务。</remarks>
     public bool Shielded { get; }
 
     /// <summary>
-    /// 任务创建的时间 。
+    /// 任务创建的时间。
     /// </summary>
     public DateTimeOffset CreatedAt { get; }
 
@@ -78,78 +78,78 @@ internal interface IDurableTaskState
     public long ResumeGeneration { get; }
 
     /// <summary>
-    /// 获得记录存储的指纹:援引请求的可引用类型和序列式的散列
-    /// 或,为了记录处决本身的操作,其种类和身份,例如独立起步
-    /// 目标任务和根本任务。
+    /// 获取记录存储的指纹：被调用请求的可调用对象类型及序列化
+    /// 参数的哈希；对于执行实例自身操作的记录，则记录其类型及标识，例如分离启动的
+    /// 目标和根任务。
     /// </summary>
     /// <remarks>
-    /// 请求书的论据是诊断性的,它用争论的序列形式改变,所以运行时间从来就没有了
-    /// 将之比作一个比较,以决定重放或重试是同一操作。 <see cref="Method"/> 决定此操作。
+    /// 请求参数的哈希用于诊断：它随参数的序列化形式变化，因此运行时从不
+    /// 通过比较它判断重放或重试是否为同一操作，而由 <see cref="Method"/> 判断。
     /// </remarks>
     public string? RequestFingerprint { get; }
 
     /// <summary>
-    /// 获取任务所引用的界面方法的身份,或该任务对另一个 grain 的呼叫所引用的接口方法,或
-    /// 其独立启动点援引或 <see langword="null"/> 记录,但没有任何方法引用。
+    /// 获取任务直接调用、通过对其他 Grain 的调用间接调用，或通过分离启动调用的接口方法的标识；
+    /// 对于不调用任何方法的记录，则为 <see langword="null"/>。
     /// </summary>
     /// <remarks>
-    /// 身份是该方法可被引用的方法的格式类型。
-    /// 根任务在标识符下列表, 当记录类型、目标及目标为同一操作时, 其值与底任务相同 。
-    /// 方法; 参数没有比较 。
+    /// 标识是方法的可调用对象的格式化类型。到达该记录的重放，或者按根任务标识符
+    /// 调度根任务的重试，只要具有记录的操作类型、目标及
+    /// 方法，就属于同一操作；不比较参数。
     /// </remarks>
     public string? Method { get; }
 
     /// <summary>
-    /// 当终端结果的留存因完成时间已过而重新启动时, 就会发现
-    /// <see langword="null"/> 保留从 <see cref="CompletedAt"/>.
+    /// 获取终态结果因其完成通知转为死信而重新开始保留期的时间；或者
+    /// <see langword="null"/> 表示保留期从 <see cref="CompletedAt"/> 开始。
     /// </summary>
     public DateTimeOffset? RetainedSince { get; }
 
     public GrainId RemoteTarget { get; }
 
     /// <summary>
-    /// 获得可援引类型和记录调用 <see cref="RemoteTarget"/>的序列参数的散列,
-    /// 诊断报告。
+    /// 获取记录对 <see cref="RemoteTarget"/> 的调用的可调用对象类型及序列化参数的哈希，
+    /// 由诊断信息报告。
     /// </summary>
-    /// <remarks>电话的身份是其目标, <see cref="Method"/>而不是这个散列。</remarks>
+    /// <remarks>调用的标识是其目标及 <see cref="Method"/>，而不是这个哈希。</remarks>
     public string? RemoteRequestFingerprint { get; }
 
     /// <summary>
-    /// 是否了解 grain 记录在另一个 grain 长期接受这项任务,
-    /// <see langword="true"/>或启动失败、 <see langword="false"/>或 <see langword="null"/> 直至已知的任一日期。
+    /// 获取此记录在另一 Grain 上启动的任务所属 Grain 是否已经持久化接受该任务：
+    /// <see langword="true"/>，或者启动失败：<see langword="false"/>，或者在尚未得知结果时为 <see langword="null"/>。
     /// </summary>
     /// <remarks>
-    /// 长期聘用或独立工作的记录记录其任职退休时接受的聘用,或
-    /// 当任务的结果首先达到时,它就会被其目标拒绝的援引,例如一个开始,其识别符号
-    /// 已经找到另一个请求, 或者发件箱用不字母的字串、 失败了开始, 并将失败存储为
-    /// 除非记录已经存在其结果,例如取消记录等。
+    /// 持久化调用或分离任务的记录在其调用作为已投递退役时，或者
+    /// 任务结果先到达时，记录接受状态。如果调用被目标拒绝（例如启动标识符
+    /// 已经标识另一请求），或被发件箱转为死信，则启动失败，并将该失败存储为
+    /// 记录的结果，除非该记录已经保存了自身的结果，例如取消结果。
     /// </remarks>
     public bool? Accepted { get; }
 
     /// <summary>
-    /// 获取通过耐久信息创建此任务的 grain 。
+    /// 获取通过持久化消息传递创建此任务的 Grain。
     /// </summary>
     public GrainId CallerId { get; }
 
     /// <summary>
-    /// 获取用于识别引用任务运行过程的无
-    /// 或 <see cref="System.Guid.Empty"/> ,以进行一项未被援引的任务。
+    /// 获取标识被调用任务本次运行的随机数，由宿主在首次存储任务的
+    /// 调用时生成；对于非被调用任务，则为 <see cref="System.Guid.Empty"/>。
     /// </summary>
     /// <remarks>
-    /// 任务树上的每棵执行结果都报告为 <see cref="DurableTaskContext.Incarnation"/>。
-    /// 同一标识符, 在删除此标识符后, 还有一个 。
+    /// 任务执行树中的每个执行实例均以 <see cref="DurableTaskContext.Incarnation"/> 报告该值。此次运行被删除后，
+    /// 相同标识符的后续运行具有另一个值。
     /// </remarks>
     public System.Guid Incarnation { get; }
 
     /// <summary>
-    /// 获得 grain-全方位完成序列,该完成序列在任务处于阶段时标记任务终端结果,或当任务被推进时加盖,或者当
-    /// 任务没有结果,或者其储存没有订购完成。
+    /// 获取任务终态结果在暂存时标记的 Grain 范围内的完成序列号；若任务没有结果，或者
+    /// 其存储不对完成顺序排序，则为零。
     /// </summary>
     /// <remarks>
-    /// 存储印章的每个储存结果的顺序都高于每个储存任务,以与
-    /// 组合器选择最早完成的最早完成时间,例如
-    /// <c>WhenAny</c> 或 <c>WhenEach</c>中选择完成的候选人,其顺序最低,在
-    /// 未经排行顺序的候选人由有记录的决定选出。
+    /// 存储为每个已存储的结果标记大于所有已存储任务的序列号，该标记与
+    /// 结果在同一次日志写入中提交，因此之后暂存的结果具有更大的序列号。选择最早完成任务的组合器（例如
+    /// <c>WhenAny</c> 或 <c>WhenEach</c>）选择序列号最小的已完成候选任务，此选择在
+    /// 每次重放中都相同。没有序列号的候选任务通过已记录的决策选择。
     /// </remarks>
     public long CompletionSequence { get; }
 }

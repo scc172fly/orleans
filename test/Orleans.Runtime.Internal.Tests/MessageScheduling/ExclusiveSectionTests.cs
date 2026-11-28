@@ -10,9 +10,9 @@ using Xunit;
 namespace UnitTests.MessageScheduling;
 
 /// <summary>
-/// 核证 <see cref="IGrainRequestAdmission.EnterExclusiveSectionAsync"/> 打开的专有部分:而一个部分
-/// 开关,启动程序只开始请求,总是在持单人的呼叫链和部分上中断或请求。
-/// 一次打开一个,按请求顺序
+/// 验证由 <see cref="IGrainRequestAdmission.EnterExclusiveSectionAsync"/> 打开的独占区段：区段打开期间，
+/// 激活仅启动始终可交错执行的请求以及持有者调用链上的请求，且区段
+/// 按请求顺序逐个打开。
 /// </summary>
 [TestSuite("BVT"), TestProvider("None"), TestArea("Runtime"), TestCategory("BVT")]
 public class ExclusiveSectionTests(ExclusiveSectionTests.Fixture fixture) : IClassFixture<ExclusiveSectionTests.Fixture>
@@ -136,13 +136,13 @@ public class ExclusiveSectionTests(ExclusiveSectionTests.Fixture fixture) : ICla
         var caller = fixture.GrainFactory.GetGrain<IExclusiveSectionCallerGrain>(Guid.NewGuid());
         await Run(grain.OpenSection("a", allowCallChainReentrancy: true));
 
-        // 调回带有一个重新响应部分的呼叫链, 开启了关于此激活的另一请求 。
+        // 回调携带由此激活上另一个请求打开的可重入区段的调用链。
         var releaseCallback = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         log.CallbackRelease = releaseCallback;
         var call = grain.CallBackInReentrantSection(caller, "b");
         try
         {
-            // 外隔请求可以在回调存在之前排队。 等待呼叫者收到它 。
+            // 外层可交错执行的请求可能在回调存在之前入队。等待调用方收到该请求。
             await Run(log.WaitAsync("b:received"));
             await Run(grain.InterleavingPing("before-callback"));
             Assert.Equal(0, fixture.GetActivation(grain).WaitingCount);
@@ -195,11 +195,11 @@ public class ExclusiveSectionTests(ExclusiveSectionTests.Fixture fixture) : ICla
         }
 
         /// <summary>
-        /// 声明激活会延缓记录 <paramref name="name"/>的请求,一旦等待。
+        /// 断言记录 <paramref name="name"/> 的请求进入等待后，激活会阻止它执行。
         /// </summary>
         /// <remarks>
-        /// 启动程序按抵达顺序评估等待申请,因此在启动障碍物时,该屏物始终
-        /// 假期在搁置请求后发出,对搁置的请求进行了评估。
+        /// 激活按到达顺序评估等待中的请求，因此当它启动屏障请求时（该请求始终可交错执行，
+        /// 并在被阻塞的请求开始等待后发送），它已评估过被阻塞的请求。
         /// </remarks>
         public async Task AssertHeldAsync(IExclusiveSectionGrain grain, ExclusiveSectionLog log, string name, string? barrier = null)
         {
@@ -244,7 +244,7 @@ public sealed class ExclusiveSectionProbe
 }
 
 /// <summary>
-/// 测试的事件 grain 记录上的所有细节 以及等待其部分的例外
+/// 一个测试 Grain 按顺序记录的事件，以及区段等待结束时的异常。
 /// </summary>
 public sealed class ExclusiveSectionLog
 {
@@ -329,7 +329,7 @@ public sealed class ExclusiveSectionCallerGrain(ExclusiveSectionProbe probe) : G
 
 public sealed class ExclusiveSectionGrain(ExclusiveSectionProbe probe) : Grain, IExclusiveSectionGrain
 {
-    // 部分从启动调度器上运行的连续线中存储。
+    // 区段由在激活调度器之外运行的延续任务保存。
     private readonly ConcurrentDictionary<string, IDisposable> _sections = new();
 
     private ExclusiveSectionLog Log => probe.GetLog(this.GetPrimaryKey());
@@ -414,14 +414,14 @@ public sealed class ExclusiveSectionGrain(ExclusiveSectionProbe probe) : Grain, 
         return Task.CompletedTask;
     }
 
-    // 要求从代码中提取一个不是 grain 方法的部分,并在打开或等待错误时记录下来。
+    // 从非 Grain 方法的代码中请求区段，并在打开区段或等待以异常结束时记录结果。
     private Task RunSectionAsync(string name)
     {
         var log = Log;
         var entering = Admission.EnterExclusiveSectionAsync(CancellationToken.None).AsTask();
         log.Record($"{name}:requested");
 
-        // 继续运行在线性池上 所以即使在启动的调度器停止运行后 它也会运行
+        // 延续任务在线程池上运行，因此即使激活调度器停止运行其工作，也仍会执行。
         return entering.ContinueWith(
             task =>
             {

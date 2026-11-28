@@ -14,19 +14,19 @@ using Xunit;
 namespace Consul.Tests
 {
     /// <summary>
-    /// 使用领事的 Orleans 成员表运行测试----需要访问外部领事群
+    /// 使用 Consul 测试 Orleans 成员资格表的操作，需要访问外部 Consul 集群。
     /// 
-    /// 领事提供分布式钥匙价值商店 Orleans 用于:
-    /// - 群组成员管理
+    /// Consul 提供分布式键值存储，Orleans 利用它实现：
+    /// - 集群成员资格管理
     /// - 服务发现
-    /// - 检查健康和检查故障
+    /// - 运行状况检查和故障检测
     /// 
-    /// 这些测试核实,驻领事机构成员提供商是否正确地执行了这些测试
-    /// 需要的所有成员名单业务包括:
-    /// - 读写 silo 条目
-    /// - 更新生命信息(我活着)
-    /// - 为客户发现网关
-    /// - 清理已关闭的条目 silo
+    /// 这些测试验证基于 Consul 的成员资格提供程序是否正确实现了
+    /// 所有必需的成员资格表操作，包括：
+    /// - 读取和写入 Silo 条目
+    /// - 更新存活信息（I Am Alive）
+    /// - 为客户端发现网关
+    /// - 清理失效的 Silo 条目
     /// </summary>
     [TestCategory("Membership"), TestCategory("Consul")]
     [TestSuite("Functional")]
@@ -49,9 +49,9 @@ namespace Consul.Tests
         }
 
         /// <summary>
-        /// 创建以领事为基础的成员表,供测试。
-        /// 配置Conser Consul 客户端,使用测试服务器地址
-        /// 并创建成员表执行情况。
+        /// 创建基于 Consul 的成员资格表以供测试。
+        /// 使用测试服务器地址配置 Consul 客户端，
+        /// 并创建成员资格表的实现实例。
         /// </summary>
         protected override IMembershipTable CreateMembershipTable(ILogger logger)
             => CreateMembershipTable(logger, _clusterOptions);
@@ -106,9 +106,9 @@ namespace Consul.Tests
         }
 
         /// <summary>
-        /// 创建一个基于领事的网关列表提供者,供测试。
-        /// 此服务提供商允许客户发现可用的网关
-        /// 查询领事服务登记处。
+        /// 创建基于 Consul 的网关列表提供程序以供测试。
+        /// 此提供程序允许客户端通过查询
+        /// Consul 服务注册表来发现可用网关。
         /// </summary>
         protected override IGatewayListProvider CreateGatewayListProvider(ILogger logger)
         {
@@ -138,9 +138,9 @@ namespace Consul.Tests
         }
 
         /// <summary>
-        /// 通过领事测试网关发现
-        /// 证明客户可以检索现有清单
-        /// 领事服务登记处的网关 silos 。
+        /// 测试通过 Consul 发现网关的功能。
+        /// 验证客户端可以从 Consul 服务注册表
+        /// 获取可用网关 Silo 的列表。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task MembershipTable_Consul_GetGateways()
@@ -149,9 +149,9 @@ namespace Consul.Tests
         }
 
         /// <summary>
-        /// 测试空席位表的读取。
-        /// 证明提供者处理案件正确
-        /// 时无 silos 登记者尚未登记。
+        /// 测试读取空的成员资格表。
+        /// 验证提供程序能够正确处理
+        /// 尚无任何 Silo 注册的情况。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task MembershipTable_Consul_ReadAll_EmptyTable()
@@ -190,9 +190,9 @@ namespace Consul.Tests
         }
 
         /// <summary>
-        /// 测试"我活着"的心跳机制
-        /// 证明 silos 能够更新其活性时间戳
-        /// 以表示他们仍在运行。
+        /// 测试“I Am Alive”心跳机制。
+        /// 验证 Silo 可以在 Consul 中更新其存活时间戳，
+        /// 以表明其仍在运行。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task MembershipTable_Consul_UpdateIAmAlive()
@@ -201,10 +201,10 @@ namespace Consul.Tests
         }
 
         /// <summary>
-        /// 测试已死亡的条目的清理 silo 。
-        /// 证明成员表可以删除条目
-        /// 用于 silos 被宣布为已死亡以防止
-        /// 桌子从无限长长。
+        /// 测试清理已死亡的 Silo 条目。
+        /// 验证成员资格表能够删除
+        /// 已被判定为死亡的 Silo 的条目，
+        /// 以防止该表无限增长。
         /// </summary>
         [Fact, TestCategory("Functional")]
         public async Task MembershipTable_Consul_CleanupDefunctSiloEntries()

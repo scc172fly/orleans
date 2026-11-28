@@ -20,12 +20,12 @@ using System.Collections.Concurrent;
 
 namespace Orleans.Runtime.Placement.Repartitioning;
 
-// 见: https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/eurosys16loca_camera_ready-1.pdf
+// 参见：https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/eurosys16loca_camera_ready-1.pdf
 internal sealed partial class ActivationRepartitioner : SystemTarget, IActivationRepartitionerSystemTarget, ILifecycleParticipant<ISiloLifecycle>, IDisposable, ISiloStatusListener
 {
     internal sealed class DeactivatedGrainQueue : IActivationWorkingSetObserver
     {
-        // 交换可以被跳过很长一段时间, 所以保持这个最努力的队列的条纹 。
+        // 交换可能长时间被跳过，因此保持此尽力而为队列的容量有界。
         internal const int MaxTrackedDeactivatedGrains = 16_384;
         private readonly ConcurrentQueue<GrainId> _deactivatedGrains = new();
         private int _count;
@@ -132,7 +132,7 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
     {
         Scheduler.QueueAction(() =>
         {
-            // 调度第一个定时器的勾选 。
+            // 安排定时器的首次触发。
             UpdateTimer();
             StartProcessingEdges();
         });
@@ -186,12 +186,12 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
             await Task.Delay(coolDown, _timeProvider, cancellationToken);
         }
 
-        // 下个计时器计时器计数 。
+        // 安排定时器的下一次触发。
         UpdateTimer();
 
         if (_currentExchangeSilo is not null)
         {
-            // 如果我们已经与另一个 silo交换, 则跳过此回合 。
+            // 若已在与其他 Silo 交换，则跳过本轮。
             return;
         }
 
@@ -222,8 +222,8 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
 
             try
             {
-                // 设置交易期间的交换伙伴。
-                // 这样做可以防止其他请求相互交错。
+                // 在操作期间设置交换对端。
+                // 这样可阻止其他请求交错执行。
                 _currentExchangeSilo = candidateSilo;
 
                 LogBeginningProtocol(Silo, candidateSilo);
@@ -235,16 +235,16 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
                 switch (response.Type)
                 {
                     case AcceptExchangeResponse.ResponseType.Success:
-                        // 交流成功,不需要重复其他候选人。
+                        // 交换成功，无需继续遍历其他候选项。
                         await FinalizeProtocol(response.AcceptedGrainIds, response.GivenGrainIds, candidateSilo, anchoredSet);
                         return;
                     case AcceptExchangeResponse.ResponseType.ExchangedRecently:
-                        // 远程 silo 最近参与了另一个交流,尝试下一个最佳候选人。
+                        // 远程 Silo 最近参与过另一场交换，尝试次优候选项。
                         LogExchangedRecentlyResponse(Silo, candidateSilo);
                         continue;
                     case AcceptExchangeResponse.ResponseType.MutualExchangeAttempt:
-                        // 远程 silo 已经与此 silo 交换, 远程 silo 开始的交换
-                        // 优先于此 silo 启动的优先。
+                        // 远程 Silo 已在与当前 Silo 交换，且远程 Silo 发起的交换
+                        // 优先于当前 Silo 正在发起的交换。
                         LogMutualExchangeAttemptResponse(Silo, candidateSilo);
                         return;
                 }
@@ -256,7 +256,7 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
             catch (Exception ex)
             {
                 LogErrorOnProtocolExecution(ex, Silo, candidateSilo);
-                continue; // 出了点问题,试下一位最佳候选人
+                continue; // 发生问题，尝试次优候选项。
             }
             finally
             {
@@ -275,11 +275,11 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
         LogReceivedExchangeRequest(request.SendingSilo, request.ExchangeSet.Length, request.ActivationCountSnapshot);
         if (request.SendingSilo.Equals(_currentExchangeSilo) && Silo.CompareTo(request.SendingSilo) <= 0)
         {
-            // 拒绝请求,因为我们已在与发件人交换 silo。
-            // The '<=' comparison here is used to break the tie in case both silos 彼此交换。
+            // 拒绝请求，因为已在与发送方 Silo 进行交换。
+            // 此处的 '<=' 比较用于在两个 Silo 同时向对方发起交换时确定优先方。
 
-            // 我们随机选择“ min” 和“ max” 之间的时间, 而不是从中减去“ min ” 。 这样我们就可以这样做了, 这样这个 silo 不必等待“ min+ object ” ,
-            // 因为它第一次开始。 它保证“ 随机性- 分钟” = @ 零; “ 随机性” 至少等于“ 分钟 ” 。
+            // 在 'min' 和 'max' 之间随机选择时间，再减去 'min'。这样当前 Silo 无需像首次启动时那样等待 'min + random'。
+            // 由于 'random' 至少等于 'min'，因此保证 'random - min' >= 0。
             UpdateTimer(RandomTimeSpan.Next(_options.MinRoundPeriod, _options.MaxRoundPeriod) - _options.MinRoundPeriod);
             LogMutualExchangeAttempt(request.SendingSilo);
 
@@ -293,8 +293,8 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
             return AcceptExchangeResponse.CachedExchangedRecently;
         }
 
-        // 设定请求期间的交换 silo 。
-        // 这样做可以防止其他请求相互交错。
+        // 在请求处理期间设置交换 Silo。
+        // 这样可阻止其他请求交错执行。
         _currentExchangeSilo = request.SendingSilo;
 
         try
@@ -306,9 +306,9 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
             var localSet = GetCandidatesForSilo(migrationCandidates, request.SendingSilo);
             var anchoredSet = ComputeAnchoredGrains(migrationCandidates);
 
-            // 我们需要确定两个子集:
-            // - 发自发送 silo (request.ExchangeSet并且被接受(部分)从此 silo.
-            // - 源自于此 silo (candidateSet并且被派遣去接受, silo.
+            // 需要确定两个子集：
+            // - 源自发送方 Silo（request.ExchangeSet），由当前 Silo（部分）接收的子集。
+            // - 源自当前 Silo（candidateSet），由发送方 Silo（全部）接收的子集。
             var remoteActivations = request.ActivationCountSnapshot;
             var localActivations = GetLocalActivationCount();
 
@@ -327,12 +327,12 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
             {
                 if (++iterations % 128 == 0 && yieldStopwatch.ElapsedMilliseconds > 25)
                 {
-                    // 给其他任务一个定期执行的机会。
+                    // 定期让其他任务有机会执行。
                     yieldStopwatch.Restart();
                     await Task.Delay(1, cancellationToken);
                 }
 
-                // 如果通过给予获得更多 grains 远程 silo 而不是取而代之, 我们将尝试先给。
+                // 若向远程 Silo 迁出 Grain 比从其迁入 Grain 获得的收益更大，则优先尝试迁出。
                 var localScore = localHeap.FirstOrDefault()?.AccumulatedTransferScore ?? 0;
                 var remoteScore = remoteHeap.FirstOrDefault()?.AccumulatedTransferScore ?? 0;
                 if (localScore > remoteScore || localScore == remoteScore && localActivations > remoteActivations)
@@ -346,7 +346,7 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
                     if (TryMigrateLocalToRemote()) continue;
                 }
 
-                // 不能再进行移民,因此已计算出候选人的总数。
+                // 已无法继续迁移，因此候选集合计算完毕。
                 break;
             }
 
@@ -371,19 +371,19 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
                     switch (connectedVertex.Location)
                     {
                         case VertexLocation.Local:
-                            // 添加传输分数, 因为这两个矢量现在彼此距离遥远。
+                            // 加上迁移评分，因为这两个向量将处于不同的 Silo。
                             connectedVertex.AccumulatedTransferScore += transferScore;
                             localHeap.OnIncreaseElementPriority(connectedVertex);
                             break;
                         case VertexLocation.Remote:
-                            // 减去转移得分,因为这两个矢量现在将彼此为本地矢量。
+                            // 减去迁移评分，因为这两个向量将处于同一个 Silo。
                             connectedVertex.AccumulatedTransferScore -= transferScore;
                             remoteHeap.OnDecreaseElementPriority(connectedVertex);
                             break;
                     }
                 }
 
-                // 假设矢量是遥远的 我们今后会执行任何行动
+                // 后续操作均假定该向量位于远程 Silo。
                 chosenVertex.Location = VertexLocation.Remote;
                 Debug.Assert(((IHeapElement<CandidateVertexHeapElement>)chosenVertex).HeapIndex == -1);
 
@@ -403,19 +403,19 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
                     switch (connectedVertex.Location)
                     {
                         case VertexLocation.Local:
-                            // 减去转移得分,因为这两个矢量现在将彼此为本地矢量。
+                            // 减去迁移评分，因为这两个向量将处于同一个 Silo。
                             connectedVertex.AccumulatedTransferScore -= transferScore;
                             localHeap.OnDecreaseElementPriority(connectedVertex);
                             break;
                         case VertexLocation.Remote:
-                            // 添加传输分数, 因为这两个矢量现在彼此距离遥远。
+                            // 加上迁移评分，因为这两个向量将处于不同的 Silo。
                             connectedVertex.AccumulatedTransferScore += transferScore;
                             remoteHeap.OnIncreaseElementPriority(connectedVertex);
                             break;
                     }
                 }
 
-                // 我们今后将执行任何行动 假设矢量是本地的
+                // 后续操作均假定该向量位于本地 Silo。
                 chosenVertex.Location = VertexLocation.Local;
 
                 return true;
@@ -426,20 +426,20 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
                 var anticipatedImbalance = CalculateImbalance(localActivations + localDelta, remoteActivations + remoteDelta);
                 if (anticipatedImbalance >= imbalance && !_toleranceRule.IsSatisfiedBy((uint)anticipatedImbalance))
                 {
-                    // 从这一堆中取出这种气体不会改善不平衡。
+                    // 从此堆获取元素无法改善不均衡程度。
                     chosenVertex = null;
                     return false;
                 }
 
                 if (!sourceHeap.TryPop(out chosenVertex))
                 {
-                    // 堆肥是空的。
+                    // 堆为空。
                     return false;
                 }
 
                 if (chosenVertex.AccumulatedTransferScore <= 0)
                 {
-                    // 如果它受到前一次跑跑的影响 得分是零或负的 只需弹出就忽略了
+                    // 如果它受之前操作影响，且评分为零或负数，则直接弹出并忽略。
                     return false;
                 }
 
@@ -490,7 +490,7 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
             var vertex = CreateVertex(sourceIndex, heapIndex, element);
             if (vertex.Location is not VertexLocation.Unknown)
             {
-                // 此顶点已经是本地集的一部分, 所以假设顶点是本地的, 忽略远程顶点 。
+                // 此顶点已属于本地集合，因此假定它位于本地，并忽略远程顶点。
                 continue;
             }
 
@@ -513,7 +513,7 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
                 }
                 else
                 {
-                    // 连接的顶点不是任何移民候选人的一部分, 所以我们会忽略它。
+                    // 相连顶点不属于任一迁移候选集合，因此忽略该顶点。
                 }
             }
 
@@ -530,18 +530,18 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
 
     /// <summary>
     /// <list type="number">
-    /// <item>开始将 <paramref name="giving"/> 从当地 silo 迁移到 <paramref name="targetSilo"/>。</item>
-    /// <item>更新受影响柜台的最新情况,以反映 grains 交换 silos.</item>
+    /// <item>发起将 <paramref name="giving"/> 从本地 Silo 迁移至 <paramref name="targetSilo"/> 的操作。</item>
+    /// <item>更新受影响的计数器，以反映两个 Silo 之间交换的 Grain。</item>
     /// </list>
     /// </summary>
-    /// <param name="giving">下 grain 当地移民的idids silo 至 <paramref name="targetSilo"/>.</param>
-    /// <param name="accepting">下 grain 移民的idid 人 <paramref name="targetSilo"/> 当地 silo.</param>
-    /// <param name="targetSilo">下 silo 参与与当地人交流 silo.</param>
-    /// <param name="newlyAnchoredGrains">当地 grain 其通信模式倾向于留在当地 silo.</param>
-    /// <returns>代表交易所最终确定业务的任务。</returns>
+    /// <param name="giving">要从本地 Silo 迁移至 <paramref name="targetSilo"/> 的 Grain 标识。</param>
+    /// <param name="accepting">从 <paramref name="targetSilo"/> 迁移至本地 Silo 的 Grain 标识。</param>
+    /// <param name="targetSilo">与本地 Silo 参与交换的 Silo。</param>
+    /// <param name="newlyAnchoredGrains">其通信模式更适合留在本地 Silo 的本地 Grain 标识。</param>
+    /// <returns>表示交换收尾操作的任务。</returns>
     internal async Task FinalizeProtocol(ImmutableArray<GrainId> giving, ImmutableArray<GrainId> accepting, SiloAddress targetSilo, HashSet<GrainId> newlyAnchoredGrains)
     {
-        // 协议的结论是,“这” silo 应该采取“设置”,所以我们相应地向主任暗示。
+        // 协议确定当前 Silo 应接收该集合，因此相应地向决策器提供提示。
         var affected = new HashSet<GrainId>(giving.Length + accepting.Length + _deactivatedGrains.Count);
         _deactivatedGrains.DrainTo(affected);
 
@@ -571,8 +571,8 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
         }
         catch (Exception exception)
         {
-            // 很少会发生这种情况,但目前我们无法做很多事情,因为它超出了我们的控制范围。
-            // 即使有些失败,算法最终也会再次运行 所以激活将有更多机会迁移
+            // 这种情况应该很少发生，但此时已超出我们的控制范围，无法采取太多措施。
+            // 即使部分迁移失败，算法最终还会再次运行，因此激活实例仍有后续迁移机会。
             LogErrorOnMigratingActivations(exception);
         }
 
@@ -597,7 +597,7 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
 
         await PruneAffectedEdges(_edgeWeights, affected, _anchoredFilter);
 
-        // 标注此 silos 交换可能提出的下一对交换请求。
+        // 记录此 Silo 的交换时间，供可能的下一次配对交换请求使用。
         _lastExchangedStopwatch.Restart();
         if (_logger.IsEnabled(LogLevel.Trace))
         {
@@ -628,13 +628,13 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
             {
                 if (++iterations % 128 == 0 && yieldStopwatch.ElapsedMilliseconds > 25)
                 {
-                    // 给其他任务一个定期执行的机会。
+                    // 定期让其他任务有机会执行。
                     yieldStopwatch.Restart();
                     await Task.Delay(1);
                 }
 
-                // 完全删除此计数器, 因为一个或两个顶点都迁移了。 不这样做的话, 它会扭曲下一个协议周期的结果 。
-                // 我们只删除受影响的计数器, 因为可能还有其他的计数器“ 此” silo 与另一个 silo (不属于本交换周期的一部分) 有关联。
+                // 完全移除此计数器，因为一个或两个顶点已迁移；否则会导致下一轮协议的结果失真。
+                // 仅移除受影响的计数器，因为当前 Silo 可能还有与其他 Silo（未参与本轮交换）连接的计数器。
                 edgeWeights.Remove(edge);
             }
         }
@@ -648,7 +648,7 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
         {
             if (siloAddress.Equals(Silo))
             {
-                // 我们不会和自己交换任何东西 所以别提这个了 silo.
+                // 不会与自身交换任何内容，因此跳过当前 Silo。
                 continue;
             }
 
@@ -658,7 +658,7 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
             candidateSets.Add(new(siloAddress, [.. candidatesForRemote], totalAccTransferScore));
         }
 
-        // 以最高累计转移分数命令他们
+        // 按累计迁移评分从高到低排序。
         candidateSets.Sort(static (a, b) => -a.TransferScore.CompareTo(b.TransferScore));
 
         return candidateSets;
@@ -670,8 +670,8 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
 
         List<CandidateVertex> result = [];
 
-        // 我们跳过无法迁移的类型。 相反, 同样的边缘将从接收者那里记录下来, 所以其主机 silo 会添加为要迁移的候选方( 在这里) 。
-        // 我们确信接收者是偏差 grain, 因为网关禁止两边有非移动性脊椎的边缘。
+        // 跳过不可迁移的类型。相同的边会由接收方记录，因此接收方所在的 Silo 会将接收方加入迁移候选集合（迁移到此处）。
+        // 可以确定接收方是可迁移 Grain，因为网关禁止两端顶点均不可迁移的边。
         foreach (var grainEdges in migrationCandidates)
         {
             var accLocalScore = 0L;
@@ -681,21 +681,21 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
             {
                 if (edge.Direction is Direction.LocalToLocal)
                 {
-                    // 因为它的L2L,就是说合伙人 silo 将会是 '此' silo,所以我们不需要被伙伴过滤 silo.
+                    // 由于它是 L2L，配对 Silo 即当前 Silo，因此无需按配对 Silo 筛选。
                     accLocalScore += edge.Weight;
                 }
                 else if (edge.PartnerSilo.Equals(otherSilo))
                 {
                     Debug.Assert(edge.Direction is Direction.RemoteToLocal or Direction.LocalToRemote);
 
-                    // 我们需要在这里过滤 by 'otherSilo”因为任何 L2R 或 R2L 边缘都可以在当前顶点和 a 中的一个顶点之间 silo 中不是 'otherSilo'.
+                    // 此处需要按 otherSilo 筛选，因为任一 L2R 或 R2L 边都可能连接当前顶点与不在 otherSilo 中的顶点。
                     accRemoteScore += edge.Weight;
                 }
             }
 
             if (accLocalScore >= accRemoteScore)
             {
-                // 我们省略了当地电话胜过远程电话的顶点。
+                // 跳过本地调用多于远程调用的顶点。
                 continue;
             }
 
@@ -703,10 +703,10 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
             var connVertices = ImmutableArray.CreateBuilder<CandidateConnectedVertex>();
             foreach (var edge in grainEdges)
             {
-                // 请注意连接的顶端可以是非偏差型,必须保持它们,
-                // 因为它们也影响到当前候选人顶顶端的迁移成本,特别是如果这些顶点是当地向候选人迁移的话。
-                // 因为当候选人迁移之后,这些电话可能会被转换为远程通话。
-                // 体重代表一个边缘的重量, 不是上面那样累积的。
+                // 注意，相连顶点可能属于不可迁移类型，保留它们十分重要，
+                // 因为它们也会影响当前候选顶点的迁移成本，尤其当它们与候选顶点位于同一 Silo 时，
+                // 当前候选顶点迁移后，这些调用可能转变为远程调用。
+                // 此处 Weight 表示单条边的权重，而不是前面的累计权重。
                 connVertices.Add(new CandidateConnectedVertex(edge.TargetId, edge.Weight));
             }
 
@@ -756,9 +756,9 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
     private List<IGrouping<GrainId, VertexEdge>> GetMigrationCandidates() => CreateLocalVertexEdges().Where(x => x.IsMigratable).GroupBy(x => x.SourceId).ToList();
 
     /// <summary>
-    /// 创建“ 本地” 顶端集合。 多条目可以拥有相同的日期 。
+    /// 创建本地顶点边的集合。多个条目可以具有相同的 Id。
     /// </summary>
-    /// <remarks>下 <see cref="VertexEdge.SourceId"/> 保证属于a grain 此处的点 silo,而 <see cref="VertexEdge.TargetId"/> 属于本地或远程 silo.</remarks>
+    /// <remarks><see cref="VertexEdge.SourceId"/> 保证属于位于当前 Silo 的 Grain，而 <see cref="VertexEdge.TargetId"/> 可能属于本地或远程 Silo。</remarks>
     private IEnumerable<VertexEdge> CreateLocalVertexEdges()
     {
         foreach (var (edge, count, error) in _edgeWeights.Elements)
@@ -771,7 +771,7 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
             var vertexEdge = CreateVertexEdge(edge, count);
             if (vertexEdge.Direction is Direction.Unspecified)
             {
-                // 可以通过此 silo将消息改道时,才会发生这种情况。
+                // 消息经由当前 Silo 重新路由时可能出现此情况。
                 continue;
             }
 
@@ -779,10 +779,10 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
 
             if (vertexEdge.Direction == Direction.LocalToLocal)
             {
-                // 我们之所以这样做,是因为当边缘是本地对本地时,我们有两个通过通信边缘连接的 grains 。
-                // 一旦存在边缘,它意味着2 grains 与时间挂钩,这意味着其中任一边缘都有可能移动。
-                // 由于候选人的搭建也考虑到当地连接(这增加了移徙成本),我们需要
-                // 不仅从消息来源的角度考虑优势,而且考虑到目标的边缘,因为它也将参与候选人集。
+                // 之所以反转方向，是因为对于本地到本地的边，两个 Grain 通过一条通信边相连。
+                // 一旦存在边，表示两个 Grain 在一段时间内存在联系，因此迁移其中任意一个都可能产生代价。
+                // 由于候选集合的构建也考虑本地连接（本地连接会增加迁移成本），因此需要
+                // 同时从源顶点和目标顶点的角度考虑此边，因为目标顶点也会参与候选集合的构建。
                 var flippedEdge = CreateVertexEdge(edge.Flip(), count);
                 yield return flippedEdge;
             }
@@ -793,24 +793,24 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
             return (IsSourceLocal(edge), IsTargetLocal(edge)) switch
             {
                 (true, true) => new(
-                   SourceId: edge.Source.Id,                // “ 本地” 顶部是通信的“ 源头 ”
+                   SourceId: edge.Source.Id,                // 本地顶点是通信源。
                    TargetId: edge.Target.Id,
                    IsMigratable: edge.Source.IsMigratable,
-                   PartnerSilo: Silo,                       // 伙伴是“当地”(注: this.Silo = Source.Silo = Target.Silo)
+                   PartnerSilo: Silo,                       // 对端位于本地（注意：this.Silo = Source.Silo = Target.Silo）。
                    Direction: Direction.LocalToLocal,
                    Weight: weight),
                 (true, false) => new(
-                    SourceId: edge.Source.Id,               // “ 本地” 顶部是通信的“ 源头 ”
+                    SourceId: edge.Source.Id,               // 本地顶点是通信源。
                     TargetId: edge.Target.Id,
                     IsMigratable: edge.Source.IsMigratable,
-                    PartnerSilo: edge.Target.Silo,          // 合伙人是"远程"
+                    PartnerSilo: edge.Target.Silo,          // 对端位于远程 Silo。
                     Direction: Direction.LocalToRemote,
                     Weight: weight),
                 (false, true) => new(
-                    SourceId: edge.Target.Id,               // “ 本地” 顶部是通信的“ 目标” 。
+                    SourceId: edge.Target.Id,               // 本地顶点是通信目标。
                     TargetId: edge.Source.Id,
                     IsMigratable: edge.Target.IsMigratable,
-                    PartnerSilo: edge.Source.Silo,          // 合伙人是"远程"
+                    PartnerSilo: edge.Source.Silo,          // 对端位于远程 Silo。
                     Direction: Direction.RemoteToLocal,
                     Weight: weight),
                 _ => default
@@ -826,14 +826,14 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
 
     public void Participate(ISiloLifecycle observer)
     {
-        // 启动时, silo 将激活。
+        // 当 Silo 进入活动状态时启动。
         observer.Subscribe(
             nameof(ActivationRepartitioner),
             ServiceLifecycleStage.Active,
             OnActiveStart,
             ct => Task.CompletedTask);
 
-        // 停止应用服务时停止 silo 。
+        // 当 Silo 停止应用程序服务时停止。
         observer.Subscribe(
             nameof(ActivationRepartitioner),
             ServiceLifecycleStage.ApplicationServices,
@@ -878,11 +878,11 @@ internal sealed partial class ActivationRepartitioner : SystemTarget, IActivatio
     /// <summary>
     /// 表示两个顶点之间的连接。
     /// </summary>
-    /// <param name="SourceId">它所代表的 grain 的代号。</param>
-    /// <param name="TargetId">连接的顶点(通信与之一起发生的顶点)的代号。</param>
-    /// <param name="IsMigratable">指定 <paramref name="SourceId"/> 的顶部是偏差型号。</param>
-    /// <param name="PartnerSilo">下 silo 与《公约》和 silo 顶面 <paramref name="SourceId"/>.</param>
-    /// <param name="Direction">边缘方向</param>
-    /// <param name="Weight">估计的 <paramref name="SourceId"/> 和 <paramref name="TargetId"/>.</param>
+    /// <param name="SourceId">此顶点表示的 Grain 的标识。</param>
+    /// <param name="TargetId">相连顶点（通信对端）的标识。</param>
+    /// <param name="IsMigratable">指定具有 <paramref name="SourceId"/> 的顶点是否属于可迁移类型。</param>
+    /// <param name="PartnerSilo">与具有 <paramref name="SourceId"/> 的顶点所在 Silo 发生交互的对端 Silo。</param>
+    /// <param name="Direction">边的方向。</param>
+    /// <param name="Weight"><paramref name="SourceId"/> 与 <paramref name="TargetId"/> 之间交换的估计消息数。</param>
     private readonly record struct VertexEdge(GrainId SourceId, GrainId TargetId, bool IsMigratable, SiloAddress PartnerSilo, Direction Direction, long Weight);
 }

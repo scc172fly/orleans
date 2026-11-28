@@ -83,7 +83,7 @@ internal sealed class AzureBlobJournalStorageProvider : ILifecycleParticipant<IS
             foreach (var item in page.Values)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                // 本地的束缚性连接将每个交界处都封存在一起,既包括平坦的、也包括HNS穿梭的。
+                // 底层存储的范围边界包含平面遍历和 HNS 遍历中所有按序数比较匹配的项。
                 if (maxBlobName is not null && string.CompareOrdinal(item.Name, maxBlobName) > 0)
                 {
                     yield break;
@@ -124,8 +124,8 @@ internal sealed class AzureBlobJournalStorageProvider : ILifecycleParticipant<IS
             index++;
         }
 
-        // 将边框字符保留在“ /” 之上
-        // 以便两个服务订单都同意,必要时扩大所要求的间隔。
+        // HNS 将 '/' 排在最前面。对于共同前缀之后的边界字符，使其排在 '/' 之后，
+        // 从而让两种服务的排序一致，并在必要时扩大请求的范围。
         for (; index < bound.Length; index++)
         {
             if (bound[index] <= '/')

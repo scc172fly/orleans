@@ -15,12 +15,12 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// 接受、复制和处理一个 grain的耐久收到的信息。
+/// 接纳、去重并处理单个 Grain 的持久化入站消息。
 /// </summary>
 /// <remarks>
-/// 所有州级转换都在启动调度器上运行 所以每个检查 - 测试 - 测试 - 测试序列都是原子
-/// 只有在接受时间持久且可持续、 <see cref="Envelope.DeliverAt"/>,
-/// 如有,已通过。
+/// 所有状态转换均在激活实例调度器上运行，因此每个先检查再发出变更的序列都是原子的。
+/// 已接纳的消息仅在接纳已持久化且其 <see cref="Envelope.DeliverAt"/>（如有）
+/// 已到达后才会被处理。
 /// </remarks>
 internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine, IDurableValueCommandHandler<InboxCommand>
 {
@@ -35,8 +35,8 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
         pump.StateManager.RegisterStateMachine(MessagingStateNames.Inbox, this);
         pump.Register(this);
 
-        // 送货只到达一个收件箱 与日记恢复, 所以激活永远无法解决
-        // 信箱没有信息扩展名 。
+        // 投递只会到达随日志一起恢复的收件箱，因此从未解析其
+        // 收件箱的激活实例没有消息传递扩展。
         pump.GrainContext.SetComponent<IMessagingExtension>(this);
     }
 
@@ -58,7 +58,7 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
     {
         _handlers.Add(handler);
 
-        // 等待处理者的消息未提醒他们注意,
+        // 待处理消息等待处理器时不占用唤醒，因此后续注册处理器会恢复对它们的处理。
         if (_messages.Count > 0) _pump.RequestWakeup();
         return this;
     }
@@ -85,7 +85,7 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
 
         var key = message.Envelope.MessageId;
         var receiverTime = Shared.JobTimeProvider.GetUtcNow();
-        // 记录的结果和到期决定 都活下来了 时钟倒回, 所以只有时间 收件箱会承认 受约束。
+        // 已记录的结果和过期判断在时钟回拨后仍然有效，因此仅对收件箱原本会准入的发送时间施加上限。
         if (message.SentAt > MessagingTime.AddClamped(receiverTime, Options.DeduplicationWindow)
             && !_processed.ContainsKey(key)
             && !_messages.ContainsKey(key)
@@ -96,26 +96,26 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
                 "SentAt must not be later than the receiver's clock plus DeduplicationWindow.");
         }
 
-        // 发送是 grain 呼叫,因此激活就是服务请求。
+        // 投递属于 Grain 调用，因此激活实例正在处理请求。
         _pump.EnsureStarted();
         if (IsDuplicate(message, out var pending))
         {
             var rejection = pending is null ? _processed[key].Rejection : null;
-            // 发送者一旦退回副本,可将其副本退退发,因此接受或处理的记录必须
-            // 处理者或水槽完成的完成过程仍可飞行。
+            // 此调用返回后发送方即可移除其副本，因此接纳记录或已处理记录必须
+            // 已持久化。处理器或接收器暂存的完成操作可能仍在进行中。
             if (pending is null ? !AreCompletionsDurable : !IsDurable(pending)) await PersistForCallerAsync(cancellationToken).ConfigureAwait(true);
             if (pending is not null) _pump.Signal();
 
             Shared.Instruments.OnInboxMessageReceived(_pump.GrainTypeTag, "duplicate");
 
-            // 发送者,如果答错会再次发回,则收到拒绝,而一个水槽首先回答。
+            // 响应丢失的发送方会重新投递，因此它将收到接收器最初返回的拒绝结果。
             return rejection is not null
                 ? new DeliveryResult.DeadLettered(rejection.Reason, rejection.Code)
                 : DeliveryResult.Duplicate.Instance;
         }
 
-        // 过期前的留存身份:遗失确认书可能属于待完成或已完成的工作。
-        // 只有持久的、非降级的楼层才能忘记证据,而不论晚间是否出现动议。
+        // 已保留的标识优先于过期判断：丢失的确认可能对应待处理或已完成的工作。
+        // 只有持久化且单调不减的下限才允许遗忘此证据，不受后续时钟变化的影响。
         var floor = GetAdmissionFloor(receiverTime);
         if (message.SentAt <= floor)
         {
@@ -128,15 +128,15 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
 
         MessagingEvents.EmitInboxMessageReceiving(GrainContext, message);
 
-        // 由Sink所有的信息从不占用收件箱容量,不需要操作者。
-        // 所以除了后压之外,每件结果 都会在写作持久之后报告
+        // 由接收器拥有的消息永不占用收件箱容量，也不需要处理器。接收器的重复结果仍可能处于暂存状态，
+        // 因此除背压以外的所有结果均在写入已持久化后报告。
         if (StageSinkAcceptance(message) is { } sinkResult)
         {
             if (sinkResult is not DeliveryResult.Backpressured) await PersistForCallerAsync(cancellationToken).ConfigureAwait(true);
             return sinkResult;
         }
 
-        // 每一个待定信息,不论是否排定,在完成之前都具有能力。
+        // 每条待处理消息，无论是否已安排处理时间，都占用容量直到完成。
         if (_messages.Count >= Options.MaxCapacity)
         {
             Shared.Instruments.OnInboxMessageReceived(_pump.GrainTypeTag, "backpressured");
@@ -158,32 +158,32 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
     }
 
     /// <summary>
-    /// 阶段接受此 grain 发送给自己的信件, 以便调用者下一期日记写入 。
+    /// 暂存此 Grain 发送给自身的消息的接纳操作，供调用方的下一次日志写入提交。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 同步和不以书面形式适用 <see cref="DeliverAsync"/> 的身份规则:填写或
-    /// 等同的待处理信件是重复的, 而与相同身份冲突不同的命令则是一个待处理的命令 。
-    /// 接受以原子方式成为持久的 与调用者的其他阶段状态, 之后的收件箱程序
-    /// 信息和往常一样。 当泵尚未运行时, 写作保证新的持久提醒
-    /// 一旦启动服务电话响起, 即开始接收, 所以操作者在激活期间不会运行 。
+    /// 同步应用 <see cref="DeliverAsync"/> 的标识规则且不进行写入：已完成的消息或
+    /// 等价的待处理消息属于重复消息，而同一 ID 下不同的待处理命令构成冲突。
+    /// 接纳操作与调用方其他暂存状态原子持久化，之后收件箱照常处理
+    /// 消息。若消息泵尚未运行，写入为新接纳消息确保的持久化唤醒
+    /// 会在激活实例开始处理调用时启动消息泵，因此处理器绝不会在激活期间运行。
     /// </para>
     /// <para>
-    /// 同步发送无法报告后压或缺少处理器, 因此信件无论是否被接受
-    /// <see cref="DurableMessagingOptions.MaxCapacity"/> 和有压力的水槽,
-    /// 信息仍然占据着从其他用户发送信息的能力 grains 直至其完成,
-    /// 处理等待处理器注册。
+    /// 同步发送无法报告背压或缺少处理器，因此无论
+    /// <see cref="DurableMessagingOptions.MaxCapacity"/> 或处理器注册情况如何都会准入消息；若接收器对其施加背压，
+    /// 则发送失败。在消息完成前，它仍占用来自其他 Grain 的投递容量，且
+    /// 在处理器注册后才开始处理。
     /// </para>
     /// </remarks>
     /// <exception cref="InvalidOperationException">
-    /// 收件箱持有不同的命令,等待的命令与同一ID相同,或者信箱槽回压电文或
-    /// 报告了不支持的结果 。
+    /// 收件箱持有相同 ID 的不同待处理命令，或收件箱接收器对该消息施加背压，或
+    /// 报告了不受支持的结果。
     /// </exception>
     internal void StageLocal(InboxMessage message)
     {
-        // 重新使用发信箱的时钟观察:新读者可以看到又一个回落。
+        // 复用发件箱的时钟观测值：再次读取可能观测到另一次回拨。
         var now = message.SentAt;
-        // 本地发送发送带有收件箱, 这样它就可以使用时间在时钟倒转后第一次被接纳的时间 。
+        // 本地发送随收件箱一起提交，因此可使用时钟回拨后首个允许准入的时间。
         if (message.SentAt <= _admissionFloor)
         {
             if (_admissionFloor == DateTimeOffset.MaxValue) throw new InvalidOperationException("The inbox admission floor leaves no representable send time for a new local message.");
@@ -224,16 +224,16 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
     }
 
     /// <summary>
-    /// 向已登记的汇提供信息,并分期处理第一个接收信息报告的汇的结果。
+    /// 将消息提供给已注册的接收器，并暂存第一个接收该消息的接收器所报告的结果。
     /// </summary>
-    /// <returns>交付结果,或 <see langword="null"/> 当每个水槽都掉落信息的时候</returns>
+    /// <returns>投递结果，若每个接收器均拒绝接手该消息则为 <see langword="null"/>。</returns>
     /// <remarks>
-    /// 一份被接受的信息日记仅记录其经处理的记录,其中写明汇的分阶段变化。
-    /// 重复或后压信息信息不进行任何阶段。拒绝信息的信息汇槽本身不进行任何阶段,所以
-    /// 框中将拒绝记录为信件处理的结果。
-    /// 结果是,结果未知:它向打电话者传播,没有任何预谋,所以发送者重试。
+    /// 已接纳消息只将其已处理记录记入日志，并与接收器暂存的变更在同一次写入中提交。
+    /// 重复或受背压的消息不暂存任何内容。拒绝消息的接收器本身不会暂存内容，因此
+    /// 收件箱将拒绝记录为消息的已处理结果。接收器异常或不受支持的
+    /// 结果使处理结果处于未知状态：异常传播至调用方，不暂存任何内容，因此发送方重试。
     /// </remarks>
-    /// <exception cref="InvalidOperationException">汇报告了一个无支持的交付结果。</exception>
+    /// <exception cref="InvalidOperationException">接收器报告了不受支持的投递结果。</exception>
     private DeliveryResult? StageSinkAcceptance(InboxMessage message)
     {
         var key = message.Envelope.MessageId;
@@ -271,7 +271,7 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
             }
             catch (Exception exception)
             {
-                // 水槽的分阶段改变如果没有经过处理的记录是无法进行的。
+                // 接收器暂存的变更无法在没有已处理记录的情况下提交。
                 LogStagingFailed(Logger, exception);
                 _pump.Fail(exception, "Inbox staging failed.");
                 throw;
@@ -288,10 +288,10 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
     }
 
     /// <summary>
-    /// 承认保留身份或待定身份,不论发送时间长短,其记录发件时间都保持不变。
+    /// 识别保留或待处理的标识；不论本次投递的发送时间为何，均保留其已记录的发送时间。
     /// </summary>
-    /// <param name="message">收到的信息。</param>
-    /// <param name="pending">待处理条目,或电文填写完毕或为新时的 <see langword="null"/> 。</param>
+    /// <param name="message">接收的消息。</param>
+    /// <param name="pending">待处理条目；若消息已完成或是新消息，则为 <see langword="null"/>。</param>
     private bool IsDuplicate(InboxMessage message, out InboxEntry? pending)
     {
         var key = message.Envelope.MessageId;
@@ -316,7 +316,7 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
     }
 
     /// <summary>
-    /// 处理一批耐用、应发信息,并回复是否处理了任何信息。
+    /// 处理一批已到期的持久化消息，并返回是否处理了任何消息。
     /// </summary>
     internal async ValueTask<bool> ProcessReadyAsync(CancellationToken cancellationToken)
     {
@@ -380,9 +380,9 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
         }
         catch (Exception exception)
         {
-            // 尝试最终没有结果。 在修改之前, 共享一个日记缓冲, 所以任何写作都会承诺
-            // 启动程序失败,启动程序被丢弃,回收程序被收取了费用,运行了
-            // 再次发送消息 。
+            // 此次尝试结束时没有得到结果。待提交的变更共用同一个日志缓冲区，因此任何写入都会提交
+            // 该尝试暂存的变更；使激活实例失败可丢弃这些变更，恢复时将该尝试计入失败并再次运行
+            // 该消息的处理过程。
             var failure = new InvalidOperationException(
                 $"The inbox handler for message '{entry.Message.Envelope.MessageId}' ended without an outcome, so the activation discards its changes.",
                 exception);
@@ -401,14 +401,14 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
     }
 
     /// <summary>
-    /// 尝试结果中断的阶段: 以后退重试, 或一旦 <c>InboxRetryTimeout</c> 出现废信
-    /// 信件第一次失败后已过时间。 返回度量处理状态 。
+    /// 暂存中断尝试的结果：采用退避策略重试，或者在自消息首次失败起经过 <c>InboxRetryTimeout</c>
+    /// 后转入死信。返回用于指标记录的处理状态。
     /// </summary>
     /// <remarks>
-    /// 最后一次尝试是在超时过后进行, <c>Fail(reason)</c> 立即将信件写为已读信件。
-    /// 恢复无法看出失败的尝试
-    /// 在一个坠机中断的 坠机在它运行之前, 所以电荷充电 死信只发出一个消息 其窗口较早
-    /// 收费开始。
+    /// 超时到期时运行最后一次尝试，<c>Fail(reason)</c> 可立即将消息转入死信。重试
+    /// 截止时间遵循 Durable Jobs 时钟，由它安排下一次唤醒。恢复时无法区分失败的尝试与
+    /// 尚未运行便因崩溃中断的尝试，因此仅当此前的失败计数已经启动消息的重试窗口时，
+    /// 本次失败计数才可能使消息转入死信。
     /// </remarks>
     private string StageInterruptedAttempt(InboxEntry entry, DateTimeOffset now)
     {
@@ -473,18 +473,18 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
     }
 
     /// <summary>
-    /// 返回返回延迟到下一条消息或已登记的提醒到期之前,或者当信箱中无输入时返回 <see langword="null"/>
-    /// 也没有任何提醒回调报告此激活可以执行的工作。 信件等待不响直到处理者
-    /// 被注册。
+    /// 返回距下一条消息或已注册唤醒到期的延迟，或返回 <see langword="null"/>（如果收件箱
+    /// 和所有唤醒回调均未报告当前激活实例可执行的工作）。消息在处理器
+    /// 注册前等待，不安排唤醒。
     /// </summary>
-    /// <param name="jobNow">当前的持久工作时间, 调用者使用此时间来安排唤醒时间 。</param>
+    /// <param name="jobNow">当前 Durable Jobs 时间，调用方据此安排唤醒。</param>
     internal TimeSpan? GetNextWakeupDelay(DateTimeOffset jobNow)
     {
         var next = GetRegisteredWakeupDelay();
         if (_messages.Count == 0 || _handlers.IsEmpty || next <= TimeSpan.Zero) return next;
         foreach (var entry in _messages.Values)
         {
-            // 抓捕是在同步准备之后进行的;它的醒悟覆盖了写作直到确认。
+            // 捕获紧随同步准备之后；相应唤醒保障此次写入，直至收到确认。
             if (entry.Sequence > _capturedSequence) continue;
             var delay = GetDelay(entry, jobNow);
             if (delay == TimeSpan.Zero) return delay;
@@ -494,8 +494,8 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
         return next;
     }
 
-    // 反馈可报告任何非积极的延迟,要求迅速提醒;将正常调为零,以便到期
-    // 由此得出的时间可以代表。
+    // 回调可报告任意非正延迟以请求尽快唤醒；将其规范化为零，以确保由此计算出的到期
+    // 时间仍可表示。
     private TimeSpan? GetRegisteredWakeupDelay()
     {
         TimeSpan? next = null;
@@ -509,7 +509,7 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
         return next;
     }
 
-    // DeliverAt 并重试最后期限在持久工作时间域内,
+    // DeliverAt 和重试截止时间均处于 Durable Jobs 时间域内，由其安排唤醒。
     private static TimeSpan GetDelay(InboxEntry entry, DateTimeOffset jobNow)
     {
         var dueTime = GetDueTime(entry);
@@ -536,22 +536,22 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
     }
 
     /// <summary>
-    /// 除非前一次激活时将一个干净的停止点编辑并返回
-    /// 或预设任何事物。
+    /// 除非前一个激活实例已将干净停止记入日志，否则为每条已到期消息计入一次失败尝试，并返回
+    /// 是否暂存了任何变更。
     /// </summary>
     /// <remarks>
-    /// 其处理器在无结果的情况下结束的启动,或其 silo 撞车停止而没有记录
-    /// 复元时充电后退, <c>InboxRetryTimeout</c> 将每个失败路径都绑定
-    /// 坠机时还收取未发送的应答信件,所以
-    /// 单收费,绝不是死信 其回试窗口的信息
-    /// 还没有开始,电荷在泵启动之前就已经爆炸了
+    /// 处理器结束时没有结果的激活实例，或其 Silo 发生崩溃的激活实例，会在未记录
+    /// 尝试结果的情况下停止。恢复时计入失败尝试，使退避和 <c>InboxRetryTimeout</c> 能约束每条失败路径，
+    /// 而正常成功路径无需额外日志写入。崩溃也会对尚未分派的到期消息计入失败，因此
+    /// 每次非干净停止可能多计一次尝试；单独计入失败绝不会使尚未开始重试窗口的消息
+    /// 转入死信。失败计数在消息泵运行任何处理器之前提交。
     /// </remarks>
     private bool ChargeInterruptedAttempts()
     {
         if (_messages.Count == 0) return false;
         if (_stoppedCleanly)
         {
-            // 装上标记,所以这个引爆装置的一站不干净 就会被引爆
+            // 消耗该标记，以便此激活实例之后发生的非干净停止被计入失败尝试。
             Emit(InboxCommand.Resume.Instance);
             return true;
         }
@@ -560,7 +560,7 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
         var charged = 0;
         foreach (var entry in _messages.Values.ToArray())
         {
-            // 不该传递的信息 根本不可能是企图
+            // 尚未到期的消息不可能正在进行处理尝试。
             if (GetDelay(entry, now) != TimeSpan.Zero) continue;
             var status = StageInterruptedAttempt(entry, now);
             Shared.Instruments.OnInboxMessageProcessed(_pump.GrainTypeTag, status);
@@ -574,12 +574,12 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
     private const string InterruptedAttemptReason = "The activation stopped without recording the outcome of an attempt.";
 
     /// <summary>
-    /// 记录显示这次启动行动停止了 没有操作者试图中断 所以没有追索费
+    /// 将此激活实例在没有中断处理器尝试的情况下停止记入日志，因此恢复时不计入失败尝试。
     /// </summary>
     /// <remarks>
-    /// 泵在循环结束后就叫它这个。信息失败,比如一个处理器,没有结果的处理器,
-    /// 失灵的写作让停站变得不干净,
-    /// 最多是一次额外的尝试。
+    /// 消息泵在循环结束后调用此方法。消息传递失败（例如处理器结束时没有结果）
+    /// 不会记录停止标记，因此恢复时会计入该尝试。写入失败会使此次停止成为非干净停止，
+    /// 最多额外计入一次尝试。
     /// </remarks>
     internal async Task RecordCleanStopAsync()
     {
@@ -595,12 +595,12 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
         }
     }
 
-    /// <summary>一旦启动的信号状态被丢弃, 报告的深度就会释放。</summary>
+    /// <summary>在丢弃激活实例的消息传递状态后，释放已报告的队列深度指标。</summary>
     internal void ReleaseDepth() => ReportDepth(-_messages.Count);
 
     private void ReportDepth(int delta) => Shared.Instruments.OnInboxDepthChanged(_pump.GrainTypeTag, delta);
 
-    /// <summary>常态的改变, 而 <paramref name="cancellationToken"/> 只结束呼叫者的等待。</summary>
+    /// <summary>持久化暂存的变更，其中 <paramref name="cancellationToken"/> 仅结束调用方的等待。</summary>
     private ValueTask PersistForCallerAsync(CancellationToken cancellationToken)
     {
         var write = PersistAsync();
@@ -609,7 +609,7 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
             return write;
         }
 
-        // 写作在电话停止等待后继续其结果; PersistAsync 报告泵故障。
+        // 调用方停止等待后，写入继续直到产生结果；PersistAsync 通过消息泵报告失败。
         var task = write.AsTask();
         task.Ignore();
         return new(task.WaitAsync(cancellationToken));
@@ -629,7 +629,7 @@ internal sealed partial class Inbox : IInbox, IMessagingExtension, IStateMachine
     }
 
     /// <summary>
-    /// 跟踪一个处理者尝试并分阶段其最终结果。
+    /// 跟踪一次处理器尝试并暂存其最终结果。
     /// </summary>
     internal sealed class HandlerExecution(Inbox owner, InboxEntry entry)
     {

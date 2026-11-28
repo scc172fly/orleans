@@ -61,7 +61,7 @@ describe('native API routes', () => {
   test('builds a package-aware Starlight sidebar', () => {
     const root = buildApiSidebar([pkg]);
     expect(root).toEqual([
-      { label: 'API packages', link: '/docs/api/csharp/' },
+      { label: 'API 包', link: '/docs/api/csharp/' },
       {
         label: 'Microsoft.Orleans.Core',
         link: '/docs/api/csharp/microsoft.orleans.core/',
@@ -70,7 +70,7 @@ describe('native API routes', () => {
 
     const sidebar = buildApiSidebar([pkg], pkg.package.name);
     expect(sidebar).toHaveLength(2);
-    expect(sidebar[0]).toEqual({ label: 'API packages', link: '/docs/api/csharp/' });
+    expect(sidebar[0]).toEqual({ label: 'API 包', link: '/docs/api/csharp/' });
     expect(JSON.stringify(sidebar)).toContain(
       '/docs/api/csharp/microsoft.orleans.core/orleans.grain-1/',
     );
@@ -78,7 +78,7 @@ describe('native API routes', () => {
 
     const contextual = buildApiSidebar([pkg], pkg.package.name, pkg.types[0]);
     expect(contextual).toHaveLength(2);
-    expect(JSON.stringify(contextual)).toContain('Package overview');
+    expect(JSON.stringify(contextual)).toContain('包概述');
     expect(JSON.stringify(contextual)).not.toContain('GrainStatus');
   });
 

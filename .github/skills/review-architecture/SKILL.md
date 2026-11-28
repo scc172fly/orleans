@@ -1,58 +1,58 @@
 ---
 name: review-architecture
-description: "Orleans 的架构透镜——规格、抽象、分层、担保的端到端放置、虚拟化、权威状态、依赖性和兼容性。 在代码审查期间和设计特征、API或图层变化时使用。"
+description: Architecture lens for Orleans — specs, abstractions, layering, end-to-end placement of guarantees, virtualization, authoritative state, dependencies, and compatibility. Use during code review, and when designing features, APIs, or layer changes.
 ---
 
 <a id="architecture-lens"></a>
 
-# 建筑透镜
+# Architecture lens
 
-应用 root `AGENTS.md`。 这个镜头检查系统形状: 参数,
-抽象的,层次,合同, 和每个保障生命的地方。
+Apply with root `AGENTS.md`. This lens examines the shape of the system: specs,
+abstractions, layers, contracts, and where each guarantee lives.
 
 <a id="procedure"></a>
 
-## 程序程序程序
+## Procedure
 
-1. 从受影响的合同开始:客户可看到的变化行为,或只执行的改变的相关内部保障。
-2. 列出每个受影响的层、上方提供的合同以及从下方需要什么。
-3. 将每项担保(可维持性、订购、重复、安全)分配给能够核实完整结果的一层。
-4. 追踪逻辑身份,背后的物理事件 以及连接它们的间接因素
-5. 确定每个受影响的表面是否都以稳定释放方式装运;选择以下的兼容性规则。
-6. 规格、既定合同、兼容性、诊断或计量成本均不能证明是正当的。
+1. Start from the affected contract: client-visible behavior for observable changes, or the relevant internal guarantees for implementation-only changes.
+2. Name each affected layer, the contract it provides upward, and what it requires from below.
+3. Assign each guarantee (durability, ordering, deduplication, security) to the layer that can verify the complete outcome.
+4. Trace the logical identities, the physical instances behind them, and the indirections that connect them.
+5. Determine whether each affected surface has shipped in a stable release; that selects the compatibility rules below.
+6. Flag complexity that the spec, an established contract, compatibility, diagnostics, or measured cost does not justify.
 
 <a id="design"></a>
 
-## 设计设计设计设计设计设计设计设计设计设计设计设计设计设计设计设计设计设计设计
+## Design
 
-- **标本第一** 新的或改变的行为在代码前有一份公开的合同; 显示的部件将它作为客户可见状态和行动(国家机器)模型( ())([兰普森](https://arxiv.org/abs/2011.02455)).
-- **接口是合同。** 接口文件显示,打电话者所依赖的超出其签字范围的内容:行为、故障模式、订购以及资源或性能假设,只要适用即可。
-- **模块性。** 每个模块都隐藏着可能改变的设计决定,因此呼叫者从来不取决于其表达方式([帕纳](https://www.win.tue.nl/~wstomv/edu/2ip30/references/criteria_for_modularization.pdf))。
-- **复合原始生物** 小型原始人组成,复合物保留其执行的合同。
-- **层积。** 依赖点向下,指向运行时核心和抽象;每一层通过其自己的合同或明确的扩展点暴露低层的能力,绕过该合同进入下层的代码就是层积违反。
-- **合同最薄弱。** 层保证仅满足打电话者的要求,而且能够强制执行;需要更多制作的调用者(例如,一旦接到电话后,从最起码的重新打听时有效进行处理,加上有一定能力的人)。
-- **端到端。** 可靠性、安全性、重复性和订单由遵守完整结果的终点核实;低层次担保降低成本,只有在合同规定的情况下才是正确依赖([Saltzer等人诉西班牙](https://web.mit.edu/Saltzer/www/publications/endtoend/endtoend.pdf))。
-- **虚拟化。** 应用程序代码按逻辑身份地址 grains ;运行时间代码仅通过安置、目录、生命周期和移民合同达到物理激活。
-- **机制与政策。** 运行时间和供应商供应机制;通过选择、安置战略或提供者,接触了打电话者有具体需要选择的政策。
-- **唯一的真相来源。** 每个国家一次有一个权力(成员表、目录分割器所有人、 grain 储存),转让受版本或时代制约;从该权力中提取并更新缓存和提示。
-- **重新使用经证实的模式。** 日志、国家机器、时代和ETags、租赁、应急钥匙、碎片和批量,在其担保和费用符合问题的情况下适用。
-- **分裂和征服。** 如果规模或争议需要共同货币,则用钥匙将状态分割,在考虑共享锁之前,工作分期进行。
-- **重新配置是一个协议。** 所有权和地形变化将封住旧的配置,定义切换点,并通过一个权威版本的记录转换。
-- **最小的依赖性。** BCL 和包件已装入 `Directory.Packages.props` 选择;新的扶养关系是因为它们无法满足的要求而有理由的。
+- **Spec first.** New or changed behavior has a stated contract before code; stateful components model it as client-visible state and actions (a state machine) ([Lampson](https://arxiv.org/abs/2011.02455)).
+- **Interfaces are contracts.** An interface documents what callers rely on beyond its signature: behavior, failure modes, ordering, and resource or performance assumptions, as they apply.
+- **Modularity.** Each module hides a design decision likely to change, so callers never depend on its representation ([Parnas](https://www.win.tue.nl/~wstomv/edu/2ip30/references/criteria_for_modularization.pdf)).
+- **Composable primitives.** Small primitives compose, and a composite preserves the contract it implements.
+- **Layering.** Dependencies point down, toward the runtime core and abstractions; each layer exposes lower-layer capabilities through its own contract or an explicit extension point, and code that bypasses that contract to reach a lower layer is a layering violation.
+- **Weakest sufficient contract.** A layer guarantees only what callers require and it can enforce; callers needing more compose it (for example, effectively-once processing from retried at-most-once calls plus idempotent handlers).
+- **End-to-end.** Reliability, security, deduplication, and ordering are verified by the endpoints that observe the complete outcome; lower-layer guarantees reduce cost and are correctness dependencies only where a contract states them ([Saltzer et al.](https://web.mit.edu/Saltzer/www/publications/endtoend/endtoend.pdf)).
+- **Virtualization.** Application code addresses grains by logical identity; runtime code reaches physical activations only through placement, directory, lifecycle, and migration contracts.
+- **Mechanism vs policy.** The runtime and providers supply mechanisms; policy that callers have a concrete need to choose is exposed through options, placement strategies, or providers.
+- **Single source of truth.** Each piece of state has one authority at a time (membership table, directory partition owner, grain storage), with transfers governed by versions or epochs; caches and hints are derived and refreshable from that authority.
+- **Reuse proven patterns.** Logs, state machines, epochs and ETags, leases, idempotency keys, sharding, and batching are applied where their guarantees and costs fit the problem.
+- **Divide and conquer.** Where scale or contention requires concurrency, state is sharded by key and work pipelined into stages before shared locks are considered.
+- **Reconfiguration is a protocol.** Ownership and topology changes seal the old configuration, define the cutover point, and switch via one authoritative versioned record.
+- **Minimal dependencies.** The BCL and packages already in `Directory.Packages.props` are preferred; a new dependency is justified by a requirement they cannot meet.
 
 <a id="compatibility"></a>
 
-## 兼容性
+## Compatibility
 
-- **装运表面是合同。** 装运的公众证单、有序列的合同(`[Id]`、 `[Alias]`、型号名称),并且一直存在 grain 状态和储存系统,其变化是累加的;中断和迁移遵循一个明确、核准的程序(见 `AGENTS.md`中的包件兼容性)。
-- **滚动升级。** 更改信件和持续数据在支持的滚动升级窗口之间互接,双向测试(老作家给新读者,新作家给旧读者)。
-- **可见行为。** 记录在案的行为和可观察到的行为用户可以相信依赖有意改变及其所述影响([希勒姆法](https://www.hyrumslaw.com/))。
-- **卸载表面。自上次稳定释放以来采用的** API和格式不具有与装运兼容的义务,并与仓库内呼叫者和核准的设计保持一致。
-- **不确定状况。** 当装运或长期状况不明时,作为一个问题提出。
+- **Shipped surfaces are contracts.** Shipped public APIs, serialized contracts (`[Id]`, `[Alias]`, type names), and persisted grain state and storage schemas evolve additively; breaks and migrations follow an explicit, approved process (see package compatibility in `AGENTS.md`).
+- **Rolling upgrades.** Changes to messages and persisted data interoperate across the supported rolling-upgrade window, tested in both directions (old writer to new reader, and new writer to old reader).
+- **Observable behavior.** Documented behavior, and observable behavior users plausibly depend on, changes deliberately with its impact stated ([Hyrum's law](https://www.hyrumslaw.com/)).
+- **Unshipped surfaces.** APIs and formats introduced since the last stable release carry no shipped-compatibility obligation and stay consistent with in-repository callers and the approved design.
+- **Uncertain status.** When shipped or persisted status is unclear, raise it as a question.
 
 <a id="findings"></a>
 
-## 审计结果
+## Findings
 
-报告地点、所涉原则以及具体解决办法。
-有关变数或装运身份的问题分开。
+Report the location, the principle at stake, and a concrete fix. List open
+questions about invariants or shipped status separately.

@@ -5,7 +5,7 @@ using Xunit;
 namespace Tester.AzureUtils
 {
     /// <summary>
-    /// 存储错误代码处理和验证表格/容器名称的测试 Azure
+    /// 测试 Azure Storage 错误码处理以及表名和容器名的验证。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Storage")]
     [TestSuite("Functional")]
@@ -25,7 +25,7 @@ namespace Tester.AzureUtils
             Assert.False(AzureTableUtils.IsRetriableHttpError((HttpStatusCode)500, null));
             Assert.False(AzureTableUtils.IsRetriableHttpError((HttpStatusCode)500, "SomeOtherStatusValue"));
 
-            // 现今的行为是忽略成功,
+            // 当前行为是忽略成功结果，将其视为无需重试：
             Assert.False(AzureTableUtils.IsRetriableHttpError((HttpStatusCode)200, null));
         }
 

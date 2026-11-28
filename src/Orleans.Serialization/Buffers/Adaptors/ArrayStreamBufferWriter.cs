@@ -5,12 +5,12 @@ using System.IO;
 namespace Orleans.Serialization.Buffers.Adaptors
 {
     /// <summary>
-    /// 执行《公约》执行 <see cref="IBufferWriter{T}"/> 写给 <see cref="Stream"/>,将一个阵列作为中间缓冲。
+    /// <see cref="IBufferWriter{T}"/> 的一种实现，以数组作为中间缓冲区向 <see cref="Stream"/> 写入数据。
     /// </summary>
     public struct ArrayStreamBufferWriter : IBufferWriter<byte>
     {
         /// <summary>
-        /// 中间缓冲的默认初始大小, 以字节计 。
+        /// 中间缓冲区的默认初始大小（字节）。
         /// </summary>
         public const int DefaultInitialBufferSize = 256;
         private readonly Stream _stream;

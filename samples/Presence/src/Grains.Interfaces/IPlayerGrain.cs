@@ -1,7 +1,7 @@
 namespace Presence.Grains;
 
 /// <summary>
-/// 与个别玩家的接口,该玩家在任何时间点上都可能或不会出现在游戏中。
+/// 单个玩家的接口，玩家在任意时刻可能正在参加游戏，也可能没有参加游戏。
 /// </summary>
 public interface IPlayerGrain : IGrainWithGuidKey
 {

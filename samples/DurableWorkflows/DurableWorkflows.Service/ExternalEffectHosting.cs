@@ -16,7 +16,7 @@ public static class ExternalEffectHosting
         {
             var previous = options.ShouldRetry;
             var clock = provider.GetRequiredKeyedService<TimeProvider>(DurableJobTimeProviderNames.DurableJobs);
-            // 基础设施的重新配置保持了警醒;所有者储存的保单约束供应商发送。
+            // 基础设施重试保留唤醒操作；所有者持久化的策略限制向服务提供方发送请求的次数。
             options.ShouldRetry = (context, exception) => context.Job.Name == WakeupJobName
                 ? clock.GetUtcNow() + TimeSpan.FromMinutes(1)
                 : previous(context, exception);

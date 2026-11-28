@@ -1,4 +1,4 @@
--- 每次部署将只有一个(现役)成员表格版本一栏,定期更新。
+-- 每个部署仅有一条活动的成员资格版本记录，其版本列会定期更新。
 CREATE TABLE OrleansMembershipVersionTable
 (
     DeploymentId NVARCHAR(150) NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE OrleansMembershipVersionTable
     CONSTRAINT PK_OrleansMembershipVersionTable_DeploymentId PRIMARY KEY(DeploymentId)
 );
 
--- 每一 silo 例在会籍表有行。
+-- 每个 Silo 实例在成员资格表中对应一行。
 CREATE TABLE OrleansMembershipTable
 (
     DeploymentId NVARCHAR(150) NOT NULL,
@@ -96,7 +96,7 @@ BEGIN
     END;
     START TRANSACTION;
 
-    -- 保存缓存遗迹插入中使用的行- 后版本对帐单顺序 。
+    -- 保持已缓存的旧版插入语句所采用的先处理成员资格行、再更新版本的语句顺序。
     INSERT INTO OrleansMembershipTable
     (
         DeploymentId,

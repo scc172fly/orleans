@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.TestingHost.Logging
 {
     /// <summary>
-    /// 将输出到日志文件的<see cref="ILoggerProvider"/> 。
+    /// 输出到日志文件的 <see cref="ILoggerProvider"/>。
     /// </summary>
     public class FileLoggerProvider : ILoggerProvider
     {
@@ -34,16 +34,16 @@ namespace Orleans.TestingHost.Logging
     }
 
     /// <summary>
-    /// 配置扩展配置方法 ILoggingBuilder 与 FileLoggerProvider
+    /// 使用 FileLoggerProvider 配置 ILoggingBuilder 的扩展方法。
     /// </summary>
     public static class FileLoggerProviderExtensions
     {
         /// <summary>
-        /// 添加与伐木服务集装箱所属供应商的文件记录。
+        /// 添加文件日志记录，其提供程序由日志服务容器拥有。
         /// </summary>
-        /// <param name="builder">伐木工</param>
-        /// <param name="filePathName">日志文件路径</param>
-        /// <returns>伐木工</returns>
+        /// <param name="builder">日志构建器。</param>
+        /// <param name="filePathName">日志文件路径。</param>
+        /// <returns>日志构建器。</returns>
         public static ILoggingBuilder AddFile(
             this ILoggingBuilder builder,
             string filePathName)

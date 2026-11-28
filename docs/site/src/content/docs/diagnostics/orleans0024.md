@@ -1,45 +1,45 @@
 ---
-title: "ORLEANS0024:已删除的 grain 类没有退休"
-description: "理解和决心 ORLEANS0024 何时 OrleansContracts.txt 包含活动 grain 类别源不再定义。"
+title: "ORLEANS0024: 已移除的 Grain 类尚未标记为停用"
+description: 了解并解决 OrleansContracts.txt 中包含源码不再定义的活动 Grain 类时出现的 ORLEANS0024。
 ms.date: 08/27/2026
 ms.topic: reference
 ---
 
 <a id="orleans0024-removed-grain-class-is-not-retired"></a>
 
-# ORLEANS0024:已删除的 grain 类没有退休
+# ORLEANS0024: 已移除的 Grain 类尚未标记为停用
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 类别类 | 版本 |
+| 类别 | 版本控制 |
 | 严重性 | 警告 |
-| 代码修正 | 可用 |
+| 代码修复 | 可用 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-`OrleansContracts.txt` 中的活动类声明不符合任何已编译的混凝土 grain 类。
+`OrleansContracts.txt` 中的活动类声明与任何已编译的具体 Grain 类均不匹配。
 
 <a id="impact"></a>
 
-## 影响影响
+## 影响
 
-转移或身份改变改名不记录,旧的 grain 身份以后可以意外重新使用。
+移除或改变标识的重命名未被记录，之后可能意外复用旧 Grain 标识。
 
 <a id="how-to-fix"></a>
 
-## 如何修补
+## 修复方法
 
-如果删除是意外取消, 恢复该类。 否则应用 **标记标记标记 grain 类作为 *重新* 内 OrleansContracts.txt** 并保留声明。
+如果该类是意外移除的，请恢复该类；否则应用 **Mark grain class as *RETIRED* in OrleansContracts.txt** 并保留声明。
 
-应用 **Regenerate OrleansContracts.txt** 重建完整的项目清单,并留存所有没有来源的申报单。为每个合同项目分别运行再生程序,并利用 [合同兼容性指导](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)审查产生的 diff。
+应用 **Regenerate OrleansContracts.txt** 以重建完整项目清单，并将源码中不存在的所有声明标记为已停用。分别为各契约项目执行重新生成，并依据[契约兼容性指南](../grains/grain-versioning/contract-compatibility-analyzer.md#regenerate-the-manifest)检查生成的差异。
 
 <a id="suppress-the-diagnostic"></a>
 
 ## 抑制诊断
 
-只有当舱单故意包括另一编集拥有的类别时,才禁止。
+仅当清单有意包含由另一编译单元拥有的类时抑制诊断。优先使用各项目独立的清单。
 
 ```ini
 [*.cs]

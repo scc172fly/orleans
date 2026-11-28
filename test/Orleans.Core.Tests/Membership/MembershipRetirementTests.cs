@@ -207,7 +207,7 @@ public class MembershipRetirementTests
         var nextCluster = clusterUpdates.MoveNextAsync().AsTask();
 
         clock.Advance(TimeSpan.FromSeconds(1));
-        // 寻找固定的视图 从来不会对先进的钟进行取样
+        // 查找固定视图永远不会读取已推进的时钟。
         Assert.Equal(SiloStatus.None, previous.GetSiloStatus(missing));
         await manager.Refresh(cancellationToken: _cancellationToken);
         var current = cluster.CurrentSnapshot;
@@ -337,7 +337,7 @@ public class MembershipRetirementTests
     private static MembershipEntry Entry(SiloAddress silo, SiloStatus status) =>
         new() { SiloAddress = silo, SiloName = "peer", Status = status, StartTime = Epoch.UtcDateTime, IAmAliveTime = Epoch.UtcDateTime };
 
-    // FakeTimeProvider 故意禁止倒回。 只有世界协调时才会使用覆盖来模拟按钟键校正。
+    // FakeTimeProvider 有意禁止时钟回拨。仅重写 UTC 时间读取，以模拟墙上时钟校正。
     private sealed class RollbackTimeProvider(DateTimeOffset start) : FakeTimeProvider(start)
     {
         public DateTimeOffset UtcNow { get; set; } = start;

@@ -8,7 +8,7 @@ using Xunit;
 namespace AWSUtils.Tests.StorageTests
 {
     /// <summary>
-    /// 进行 DynamoDB 储存压力测试,以核实在高容量读/写作业下的业绩。
+    /// 对 DynamoDB 存储进行压力测试，验证大量读写操作下的性能。
     /// </summary>
     [TestSuite("Stress")]
     [TestProvider("AWS")]
@@ -39,7 +39,7 @@ namespace AWSUtils.Tests.StorageTests
             const int batchSize = 1000;
             const int numPartitions = 1;
 
-            // 写入一些数据
+            // 写入一些数据。
             await WriteAlot_Async(testName, numPartitions, iterations, batchSize);
         }
 
@@ -51,7 +51,7 @@ namespace AWSUtils.Tests.StorageTests
             const int batchSize = 1000;
             const int numPartitions = 100;
 
-            // 写入一些数据
+            // 写入一些数据。
             await WriteAlot_Async(testName, numPartitions, iterations, batchSize);
         }
 
@@ -61,7 +61,7 @@ namespace AWSUtils.Tests.StorageTests
             const string testName = "DynamoDBDataManagerStressTests_ReadAll";
             const int iterations = 1000;
 
-            // 写入一些数据
+            // 写入一些数据。
             await WriteAlot_Async(testName, 1, iterations, iterations);
 
             Stopwatch sw = Stopwatch.StartNew();

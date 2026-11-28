@@ -4,102 +4,102 @@ using System.Threading.Tasks;
 namespace Orleans.Core
 {
     /// <summary>
-    /// 提供在 grain 储存上操作的方法。
+    /// 提供操作 Grain 存储的方法。
     /// </summary>
     public interface IStorage
     {
         /// <summary>
-        /// 得到ETAG。
+        /// 获取 ETag。
         /// </summary>
         /// <remarks>
-        /// ETag或实体标签是一种价值,用于防止在其中一个或多个作者没有首先看到最近操作的情况下同时写作。
+        /// ETag（实体标记）是用于阻止此类并发写入的值：其中一个或多个写入操作尚未先观察到最新操作。
         /// </remarks>
         string? Etag { get; }
 
         /// <summary>
-        /// 获得一个值,以显示记录是否已经存在。
+        /// 获取一个值，指示记录是否已存在。
         /// </summary>
         bool RecordExists { get; }
 
         /// <summary>
-        /// 清除 grain 状态。
+        /// 清除 Grain 状态。
         /// </summary>
         /// <remarks>
-        /// 这通常意味着国家记录从备份存储处删除, 但具体的行为由为此配置的存储提供者实例来定义 grain。
-        /// 如果 Etag 与支持存储中存在的内容不符, 此操作将失败; 设置 <see cref="Etag"/> 到 <see langword="null"/> 以表示“ 总是删除 ”。
+        /// 通常意味着从后端存储删除状态记录，但具体行为由为此 Grain 配置的存储提供程序实例决定。
+        /// 如果 ETag 与后端存储中的值不匹配，则操作将失败；将 <see cref="Etag"/> 设置为 <see langword="null"/> 表示“始终删除”。
         /// </remarks>
         /// <returns>
-        /// 代表行动的一个 <see cref="Task"/> 。
+        /// 表示该操作的 <see cref="Task"/>。
         /// </returns>
         Task ClearStateAsync();
 
         /// <summary>
-        /// 将 grain 状态写入存储状态。
+        /// 将 Grain 状态写入存储。
         /// </summary>
         /// <remarks>
-        /// 如果 Etag 与支持存储中存在的内容不符, 此操作将失败; 设置 <see cref="Etag"/> 到 <see langword="null"/> 以表示“ 总是删除 ”。
+        /// 如果 ETag 与后端存储中的值不匹配，则操作将失败；将 <see cref="Etag"/> 设置为 <see langword="null"/> 表示“始终删除”。
         /// </remarks>
         /// <returns>
-        /// 代表行动的一个 <see cref="Task"/> 。
+        /// 表示该操作的 <see cref="Task"/>。
         /// </returns>
         Task WriteStateAsync();
 
         /// <summary>
-        /// 从存储中读取 grain 状态。
+        /// 从存储读取 Grain 状态。
         /// </summary>
         /// <remarks>
-        /// grain 状态数据的任何先前内容将被覆盖。
+        /// Grain 状态数据原有的所有内容都将被覆盖。
         /// </remarks>
         /// <returns>
-        /// 代表行动的一个 <see cref="Task"/> 。
+        /// 表示该操作的 <see cref="Task"/>。
         /// </returns>
         Task ReadStateAsync();
 
         /// <summary>
-        /// 清除 grain 状态。
+        /// 清除 Grain 状态。
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <remarks>
-        /// 这通常意味着国家记录从备份存储处删除, 但具体的行为由为此配置的存储提供者实例来定义 grain。
-        /// 如果 Etag 与支持存储中存在的内容不符, 此操作将失败; 设置 <see cref="Etag"/> 到 <see langword="null"/> 以表示“ 总是删除 ”。
+        /// 通常意味着从后端存储删除状态记录，但具体行为由为此 Grain 配置的存储提供程序实例决定。
+        /// 如果 ETag 与后端存储中的值不匹配，则操作将失败；将 <see cref="Etag"/> 设置为 <see langword="null"/> 表示“始终删除”。
         /// </remarks>
         /// <returns>
-        /// 代表行动的一个 <see cref="Task"/> 。
+        /// 表示该操作的 <see cref="Task"/>。
         /// </returns>
         Task ClearStateAsync(CancellationToken cancellationToken) => ClearStateAsync();
 
         /// <summary>
-        /// 将 grain 状态写入存储状态。
+        /// 将 Grain 状态写入存储。
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <remarks>
-        /// 如果 Etag 与支持存储中存在的内容不符, 此操作将失败; 设置 <see cref="Etag"/> 到 <see langword="null"/> 以表示“ 总是删除 ”。
+        /// 如果 ETag 与后端存储中的值不匹配，则操作将失败；将 <see cref="Etag"/> 设置为 <see langword="null"/> 表示“始终删除”。
         /// </remarks>
         /// <returns>
-        /// 代表行动的一个 <see cref="Task"/> 。
+        /// 表示该操作的 <see cref="Task"/>。
         /// </returns>
         Task WriteStateAsync(CancellationToken cancellationToken) => WriteStateAsync();
 
         /// <summary>
-        /// 从存储中读取 grain 状态。
+        /// 从存储读取 Grain 状态。
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <remarks>
-        /// grain 状态数据的任何先前内容将被覆盖。
+        /// Grain 状态数据原有的所有内容都将被覆盖。
         /// </remarks>
         /// <returns>
-        /// 代表行动的一个 <see cref="Task"/> 。
+        /// 表示该操作的 <see cref="Task"/>。
         /// </returns>
         Task ReadStateAsync(CancellationToken cancellationToken) => ReadStateAsync();
     }
 
     /// <summary>
-    /// 提供在 grain 状态上运行的方法。
+    /// 提供操作 Grain 状态的方法。
     /// </summary>
     public interface IStorage<TState> : IStorage
     {
         /// <summary>
-        /// 建立州立或控制
+        /// 获取或设置状态。
         /// </summary>
         TState State { get; set; }
     }

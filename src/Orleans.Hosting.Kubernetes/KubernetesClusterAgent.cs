@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 namespace Orleans.Hosting.Kubernetes
 {
     /// <summary>
-    /// 反映 Orleans 和 Kubernetes之间的组合变化。
+    /// 在 Orleans 与 Kubernetes 之间反映集群配置变化。
     /// </summary>
     public sealed partial class KubernetesClusterAgent : ILifecycleParticipant<ISiloLifecycle>
     {
@@ -65,11 +65,11 @@ namespace Orleans.Hosting.Kubernetes
         /// <summary>
         /// 初始化 <see cref="KubernetesClusterAgent"/> 类的新实例。
         /// </summary>
-        /// <param name="clusterMembershipService">下 Orleans 分组成员服务。</param>
-        /// <param name="logger">日志器。</param>
-        /// <param name="options"> Kubernetes 主机选项。</param>
-        /// <param name="clusterOptions">集群识别选项。</param>
-        /// <param name="localSiloDetails">本地 silo 身份。</param>
+        /// <param name="clusterMembershipService">Orleans 集群成员资格服务。</param>
+        /// <param name="logger">日志记录器。</param>
+        /// <param name="options">Kubernetes 宿主选项。</param>
+        /// <param name="clusterOptions">集群标识选项。</param>
+        /// <param name="localSiloDetails">本地 Silo 标识。</param>
         [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "Microsoft.Extensions.DependencyInjection supplies the registered cluster options instance.")]
         public KubernetesClusterAgent(
             IClusterMembershipService clusterMembershipService,
@@ -121,11 +121,11 @@ namespace Orleans.Hosting.Kubernetes
                 {
                     await AddClusterOptionsToPodLabels(cancellation);
 
-                    // 在审问 Kubernetes之前先找到目前已知的分组成员
+                    // 查询 Kubernetes 之前，先找出当前已知的集群成员。
                     await _clusterMembershipService.Refresh(cancellationToken: cancellation);
                     var snapshot = _clusterMembershipService.CurrentSnapshot.Members;
 
-                    // 查找与此集相对应的缓存
+                    // 查找与此集群对应的 Pod。
                     var pods = await _client.ListNamespacedPodAsync(
                         namespaceParameter: _podNamespace,
                         labelSelector: _podLabelSelector,
@@ -156,7 +156,7 @@ namespace Orleans.Hosting.Kubernetes
                     {
                         LogWarningUnknownPod(pod);
 
-                        // 一旦启动时间足够长, 就会删除此缓冲 ?
+                        // 是否在 Pod 活动时间足够长之后删除它？
                     }
 
                     var unmatched = new List<string>(known.Except(clusterPods));
@@ -191,7 +191,7 @@ namespace Orleans.Hosting.Kubernetes
                 }
             }
 
-            // 启动完成前公布连接, 关闭可等待两个监视器。
+            // 在启动完成前发布等待两个监视器的任务，使关闭流程能够等待两者。
             using (new ExecutionContextSuppressor())
             {
                 _runTask = Task.WhenAll(
@@ -202,7 +202,7 @@ namespace Orleans.Hosting.Kubernetes
 
         private async Task AddClusterOptionsToPodLabels(CancellationToken cancellation)
         {
-            // 将我们配置的集组成员选项 推广到我们的舱
+            // 将配置的集群成员资格选项传播到当前 Pod。
             var thisPod = await _client.ReadNamespacedPodAsync(_podName, namespaceParameter: _podNamespace, cancellationToken: cancellation);
 
             var labels = thisPod.Labels();
@@ -226,10 +226,10 @@ namespace Orleans.Hosting.Kubernetes
         }
 
         /// <summary>
-        /// 停止 Kubernetes 集束监测。
+        /// 停止 Kubernetes 集群监视。
         /// </summary>
-        /// <param name="cancellationToken">取消标记, 限制关闭时间等监测停止。</param>
-        /// <returns>代表关闭操作的任务。</returns>
+        /// <param name="cancellationToken">限制关闭流程等待监视停止时长的取消令牌。</param>
+        /// <returns>表示关闭操作的任务。</returns>
         [SuppressMessage("Performance", "CA1849:Call async methods when in an async method",
             Justification = "Shutdown cancellation callbacks run on the calling thread before monitoring is disabled and the monitor tasks are joined.")]
         public async Task OnStop(CancellationToken cancellationToken)
@@ -252,7 +252,7 @@ namespace Orleans.Hosting.Kubernetes
                 {
                     await foreach (var update in _clusterMembershipService.MembershipUpdates.WithCancellation(_shutdownToken.Token))
                     {
-                        // 确定 silos 应该是监测 Kubernetes
+                        // 确定应监视 Kubernetes 的 Silo。
                         var chosenSilos = _clusterMembershipService.CurrentSnapshot.Members.Values
                             .Where(s => s.Status == SiloStatus.Active)
                             .OrderBy(s => s.SiloAddress)
@@ -263,7 +263,7 @@ namespace Orleans.Hosting.Kubernetes
                         if (_enableMonitoring != shouldMonitor)
                         {
                             _enableMonitoring = shouldMonitor;
-                            // 这个循环是唯一的信号生成器, 可以在使用先前的信号之前进行连选。
+                            // 此循环是唯一的信号生产者。重新选举可能先于上一个信号的消费发生。
                             if (shouldMonitor && _pauseMonitoringSemaphore.CurrentCount == 0)
                             {
                                 _pauseMonitoringSemaphore.Release();
@@ -277,7 +277,7 @@ namespace Orleans.Hosting.Kubernetes
                             {
                                 if (change.SiloAddress.Equals(_localSiloDetails.SiloAddress))
                                 {
-                                    // 忽略此 silo的全部更改
+                                    // 忽略此 Silo 的所有变更。
                                     continue;
                                 }
 
@@ -291,7 +291,7 @@ namespace Orleans.Hosting.Kubernetes
                                     }
                                     catch (Exception exception)
                                     {
-                                        // 忽略 NotFound 错误, 因为该缓存可能已经通过其他方式被删除
+                                        // 忽略 NotFound 错误，因为 Pod 可能已通过其他方式删除。
                                         if (exception is not HttpOperationException { Response.StatusCode: HttpStatusCode.NotFound })
                                         {
                                             LogErrorDeletingPod(exception, change.Name, _podNamespace, change.SiloAddress);
@@ -327,7 +327,7 @@ namespace Orleans.Hosting.Kubernetes
                 {
                     if (!_enableMonitoring)
                     {
-                        // 等待在血压上,以避免旋转在一个紧绕的环圈。
+                        // 等待信号量，避免在紧密循环中空转。
                         await _pauseMonitoringSemaphore.WaitAsync(_shutdownToken.Token);
                         continue;
                     }
@@ -351,13 +351,13 @@ namespace Orleans.Hosting.Kubernetes
 
                         if (string.Equals(pod.Metadata.Name, _podName, StringComparison.Ordinal))
                         {
-                            // 永远不要这样宣布我们死亡
+                            // 绝不能以这种方式将自身宣布为死亡。
                             continue;
                         }
 
                         if (eventType == WatchEventType.Modified)
                         {
-                            // TODO: 记住正在重新启动/终止的播客的 silo 地址
+                            // TODO：记住正在重新启动或终止的 Pod 对应的 Silo 地址。
                         }
 
                         if (eventType == WatchEventType.Deleted)

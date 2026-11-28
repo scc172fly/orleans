@@ -6,7 +6,7 @@ namespace Orleans.Configuration
     public class SiloOptions
     {
         /// <summary>
-        /// 获取或设置 silo 名称。
+        /// 获取或设置 Silo 名称。
         /// </summary>
         public string SiloName { get; set; } = null!;
     }

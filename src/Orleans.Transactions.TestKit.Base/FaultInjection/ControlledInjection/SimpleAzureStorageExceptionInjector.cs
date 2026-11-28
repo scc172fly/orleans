@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 国家交易储存业务中受控 Azure 储存或一般例外。
+    /// 在事务状态存储操作中注入受控的 Azure 存储异常或一般异常。
     /// </summary>
     public partial class SimpleAzureStorageExceptionInjector : IControlledTransactionFaultInjector, ITransactionScopedFaultInjector
     {
@@ -29,7 +29,7 @@ namespace Orleans.Transactions.TestKit
         /// <summary>
         /// 初始化 <see cref="SimpleAzureStorageExceptionInjector"/> 类的新实例。
         /// </summary>
-        /// <param name="logger">日志器。</param>
+        /// <param name="logger">日志记录器。</param>
         public SimpleAzureStorageExceptionInjector(ILogger<SimpleAzureStorageExceptionInjector> logger)
         {
             this.logger = logger;
@@ -128,7 +128,7 @@ namespace Orleans.Transactions.TestKit
     }
 
     /// <summary>
-    /// 表示为交易测试注入的 Azure 储存例外。
+    /// 表示为事务测试注入的 Azure 存储异常。
     /// </summary>
     [GenerateSerializer]
     public class SimpleAzureStorageException : RequestFailedException
@@ -145,7 +145,7 @@ namespace Orleans.Transactions.TestKit
         /// 初始化 <see cref="SimpleAzureStorageException"/> 类的新实例。
         /// </summary>
         /// <param name="message">错误消息。</param>
-        /// <param name="innerException">造成这一例外的例外。</param>
+        /// <param name="innerException">导致此异常的异常。</param>
         public SimpleAzureStorageException(string message, Exception innerException) : base(message, innerException)
         {
         }
@@ -153,7 +153,7 @@ namespace Orleans.Transactions.TestKit
         /// <summary>
         /// 初始化 <see cref="SimpleAzureStorageException"/> 类的新实例。
         /// </summary>
-        /// <param name="status">答复的 HTTP 状态代码。</param>
+        /// <param name="status">响应的 HTTP 状态码。</param>
         /// <param name="message">错误消息。</param>
         public SimpleAzureStorageException(int status, string message) : base(status, message)
         {
@@ -162,9 +162,9 @@ namespace Orleans.Transactions.TestKit
         /// <summary>
         /// 初始化 <see cref="SimpleAzureStorageException"/> 类的新实例。
         /// </summary>
-        /// <param name="status">答复的 HTTP 状态代码。</param>
+        /// <param name="status">响应的 HTTP 状态码。</param>
         /// <param name="message">错误消息。</param>
-        /// <param name="innerException">造成这一例外的例外。</param>
+        /// <param name="innerException">导致此异常的异常。</param>
         public SimpleAzureStorageException(int status, string message, Exception innerException) : base(status, message, innerException)
         {
         }
@@ -172,19 +172,19 @@ namespace Orleans.Transactions.TestKit
         /// <summary>
         /// 初始化 <see cref="SimpleAzureStorageException"/> 类的新实例。
         /// </summary>
-        /// <param name="status">答复的 HTTP 状态代码。</param>
+        /// <param name="status">响应的 HTTP 状态码。</param>
         /// <param name="message">错误消息。</param>
-        /// <param name="errorCode">特定服务错误代码。</param>
-        /// <param name="innerException">造成这一例外的例外。</param>
+        /// <param name="errorCode">特定于服务的错误代码。</param>
+        /// <param name="innerException">导致此异常的异常。</param>
         public SimpleAzureStorageException(int status, string message, string errorCode, Exception innerException) : base(status, message, errorCode, innerException)
         {
         }
 
         /// <summary>
-        /// 从序列数据初始化了 <see cref="SimpleAzureStorageException"/> 类的新实例。
+        /// 从序列化数据初始化 <see cref="SimpleAzureStorageException"/> 类的新实例。
         /// </summary>
-        /// <param name="info">序列的例外数据。</param>
-        /// <param name="context">序列数据的来源或目的地的背景。</param>
+        /// <param name="info">已序列化的异常数据。</param>
+        /// <param name="context">有关序列化数据来源或目标的上下文。</param>
         [Obsolete("TThe serialization constructor pattern was made obsolete in modern versions of .NET. Use the other constructors instead.")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected SimpleAzureStorageException(SerializationInfo info, StreamingContext context) : base(info, context)

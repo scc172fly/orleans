@@ -18,9 +18,9 @@ namespace Orleans.Storage
 
 
         /// <summary>
-        /// 建筑师
+        /// 构造函数。
         /// </summary>
-        /// <param name="hashProviders">此处选取器使用的散列提供者。</param>
+        /// <param name="hashProviders">此选择器使用的哈希提供程序。</param>
         public StorageHasherPicker(IEnumerable<IHasher> hashProviders)
         {
             if (hashProviders == null)

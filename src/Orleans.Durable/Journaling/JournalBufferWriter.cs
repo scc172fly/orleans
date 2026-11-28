@@ -4,16 +4,16 @@ using Orleans.Serialization.Buffers;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 用于组装待批次的日记本的模拟日记缓冲的基准类 。
+/// 内存日志缓冲区的基类，用于组装待提交的日志批次。
 /// </summary>
 /// <remarks>
-/// 衍生类拥有物理输入框架。
-/// 水印, 这样呼叫者可以在写下一个条目时冲洗一个已承诺的前缀。
-/// <see cref="GetBuffer"/> 返回的缓冲卡住,必须留下的电话人拥有的快照
-/// 即使 <see cref="Reset"/> 或 <see cref="Dispose"/> 被调用,但该调用人寿命有效
-/// 在呼叫者处置返回的缓冲物之前。
-/// 尽管名称,但这类名称不执行存储 I/O 操作;在
-/// 调用者将缓冲带手牵向 <see cref="IJournalStorage"/>。
+/// 派生类负责物理条目成帧。此基类负责缓冲区及已提交长度的
+/// 水位标记，以便在写入另一个条目时调用方能够刷新已提交的前缀。
+/// <see cref="GetBuffer"/> 返回的缓冲区是由调用方拥有的固定快照，在调用方持有期间必须保持
+/// 有效，即使在调用方释放返回缓冲区之前调用了 <see cref="Reset"/> 或 <see cref="Dispose"/>
+/// 也是如此。
+/// 尽管名称如此，此类型不执行存储 I/O；它累积已编码日志条目，直到
+/// 调用方将缓冲区移交给 <see cref="IJournalStorage"/>。
 /// </remarks>
 public abstract class JournalBufferWriter : IDisposable, IBufferWriter<byte>
 {
@@ -25,29 +25,29 @@ public abstract class JournalBufferWriter : IDisposable, IBufferWriter<byte>
     private bool _disposed;
 
     /// <summary>
-    /// 为属于 <paramref name="streamId"/>的条目创建作家。
+    /// 为属于 <paramref name="streamId"/> 的条目创建写入器。
     /// </summary>
-    /// <param name="streamId">耐久的国家身份证</param>
-    /// <returns>指定状态的日记流写器。</returns>
+    /// <param name="streamId">持久化状态 ID。</param>
+    /// <returns>指定状态的日志流写入器。</returns>
     public JournalStreamWriter CreateJournalStreamWriter(JournalStreamId streamId) => new(streamId, this);
 
     /// <summary>
-    /// 获得累积日记的同步快照, 这些日记字节可以安全持续。
+    /// 获取可以安全持久化的累计日志字节的固定快照。
     /// </summary>
     /// <remarks>
-    /// 返回的缓冲剂即使在 <see cref="Reset"/> 或
-    /// <see cref="Dispose"/> 随后被调用。如果一个条目目前正在飞行,则不在其
-    /// 返回的缓冲剂。
+    /// 即使之后调用 <see cref="Reset"/> 或
+    /// <see cref="Dispose"/>，返回的缓冲区在调用方持有期间也必须保持有效。如果当前有在途条目，则将其排除在
+    /// 返回的缓冲区之外。
     /// </remarks>
     /// <returns>
-    /// 包含累积日记字节的 <see cref="ArcBuffer"/> 。调用者拥有并必须处置返回的缓冲。
+    /// 包含累计日志字节的 <see cref="ArcBuffer"/>。调用方拥有返回的缓冲区，并且必须释放它。
     /// </returns>
     public ArcBuffer GetBuffer() => GetCommittedBuffer();
 
     /// <summary>
-    /// 清除所有缓冲数据,以便作家可以再用于其他批次。
+    /// 清除所有缓冲数据，以便写入器可复用于另一个批次。
     /// </summary>
-    /// <remarks>这不能使 <see cref="GetBuffer"/>先前返回的缓冲带失效。</remarks>
+    /// <remarks>此操作不得使 <see cref="GetBuffer"/> 先前返回的缓冲区失效。</remarks>
     public void Reset()
     {
         lock (_lock)
@@ -60,7 +60,7 @@ public abstract class JournalBufferWriter : IDisposable, IBufferWriter<byte>
     }
 
     /// <summary>
-    /// 释放了作者使用的资源。
+    /// 释放此写入器使用的资源。
     /// </summary>
     public void Dispose()
     {
@@ -92,16 +92,16 @@ public abstract class JournalBufferWriter : IDisposable, IBufferWriter<byte>
     }
 
     /// <summary>
-    /// 获取当前输出编译器 。
+    /// 获取当前输出写入器。
     /// </summary>
-    /// <remarks>该作家只能安全地使用杂志缓冲作者生命周期方法。</remarks>
+    /// <remarks>仅在日志缓冲区写入器的生命周期方法中使用此写入器才是安全的。</remarks>
     protected IBufferWriter<byte> Output => _buffer;
 
     /// <summary>
-    /// 补丁格式自有框架字节, 位于活动条目中指定偏移处 。
+    /// 在活动条目的指定偏移处修补由格式拥有的成帧字节。
     /// </summary>
-    /// <param name="offset">中正行条目的偏移。</param>
-    /// <param name="value">替换字节。</param>
+    /// <param name="offset">活动条目中的偏移量。</param>
+    /// <param name="value">用于替换的字节。</param>
     protected void WriteAt(int offset, ReadOnlySpan<byte> value)
     {
         lock (_lock)
@@ -124,9 +124,9 @@ public abstract class JournalBufferWriter : IDisposable, IBufferWriter<byte>
     }
 
     /// <summary>
-    /// 在活动项中指定的偏移处获取字节 。
+    /// 获取活动条目的指定偏移处的一个字节。
     /// </summary>
-    /// <param name="offset">中正行条目的偏移。</param>
+    /// <param name="offset">活动条目中的偏移量。</param>
     protected byte GetEntryByte(int offset)
     {
         lock (_lock)
@@ -144,24 +144,24 @@ public abstract class JournalBufferWriter : IDisposable, IBufferWriter<byte>
     }
 
     /// <summary>
-    /// 写入格式化自有条目前缀,并准备有效载荷编译器。
+    /// 写入由格式拥有的条目前缀（如有），并准备有效载荷写入器。
     /// </summary>
-    /// <param name="streamId">耐久的国家身份证</param>
+    /// <param name="streamId">持久化状态 ID。</param>
     protected virtual void StartEntry(JournalStreamId streamId)
     {
     }
 
     /// <summary>
-    /// 写入格式化自有条目的后缀或补丁框字节。
+    /// 写入由格式拥有的条目后缀（如有），或修补成帧字节。
     /// </summary>
-    /// <param name="streamId">耐久的国家身份证</param>
+    /// <param name="streamId">持久化状态 ID。</param>
     protected abstract void FinishEntry(JournalStreamId streamId);
 
     /// <summary>
-    /// 附加一个格式上拥有的已退休或未知状态保存条目。
+    /// 追加由格式拥有的条目，以保留已退役或未知状态。
     /// </summary>
-    /// <param name="streamId">耐久的国家身份证</param>
-    /// <param name="entry">保存的条目。</param>
+    /// <param name="streamId">持久化状态 ID。</param>
+    /// <param name="entry">保留的条目。</param>
     protected virtual void WritePreservedEntry(JournalStreamId streamId, IPreservedJournalEntry entry)
     {
         throw new InvalidOperationException(
@@ -181,7 +181,7 @@ public abstract class JournalBufferWriter : IDisposable, IBufferWriter<byte>
     }
 
     /// <summary>
-    /// 获取任务,当活动条目关闭时完成,或者当没有活动条目时完成 <see langword="null"/> 。
+    /// 获取活动条目关闭时完成的任务；没有活动条目时为 <see langword="null"/>。
     /// </summary>
     internal Task? GetActiveEntryClosedTask()
     {
@@ -204,8 +204,8 @@ public abstract class JournalBufferWriter : IDisposable, IBufferWriter<byte>
     }
 
     /// <summary>
-    /// 获取当前承诺的字节计数,而不复制或钉住底部缓冲。
-    /// 用于诊断/仪器。
+    /// 获取当前已提交的字节数，不复制或固定底层缓冲区。
+    /// 用于诊断及指标采集。
     /// </summary>
     internal int CommittedLength
     {

@@ -3,7 +3,7 @@ using Orleans;
 namespace Orleans.Docs.Snippets.Serialization;
 
 // <surrogate_value_type>
-// 这是外国类型, 您无法控制 。
+// 这是无法由你控制的外部类型。
 public struct MyForeignLibraryValueType
 {
     public MyForeignLibraryValueType(int num, string str, DateTimeOffset dto)
@@ -18,8 +18,8 @@ public struct MyForeignLibraryValueType
     public DateTimeOffset DateTimeOffset { get; }
 }
 
-// 这是替代物, 将充当外国类型的替身。
-// 代孕国应使用平原字段而不是特性来改进性能。
+// 这是用于替代外部类型的代理类型（surrogate）。
+// 为获得更好的性能，代理类型应使用普通字段而非属性。
 [GenerateSerializer]
 public struct MyForeignLibraryValueTypeSurrogate
 {
@@ -33,7 +33,7 @@ public struct MyForeignLibraryValueTypeSurrogate
     public DateTimeOffset DateTimeOffset;
 }
 
-// 这是在代位和外国类型之间转换的转换器。
+// 这是在代理类型与外部类型之间进行转换的转换器。
 [RegisterConverter]
 public sealed class MyForeignLibraryValueTypeSurrogateConverter :
     IConverter<MyForeignLibraryValueType, MyForeignLibraryValueTypeSurrogate>
@@ -54,7 +54,7 @@ public sealed class MyForeignLibraryValueTypeSurrogateConverter :
 // </surrogate_value_type>
 
 // <surrogate_class_with_populator>
-// 外国类型不密封,允许其他类型继承。
+// 外部类型未密封，允许其他类型继承它。
 public class MyForeignLibraryType
 {
     public MyForeignLibraryType() { }
@@ -71,7 +71,7 @@ public class MyForeignLibraryType
     public DateTimeOffset DateTimeOffset { get; set; }
 }
 
-// 代位人的定义与上一个例子中的定义相同。
+// 代理类型的定义与前一个示例相同。
 [GenerateSerializer]
 public struct MyForeignLibraryTypeSurrogate
 {
@@ -85,7 +85,7 @@ public struct MyForeignLibraryTypeSurrogate
     public DateTimeOffset DateTimeOffset;
 }
 
-// 在转换器上安装 Iconverter 和 IPopulator 接口。
+// 在转换器上实现 IConverter 和 IPopulator 接口。
 [RegisterConverter]
 public sealed class MyForeignLibraryTypeSurrogateConverter :
     IConverter<MyForeignLibraryType, MyForeignLibraryTypeSurrogate>,
@@ -113,8 +113,8 @@ public sealed class MyForeignLibraryTypeSurrogateConverter :
     }
 }
 
-// 申请类型可以继承外国类型的申请,但前提是这些申请类型不密封
-// 自 Orleans 知道如何对它进行序列分类以来。
+// 如果外部类型未密封，应用程序类型就可以继承它，
+// 因为 Orleans 知道如何序列化它。
 [GenerateSerializer]
 public sealed class DerivedFromMyForeignLibraryType : MyForeignLibraryType
 {

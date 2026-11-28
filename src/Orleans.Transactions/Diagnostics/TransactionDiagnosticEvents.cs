@@ -489,7 +489,7 @@ internal static class TransactionDiagnosticEvents
             ImmutableArray<Guid> transactionIds,
             TransactionDiagnosticIdentity identity)
         {
-            // 观察者例外故意宣传,以便测试能够注入写字后的缺陷。
+            // 有意让观察者抛出的异常向上传播，以便测试注入写入后的故障。
             var evt = new StorageWriteCompleted(resource, eTag, batchSize, commitCount, transactionIds);
             evt.SetContext(identity, TransactionProtocolRole.Unknown, TransactionPhase.StorageWrite);
             Listener.Write(nameof(StorageWriteCompleted), evt);
@@ -1082,7 +1082,7 @@ internal static class TransactionDiagnosticEvents
         }
         catch
         {
-            // 恢复诊断是观察性的,不得影响交易处理。
+            // 恢复诊断仅用于观察，不得影响事务处理。
             return false;
         }
     }
@@ -1102,7 +1102,7 @@ internal static class TransactionDiagnosticEvents
         }
         catch (Exception)
         {
-            // 恢复诊断是观察性的。 StorageWriteCompleted 仍然是唯一的错误注射事件。
+            // 恢复诊断仅用于观察。StorageWriteCompleted 仍是唯一用于注入故障的事件。
         }
     }
 

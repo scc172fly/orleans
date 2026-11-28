@@ -1,9 +1,9 @@
 namespace DefaultCluster.Tests
 {
     /// <summary>
-    /// 用于错误处理测试的测试 grain 执行。
-    /// 这套 grain 模拟各种错误条件,以测试例外传播和超时情景。
-    /// 不是真的 Orleans grain - 用作本地测试错误案例的模拟。
+    /// 用于错误处理测试的测试 Grain 实现。
+    /// 此 Grain 模拟各种错误情况，以测试异常传播和超时场景。
+    /// 并非真实的 Orleans Grain，而是用于错误场景测试的本地模拟对象。
     /// </summary>
     internal class LocalErrorGrain
     {

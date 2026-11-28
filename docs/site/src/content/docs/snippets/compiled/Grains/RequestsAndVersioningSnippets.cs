@@ -21,10 +21,10 @@ namespace Documentation.Grains.Versioning.Compatibility
 [Version(2)]
 public interface IInventoryGrain : IGrainWithStringKey
 {
-    // 保留为第1版呼叫者。
+    // 为版本 1 的调用方保留。
     Task<int> ReserveAsync(string sku, int quantity);
 
-    // 添加到第二版调用器
+    // 为版本 2 的调用方添加。
     Task<ReservationResult> ReserveWithIdAsync(
         string operationId,
         string sku,
@@ -246,7 +246,7 @@ public sealed class QuoteGrain(IPriceFeed feed) : Grain, IQuoteGrain
 
     public override Task OnActivateAsync(CancellationToken cancellationToken)
     {
-        // 饲料在自己的线上点燃 OnPrice 。
+        // 数据源在其自身的线程上调用 OnPrice。
         _subscription = feed.Subscribe(this.GetPrimaryKeyString(), OnPrice);
         return Task.CompletedTask;
     }
@@ -259,7 +259,7 @@ public sealed class QuoteGrain(IPriceFeed feed) : Grain, IQuoteGrain
 
     public ValueTask<decimal> GetPrice() => ValueTask.FromResult(_price);
 
-    // 运行更新作为激活请求, 以便安全访问 grain 状态 。
+    // 将更新作为当前激活实例上的请求运行，此时可以安全访问 Grain 状态。
     private Task OnPrice(decimal price, CancellationToken cancellationToken) =>
         this.RunRequestAsync(
             static (state, _) => state.Grain._price = state.Price,
@@ -298,7 +298,7 @@ public sealed class QuoteGrain(IPriceFeed feed) : Grain, IQuoteGrain
         public ValueTask<DateTimeOffset> GetLastSeen() => ValueTask.FromResult(_lastSeen);
 
         // <run_request_options>
-// 心跳不会延长激活的寿命, 它们会在其他请求之间运行。
+// 心跳不会延长激活实例的生存期，并且在其他请求的执行轮次之间运行。
 private Task OnHeartbeat(DateTimeOffset timestamp, CancellationToken cancellationToken) =>
     this.RunRequestAsync(
         static (state, _) => state.Grain._lastSeen = state.Timestamp,
@@ -323,7 +323,7 @@ private Task OnHeartbeat(DateTimeOffset timestamp, CancellationToken cancellatio
     }
 
     // <receive_local_request>
-// 递增 IngestGrain柜台的请求。调用过滤器时将其视为 IIngestRequests.Increment。
+// 递增 IngestGrain 计数器的请求。调用筛选器将其识别为 IIngestRequests.Increment。
 internal sealed class IncrementRequest : Request, ILocalRequest
 {
     private readonly TaskCompletionSource _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -331,8 +331,8 @@ internal sealed class IncrementRequest : Request, ILocalRequest
 
     public Task Completion => _completion.Task;
 
-    // 一旦请求及其呼叫过滤器完成,或当激活拒绝请求时,接收结果。
-    // 这项任务保持了第一个结果。
+    // 请求及其调用筛选器完成时，或者激活实例拒绝请求时，接收其结果。
+    // 任务保留首次获得的结果。
     public void Complete(Response response)
     {
         if (response.Exception is { } exception)
@@ -370,7 +370,7 @@ internal sealed class IncrementRequest : Request, ILocalRequest
 
 public static class IngestRequests
 {
-    // 将请求送达启动程序,并返回一项任务,完成请求的结果。
+    // 将请求投递给激活实例，并返回一个随请求结果而完成的任务。
     public static Task Increment(IGrainContext activation)
     {
         var request = new IncrementRequest();

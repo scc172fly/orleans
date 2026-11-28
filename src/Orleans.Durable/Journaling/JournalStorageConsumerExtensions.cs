@@ -4,15 +4,15 @@ using Orleans.Serialization.Buffers;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 阅读日记存储数据的帮助方法。
+/// 用于读取日志存储数据的辅助方法。
 /// </summary>
 public static class JournalStorageConsumerExtensions
 {
     /// <summary>
-    /// 通知 <paramref name="consumer"/> 不再提供数据。
+    /// 通知 <paramref name="consumer"/> 不会再提供数据。
     /// </summary>
-    /// <param name="consumer">日记存储消费者</param>
-    /// <param name="metadata">与正在读取的日记数据相关的元数据,或 <see langword="null"/> 如果没有元数据。</param>
+    /// <param name="consumer">日志存储消费者。</param>
+    /// <param name="metadata">与正在读取的日志数据关联的元数据；如果没有元数据，则为 <see langword="null"/>。</param>
     public static void Complete(this IJournalStorageConsumer consumer, IJournalMetadata? metadata)
     {
         ArgumentNullException.ThrowIfNull(consumer);
@@ -23,12 +23,12 @@ public static class JournalStorageConsumerExtensions
     }
 
     /// <summary>
-    /// 用品 <paramref name="input"/> 至 <paramref name="consumer"/>。
+    /// 将 <paramref name="input"/> 提供给 <paramref name="consumer"/>。
     /// </summary>
-    /// <param name="consumer">日记存储消费者</param>
-    /// <param name="input">字节读取。</param>
-    /// <param name="metadata">与正在读取的日记数据相关的元数据,或 <see langword="null"/> 如果没有元数据。</param>
-    /// <param name="complete">是否通知消费者不再提供数据。如果 <see langword="false"/>,则消费者必须读取所有提供的字节。</param>
+    /// <param name="consumer">日志存储消费者。</param>
+    /// <param name="input">要读取的字节。</param>
+    /// <param name="metadata">与正在读取的日志数据关联的元数据；如果没有元数据，则为 <see langword="null"/>。</param>
+    /// <param name="complete">是否通知消费者不会再提供数据。如果为 <see langword="false"/>，消费者必须读取全部已提供的字节。</param>
     public static void Read(this IJournalStorageConsumer consumer, ReadOnlyMemory<byte> input, IJournalMetadata? metadata, bool complete)
     {
         ArgumentNullException.ThrowIfNull(consumer);
@@ -45,12 +45,12 @@ public static class JournalStorageConsumerExtensions
     }
 
     /// <summary>
-    /// 用品 <paramref name="input"/> 至 <paramref name="consumer"/>。
+    /// 将 <paramref name="input"/> 提供给 <paramref name="consumer"/>。
     /// </summary>
-    /// <param name="consumer">日记存储消费者</param>
-    /// <param name="input">字节读取。</param>
-    /// <param name="metadata">与正在读取的日记数据相关的元数据,或 <see langword="null"/> 如果没有元数据。</param>
-    /// <param name="complete">是否通知消费者不再提供数据。如果 <see langword="false"/>,则消费者必须读取所有提供的字节。</param>
+    /// <param name="consumer">日志存储消费者。</param>
+    /// <param name="input">要读取的字节。</param>
+    /// <param name="metadata">与正在读取的日志数据关联的元数据；如果没有元数据，则为 <see langword="null"/>。</param>
+    /// <param name="complete">是否通知消费者不会再提供数据。如果为 <see langword="false"/>，消费者必须读取全部已提供的字节。</param>
     public static void Read(this IJournalStorageConsumer consumer, ReadOnlySequence<byte> input, IJournalMetadata? metadata, bool complete)
     {
         ArgumentNullException.ThrowIfNull(consumer);
@@ -72,12 +72,12 @@ public static class JournalStorageConsumerExtensions
     }
 
     /// <summary>
-    /// 订购的用品 <paramref name="segments"/> 至 <paramref name="consumer"/>。
+    /// 将有序的 <paramref name="segments"/> 提供给 <paramref name="consumer"/>。
     /// </summary>
-    /// <param name="consumer">日记存储消费者</param>
-    /// <param name="segments">命令的字节读取。</param>
-    /// <param name="metadata">与正在读取的日记数据相关的元数据,或 <see langword="null"/> 如果没有元数据。</param>
-    /// <param name="complete">是否通知消费者不再提供数据。如果 <see langword="false"/>,则消费者必须读取所有提供的字节。</param>
+    /// <param name="consumer">日志存储消费者。</param>
+    /// <param name="segments">要读取的有序字节。</param>
+    /// <param name="metadata">与正在读取的日志数据关联的元数据；如果没有元数据，则为 <see langword="null"/>。</param>
+    /// <param name="complete">是否通知消费者不会再提供数据。如果为 <see langword="false"/>，消费者必须读取全部已提供的字节。</param>
     public static void Read(this IJournalStorageConsumer consumer, IEnumerable<ReadOnlyMemory<byte>> segments, IJournalMetadata? metadata, bool complete)
     {
         ArgumentNullException.ThrowIfNull(consumer);
@@ -113,25 +113,25 @@ public static class JournalStorageConsumerExtensions
     }
 
     /// <summary>
-    /// 读取 <paramref name="input"/> 的所有字节,并逐步将其供给到 <paramref name="consumer"/>。
+    /// 从 <paramref name="input"/> 读取所有字节，并将它们增量提供给 <paramref name="consumer"/>。
     /// </summary>
-    /// <param name="consumer">日记存储消费者</param>
+    /// <param name="consumer">日志存储消费者。</param>
     /// <param name="input">要读取的流。</param>
-    /// <param name="metadata">与正在读取的日记数据相关的元数据,或 <see langword="null"/> 如果没有元数据。</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>读取的字数 <paramref name="input"/>.</returns>
+    /// <param name="metadata">与正在读取的日志数据关联的元数据；如果没有元数据，则为 <see langword="null"/>。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>从 <paramref name="input"/> 读取的字节数。</returns>
     public static async ValueTask<long> ReadAsync(this IJournalStorageConsumer consumer, Stream input, IJournalMetadata? metadata, CancellationToken cancellationToken)
         => await consumer.ReadAsync(input, metadata, complete: true, cancellationToken).ConfigureAwait(false);
 
     /// <summary>
-    /// 读取 <paramref name="input"/> 的所有字节,并逐步将其供给到 <paramref name="consumer"/>。
+    /// 从 <paramref name="input"/> 读取所有字节，并将它们增量提供给 <paramref name="consumer"/>。
     /// </summary>
-    /// <param name="consumer">日记存储消费者</param>
+    /// <param name="consumer">日志存储消费者。</param>
     /// <param name="input">要读取的流。</param>
-    /// <param name="metadata">与正在读取的日记数据相关的元数据,或 <see langword="null"/> 如果没有元数据。</param>
-    /// <param name="complete">是否通知消费者不再提供数据。如果 <see langword="false"/>,则消费者必须读取所有提供的字节。</param>
-    /// <param name="cancellationToken">取消牌。</param>
-    /// <returns>读取的字数 <paramref name="input"/>.</returns>
+    /// <param name="metadata">与正在读取的日志数据关联的元数据；如果没有元数据，则为 <see langword="null"/>。</param>
+    /// <param name="complete">是否通知消费者不会再提供数据。如果为 <see langword="false"/>，消费者必须读取全部已提供的字节。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>从 <paramref name="input"/> 读取的字节数。</returns>
     public static async ValueTask<long> ReadAsync(this IJournalStorageConsumer consumer, Stream input, IJournalMetadata? metadata, bool complete, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(consumer);

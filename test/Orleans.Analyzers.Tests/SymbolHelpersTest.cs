@@ -51,8 +51,8 @@ public class SymbolHelpersTest
         var method = Assert.Single(type.GetMembers("Method"));
         var unattributed = consumer.GetTypeByMetadataName("Unattributed")!;
 
-        // 辅助器是内部的。 只使用它的存在超载而不添加朋友 API。
-        // 元数据属性没有语法: 将超载下放到位置会在这里丢弃 。
+        // 辅助方法为内部成员。在不新增友元 API 的前提下，仅验证判断是否存在的重载。
+        // 元数据特性不具有语法：此处如果委托给获取位置的重载，将抛出异常。
         var helperType = typeof(GenerateAliasAttributesAnalyzer).Assembly.GetType("Orleans.Analyzers.SymbolHelpers", throwOnError: true)!;
         var helperMethod = helperType.GetMethod(
             "HasAttribute",

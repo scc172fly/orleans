@@ -2,13 +2,13 @@
   <ItemGroup>
     <ApiProject Include="$(MSBuildThisFileDirectory)..\..\src\**\*.csproj"
                 Exclude="$(MSBuildThisFileDirectory)..\..\src\**\bin\**;$(MSBuildThisFileDirectory)..\..\src\**\obj\**;$(MSBuildThisFileDirectory)..\..\src\Orleans.Analyzers*\**;$(MSBuildThisFileDirectory)..\..\src\*.Analyzers\**;$(MSBuildThisFileDirectory)..\..\src\Orleans.CodeGenerator*\**" />
-    <!-- NuGet 并肩前进, 消除他们共同的依存关系。 -->
+    <!-- NuGet 一起遍历所有入口点，并对它们的共享依赖项去重。 -->
     <RestoreGraphProjectInputItems Include="@(ApiProject->'%(FullPath)')" />
   </ItemGroup>
 
   <Import Project="$(MSBuildToolsPath)\NuGet.targets" />
 
-  <!-- 每个 API 表面来自净10.00,或只针对较新框架的项目的纯11.0。 -->
+  <!-- 各 API 公开接口取自 net10.0；仅面向更新框架的项目则取自 net11.0。 -->
   <Target Name="SelectApiFramework">
     <MSBuild Projects="@(ApiProject)" Targets="GetTargetFrameworks" BuildInParallel="true">
       <Output TaskParameter="TargetOutputs" ItemName="_ApiProjectFrameworks" />
@@ -27,7 +27,7 @@
              BuildInParallel="true" />
   </Target>
 
-  <!-- 只有在整个建筑成功后,才使用其已完成的集会和参考材料产生。 -->
+  <!-- 仅在整个构建成功之后，使用已生成的程序集及其引用进行生成。 -->
   <Target Name="GenerateApi" DependsOnTargets="Build">
     <MSBuild Projects="@(ApiBuildProject)"
              Targets="GenAPIGenerateReferenceAssemblySource"

@@ -29,7 +29,7 @@ public sealed class TaskIdJsonTests
                 var reflected = JsonSerializer.Serialize(holder);
                 var generated = JsonSerializer.Serialize(holder, TaskIdJsonTestContext.Default.TaskIdHolder);
 
-                // 两种序列器都以数值和属性名称来写出识别符号的卡通字符串。
+                // 两种序列化器均以标识符的规范字符串写入值及属性名称。
                 var canonical = JsonSerializer.Serialize(taskId.ToString());
                 Assert.Equal("{\"Id\":" + canonical + ",\"Optional\":" + canonical + ",\"Counts\":{" + canonical + ":1}}", reflected);
                 Assert.Equal(reflected, generated);
@@ -60,7 +60,7 @@ public sealed class TaskIdJsonTests
     [Fact]
     public void TaskIdsWithAnyWellFormedTextRoundTripAndUnpairedSurrogatesAreRejected()
     {
-        // 代位范围附近和内部的字符, 所以各区间有对对, 平面上没有偏差的半分, 普通文字。
+        // 采用代理项范围附近和范围内的字符，使各段包含代理对、未配对的代理项以及普通文本。
         var character = Gen.OneOf(Gen.Char['\uD7FE', '\uE001'], Gen.Char["ab/\\"]);
         var segment = character.Array[1, 4].Select(static characters => new string(characters));
         segment.Array[1, 3].Sample(
@@ -68,7 +68,7 @@ public sealed class TaskIdJsonTests
             {
                 if (!segments.All(IsWellFormed))
                 {
-                    // 每一个构建或解析识别码的方法都拒绝错误的文本, 所以没有编码可以取代它。
+                    // 构建或解析标识符的所有方式均拒绝格式错误的文本，因此不会由编码过程替换该文本。
                     var malformed = Array.Find(segments, static segment => !IsWellFormed(segment))!;
                     Assert.ThrowsAny<ArgumentException>(() => TaskId.CreateRoot(malformed));
                     Assert.ThrowsAny<ArgumentException>(() => TaskId.CreateRoot("root").Child(malformed));
@@ -83,7 +83,7 @@ public sealed class TaskIdJsonTests
                     taskId = taskId.Child(child);
                 }
 
-                // 数值和字典键,通过 JSONUTF-8 编码的圆曲脚,不改变。
+                // 值与字典键均可通过 JSON 的 UTF-8 编码往返转换且保持不变。
                 var holder = new TaskIdHolder(taskId, taskId, new() { [taskId] = 1 });
                 var json = JsonSerializer.Serialize(holder, TaskIdJsonTestContext.Default.TaskIdHolder);
                 var read = JsonSerializer.Deserialize(json, TaskIdJsonTestContext.Default.TaskIdHolder)!;

@@ -20,68 +20,68 @@ namespace Orleans.Serialization.Cloning
     public interface IDeepCopierProvider
     {
         /// <summary>
-        /// 获得一个能复制类型 <typeparamref name="T"/>的深部复印机。
+        /// 获取能够复制 <typeparamref name="T"/> 类型实例的深拷贝器。
         /// </summary>
-        /// <typeparam name="T">由复印机支持的类型。</typeparam>
-        /// <returns>能够复制类型实例的深层复印机 <typeparamref name="T"/>.</returns>
+        /// <typeparam name="T">拷贝器支持的类型。</typeparam>
+        /// <returns>能够复制 <typeparamref name="T"/> 类型实例的深拷贝器。</returns>
         IDeepCopier<T> GetDeepCopier<T>();
 
         /// <summary>
-        /// 获得一个能够复制类型 <typeparamref name="T"/>的深部复印机,或者如果找不到合适的复印机则返回 <see langword="null"/> 。
+        /// 获取能够复制 <typeparamref name="T"/> 类型实例的深拷贝器；若未找到合适的拷贝器，则返回 <see langword="null"/>。
         /// </summary>
-        /// <typeparam name="T">由复印机支持的类型。</typeparam>
-        /// <returns>能够复制类型实例的深层复印机 <typeparamref name="T"/>,或 <see langword="null"/> 如果找不到适当的复印机。</returns>
+        /// <typeparam name="T">拷贝器支持的类型。</typeparam>
+        /// <returns>能够复制 <typeparamref name="T"/> 类型实例的深拷贝器；若未找到合适的拷贝器，则为 <see langword="null"/>。</returns>
         IDeepCopier<T>? TryGetDeepCopier<T>();
 
         /// <summary>
-        /// 获得一个能复制类型 <paramref name="type"/>的深部复印机。
+        /// 获取能够复制 <paramref name="type"/> 类型实例的深拷贝器。
         /// </summary>
         /// <param name="type">
-        /// 由返回的复印机支持的类型 。
+        /// 返回的拷贝器所支持的类型。
         /// </param>
-        /// <returns>能够复制类型实例的深层复印机 <paramref name="type"/>.</returns>
+        /// <returns>能够复制 <paramref name="type"/> 类型实例的深拷贝器。</returns>
         IDeepCopier GetDeepCopier(Type type);
 
         /// <summary>
-        /// 获得一个能够复制类型 <paramref name="type"/>的深部复印机,或者如果找不到合适的复印机则返回 <see langword="null"/> 。
+        /// 获取能够复制 <paramref name="type"/> 类型实例的深拷贝器；若未找到合适的拷贝器，则返回 <see langword="null"/>。
         /// </summary>
         /// <param name="type">
-        /// 由返回的复印机支持的类型 。
+        /// 返回的拷贝器所支持的类型。
         /// </param>
-        /// <returns>能够复制类型实例的深层复印机 <paramref name="type"/>,或 <see langword="null"/> 如果找不到适当的复印机。</returns>
+        /// <returns>能够复制 <paramref name="type"/> 类型实例的深拷贝器；若未找到合适的拷贝器，则为 <see langword="null"/>。</returns>
         IDeepCopier? TryGetDeepCopier(Type type);
 
         /// <summary>
-        /// 获得一个能够复制类型 <typeparamref name="T"/>实例的基型复印机。
+        /// 获取能够复制 <typeparamref name="T"/> 类型实例的基类型拷贝器。
         /// </summary>
         /// <typeparam name="T">
-        /// 由返回的复印机支持的类型 。
+        /// 返回的拷贝器所支持的类型。
         /// </typeparam>
-        /// <returns>能够复制类型实例的基型复印机 <typeparamref name="T"/>.</returns>
+        /// <returns>能够复制 <typeparamref name="T"/> 类型实例的基类型拷贝器。</returns>
         IBaseCopier<T> GetBaseCopier<T>() where T : class;
     }
 
     /// <summary>
-    /// 深影印机的标记类型。
+    /// 深拷贝器的标记类型。
     /// </summary>
     public interface IDeepCopier
     {
         /// <summary>
-        /// 创建提供未输入的深重输入副本。 此类型必须仍然与复制实例匹配!
+        /// 对提供的无类型输入创建深拷贝。输入的实际类型仍必须与拷贝器实例匹配！
         /// </summary>
         [return: NotNullIfNotNull(nameof(input))]
         object? DeepCopy(object? input, CopyContext context);
     }
 
     /// <summary>
-    /// 深影印件机的标记界面,这些机型可以选择浅可复制。
+    /// 用于可能支持浅拷贝的类型的深拷贝器的标记接口。
     /// </summary>
     public interface IOptionalDeepCopier : IDeepCopier
     {
         /// <summary>
-        /// 如果类型为浅可复制,则返回真实。
+        /// 如果类型可以浅拷贝，则返回 true。
         /// </summary>
-        /// <returns><see langword="true"/> 如果该类型是浅可复制的;否则, <see langword="false"/>。</returns>
+        /// <returns><see langword="true"/> 表示该类型可浅拷贝；否则为 <see langword="false"/>。</returns>
         bool IsShallowCopyable();
     }
 
@@ -95,7 +95,7 @@ namespace Orleans.Serialization.Cloning
     }
 
     /// <summary>
-    /// 深影印件机的底部类型,这些机型实际上可以浅显可复制。
+    /// 实际支持浅拷贝的类型所使用的深拷贝器基类型。
     /// </summary>
     public class ShallowCopier<T> : IOptionalDeepCopier, IDeepCopier<T>
     {
@@ -112,19 +112,19 @@ namespace Orleans.Serialization.Cloning
     }
 
     /// <summary>
-    /// 提供创建类型 <typeparamref name="T"/>物体克隆的功能。
+    /// 提供创建 <typeparamref name="T"/> 类型对象副本的功能。
     /// </summary>
-    /// <typeparam name="T">此实例可复制的对象类型。</typeparam>
+    /// <typeparam name="T">此实例能够复制的对象类型。</typeparam>
     /// <seealso cref="Orleans.Serialization.Cloning.IDeepCopier" />
     public interface IDeepCopier<T> : IDeepCopier
     {
         /// <summary>
-        /// 创建所提供输入的深度副本。
+        /// 创建给定输入的深拷贝。
         /// </summary>
         /// <param name="input">输入。</param>
         /// <param name="context">上下文。</param>
         /// <returns>
-        /// <paramref name="input"/>或 <see langword="null"/> 的复制件,如果 <paramref name="input"/> 是 <see langword="null"/>。
+        /// <paramref name="input"/> 的副本；或者返回 <see langword="null"/>（当 <paramref name="input"/> 为 <see langword="null"/> 时）。
         /// </returns>
         [return: NotNullIfNotNull(nameof(input))]
         T? DeepCopy(T? input, CopyContext context);
@@ -134,30 +134,30 @@ namespace Orleans.Serialization.Cloning
     }
 
     /// <summary>
-    /// 底型复印机的标记类型。
+    /// 基类型拷贝器的标记类型。
     /// </summary>
     public interface IBaseCopier
     {
     }
 
     /// <summary>
-    /// 提供将成员从一个物体复制到另一个物体的功能。
+    /// 提供将成员从一个对象复制到另一个对象的功能。
     /// </summary>
-    /// <typeparam name="T">此实例可复制的对象类型。</typeparam>
+    /// <typeparam name="T">此实例能够复制的对象类型。</typeparam>
     /// <seealso cref="Orleans.Serialization.Cloning.IBaseCopier" />
     public interface IBaseCopier<T> : IBaseCopier where T : class
     {
         /// <summary>
-        /// 克隆成员从 <paramref name="input"/> 复制至 <paramref name="output"/>。
+        /// 克隆 <paramref name="input"/> 的成员并将其复制到 <paramref name="output"/>。
         /// </summary>
         /// <param name="input">输入。</param>
-        /// <param name="output">输出。</param>
+        /// <param name="output">输出对象。</param>
         /// <param name="context">上下文。</param>
         void DeepCopy(T input, T output, CopyContext context);
     }
 
     /// <summary>
-    /// 表示 <see cref="IDeepCopier"/> 执行对所有子类型都具有通用性。
+    /// 表示 <see cref="IDeepCopier"/> 的实现适用于所有子类型。
     /// </summary>
     public interface IDerivedTypeCopier : IDeepCopier
     {
@@ -169,42 +169,42 @@ namespace Orleans.Serialization.Cloning
     public interface IGeneralizedCopier : IDeepCopier
     {
         /// <summary>
-        /// 返回一个值,以显示所提供的类型是否得到此执行的支持。
+        /// 返回一个值，指示此实现是否支持给定类型。
         /// </summary>
         /// <param name="type">类型。</param>
-        /// <returns><see langword="true"/> ,如果该类型得到这种执行的支持的类型;否则, <see langword="false"/>。</returns>
+        /// <returns><see langword="true"/> 表示此实现支持该类型；否则为 <see langword="false"/>。</returns>
         bool IsSupportedType(Type type);
     }
 
     /// <summary>
-    /// 提供功能,用于创建支持特定类型的 <see cref="IDeepCopier"/> 实例。
+    /// 提供创建支持给定类型的 <see cref="IDeepCopier"/> 实例的功能。
     /// </summary>
     public interface ISpecializableCopier
     {
         /// <summary>
-        /// 返回一个值,以显示所提供的类型是否得到此执行的支持。
+        /// 返回一个值，指示此实现是否支持给定类型。
         /// </summary>
         /// <param name="type">类型。</param>
-        /// <returns><see langword="true"/> ,如果该类型得到这种执行的支持的类型;否则, <see langword="false"/>。</returns>
+        /// <returns><see langword="true"/> 表示此实现支持该类型；否则为 <see langword="false"/>。</returns>
         bool IsSupportedType(Type type);
 
         /// <summary>
-        /// 获得支持指定类型的 <see cref="IDeepCopier"/> 执行。
+        /// 获取支持指定类型的 <see cref="IDeepCopier"/> 实现。
         /// </summary>
         /// <param name="type">类型。</param>
-        /// <returns>A 音 A <see cref="IDeepCopier"/> 支持指定类型的执行。</returns>
+        /// <returns>支持指定类型的 <see cref="IDeepCopier"/> 实现。</returns>
         IDeepCopier GetSpecializedCopier(Type type);
     }
 
     /// <summary>
-    /// 提供了复制操作的背景。
+    /// 提供拷贝操作的上下文。
     /// </summary>
     /// <seealso cref="System.IDisposable" />
     /// <remarks>
     /// 初始化 <see cref="CopyContext"/> 类的新实例。
     /// </remarks>
-    /// <param name="codecProvider">编码器提供者。</param>
-    /// <param name="onDisposed">当处理此上下文时要呼叫的动作 。</param>
+    /// <param name="codecProvider">编解码器提供程序。</param>
+    /// <param name="onDisposed">释放此上下文时调用的操作。</param>
     public sealed class CopyContext(CodecProvider codecProvider, Action<CopyContext> onDisposed) : IDisposable
     {
         private readonly Dictionary<object, object> _copies = new(ReferenceEqualsComparer.Default);
@@ -212,18 +212,18 @@ namespace Orleans.Serialization.Cloning
         private readonly Action<CopyContext> _onDisposed = onDisposed;
 
         /// <summary>
-        /// 如果提供对象存在,则返回该对象先前记录的复制件。
+        /// 返回先前记录的给定对象的副本（如果存在）。
         /// </summary>
         /// <typeparam name="T">对象类型。</typeparam>
-        /// <param name="original">原始对象</param>
-        /// <param name="result">以前记录的 <paramref name="original"/>副本。</param>
-        /// <returns><see langword="true"/> ,如果已记录 <paramref name="original"/> 副本,则以其他方式 <see langword="false"/> 。</returns>
+        /// <param name="original">原始对象。</param>
+        /// <param name="result">先前记录的 <paramref name="original"/> 的副本。</param>
+        /// <returns><see langword="true"/> 表示已记录 <paramref name="original"/> 的副本，否则为 <see langword="false"/>。</returns>
         /// <remarks>
-        /// <see langword="null"/> 原件作为已复制的处理,并产生 <see langword="null"/> 结果。
-        /// 对于非null 原件, <see langword="true"/> 返回保证不null 结果。
+        /// <see langword="null"/> 原始对象视为已经拷贝，并产生 <see langword="null"/> 结果。
+        /// 对于非 null 的原始对象，返回 <see langword="true"/> 可保证结果非 null。
         /// </remarks>
         /// <exception cref="InvalidCastException">
-        /// 录音副本不可转让给 <typeparamref name="T"/>。
+        /// 记录的副本无法赋值给 <typeparamref name="T"/>。
         /// </exception>
         public bool TryGetCopy<T>([NotNullWhen(false)] object? original, out T? result) where T : class
         {
@@ -250,9 +250,9 @@ namespace Orleans.Serialization.Cloning
                 + $"'{value?.GetType().ToString() ?? "null"}' and cannot be returned as '{typeof(T)}'.");
 
         /// <summary>
-        /// 记录一个物体的副本。
+        /// 记录对象的副本。
         /// </summary>
-        /// <param name="original">原始价值。</param>
+        /// <param name="original">原始值。</param>
         /// <param name="copy"><paramref name="original"/> 的副本。</param>
         public void RecordCopy(object original, object copy)
         {
@@ -260,16 +260,16 @@ namespace Orleans.Serialization.Cloning
         }
 
         /// <summary>
-        /// 重设此实例 。
+        /// 重置此实例。
         /// </summary>
         public void Reset() => _copies.Clear();
 
         /// <summary>
-        /// 所提供的价值副本。
+        /// 复制给定值。
         /// </summary>
-        /// <typeparam name="T">值类型。</typeparam>
-        /// <param name="value">数值。</param>
-        /// <returns>提供价值的副本。</returns>
+        /// <typeparam name="T">要复制的值的类型。</typeparam>
+        /// <param name="value">值。</param>
+        /// <returns>给定值的副本。</returns>
         [return: NotNullIfNotNull(nameof(value))]
         public T? DeepCopy<T>(T? value)
         {
@@ -380,7 +380,7 @@ namespace Orleans.Serialization.Cloning
     }
 
     /// <summary>
-    /// 将非类型复印机转换为强型复印机。
+    /// 将无类型拷贝器转换为强类型拷贝器。
     /// </summary>
     internal sealed class UntypedCopierWrapper<T>(IDeepCopier copier) : IDeepCopier<T>
     {
@@ -394,7 +394,7 @@ namespace Orleans.Serialization.Cloning
     }
 
     /// <summary>
-    /// <see cref="CopyContext"/> 实例对象集合。
+    /// <see cref="CopyContext"/> 实例的对象池。
     /// </summary>
     public sealed class CopyContextPool : IDisposable
     {
@@ -403,7 +403,7 @@ namespace Orleans.Serialization.Cloning
         /// <summary>
         /// 初始化 <see cref="CopyContextPool"/> 类的新实例。
         /// </summary>
-        /// <param name="codecProvider">编码器提供者。</param>
+        /// <param name="codecProvider">编解码器提供程序。</param>
         public CopyContextPool(CodecProvider codecProvider)
         {
             var sessionPoolPolicy = new PoolPolicy(codecProvider, Return);
@@ -411,16 +411,16 @@ namespace Orleans.Serialization.Cloning
         }
 
         /// <summary>
-        /// 获得 <see cref="CopyContext"/>。
+        /// 获取一个 <see cref="CopyContext"/>。
         /// </summary>
-        /// <returns>A <see cref="CopyContext"/>.</returns>
+        /// <returns>一个 <see cref="CopyContext"/>。</returns>
         public CopyContext GetContext() => _pool.Get();
 
         /// <inheritdoc/>
         public void Dispose() => _pool.Dispose();
 
         /// <summary>
-        /// 返回该集合的指定复制上下文。
+        /// 将指定拷贝上下文归还对象池。
         /// </summary>
         /// <param name="context">上下文。</param>
         private void Return(CopyContext context) => _pool.Return(context);

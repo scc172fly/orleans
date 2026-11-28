@@ -8,7 +8,7 @@ using Orleans.Runtime;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 存储与特定 silo有关的所有流
+    /// 存储与特定 Silo 关联的所有流。
     /// </summary>
     internal class StreamDirectory : IAsyncDisposable
     {
@@ -47,7 +47,7 @@ namespace Orleans.Streams
 
         internal void Clear()
         {
-            // 这是快速临时解决办法,用于对流资源流失进行解阻测试。
+            // 这是用于解除流资源泄漏测试阻塞的临时解决方案。
             allStreams.Clear();
         }
 

@@ -12,7 +12,7 @@ namespace Orleans.Durable.Messaging;
 
 internal sealed partial class Outbox
 {
-    // 条目一旦完整写作记录了序列号,即为耐久。
+    // 条目在已完成的写入捕获其序列号后即已持久化。
     private long _lastSequence;
     private long _capturedSequence;
     private long _durableSequence;
@@ -91,7 +91,7 @@ internal sealed partial class Outbox
 
     private void Add(OutboxEntry entry)
     {
-        // 发送每个条目的发送时间都贴上印章 限制其重试
+        // 发送操作为每个条目标记发送时间，以此限定其重试期限。
         Debug.Assert(entry.State.SentAt is not null);
         _messages.Add(entry.MessageId, entry);
         ReportDepth(1);
@@ -106,10 +106,10 @@ internal sealed partial class Outbox
     }
 }
 
-/// <summary>更改发件箱日记状态。</summary>
+/// <summary>发件箱日志状态的一项变更。</summary>
 /// <remarks>
-/// 案件识别特征遵循申报顺序,是日记格式的一部分。 JSON,每个案件都与
-/// <c>kind</c>,其 <see cref="OutboxCommandClassifier"/> 读作选择案件。
+/// 分支标识符遵循声明顺序，是日志格式的一部分。JSON 中的每个分支均以其
+/// <c>kind</c> 开头，<see cref="OutboxCommandClassifier"/> 读取该值以选择分支。
 /// </remarks>
 [GenerateSerializer, Alias("Orleans.Durable.Messaging.OutboxCommand")]
 [JsonUnion(TypeClassifier = typeof(OutboxCommandClassifier))]
@@ -121,7 +121,7 @@ internal union OutboxCommand(
     OutboxCommand.RemoveDeadLetters,
     OutboxCommand.Snapshot)
 {
-    /// <summary>阶段发送信息, 发送日记本全部发出。</summary>
+    /// <summary>暂存一条消息，发件箱将其完整内容记入日志。</summary>
     [GenerateSerializer, Alias("Orleans.Durable.Messaging.OutboxCommand.Enqueue")]
     internal sealed class Enqueue(OutboxMessage message, OutboxMessageState state)
     {
@@ -132,7 +132,7 @@ internal union OutboxCommand(
         public string Kind => "enqueue";
     }
 
-    /// <summary>阶段性电文由 <see cref="IOutboxMessageSource"/> 提供,仅记录其身份。</summary>
+    /// <summary>暂存由 <see cref="IOutboxMessageSource"/> 提供的消息，仅将其标识记入日志。</summary>
     [GenerateSerializer, Alias("Orleans.Durable.Messaging.OutboxCommand.EnqueueReference")]
     internal sealed class EnqueueReference(OutboxMessageReference reference, OutboxMessageState state)
     {
@@ -153,7 +153,7 @@ internal union OutboxCommand(
         public string Kind => "retry";
     }
 
-    /// <summary>删除一个待发信件, 当发件箱用死字母编号时记录其已写成的文字 。</summary>
+    /// <summary>移除待处理消息；如果发件箱已将消息转为死信，则记录其死信。</summary>
     [GenerateSerializer, Alias("Orleans.Durable.Messaging.OutboxCommand.Retire")]
     internal sealed class Retire(MessageId messageId, OutboxDeadLetterRecord? deadLetter = null)
     {
@@ -173,7 +173,7 @@ internal union OutboxCommand(
         public string Kind => "removeDeadLetters";
     }
 
-    /// <summary>替换发件箱的状况。</summary>
+    /// <summary>替换发件箱的状态。</summary>
     [GenerateSerializer, Alias("Orleans.Durable.Messaging.OutboxCommand.Snapshot")]
     internal sealed class Snapshot(OutboxEntry[] messages, OutboxDeadLetterRecord[] deadLetters)
     {
@@ -185,7 +185,7 @@ internal union OutboxCommand(
     }
 }
 
-/// <summary>选择 <see cref="OutboxCommand"/> 由 <c>kind</c> 中各 JSON 使用案件线索。</summary>
+/// <summary>选择一个 <see cref="OutboxCommand"/> 分支，依据是每个 JSON 分支开头的 <c>kind</c>。</summary>
 internal sealed class OutboxCommandClassifier : JsonTypeClassifierFactory
 {
     public override bool CanClassify(JsonTypeClassifierContext context) => context.DeclaringType == typeof(OutboxCommand);
@@ -221,7 +221,7 @@ internal sealed class OutboxCommandClassifier : JsonTypeClassifierFactory
     }
 }
 
-/// <summary>信息 <see cref="IOutboxMessageSource"/> 提供。</summary>
+/// <summary>标识一条由 <see cref="IOutboxMessageSource"/> 提供的消息。</summary>
 [GenerateSerializer, Alias("Orleans.Durable.Messaging.OutboxMessageReference")]
 internal readonly struct OutboxMessageReference
 {
@@ -231,7 +231,7 @@ internal readonly struct OutboxMessageReference
 [GenerateSerializer, Alias("Orleans.Durable.Messaging.OutboxEntry")]
 internal sealed class OutboxEntry
 {
-    // 完全设置了“消息和参考”的一栏。一个没有有效载荷或接收器的引用条目日记:其来源提供电文。
+    // Message 与 Reference 恰好设置其中之一。引用条目不将有效载荷或接收方记入日志：其来源提供消息。
     [Id(0)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public OutboxMessage? Message { get; init; }
@@ -246,8 +246,8 @@ internal sealed class OutboxEntry
     [JsonIgnore] public long Sequence { get; init; }
 
     /// <summary>
-    /// 获取拥有引用条目消息的源代码,在发送或首次实现后解决
-    /// 回收; 对于普通条目或回收的参考文献,没有源提供的 <see langword="null"/> 。
+    /// 获取拥有引用条目消息的来源，在发送或恢复后首次实体化消息时解析；
+    /// 对普通条目或没有来源提供的已恢复引用，返回 <see langword="null"/>。
     /// </summary>
     [field: NonSerialized]
     [JsonIgnore] public IOutboxMessageSource? Source { get; set; }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Orleans
 {
     /// <summary>
-    /// 表示启动 grain 停用的理由。
+    /// 表示开始停用 Grain 的原因。
     /// </summary>
     public readonly struct DeactivationReason : IEquatable<DeactivationReason>
     {
@@ -12,10 +12,10 @@ namespace Orleans
         /// 初始化 <see cref="DeactivationReason"/> 结构的新实例。
         /// </summary>
         /// <param name="code">
-        /// 识别解除功能原因的代码
+        /// 标识停用原因的代码。
         /// </param>
         /// <param name="text">
-        /// 解除作用的描述性理由。
+        /// 对停用原因的描述。
         /// </param>
         public DeactivationReason(DeactivationReasonCode code, string text)
         {
@@ -28,13 +28,13 @@ namespace Orleans
         /// 初始化 <see cref="DeactivationReason"/> 结构的新实例。
         /// </summary>
         /// <param name="code">
-        /// 识别解除功能原因的代码
+        /// 标识停用原因的代码。
         /// </param>
         /// <param name="exception">
-        /// 导致解除功能的例外
+        /// 导致停用的异常。
         /// </param>
         /// <param name="text">
-        /// 解除作用的描述性理由。
+        /// 对停用原因的描述。
         /// </param>
         public DeactivationReason(DeactivationReasonCode code, Exception? exception, string text)
         {
@@ -44,17 +44,17 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 获得解除作用的描述性理由。
+        /// 获取停用原因的描述。
         /// </summary>
         public string Description { get; }
 
         /// <summary>
-        /// 获得停止运行的理由。
+        /// 获取停用原因。
         /// </summary>
         public DeactivationReasonCode ReasonCode { get; }
 
         /// <summary>
-        /// 获得导致停用的特殊情形。
+        /// 获取导致停用的异常。
         /// </summary>
         public Exception? Exception { get; }
 
@@ -71,12 +71,12 @@ namespace Orleans
         public override int GetHashCode() => HashCode.Combine(ReasonCode, Description, Exception);
 
         /// <summary>
-        /// 确定两个停止作用的理由是否相等。
+        /// 判断两个停用原因是否相等。
         /// </summary>
         public static bool operator ==(DeactivationReason left, DeactivationReason right) => left.Equals(right);
 
         /// <summary>
-        /// 确定两个解除功能的理由是否不平等。
+        /// 判断两个停用原因是否不相等。
         /// </summary>
         public static bool operator !=(DeactivationReason left, DeactivationReason right) => !left.Equals(right);
 

@@ -1,34 +1,34 @@
 <a id="microsoft-orleans-runtime"></a>
 
-# Microsoft Orleans 运行时间
+# Microsoft Orleans 运行时
 
 <a id="introduction"></a>
 
 ## 简介
-Microsoft Orleans 运行时间是 Orleans的核心服务器侧部。它主机和执行 grains,管理 grain 生命周期,并为一个功能化的 Orleans 服务器提供所有运行时所需的服务(silo)。
+Microsoft Orleans Runtime 是 Orleans 的核心服务器端组件。它托管并执行 Grain，管理 Grain 生命周期，并为正常运行的 Orleans 服务器（Silo）提供所有必要的运行时服务。
 
 <a id="getting-started"></a>
 
 ## 入门
-要使用此软件包, 请通过 NuGet安装 :
+要使用此包，请通过 NuGet 安装：
 
 ```shell
 dotnet add package Microsoft.Orleans.Runtime
 ```
 
-当您引用 Orleans 服务器元包时, 此软件包会自动包含 。
+引用 Orleans Server 元包时，会自动包含此包。
 
 <a id="grain-construction"></a>
 
-## Grain 建筑工程
+## Grain 构造
 
-生成的 grain 登记保存了用于启动剪裁和 NativeAOT 应用程序的公共构建元数据。默认 grain 激活器使用依赖性注射来选择公共构建人、荣誉 `ActivatorUtilitiesConstructorAttribute`,并解决每个启动服务范围的依赖关系。手册 grain 配置使用 `GrainTypeOptions.AddClass(typeof(MyGrain))`;手动标记配置使用 `TypeManifestOptions.AddInterfaceImplementation(typeof(MyGrain))`。两者都保留相同的构建元数据。直接 `Classes` 收集访问和从任意字典中建造一个 `GrainClassMap` 要求呼叫器单独保存建构人并发出三联警告。
+生成的 Grain 注册保留公共构造函数元数据，以支持裁剪及 NativeAOT 应用程序中的激活。默认 Grain 激活器通过依赖注入选择公共构造函数，遵循 `ActivatorUtilitiesConstructorAttribute`，并从每个激活实例的服务作用域解析依赖项。手动 Grain 配置使用 `GrainTypeOptions.AddClass(typeof(MyGrain))`；手动清单配置使用 `TypeManifestOptions.AddInterfaceImplementation(typeof(MyGrain))`。二者均保留相同的构造函数元数据。直接访问 `Classes` 集合以及根据任意字典构造 `GrainClassMap` 时，调用方需要单独保留构造函数；这两种操作会产生裁剪警告。
 
 <a id="file-grain-storage"></a>
 
-## 文件 grain 存储
+## 文件 Grain 存储
 
-运行时包括一个基于文件的 grain 存储供应商,用于本地、单个silo 开发和测试。它每个 grain 国家记录存有一个二进制文件,并使用长期存在的ETags来进行乐观的同价计算。
+运行时包含基于文件的 Grain 存储提供程序，用于本地单 Silo 开发与测试。它为每条 Grain 状态记录存储一个二进制文件，并使用持久化 ETag 实现乐观并发控制。
 
 ```csharp
 using Orleans.Persistence.FileStorage;
@@ -61,18 +61,18 @@ await builder.Build().RunAsync();
 
 <a id="documentation"></a>
 
-## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
-关于更全面的文件,请参见:
+## 文档
+有关更全面的文档，请参阅：
 - [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
 - [服务器配置](https://dotnet.github.io/orleans/docs/host/configuration-guide/server-configuration/)
 - [Silo 生命周期](https://dotnet.github.io/orleans/docs/host/silo-lifecycle/)
-- [集群组合](https://dotnet.github.io/orleans/docs/implementation/cluster-management/)
+- [集群](https://dotnet.github.io/orleans/docs/implementation/cluster-management/)
 
 <a id="feedback--contributing"></a>
 
-## 反馈和贡献
-- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
-- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
-- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
-- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证
+## 反馈与贡献
+- 如果遇到问题或希望提供反馈，请[在 GitHub 上创建 Issue](https://github.com/dotnet/orleans/issues)
+- 加入我们的 [Discord](https://aka.ms/orleans-discord) 社区
+- 关注 Twitter 上的 [@msftorleans](https://twitter.com/msftorleans) 账号，获取 Orleans 公告
+- 欢迎贡献！请阅读我们的[贡献指南](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 本项目采用 [MIT 许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)

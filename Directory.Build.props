@@ -1,15 +1,15 @@
 <Project>
-  <!-- 在评价依赖配置的属性之前, 确定 SDK 默认值 。 -->
+  <!-- 在求值依赖配置的属性之前，确定 SDK 的默认值。 -->
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
   </PropertyGroup>
 
-  <!-- 将仓库根设置为变量 -->
+  <!-- 将仓库根目录保存到变量中。 -->
   <PropertyGroup>
     <SourceRoot>$(MSBuildThisFileDirectory)</SourceRoot>
   </PropertyGroup>
 
-  <!-- 设置组件信息和小包的常见属性 -->
+  <!-- 设置与程序集信息及 NuGet 包相关的通用属性。 -->
   <PropertyGroup>
     <Authors>Microsoft</Authors>
     <Product>Microsoft Orleans</Product>
@@ -41,7 +41,7 @@
     <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-    <!-- CA1824 是单独推出的性能诊断的一部分。 -->
+    <!-- CA1824 属于独立推出的性能诊断规则。 -->
     <WarningsNotAsErrors>$(WarningsNotAsErrors);CA1824</WarningsNotAsErrors>
     <ImplicitUsings>enable</ImplicitUsings>
     <!--<NoWarn>$(NoWarn);2003</NoWarn>-->
@@ -55,19 +55,19 @@
     <None Include="$(SourceRoot)assets/logo_128.png" Pack="true" Visible="false" PackagePath="/" />
   </ItemGroup>
 
-  <!-- FSDK 超重 -->
+  <!-- F# SDK 的覆盖设置。 -->
   <PropertyGroup>
     <DisableImplicitSystemValueTupleReference>true</DisableImplicitSystemValueTupleReference>
     <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
   </PropertyGroup>
 
-  <!-- 版本属性 -->
+  <!-- 版本控制属性。 -->
   <PropertyGroup>
     <AssemblyVersion>10.0.0.0</AssemblyVersion>
     <VersionPrefix Condition=" '$(VersionPrefix)'=='' ">10.0.0</VersionPrefix>
   </PropertyGroup>
 
-  <!-- 调试构建后生成日期/ 时间依附版本的后缀 -->
+  <!-- 对于 Debug 构建，生成依赖日期和时间的版本后缀。 -->
   <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">
     <VersionSuffix Condition=" '$(VersionSuffix)'=='' ">dev</VersionSuffix>
     <VersionSuffix Condition=" '$(VersionDateSuffix)'!='' ">$(VersionSuffix)-$(VersionDateSuffix)</VersionSuffix>
@@ -75,22 +75,19 @@
 
   <Import Condition=" '$(OrleansBuildTimeCodeGen)' == 'true' " Project="$(MSBuildThisFileDirectory)src/Orleans.CodeGenerator/build/Microsoft.Orleans.CodeGenerator.props" />
 
-  <!-- 设置创建 NuGet 软件包的输出文件夹 -->
+  <!-- 设置生成的 NuGet 包的输出目录。 -->
   <PropertyGroup>
     <PackageOutputPath Condition=" '$(PackageOutputPath)'=='' ">$(SourceRoot)/Artifacts/$(Configuration)</PackageOutputPath>
   </PropertyGroup>
 
-  <!-- 设置分发测试应用程序的输出文件夹 -->
+  <!-- 设置分布式测试应用的输出目录。 -->
   <PropertyGroup>
     <DistributedTestsOutputPath Condition=" '$(DistributedODistributedTestsOutputPathutputPath)'=='' ">$(SourceRoot)/Artifacts/DistributedTests</DistributedTestsOutputPath>
   </PropertyGroup>
 
   <Choose>
     <When Condition="'$(OfficialBuild)' != 'true'">
-      <!-- 非正式建筑上我们不烧在沙沙中,在很大程度上是因为
-           和我们作为二元的确定论努力 将伤害我们的决定性努力
-           建设不(由于开发者建筑与不同的总部建筑
-           值值 -->
+      <!-- 非正式构建不嵌入 Git SHA，主要是因为开发者基于不同的 HEAD 进行构建时，本应一致的二进制文件会因此不同，妨碍确定性构建。 -->
       <PropertyGroup>
         <GitHeadSha>&lt;developer build&gt;</GitHeadSha>
       </PropertyGroup>

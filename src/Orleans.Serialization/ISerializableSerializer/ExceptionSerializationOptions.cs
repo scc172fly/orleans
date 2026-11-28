@@ -4,18 +4,18 @@ using System.Collections.Generic;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// 例外序列化的备选办法。
+    /// 异常序列化选项。
     /// </summary>
     public class ExceptionSerializationOptions
     {
         /// <summary>
-        /// 获取例外序列化器的辅助命名空间前缀收藏。
-        /// 任何带有这些前缀之一的命名空间的例外类型,都将使用例外序列器进行序列化。
+        /// 获取异常序列化器支持的命名空间前缀集合。
+        /// 命名空间具有其中任一前缀的异常类型都将使用该异常序列化器进行序列化。
         /// </summary>
         public HashSet<string> SupportedNamespacePrefixes { get; } = new HashSet<string>(StringComparer.Ordinal) { "Microsoft", "System", "Azure" };
 
         /// <summary>
-        /// 获取或设置用于为例外类型进行序列化的前提。
+        /// 获取或设置用于启用异常类型序列化的谓词。
         /// </summary>
         public Func<Type, bool> SupportedExceptionTypeFilter { get; set; } = _ => false;
     }

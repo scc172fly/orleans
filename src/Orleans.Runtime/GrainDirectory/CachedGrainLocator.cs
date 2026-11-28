@@ -12,7 +12,7 @@ using Orleans.Internal;
 namespace Orleans.Runtime.GrainDirectory
 {
     /// <summary>
-    /// 执行《公约》的执行情况 <see cref="IGrainLocator"/> 用途 <see cref="IGrainDirectory"/> 仓库。
+    /// 实现 <see cref="IGrainLocator"/>，使用 <see cref="IGrainDirectory"/> 存储。
     /// </summary>
     internal class CachedGrainLocator : IGrainLocator, ILifecycleParticipant<ISiloLifecycle>, CachedGrainLocator.ITestAccessor
     {
@@ -54,7 +54,7 @@ namespace Orleans.Runtime.GrainDirectory
                 ThrowUnsupportedGrainType(grainId);
             }
 
-            // 先检查缓存
+            // 首先检查缓存。
             if (TryLookupInCache(grainId, out var cachedResult))
             {
                 return cachedResult;
@@ -62,22 +62,22 @@ namespace Orleans.Runtime.GrainDirectory
 
             var entry = await GetGrainDirectory(grainId.Type).Lookup(grainId);
 
-            // 未找到任何发现
+            // 未找到条目。
             if (entry is null)
             {
                 return null;
             }
 
-            // 检查条目指向已死 silo
+            // 检查条目是否指向已死亡的 Silo。
             if (IsKnownDeadSilo(entry))
             {
-                // 从目录中删除
+                // 将其从目录移除。
                 await GetGrainDirectory(grainId.Type).Unregister(entry);
                 entry = null;
             }
             else
             {
-                // 添加到本地缓存并返回
+                // 添加到本地缓存并返回。
                 this.cache.AddOrUpdate(entry, 0);
             }
 
@@ -111,18 +111,18 @@ namespace Orleans.Runtime.GrainDirectory
 
             if (result is null)
             {
-                // 如果注册失败, 我们退回一个无效地址
+                // 若注册失败，则返回 null 地址。
                 return null;
             }
 
-            // 检查已死单位的输入点 silo
+            // 检查条目是否指向已死亡的 Silo。
             if (IsKnownDeadSilo(result))
             {
-                // 有条件地替换过时的条目。
+                // 有条件地替换过时条目。
                 result = await directory.Register(address, result, cancellationToken);
             }
 
-            // 缓存更新
+            // 更新缓存。
             this.cache.AddOrUpdate(result!, (int)result!.MembershipVersion.Value);
 
             return result;
@@ -131,13 +131,13 @@ namespace Orleans.Runtime.GrainDirectory
 
         public async Task Unregister(GrainAddress address, UnregistrationCause cause)
         {
-            // 先从本地缓存中移除, 这样我们不再归还它
+            // 首先从本地缓存移除，以免再次返回该条目。
             this.cache.Remove(address);
 
-            // 从 grain 目录中删除可能花费更长得多的时间
+            // 从 Grain 目录移除条目，这可能耗费明显更长的时间。
             await GetGrainDirectory(address.GrainId.Type).Unregister(address);
 
-            // 有可能与Unregister赛跑, 并加入错误的条目回到缓存中。
+            // 查找操作可能与 Unregister 发生竞态，将无效条目重新添加到缓存。
             if (this.cache.LookUp(address.GrainId, out var entry, out _) && entry.Equals(address))
             {
                 this.cache.Remove(address);
@@ -180,7 +180,7 @@ namespace Orleans.Runtime.GrainDirectory
             var updates = this.clusterMembershipService.MembershipUpdates.WithCancellation(this.shutdownToken.Token);
             await foreach (var snapshot in updates)
             {
-                // 活动过滤器: 检测已死 silos 并尝试主动清除目录
+                // 主动筛选：检测已死亡的 Silo，并尝试主动清理目录。
                 var changes = snapshot.CreateUpdate(previousSnapshot).Changes;
                 var deadSilos = changes
                     .Where(member => member.Status == SiloStatus.Dead)
@@ -231,7 +231,7 @@ namespace Orleans.Runtime.GrainDirectory
             _directoryInstruments.LookupsCacheIssued.Add(1);
             if (this.cache.LookUp(grainId, out address, out _))
             {
-                // 如果 silo 已死,请删除条目
+                // 如果 Silo 已死亡，则移除条目。
                 if (IsKnownDeadSilo(address))
                 {
                     address = default;
@@ -239,7 +239,7 @@ namespace Orleans.Runtime.GrainDirectory
                 }
                 else
                 {
-                    // 找到有效条目 - > 返回它
+                    // 已找到有效条目，返回该条目。
                     _directoryInstruments.LookupsCacheSuccesses.Add(1);
                     return true;
                 }

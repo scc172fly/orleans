@@ -7,7 +7,7 @@ using Xunit;
 namespace UnitTests.StorageTests.AdoNet
 {
     /// <summary>
-    /// 测试 SQL 服务器关系存储功能。
+    /// SQL Server 关系型存储功能测试。
     /// </summary>
     [TestCategory("Persistence"), TestCategory("SqlServer")]
     [TestSuite("Functional")]

@@ -7,18 +7,18 @@ using Microsoft.Extensions.Options;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// <see cref="ISerializerBuilder"/>的扩展期。
+    /// <see cref="ISerializerBuilder"/> 的扩展方法。
     /// </summary>
     public static class SerializerBuilderExtensions
     {
         private static readonly object _assembliesKey = new();
 
         /// <summary>
-        /// 将上下文的封闭类型图添加到序列式分辨率中。
+        /// 将该上下文的封闭类型图添加到序列化器解析过程。
         /// </summary>
-        /// <param name="builder">建筑工。</param>
+        /// <param name="builder">构建器。</param>
         /// <param name="context">生成的上下文。</param>
-        /// <returns>序列构建器。</returns>
+        /// <returns>序列化构建器。</returns>
         public static ISerializerBuilder AddGeneratedContext(this ISerializerBuilder builder, GeneratedContext context)
         {
             if (builder is null) throw new ArgumentNullException(nameof(builder));
@@ -27,12 +27,12 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// 配置序列构建器。
+        /// 配置序列化构建器。
         /// </summary>
-        /// <param name="builder">建筑工。</param>
-        /// <param name="factory">工厂</param>
-        /// <returns>序列号构建器</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 是 <see langword="null"/>.</exception>
+        /// <param name="builder">构建器。</param>
+        /// <param name="factory">工厂。</param>
+        /// <returns>序列化构建器。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 为 <see langword="null"/>。</exception>
         public static ISerializerBuilder Configure(this ISerializerBuilder builder, Func<IServiceProvider, IConfigureOptions<TypeManifestOptions>> factory)
         {
             if (builder is null) throw new ArgumentNullException(nameof(builder));
@@ -41,12 +41,12 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// 配置序列构建器。
+        /// 配置序列化构建器。
         /// </summary>
-        /// <param name="builder">建筑工。</param>
-        /// <param name="configure">配置代表。</param>
-        /// <returns>序列号构建器</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 是 <see langword="null"/>.</exception>
+        /// <param name="builder">构建器。</param>
+        /// <param name="configure">配置委托。</param>
+        /// <returns>序列化构建器。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 为 <see langword="null"/>。</exception>
         public static ISerializerBuilder Configure(this ISerializerBuilder builder, IConfigureOptions<TypeManifestOptions> configure)
         {
             if (builder is null) throw new ArgumentNullException(nameof(builder));
@@ -55,12 +55,12 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// 配置序列构建器。
+        /// 配置序列化构建器。
         /// </summary>
-        /// <param name="builder">建筑工。</param>
-        /// <param name="configure">配置代表。</param>
-        /// <returns>序列号构建器</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 是 <see langword="null"/>.</exception>
+        /// <param name="builder">构建器。</param>
+        /// <param name="configure">配置委托。</param>
+        /// <returns>序列化构建器。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 为 <see langword="null"/>。</exception>
         public static ISerializerBuilder Configure(this ISerializerBuilder builder, Action<TypeManifestOptions> configure)
         {
             if (builder is null) throw new ArgumentNullException(nameof(builder));
@@ -69,12 +69,12 @@ namespace Orleans.Serialization
         }
 
         /// <summary>
-        /// 向构建者添加一个组件。
+        /// 将程序集添加到构建器。
         /// </summary>
-        /// <param name="builder">建筑工。</param>
-        /// <param name="assembly">组装。</param>
-        /// <returns>序列号构建器</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 是 <see langword="null"/>.</exception>
+        /// <param name="builder">构建器。</param>
+        /// <param name="assembly">程序集。</param>
+        /// <returns>序列化构建器。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 为 <see langword="null"/>。</exception>
         public static ISerializerBuilder AddAssembly(this ISerializerBuilder builder, Assembly assembly)
         {
             if (builder is null) throw new ArgumentNullException(nameof(builder));

@@ -6,27 +6,27 @@ using Orleans.Streams;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// 跟踪序列编号和事件索引的串流序列符号
+    /// 跟踪序列号和事件索引的流序列令牌。
     /// </summary>
     /// <remarks>
-    /// <see cref="EventSequenceTokenV2"/> 和 <see cref="EventSequenceToken"/> 共享一个数字
-    /// 。 衍生的标牌默认是孤立的, 并且可以明确加入
-    /// 合同合同合同合同 <see cref="SequenceTokenCompatibilityDomain"/>包括精确基数
-    /// 先前的事件当量工厂坚持的等像。
+    /// <see cref="EventSequenceTokenV2"/> 与 <see cref="EventSequenceToken"/> 共享数值型
+    /// 位置契约。派生令牌默认隔离，并可通过
+    /// <see cref="SequenceTokenCompatibilityDomain"/> 显式加入此契约。该契约也涵盖
+    /// 早期事件令牌工厂持久化的、类型恰好为基类型的令牌。
     /// </remarks>
     [Serializable]
     [GenerateSerializer]
     public class EventSequenceTokenV2 : StreamSequenceToken
     {
         /// <summary>
-        /// 获取事件批次数, 并在此事件批次之前在流中获得事件批次数量
+        /// 获取流中位于当前事件批次之前的事件批次数量。
         /// </summary>
         [Id(0)]
         [JsonProperty]
         public override long SequenceNumber { get; protected set; }
 
         /// <summary>
-        /// 获取此事件之前的批次事件数量
+        /// 获取同一批次中位于此事件之前的事件数量。
         /// </summary>
         [Id(1)]
         [JsonProperty]
@@ -46,7 +46,7 @@ namespace Orleans.Providers.Streams.Common
         /// 初始化 <see cref="EventSequenceTokenV2"/> 类的新实例。
         /// </summary>
         /// <param name="seqNumber">序列号。</param>
-        /// <param name="eventInd">事件索引,用于一系列活动的一部分。</param>
+        /// <param name="eventInd">事件索引，适用于属于某个事件批次的事件。</param>
         public EventSequenceTokenV2(long seqNumber, int eventInd)
         {
             SequenceNumber = seqNumber;
@@ -57,17 +57,17 @@ namespace Orleans.Providers.Streams.Common
         /// 初始化 <see cref="EventSequenceTokenV2"/> 类的新实例。
         /// </summary>
         /// <remarks>
-        /// 此构建器仅用于序列器 。
+        /// 此构造函数仅供序列化器使用。
         /// </remarks>
         public EventSequenceTokenV2()
         {
         }
 
         /// <summary>
-        /// 为当前批量中特定事件创建序列符号
+        /// 为当前批次中的特定事件创建序列令牌。
         /// </summary>
         /// <param name="eventInd">事件索引。</param>
-        /// <returns>带有相同具体运行时间类型和位置的标牌元数据,针对指定事件。</returns>
+        /// <returns>具有相同具体运行时类型和位置元数据、指向指定事件的令牌。</returns>
         public virtual EventSequenceTokenV2 CreateSequenceTokenForEvent(int eventInd)
         {
             var result = (EventSequenceTokenV2)MemberwiseClone();
@@ -76,13 +76,13 @@ namespace Orleans.Providers.Streams.Common
         }
 
         /// <summary>
-        /// 获取用于确定哪个事件序列的相容域域, 用来决定共享的事件序列符号
-        /// 以命令合同为条件
+        /// 获取兼容性域，用于确定哪些事件序列令牌共享
+        /// 此令牌的数值相等性和排序契约。
         /// </summary>
         /// <remarks>
-        /// 默认会将衍生的符号分离出来。使用此完整数字的衍生的符号
-        /// 合同将重置此属性并返回 <see cref="EventSequenceToken"/>。
-        /// 将同一域与 <see cref="SequenceNumber"/> 和 <see cref="EventIndex"/>比较。
+        /// 派生令牌默认隔离。使用此完整数值契约的派生令牌
+        /// 应重写此属性并返回 <see cref="EventSequenceToken"/>。同一
+        /// 域中的令牌按 <see cref="SequenceNumber"/> 和 <see cref="EventIndex"/> 比较。
         /// </remarks>
         protected virtual Type SequenceTokenCompatibilityDomain
             => GetType() == typeof(EventSequenceTokenV2) ? typeof(EventSequenceToken) : GetType();

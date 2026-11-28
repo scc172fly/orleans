@@ -4,28 +4,28 @@ using System.Threading.Tasks;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 此界面对 IAsyncObserver 接口进行常规化,以便生产批次的物项。
+    /// 此接口扩展 IAsyncObserver 接口，支持批量生产数据项。
     /// <para>
-    /// 请注意,该接口被物品生产者(使用)所引用。
+    /// 注意，此接口由数据项的生产者调用。
     /// </para>
     /// </summary>
-    /// <typeparam name="T">观察员消费的物体类型。</typeparam>
+    /// <typeparam name="T">观察者消费的对象类型。</typeparam>
     public interface IAsyncBatchProducer<T> : IAsyncObserver<T>
     {
         /// <summary>
-        /// 将下一批物品传递给消费者。
+        /// 将下一批数据项传递给消费者。
         /// <para>
-        /// 从这种方法返回的任务当批中所有物品都已填妥时,应完成
-        /// 消费者经过充分加工,以满足任何行为保障。
+        /// 当消费者对批次中所有数据项的处理达到
+        /// 满足各项行为保证所需的程度时，此方法返回的 Task 才应完成。
         /// </para>
         /// <para>
-        /// 也就是说,返回的任务的语义与 <see cref="IAsyncObserver{T}.OnNextAsync" />相同,
-        /// 批量中的所有项目都扩展。
+        /// 即返回的 Task 具有与 <see cref="IAsyncObserver{T}.OnNextAsync" /> 相同的语义，
+        /// 但作用范围扩展到批次中的所有数据项。
         /// </para>
         /// </summary>
-        /// <param name="batch">有待通过的项目。</param>
-        /// <param name="token">此项的流序序列符号 。</param>
-        /// <returns>批次被接受后完成的任务。</returns>
+        /// <param name="batch">要传递的数据项集合。</param>
+        /// <param name="token">此数据项的流序列令牌。</param>
+        /// <returns>批次被接受时完成的 Task。</returns>
         Task OnNextBatchAsync(IEnumerable<T> batch, StreamSequenceToken? token = null);
     }
 }

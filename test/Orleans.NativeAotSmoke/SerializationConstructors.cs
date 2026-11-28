@@ -8,7 +8,7 @@ using Orleans.Serialization;
 
 namespace Orleans.NativeAotSmoke;
 
-#pragma warning disable SYSLIB0050, SYSLIB0051 // Exercise the legacy serialization constructor contract.
+#pragma warning disable SYSLIB0050, SYSLIB0051 // 验证旧版序列化构造函数契约。
 
 internal static class SerializationConstructors
 {

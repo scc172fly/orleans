@@ -39,7 +39,7 @@ public sealed class MigrationContextTests
         Assert.True(context.TryGetValue("payload", out byte[]? value));
         Assert.Equal(payload, value);
 
-        // 两个版本都读同样的字段。
+        // 两个版本读取相同的字段。
         using var modernCopy = Assert.IsType<MigrationContext>(modernSerializer.Deserialize(legacyBytes));
         Assert.True(modernCopy.TryGetValue("payload", out byte[]? actual));
         Assert.Equal(payload, actual);

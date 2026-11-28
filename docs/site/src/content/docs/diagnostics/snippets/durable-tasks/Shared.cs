@@ -1,6 +1,6 @@
 namespace Documentation.Diagnostics.DurableTasks;
 
-// 外部服务为 Orleans以外的系统的客户提供服务。
+// 示例共享的声明。外部服务用于模拟 Orleans 外部系统的客户端。
 
 public enum OrderStatus
 {
@@ -45,13 +45,13 @@ public interface IRoomInventory
     Task ReleaseAsync(string room, CancellationToken cancellationToken);
 }
 
-// 支持 grain 接口,其耐久方法返回 DurableTask,例如命令 grain。
+// 模拟某个 Grain 接口，其持久化方法返回 DurableTask，例如订单 Grain 的接口。
 public interface IOrderWorkflows
 {
     DurableTask<OrderResult> PlaceOrderAsync(Guid orderId);
 }
 
-// 其耐久方法的Grains ,其他示例也要求使用,所以独立启动将调用作为调用 grain的一个根任务。
+// 其他示例调用这些 Grain 的持久化方法，因此分离启动会在目标 Grain 上将调用作为根任务运行。
 public interface ICustomerSurveys : IGrainWithStringKey
 {
     DurableTask SendSurveyAsync(string customer);

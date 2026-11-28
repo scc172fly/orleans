@@ -1,55 +1,55 @@
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 从 <see cref="IJournalStorage"/> 实例读取原始日记数据。
+/// 从 <see cref="IJournalStorage"/> 实例读取原始日志数据。
 /// </summary>
 public interface IJournalStorageConsumer
 {
     /// <summary>
-    /// 读取缓冲原始日记数据。
+    /// 读取缓冲的原始日志数据。
     /// </summary>
-    /// <param name="buffer">消费者可得到的缓冲日记数据。</param>
-    /// <param name="metadata">与正在读取的日记数据相关的元数据,或 <see langword="null"/> 如果没有元数据。</param>
+    /// <param name="buffer">可供消费者使用的缓冲日志数据。</param>
+    /// <param name="metadata">与正在读取的日志数据关联的元数据；如果没有元数据，则为 <see langword="null"/>。</param>
     void Read(JournalBufferReader buffer, IJournalMetadata? metadata);
 }
 
 /// <summary>
-/// 与日记存储相关的元数据。
+/// 与日志存储关联的元数据。
 /// </summary>
 public interface IJournalMetadata
 {
     /// <summary>
-    /// 获取与日记数据存储的日记格式密钥,如果没有密钥,则获取 <see langword="null"/> 。
+    /// 获取随日志数据存储的日志格式键；不存在该键时为 <see langword="null"/>。
     /// </summary>
     string? FormatKey { get; }
 
     /// <summary>
-    /// 获取存储元数据ETag,或 <see langword="null"/> ,如果没有。
+    /// 获取存储元数据 ETag；不可用时为 <see langword="null"/>。
     /// </summary>
     string? ETag { get; }
 
     /// <summary>
-    /// 获得呼叫者拥有的存储元数据属性。
+    /// 获取调用方拥有的存储元数据属性。
     /// </summary>
     IReadOnlyDictionary<string, string> Properties { get; }
 }
 
 /// <summary>
-/// <see cref="IJournalMetadata"/>的默认执行。
+/// <see cref="IJournalMetadata"/> 的默认实现。
 /// </summary>
 public sealed class JournalMetadata : IJournalMetadata
 {
     /// <summary>
-    /// 获得空元数据实例 。
+    /// 获取空元数据实例。
     /// </summary>
     public static IJournalMetadata Empty { get; } = new JournalMetadata(formatKey: null, eTag: null, properties: null);
 
     /// <summary>
     /// 初始化 <see cref="JournalMetadata"/> 类的新实例。
     /// </summary>
-    /// <param name="formatKey">与日记数据存储的日记格式密钥,或 <see langword="null"/> 如果不存在密钥, 则使用此密钥 。</param>
-    /// <param name="eTag">存储元数据ETag,或 <see langword="null"/> 如果没有。</param>
-    /// <param name="properties">调频器拥有的存储元数据属性。</param>
+    /// <param name="formatKey">随日志数据存储的日志格式键；不存在该键时为 <see langword="null"/>。</param>
+    /// <param name="eTag">存储元数据 ETag；不可用时为 <see langword="null"/>。</param>
+    /// <param name="properties">调用方拥有的存储元数据属性。</param>
     public JournalMetadata(string? formatKey, string? eTag = null, IReadOnlyDictionary<string, string>? properties = null)
     {
         FormatKey = formatKey;

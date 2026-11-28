@@ -20,7 +20,7 @@ internal class SerializableTypeDescription : ISerializableTypeDescription
 
         if (!SymbolEqualityComparer.Default.Equals(type.ContainingAssembly, compilation.Assembly))
         {
-            // 辅助存取器可以进入私人存储,但外部代码必须能够标明其类型。
+            // 支持的访问器能够访问私有存储，但外部代码必须能够引用其类型名称。
             foreach (var member in Members)
             {
                 if ((member.IsSerializable || member.IsCopyable)
@@ -170,7 +170,7 @@ internal class SerializableTypeDescription : ISerializableTypeDescription
                 return true;
             }
 
-            // 要求成员的类型对于 Orleans来说是不可空建的,至少尚未。
+            // 对于 Orleans，具有必需成员的类型不能无参构造，至少目前如此。
             var t = Type;
             while (t != null)
             {
@@ -215,15 +215,15 @@ internal class SerializableTypeDescription : ISerializableTypeDescription
     public bool IsShallowCopyable => IsEnumType || !Type.HasBaseType(_libraryTypes.Exception) && _libraryTypes.IsShallowCopyable(Type);
 
     /// <summary>
-    /// 获得这种工会类型的案例,或者如果不是工会类型的话 <see langword="null"/> 。
+    /// 获取此联合类型的分支；若不是联合类型，则返回 <see langword="null"/>。
     /// </summary>
     public List<UnionCaseDescription>? UnionCases { get; init; }
 
     /// <summary>
-    /// 获取这种封闭型的个案,或如果这种类型的非封闭型、其子类型声明案件识别符号的 <see langword="null"/> 。
+    /// 获取此封闭类型的分支；若此类型不是子类型声明了分支标识符的封闭类型，则返回 <see langword="null"/>。
     /// </summary>
     /// <remarks>
-    /// 封闭型案件在子类型上申报,这些子类型可以放在其他源文件中,因此当生成源时就解决了。
+    /// 封闭类型的分支在子类型上声明，而子类型可能位于其他源文件中，因此在生成源代码时解析它们。
     /// </remarks>
     public List<UnionCaseDescription>? GetClosedTypeCases() => UnionCaseResolver.GetClosedTypeCases(Type, Compilation, _libraryTypes);
 

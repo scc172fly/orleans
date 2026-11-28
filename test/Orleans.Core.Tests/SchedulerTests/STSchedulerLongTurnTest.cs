@@ -7,7 +7,7 @@ using Xunit;
 namespace DefaultCluster.Tests.SchedulerTests
 {
     /// <summary>
-    /// 测试 Orleans 排程器行为,进行长运行 grain 操作,以确保不会造成超时或队列阻塞。
+    /// 测试长时间运行的 Grain 操作下 Orleans 调度器的行为，确保这些操作不会导致超时或队列阻塞。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -24,8 +24,8 @@ namespace DefaultCluster.Tests.SchedulerTests
         [Fact, TestCategory("Functional"), TestCategory("Scheduler")]
         public async Task Sched_LongTurnTest()
         {
-            // 有了两根 silos,应该有16根线。
-            // 我们能创造出比这更多的 grains 来确保我们把水池淹没
+            // 两个 Silo 应有 16 个线程。
+            // 创建远多于此数量的 Grain，以确保线程池处于饱和状态
             var grains = new List<IErrorGrain>();
             var grainFullName = typeof(ErrorGrain).FullName;
             for (int i = 0; i < 100; i++)
@@ -33,12 +33,12 @@ namespace DefaultCluster.Tests.SchedulerTests
                 grains.Add(this.GrainFactory.GetGrain<IErrorGrain>(GetRandomGrainId(), grainFullName));
             }
 
-            // 发送一堆无做请求, 只需启动 grains
+            // 发送一批不执行任何操作的请求，仅用于激活 Grain
             var promises = grains.Select(grain => grain.Dispose());
             await Task.WhenAll(promises);
 
 
-            // 现在开始一个计时器, 然后排队 排成一堆长( 睡) 的要求
+            // 现在启动计时器，然后将一批长时间运行（休眠）的请求排入队列
             var timer = new Stopwatch();
             timer.Start();
 

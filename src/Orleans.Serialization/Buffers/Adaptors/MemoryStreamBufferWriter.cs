@@ -5,14 +5,14 @@ using System.IO;
 namespace Orleans.Serialization.Buffers.Adaptors
 {
     /// <summary>
-    /// 执行《公约》执行 <see cref="IBufferWriter{T}"/> 写给 <see cref="MemoryStream"/>.
+    /// <see cref="IBufferWriter{T}"/> 的一种实现，向 <see cref="MemoryStream"/> 写入数据。
     /// </summary>
     public readonly struct MemoryStreamBufferWriter : IBufferWriter<byte>
     {
         private readonly MemoryStream _stream;
         private const int MinRequestSize = 256;
 #if NETSTANDARD2_1
-        // 净标准2.1合同中没有Array.MaxLength 。
+        // netstandard2.1 的契约中没有 Array.MaxLength。
         private const int MaxArrayLength = 0x7FFFFFC7;
 #else
         private static readonly int MaxArrayLength = Array.MaxLength;
@@ -49,8 +49,8 @@ namespace Orleans.Serialization.Buffers.Adaptors
                 return;
             }
 
-            // 通过 MemoryStream 提交,以便更新长度而不清除字节
-            // 直接写到其暴露的缓冲地带。
+            // 通过 MemoryStream 提交，使其更新 Length，而不清除
+            // 已直接写入其公开缓冲区的字节。
             if (_stream.Position > _stream.Length)
             {
                 _stream.SetLength(_stream.Position);

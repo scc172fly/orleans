@@ -1,23 +1,23 @@
 @page "/fetchdata"
 @inject ApiService ApiService
 
-<h1>Weather forecast</h1>
+<h1>天气预报</h1>
 
-<p>This component demonstrates fetching data from the server.</p>
+<p>此组件演示如何从服务器获取数据。</p>
 
 @if (forecasts is null)
 {
-    <p><em>Loading...</em></p>
+    <p><em>正在加载……</em></p>
 }
 else
 {
     <table class="table">
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
+                <th>日期</th>
+                <th>温度（C）</th>
+                <th>温度（F）</th>
+                <th>概况</th>
             </tr>
         </thead>
         <tbody>

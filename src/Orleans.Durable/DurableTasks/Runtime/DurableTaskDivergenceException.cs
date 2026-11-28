@@ -3,13 +3,13 @@ using System;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// 描述企图与执行处决记录有何出入:它要求根据记录进行另一次行动
-/// 的注销点之前结束
-/// 此前曾尝试过取消其任务。
+/// 描述一次执行尝试如何与执行实例的记录发生分歧：它在已记录的
+/// 标识符下请求了另一操作，已记录的结果无法再解码，或者其主体在较早的执行尝试观察到任务取消的
+/// 取消点之前就已结束。
 /// </summary>
 /// <remarks>
-/// 尝试的上下文使尝试与 <see cref="DurableTaskAttemptCancellationReason.Diverged"/> 相延,而此
-/// 操作所投出的 <see cref="DurableTaskAttemptCanceledException"/> 内侧除外。
+/// 执行尝试的上下文通过 <see cref="DurableTaskAttemptCancellationReason.Diverged"/> 使尝试停滞，并将本
+/// 异常用作该操作抛出的 <see cref="DurableTaskAttemptCanceledException"/> 的内部异常。
 /// </remarks>
 internal sealed class DurableTaskDivergenceException(string message, Exception? innerException = null)
     : InvalidOperationException(message, innerException);

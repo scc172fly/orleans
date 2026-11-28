@@ -92,7 +92,7 @@ public sealed class InProcessMembershipTableTests
         entry.AddSuspector(SiloAddress.FromParsableString("127.0.0.1:20001@1"), DateTime.UnixEpoch);
         await Insert(entry);
         var before = await _table.ReadAllAsync(_cancellationToken);
-        // 拥有的 silo 可同时报告或按时钟调整。
+        // 所属 Silo 可以报告相同时间，或报告时钟调整后的时间。
         var heartbeat = new MembershipEntry
         {
             SiloAddress = entry.SiloAddress,
@@ -208,7 +208,7 @@ public sealed class InProcessMembershipTableTests
         foreach (var entry in entries)
         {
             var current = (await _table.ReadAllAsync(_cancellationToken)).Version;
-            // 种子版本限制在边界处直接进行非转换清理。
+            // 直接设置版本上限，以验证边界处不更新版本的清理行为。
             var candidate = atVersionLimit && entry == entries[^1]
                 ? new TableVersion(int.MaxValue, current.VersionEtag)
                 : current.Next();
@@ -236,7 +236,7 @@ public sealed class InProcessMembershipTableTests
         var before = await _table.ReadAllAsync(_cancellationToken);
         foreach (var key in new[] { entry.SiloAddress, null! })
         {
-#pragma warning disable CS0618 // Intentional retired legacy/async contract coverage, including unused null key.
+#pragma warning disable CS0618 // 特意覆盖已停用的旧版/异步契约，包括未使用的 null 键。
             var legacy = _table.ReadRow(key);
             var current = _table.ReadRowAsync(key, _cancellationToken);
 #pragma warning restore CS0618
@@ -246,7 +246,7 @@ public sealed class InProcessMembershipTableTests
             Assert.Equal(guidance, (await Assert.ThrowsAsync<NotSupportedException>(() => current)).Message);
             using var cancellation = new CancellationTokenSource();
             cancellation.Cancel();
-#pragma warning disable CS0618 // Cancellation precedes retirement and key inspection.
+#pragma warning disable CS0618 // 取消检查先于停用检查和键检查。
             var canceled = await Assert.ThrowsAnyAsync<OperationCanceledException>(
                 () => _table.ReadRowAsync(key, cancellation.Token));
 #pragma warning restore CS0618

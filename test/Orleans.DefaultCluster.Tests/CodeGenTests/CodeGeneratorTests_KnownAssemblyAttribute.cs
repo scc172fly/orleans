@@ -6,7 +6,7 @@ using Xunit;
 namespace DefaultCluster.Tests.General
 {
     /// <summary>
-    /// 用于实施通用接口的 grains 单位测试
+    /// 实现泛型接口的 Grain 的单元测试
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]

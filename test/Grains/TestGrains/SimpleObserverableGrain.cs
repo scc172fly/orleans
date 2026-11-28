@@ -30,11 +30,11 @@ namespace UnitTests.Grains
             logger.LogInformation("SetA={A}", a);
             A = a;
 
-            //如果用 Task.Run 运行, 则不需要添加 Unlop 调用 。
-            //然而, Task.Run 运行中 ThreadPool 而不是在 Orleans TaskScheduler,与 Task.Factory.StartNew.
-            //更多信息: https://learn.microsoft.com/dotnet/orleans/grains/external-tasks-and-grains。
-            //额外任务来自内部因 Task.Delay而出现的无同步的羊羔。
-            //洞察力,见 http://blogs.msdn.com/b/pfxteam/archive/2012/02/08/10265476.aspx。
+            //如果通过 Task.Run 执行，则不需要额外调用 Unwrap。
+            //但与 Task.Factory.StartNew 不同，Task.Run 在 ThreadPool 中运行，而不在 Orleans 的 TaskScheduler 中运行。
+            //详细信息参阅 https://learn.microsoft.com/dotnet/orleans/grains/external-tasks-and-grains。
+            //额外的任务源于包含 Task.Delay 的内部异步 lambda。更多
+            //深入说明参阅 http://blogs.msdn.com/b/pfxteam/archive/2012/02/08/10265476.aspx。
             await Task.Factory.StartNew(async () =>
             {
                 await Task.Delay(EventDelay);
@@ -46,11 +46,11 @@ namespace UnitTests.Grains
         {
             this.B = b;
 
-            //如果用 Task.Run 运行, 则不需要添加 Unlop 调用 。
-            //然而, Task.Run 运行中 ThreadPool 而不是在 Orleans TaskScheduler,与 Task.Factory.StartNew.
-            //更多信息: https://learn.microsoft.com/dotnet/orleans/grains/external-tasks-and-grains。
-            //额外任务来自内部因 Task.Delay而出现的无同步的羊羔。
-            //洞察力,见 http://blogs.msdn.com/b/pfxteam/archive/2012/02/08/10265476.aspx。
+            //如果通过 Task.Run 执行，则不需要额外调用 Unwrap。
+            //但与 Task.Factory.StartNew 不同，Task.Run 在 ThreadPool 中运行，而不在 Orleans 的 TaskScheduler 中运行。
+            //详细信息参阅 https://learn.microsoft.com/dotnet/orleans/grains/external-tasks-and-grains。
+            //额外的任务源于包含 Task.Delay 的内部异步 lambda。更多
+            //深入说明参阅 http://blogs.msdn.com/b/pfxteam/archive/2012/02/08/10265476.aspx。
             await Task.Factory.StartNew(async () =>
             {
                 await Task.Delay(EventDelay);

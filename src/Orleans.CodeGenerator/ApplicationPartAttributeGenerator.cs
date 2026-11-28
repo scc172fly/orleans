@@ -4,7 +4,7 @@ namespace Orleans.CodeGenerator;
 
 internal static class ApplicationPartAttributeGenerator
 {
-    /// <summary>返回每个命名组装的组装级应用程序部分属性。</summary>
+    /// <summary>为每个命名程序集返回一个程序集级应用程序部件特性。</summary>
     public static List<string> GenerateAttributes(string applicationPartAttribute, IEnumerable<string> applicationParts)
     {
         var attributes = new List<string>();

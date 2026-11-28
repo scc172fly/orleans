@@ -14,7 +14,7 @@ using Orleans.Configuration;
 namespace Orleans.LeaseProviders
 {
     /// <summary>
-    /// 提供使用 Azure 布洛布储存租赁的分布式租赁。
+    /// 使用 Azure Blob Storage 租约提供分布式租约。
     /// </summary>
     public class AzureBlobLeaseProvider : ILeaseProvider
     {
@@ -25,7 +25,7 @@ namespace Orleans.LeaseProviders
         /// <summary>
         /// 初始化 <see cref="AzureBlobLeaseProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="options">下 Azure 集团租赁供应商的备选办法。</param>
+        /// <param name="options">Azure Blob 租约提供程序选项。</param>
         [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "Microsoft.Extensions.DependencyInjection supplies the registered options instance.")]
         public AzureBlobLeaseProvider(IOptions<AzureBlobLeaseProviderOptions> options)
             : this(options.Value)
@@ -48,7 +48,7 @@ namespace Orleans.LeaseProviders
             }
         }
 
-#pragma warning disable CA1308 // Persisted lease blob addresses use lowercase category and resource-key components.
+#pragma warning disable CA1308 // 持久化的租约 Blob 地址使用小写的类别及资源键组成部分。
         private BlobClient GetBlobClient(string category, string resourceKey) => this.container!.GetBlobClient($"{category.ToLowerInvariant()}-{resourceKey.ToLowerInvariant()}.json");
 #pragma warning restore CA1308
 
@@ -63,7 +63,7 @@ namespace Orleans.LeaseProviders
             {
                 tasks.Add(Acquire(category, leaseRequest));
             }
-            //Task.WhenAll 将按所提供任务顺序的数组返回每项任务的结果
+            // Task.WhenAll 将按提供任务的顺序，在数组中返回每个任务的结果。
             return await Task.WhenAll(tasks);
         }
 
@@ -72,7 +72,7 @@ namespace Orleans.LeaseProviders
             try
             {
                 var blobClient = GetBlobClient(category, leaseRequest.ResourceKey);
-                //创建此 blob
+                // 创建此 Blob。
                 await blobClient.UploadAsync(new MemoryStream(Encoding.UTF8.GetBytes("blob")), new BlobHttpHeaders { ContentType = "application/json" });
                 var leaseClient = blobClient.GetBlobLeaseClient();
                 var lease = await leaseClient.AcquireAsync(leaseRequest.Duration);
@@ -81,7 +81,7 @@ namespace Orleans.LeaseProviders
             catch (RequestFailedException e)
             {
                 ResponseCode statusCode;
-                //此映射基于以下参考文献 : https://learn.microsoft.com/rest/api/storageservices/blob-service-error-codes
+                // 此映射基于以下参考资料：https://learn.microsoft.com/rest/api/storageservices/blob-service-error-codes
                 // https://learn.microsoft.com/rest/api/storageservices/Lease-Blob?redirectedfrom=MSDN
                 switch (e.Status)
                 {
@@ -125,7 +125,7 @@ namespace Orleans.LeaseProviders
             {
                 tasks.Add(Renew(category, acquiredLease));
             }
-            //Task.WhenAll 将按所提供任务顺序的数组返回每项任务的结果
+            // Task.WhenAll 将按提供任务的顺序，在数组中返回每个任务的结果。
             return await Task.WhenAll(tasks);
         }
 
@@ -142,7 +142,7 @@ namespace Orleans.LeaseProviders
             catch (RequestFailedException e)
             {
                 ResponseCode statusCode;
-                //此映射基于以下参考文献 : https://learn.microsoft.com/rest/api/storageservices/blob-service-error-codes
+                // 此映射基于以下参考资料：https://learn.microsoft.com/rest/api/storageservices/blob-service-error-codes
                 // https://learn.microsoft.com/rest/api/storageservices/Lease-Blob?redirectedfrom=MSDN
                 switch (e.Status)
                 {
@@ -156,11 +156,11 @@ namespace Orleans.LeaseProviders
         }
 
         /// <summary>
-        /// 使用服务供应商提出的指定选项创建一个 Azure Blob租赁提供商。
+        /// 使用服务提供程序中的命名选项创建 Azure Blob 租约提供程序。
         /// </summary>
-        /// <param name="services">服务供应商。</param>
-        /// <param name="name">配置的租赁提供商的名称 。</param>
-        /// <returns>配置好的租赁提供商。</returns>
+        /// <param name="services">服务提供程序。</param>
+        /// <param name="name">已配置的租约提供程序名称。</param>
+        /// <returns>已配置的租约提供程序。</returns>
         public static ILeaseProvider Create(IServiceProvider services, string name)
         {
             AzureBlobLeaseProviderOptions options = services.GetOptionsByName<AzureBlobLeaseProviderOptions>(name);

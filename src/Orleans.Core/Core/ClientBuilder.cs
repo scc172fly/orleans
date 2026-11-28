@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 配置 Orleans 客户端的构建器。
+    /// 用于配置 Orleans 客户端的生成器。
     /// </summary>
     public class ClientBuilder : IClientBuilder
     {
@@ -12,10 +12,10 @@ namespace Orleans.Hosting
         /// 初始化 <see cref="ClientBuilder"/> 类的新实例。
         /// </summary>
         /// <param name="services">
-        /// 服务收藏
+        /// 服务集合。
         /// </param>
         /// <param name="configuration">
-        /// 客户配置。
+        /// 客户端配置。
         /// </param>
         public ClientBuilder(IServiceCollection services, IConfiguration configuration)
         {

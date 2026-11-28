@@ -9,7 +9,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="Queue{T}"/>的序列器。
+    /// <see cref="Queue{T}"/> 的序列化器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
@@ -21,7 +21,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="QueueCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldCodec">字段编码。</param>
+        /// <param name="fieldCodec">字段编解码器。</param>
         public QueueCodec(IFieldCodec<T> fieldCodec)
         {
             _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -110,7 +110,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="Queue{T}"/>的复印机。
+    /// <see cref="Queue{T}"/> 的复制器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
@@ -122,7 +122,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="QueueCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="valueCopier">价值复印机。</param>
+        /// <param name="valueCopier">元素复制器。</param>
         public QueueCopier(IDeepCopier<T> valueCopier)
         {
             _copier = valueCopier;

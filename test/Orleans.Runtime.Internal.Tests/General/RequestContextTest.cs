@@ -10,7 +10,7 @@ using Xunit;
 namespace UnitTests.General
 {
     /// <summary>
-    /// 查询请求的测试,通过 grain 电话和活动进行背景传播。
+    /// 测试请求上下文在 Grain 调用和 Activity 之间的传播。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]
@@ -53,7 +53,7 @@ namespace UnitTests.General
 
             RequestContextTestUtils.SetActivityId(activityId);
             Guid result = await grain.E2EActivityId();
-            Assert.Equal(activityId, result);  // E2E ActivityId 未正确传播
+            Assert.Equal(activityId, result);  // "E2E ActivityId not propagated correctly"
         }
 
         [Fact, TestCategory("Functional"), TestCategory("RequestContext")]
@@ -68,19 +68,19 @@ namespace UnitTests.General
 
             RequestContext.Set(key, val);
             var result = await grain.TraceIdEcho();
-            Assert.Equal(val, result);  // "即刻" RequestContext 反响不正确 。
+            Assert.Equal(val, result);  // "Immediate RequestContext echo was not correct"
 
             RequestContext.Set(key, val2);
             result = await grain.TraceIdDoubleEcho();
-            Assert.Equal(val2, result);  // “ 过渡 RequestContext 回声不正确”
+            Assert.Equal(val2, result);  // "Transitive RequestContext echo was not correct"
 
             RequestContext.Set(key, val);
             result = await grain.TraceIdDelayedEcho1();
-            Assert.Equal(val, result); // “延迟(StartNew) RequestContext 回声不正确”);
+            Assert.Equal(val, result); // "Delayed (StartNew) RequestContext echo was not correct");
 
             RequestContext.Set(key, val2);
             result = await grain.TraceIdDelayedEcho2();
-            Assert.Equal(val2, result); // “延迟(ContinueWith) RequestContext 回声不正确”);
+            Assert.Equal(val2, result); // "Delayed (ContinueWith) RequestContext echo was not correct");
         }
 
         [Fact, TestCategory("Functional"), TestCategory("RequestContext")]
@@ -95,28 +95,28 @@ namespace UnitTests.General
 
             RequestContext.Set(key, val);
             var result = await grain.TraceIdEcho();
-            Assert.Equal(val, result);  // "即刻" RequestContext 反响不正确 。
+            Assert.Equal(val, result);  // "Immediate RequestContext echo was not correct"
 
             RequestContext.Set(key, val2);
             result = await grain.TraceIdDoubleEcho();
-            Assert.Equal(val2, result);  // “ 过渡 RequestContext 回声不正确”
+            Assert.Equal(val2, result);  // "Transitive RequestContext echo was not correct"
 
             RequestContext.Set(key, val);
             result = await grain.TraceIdDelayedEcho1();
-            Assert.Equal(val, result); // “延迟(StartNew) RequestContext 回声不正确”);
+            Assert.Equal(val, result); // "Delayed (StartNew) RequestContext echo was not correct");
 
             RequestContext.Set(key, val2);
             result = await grain.TraceIdDelayedEcho2();
-            Assert.Equal(val2, result); // “延迟(ContinueWith) RequestContext 回声不正确”);
+            Assert.Equal(val2, result); // "Delayed (ContinueWith) RequestContext echo was not correct");
 
             RequestContext.Set(key, val);
             result = await grain.TraceIdDelayedEchoAwait();
-            Assert.Equal(val, result); // ”(等待) RequestContext 回声不正确”;
+            Assert.Equal(val, result); // "Delayed (Await) RequestContext echo was not correct");
 
-            // 预期行为为预期行为, 无法工作, 因为设计 Task.Run 时没有使用 Orleans 任务调度器
+            // 预期行为是此操作不会生效，因为按设计 Task.Run 不使用 Orleans 任务调度器。
             //RequestContext.Set(key, val2);
-            //结果=等待 grain.TraceIdDelayedEchoTaskRun();
-            //Assert.Equal(val2, 结果); // " 延迟(Task.Run) RequestContext echo was not correct");
+            //result = await grain.TraceIdDelayedEchoTaskRun();
+            //Assert.Equal(val2,  result); // "Delayed (Task.Run) RequestContext echo was not correct");
         }
 
         [Fact, TestCategory("Functional"), TestCategory("RequestContext")]
@@ -125,8 +125,8 @@ namespace UnitTests.General
             var grain = this.fixture.GrainFactory.GetGrain<IRequestContextTaskGrain>(1);
             Tuple<string, string> requestContext = await grain.TestRequestContext();
             this.fixture.Logger.LogInformation("Request Context is: {RequestContext}", requestContext);
-            Assert.Equal("binks", requestContext.Item1);  // “项目1=”+ requestContext.Item1
-            Assert.Equal("binks", requestContext.Item2);  // “项目2=”+ requestContext.Item2
+            Assert.Equal("binks", requestContext.Item1);  // "Item1=" + requestContext.Item1
+            Assert.Equal("binks", requestContext.Item2);  // "Item2=" + requestContext.Item2
         }
 
         [Fact, TestCategory("Functional"), TestCategory("RequestContext")]
@@ -140,17 +140,17 @@ namespace UnitTests.General
 
             RequestContext.Set(RequestContext.CALL_CHAIN_REENTRANCY_HEADER, activityId);
             Guid result = await grain.E2EActivityId();
-            Assert.Equal(activityId, result);  // E2E ActivityId 未正确传播
+            Assert.Equal(activityId, result);  // "E2E ActivityId not propagated correctly"
             RequestContext.Clear();
 
             RequestContext.Set(RequestContext.CALL_CHAIN_REENTRANCY_HEADER, nullActivityId);
             result = await grain.E2EActivityId();
-            Assert.Equal(nullActivityId, result);  // "Null ActivityId 传播E2E错误"
+            Assert.Equal(nullActivityId, result);  // "Null ActivityId propagated E2E incorrectly"
             RequestContext.Clear();
 
             RequestContext.Set(RequestContext.CALL_CHAIN_REENTRANCY_HEADER, activityId2);
             result = await grain.E2EActivityId();
-            Assert.Equal(activityId2, result);  // E2E ActivityId 2 传播不正确
+            Assert.Equal(activityId2, result);  // "E2E ActivityId 2 not propagated correctly"
             RequestContext.Clear();
         }
 
@@ -166,7 +166,7 @@ namespace UnitTests.General
             Assert.Null(RequestContext.Get(RequestContext.CALL_CHAIN_REENTRANCY_HEADER));
             RequestContext.ReentrancyId = activityId;
             Guid result = await grain.E2EActivityId();
-            Assert.Equal(activityId, result);  // E2E ActivityId 未正确传播
+            Assert.Equal(activityId, result);  // "E2E ActivityId not propagated correctly"
             RequestContext.Clear();
 
             RequestContext.ReentrancyId = nullActivityId;
@@ -174,14 +174,14 @@ namespace UnitTests.General
             for (int i = 0; i < Environment.ProcessorCount; i++)
             {
                 result = await grain.E2EActivityId();
-                Assert.Equal(nullActivityId, result);  // "Null ActivityId 传播E2E错误"
+                Assert.Equal(nullActivityId, result);  // "Null ActivityId propagated E2E incorrectly"
             }
             RequestContext.Clear();
 
             Assert.Null(RequestContext.Get(RequestContext.CALL_CHAIN_REENTRANCY_HEADER));
             RequestContext.ReentrancyId = activityId2;
             result = await grain.E2EActivityId();
-            Assert.Equal(activityId2, result);  // E2E ActivityId 2 传播不正确
+            Assert.Equal(activityId2, result);  // "E2E ActivityId 2 not propagated correctly"
             RequestContext.Clear();
         }
 
@@ -197,7 +197,7 @@ namespace UnitTests.General
             Assert.Null(RequestContext.Get(RequestContext.CALL_CHAIN_REENTRANCY_HEADER));
             RequestContext.ReentrancyId = activityId;
             Guid result = await grain.E2EActivityId();
-            Assert.Equal(activityId, result);  // E2E ActivityId 未正确传播
+            Assert.Equal(activityId, result);  // "E2E ActivityId not propagated correctly"
             RequestContext.Clear();
 
             RequestContext.ReentrancyId = nullActivityId;
@@ -205,14 +205,14 @@ namespace UnitTests.General
             for (int i = 0; i < Environment.ProcessorCount; i++)
             {
                 result = await grain.E2EActivityId();
-                Assert.Equal(nullActivityId, result);  // "Null ActivityId 传播E2E错误"
+                Assert.Equal(nullActivityId, result);  // "Null ActivityId propagated E2E incorrectly"
             }
             RequestContext.Clear();
 
             Assert.Null(RequestContext.Get(RequestContext.CALL_CHAIN_REENTRANCY_HEADER));
             RequestContext.ReentrancyId = activityId2;
             result = await grain.E2EActivityId();
-            Assert.Equal(activityId2, result);  // E2E ActivityId 2 传播不正确
+            Assert.Equal(activityId2, result);  // "E2E ActivityId 2 not propagated correctly"
             RequestContext.Clear();
         }
 
@@ -226,23 +226,23 @@ namespace UnitTests.General
             IRequestContextTestGrain grain = this.fixture.GrainFactory.GetGrain<IRequestContextTestGrain>(GetRandomGrainId());
 
             Guid result = await grain.E2EActivityId();
-            Assert.Equal(nullActivityId, result);  // “E2E ActivityId 不应存在”
+            Assert.Equal(nullActivityId, result);  // "E2E ActivityId should not exist"
 
             result = await grain.E2EActivityId();
-            Assert.Equal(nullActivityId, result);  // "Null ActivityId 传播E2E错误"
+            Assert.Equal(nullActivityId, result);  // "Null ActivityId propagated E2E incorrectly"
             RequestContext.Clear();
 
             result = await grain.E2EActivityId();
-            Assert.Equal(nullActivityId, result);  // “E2E ActivityId 2 不应存在”
-            Assert.Null(RequestContext.Get(RequestContext.CALL_CHAIN_REENTRANCY_HEADER));  // “ 不应设置 ActivityId 上下文”
+            Assert.Equal(nullActivityId, result);  // "E2E ActivityId 2 should not exist"
+            Assert.Null(RequestContext.Get(RequestContext.CALL_CHAIN_REENTRANCY_HEADER));  // "No ActivityId context should be set"
 
             for (int i = 0; i < Environment.ProcessorCount; i++)
             {
-                Assert.Null(RequestContext.Get(RequestContext.CALL_CHAIN_REENTRANCY_HEADER));  // “ 不应设置 ActivityId 上下文”
+                Assert.Null(RequestContext.Get(RequestContext.CALL_CHAIN_REENTRANCY_HEADER));  // "No ActivityId context should be set"
 
                 result = await grain.E2EActivityId();
 
-                Assert.Equal(nullActivityId, result);  // "Null ActivityId 传播E2E错误"
+                Assert.Equal(nullActivityId, result);  // "Null ActivityId propagated E2E incorrectly"
 
                 RequestContext.Clear();
             }
@@ -256,12 +256,12 @@ namespace UnitTests.General
             IRequestContextTestGrain grain = this.fixture.GrainFactory.GetGrain<IRequestContextTestGrain>(GetRandomGrainId());
 
             Guid result = await grain.E2EActivityId();
-            Assert.Equal(nullActivityId, result);  // “E2E ActivityId 不应存在”
+            Assert.Equal(nullActivityId, result);  // "E2E ActivityId should not exist"
 
             RequestContextTestUtils.SetActivityId(nullActivityId);
             Assert.Null(RequestContext.Get(RequestContext.CALL_CHAIN_REENTRANCY_HEADER));
             result = await grain.E2EActivityId();
-            Assert.Equal(nullActivityId, result);  // "Null ActivityId 传播E2E错误"
+            Assert.Equal(nullActivityId, result);  // "Null ActivityId propagated E2E incorrectly"
             RequestContext.Clear();
 
             RequestContextTestUtils.SetActivityId(nullActivityId);
@@ -269,13 +269,13 @@ namespace UnitTests.General
             for (int i = 0; i < Environment.ProcessorCount; i++)
             {
                 result = await grain.E2EActivityId();
-                Assert.Equal(nullActivityId, result);  // "Null ActivityId 传播E2E错误"
+                Assert.Equal(nullActivityId, result);  // "Null ActivityId propagated E2E incorrectly"
             }
             RequestContext.Clear();
             RequestContextTestUtils.SetActivityId(nullActivityId);
             Assert.Null(RequestContext.Get(RequestContext.CALL_CHAIN_REENTRANCY_HEADER));
             result = await grain.E2EActivityId();
-            Assert.Equal(nullActivityId, result);  // "Null ActivityId 传播E2E错误"
+            Assert.Equal(nullActivityId, result);  // "Null ActivityId propagated E2E incorrectly"
             RequestContext.Clear();
         }
 
@@ -289,24 +289,24 @@ namespace UnitTests.General
 
             RequestContext.ReentrancyId = activityId;
             Guid result = await grain.E2EActivityId();
-            Assert.Equal(activityId, result);  // E2E ActivityId # 1 未正确传播 。
+            Assert.Equal(activityId, result);  // "E2E ActivityId #1 not propagated correctly"
             RequestContext.Clear();
 
             using (RequestContext.SuppressCallChainReentrancy())
             {
                 result = await grain.E2EActivityId();
-                Assert.Equal(Guid.Empty, result);  // E2E ActivityId # 2 未被传播
+                Assert.Equal(Guid.Empty, result);  // "E2E ActivityId #2 not not have been propagated"
                 RequestContext.Clear();
             }
 
             RequestContext.ReentrancyId = activityId2;
             result = await grain.E2EActivityId();
-            Assert.Equal(activityId2, result);  // E2E ActivityId #2应该已经传播
+            Assert.Equal(activityId2, result);  // "E2E ActivityId #2 should have been propagated"
             RequestContext.Clear();
 
             RequestContext.ReentrancyId = activityId;
             result = await grain.E2EActivityId();
-            Assert.Equal(activityId, result);  // E2E ActivityId #1 在#2之后没有正确传播
+            Assert.Equal(activityId, result);  // "E2E ActivityId #1 not propagated correctly after #2"
             RequestContext.Clear();
         }
     }

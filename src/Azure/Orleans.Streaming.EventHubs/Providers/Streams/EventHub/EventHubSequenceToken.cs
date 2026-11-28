@@ -8,43 +8,43 @@ using Orleans.Streams;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// EventHub 分区内信件位置
+    /// 消息在 Event Hub 分区中的位置。
     /// </summary>
     public interface IEventHubPartitionLocation
     {
         /// <summary>
-        /// EventHub 分区内信件的偏移
+        /// 消息在 Event Hub 分区中的偏移量。
         /// </summary>
         string EventHubOffset { get; }
 
         /// <summary>
-        /// 信件EventHub 序列序列代号
+        /// 消息的 Event Hub 序列 ID。
         /// </summary>
         long SequenceNumber { get; }
     }
 
     /// <summary>
-    /// 事件枢纽信息包含一系列应用层事件, 所以 EventHub 符号包含三条信息 。
-    /// EventHubOffset - - 这是用于从分区中读取此信件的每个分区的独特值 。
-    /// SequenceNumber - EventHub 序列号是分隔段内信件的唯一有顺序的信件代号。  
-    ///   下 SequenceNumber 独特性和顺序要求 EventHub 分区内的信件。
-    /// 索引 - 由于每条 EventHub 电文可能包含一个以上的应用程序层事件,因此此值
-    ///   指定此符号的应用程序层事件, 在 EventHub 信息的独特性要求
-    ///   并在 EventHub 电文中命令应用层事件。
+    /// Event Hub 消息由一批应用层事件组成，因此 Event Hub 令牌包含三项信息。
+    /// EventHubOffset：分区内的唯一值，用于从分区中的这条消息开始读取。
+    /// SequenceNumber：Event Hub 序列号，是分区内消息的唯一有序 ID。
+    /// SequenceNumber 用于保证分区内 Event Hub 消息的唯一性与顺序。
+    /// 事件索引：由于每条 Event Hub 消息可能包含多个应用层事件，此值
+    /// 表示令牌对应于该 Event Hub 消息中的哪个应用层事件。它用于保证
+    /// Event Hub 消息内应用层事件的唯一性与顺序。
     /// </summary>
     /// <remarks>
-    /// 事件 Hub 代号版本和子类,它们明确选择事件枢纽
-    /// 使用事件枢纽序列编号和事件索引比较兼容域。
-    /// 在恢复过程中, Orleans 解释的 <see cref="EventSequenceToken"/> 职位精确值
-    /// 先前继承的事故发生工厂 位于供应商序列编号空间
-    /// 交付的活动标志保留其具体类型和事件枢纽
+    /// Event Hub 令牌的各版本及显式选择 Event Hubs
+    /// 兼容性域的子类，使用 Event Hubs 序列号和事件索引进行比较。
+    /// 恢复期间，Orleans 将早期继承的事件令牌工厂产生的、类型恰为 <see cref="EventSequenceToken"/> 的位置
+    /// 解释为此提供程序的序列号空间中的位置。
+    /// 投递的事件令牌保留其具体类型和 Event Hubs 偏移量。
     /// </remarks>
     [Serializable]
     [GenerateSerializer]
     public class EventHubSequenceToken : EventSequenceToken, IEventHubPartitionLocation
     {
         /// <summary>
-        /// EventHub 分区内信件的偏移
+        /// 消息在 Event Hub 分区中的偏移量。
         /// </summary>
         [Id(0)]
         [JsonProperty]
@@ -53,9 +53,9 @@ namespace Orleans.Streaming.EventHubs
         /// <summary>
         /// 初始化 <see cref="EventHubSequenceToken" /> 类的新实例。
         /// </summary>
-        /// <param name="eventHubOffset">EventHub ,在信件所在的分区内进行抵消。</param>
-        /// <param name="sequenceNumber">EventHub sequenceNumber 用于此消息 。</param>
-        /// <param name="eventIndex">如果在一个单一的单位内交付了多个事件,则将指数转换成一系列活动, EventHub 信息。</param>
+        /// <param name="eventHubOffset">此消息来源分区中的 Event Hub 偏移量。</param>
+        /// <param name="sequenceNumber">此消息的 Event Hub sequenceNumber。</param>
+        /// <param name="eventIndex">如果单条 Event Hub 消息投递了多个事件，则为该事件在批次中的索引。</param>
         public EventHubSequenceToken(string eventHubOffset, long sequenceNumber, int eventIndex)
             : base(sequenceNumber, eventIndex)
         {
@@ -66,7 +66,7 @@ namespace Orleans.Streaming.EventHubs
         /// 初始化 <see cref="EventHubSequenceToken" /> 类的新实例。
         /// </summary>
         /// <remarks>
-        /// 此构建器仅暴露于序列器使用。
+        /// 此构造函数仅供序列化器使用。
         /// </remarks>
         public EventHubSequenceToken() : base()
         {
@@ -84,8 +84,8 @@ namespace Orleans.Streaming.EventHubs
             if (token.GetType() == typeof(EventSequenceToken)
                 && SequenceTokenCompatibilityDomain == typeof(EventHubSequenceToken))
             {
-                // 前继承的工厂在未补缺的情况下维持原厂。
-                // 空偏移还指定 EventHubDataAdapter产生的单序标牌。
+                // 之前继承的工厂持久化位置时没有保存偏移量。
+                // 空偏移量也用于标识 EventHubDataAdapter 产生的仅包含序列号的令牌。
                 return new EventHubSequenceToken(string.Empty, token.SequenceNumber, token.EventIndex);
             }
 
@@ -121,8 +121,8 @@ namespace Orleans.Streaming.EventHubs
         /// <inheritdoc />
         public override int GetHashCode() => HashCode.Combine(SequenceNumber, EventIndex);
 
-        /// <summary>返回一个代表当前对象的字符串。</summary>
-        /// <returns>一个代表当前对象的字符串。</returns>
+        /// <summary>返回表示当前对象的字符串。</summary>
+        /// <returns>表示当前对象的字符串。</returns>
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {

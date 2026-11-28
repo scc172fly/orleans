@@ -50,8 +50,8 @@ internal static class TimeProviderExtensions
                 return;
             }
 
-            // Task.Delay 的延迟时间不能超过大约49.7天。
-            // 块块保留绝对的最后期限,而不对调用者施加这一限制。
+            // Task.Delay 无法表示超过约 49.7 天的延迟。将等待拆分为长度受限的
+            // 时间段可保留绝对截止时间，而不必对调用方施加这一限制。
             await Task.Delay(
                 remaining > MaximumTimerDelay ? MaximumTimerDelay : remaining,
                 timeProvider,

@@ -7,7 +7,7 @@ using Orleans.Serialization.Invocation;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 以 grain 参考方式提出请求。
+    /// 在 Grain 引用上调用请求。
     /// </summary>
     internal sealed class OutgoingCallInvoker<TResult> : IOutgoingGrainCallContext
     {
@@ -23,11 +23,11 @@ namespace Orleans.Runtime
         /// <summary>
         /// 初始化 <see cref="OutgoingCallInvoker{TResult}"/> 类的新实例。
         /// </summary>
-        /// <param name="grain">下 grain 参考。</param>
+        /// <param name="grain">Grain 引用。</param>
         /// <param name="request">请求。</param>
         /// <param name="options"></param>
         /// <param name="sendRequest"></param>
-        /// <param name="filters">请求拦截器</param>
+        /// <param name="filters">调用拦截器。</param>
         public OutgoingCallInvoker(
             GrainReference grain,
             IInvokable request,
@@ -78,16 +78,16 @@ namespace Orleans.Runtime
         {
             try
             {
-                // 执行输油管中的每个阶段,每次连续呼叫使用这种方法时,都将采用下一阶段。
-                // 未执行的阶段( 例如, 因为用户未指定拦截器) 被跳过 。
+                // 执行管道中的各个阶段。每次后续调用此方法都会执行下一个阶段。
+                // 跳过没有实现的阶段（例如用户未指定拦截器）。
                 if (stage < this.filters.Length)
                 {
-                    // 呼叫每个指定的拦截器
+                    // 调用每个指定的拦截器。
                     var systemWideFilter = this.filters[stage];
                     stage++;
                     await systemWideFilter.Invoke(this);
 
-                    // 如果回复为无效, 某些过滤器没有继续呼叫链
+                    // 如果 Response 为 null，则说明某个筛选器未继续执行调用链。
                     if (this.Response is null)
                     {
                         ThrowBrokenCallFilterChain(systemWideFilter.GetType().Name);
@@ -100,7 +100,7 @@ namespace Orleans.Runtime
                     stage++;
                     await this.requestFilter!.Invoke(this);
 
-                    // 如果回复为无效, 某些过滤器没有继续呼叫链
+                    // 如果 Response 为 null，则说明某个筛选器未继续执行调用链。
                     if (this.Response is null)
                     {
                         ThrowBrokenCallFilterChain(this.requestFilter.GetType().Name);
@@ -110,7 +110,7 @@ namespace Orleans.Runtime
                 }
                 else if (stage == this.stages)
                 {
-                    // 最后打电话给根级的援引者。
+                    // 最后调用根级调用器。
                     stage++;
                     var responseCompletionSource = ResponseCompletionSourcePool.Get();
                     this.sendRequest(this.grainReference, responseCompletionSource, this.request, this.options);
@@ -124,7 +124,7 @@ namespace Orleans.Runtime
                 stage--;
             }
 
-            // 如果该方法被调用的次数超过预期,则无效。
+            // 调用此方法的次数超过预期次数属于无效操作。
             ThrowInvalidCall();
         }
 

@@ -9,7 +9,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// 1级数组的序列器
+    /// 一维数组的序列化器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
@@ -21,7 +21,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ArrayCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldCodec">字段编码。</param>
+        /// <param name="fieldCodec">字段编解码器。</param>
         public ArrayCodec(IFieldCodec<T> fieldCodec)
         {
             _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -122,7 +122,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// 1级阵列的复印机
+    /// 一维数组的复制器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
@@ -133,7 +133,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ArrayCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="elementCopier">元素复印机。</param>
+        /// <param name="elementCopier">元素复制器。</param>
         public ArrayCopier(IDeepCopier<T> elementCopier)
         {
             _elementCopier = OrleansGeneratedCodeHelper.UnwrapService(this, elementCopier);
@@ -163,7 +163,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ReadOnlyMemory{T}"/>的序列器。
+    /// <see cref="ReadOnlyMemory{T}"/> 的序列化器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
@@ -176,7 +176,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ReadOnlyMemoryCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldCodec">字段编码。</param>
+        /// <param name="fieldCodec">字段编解码器。</param>
         public ReadOnlyMemoryCodec(IFieldCodec<T> fieldCodec)
         {
             _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -272,7 +272,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ReadOnlyMemory{T}"/>的复印机。
+    /// <see cref="ReadOnlyMemory{T}"/> 的复制器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
@@ -283,7 +283,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ReadOnlyMemoryCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="elementCopier">元素复印机。</param>
+        /// <param name="elementCopier">元素复制器。</param>
         public ReadOnlyMemoryCopier(IDeepCopier<T> elementCopier)
         {
             _elementCopier = OrleansGeneratedCodeHelper.UnwrapService(this, elementCopier);
@@ -302,9 +302,9 @@ namespace Orleans.Serialization.Codecs
             var inputSpan = input.Span;
             var result = new T[inputSpan.Length];
 
-            // 请注意,如果输入中的基本物体是
-            // 能够参与循环参考。如果我们能拿到那个物体,我们就能防止这个周期。
-            // 也有可能 IMemoryOwner<T> 是支持对象,在这种情况下,这样做行不通。
+            // 请注意，如果输入的底层对象能够参与循环引用，
+            // 则可能发生无界递归。若能获取该对象，就可以阻止这种循环。
+            // 底层对象也可能是 IMemoryOwner<T>，这种情况下该方法将无法奏效。
             if (MemoryMarshal.TryGetArray(input, out var segment) && segment.Array!.Length == result.Length)
             {
                 if (context.TryGetCopy(segment.Array!, out T[]? existing))
@@ -323,7 +323,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="Memory{T}"/>的序列器。
+    /// <see cref="Memory{T}"/> 的序列化器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
@@ -336,7 +336,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="MemoryCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldCodec">字段编码。</param>
+        /// <param name="fieldCodec">字段编解码器。</param>
         public MemoryCodec(IFieldCodec<T> fieldCodec)
         {
             _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -432,7 +432,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="Memory{T}"/>的复印机。
+    /// <see cref="Memory{T}"/> 的复制器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
@@ -443,7 +443,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="MemoryCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="elementCopier">元素复印机。</param>
+        /// <param name="elementCopier">元素复制器。</param>
         public MemoryCopier(IDeepCopier<T> elementCopier)
         {
             _elementCopier = OrleansGeneratedCodeHelper.UnwrapService(this, elementCopier);
@@ -462,9 +462,9 @@ namespace Orleans.Serialization.Codecs
             var inputSpan = input.Span;
             var result = new T[inputSpan.Length];
 
-            // 请注意,如果输入中的基本物体是
-            // 能够参与循环参考。如果我们能拿到那个物体,我们就能防止这个周期。
-            // 也有可能 IMemoryOwner<T> 是支持对象,在这种情况下,这样做行不通。
+            // 请注意，如果输入的底层对象能够参与循环引用，
+            // 则可能发生无界递归。若能获取该对象，就可以阻止这种循环。
+            // 底层对象也可能是 IMemoryOwner<T>，这种情况下该方法将无法奏效。
             if (MemoryMarshal.TryGetArray<T>(input, out var segment) && segment.Array!.Length == result.Length)
             {
                 if (context.TryGetCopy(segment.Array!, out T[]? existing))
@@ -483,7 +483,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ArraySegment{T}"/>的序列器。
+    /// <see cref="ArraySegment{T}"/> 的序列化器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
@@ -496,7 +496,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ArraySegmentCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="fieldCodec">字段编码。</param>
+        /// <param name="fieldCodec">字段编解码器。</param>
         public ArraySegmentCodec(IFieldCodec<T> fieldCodec)
         {
             _fieldCodec = OrleansGeneratedCodeHelper.UnwrapService(this, fieldCodec);
@@ -595,7 +595,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ArraySegment{T}"/>的复印机。
+    /// <see cref="ArraySegment{T}"/> 的复制器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
@@ -606,7 +606,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ArraySegmentCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="elementCopier">元素复印机。</param>
+        /// <param name="elementCopier">元素复制器。</param>
         public ArraySegmentCopier(IDeepCopier<T> elementCopier)
         {
             _elementCopier = OrleansGeneratedCodeHelper.UnwrapService(this, elementCopier);

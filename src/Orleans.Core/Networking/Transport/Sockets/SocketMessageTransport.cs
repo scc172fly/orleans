@@ -34,8 +34,8 @@ internal sealed partial class SocketMessageTransport : MessageTransportBase
     private readonly CancellationTokenSource _connectionClosedCts = new();
     private readonly object _shutdownLock = new();
     private readonly object _readsLock = new();
-    private readonly string _remoteEndpointString; // 仅用于诊断
-    private readonly string _localEndpointString; // 仅用于诊断
+    private readonly string _remoteEndpointString; // 仅用于诊断。
+    private readonly string _localEndpointString; // 仅用于诊断。
     private readonly StripedMpscBuffer<WriteRequest> _writeRequests = new(
         stripeCount: 16,
         bufferSize: 256);
@@ -101,16 +101,16 @@ internal sealed partial class SocketMessageTransport : MessageTransportBase
 
     private async Task ProcessConnectionAsync()
     {
-        // 立即回到同步呼叫器
+        // 立即返回给同步调用方。
         await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
 
         try
         {
-            // 斯普曼发送和接收逻辑
+            // 启动发送和接收逻辑。
             var receiveTask = ProcessReads();
             var sendTask = ProcessWrites();
 
-            // 等待两个都完成
+            // 等待两者完成。
             try
             {
                 await receiveTask;
@@ -164,13 +164,13 @@ internal sealed partial class SocketMessageTransport : MessageTransportBase
 
                 _socketDisposed = true;
 
-                // shutdownReason 只有在产出顺利完成的情况下才应无效,所以任何人都不应
-                // 是否观察非描述 ConnectionAbortedException ,但连接中器尝试
-                // 关闭当前不支持的连接的一半。
+                // 只有输出正常完成时 shutdownReason 才应为 null，因此除了
+                // 连接中间件尝试半关闭连接之外（目前不支持此操作），不应有任何代码
+                // 观察到不包含具体说明的 ConnectionAbortedException。
                 _shutdownReason ??= new ConnectionAbortedException("The Socket transport's send loop completed gracefully.");
                 SocketsLog.ConnectionWriteFin(_logger, this, _shutdownReason.Message);
 
-                // 唯有我们还没有做就叫停工
+                // 仅在尚未调用 Shutdown 时调用它。
                 if (!_socketShutdown)
                 {
                     _socketShutdown = true;
@@ -180,7 +180,7 @@ internal sealed partial class SocketMessageTransport : MessageTransportBase
                     }
                     catch
                     {
-                        // 忽略从 Socket.Shutdown() 中的任何错误, 因为无论如何我们都要关闭连接 。
+                        // 忽略 Socket.Shutdown() 的任何错误，因为无论如何都在拆除连接。
                     }
                 }
 
@@ -194,8 +194,8 @@ internal sealed partial class SocketMessageTransport : MessageTransportBase
     }
 
     /// <summary>
-    /// 启动一个优雅的关闭插座 中断等待 I/O 操作。
-    /// 此操作不会处理插座 - 发生在 <see cref="Shutdown"/>的套接字 。
+    /// 发起套接字的优雅关闭，以中断待完成的 I/O 操作。
+    /// 这不会释放套接字；释放操作在 <see cref="Shutdown"/> 中发生。
     /// </summary>
     private void ShutdownSocket()
     {
@@ -219,7 +219,7 @@ internal sealed partial class SocketMessageTransport : MessageTransportBase
             }
             catch
             {
-                // 忽略错误 - 插件可能已经处于错误状态或未连接
+                // 忽略错误：套接字可能已处于错误状态或未连接。
             }
         }
     }
@@ -283,18 +283,18 @@ internal sealed partial class SocketMessageTransport : MessageTransportBase
     {
         _shutdownReason ??= closeReason;
 
-        // 如果关闭已提前退出
+        // 如果已关闭，则提前退出。
         if (_connectionClosedCts.IsCancellationRequested)
         {
             return;
         }
 
-        // 停止信号循环
+        // 通知各循环停止。
         await _connectionClosingCts.CancelAsync().ConfigureAwait(false);
         _readSignal.Signal();
         _writeSignal.Signal();
 
-        // 如果没有处理任务,直接处置插座
+        // 如果没有处理任务，则直接释放套接字。
         if (_processingTask is null)
         {
             Shutdown();
@@ -302,9 +302,9 @@ internal sealed partial class SocketMessageTransport : MessageTransportBase
             return;
         }
 
-        // 关闭插座以打断任何未完成的 I/O 操作
-        // 这将导致 ReceiveAsync/SendAsync 完成一个错误,
-        // 允许处理循环优雅地退出。
+        // 关闭套接字，以中断任何待完成的 I/O 操作。
+        // 这将使 ReceiveAsync/SendAsync 以错误结束，
+        // 从而让处理循环能够正常退出。
         ShutdownSocket();
 
         try
@@ -326,10 +326,10 @@ internal sealed partial class SocketMessageTransport : MessageTransportBase
 
         try
         {
-            // 确保套接网关闭和处置,即使 CloseAsync 没有被调用或超时
+            // 即使未调用 CloseAsync 或调用超时，也确保套接字已关闭并释放。
             Shutdown();
 
-            // 信号,我们即将关闭 如果还没有完成
+            // 如果尚未发出关闭信号，则通知正在关闭。
             await _connectionClosingCts.CancelAsync().ConfigureAwait(false);
             _readSignal.Signal();
             _writeSignal.Signal();
@@ -364,27 +364,27 @@ internal sealed partial class SocketMessageTransport : MessageTransportBase
         using ArcBufferWriter bufferWriter = new();
         var reader = new ArcBufferReader(bufferWriter);
 
-        // 请注意套接字 API 一般只能接受最大缓冲次数 。
-        // 例如,在Linux, <limits.h> 中通过IOV_MAX界定了最大值,通常为16。
-        // 见 https://www.man7.org/linux/man-pages/man0/limits.h.0p.html
-        // 在这里, 我们选择 8 作为最大缓冲数。 CoreCLR 将使用 *nix 上的堆叠式缓冲量,
-        // 见: https://github.com/dotnet/runtime/blob/0cf461b302f58c7add3f6dc405873fb2212b513f/src/libraries/System.Net.Sockets/src/System/Net/Sockets/SocketPal.Unix.cs#L24
+        // 注意：套接字 API 通常只能接受有限数量的缓冲区。
+        // 例如，在 Linux 上，最大数量由 <limits.h> 中的 IOV_MAX 定义，通常为 16。
+        // 参阅 https://www.man7.org/linux/man-pages/man0/limits.h.0p.html
+        // 此处选择 8 作为 CoreCLR 在类 Unix 系统上使用 stackalloc 分配的缓冲区数量上限，
+        // 参阅 https://github.com/dotnet/runtime/blob/0cf461b302f58c7add3f6dc405873fb2212b513f/src/libraries/System.Net.Sockets/src/System/Net/Sockets/SocketPal.Unix.cs#L24
         List<ArraySegment<byte>> networkBuffers = new(capacity: 8);
 
         try
         {
-            // 循环到终止
+            // 循环直到终止。
             while (!_connectionClosingCts.IsCancellationRequested)
             {
                 // 处理每个请求。
                 while (TryDequeue(out request))
                 {
-                    // 处理完成请求。
+                    // 处理请求直至完成。
                     while (true)
                     {
                         if (request.OnRead(reader))
                         {
-                            // 此项请求已完整, 转入下一个请求。
+                            // 此请求已完成，转到下一个请求。
                             break;
                         }
 
@@ -406,7 +406,7 @@ internal sealed partial class SocketMessageTransport : MessageTransportBase
 
                         if (transferred == 0)
                         {
-                            // FIN 财务处
+                            // FIN
                             SocketsLog.ConnectionReadFin(_logger, this);
                             isGracefulTermination = true;
                             goto exit;
@@ -421,7 +421,7 @@ internal sealed partial class SocketMessageTransport : MessageTransportBase
 
             isGracefulTermination = true;
 exit:
-/* 无操作 */
+/* no op */
             ;
         }
         catch (Exception exception)
@@ -490,7 +490,7 @@ exit:
             error = _socketReceiver.Error;
         }
 
-        // 如果我们开始关闭, 任何错误都视为优雅的终止
+        // 如果由我们发起关闭，则将任何错误视为正常终止。
         if (_socketDisposed || _socketShutdown)
         {
             error = null;
@@ -499,26 +499,26 @@ exit:
 
         if (error is ObjectDisposedException)
         {
-            // 如果插座还没处理好的话,这出乎意料
+            // 如果套接字尚未释放，则这是意外情况。
             SocketsLog.ConnectionError(_logger, this, error);
         }
         else if (IsConnectionResetError(_socketReceiver.SocketError))
         {
-            // 如果已经设置了 shutdownReason, 则此选项会被忽略 。
+            // 如果已设置 _shutdownReason，则可忽略此情况。
             error = null;
 
-            // 仍然有很小的可能性 DoReceive() 和 DoSend() 可以同时记录相同的连接重设。
-            // 两个日志都有相同的 ConnectionId。我认为不值得为避免这种情况而锁定。
+            // DoReceive() 和 DoSend() 仍有很小的概率会记录同一次连接重置。
+            // 两条日志的 ConnectionId 相同。仅为避免此情况而加锁并不值得。
             SocketsLog.ConnectionReset(_logger, this);
         }
         else if (IsConnectionAbortError(_socketReceiver.SocketError))
         {
-            // 此例外应总是被忽略, 因为应该设置 shutdownReason 。
+            // 此异常应始终忽略，因为此时应已设置 _shutdownReason。
             error = null;
         }
         else if (error is { })
         {
-            // 这出乎意料
+            // 这是意外情况。
             SocketsLog.ConnectionError(_logger, this, error);
         }
         else
@@ -547,12 +547,12 @@ exit:
 
         try
         {
-            // 循环到终止
+            // 循环直到终止。
             while (!_connectionClosingCts.IsCancellationRequested)
             {
                 while (buffers.Count < bufferLimit)
                 {
-                    // 尝试从当前计算器中消耗缓冲 。
+                    // 尝试从当前枚举器消耗一个缓冲区。
                     if (enumerator.MoveNext())
                     {
                         Debug.Assert(enumerator.Current.Count > 0);
@@ -561,7 +561,7 @@ exit:
                     else
                     {
 DequeueRequest:
-// 试着拿到下一个请求,然后用它来消耗。
+// 尝试获取下一个请求并消耗其数据。
                         if (requests.TryDequeue(out var request))
                         {
                             if (request.Buffers.Length == 0)
@@ -575,7 +575,7 @@ DequeueRequest:
                                 bufferLimit = LargeRequestBufferLimit;
                             }
 
-                            // 开始列出下个请求 。
+                            // 开始枚举下一个请求。
                             var slice = request.Buffers.ConsumeSlice(request.Buffers.Length);
                             processingRequests.Add((request, slice));
                             enumerator = slice.ArraySegments;
@@ -588,10 +588,10 @@ RefreshRequestQueue:
                                 break;
                             }
 
-                            // 等待前检查待定信件 。
+                            // 在等待之前检查是否有待处理的消息。
                             RefreshRequestQueue(requests, requestBuffer);
 
-                            // 等待更多的请求。
+                            // 等待更多请求。
                             if (requests.Count == 0)
                             {
                                 await _writeSignal.WaitAsync().ConfigureAwait(false);
@@ -602,14 +602,14 @@ RefreshRequestQueue:
                         }
                         else
                         {
-                            // 发送当前缓冲带。
+                            // 发送当前缓冲区中的数据。
                             enumerator = default;
                             break;
                         }
                     }
                 }
 
-                // 如果没有缓冲发送,则继续检查是否有更多的请求或出境
+                // 如果没有要发送的缓冲区，则继续检查是否有更多请求，或者退出。
                 if (buffers.Count == 0)
                 {
                     continue;
@@ -717,7 +717,7 @@ RefreshRequestQueue:
 
                 bufferLimit = SmallRequestBufferLimit;
 
-                // 信号要求已满足
+                // 发出请求已完成的信号。
                 for (var i = 0; i < processingRequests.Count - 1; i++)
                 {
                     var (request, slice) = processingRequests[i];
@@ -728,7 +728,7 @@ RefreshRequestQueue:
                 var last = processingRequests[^1];
                 processingRequests.Clear();
 
-                // 除非查点完成,否则避免处置最后一项。
+                // 除非枚举已完成，否则避免释放最后一个条目。
                 if (enumerator.IsCompleted)
                 {
                     var (request, slice) = last;
@@ -770,7 +770,7 @@ RefreshRequestQueue:
                 spinner.SpinOnce();
             }
 
-            // 排水请求
+            // 排空请求。
             int drained;
             do
             {
@@ -824,12 +824,12 @@ RefreshRequestQueue:
         Exception error;
         if (IsConnectionResetError(_socketSender.SocketError))
         {
-            // 如果已经设置了 shutdownReason, 则此选项会被忽略 。
+            // 如果已设置 _shutdownReason，则可忽略此情况。
             var ex = _socketSender.Error!;
             error = new ConnectionResetException(ex.Message, ex);
 
-            // 仍然有很小的可能性 DoReceive() 和 DoSend() 可以同时记录相同的连接重设。
-            // 两个日志都有相同的 ConnectionId。我认为不值得为避免这种情况而锁定。
+            // DoReceive() 和 DoSend() 仍有很小的概率会记录同一次连接重置。
+            // 两条日志的 ConnectionId 相同。仅为避免此情况而加锁并不值得。
             if (!_socketDisposed)
             {
                 SocketsLog.ConnectionReset(_logger, this);
@@ -837,18 +837,18 @@ RefreshRequestQueue:
         }
         else if (IsConnectionAbortError(_socketSender.SocketError))
         {
-            // 此例外应总是被忽略, 因为应该设置 shutdownReason 。
+            // 此异常应始终忽略，因为此时应已设置 _shutdownReason。
             error = _socketSender.Error!;
 
             if (!_socketDisposed)
             {
-                // 如果插座还没处理好的话,这出乎意料
+                // 如果套接字尚未释放，则这是意外情况。
                 SocketsLog.ConnectionError(_logger, this, error);
             }
         }
         else
         {
-            // 这出乎意料
+            // 这是意外情况。
             error = _socketSender.Error!;
             if (!_socketDisposed)
             {
@@ -861,8 +861,8 @@ RefreshRequestQueue:
 
     private static bool IsConnectionResetError(SocketError errorCode)
     {
-        // 连接重置可在 Windows 上以 SocketError.ConnectionAborted 的形式报告。
-        // ProtocolType 能够被删除一次 https://github.com/dotnet/corefx/issues/31927 固定。
+        // 在 Windows 上，连接重置可能以 SocketError.ConnectionAborted 的形式报告。
+        // https://github.com/dotnet/corefx/issues/31927 修复后即可移除 ProtocolType。
         return errorCode == SocketError.ConnectionReset ||
                errorCode == SocketError.Shutdown ||
                errorCode == SocketError.ConnectionAborted && IsWindows ||
@@ -871,7 +871,7 @@ RefreshRequestQueue:
 
     private static bool IsConnectionAbortError(SocketError errorCode)
     {
-        // 请求在 ReceiveAsync 能够造成 "InvalidArgument" 错误 *尼克斯,你没有
+        // 在类 Unix 系统上，在 ReceiveAsync 之后调用 Dispose 可能导致“InvalidArgument”错误。
         return errorCode == SocketError.OperationAborted ||
                errorCode == SocketError.Interrupted ||
                errorCode == SocketError.InvalidArgument && !IsWindows;
@@ -881,7 +881,7 @@ RefreshRequestQueue:
     {
         if (endpoint is not IPEndPoint ep) return endpoint;
 
-        // 将终点正常化
+        // 规范化终结点。
         if (ep.Address.IsIPv4MappedToIPv6)
         {
             return new IPEndPoint(ep.Address.MapToIPv4(), ep.Port);

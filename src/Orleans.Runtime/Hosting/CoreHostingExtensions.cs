@@ -16,11 +16,11 @@ using Orleans.Runtime.MembershipService;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// <see cref="ISiloBuilder"/> 实例的扩展 。
+    /// 用于 <see cref="ISiloBuilder"/> 实例的扩展方法。
     /// </summary>
     public static class CoreHostingExtensions
     {
-        // 使用时间自主的描述性身份将别名登记、生命周期参与和选择退出清理结合在一起。
+        // 运行时拥有的描述符标识将别名注册、生命周期参与和选择不使用该功能时的清理关联在一起。
         private static readonly ServiceDescriptor DirectoryDescriptor = ServiceDescriptor.Singleton<DistributedGrainDirectory, DistributedGrainDirectory>();
         private static readonly ServiceDescriptor DirectoryLifecycleDescriptor =
             ServiceDescriptor.Singleton<ILifecycleParticipant<ISiloLifecycle>>(static sp => sp.GetRequiredService<DistributedGrainDirectory>());
@@ -36,12 +36,12 @@ namespace Orleans.Hosting
         });
 
         /// <summary>
-        /// 添加添加添加 <see cref="Activity.Current"/> 通过 grain 电话
-        /// 注:根据 <see cref="ActivitySource.StartActivity(string, ActivityKind)"/> 活动,只有在存在任何活动听众时才会创建 <see cref="ActivitySource.HasListeners()"/> 和 <see cref="ActivityListener.Sample"/> 返回 <see cref="ActivitySamplingResult.PropagationData"/>。
+        /// 添加通过 Grain 调用传播 <see cref="Activity.Current"/> 的支持。
+        /// 注意：根据 <see cref="ActivitySource.StartActivity(string, ActivityKind)"/>，仅在存在 Activity 监听器 <see cref="ActivitySource.HasListeners()"/> 且 <see cref="ActivityListener.Sample"/> 返回 <see cref="ActivitySamplingResult.PropagationData"/> 时才会创建 Activity。
         /// </summary>
-        /// <param name="builder">建筑工。</param>
-        /// <returns>建筑工。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 是 <see langword="null"/>.</exception>
+        /// <param name="builder">构建器。</param>
+        /// <returns>构建器。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> 为 <see langword="null"/>。</exception>
         public static ISiloBuilder AddActivityPropagation(this ISiloBuilder builder)
         {
             ArgumentNullException.ThrowIfNull(builder);
@@ -53,17 +53,17 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 silo ,以使用开发专用组合和收听本地主机。
+        /// 将 Silo 配置为使用仅供开发的集群模式，并在 localhost 上监听。
         /// </summary>
-        /// <param name="builder">下 silo 建筑商</param>
-        /// <param name="siloPort"> silo 端口。</param>
+        /// <param name="builder">Silo 构建器。</param>
+        /// <param name="siloPort">Silo 端口。</param>
         /// <param name="gatewayPort">网关端口。</param>
         /// <param name="primarySiloEndpoint">
-        /// 初级 silo或 <see langword="null"/> 的终点,将此 silo 作为初级。
+        /// 主 Silo 的终结点，或使用 <see langword="null"/> 将当前 Silo 作为主 Silo。
         /// </param>
-        /// <param name="serviceId">服务代号。</param>
-        /// <param name="clusterId">组号 ID 。</param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <param name="serviceId">服务标识。</param>
+        /// <param name="clusterId">集群标识。</param>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder UseLocalhostClustering(
             this ISiloBuilder builder,
             int siloPort = EndpointOptions.DEFAULT_SILO_PORT,
@@ -82,7 +82,7 @@ namespace Orleans.Hosting
             builder.UseDevelopmentClustering(optionsBuilder => ConfigurePrimarySiloEndpoint(optionsBuilder, primarySiloEndpoint));
             builder.ConfigureServices(services =>
             {
-                // 如果调用者没有覆盖服务 ID 或群集 id, 请将默认值配置为后退 。
+                // 如果调用方未覆盖服务标识或集群标识，则配置默认值作为回退值。
                 if (string.Equals(serviceId, ClusterOptions.DevelopmentServiceId, StringComparison.Ordinal) && string.Equals(clusterId, ClusterOptions.DevelopmentClusterId, StringComparison.Ordinal))
                 {
                     services.PostConfigure<ClusterOptions>(options =>
@@ -105,20 +105,20 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 silo 使用只开发的组合。
+        /// 将 Silo 配置为使用仅供开发的集群模式。
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="primarySiloEndpoint">
-        /// 初级 silo或 <see langword="null"/> 的终点,将此 silo 作为初级。
+        /// 主 Silo 的终结点，或使用 <see langword="null"/> 将当前 Silo 作为主 Silo。
         /// </param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder UseDevelopmentClustering(this ISiloBuilder builder, IPEndPoint? primarySiloEndpoint)
         {
             return builder.UseDevelopmentClustering(optionsBuilder => ConfigurePrimarySiloEndpoint(optionsBuilder, primarySiloEndpoint));
         }
 
         /// <summary>
-        /// 配置 silo 使用只开发的组合。
+        /// 将 Silo 配置为使用仅供开发的集群模式。
         /// </summary>
         public static ISiloBuilder UseDevelopmentClustering(
             this ISiloBuilder builder,
@@ -128,7 +128,7 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 配置 silo 使用只开发的组合。
+        /// 将 Silo 配置为使用仅供开发的集群模式。
         /// </summary>
         public static ISiloBuilder UseDevelopmentClustering(
             this ISiloBuilder builder,
@@ -162,15 +162,15 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 选择遗留 grain 目录作为 grain 类型中的默认值,无需明确选择目录。
+        /// 为未显式选择目录的 Grain 类型选用旧版 Grain 目录作为默认目录。
         /// </summary>
-        /// <param name="siloBuilder">下 silo 建筑商</param>
-        /// <returns>提供的情况 silo 建筑商</returns>
+        /// <param name="siloBuilder">Silo 构建器。</param>
+        /// <returns>提供的 Silo 构建器。</returns>
         /// <remarks>
-        /// 配置每个 silo , 并在此选项下推迟迁移到分布的 grain 目录 。
-        /// 从遗留目录迁移到分布目录是单向的。
+        /// 为每个 Silo 配置此选项以推迟迁移到分布式 Grain 目录。
+        /// 从旧版目录迁移到分布式目录是单向的。
         /// </remarks>
-        /// <exception cref="ArgumentNullException"><paramref name="siloBuilder"/> 是 <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="siloBuilder"/> 为 <see langword="null"/>。</exception>
         public static ISiloBuilder UseLegacyGrainDirectory(this ISiloBuilder siloBuilder)
         {
             ArgumentNullException.ThrowIfNull(siloBuilder);
@@ -190,19 +190,19 @@ namespace Orleans.Hosting
                 }
             }
 
-            // 删除未使用的分布式服务后,遗留目录可以安装兼容端点。
+            // 移除未使用的分布式目录服务，以便旧版目录安装其兼容性终结点。
             services.Remove(DirectoryDescriptor);
             services.Remove(DirectoryLifecycleDescriptor);
             services.Remove(DirectoryMembershipDescriptor);
         }
 
         /// <summary>
-        /// 配置分布的 grain 目录。
+        /// 配置分布式 Grain 目录。
         /// </summary>
-        /// <param name="siloBuilder">用于登记目录实施情况的 silo 构建器。</param>
-        /// <param name="name">将目录注册在下面或空, 将其登记为默认。多个名称共享一个目录实例 。</param>
-        /// <returns>提供的情况 silo 建筑商</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="siloBuilder"/> 是 <see langword="null"/>.</exception>
+        /// <param name="siloBuilder">用于注册目录实现的 Silo 构建器。</param>
+        /// <param name="name">注册目录时使用的名称，或使用 null 将其注册为默认目录。多个名称共享一个目录实例。</param>
+        /// <returns>提供的 Silo 构建器。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="siloBuilder"/> 为 <see langword="null"/>。</exception>
         public static ISiloBuilder AddDistributedGrainDirectory(this ISiloBuilder siloBuilder, string? name = null)
         {
             ArgumentNullException.ThrowIfNull(siloBuilder);
@@ -217,7 +217,7 @@ namespace Orleans.Hosting
                 services.RemoveDefaultGrainDirectory();
             }
 
-            // 分发 Grain 目录
+            // 分布式 Grain 目录。
             services.AddOptions<GrainDirectoryOptions>();
             services.TryAdd(DirectoryMembershipDescriptor);
             if (!services.Contains(DirectoryDescriptor))

@@ -91,7 +91,7 @@ public class SiloMetadataPlacementFilterTests(SiloMetadataPlacementFilterTests.F
     }
 
     /// <summary>
-    /// 独特 silo 设置每个元数据的不同元数据 silo,所以这要求在调用时进行安插 silo.
+    /// 各 Silo 的唯一元数据设置不同，因此要求在调用方 Silo 上进行放置。
     /// </summary>
     /// <returns></returns>
     [Fact, TestCategory("Functional")]
@@ -114,7 +114,7 @@ public class SiloMetadataPlacementFilterTests(SiloMetadataPlacementFilterTests.F
     }
 
     /// <summary>
-    /// 独特 silo 设置每个元数据的不同元数据 silo,所以这要求在调用时进行安插 silo 因为它是唯一匹配的
+    /// 各 Silo 的唯一元数据设置不同，因此要求在调用方 Silo 上进行放置，因为只有它匹配。
     /// </summary>
     /// <returns></returns>
     [Fact, TestCategory("Functional")]
@@ -137,7 +137,7 @@ public class SiloMetadataPlacementFilterTests(SiloMetadataPlacementFilterTests.F
     }
 
     /// <summary>
-    /// 独特 silo 设置每个元数据的不同元数据 silo,所以这仍然会放在其中任何一个 silos 刚刚匹配 silos 不足以让候选人达到理想的最低要求。
+    /// 各 Silo 的唯一元数据设置不同，但匹配的 Silo 只有一个，未达到期望的最少候选数，因此仍可在两个 Silo 中的任意一个上放置。
     /// </summary>
     /// <returns></returns>
     [Fact, TestCategory("Functional")]
@@ -171,7 +171,7 @@ public class SiloMetadataPlacementFilterTests(SiloMetadataPlacementFilterTests.F
     }
 
     /// <summary>
-    /// 独特 silo 设置每个元数据的不同元数据 silo,所以这仍然会放在其中任何一个 silos 刚刚匹配 silos 不足以让候选人达到理想的最低要求。
+    /// 各 Silo 的唯一元数据设置不同，但匹配的 Silo 只有一个，未达到期望的最少候选数，因此仍可在两个 Silo 中的任意一个上放置。
     /// </summary>
     /// <returns></returns>
     [Fact, TestCategory("Functional")]
@@ -205,7 +205,7 @@ public class SiloMetadataPlacementFilterTests(SiloMetadataPlacementFilterTests.F
     }
 
     /// <summary>
-    /// 独特 silo 设置每个元数据的不同元数据 silo,所以这仍然会放在其中任何一个 silos 刚刚匹配 silos 不足以让候选人达到理想的最低要求。
+    /// 各 Silo 的唯一元数据设置不同，但匹配的 Silo 只有一个，未达到期望的最少候选数，因此仍可在两个 Silo 中的任意一个上放置。
     /// </summary>
     /// <returns></returns>
     [Fact, TestCategory("Functional")]
@@ -238,7 +238,7 @@ public class SiloMetadataPlacementFilterTests(SiloMetadataPlacementFilterTests.F
     }
 
     /// <summary>
-    /// 如果没有定义元数据密钥, 则它应该返回到匹配全部 silos
+    /// 若未定义元数据键，则应回退为匹配所有 Silo。
     /// </summary>
     /// <returns></returns>
     [Fact, TestCategory("Functional")]

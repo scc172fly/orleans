@@ -6,9 +6,9 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <Nullable>enable</Nullable>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-    <!-- 抽象包件在分析器/点网/cs下携带此组件。 -->
+    <!-- 抽象包将此程序集放在 analyzers/dotnet/cs 路径下。 -->
     <EnablePackageValidation>false</EnablePackageValidation>
-    <!-- 分析器和代码修正方法共享此组件, 所以包件组件将同时暴露; 代码修正需要Roslyn Workingspaces。 -->
+    <!-- 分析器与代码修复共享此程序集，因此打包后的组件会公开两者；代码修复需要 Roslyn Workspaces。 -->
     <NoWarn>$(NoWarn);RS1038</NoWarn>
   </PropertyGroup>
 

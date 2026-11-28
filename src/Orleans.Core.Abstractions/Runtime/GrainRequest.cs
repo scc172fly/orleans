@@ -7,13 +7,13 @@ using Orleans.Serialization.Invocation;
 namespace Orleans.Runtime;
 
 /// <summary>
-/// 启动时排队的请求 <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/>。
+/// 由 <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/> 加入激活实例队列的请求。
 /// </summary>
 /// <remarks>
-/// 请求得到自己的答复,所以排队提出请求只分配此对象及其信息。
-/// 请求排队时, 取消适用。 一旦回调开始, 任务将反映回调的结果 。
-/// 当呼叫过滤器完成该任务而不执行回调时,任务将反映过滤器的结果。
-/// 呼叫过滤器将请求作为 <see cref="IGrainRequestInvoker.RunRequestAsync"/>来观察 。
+/// 请求自行接收响应，因此加入队列时仅分配此对象和相应的消息。
+/// 取消在请求排队期间生效。回调一旦开始，任务就反映回调的执行结果。
+/// 如果调用过滤器在未运行回调的情况下完成调用，任务将反映该过滤器的结果。
+/// 调用过滤器观察到的请求为 <see cref="IGrainRequestInvoker.RunRequestAsync"/>。
 /// </remarks>
 internal sealed class GrainRequest<TState, TResult> : TaskCompletionSource<TResult>, IGrainRequestInvoker, ILocalRequest
 {
@@ -36,11 +36,11 @@ internal sealed class GrainRequest<TState, TResult> : TaskCompletionSource<TResu
         var cancellationToken = _registration.Token;
         if (Task.IsCompleted)
         {
-            // 请求在排队时被取消了 。
+            // 请求在排队期间被取消。
             return new(Response.Completed);
         }
 
-        // 取消时正在运行早期回调, 取消注册成功, 请检查牌子 。
+        // 在取消操作仍在执行较早的回调时，注销也可能成功，因此还需检查令牌。
         if (cancellationToken.CanBeCanceled && (!_registration.Unregister() || cancellationToken.IsCancellationRequested))
         {
             TrySetCanceled(cancellationToken);
@@ -91,7 +91,7 @@ internal sealed class GrainRequest<TState, TResult> : TaskCompletionSource<TResu
 
     void ILocalRequest.Complete(Response response)
     {
-        // 任务保留着它的第一个结果:回调的结果,取消的结果,或者一个不运行回拨而完成传召的呼叫过滤器的结果。
+        // 任务保留首个结果：回调结果、取消结果，或调用过滤器在未运行回调的情况下完成调用所产生的结果。
         if (Task.IsCompleted)
         {
             return;
@@ -115,7 +115,7 @@ internal sealed class GrainRequest<TState, TResult> : TaskCompletionSource<TResu
     {
     }
 
-    // 宣布使用电话过滤器,检查接口和执行方法。
+    // 为调用过滤器声明，调用过滤器会检查接口方法和实现方法。
     Task IGrainRequestInvoker.RunRequestAsync(CancellationToken cancellationToken) => throw new InvalidOperationException();
 
     public int GetArgumentCount() => 0;
@@ -144,14 +144,14 @@ internal sealed class GrainRequest<TState, TResult> : TaskCompletionSource<TResu
 }
 
 /// <summary>
-/// 用于观察排队 <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/>的请求的调用过滤器的界面。
+/// 调用过滤器观察由 <see cref="GrainBaseExtensions.RunRequestAsync(IGrainBase, Func{CancellationToken, Task}, CancellationToken)"/> 加入队列的请求时所看到的接口。
 /// </summary>
 internal interface IGrainRequestInvoker
 {
     internal static readonly MethodInfo MethodInfo = typeof(IGrainRequestInvoker).GetMethod(nameof(RunRequestAsync), BindingFlags.Instance | BindingFlags.Public)!;
 
     /// <summary>
-    /// 运行请求回调。
+    /// 执行请求的回调。
     /// </summary>
     Task RunRequestAsync(CancellationToken cancellationToken = default);
 }

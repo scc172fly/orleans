@@ -9,20 +9,20 @@ using Microsoft.Extensions.Logging;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 用户端类包含各种应用实用方法和 grain 代码。
+    /// Utils 类包含供应用程序和 Grain 代码使用的多种实用方法。
     /// </summary>
     public static partial class Utils
     {
         /// <summary>
-        /// 返回一个可读的文字字符串,用于描述一个可以数列收集的对象。
+        /// 返回描述 IEnumerable 对象集合的易读文本字符串。
         /// </summary>
         /// <typeparam name="T">列表元素的类型。</typeparam>
-        /// <param name="collection">描述的IO数。</param>
-        /// <param name="toString">将元素转换为字符串。如果未指定,将会使用 <see cref="object.ToString"/> 。</param>
+        /// <param name="collection">要描述的 IEnumerable。</param>
+        /// <param name="toString">将元素转换为字符串。如果未指定，则使用 <see cref="object.ToString"/>。</param>
         /// <param name="separator">要使用的分隔符。</param>
-        /// <param name="putInBrackets">将元素放在括号</param>
-        /// <returns>以个人字符串描述包装而组装的字符串
-        /// 带有方括号的元素,用逗号将其分开。</returns>
+        /// <param name="putInBrackets">将元素放在括号内。</param>
+        /// <returns>将各元素的字符串描述用方括号包围，
+        /// 并用逗号分隔后组成的字符串。</returns>
         public static string EnumerableToString<T>(IEnumerable<T>? collection, Func<T, string>? toString = null,
                                                         string separator = ", ", bool putInBrackets = true)
         {
@@ -66,18 +66,18 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 返回一个可读的人类文字字符串,该字符串描述将对象映射为对象的字典。
+        /// 返回描述将对象映射到对象的字典的易读文本字符串。
         /// </summary>
         /// <typeparam name="T1">字典键的类型。</typeparam>
         /// <typeparam name="T2">字典元素的类型。</typeparam>
-        /// <param name="dict">描述的字典。</param>
-        /// <param name="toString">将元素转换为字符串。如果未指定,将会使用 <see cref="object.ToString"/> 。</param>
-        /// <param name="separator">要使用的分隔符。 如果未指定, 元素应该由新行分隔。</param>
-        /// <returns>以个人字符串描述包装而组装的字符串
-        /// 方括号内对等的两条,用逗号分隔。
-        /// 每一对关键值代表了每个关键对的符号,作为键的字符串描述,然后是
-        /// 数值的字符串描述,
-        /// 以 " - > " 分隔,并括号内。</returns>
+        /// <param name="dict">要描述的字典。</param>
+        /// <param name="toString">将元素转换为字符串。如果未指定，则使用 <see cref="object.ToString"/>。</param>
+        /// <param name="separator">要使用的分隔符。如果未指定，则各元素应以换行符分隔。</param>
+        /// <returns>将各键值对的字符串描述用逗号分隔，
+        /// 并在整体外加上方括号后组成的字符串。
+        /// 每个键值对先使用键的字符串描述，
+        /// 再使用值的字符串描述，
+        /// 二者以“ -> ”分隔，并用花括号包围。</returns>
         public static string DictionaryToString<T1, T2>(ICollection<KeyValuePair<T1, T2>> dict, Func<T2, string?>? toString = null, string? separator = null)
         {
             if (dict == null || dict.Count == 0)
@@ -114,10 +114,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 格式化显示时间间隔的组件值。
+        /// 格式化时间间隔的各组成值以供显示。
         /// </summary>
-        /// <param name="timeSpan">格式的时间间隔。</param>
-        /// <returns>格式化的时间间隔。</returns>
+        /// <param name="timeSpan">要格式化的时间间隔。</param>
+        /// <returns>格式化后的时间间隔。</returns>
         public static string TimeSpanToString(TimeSpan timeSpan)
         {
             //00:03:32.8289777
@@ -125,23 +125,23 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 将时间段从秒转换为整毫秒。
+        /// 将持续时间从计时周期（tick）转换为整数毫秒。
         /// </summary>
-        /// <param name="ticks">期限,以秒计。</param>
-        /// <returns>整个时间长度,整毫秒。</returns>
+        /// <param name="ticks">持续时间，以 tick 为单位。</param>
+        /// <returns>持续时间，以整数毫秒为单位。</returns>
         public static long TicksToMilliSeconds(long ticks) => ticks / TimeSpan.TicksPerMillisecond;
 
         /// <summary>
-        /// 将平均时间从秒转换为毫秒。
+        /// 将平均持续时间从 tick 转换为毫秒。
         /// </summary>
-        /// <param name="ticks">平均持续时间, 以 tits 计。</param>
-        /// <returns>平均持续时间,以毫秒计。</returns>
+        /// <param name="ticks">平均持续时间，以 tick 为单位。</param>
+        /// <returns>平均持续时间，以毫秒为单位。</returns>
         public static float AverageTicksToMilliSeconds(float ticks) => ticks / TimeSpan.TicksPerMillisecond;
 
         /// <summary>
-        /// 将乌里作为IPEndpoint分析
+        /// 将 Uri 解析为 IPEndpoint。
         /// </summary>
-        /// <param name="uri">输入 Uri</param>
+        /// <param name="uri">输入的 Uri。</param>
         /// <returns></returns>
         public static System.Net.IPEndPoint? ToIPEndPoint(this Uri uri)
         {
@@ -154,9 +154,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 将 Uri 解析为 Silo 地址,不包括生成标识符。
+        /// 将 Uri 解析为不包含世代标识的 Silo 地址。
         /// </summary>
-        /// <param name="uri">输入 Uri</param>
+        /// <param name="uri">输入的 Uri。</param>
         public static SiloAddress? ToGatewayAddress(this Uri uri)
         {
             ArgumentNullException.ThrowIfNull(uri);
@@ -168,9 +168,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 表示网关 URI 格式中的 IP 端点。
+        /// 以网关 URI 格式表示 IP 终结点。
         /// </summary>
-        /// <param name="ep">输入 IP 端点</param>
+        /// <param name="ep">输入的 IP 终结点。</param>
         /// <returns></returns>
         public static Uri ToGatewayUri(this System.Net.IPEndPoint ep)
         {
@@ -179,9 +179,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 表示网关 URI 格式中的 silo 地址。
+        /// 以网关 URI 格式表示 Silo 地址。
         /// </summary>
-        /// <param name="address">输入 silo 地址</param>
+        /// <param name="address">输入的 Silo 地址。</param>
         /// <returns></returns>
         public static Uri ToGatewayUri(this SiloAddress address)
         {
@@ -190,9 +190,9 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 执行动作并禁止它所投的例外。
+        /// 执行操作，并抑制该操作抛出的任何异常。
         /// </summary>
-        /// <param name="action">要执行的动作。</param>
+        /// <param name="action">要执行的操作。</param>
         public static void SafeExecute(Action action)
         {
             ArgumentNullException.ThrowIfNull(action);
@@ -205,11 +205,11 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 执行动作, 在提供日志时记录它丢出的任何例外, 并取消此例外 。
+        /// 执行操作并抑制其抛出的任何异常；如果提供了日志记录器，还会记录该异常。
         /// </summary>
-        /// <param name="action">要执行的动作。</param>
-        /// <param name="logger">用于记录例外的日志器。</param>
-        /// <param name="caller">将包含在日志条目中的调用者姓名。</param>
+        /// <param name="action">要执行的操作。</param>
+        /// <param name="logger">用于记录异常的日志记录器。</param>
+        /// <param name="caller">要包含在日志条目中的调用者名称。</param>
         public static void SafeExecute(Action action, ILogger? logger = null, string? caller = null)
         {
             ArgumentNullException.ThrowIfNull(action);
@@ -226,10 +226,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 等待一项任务,压制它所投的例外。
+        /// 等待任务，并抑制该任务抛出的任何异常。
         /// </summary>
-        /// <param name="task">等待的任务。</param>
-        /// <returns>代表操作的任务。</returns>
+        /// <param name="task">要等待的任务。</param>
+        /// <returns>表示该操作的任务。</returns>
         public static async Task SafeExecuteAsync(Task task)
         {
             ArgumentNullException.ThrowIfNull(task);
@@ -255,17 +255,17 @@ namespace Orleans.Runtime
             }
             catch
             {
-                // 现在真的,真的,真的忽略。
+                // 现在彻底忽略该异常。
             }
         }
 
         /// <summary>
-        /// 将一个序列分组成批,当每批达到规定大小时即产生。
+        /// 将序列划分为多个批次，在批次达到指定大小时返回该批次。
         /// </summary>
-        /// <param name="sequence">分批处理的序列。</param>
-        /// <param name="batchSize">每批中元素的目标数。</param>
+        /// <param name="sequence">要划分为批次的序列。</param>
+        /// <param name="batchSize">每个批次的目标元素数。</param>
         /// <typeparam name="T">序列中元素的类型。</typeparam>
-        /// <returns>一系列非空批次</returns>
+        /// <returns>由非空批次组成的序列。</returns>
         public static IEnumerable<List<T>> BatchIEnumerable<T>(this IEnumerable<T> sequence, int batchSize)
         {
             ArgumentNullException.ThrowIfNull(sequence);
@@ -277,7 +277,7 @@ namespace Orleans.Runtime
                 foreach (var item in sequence)
                 {
                     batch.Add(item);
-                    // 等我们积累的批量够多的时候,就寄出来
+                    // 当批次累积到足够的元素时，将其返回。
                     if (batch.Count >= batchSize)
                     {
                         yield return batch; // batch.ToArray();
@@ -292,14 +292,14 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取当前堆栈跟踪,不包含此方法和指定数的调用框架。
+        /// 获取当前堆栈跟踪，不包含此方法及指定数量的调用方堆栈帧。
         /// </summary>
-        /// <param name="skipFrames">排除的额外调用框架数。</param>
-        /// <returns>格式化的堆栈跟踪。</returns>
+        /// <param name="skipFrames">需要额外排除的调用方堆栈帧数。</param>
+        /// <returns>格式化后的堆栈跟踪。</returns>
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static string GetStackTrace(int skipFrames = 0)
         {
-            skipFrames += 1; //从堆叠追踪中跳过此方法
+            skipFrames += 1; // 从堆栈跟踪中排除此方法。
             return new System.Diagnostics.StackTrace(skipFrames).ToString();
         }
 

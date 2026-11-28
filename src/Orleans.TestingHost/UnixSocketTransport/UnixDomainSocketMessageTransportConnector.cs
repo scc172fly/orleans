@@ -35,7 +35,7 @@ internal class UnixDomainSocketMessageTransportConnector : MessageTransportConne
             unixEndPoint = new UnixDomainSocketEndPoint(_options.Value.ConvertEndpointToPath(endPoint));
         }
 
-#pragma warning disable CA2000 // Connect failure disposes the socket below; CreateAndStartAsync owns it on both success and initialization failure.
+#pragma warning disable CA2000 // 连接失败时在下方释放套接字；CreateAndStartAsync 在成功或初始化失败时都拥有该套接字。
         var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
 #pragma warning restore CA2000
 

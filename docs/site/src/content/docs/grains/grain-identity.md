@@ -1,76 +1,76 @@
 ---
-title: "Grain 身份"
-description: "理解 grain 类型、键,以及 GrainId 数值以内值 Orleans."
+title: Grain 标识
+description: 了解 Orleans 中的 Grain 类型、键和 GrainId 值。
 ms.date: 08/02/2026
 ms.topic: concept-article
 ---
 
 <a id="grain-identity"></a>
 
-# Grain 身份
+# Grain 标识
 
-每个 grain 都有稳定的逻辑特性,其来源是:
+每个 Grain 都具有稳定的逻辑标识，由以下两部分组成：
 
-1. 确定履行的 **grain 类型**。
-1. **grain 键**,其中确定了该类型中的一种逻辑 grain 。
+1. **Grain 类型**，用于标识其实现。
+1. **Grain 键**，用于标识该类型中的某一个逻辑 Grain。
 
-Orleans 表示 <xref:Orleans.Runtime.GrainId>的完整身份。 A `GrainId` 显示 `Type` 和 `Key`;它不显示 `PrimaryKey` 属性。应用代码通常使用打字 [grain 引用](grain-references.md) 和关键助手,而不是直接构建 `GrainId` 值。
+Orleans 使用 <xref:Orleans.Runtime.GrainId> 表示完整标识。`GrainId` 公开 `Type` 和 `Key`，并不公开 `PrimaryKey` 属性。应用代码通常使用强类型的 [Grain 引用](grain-references.md) 和键辅助方法，而不是直接构造 `GrainId` 值。
 
 <a id="choose-a-key-type"></a>
 
-## 选择密钥类型
+## 选择键类型
 
-声明 grain 接口上的键形:
+在 Grain 接口上声明键的形式：
 
-| 接口界面 | 向 `GetGrain` 提供密钥  |
+| 接口 | 传给 `GetGrain` 的键 |
 |---|---|
 | <xref:Orleans.IGrainWithStringKey> | `string` |
 | <xref:Orleans.IGrainWithGuidKey> | <xref:System.Guid> |
 | <xref:Orleans.IGrainWithIntegerKey> | `long` |
-| <xref:Orleans.IGrainWithGuidCompoundKey> | <xref:System.Guid> 加上字符串扩展名 |
-| <xref:Orleans.IGrainWithIntegerCompoundKey> | `long` 加上字符串扩展名 |
+| <xref:Orleans.IGrainWithGuidCompoundKey> | <xref:System.Guid> 加字符串扩展部分 |
+| <xref:Orleans.IGrainWithIntegerCompoundKey> | `long` 加字符串扩展部分 |
 
-从应用程序的域名中选择密钥, 如客户名、 设备 ID 或账户号。 Grain 密钥由 grain 类型所覆盖, 因此两种不同的 grain 类型可以使用相同的密钥而不必提及相同的 grain。
+根据应用的业务领域选择键，例如客户 ID、设备 ID 或账户编号。Grain 键的作用域是 Grain 类型，因此两种不同的 Grain 类型可以使用相同的键，而不会指向同一个 Grain。
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="string_key_interface":::
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="get_string_key_grain":::
 
-使用固定键,例如 `"default"` ,当应用程序有意处理一种类型的逻辑 grain 时。这是一个公约,而不是单独的单吨特性。
+当应用有意只访问某个类型的一个逻辑 Grain 时，可以使用固定键，例如 `"default"`。这是一种使用约定，而不是独立的单例功能。
 
 <a id="read-the-current-grains-key"></a>
 
-## 读取当前 grain的密钥
+## 读取当前 Grain 的键
 
-在 grain内,使用匹配其接口的密钥助手:
+在 Grain 内部，使用与其接口匹配的键辅助方法：
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="read_string_key":::
 
-其他助手包括 `GetPrimaryKey()`、 `GetPrimaryKeyLong()`和超载,以返回复数键的字符串扩展。
+其他辅助方法包括 `GetPrimaryKey()`、`GetPrimaryKeyLong()`，以及可返回复合键字符串扩展部分的重载。
 
-运行时身份也可以从 `this.GetGrainId()` 或 `((IGrainBase)this).GrainContext.GrainId`获得。使用该格式用于需要 grain 类型和编码键并列的基础设施代码。
+还可以通过 `this.GetGrainId()` 或 `((IGrainBase)this).GrainContext.GrainId` 获取运行时标识。对于需要同时访问 Grain 类型和编码后的键的基础设施代码，请使用这种形式。
 
 <a id="grain-type-names"></a>
 
 ## Grain 类型名称
 
-按公约, Orleans 从执行类中产生一个 grain 类型名称。当类型名称必须稳定时使用 <xref:Orleans.GrainTypeAttribute> ,而不需与 CLR 类别名称分开:
+按照约定，Orleans 从实现类推导 Grain 类型名称。当类型名称必须保持稳定、不依赖 CLR 类名时，请使用 <xref:Orleans.GrainTypeAttribute>：
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="stable_grain_type":::
 
-将直线 grain 类型名称作为耐久识别符号处理。修改已部署类型名称创建了不同的逻辑 grain 命名空间,并可以切断现有引用或从新执行中持续的数据。
+将显式声明的 Grain 类型名称视为持久标识符。更改已经部署的类型名称会创建不同的逻辑 Grain 命名空间，可能使现有引用或持久化数据无法关联到新的实现。
 
 <a id="work-with-grainid"></a>
 
-## GrainId工作
+## 使用 GrainId
 
-高级基础设施可以分析或创建未类型身份 :
+高级基础设施代码可以解析或创建不带类型约束的标识：
 
 :::code language="csharp" source="../snippets/compiled/Grains/GrainSnippets.cs" id="create_grain_id":::
 
-优先使用应用代码中的 `IGrainFactory.GetGrain<TGrainInterface>(key)` 。输入引用既包含逻辑特性,也包含用来调用它的界面,光 `GrainId` 不提供可调用的合同。
+在应用代码中优先使用 `IGrainFactory.GetGrain<TGrainInterface>(key)`。强类型引用同时携带逻辑标识和用于调用的接口，而单独的 `GrainId` 不提供可调用的契约。
 
 <a id="why-identity-is-logical"></a>
 
-## 为何身份是合乎逻辑的
+## 为什么标识是逻辑标识
 
-A grain 身份不是程序地址 Orleans 能够激活 grain 任何兼容 silo,当闲置时停止使用它,然后在其他地方再创建。 grain 位置独立是 grain 安全通过电话引用,并持续使用。
+Grain 标识不是进程地址。Orleans 可以在任何兼容的 Silo 上激活 Grain，在其空闲时停用它，随后在其他位置重新创建它。整个过程中，引用始终指向同一个逻辑 Grain。正是这种位置无关性，使 Grain 引用能够安全地在调用中传递，并持久化以供以后使用。

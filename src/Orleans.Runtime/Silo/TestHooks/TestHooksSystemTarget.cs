@@ -15,7 +15,7 @@ using Orleans.Runtime.Messaging;
 namespace Orleans.Runtime.TestHooks
 {
     /// <summary>
-    /// 假的、只试执行 <see cref="IEnvironmentStatisticsProvider"/>。
+    /// 仅供测试使用的 <see cref="IEnvironmentStatisticsProvider"/> 的模拟实现。
     /// </summary>
     internal class TestHooksEnvironmentStatisticsProvider : IEnvironmentStatisticsProvider
     {
@@ -39,7 +39,7 @@ namespace Orleans.Runtime.TestHooks
     }
 
     /// <summary>
-    /// 白箱测试的测试钩功能,作为 SystemTarget
+    /// 作为 SystemTarget 实现的白盒测试钩子函数。
     /// </summary>
     internal sealed class TestHooksSystemTarget : SystemTarget, ITestHooksSystemTarget
     {
@@ -62,7 +62,7 @@ namespace Orleans.Runtime.TestHooks
 
         public void Initialize()
         {
-            // No-op
+            // 空操作。
         }
 
         public Task<SiloAddress> GetConsistentRingPrimaryTargetSilo(uint key)

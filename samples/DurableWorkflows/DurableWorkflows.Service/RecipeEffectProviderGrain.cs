@@ -2,8 +2,8 @@ using Orleans.Durable.Journaling;
 
 namespace DurableWorkflows;
 
-// 这个独立、有日记的供应商在没有全权证书的情况下,使付款/电子邮件协议可以执行。
-// 网关仅将记录到的无效果故障归类为 ProvenNoEffect ,并使用供应商的权威查询。
+// 这个独立的日志化服务提供方使支付和电子邮件协议无需凭据即可运行。在生产环境中，
+// 网关仅将服务文档明确保证未产生副作用的失败归类为 ProvenNoEffect，并使用服务提供方的权威查询接口。
 public sealed class RecipeEffectProviderGrain : DurableGrain, IRecipeEffectProviderGrain
 {
     private readonly IDurableDictionary<string, EffectRequest> _applied;
@@ -88,7 +88,7 @@ public sealed class RecipeEffectProviderGrain : DurableGrain, IRecipeEffectProvi
             throw new IOException("Provider lookup is unavailable.");
         }
 
-        // 此演示无密钥的电子邮件服务没有权威请求查询, 无法确认是否收到 。
+        // 此演示中不支持幂等键的邮件服务没有权威的请求查询接口。缺少回执意味着结果未知。
         return Task.FromResult(request.Kind is EffectKind.Email
             ? new ProviderResult(ProviderOutcome.Unknown, "Unkeyed email needs provider support or an operator decision.")
             : _results.TryGetValue(key, out var result) ? result : new ProviderResult(ProviderOutcome.Unknown, "No authoritative outcome is available."));

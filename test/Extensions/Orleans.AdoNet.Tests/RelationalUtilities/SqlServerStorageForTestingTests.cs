@@ -141,7 +141,7 @@ public class SqlServerStorageForTestingTests
             try
             {
                 await using var connection = new SqlConnection(connectionString);
-                // 工人关闭排水管 SQL 操作;取消测试仍然中止 I/O 。
+                // 工作者关闭时会排空 SQL 操作；测试取消仍会中止 I/O。
                 await connection.OpenAsync(cancellationToken);
                 reconnectAttempt.TrySetResult();
                 await using var command = connection.CreateCommand();

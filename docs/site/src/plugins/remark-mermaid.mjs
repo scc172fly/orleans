@@ -15,12 +15,12 @@ function transformMermaidBlocks(node) {
   if (node.type === 'code' && node.lang === 'mermaid') {
     const source = escapeHtml(node.value);
     node.type = 'html';
-    // The fallback is a bare <pre>: Expressive Code renders each <pre><code> as a code block and loads its
-    // 样式表,其中含有页面的第一个块, <noscript> 后退将从脚本页面中隐藏。
+    // 回退内容直接使用 <pre>：Expressive Code 会将每个 <pre><code> 渲染为代码块，并将其
+    // 样式表与页面的第一个代码块一同输出；若使用 <noscript> 回退方案，在启用脚本的页面上它就会被隐藏。
     node.value =
       `<div class="mermaid-diagram" data-mermaid-source="${source}" ` +
-      'data-mermaid-status="loading" aria-label="Mermaid diagram">' +
-      '<span class="sr-only">Rendering diagram.</span>' +
+      'data-mermaid-status="loading" aria-label="Mermaid 图表">' +
+      '<span class="sr-only">正在呈现图表。</span>' +
       `<noscript><pre class="mermaid-source">${source}</pre></noscript></div>`;
     delete node.lang;
     delete node.meta;

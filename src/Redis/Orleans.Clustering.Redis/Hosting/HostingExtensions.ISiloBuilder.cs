@@ -8,12 +8,12 @@ using StackExchange.Redis;
 namespace Microsoft.Extensions.Hosting
 {
     /// <summary>
-    /// Redis 群集提供商的主机扩展名。
+    /// 用于 Redis 集群成员管理提供程序的宿主扩展方法。
     /// </summary>
     public static class RedisClusteringISiloBuilderExtensions
     {
         /// <summary>
-        /// 配置 Redis 作为组合集提供者。
+        /// 将 Redis 配置为集群成员管理提供程序。
         /// </summary>
         public static ISiloBuilder UseRedisClustering(this ISiloBuilder builder, Action<RedisClusteringOptions> configuration)
         {
@@ -29,7 +29,7 @@ namespace Microsoft.Extensions.Hosting
         }
 
         /// <summary>
-        /// 配置 Redis 作为组合集提供者。
+        /// 将 Redis 配置为集群成员管理提供程序。
         /// </summary>
         public static ISiloBuilder UseRedisClustering(this ISiloBuilder builder, string redisConnectionString)
         {

@@ -8,17 +8,17 @@ namespace Orleans.CodeGenerator.Diagnostics;
 public static class RpcInterfacePropertyDiagnostic
 {
     /// <summary>
-    /// 诊断识别器
+    /// 诊断标识符。
     /// </summary>
     public const string DiagnosticId = DiagnosticRuleId.RpcInterfaceProperty;
 
     /// <summary>
-    /// 诊断标题
+    /// 诊断标题。
     /// </summary>
     public const string Title = "RPC interfaces must not contain properties";
 
     /// <summary>
-    /// 诊断信息格式
+    /// 诊断消息格式。
     /// </summary>
     public const string MessageFormat = "The interface {0} contains a property {1}. RPC interfaces must not contain properties.";
 

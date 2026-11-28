@@ -21,7 +21,7 @@ export default class ThemeButtons extends React.Component<ThemeButtonsProps, The
   }
 
   pickLight(event: React.MouseEvent<HTMLAnchorElement>) {
-    // 防止连接导航。
+    // 阻止链接导航。
     event.preventDefault();
 
     this.props.light();
@@ -29,7 +29,7 @@ export default class ThemeButtons extends React.Component<ThemeButtonsProps, The
   }
 
   pickDark(event: React.MouseEvent<HTMLAnchorElement>) {
-    // 防止连接导航。
+    // 阻止链接导航。
     event.preventDefault();
 
     this.props.dark();

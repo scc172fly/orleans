@@ -5,33 +5,33 @@ using System.Threading.Tasks;
 namespace Orleans.Transactions.TestKit
 {
     /// <summary>
-    /// 坐标为错误注射试验 grains的往来业务。
+    /// 协调多个故障注入测试 Grain 之间的事务操作。
     /// </summary>
     public interface IFaultInjectionTransactionCoordinatorGrain : IGrainWithGuidKey
     {
         /// <summary>
-        /// 设定新交易中每个 grain 的值。
+        /// 在新事务中设置每个 Grain 的值。
         /// </summary>
-        /// <param name="grains">下 grains 更新。</param>
-        /// <param name="numberToAdd">设定于每个值的数值 grain.</param>
-        /// <returns>代表操作的任务。</returns>
+        /// <param name="grains">要更新的 Grain。</param>
+        /// <param name="numberToAdd">要为每个 Grain 设置的值。</param>
+        /// <returns>表示该操作的任务。</returns>
         [Transaction(TransactionOption.Create)]
         Task MultiGrainSet(List<IFaultInjectionTransactionTestGrain> grains, int numberToAdd);
 
         /// <summary>
-        /// 在新交易中为每个 grain 添加值,并配置错误注入。
+        /// 在新事务中为每个 Grain 的值增加指定数值，并配置故障注入。
         /// </summary>
-        /// <param name="grains">下 grains 更新。</param>
-        /// <param name="numberToAdd">每项的附加值 grain.</param>
-        /// <param name="faultInjection">注射的过错,或 <see langword="null"/> 来进行操作,无受控过失。</param>
-        /// <returns>代表操作的任务。</returns>
+        /// <param name="grains">要更新的 Grain。</param>
+        /// <param name="numberToAdd">要为每个 Grain 增加的数值。</param>
+        /// <param name="faultInjection">要注入的故障；指定 <see langword="null"/> 则不注入受控故障。</param>
+        /// <returns>表示该操作的任务。</returns>
         [Transaction(TransactionOption.Create)]
         Task MultiGrainAddAndFaultInjection(List<IFaultInjectionTransactionTestGrain> grains, int numberToAdd,
             FaultInjectionControl? faultInjection = null);
     }
 
     /// <summary>
-    /// 坐标为错误注射试验 grains的往来业务。
+    /// 协调多个故障注入测试 Grain 之间的事务操作。
     /// </summary>
     public class FaultInjectionTransactionCoordinatorGrain : Grain, IFaultInjectionTransactionCoordinatorGrain
     {

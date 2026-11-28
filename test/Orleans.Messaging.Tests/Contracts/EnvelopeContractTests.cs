@@ -318,7 +318,7 @@ public sealed class EnvelopeContractTests
     [Theory]
     [InlineData("id", 1024, true)]
     [InlineData("id", 1025, false)]
-    // 线段深度仅受编码的邮件代号大小所约束。
+    // 段的深度仅受编码后消息 ID 大小的限制。
     [InlineData("depth", 512, true)]
     [InlineData("depth", 513, false)]
     [InlineData("unicode-id", 512, true)]

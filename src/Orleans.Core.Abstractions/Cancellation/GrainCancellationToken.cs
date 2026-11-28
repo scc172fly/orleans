@@ -7,26 +7,26 @@ using Orleans.Runtime;
 namespace Orleans
 {
     /// <summary>
-    /// 类比于 <see cref="CancellationToken"/> ,可在 grains之间发送。
+    /// 类似于 <see cref="CancellationToken"/>，但可以在 Grain 之间传递。
     /// </summary>
     [Obsolete("Use CancellationToken instead.")]
     [Immutable]
     public sealed class GrainCancellationToken : IDisposable
     {
         /// <summary>
-        /// 基本取消的象征性源。
+        /// 底层取消令牌源。
         /// </summary>
         [NonSerialized]
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         /// <summary>
-        /// 此代号被传递到的远程 grains 引用。
+        /// 已接收此令牌的远程 Grain 的引用。
         /// </summary>
         [NonSerialized]
         private readonly ConcurrentDictionary<GrainId, GrainReference> _targetGrainReferences;
 
         /// <summary>
-        /// 管理 grain 取消待标的运行时间。
+        /// 用于管理 Grain 取消令牌的运行时。
         /// </summary>
         [NonSerialized]
         private IGrainCancellationTokenRuntime? _cancellationTokenRuntime;
@@ -35,7 +35,7 @@ namespace Orleans
         /// 初始化 <see cref="T:Orleans.GrainCancellationToken"/>。
         /// </summary>
         /// <param name="id">
-        /// 象征性id。
+        /// 令牌标识符。
         /// </param>
         internal GrainCancellationToken(Guid id)
         {
@@ -48,44 +48,44 @@ namespace Orleans
         /// 初始化 <see cref="T:Orleans.GrainCancellationToken"/>。
         /// </summary>
         /// <param name="id">
-        /// 象征性id。
+        /// 令牌标识符。
         /// </param>
         /// <param name="canceled">
-        /// 是否已经取消此实例 。
+        /// 此实例是否已经取消。
         /// </param>
         /// <param name="runtime">
-        /// 运行时间。
+        /// 运行时。
         /// </param>
         internal GrainCancellationToken(Guid id, bool canceled, IGrainCancellationTokenRuntime? runtime = null) : this(id)
         {
             _cancellationTokenRuntime = runtime;
             if (canceled)
             {
-                // 我们取消取消的取消Token源 , 只需“储存”取消状态。
+                // 调用 _cancellationTokenSource 的 Cancel 仅用于“保存”已取消状态。
                 _cancellationTokenSource.Cancel();
             }
         }
 
         /// <summary>
-        /// 获取该代号的唯一代号
+        /// 获取令牌的唯一标识符。
         /// </summary>
         internal Guid Id { get; private set; }
 
         /// <summary>
-        /// 获取基本取消标记 。
+        /// 获取底层取消令牌。
         /// </summary>
         public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         /// <summary>
-        /// 获得一个值, 显示是否请求取消 。
+        /// 获取一个值，指示是否已请求取消。
         /// </summary>
         internal bool IsCancellationRequested => _cancellationTokenSource.IsCancellationRequested;
 
         /// <summary>
-        /// 取消取消标记。
+        /// 取消该取消令牌。
         /// </summary>
         /// <returns>
-        /// 代表行动的一个 <see cref="Task"/> 。
+        /// 表示该操作的 <see cref="Task"/>。
         /// </returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage(
             "Performance",
@@ -110,10 +110,10 @@ namespace Orleans
         }
 
         /// <summary>
-        /// 订阅所提供的注销通知 grain 参引。
+        /// 使指定 Grain 引用订阅取消通知。
         /// </summary>
-        /// <param name="runtime">取消时间 grain 。</param>
-        /// <param name="grainReference">下 grain 添加引用。</param>
+        /// <param name="runtime">Grain 取消机制的运行时。</param>
+        /// <param name="grainReference">要添加的 Grain 引用。</param>
         internal void AddGrainReference(IGrainCancellationTokenRuntime runtime, GrainReference grainReference)
         {
             if (_cancellationTokenRuntime == null)

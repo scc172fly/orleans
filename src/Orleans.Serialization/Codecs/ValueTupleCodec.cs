@@ -9,7 +9,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="ValueTuple"/>的序列器。
+    /// <see cref="ValueTuple"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class ValueTupleCodec : IFieldCodec<ValueTuple>
@@ -37,7 +37,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T1}"/>的序列器。
+    /// <see cref="ValueTuple{T1}"/> 的序列化器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterSerializer]
@@ -50,7 +50,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="valueCodec">值代码。</param>
+        /// <param name="valueCodec">值编解码器。</param>
         public ValueTupleCodec(IFieldCodec<T> valueCodec)
         {
             _valueCodec = OrleansGeneratedCodeHelper.UnwrapService(this, valueCodec);
@@ -104,7 +104,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple"/>的复印机。
+    /// <see cref="ValueTuple"/> 的复制器。
     /// </summary>
     [RegisterCopier]
     public sealed class ValueTupleCopier : IDeepCopier<ValueTuple>, IOptionalDeepCopier
@@ -121,7 +121,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T}"/>的复印机。
+    /// <see cref="ValueTuple{T}"/> 的复制器。
     /// </summary>
     /// <typeparam name="T">元素类型。</typeparam>
     [RegisterCopier]
@@ -133,7 +133,7 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCopier{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier">复印机。</param>
+        /// <param name="copier">复制器。</param>
         public ValueTupleCopier(IDeepCopier<T> copier) => _copier = OrleansGeneratedCodeHelper.UnwrapService(this, copier);
 
         /// <inheritdoc />
@@ -154,10 +154,10 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T1, T2}"/>的串行器
+    /// <see cref="ValueTuple{T1, T2}"/> 的序列化器。
     /// </summary>
-    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
-    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
+    /// <typeparam name="T1">元组第一个分量的类型。</typeparam>
+    /// <typeparam name="T2">元组第二个分量的类型。</typeparam>
     [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2> : IFieldCodec<ValueTuple<T1, T2>>
     {
@@ -170,8 +170,8 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCodec{T1, T2}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec"> <typeparamref name="T1"/> 代码。</param>
-        /// <param name="item2Codec"> <typeparamref name="T2"/> 代码。</param>
+        /// <param name="item1Codec"><typeparamref name="T1"/> 的编解码器。</param>
+        /// <param name="item2Codec"><typeparamref name="T2"/> 的编解码器。</param>
         public ValueTupleCodec(IFieldCodec<T1> item1Codec, IFieldCodec<T2> item2Codec)
         {
             _item1Codec = OrleansGeneratedCodeHelper.UnwrapService(this, item1Codec);
@@ -226,10 +226,10 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T1, T2}"/>的复印机
+    /// <see cref="ValueTuple{T1, T2}"/> 的复制器。
     /// </summary>
-    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
-    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
+    /// <typeparam name="T1">元组第一个分量的类型。</typeparam>
+    /// <typeparam name="T2">元组第二个分量的类型。</typeparam>
     [RegisterCopier]
     public sealed class ValueTupleCopier<T1, T2> : IDeepCopier<ValueTuple<T1, T2>>, IOptionalDeepCopier
     {
@@ -240,8 +240,8 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCopier{T1, T2}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1"> <typeparamref name="T1"/>的复印机。</param>
-        /// <param name="copier2"> <typeparamref name="T2"/>的复印机。</param>
+        /// <param name="copier1"><typeparamref name="T1"/> 的复制器。</param>
+        /// <param name="copier2"><typeparamref name="T2"/> 的复制器。</param>
         public ValueTupleCopier(IDeepCopier<T1> copier1, IDeepCopier<T2> copier2)
         {
             _copier1 = OrleansGeneratedCodeHelper.UnwrapService(this, copier1);
@@ -267,11 +267,11 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T1, T2, T3}"/>的序列器。
+    /// <see cref="ValueTuple{T1, T2, T3}"/> 的序列化器。
     /// </summary>
-    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
-    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
-    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
+    /// <typeparam name="T1">元组第一个分量的类型。</typeparam>
+    /// <typeparam name="T2">元组第二个分量的类型。</typeparam>
+    /// <typeparam name="T3">元组第三个分量的类型。</typeparam>
     [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3> : IFieldCodec<ValueTuple<T1, T2, T3>>
     {
@@ -286,9 +286,9 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCodec{T1, T2, T3}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec"> <typeparamref name="T1"/> 代码。</param>
-        /// <param name="item2Codec"> <typeparamref name="T2"/> 代码。</param>
-        /// <param name="item3Codec"> <typeparamref name="T3"/> 代码。</param>
+        /// <param name="item1Codec"><typeparamref name="T1"/> 的编解码器。</param>
+        /// <param name="item2Codec"><typeparamref name="T2"/> 的编解码器。</param>
+        /// <param name="item3Codec"><typeparamref name="T3"/> 的编解码器。</param>
         public ValueTupleCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -349,11 +349,11 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T1, T2, T3}"/>的复印机。
+    /// <see cref="ValueTuple{T1, T2, T3}"/> 的复制器。
     /// </summary>
-    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
-    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
-    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
+    /// <typeparam name="T1">元组第一个分量的类型。</typeparam>
+    /// <typeparam name="T2">元组第二个分量的类型。</typeparam>
+    /// <typeparam name="T3">元组第三个分量的类型。</typeparam>
     [RegisterCopier]
     public sealed class ValueTupleCopier<T1, T2, T3> : IDeepCopier<ValueTuple<T1, T2, T3>>, IOptionalDeepCopier
     {
@@ -365,9 +365,9 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCopier{T1, T2, T3}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">下 <typeparamref name="T1"/> 复印机</param>
-        /// <param name="copier2">下 <typeparamref name="T2"/> 复印机</param>
-        /// <param name="copier3">下 <typeparamref name="T3"/> 复印机</param>
+        /// <param name="copier1"><typeparamref name="T1"/> 的复制器。</param>
+        /// <param name="copier2"><typeparamref name="T2"/> 的复制器。</param>
+        /// <param name="copier3"><typeparamref name="T3"/> 的复制器。</param>
         public ValueTupleCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,
@@ -398,12 +398,12 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T1, T2, T3, T4}"/>的序列器。
+    /// <see cref="ValueTuple{T1, T2, T3, T4}"/> 的序列化器。
     /// </summary>
-    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
-    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
-    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
-    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
+    /// <typeparam name="T1">元组第一个分量的类型。</typeparam>
+    /// <typeparam name="T2">元组第二个分量的类型。</typeparam>
+    /// <typeparam name="T3">元组第三个分量的类型。</typeparam>
+    /// <typeparam name="T4">元组第四个分量的类型。</typeparam>
     [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3, T4> : IFieldCodec<ValueTuple<T1, T2, T3, T4>>
     {
@@ -420,10 +420,10 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCodec{T1, T2, T3, T4}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec"> <typeparamref name="T1"/> 代码。</param>
-        /// <param name="item2Codec"> <typeparamref name="T2"/> 代码。</param>
-        /// <param name="item3Codec"> <typeparamref name="T3"/> 代码。</param>
-        /// <param name="item4Codec"> <typeparamref name="T4"/> 代码。</param>
+        /// <param name="item1Codec"><typeparamref name="T1"/> 的编解码器。</param>
+        /// <param name="item2Codec"><typeparamref name="T2"/> 的编解码器。</param>
+        /// <param name="item3Codec"><typeparamref name="T3"/> 的编解码器。</param>
+        /// <param name="item4Codec"><typeparamref name="T4"/> 的编解码器。</param>
         public ValueTupleCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -488,12 +488,12 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T1, T2, T3, T4}"/>的复印机。
+    /// <see cref="ValueTuple{T1, T2, T3, T4}"/> 的复制器。
     /// </summary>
-    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
-    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
-    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
-    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
+    /// <typeparam name="T1">元组第一个分量的类型。</typeparam>
+    /// <typeparam name="T2">元组第二个分量的类型。</typeparam>
+    /// <typeparam name="T3">元组第三个分量的类型。</typeparam>
+    /// <typeparam name="T4">元组第四个分量的类型。</typeparam>
     [RegisterCopier]
     public sealed class ValueTupleCopier<T1, T2, T3, T4> : IDeepCopier<ValueTuple<T1, T2, T3, T4>>, IOptionalDeepCopier
     {
@@ -506,10 +506,10 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCopier{T1, T2, T3, T4}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">下 <typeparamref name="T1"/> 复印机</param>
-        /// <param name="copier2">下 <typeparamref name="T2"/> 复印机</param>
-        /// <param name="copier3">下 <typeparamref name="T3"/> 复印机</param>
-        /// <param name="copier4">下 <typeparamref name="T4"/> 复印机</param>
+        /// <param name="copier1"><typeparamref name="T1"/> 的复制器。</param>
+        /// <param name="copier2"><typeparamref name="T2"/> 的复制器。</param>
+        /// <param name="copier3"><typeparamref name="T3"/> 的复制器。</param>
+        /// <param name="copier4"><typeparamref name="T4"/> 的复制器。</param>
         public ValueTupleCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,
@@ -543,13 +543,13 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T1, T2, T3, T4, T5}"/>的序列器。
+    /// <see cref="ValueTuple{T1, T2, T3, T4, T5}"/> 的序列化器。
     /// </summary>
-    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
-    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
-    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
-    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
-    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
+    /// <typeparam name="T1">元组第一个分量的类型。</typeparam>
+    /// <typeparam name="T2">元组第二个分量的类型。</typeparam>
+    /// <typeparam name="T3">元组第三个分量的类型。</typeparam>
+    /// <typeparam name="T4">元组第四个分量的类型。</typeparam>
+    /// <typeparam name="T5">元组第五个分量的类型。</typeparam>
     [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3, T4, T5> : IFieldCodec<ValueTuple<T1, T2, T3, T4, T5>>
     {
@@ -568,11 +568,11 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCodec{T1, T2, T3, T4, T5}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec"> <typeparamref name="T1"/> 代码。</param>
-        /// <param name="item2Codec"> <typeparamref name="T2"/> 代码。</param>
-        /// <param name="item3Codec"> <typeparamref name="T3"/> 代码。</param>
-        /// <param name="item4Codec"> <typeparamref name="T4"/> 代码。</param>
-        /// <param name="item5Codec"> <typeparamref name="T5"/> 代码。</param>
+        /// <param name="item1Codec"><typeparamref name="T1"/> 的编解码器。</param>
+        /// <param name="item2Codec"><typeparamref name="T2"/> 的编解码器。</param>
+        /// <param name="item3Codec"><typeparamref name="T3"/> 的编解码器。</param>
+        /// <param name="item4Codec"><typeparamref name="T4"/> 的编解码器。</param>
+        /// <param name="item5Codec"><typeparamref name="T5"/> 的编解码器。</param>
         public ValueTupleCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -640,13 +640,13 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T1, T2, T3, T4, T5}"/>的复印机。
+    /// <see cref="ValueTuple{T1, T2, T3, T4, T5}"/> 的复制器。
     /// </summary>
-    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
-    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
-    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
-    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
-    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
+    /// <typeparam name="T1">元组第一个分量的类型。</typeparam>
+    /// <typeparam name="T2">元组第二个分量的类型。</typeparam>
+    /// <typeparam name="T3">元组第三个分量的类型。</typeparam>
+    /// <typeparam name="T4">元组第四个分量的类型。</typeparam>
+    /// <typeparam name="T5">元组第五个分量的类型。</typeparam>
     [RegisterCopier]
     public sealed class ValueTupleCopier<T1, T2, T3, T4, T5> : IDeepCopier<ValueTuple<T1, T2, T3, T4, T5>>, IOptionalDeepCopier
     {
@@ -660,11 +660,11 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCopier{T1, T2, T3, T4, T5}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">下 <typeparamref name="T1"/> 复印机</param>
-        /// <param name="copier2">下 <typeparamref name="T2"/> 复印机</param>
-        /// <param name="copier3">下 <typeparamref name="T3"/> 复印机</param>
-        /// <param name="copier4">下 <typeparamref name="T4"/> 复印机</param>
-        /// <param name="copier5">下 <typeparamref name="T5"/> 复印机</param>
+        /// <param name="copier1"><typeparamref name="T1"/> 的复制器。</param>
+        /// <param name="copier2"><typeparamref name="T2"/> 的复制器。</param>
+        /// <param name="copier3"><typeparamref name="T3"/> 的复制器。</param>
+        /// <param name="copier4"><typeparamref name="T4"/> 的复制器。</param>
+        /// <param name="copier5"><typeparamref name="T5"/> 的复制器。</param>
         public ValueTupleCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,
@@ -701,14 +701,14 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T1, T2, T3, T4, T5, T6}"/>的序列器。
+    /// <see cref="ValueTuple{T1, T2, T3, T4, T5, T6}"/> 的序列化器。
     /// </summary>
-    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
-    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
-    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
-    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
-    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
-    /// <typeparam name="T6">象牙六元的第六元件</typeparam>
+    /// <typeparam name="T1">元组第一个分量的类型。</typeparam>
+    /// <typeparam name="T2">元组第二个分量的类型。</typeparam>
+    /// <typeparam name="T3">元组第三个分量的类型。</typeparam>
+    /// <typeparam name="T4">元组第四个分量的类型。</typeparam>
+    /// <typeparam name="T5">元组第五个分量的类型。</typeparam>
+    /// <typeparam name="T6">元组第六个分量的类型。</typeparam>
     [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3, T4, T5, T6> : IFieldCodec<ValueTuple<T1, T2, T3, T4, T5, T6>>
     {
@@ -729,12 +729,12 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCodec{T1, T2, T3, T4, T5, T6}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec"> <typeparamref name="T1"/> 代码。</param>
-        /// <param name="item2Codec"> <typeparamref name="T2"/> 代码。</param>
-        /// <param name="item3Codec"> <typeparamref name="T3"/> 代码。</param>
-        /// <param name="item4Codec"> <typeparamref name="T4"/> 代码。</param>
-        /// <param name="item5Codec"> <typeparamref name="T5"/> 代码。</param>
-        /// <param name="item6Codec"> <typeparamref name="T6"/> 代码。</param>
+        /// <param name="item1Codec"><typeparamref name="T1"/> 的编解码器。</param>
+        /// <param name="item2Codec"><typeparamref name="T2"/> 的编解码器。</param>
+        /// <param name="item3Codec"><typeparamref name="T3"/> 的编解码器。</param>
+        /// <param name="item4Codec"><typeparamref name="T4"/> 的编解码器。</param>
+        /// <param name="item5Codec"><typeparamref name="T5"/> 的编解码器。</param>
+        /// <param name="item6Codec"><typeparamref name="T6"/> 的编解码器。</param>
         public ValueTupleCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -807,14 +807,14 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T1, T2, T3, T4, T5, T6}"/>的复印机。
+    /// <see cref="ValueTuple{T1, T2, T3, T4, T5, T6}"/> 的复制器。
     /// </summary>
-    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
-    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
-    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
-    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
-    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
-    /// <typeparam name="T6">象牙六元的第六元件</typeparam>
+    /// <typeparam name="T1">元组第一个分量的类型。</typeparam>
+    /// <typeparam name="T2">元组第二个分量的类型。</typeparam>
+    /// <typeparam name="T3">元组第三个分量的类型。</typeparam>
+    /// <typeparam name="T4">元组第四个分量的类型。</typeparam>
+    /// <typeparam name="T5">元组第五个分量的类型。</typeparam>
+    /// <typeparam name="T6">元组第六个分量的类型。</typeparam>
     [RegisterCopier]
     public sealed class ValueTupleCopier<T1, T2, T3, T4, T5, T6> : IDeepCopier<ValueTuple<T1, T2, T3, T4, T5, T6>>, IOptionalDeepCopier
     {
@@ -829,12 +829,12 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCopier{T1, T2, T3, T4, T5, T6}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">下 <typeparamref name="T1"/> 复印机</param>
-        /// <param name="copier2">下 <typeparamref name="T2"/> 复印机</param>
-        /// <param name="copier3">下 <typeparamref name="T3"/> 复印机</param>
-        /// <param name="copier4">下 <typeparamref name="T4"/> 复印机</param>
-        /// <param name="copier5">下 <typeparamref name="T5"/> 复印机</param>
-        /// <param name="copier6">下 <typeparamref name="T6"/> 复印机</param>
+        /// <param name="copier1"><typeparamref name="T1"/> 的复制器。</param>
+        /// <param name="copier2"><typeparamref name="T2"/> 的复制器。</param>
+        /// <param name="copier3"><typeparamref name="T3"/> 的复制器。</param>
+        /// <param name="copier4"><typeparamref name="T4"/> 的复制器。</param>
+        /// <param name="copier5"><typeparamref name="T5"/> 的复制器。</param>
+        /// <param name="copier6"><typeparamref name="T6"/> 的复制器。</param>
         public ValueTupleCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,
@@ -874,15 +874,15 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T1, T2, T3, T4, T5, T6, T7}"/>的序列器。
+    /// <see cref="ValueTuple{T1, T2, T3, T4, T5, T6, T7}"/> 的序列化器。
     /// </summary>
-    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
-    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
-    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
-    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
-    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
-    /// <typeparam name="T6">象牙六元的第六元件</typeparam>
-    /// <typeparam name="T7">象牙第七元件的类型</typeparam>
+    /// <typeparam name="T1">元组第一个分量的类型。</typeparam>
+    /// <typeparam name="T2">元组第二个分量的类型。</typeparam>
+    /// <typeparam name="T3">元组第三个分量的类型。</typeparam>
+    /// <typeparam name="T4">元组第四个分量的类型。</typeparam>
+    /// <typeparam name="T5">元组第五个分量的类型。</typeparam>
+    /// <typeparam name="T6">元组第六个分量的类型。</typeparam>
+    /// <typeparam name="T7">元组第七个分量的类型。</typeparam>
     [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3, T4, T5, T6, T7> : IFieldCodec<ValueTuple<T1, T2, T3, T4, T5, T6, T7>>
     {
@@ -905,13 +905,13 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCodec{T1, T2, T3, T4, T5, T6, T7}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec"> <typeparamref name="T1"/> 代码。</param>
-        /// <param name="item2Codec"> <typeparamref name="T2"/> 代码。</param>
-        /// <param name="item3Codec"> <typeparamref name="T3"/> 代码。</param>
-        /// <param name="item4Codec"> <typeparamref name="T4"/> 代码。</param>
-        /// <param name="item5Codec"> <typeparamref name="T5"/> 代码。</param>
-        /// <param name="item6Codec"> <typeparamref name="T6"/> 代码。</param>
-        /// <param name="item7Codec"> <typeparamref name="T7"/> 代码。</param>
+        /// <param name="item1Codec"><typeparamref name="T1"/> 的编解码器。</param>
+        /// <param name="item2Codec"><typeparamref name="T2"/> 的编解码器。</param>
+        /// <param name="item3Codec"><typeparamref name="T3"/> 的编解码器。</param>
+        /// <param name="item4Codec"><typeparamref name="T4"/> 的编解码器。</param>
+        /// <param name="item5Codec"><typeparamref name="T5"/> 的编解码器。</param>
+        /// <param name="item6Codec"><typeparamref name="T6"/> 的编解码器。</param>
+        /// <param name="item7Codec"><typeparamref name="T7"/> 的编解码器。</param>
         public ValueTupleCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -989,15 +989,15 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T1, T2, T3, T4, T5, T6, T7}"/>的复印机。
+    /// <see cref="ValueTuple{T1, T2, T3, T4, T5, T6, T7}"/> 的复制器。
     /// </summary>
-    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
-    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
-    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
-    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
-    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
-    /// <typeparam name="T6">象牙六元的第六元件</typeparam>
-    /// <typeparam name="T7">象牙第七元件的类型</typeparam>
+    /// <typeparam name="T1">元组第一个分量的类型。</typeparam>
+    /// <typeparam name="T2">元组第二个分量的类型。</typeparam>
+    /// <typeparam name="T3">元组第三个分量的类型。</typeparam>
+    /// <typeparam name="T4">元组第四个分量的类型。</typeparam>
+    /// <typeparam name="T5">元组第五个分量的类型。</typeparam>
+    /// <typeparam name="T6">元组第六个分量的类型。</typeparam>
+    /// <typeparam name="T7">元组第七个分量的类型。</typeparam>
     [RegisterCopier]
     public sealed class ValueTupleCopier<T1, T2, T3, T4, T5, T6, T7> : IDeepCopier<ValueTuple<T1, T2, T3, T4, T5, T6, T7>>, IOptionalDeepCopier
     {
@@ -1013,13 +1013,13 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCopier{T1, T2, T3, T4, T5, T6, T7}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">下 <typeparamref name="T1"/> 复印机</param>
-        /// <param name="copier2">下 <typeparamref name="T2"/> 复印机</param>
-        /// <param name="copier3">下 <typeparamref name="T3"/> 复印机</param>
-        /// <param name="copier4">下 <typeparamref name="T4"/> 复印机</param>
-        /// <param name="copier5">下 <typeparamref name="T5"/> 复印机</param>
-        /// <param name="copier6">下 <typeparamref name="T6"/> 复印机</param>
-        /// <param name="copier7">下 <typeparamref name="T7"/> 复印机</param>
+        /// <param name="copier1"><typeparamref name="T1"/> 的复制器。</param>
+        /// <param name="copier2"><typeparamref name="T2"/> 的复制器。</param>
+        /// <param name="copier3"><typeparamref name="T3"/> 的复制器。</param>
+        /// <param name="copier4"><typeparamref name="T4"/> 的复制器。</param>
+        /// <param name="copier5"><typeparamref name="T5"/> 的复制器。</param>
+        /// <param name="copier6"><typeparamref name="T6"/> 的复制器。</param>
+        /// <param name="copier7"><typeparamref name="T7"/> 的复制器。</param>
         public ValueTupleCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,
@@ -1062,16 +1062,16 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T1, T2, T3, T4, T5, T6, T7, T8}"/>的序列器。
+    /// <see cref="ValueTuple{T1, T2, T3, T4, T5, T6, T7, T8}"/> 的序列化器。
     /// </summary>
-    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
-    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
-    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
-    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
-    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
-    /// <typeparam name="T6">象牙六元的第六元件</typeparam>
-    /// <typeparam name="T7">象牙第七元件的类型</typeparam>
-    /// <typeparam name="T8">象牙第八部分的型号</typeparam>
+    /// <typeparam name="T1">元组第一个分量的类型。</typeparam>
+    /// <typeparam name="T2">元组第二个分量的类型。</typeparam>
+    /// <typeparam name="T3">元组第三个分量的类型。</typeparam>
+    /// <typeparam name="T4">元组第四个分量的类型。</typeparam>
+    /// <typeparam name="T5">元组第五个分量的类型。</typeparam>
+    /// <typeparam name="T6">元组第六个分量的类型。</typeparam>
+    /// <typeparam name="T7">元组第七个分量的类型。</typeparam>
+    /// <typeparam name="T8">元组第八个分量的类型。（译注：T8 对应 Rest，承载第八个及后续元素的嵌套元组。）</typeparam>
     [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3, T4, T5, T6, T7, T8> : IFieldCodec<ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>> where T8 : struct
     {
@@ -1096,14 +1096,14 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCodec{T1, T2, T3, T4, T5, T6, T7, T8}"/> 类的新实例。
         /// </summary>
-        /// <param name="item1Codec"> <typeparamref name="T1"/> 代码。</param>
-        /// <param name="item2Codec"> <typeparamref name="T2"/> 代码。</param>
-        /// <param name="item3Codec"> <typeparamref name="T3"/> 代码。</param>
-        /// <param name="item4Codec"> <typeparamref name="T4"/> 代码。</param>
-        /// <param name="item5Codec"> <typeparamref name="T5"/> 代码。</param>
-        /// <param name="item6Codec"> <typeparamref name="T6"/> 代码。</param>
-        /// <param name="item7Codec"> <typeparamref name="T7"/> 代码。</param>
-        /// <param name="item8Codec"> <typeparamref name="T8"/> 代码。</param>
+        /// <param name="item1Codec"><typeparamref name="T1"/> 的编解码器。</param>
+        /// <param name="item2Codec"><typeparamref name="T2"/> 的编解码器。</param>
+        /// <param name="item3Codec"><typeparamref name="T3"/> 的编解码器。</param>
+        /// <param name="item4Codec"><typeparamref name="T4"/> 的编解码器。</param>
+        /// <param name="item5Codec"><typeparamref name="T5"/> 的编解码器。</param>
+        /// <param name="item6Codec"><typeparamref name="T6"/> 的编解码器。</param>
+        /// <param name="item7Codec"><typeparamref name="T7"/> 的编解码器。</param>
+        /// <param name="item8Codec"><typeparamref name="T8"/> 的编解码器。</param>
         public ValueTupleCodec(
             IFieldCodec<T1> item1Codec,
             IFieldCodec<T2> item2Codec,
@@ -1185,16 +1185,16 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ValueTuple{T1, T2, T3, T4, T5, T6, T7, T8}"/>的复印机。
+    /// <see cref="ValueTuple{T1, T2, T3, T4, T5, T6, T7, T8}"/> 的复制器。
     /// </summary>
-    /// <typeparam name="T1">象牙的第一个组件的类型。</typeparam>
-    /// <typeparam name="T2">象牙的第二元件的类型</typeparam>
-    /// <typeparam name="T3">象牙第三元件的类型</typeparam>
-    /// <typeparam name="T4">象牙的第四个部件的类型</typeparam>
-    /// <typeparam name="T5">象牙第五元件的类型</typeparam>
-    /// <typeparam name="T6">象牙六元的第六元件</typeparam>
-    /// <typeparam name="T7">象牙第七元件的类型</typeparam>
-    /// <typeparam name="T8">象牙第八部分的型号</typeparam>
+    /// <typeparam name="T1">元组第一个分量的类型。</typeparam>
+    /// <typeparam name="T2">元组第二个分量的类型。</typeparam>
+    /// <typeparam name="T3">元组第三个分量的类型。</typeparam>
+    /// <typeparam name="T4">元组第四个分量的类型。</typeparam>
+    /// <typeparam name="T5">元组第五个分量的类型。</typeparam>
+    /// <typeparam name="T6">元组第六个分量的类型。</typeparam>
+    /// <typeparam name="T7">元组第七个分量的类型。</typeparam>
+    /// <typeparam name="T8">元组第八个分量的类型。（译注：T8 对应 Rest，承载第八个及后续元素的嵌套元组。）</typeparam>
     [RegisterCopier]
     public sealed class ValueTupleCopier<T1, T2, T3, T4, T5, T6, T7, T8> : IDeepCopier<ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>>, IOptionalDeepCopier where T8 : struct
     {
@@ -1211,14 +1211,14 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 初始化 <see cref="ValueTupleCopier{T1, T2, T3, T4, T5, T6, T7, T8}"/> 类的新实例。
         /// </summary>
-        /// <param name="copier1">下 <typeparamref name="T1"/> 复印机</param>
-        /// <param name="copier2">下 <typeparamref name="T2"/> 复印机</param>
-        /// <param name="copier3">下 <typeparamref name="T3"/> 复印机</param>
-        /// <param name="copier4">下 <typeparamref name="T4"/> 复印机</param>
-        /// <param name="copier5">下 <typeparamref name="T5"/> 复印机</param>
-        /// <param name="copier6">下 <typeparamref name="T6"/> 复印机</param>
-        /// <param name="copier7">下 <typeparamref name="T7"/> 复印机</param>
-        /// <param name="copier8">下 <typeparamref name="T8"/> 复印机</param>
+        /// <param name="copier1"><typeparamref name="T1"/> 的复制器。</param>
+        /// <param name="copier2"><typeparamref name="T2"/> 的复制器。</param>
+        /// <param name="copier3"><typeparamref name="T3"/> 的复制器。</param>
+        /// <param name="copier4"><typeparamref name="T4"/> 的复制器。</param>
+        /// <param name="copier5"><typeparamref name="T5"/> 的复制器。</param>
+        /// <param name="copier6"><typeparamref name="T6"/> 的复制器。</param>
+        /// <param name="copier7"><typeparamref name="T7"/> 的复制器。</param>
+        /// <param name="copier8"><typeparamref name="T8"/> 的复制器。</param>
         public ValueTupleCopier(
             IDeepCopier<T1> copier1,
             IDeepCopier<T2> copier2,

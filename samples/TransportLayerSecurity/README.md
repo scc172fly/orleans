@@ -5,53 +5,53 @@ products:
 - dotnet
 - dotnet-orleans
 page_type: sample
-name: "Orleans Transport Layer Security (TLS) sample"
+name: "Orleans 传输层安全（TLS）示例"
 urlFragment: "orleans-transport-layer-security-tls"
-description: "证明运输层安全(TLS)的 Orleans 样本。"
+description: "演示传输层安全（TLS）的 Orleans 示例。"
 ---
 
 <a id="orleans-transport-layer-security-tls-sample"></a>
 
-# Orleans 运输层安全抽样
+# Orleans 传输层安全（TLS）示例
 
-该样本显示客户和 silo 通过相互运输层安全(mTLS)保障的通道进行通信。
+本示例演示通过双向传输层安全（mTLS）保护的通道通信的客户端和 Silo。
 
 <a id="running-the-sample"></a>
 
-## 运行样本
+## 运行示例
 
-如果不存在样本, 样本会自动创建自签名证书。 只需运行此样本 :
+如果自签名证书不存在，本示例会自动创建。只需运行示例：
 
 ```powershell
 .\run.cmd
 ```
 
-或 Linux/macOS上:
+或者在 Linux/macOS 上：
 
 ```bash
 ./run.sh
 ```
 
-样本将:
+示例将：
 
 1. 检查用户证书存储中是否存在名为 `fakedomain.faketld` 的证书
-2. 如果找不到, 自动创建自签名证书并保存
-3. 启动 silo 和客户端使用 TLS 进行所有通信
+2. 若未找到，则自动创建自签名证书并存入证书存储
+3. 启动 Silo 和客户端，并对所有通信使用 TLS
 
 <a id="key-concepts"></a>
 
 ## 关键概念
 
-样本的重要部分是:
+本示例的重点包括：
 
-* 开发自动自签名证书生成
-* 配置服务器和客户端以使用相互 TLS验证连接
+* 为开发环境自动生成自签名证书
+* 配置服务端和客户端，使用双向 TLS 对连接进行身份验证
 
 <a id="certificate-management"></a>
 
 ### 证书管理
 
-下 `CertificateHelper` 类内 `TLS.Contracts` 处理证书管理 :
+`TLS.Contracts` 中的 `CertificateHelper` 类负责证书管理：
 
 ```csharp
 // Automatically ensures a certificate exists (creates if missing)
@@ -62,7 +62,7 @@ CertificateHelper.EnsureCertificateExists();
 
 ### TLS 配置
 
-下 `ISiloBuilder.UseTls(...)` 内 [`Program.cs`](./TLS.Server/Program.cs) 服务器上和 `IClientBuilder.UseTls` 客户端配置 TLS 时:
+服务端 [`Program.cs`](./TLS.Server/Program.cs) 中的 `ISiloBuilder.UseTls(...)` 和客户端的 `IClientBuilder.UseTls` 用于配置 TLS：
 
 ```csharp
 builder.UseTls(
@@ -89,13 +89,13 @@ builder.UseTls(
 
 <a id="manual-certificate-management"></a>
 
-## 手工证书管理
+## 手动管理证书
 
 <a id="creating-a-certificate-manually-optional"></a>
 
-### 手动创建证书( 可选择)
+### 手动创建证书（可选）
 
-如果您选择使用 PowerShell手动创建证书:
+如果希望使用 PowerShell 手动创建证书：
 
 ```powershell
 $cert = New-SelfSignedCertificate -CertStoreLocation Cert:\CurrentUser\My -DnsName "fakedomain.faketld"
@@ -105,7 +105,7 @@ $cert = New-SelfSignedCertificate -CertStoreLocation Cert:\CurrentUser\My -DnsNa
 
 ### 删除证书
 
-运行样本后删除自签名证书:
+运行示例后，如需删除自签名证书：
 
 ```powershell
 Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -like "*fakedomain.faketld*" } | Remove-Item
@@ -113,23 +113,23 @@ Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -like "*fakedomai
 
 <a id="sample-prerequisites"></a>
 
-## 抽样的前提条件
+## 示例先决条件
 
-本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
+本示例使用 C# 编写，以 .NET 10 为目标框架。需要 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本。
 
 <a id="building-the-sample"></a>
 
-## 建立样本
+## 构建示例
 
-下载和运行样本时,请遵循以下步骤:
+若要下载并运行示例，请执行以下步骤：
 
-1. 下载并解开样本的平面
-2. 视觉演播室(2022年或以后):
-    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
-    2. 打开解压后的示例目录，再打开其中的解决方案文件。
-    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 直接运行。
-3. 从命令行 :
-   1. 导航到持有未设偏移样本代码的文件夹 。
-   2. 运行 `.\run.cmd` (窗口) 或 `./run.sh` (林克斯/macOS)。
+1. 下载并解压示例。
+2. 在 Visual Studio（2022 或更高版本）中：
+    1. 在菜单栏中选择**文件** > **打开** > **项目/解决方案**。
+    2. 导航到解压后的示例代码所在文件夹，并打开解决方案文件。
+    3. 按 <kbd>F5</kbd> 进行调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 无调试运行项目。
+3. 通过命令行：
+   1. 导航到解压后的示例代码所在文件夹。
+   2. 运行 `.\run.cmd`（Windows）或 `./run.sh`（Linux/macOS）。
 
-***注:*** 确保在将您应用到生产环境中时遵循安全最佳做法。使用CA签发的证书,不允许无效的生产证书。
+***注意：*** 在生产环境部署应用时，请务必遵循安全最佳实践。在生产环境使用 CA 签发的证书，并且不要允许无效证书。

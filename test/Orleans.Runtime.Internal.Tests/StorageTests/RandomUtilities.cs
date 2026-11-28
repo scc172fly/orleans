@@ -4,28 +4,28 @@ using Orleans.Runtime;
 namespace UnitTests.StorageTests.Relational
 {
     /// <summary>
-    /// 工具功能为某些测试提供随机值。
+    /// 为部分测试提供随机值的辅助函数。
     /// </summary>
     public static class RandomUtilities
     {
         /// <summary>
-        /// 此型号代码与 Orleans.Runtime.Category.Grain =3一致, 也使用类似
-        /// “公共类别 IdCategory {获得{返回 GetCategory(TypeCodeData);}}”
-        /// 请注意,0L也有可能这样做。
+        /// 此类型代码与 Orleans.Runtime.Category.Grain = 3 一致，也用于如下形式：
+        /// "public Category IdCategory { get { return GetCategory(TypeCodeData); } }".
+        /// 注意，0L 也可能适用。
         /// </summary>
         public const long NormalGrainTypeCode = 3L;
 
         /// <summary>
-        /// 此型号代码与 Orleans.Runtime.Category.Grain =6一致, 也使用类似
-        /// “公共类别 IdCategory {获得{返回 GetCategory(TypeCodeData);}}”
-        /// 请注意,0L也有可能这样做。
+        /// 此类型代码与 Orleans.Runtime.Category.Grain = 6 一致，也用于如下形式：
+        /// "public Category IdCategory { get { return GetCategory(TypeCodeData); } }".
+        /// 注意，0L 也可能适用。
         /// </summary>
         public const long KeyExtensionGrainTypeCode = 6L;
 
         /// <summary>
-        /// 随机生成器列表。 此列表在构建后只读取 。
+        /// 正在使用的随机生成器列表。此列表在构造后为只读。
         /// </summary>
-        /// <remarks>状态, 基本上 <see cref="Range{T}"/> 对象目前没有使用。</remarks>
+        /// <remarks>目前未使用状态，实质上是 <see cref="Range{T}"/> 对象。</remarks>
         private static Dictionary<Type, object> RandomGenerators { get; } = new Dictionary<Type, object>
         {
             [typeof(Guid)] = new Func<object?, Guid>(_ => Guid.NewGuid()),
@@ -47,18 +47,18 @@ namespace UnitTests.StorageTests.Relational
         };
 
         /// <summary>
-        /// 获取给定类型的一个随机值 。
+        /// 获取指定类型的随机值。
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <returns>给定类型随机值。</returns>
+        /// <returns>指定类型的随机值。</returns>
         /// <exception cref="ArgumentException"/>.
         public static T GetRandom<T>(Range<long>? range = null)
         {
             object? randomGenerator;
             if (RandomGenerators.TryGetValue(typeof(T), out randomGenerator))
             {
-                //如果此字符串类型为某个符号, 则从中设定一个符号, 用于绘制给定的符号
-                //和一种特殊参数。
+                //若为字符串类型，则需要提供用于选取字符的符号集，
+                //并构造一种特殊的参数。
                 if ((typeof(T) == typeof(string)))
                 {
                     const long SymbolsDefaultCount = 15;
@@ -73,11 +73,11 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// 随机获取符号。
+        /// 获取随机符号。
         /// </summary>
-        /// <param name="symbolSet">随机字符的任意字符所来自的符号集。</param>
-        /// <param name="count">随机符号的计数。</param>
-        /// <returns>一个随机字符串。</returns>
+        /// <param name="symbolSet">用于随机选取字符的符号集。</param>
+        /// <param name="count">随机符号的数量。</param>
+        /// <returns>随机字符串。</returns>
         /// <exception cref="ArgumentNullException"/>.
         /// <exception cref="ArgumentOutOfRangeException"/>.
         public static string GetRandomCharacters(SymbolSet symbolSet, long count)
@@ -97,14 +97,14 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// 随机获取 grain ID。
+        /// 获取随机 Grain ID。
         /// </summary>
-        /// <typeparam name="TGrainKey"> grain 密钥类型。</typeparam>
-        /// <typeparam name="TGrainGeneric">一种 grain.</typeparam>
-        /// <param name="grainFactory">下 grain 工厂。</param>
+        /// <typeparam name="TGrainKey">Grain 键的类型。</typeparam>
+        /// <typeparam name="TGrainGeneric">Grain 泛型部分的类型。</typeparam>
+        /// <param name="grainFactory">Grain 工厂。（译注：此参数仅见于原注释，当前方法签名中不存在。）</param>
         /// <param name="symbolSet">要使用的符号集。</param>
-        /// 从符号集取的符号<param name="symbolCount">编号。</param>
-        /// <returns>给定类型随机值。</returns>
+        /// <param name="symbolCount">从符号集中选取的符号数量。</param>
+        /// <returns>指定类型的随机值。（译注：实际返回使用指定键类型生成的 GrainId。）</returns>
         /// <exception cref="ArgumentException"/>.
         internal static GrainId GetRandomGrainId<TGrainKey, TGrainGeneric>(SymbolSet symbolSet, long symbolCount = 15)
         {
@@ -123,16 +123,16 @@ namespace UnitTests.StorageTests.Relational
         }
 
         /// <summary>
-        /// 随机获取 grain ID。
+        /// 获取随机 Grain ID。
         /// </summary>
-        /// <param name="keyExtension"> grain 扩展密钥。</param>
+        /// <param name="keyExtension">Grain 扩展键。（译注：此布尔参数控制是否生成扩展键。）</param>
         /// 
-        /// <returns>给定类型随机值。</returns>
+        /// <returns>指定类型的随机值。（译注：实际返回使用指定键类型生成的 GrainId。）</returns>
         /// <exception cref="ArgumentException"/>.
         internal static GrainId GetRandomGrainId<T>(bool keyExtension = false)
         {
-            //如果此字符串类型为某个符号, 则从中设定一个符号, 用于绘制给定的符号
-            //和一种特殊参数。
+            //若为字符串类型，则需要提供用于选取字符的符号集，
+            //并构造一种特殊的参数。
             const long SymbolsDefaultCount = 15;
             var symbolSet = new SymbolSet(SymbolSet.Latin1);
 

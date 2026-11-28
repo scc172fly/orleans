@@ -8,13 +8,13 @@
     <Description>C# Analyzers for Microsoft Orleans.</Description>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <!-- 分析资产在lib/ref以外包装,不是包件验证 API 表面。 -->
+    <!-- 分析器资产打包在 lib/ref 之外，不属于包验证的 API 公开接口。 -->
     <EnablePackageValidation>false</EnablePackageValidation>
     <DevelopmentDependency>true</DevelopmentDependency>
     <IsOrleansFrameworkPart>false</IsOrleansFrameworkPart>
     <NeutralLanguage>en-US</NeutralLanguage>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-    <!-- 合同包包括分析器和代码修复组合;代码修复要求Roslyn工作空间。 -->
+    <!-- 契约包同时包含其分析器和代码修复功能；代码修复需要 Roslyn Workspaces。 -->
     <NoWarn>$(NoWarn);RS1038</NoWarn>
   </PropertyGroup>
 

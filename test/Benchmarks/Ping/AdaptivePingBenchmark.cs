@@ -8,19 +8,19 @@ using Orleans.Configuration;
 namespace Benchmarks.Ping;
 
 /// <summary>
-/// 基准线,无限期运行,利用山坡来调节货币
-/// 用于寻找最佳的货币汇率水平和
-/// 进行长期性能测试。
+/// 持续运行的基准测试，通过爬山算法调整并发度，
+/// 以获得最大吞吐量。适用于寻找最佳并发度及
+/// 执行长时间的性能测试。
 /// </summary>
 public class AdaptivePingBenchmark : IDisposable
 {
     public enum BenchmarkMode
     {
-        /// <summary>客户在 silo 程序(低时档)</summary>内运行
+        /// <summary>客户端在 Silo 进程内运行（延迟最低）</summary>
         HostedClient,
-        /// <summary>外部客户端连接到 silo(s)</summary>
+        /// <summary>外部客户端连接到一个或多个 Silo</summary>
         ExternalClient,
-        /// <summary>调用从一个 silo 转到另一个(测试跨silo 性能)</summary>
+        /// <summary>调用从一个 Silo 发送到另一个 Silo（测试跨 Silo 性能）</summary>
         SiloToSilo
     }
 
@@ -65,7 +65,7 @@ public class AdaptivePingBenchmark : IDisposable
             _ => mode.ToString()
         };
 
-        // 开始 silos
+        // 启动 Silo
         for (int i = 0; i < numSilos; i++)
         {
             var primary = i == 0 ? null : new IPEndPoint(IPAddress.Loopback, 11111);
@@ -81,7 +81,7 @@ public class AdaptivePingBenchmark : IDisposable
                     options.Interfaces.Add(typeof(IPingGrain));
                     options.Classes.Add(typeof(PingGrain));
 
-                    // 用于 SiloToSilo 模式:删除 grains 从小学开始 silo 强迫交叉silo 调来电话
+                    // 对于 SiloToSilo 模式：从主 Silo 移除 Grain，以强制进行跨 Silo 调用
                     if (i == 0 && grainsOnSecondariesOnly)
                     {
                         options.Classes.Remove(typeof(PingGrain));
@@ -94,13 +94,13 @@ public class AdaptivePingBenchmark : IDisposable
             _hosts.Add(host);
         }
 
-        // 等待集集稳定在多silo 模式下
+        // 在多 Silo 模式下等待集群稳定
         if (numSilos > 1)
         {
             Thread.Sleep(4000);
         }
 
-        // 必要时启动外部客户端
+        // 如有需要，启动外部客户端
         if (startClient)
         {
             var hostBuilder = new HostBuilder().UseOrleansClient((ctx, clientBuilder) =>
@@ -122,12 +122,12 @@ public class AdaptivePingBenchmark : IDisposable
             _clientHost.StartAsync().GetAwaiter().GetResult();
             _client = _clientHost.Services.GetRequiredService<IClusterClient>();
 
-            // 暖和客户端连接
+            // 预热客户端连接
             var grain = _client.GetGrain<IPingGrain>(0);
             grain.Run().AsTask().GetAwaiter().GetResult();
         }
 
-        // 连接 Ctrl+C 取消
+        // 绑定 Ctrl+C 以触发取消
         Console.CancelKeyPress += (_, e) =>
         {
             e.Cancel = true;
@@ -137,7 +137,7 @@ public class AdaptivePingBenchmark : IDisposable
     }
 
     /// <summary>
-    /// 根据当前模式获取 grain 工厂。
+    /// 根据当前模式获取 Grain 工厂。
     /// </summary>
     private IGrainFactory GetGrainFactory()
     {
@@ -147,8 +147,8 @@ public class AdaptivePingBenchmark : IDisposable
     }
 
     /// <summary>
-    /// 运行适应基准,通过攀山调整货币。
-    /// 在 maxStableRounds 之后终止,但无统计上显著的改进(默认5),或如果0将永远持续。
+    /// 运行自适应基准测试，通过爬山算法调整并发度。
+    /// 在连续 maxStableRounds 轮未取得统计意义上的性能提升后结束（默认 5 轮）；如果为 0，则持续运行。
     /// </summary>
     public async Task RunAsync(
         int initialConcurrency = 100,
@@ -186,7 +186,7 @@ public class AdaptivePingBenchmark : IDisposable
         }
         catch (OperationCanceledException)
         {
-            // Ctrl+C 上的预期值
+            // 按 Ctrl+C 时出现此情况符合预期
         }
 
         BestConcurrency = loadGenerator.BestConcurrency;
@@ -225,7 +225,7 @@ public class AdaptivePingBenchmark : IDisposable
     }
 
     /// <summary>
-    /// 运行所有适应性活性定点基准情景,并打印摘要。
+    /// 运行所有自适应 Ping 基准测试场景并输出汇总结果。
     /// </summary>
     public static async Task RunAllScenariosAsync(int maxStableRounds = DefaultMaxStableRounds)
     {
@@ -258,10 +258,10 @@ public class AdaptivePingBenchmark : IDisposable
             Console.WriteLine();
 
             GC.Collect();
-            await Task.Delay(1000); // 两种设想方案间短暂间隔
+            await Task.Delay(1000); // 在不同场景之间短暂停顿
         }
 
-        // 以 GitHub- 保存的标记表格格式打印摘要
+        // 以 GitHub 风格的 Markdown 表格格式输出汇总结果
         Console.WriteLine();
         Console.WriteLine("## Adaptive Ping Benchmark Results");
         Console.WriteLine();

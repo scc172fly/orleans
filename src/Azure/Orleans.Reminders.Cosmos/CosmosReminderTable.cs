@@ -297,7 +297,7 @@ internal partial class CosmosReminderTable : IReminderTable
     {
         if (_client.Endpoint.IsLoopback)
         {
-            // Linux 模拟器可以通过集装箱的创建, 在同时 silos 赛事中返回重复键500。
+            // 多个 Silo 竞争创建容器时，Linux 模拟器可能返回重复键相关的 500 错误。
             await EmulatorResourceCreationLock.WaitAsync().ConfigureAwait(false);
             try
             {
@@ -334,7 +334,7 @@ internal partial class CosmosReminderTable : IReminderTable
 
             if (retry == maxRetries || dbResponse.StatusCode != HttpStatusCode.Created || collResponse.StatusCode == HttpStatusCode.Created)
             {
-                break;  // 显然,有些令人振奋的逻辑返回 HttpStatusCode.OK (而不是429) ,因为收藏不是在新的 DB 中创建的。
+                break;  // 显然，当新数据库中未创建集合时，某些限流逻辑会返回 HttpStatusCode.OK，而不是 429。
             }
 
             await Task.Delay(1000);

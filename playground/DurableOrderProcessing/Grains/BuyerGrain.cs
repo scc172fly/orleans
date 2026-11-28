@@ -10,8 +10,8 @@ public interface IBuyerGrain : IGrainWithStringKey
     DurableTask RecordOrderAsync(OrderSummary summary);
 }
 
-// 买方订购单清单的每个买方订单预测状况。
-// 每个订单的工作流程记录其状况变化,有独立的耐用电话。
+// 按买家维护的订单状态投影，用于提供买家的订单列表。
+// 每个订单的工作流通过分离的持久化调用记录其状态变更。
 public sealed class BuyerGrain : DurableGrain, IBuyerGrain
 {
     private readonly IDurableDictionary<Guid, OrderSummary> _orders;
@@ -24,10 +24,10 @@ public sealed class BuyerGrain : DurableGrain, IBuyerGrain
     public Task<OrderSummary[]> GetOrdersAsync() =>
         Task.FromResult(_orders.Values.OrderByDescending(order => order.OrderDate).ToArray());
 
-    // 变革承诺与任务结果一致。
+    // 变更与任务结果一同提交。
     public async DurableTask RecordOrderAsync(OrderSummary summary)
     {
-        // 顺序的工作流程每次更改都会脱钩, 因此更改会依任何顺序出现; 最高版本是最新版本 。
+        // 订单工作流将每项变更作为分离任务执行，因此变更可能以任意顺序到达；版本号最高的变更是最新的。
         if (!_orders.TryGetValue(summary.OrderId, out var current) || current.Version < summary.Version)
         {
             _orders[summary.OrderId] = summary;

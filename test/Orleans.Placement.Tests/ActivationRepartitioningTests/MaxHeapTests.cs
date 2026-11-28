@@ -4,7 +4,7 @@ using Xunit;
 namespace UnitTests.ActivationRepartitioningTests;
 
 /// <summary>
-/// 用于激活再分配算法的最大数据结构测试。
+/// 测试激活实例重新分区算法使用的最大堆数据结构。
 /// </summary>
 public sealed class MaxHeapTests
 {
@@ -43,7 +43,7 @@ public sealed class MaxHeapTests
         heap.OnIncreaseElementPriority(edge);
         Assert.Equal(2000, heap.Peek().Value);
 
-        // 随机重新指定优先排序到边缘
+        // 随机重新分配各边的优先级。
         var newScore = 100;
         var elements = heap.UnorderedElements.ToArray();
         Random.Shared.Shuffle(elements);

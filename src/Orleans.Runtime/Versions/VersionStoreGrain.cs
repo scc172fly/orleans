@@ -40,7 +40,7 @@ namespace Orleans.Runtime.Versions
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            this.State!.CompatibilityOverride = strategy; // Grain 状态在发出 grain 电话之前启动。
+            this.State!.CompatibilityOverride = strategy; // 在分发 Grain 调用之前，已初始化 Grain 状态。
             await this.WriteStateAsync();
         }
 
@@ -49,7 +49,7 @@ namespace Orleans.Runtime.Versions
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            this.State!.SelectorOverride = strategy; // Grain 状态在发出 grain 电话之前启动。
+            this.State!.SelectorOverride = strategy; // 在分发 Grain 调用之前，已初始化 Grain 状态。
             await this.WriteStateAsync();
         }
 
@@ -59,7 +59,7 @@ namespace Orleans.Runtime.Versions
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            this.State!.CompatibilityStrategies[ifaceId] = strategy; // Grain 状态在发出 grain 电话之前启动。
+            this.State!.CompatibilityStrategies[ifaceId] = strategy; // 在分发 Grain 调用之前，已初始化 Grain 状态。
             await this.WriteStateAsync();
         }
 
@@ -69,7 +69,7 @@ namespace Orleans.Runtime.Versions
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            this.State!.VersionSelectorStrategies[ifaceId] = strategy; // Grain 状态在发出 grain 电话之前启动。
+            this.State!.VersionSelectorStrategies[ifaceId] = strategy; // 在分发 Grain 调用之前，已初始化 Grain 状态。
             await this.WriteStateAsync();
         }
 
@@ -79,26 +79,26 @@ namespace Orleans.Runtime.Versions
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult(this.State!.CompatibilityStrategies); // Grain 状态在发出 grain 电话之前启动。
+            return Task.FromResult(this.State!.CompatibilityStrategies); // 在分发 Grain 调用之前，已初始化 Grain 状态。
         }
 
         public Task<Dictionary<GrainInterfaceType, VersionSelectorStrategy>> GetSelectorStrategies(
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult(this.State!.VersionSelectorStrategies); // Grain 状态在发出 grain 电话之前启动。
+            return Task.FromResult(this.State!.VersionSelectorStrategies); // 在分发 Grain 调用之前，已初始化 Grain 状态。
         }
 
         public Task<CompatibilityStrategy?> GetCompatibilityStrategy(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult(this.State!.CompatibilityOverride); // Grain 状态在发出 grain 电话之前启动。
+            return Task.FromResult(this.State!.CompatibilityOverride); // 在分发 Grain 调用之前，已初始化 Grain 状态。
         }
 
         public Task<VersionSelectorStrategy?> GetSelectorStrategy(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult(this.State!.SelectorOverride); // Grain 状态在发出 grain 电话之前启动。
+            return Task.FromResult(this.State!.SelectorOverride); // 在分发 Grain 调用之前，已初始化 Grain 状态。
         }
     }
 }

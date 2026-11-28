@@ -20,7 +20,7 @@ using Xunit;
 namespace Orleans.Durable.Messaging.Tests.Functional;
 
 /// <summary>
-/// 发信箱源和收件箱汇将应用程序拥有的有效载荷作为唯一日记副本。
+/// 发件箱源和收件箱消息接收器将应用程序拥有的有效载荷作为唯一日志副本。
 /// </summary>
 public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixture)
 {
@@ -44,20 +44,20 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
         Assert.Empty(senderState.Outgoing);
         Assert.Equal(nameof(OutboxMessageRetirement.Delivered), Assert.Single(senderState.Retired).Value);
         Assert.Empty(await OnGrainAsync(sender, context => Grain(context).GetRetirementReasons()));
-        // 发送信箱将信息变成一次信息 以验证发送信号 并实现一次传送尝试
+        // 发件箱实例化消息一次用于验证发送，再实例化一次用于投递尝试。
         Assert.Equal(2, Probe.For(sender).Materializations);
 
-        // 有效载荷由每个 grain日记一次:发件人源状态和接收器汇状况。
+        // 每个 Grain 各将有效载荷记入日志一次：分别位于发送方的源状态和接收方的消息接收器状态。
         Assert.Equal(1, Storage.CountPayloadOccurrences(Journal(sender), payload));
         Assert.Equal(1, Storage.CountPayloadOccurrences(Journal(receiver), payload));
 
-        // 将退出承诺写入删除发件箱条目的文字。
+        // 在移除发件箱条目的同一次写入中提交终结处理。
         var writes = Writes(sender);
         var retirement = Encoding.UTF8.GetBytes(nameof(OutboxMessageRetirement.Delivered));
         Assert.True(writes[0].AsSpan().IndexOf(retirement) < 0);
         Assert.True(writes[1].AsSpan().IndexOf(retirement) >= 0);
 
-        // 水槽接收了信息,但没有收件箱条目;收件箱日记只接收其处理过的记录。
+        // 消息接收器在没有收件箱条目的情况下接受了消息；收件箱只记录其已处理记录。
         var receiverState = await OnGrainAsync(receiver, context => (
             Grain(context).GetState(),
             Inbox(context).Count,
@@ -69,7 +69,7 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
         Assert.Equal(0, Probe.For(receiver).Handled);
         Assert.Single(Writes(receiver));
 
-        // 追回的发件人同意:删除条目,记录其退休情况。
+        // 恢复后的发送方也一致：条目已移除，并且已记录其终结处理。
         Assert.True(Cluster.TryGetGrainContext(sender.GetGrainId(), out var senderContext));
         await sender.DeactivateAsync();
         await senderContext.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), Token);
@@ -92,7 +92,7 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
 
         await sender.StageFromSourceAndDeactivateAsync(receiver.GetGrainId(), messageId, payload);
 
-        // 只检查从日记上回收的激活:停止引爆者处置其服务。
+        // 只检查从日志恢复的激活实例：正在停用的激活实例会释放其服务。
         await senderContext.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), Token);
         _ = await sender.GetOutboxCountAsync();
         await WaitUntilAsync(receiver, context => Grain(context).GetState().Received.ContainsKey(messageId.ToString()));
@@ -113,7 +113,7 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
 
         await sender.StageFromSourceAsync(receiver.GetGrainId(), messageId, payload, write: true);
 
-        // 接收器没有操作器,所以传送尝试失败直到 OutboxRetryTimeout 发生。
+        // 接收方没有处理程序，因此投递尝试一直失败，直至 OutboxRetryTimeout 到期。
         await WaitUntilAsync(sender, context => Outbox(context).Count == 0 && Grain(context).GetState().Retired.Count == 1);
         var (state, deadLetters) = await OnGrainAsync(sender, context => (
             Grain(context).GetState(),
@@ -127,10 +127,10 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
         Assert.Equal(payload, letter.Message.Envelope.Payload);
         Assert.Equal(SourceSinkGrain.Subject, letter.Message.Envelope.Subject);
         Assert.True(letter.AttemptCount > 1);
-        // 每次尝试都实现信息,最后的提醒也实现信息,因为发现重试超时已过期。
+        // 每次尝试都会实例化消息，最终发现重试超时已过期的唤醒也会实例化消息。
         Assert.InRange(Probe.For(sender).Materializations, letter.AttemptCount + 1, letter.AttemptCount + 2);
 
-        // 死者的遗书有自己的副本供诊断
+        // 死信保留自己的副本，以供诊断。
         await WaitUntilAsync(sender, _ => Storage.CountPayloadOccurrences(Journal(sender), payload) == 2);
     }
 
@@ -143,7 +143,7 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
         var messageId = NewMessageId("released-dead-letter");
         var payload = NewPayload();
 
-        // 源共享其有效载荷阵列作为页眉值,并将该阵列清除到 OnRetired。
+        // 源将其有效载荷数组作为标头值共享，并在 OnRetired 中清除该数组。
         Probe.For(sender).ReleaseBuffersOnRetired = true;
         await sender.StageFromSourceAsync(receiver.GetGrainId(), messageId, payload, write: true);
 
@@ -151,10 +151,10 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
         AssertCarriesPayload(Assert.Single(await OnGrainAsync(sender, context =>
             context.ActivationServices.GetRequiredService<IMessagingDiagnostics>().OutboxDeadLetters)));
 
-        // 来源国曾将有效载荷作一次日记,而死信则作为有效载荷和信头。
+        // 源状态将有效载荷记入日志一次，死信则分别将其作为有效载荷和标头记入日志。
         await WaitUntilAsync(sender, _ => Storage.CountPayloadOccurrences(Journal(sender), payload) == 3);
 
-        // 一份在退休日报之后的简况 死亡信自己的副本, 新的激活恢复。
+        // 终结处理后写入的快照记录死信自身的副本，新激活实例会恢复该副本。
         Storage.RequestSnapshot(Journal(sender));
         await sender.WriteAsync();
         Assert.Equal(5, Storage.CountPayloadOccurrences(Journal(sender), payload));
@@ -194,7 +194,7 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
         Assert.Equal(code, (await OnGrainAsync(sender, context => Grain(context).GetRetirementCodes())).GetValueOrDefault(messageId.ToString()));
         Assert.Empty(state.Outgoing);
         Assert.Empty(outboxDeadLetters);
-        // 接收器记录了水槽拒绝的信号 与信件处理的记录, 不是收件箱的死信。
+        // 接收方在消息的已处理记录中记录消息接收器的拒绝，而不是将其作为收件箱死信。
         var (inboxDeadLetters, processed) = await OnGrainAsync(receiver, context => (
             context.ActivationServices.GetRequiredService<IMessagingDiagnostics>().InboxDeadLetters,
             InboxTestAccess.GetProcessedKeys(Inbox(context)).Contains(messageId)));
@@ -271,8 +271,8 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
 
         await sender.StageFromSourceAsync(receiver.GetGrainId(), messageId, NewPayload(), write: true);
 
-        // 观察员的例外情形在信箱将信息传递给其水槽之前第一次尝试失败,因此
-        // 发件箱重新试了货,再试了货
+        // 观察器抛出的异常使第一次尝试在收件箱将消息提供给消息接收器之前失败，因此
+        // 发件箱重试投递，且重试成功投递了消息。
         var retired = await events.Retired.WaitAsync(TimeSpan.FromSeconds(30), Token);
         Assert.Equal(sender.GetGrainId(), retired.GrainContext.GrainId);
         Assert.IsType<OutboxMessageRetirement.Delivered>(retired.Retirement.Value);
@@ -305,8 +305,8 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
         await sender.WriteAsync();
         await WaitUntilAsync(sender, context => Outbox(context).Count == 0);
 
-        // 用于验证第一发邮件、拒绝自发邮件和交付;
-        // 信息从未实现。
+        // 实例化消息以验证第一次发送、拒绝发给自身的发送，以及进行投递；源未提供的
+        // 消息永远不会被实例化。
         Assert.Equal(3, Probe.For(sender).Materializations);
     }
 
@@ -323,7 +323,7 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
         Assert.False(await OnGrainAsync(sender, context => Outbox(context).Withdraw(messageId)));
         await sender.WriteAsync();
 
-        // 撤回和释放来源 是在文件里承诺的 并进行阶段
+        // 撤回操作与源释放操作在暂存二者的同一次写入中提交。
         await WaitUntilAsync(sender, context => Outbox(context).Count == 0 && Writes(sender).Length == 1);
         var state = await OnGrainAsync(sender, context => Grain(context).GetState());
         Assert.Empty(state.Outgoing);
@@ -354,7 +354,7 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
         Assert.True(Cluster.TryGetGrainContext(sender.GetGrainId(), out var activation));
         using var metrics = new MessageMetricListener(activation.ActivationServices.GetRequiredService<OrleansInstruments>().Meter);
 
-        // 发信时,来文提交人提供了所有信息,但没有提供发送未遂信息。
+        // 源在各消息发送时都提供了消息，但在其中一条的投递尝试中未能提供该消息。
         Probe.For(sender).Faults[failing] = fault;
         await sender.WriteAsync();
 
@@ -374,8 +374,8 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
             Assert.Single(deadLetters).Reason,
             Assert.Single(await OnGrainAsync(sender, context => Grain(context).GetRetirementReasons())).Value);
 
-        // 死亡信及其退休承诺在一封写下,
-        // 他们的尝试完成了
+        // 死信及其终结处理在同一次写入中提交，早于其他已投递消息随各自尝试完成而
+        // 进行终结处理的写入。
         var writes = Writes(sender);
         Assert.InRange(writes.Length, 3, 4);
         var deadLettered = Encoding.UTF8.GetBytes(nameof(OutboxMessageRetirement.DeadLettered));
@@ -391,7 +391,7 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
         Assert.Single(outcomes, row => row.Tags.Contains(new("status", "source_error"))).AssertCounter(grainType, "source_error");
         Assert.Equal(2, outcomes.Count(row => row.Tags.Contains(new("status", "accepted"))));
 
-        // 启动程序保存了处理信息;源代码被调用一次发送,每次发送尝试一次。
+        // 激活实例继续处理消息；每次发送和每次投递尝试各调用源一次。
         var later = NewMessageId("later");
         await sender.StageFromSourceAsync(receiver.GetGrainId(), later, NewPayload(), write: true);
         await WaitUntilAsync(sender, context => Outbox(context).Count == 0 && Grain(context).GetState().Retired.Count == 4);
@@ -401,7 +401,7 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
         Assert.Equal(1, Probe.For(sender).Activations);
         Assert.Equal(8, Probe.For(sender).Materializations);
 
-        // 长期的错误永远不会失败 以后启动: 死亡信恢复了,源代码不再被调用。
+        // 持续性故障不会再使后续激活实例失败：恢复的是死信，不会再次调用源。
         await sender.DeactivateAsync();
         await activation.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), Token);
         Assert.Equal(0, await sender.GetOutboxCountAsync());
@@ -424,8 +424,8 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
         await sender.StageFromSourceAsync(receiver.GetGrainId(), second, NewPayload(), write: false);
         Assert.True(Cluster.TryGetGrainContext(sender.GetGrainId(), out var activation));
 
-        // 两者的条目都一次失败。 哪些先退休者先退, 哪个再退, 然后再退, 结果没有结果: 没有死亡
-        // 并且没有退休回馈。
+        // 两个条目在同一处理轮次中失败。无论哪个先终结，都会撤回另一个条目，后者没有结果：既没有死信，
+        // 也没有终结回调。
         Probe.For(sender).Faults[first] = SourceFault.Throw;
         Probe.For(sender).Faults[second] = SourceFault.Throw;
         Probe.For(sender).WithdrawOnRetired[first] = second;
@@ -454,7 +454,7 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
         var messageId = NewMessageId("recovered-failure");
         Probe.For(grain).Faults[messageId] = SourceFault.Throw;
 
-        // 重放一个参考条目,其来源无法再提供该条目,然后运行送货通行证。
+        // 重放一个其源已无法提供消息的引用条目，再执行一轮投递处理。
         await OnGrainAsync(grain, context =>
         {
             Grain(context).StoreOutgoing(receiver, messageId, NewPayload());
@@ -475,7 +475,7 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
         Assert.Equal(nameof(OutboxMessageRetirement.DeadLettered), state.Retired[messageId.ToString()]);
         AssertSourceFailureDeadLetter(Assert.Single(deadLetters), messageId, SourceFault.Throw);
 
-        // 启动程序会不断处理信息
+        // 激活实例继续处理消息。
         var later = NewMessageId("after-recovered-failure");
         await grain.StageFromSourceAsync(receiver, later, NewPayload(), write: true);
         await WaitUntilAsync(grain, context => Outbox(context).Count == 0 && Grain(context).GetState().Retired.Count == 2);
@@ -518,7 +518,7 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
         await withoutSources.PingAsync();
         var unprovided = NewMessageId("unprovided");
 
-        // 重放参考条目, 验证回收状态与回收一样, 然后运行一个交货证 。
+        // 重放引用条目，按恢复流程验证恢复后的状态，再执行一轮投递处理。
         await OnGrainAsync(grain, context =>
         {
             var outbox = Outbox(context);
@@ -529,7 +529,7 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
             pump.Signal();
             return true;
         });
-        // 撤回是明确的,因此一个没有来源提供的条目即丢失数据:它用无名字母编号,没有任何所有人
+        // 撤回是显式操作，因此没有任何源提供的条目属于数据丢失：将其转为死信，且没有所有者可供
         // 通知。
         await WaitUntilAsync(grain, context => Outbox(context).Count == 0);
         Assert.Empty((await OnGrainAsync(grain, context => Grain(context).GetState())).Retired);
@@ -554,7 +554,7 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
 
     private static void AssertSourceFailureDeadLetter(OutboxDeadLetter letter, MessageId messageId, SourceFault fault)
     {
-        // 不存在有效的信件, 所以死信只随带信件 ID 。
+        // 不存在有效消息，因此死信仅携带消息 ID。
         Assert.Equal(messageId, letter.Message.Envelope.MessageId);
         Assert.True(letter.Message.ReceiverId.IsDefault);
         Assert.Empty(letter.Message.Envelope.Payload);
@@ -621,24 +621,24 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
             context.ActivationServices.GetRequiredService<IMessagingDiagnostics>().InboxDeadLetters));
         Assert.Empty(state.Received);
         Assert.Equal(0, count);
-        // 发送者持有拒绝的电文, 因此接收者只保留拒绝。
+        // 发送方保留被拒绝的消息，因此接收方仅保留拒绝记录。
         Assert.Empty(letters);
         Assert.Equal(0, Storage.CountPayloadOccurrences(Journal(receiver), payload));
 
-        // 复制件在未到达汇时从处理过的记录中接收拒绝。
+        // 重复投递直接从已处理记录获取拒绝结果，不会抵达消息接收器。
         Probe.For(receiver).Mode = SinkMode.Accept;
         AssertRejected(await extension.DeliverAsync(message, Token));
         Assert.Equal(1, Probe.For(receiver).SinkOffers);
         Assert.Equal(0, Probe.For(receiver).SinkAcceptances);
         Assert.Equal(0, Probe.For(receiver).Handled);
 
-        // 拒绝后,仍是一个答案,直到一个公认的地板压缩了发送时间。
+        // 已跟踪的拒绝记录会一直作为答复，直到已确认的下限将其发送时间纳入压缩清理范围。
         fixture.Clock.Advance(MessageSourceAndSinkFixture.DeduplicationWindow);
         AssertRejected(await extension.DeliverAsync(message, Token));
         Assert.Equal(1, Probe.For(receiver).SinkOffers);
         Assert.Equal(0, Probe.For(receiver).SinkAcceptances);
 
-        // 拒绝能活下来
+        // 拒绝记录在恢复后仍然存在。
         await receiver.DeactivateAsync();
         AssertRejected(await extension.DeliverAsync(message, Token));
         Assert.Equal(1, Probe.For(receiver).SinkOffers);
@@ -844,7 +844,7 @@ public abstract class MessageSourceAndSinkTests(MessageSourceAndSinkFixture fixt
 }
 
 /// <summary>
-/// 观测到一条信息的信息传递事件,
+/// 观察一条消息的消息传递事件，并通过在下列事件中抛出异常使其前几次投递失败：
 /// <see cref="MessagingEvents.InboxMessageReceiving"/>.
 /// </summary>
 internal sealed class DeliveryEventObserver : IObserver<MessagingEvents.MessagingEvent>, IDisposable
@@ -984,7 +984,7 @@ public enum SinkMode
     UnsupportedResult
 }
 
-/// <summary>源代码如何无法提供其存储的信息 。</summary>
+/// <summary>源未能提供自身存储的消息的方式。</summary>
 public enum SourceFault
 {
     Throw,
@@ -1014,13 +1014,13 @@ public sealed class SourceSinkProbe
         public volatile SinkMode Mode;
         public volatile string? SubjectOverride;
 
-        /// <summary>使源共享其有效载荷阵列作为头值,并在电文退去时清除该阵列。</summary>
+        /// <summary>让源将其有效载荷数组作为标头值共享，并在消息终结时清除该数组。</summary>
         public volatile bool ReleaseBuffersOnRetired;
-        /// <summary>选择应用政策:日记终端结果和真正的自收信箱后续跟进。</summary>
+        /// <summary>需显式启用的应用程序策略：将终止结果及实际的自身收件箱后续消息记入日志。</summary>
         public DateTimeOffset? FollowUpAt { get; set; }
         public int RetirementCallbacks => Volatile.Read(ref _retirementCallbacks);
         public ConcurrentDictionary<MessageId, SourceFault> Faults { get; } = new();
-        /// <summary>使源代码在密钥信件退出时撤回对齐信件,如果该信件尚未撤销的话。</summary>
+        /// <summary>当指定键的消息终结时，让源撤回与其配对且仍挂起的消息。</summary>
         public ConcurrentDictionary<MessageId, MessageId> WithdrawOnRetired { get; } = new();
         public int Activations => Volatile.Read(ref _activations);
         public int Materializations => Volatile.Read(ref _materializations);
@@ -1034,7 +1034,7 @@ public sealed class SourceSinkProbe
         public void OnSinkAccepted() => Interlocked.Increment(ref _sinkAcceptances);
         public void OnHandled() => Interlocked.Increment(ref _handled);
 
-        /// <summary>下个下个水槽投 <paramref name="count"/> 申请前的报价 <see cref="Mode"/>.</summary>
+        /// <summary>使消息接收器在接下来的 <paramref name="count"/> 次接收消息时抛出异常，而不应用 <see cref="Mode"/>。</summary>
         public void FailNextOffers(int count) => Volatile.Write(ref _failuresRemaining, count);
 
         public bool TryConsumeFailure() => Interlocked.Decrement(ref _failuresRemaining) >= 0;
@@ -1056,7 +1056,7 @@ public interface ISourceSinkGrain : IGrainWithGuidKey
     Task DeactivateAsync();
 }
 
-/// <summary>将发送的信息作为一种发信箱源储存,并将有效载荷作为收信箱汇接收。</summary>
+/// <summary>作为发件箱源存储出站消息，并作为收件箱消息接收器存储收到的有效载荷。</summary>
 public sealed class SourceSinkGrain : Grain, ISourceSinkGrain, IOutboxMessageSource, IInboxMessageSink
 {
     internal const string Subject = "source-sink/payload";
@@ -1115,15 +1115,15 @@ public sealed class SourceSinkGrain : Grain, ISourceSinkGrain, IOutboxMessageSou
     internal (Dictionary<string, byte[]> Outgoing, Dictionary<string, byte[]> Received, Dictionary<string, string> Retired) GetState() =>
         (new(_outgoing), new(_received), new(_retired));
 
-    /// <summary>通过电文 ID获取此源代码中未填字母消息的原因。</summary>
+    /// <summary>按消息 ID 获取此源的死信消息的原因。</summary>
     internal Dictionary<string, string> GetRetirementReasons() => new(_reasons);
 
-    /// <summary>获取接收者拒绝此源已拒发信件的代码,通过电文 ID 获得。</summary>
+    /// <summary>按消息 ID 获取接收方对该源被拒绝消息返回的拒绝代码。</summary>
     internal Dictionary<string, string> GetRetirementCodes() => new(_codes);
     internal Dictionary<string, int> GetTerminalCounts() => new(_terminalCounts);
     internal Dictionary<string, int> GetFollowUpCounts() => new(_followUpCounts);
 
-    /// <summary>储存源的发件国未发送发件人状态的发件信息。</summary>
+    /// <summary>在源状态中存储出站消息，但不发送。</summary>
     internal void StoreOutgoing(GrainId receiver, MessageId messageId, byte[] payload)
     {
         _outgoing[messageId.ToString()] = payload;
@@ -1315,10 +1315,10 @@ public interface INoHandlerGrain : IGrainWithGuidKey
     Task PingAsync();
 }
 
-/// <summary>一条信息短信 grain 没有操作员或汇, 他们的收件箱报告每个交付 作为操作员 - 找不到。</summary>
+/// <summary>不具有处理程序或消息接收器的消息传递 Grain，其收件箱对每次投递均报告 handler-not-found。</summary>
 public sealed class NoHandlerGrain : Grain, INoHandlerGrain
 {
-    // 解决发件箱可以发送启动信息,包括收件箱。
+    // 解析发件箱会为激活实例启用消息传递，包括其收件箱。
     public NoHandlerGrain(IOutbox outbox) => ArgumentNullException.ThrowIfNull(outbox);
 
     public Task PingAsync() => Task.CompletedTask;

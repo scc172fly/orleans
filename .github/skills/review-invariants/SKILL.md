@@ -1,56 +1,56 @@
 ---
 name: review-invariants
-description: "Orleans ——变量和断言、错误处理、故障语义学、一时能力、 grain 同值货币和再现、启动时间安排、同步和取消、安全边界和可观察性。在代码审查期间以及在设计或实施运行时间或供应商代码时使用。"
+description: Correctness and invariants lens for Orleans — invariants and assertions, error handling, failure semantics, idempotence, grain concurrency and reentrancy, activation scheduling, async and cancellation, security boundaries, and observability. Use during code review, and when designing or implementing runtime or provider code.
 ---
 
 <a id="invariants-lens"></a>
 
-# 异形透镜
+# Invariants lens
 
-应用 root `AGENTS.md`,包括其主张政策。此透镜检查
-永远必须真实的东西,谁保证它, 当事情失败时会发生什么。
+Apply with root `AGENTS.md`, including its assertion policy. This lens examines
+what must always be true, who guarantees it, and what happens when something fails.
 
 <a id="procedure"></a>
 
-## 程序程序程序
+## Procedure
 
-1. 确定每一受影响边界的保障材料,包括守则已经依赖的隐含内容: **提供** 消费者及其 **需求需求** 呼叫者和下层者。
-2. 分类每个更改的错误路径:预期操作失败、外部输入无效、取消或程序不规则违规。
-3. 寻找消除每一次倒退的无穷或重新设计; 替换无法以断言方式出现的国家的后退; 给每个条件在规格中设定一个设计路径。
-4. 当一个无所不在者几乎持有,或不清楚是否应当持有时,在代码依赖它之前,先询问维护者(在审查中,作为一个问题提出)。
-5. 检查失败的语义、一时能力、货币所有权、启动时间安排、取消流动和信任边界。
+1. For each affected boundary, identify the guarantees material to the change, including implicit ones the code already relies on: what the component **provides** to consumers and what it **demands** of callers and lower layers.
+2. Classify each changed error path: expected operational failure, invalid external input, cancellation, or programming-invariant violation.
+3. Look for an invariant or redesign that eliminates each fallback; replace fallbacks for states that cannot occur with assertions; give each condition that can occur a designed path in the spec.
+4. When an invariant almost holds, or it is unclear whether it should hold, ask the maintainer (in reviews, raise it as a question) before code depends on it.
+5. Check failure semantics, idempotence, concurrency ownership, activation scheduling, cancellation flow, and trust boundaries.
 
 <a id="checklist"></a>
 
-## 核对列表
+## Checklist
 
-- **两种方向的变量。** 每个受影响的边界说明其保证和要求,在可行的情况下使用类型,XML docs,用于非明显可见的担保以及编程变量的主张。
-- **明确保障。** 代码所依赖的担保,除非明显保持,否则是明确的:在类型系统可以表达这种保证的类型中,否则是在拥有边界的文档评论和依赖这种保证的主张中作出。
-- **异变,不是退缩** 守则依赖于既定的变数,并声称在自己的边界有违反编程规定的情况。 偏好一种消除条件的变数或简单设计;合同所要求的操作性选择有可达到的触发因素、确定的结果和行使这一结果的神器。 元等人发现,在48个灾难性失败中,92%的人对非致命错误处理不当(其中92%的人认为(第34页)。[源来源源](https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-yuan.pdf)).
-- **确定合同的所有人。** 一层合同中载明的担保为其受抚养人确立;认定违反该层的,有缺陷,在一层中定有缺陷,通过合同检验(例如,如果存在缺陷,则第1款),并用合同检验(例如,第2款(a)项和(b)项(a)项(a)项(a)项(a)项(a)项(a)项 `IJournalStorage` 附属公司附加物不是原子的提供者在提供商中固定了)依赖所述合同,而修复土地;补偿性检查、回溯、退步或测试性工作选择加上附属公司是缺陷。 通过在拥有边界更改合同增加合同缺失的保证。
-- **设计提示。** 条和目录、路由和位置条目被指定为可能变淡的条目,定义如何检测腐烂(功能检查、版本或当局拒绝),并恢复到权威路径。
-- **非法状态不可代表。** 外部输入转换为在拥有边界并信任内部的验证类型,并在跨越另一信任边界时重新确认其效力([分析, 不要验证](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/))。
-- **两种错误。** 预期失败(I/O、超时、 silo ) 明确处理;产品编程错误被套上无副效果的 `Debug.Assert` 百分比/ 百 `AGENTS.md`. Handlers that are empty or only log, catch overly general exceptions, or are left as `TODO` 它们是缺陷;这三种模式造成35%的灾难性故障,研究的是元等人。
-- **准确的断言** 每项主张都指出一个先决条件、前提条件或不变,因此,如果未能确定中断的句子,并涵盖必须持有和不得持有的内容(例如,一条目存在但尚未处置)。
-- **平凡的断言** 双方均坚持对跨越边界的数据有差异:在书面或发送之前,以及在阅读或收到数据之后(第4页)。[两项对一索赔](https://tigerbeetle.com/blog/2023-12-27-it-takes-two-to-contract)).
-- **安全,然后是活生生的。** 过失模式所认可的每一次执行都具有安全性;进展遵循了规定的法定人数、时间安排和通信假设,并在合同要求时遵守最后期限或检查暂停。
-- **失灵语义。** 每个界面只要能够超时、取消、部分完成、看到重复、或返回废旧数据,都界定了该行为;超时 grain 呼叫可能仍然执行。
-- **拥有权力** 重新研究的操作定义了重复行为结束,使用自然一时能力、稳定操作身份、ETags或版本或重复。
-- **单一所有人同质货币。** 单一所有人国家(grain 转、舍入和通勤(顺序独立)更新比锁更可取;租赁和时代而不是分布式锁管辖在 silos之间移动的所有权。
-- **栅栏** 保护性资源检查所有权生成作为应用突变的一部分,因此被取代的所有人的工作在终止后不能进行(第1段)。[粗体](https://research.google/pubs/the-chubby-lock-service-for-loosely-coupled-distributed-systems/)).
-- **虚拟同步。** 每个操作都将在接受或不接受的配置内生效:重组决定固定了旧配置的关闭状态(例如,成员变更时的 grain 目录分割间隔),因此密封配置的飞行中工作以后永远看不到([伯曼,马尔基和范雷内斯](https://www.microsoft.com/en-us/research/publication/virtually-synchronous-methodology-for-dynamic-service-replication/))。
-- **恢复资格。** 恢复的参与人在恢复持久证据或完成重建议定书,确定该作用的安全保障之后(第2条)恢复发挥每一项作用。[和平和平生存组织](https://research.google/pubs/paxos-made-live-an-engineering-perspective-2006-invited-talk/)).
-- **插接。** 在重新加入或互断路径(`[Reentrant]`、 `[AlwaysInterleave]`、呼叫链回转)中,在每次 `await` 都可运行另一个转弯后,对关于变动激活状态的假设进行再检查。
-- **启动时间表。** Grain 状态仅在激活的调度器上访问: grain 代码等待所捕捉到的上下文(`ConfigureAwait(false)` 标记为 `ORLEANS0014`), `Task.Run` 工作返回结果没有触动 grain 状态,外部回调通过 `RunRequestAsync`进入激活。
-- **确定性。** 时间(`TimeProvider`)、随机性和外部I/O,必须测试才能控制的,因此注射时会重复处决。
-- **连接和取消。** 接受一个 `CancellationToken` 的操作将它传递给每个可被扫描的呼叫对象; 正在等待同步代码而不是屏蔽 (`.Result`、 `.Wait()`、 `GetAwaiter().GetResult()`)。
-- **所有权和寿命。** 长期资源(计时、订阅、连接、 `IDisposable`s)只有一个所有人,并在该所有者的边界上释放:请求、激活、组件、供应商或 silo。
-- **安全。** 信任的计算基础小,各部件拥有的特权最少,数据根据其信任程度得到验证,然后才能影响特权或持久性状态。
-- **观察性。** 操作上的重大故障可从在具有稳定环境的边界排放的原木、测量尺度或痕迹中诊断出来(见A/CN.9/WG.III/WP.9,第5段)。grain 身份证, silo;重复产品日志信息使用 `[LoggerMessage]`.
+- **Invariants in both directions.** Each affected boundary states what it guarantees and requires, using types where practical, XML docs for non-obvious caller-visible guarantees, and assertions for programming invariants.
+- **Explicit guarantees.** Guarantees that code relies on are made explicit unless they are obviously maintained: in the type where the type system can express them, otherwise in a doc comment at the owning boundary and an assertion where they are relied on.
+- **Invariants, not fallbacks.** Code relies on established invariants and asserts programming violations at their owning boundary. Prefer an invariant or simpler design that removes a condition; an operational alternative required by the contract has a reachable trigger, a defined outcome, and an oracle that exercises it. Yuan et al. found incorrect handling of non-fatal errors in 92% of the 48 catastrophic failures in their study ([source](https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-yuan.pdf)).
+- **Fix contracts at their owner.** A guarantee stated in a layer's contract is established for its dependents; a layer found violating it has a defect, fixed in that layer with a contract test that would have caught it (for example, an `IJournalStorage` provider whose append is not atomic is fixed in that provider). Dependents keep relying on the stated contract while the fix lands; compensating checks, retries, fallbacks, or test workarounds added to a dependent are defects. A guarantee the contract lacks is added through a contract change at the owning boundary.
+- **Designed hints.** Caches and directory, routing, and placement entries are specified as possibly stale, define how staleness is detected (validity check, version, or rejection by the authority), and recover through the authoritative path.
+- **Illegal states unrepresentable.** External input is converted to validated types at the owning boundary and trusted inside, and revalidated when it crosses another trust boundary ([parse, don't validate](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/)).
+- **Two kinds of error.** Expected failures (I/O, timeouts, silo failure, storage conflicts, invalid external input, cancellation) are handled explicitly; product programming errors are caught by side-effect-free `Debug.Assert` per `AGENTS.md`. Handlers that are empty or only log, catch overly general exceptions, or are left as `TODO` are defects; these three patterns caused 35% of the catastrophic failures Yuan et al. studied.
+- **Precise assertions.** Each assertion states one precondition, postcondition, or invariant, so a failure identifies the broken term, and covers both what must hold and what must not (for example, an entry is present and not yet disposed).
+- **Paired assertions.** An invariant on data crossing a boundary is asserted on both sides: before it is written or sent, and after it is read or received ([pair assertions](https://tigerbeetle.com/blog/2023-12-27-it-takes-two-to-contract)).
+- **Safety, then liveness.** Safety holds for every execution admitted by the fault model; progress follows stated quorum, scheduling, and communication assumptions, with deadlines or stall detection where the contract requires them.
+- **Failure semantics.** Each interface that can time out, be cancelled, partially complete, see duplicates, or return stale data defines that behavior; a timed-out grain call may still have executed.
+- **Idempotence.** Retried operations define duplicate behavior end to end, using natural idempotence, stable operation IDs, ETags or versions, or deduplication.
+- **Single-owner concurrency.** Single-owner state (grain turns), sharding, and commutative (order-independent) updates are preferred to locks; leases and epochs, rather than distributed locks, govern ownership that moves between silos.
+- **Fencing.** The protected resource checks ownership generation as part of applying a mutation, so work from a superseded owner cannot commit after the cutover ([Chubby](https://research.google/pubs/the-chubby-lock-service-for-loosely-coupled-distributed-systems/)).
+- **Virtual synchrony.** Each operation takes effect within the configuration that accepted it or not at all: the reconfiguration decision fixes the old configuration's closing state (for example, grain directory partition handoff on a membership change), so in-flight work from a sealed configuration never becomes visible later ([Birman, Malkhi, and van Renesse](https://www.microsoft.com/en-us/research/publication/virtually-synchronous-methodology-for-dynamic-service-replication/)).
+- **Recovery eligibility.** A recovering participant resumes each role after restoring the durable evidence or completing the rebuild protocol that establishes that role's safety guarantees ([Paxos Made Live](https://research.google/pubs/paxos-made-live-an-engineering-perspective-2006-invited-talk/)).
+- **Interleaving.** In reentrant or interleaved paths (`[Reentrant]`, `[AlwaysInterleave]`, call-chain reentrancy), assumptions about mutable activation state are re-checked after each `await` at which another turn can run.
+- **Activation scheduling.** Grain state is accessed only on the activation's scheduler: grain code awaits on the captured context (`ConfigureAwait(false)` is flagged by `ORLEANS0014`), `Task.Run` work returns results without touching grain state, and external callbacks enter the activation through `RunRequestAsync`.
+- **Determinism.** Time (`TimeProvider`), randomness, and external I/O that tests must control are injected so executions reproduce.
+- **Async and cancellation.** Operations that accept a `CancellationToken` pass it to every cancellable callee; async code awaits instead of blocking (`.Result`, `.Wait()`, `GetAwaiter().GetResult()`).
+- **Ownership and lifetime.** Long-lived resources (timers, subscriptions, connections, `IDisposable`s) have one owner and are released at that owner's boundary: request, activation, component, provider, or silo.
+- **Security.** The trusted computing base stays small, components hold least privilege, and data is validated according to its trust level before it influences privileged or persistent state.
+- **Observability.** Operationally significant failures are diagnosable from logs, metrics, or traces emitted at the owning boundary with stable context (grain ID, silo, operation); repeated product log messages use `[LoggerMessage]`.
 
 <a id="findings"></a>
 
-## 审计结果
+## Findings
 
-报告地点、被侵犯或失踪的变数和具体解决办法。
-不同问题。
+Report the location, the violated or missing invariant, and a concrete fix. List
+invariant questions separately.

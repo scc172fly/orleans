@@ -4,8 +4,8 @@ using Xunit;
 namespace Orleans.Durable.Tasks.Abstractions.Tests;
 
 /// <summary>
-/// 核证 <c>Race</c>,它取消并等待损失的投入和 <c>WaitAsync</c> 和
-/// <c>WaitUntilAsync</c> 以它为基础,定义和预定任务处理。
+/// 验证 <c>Race</c>（取消并等待落败的输入），以及 <c>WaitAsync</c> 和
+/// <c>WaitUntilAsync</c> 基于它实现的超时功能，涵盖定义及已调度任务句柄。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -36,7 +36,7 @@ public class DurableTaskRaceTests
             generic ? DurableTask.Race<string>(inputs) : DurableTask.Race((IReadOnlyList<DurableTask>)inputs),
             host.CreateContext(RootId)).AsTask();
 
-        // 每一个输家都看清比赛的原因, 比赛等待那些还在解决的输家。
+        // 每个落败方都观察到竞速操作的取消原因，且竞速操作会等待尚未结束的落败方。
         Assert.Equal(RaceLostReason, await canceled.Reason.WaitAsync(WaitTimeout, TestCancellation));
         Assert.Equal(RaceLostReason, await returning.Reason.WaitAsync(WaitTimeout, TestCancellation));
         Assert.False(execution.IsCompleted);
@@ -92,7 +92,7 @@ public class DurableTaskRaceTests
         releases[1].SetResult(1);
         Assert.Equal((1, 1), (await live.WaitAsync(WaitTimeout, TestCancellation)).GetResult<(int, int)>());
 
-        // 当执行重播时,每个输入都是终端;所记录的选择返回的是同一个赢家。
+        // 执行实例重放时，所有输入都处于终态；记录的选择仍返回同一个获胜者。
         releases[0].SetResult(0);
         var replay = await DurableTaskRuntimeHelper.RunAsync(definition, host.CreateContext(RootId));
 
@@ -190,7 +190,7 @@ public class DurableTaskRaceTests
             .AsTask()
             .WaitAsync(WaitTimeout, TestCancellation);
 
-        // 任务观察取消请求,而不考虑超时的理由,结果被丢弃。
+        // 任务观察到不带超时原因的取消请求，且其结果被丢弃。
         Assert.Equal(DurableTaskStatus.Canceled, response.Status);
         Assert.Null(await holder.Reason.WaitAsync(WaitTimeout, TestCancellation));
         Assert.Null((await WaitForEntryAsync(host, "root/$timeout-1/0")).GetResult<string>());
@@ -238,7 +238,7 @@ public class DurableTaskRaceTests
         holder.Settle();
         var definition = DurableTask.Run(async _ => await holder.Definition.WaitAsync(FiveMinutes).WithId("pay"));
 
-        // 东道主在等待时取消第一次尝试, 并在三分钟后重播。
+        // 宿主在首次执行尝试等待期间取消它，并在三分钟后重放它。
         var firstContext = host.CreateContext(RootId);
         var first = DurableTaskRuntimeHelper.RunAsync(definition, firstContext).AsTask();
         await delayScheduled.Task.WaitAsync(WaitTimeout, TestCancellation);
@@ -379,7 +379,7 @@ public class DurableTaskRaceTests
         Assert.Equal($"ground {RaceLostReason}", await await root.WithId("root").ScheduleAsync(TestCancellation).WaitAsync(WaitTimeout, TestCancellation));
         Assert.Equal([TaskId.Parse("root/$race-1/$winner")], host.DecisionIds);
 
-        // 在执行之外,第一个观察到的响应获胜,没有记录选择。
+        // 在执行实例之外，第一个被观察到的响应获胜，且不记录选择。
         var first = await host.CreateRootDefinition<string>(static _ => new(DurableTaskResponse.FromResult("first")))
             .WithId("first").ScheduleAsync(TestCancellation);
         var second = await host.CreateRootDefinition<string>(static async context =>
@@ -412,7 +412,7 @@ public class DurableTaskRaceTests
 
         Assert.Equal("0 ground paid", await await root.WithId("root").ScheduleAsync(TestCancellation).WaitAsync(WaitTimeout, TestCancellation));
 
-        // 以输入0为竞赛的超时时间,在儿童时进行,由自己执行,标明其输入。
+        // 作为输入 0 参与竞速的超时作为拥有独立执行实例的子任务运行，由该执行实例为其输入命名。
         Assert.Equal(
             [
                 RootId,
@@ -457,7 +457,7 @@ public class DurableTaskRaceTests
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>("tasks", () => ScheduledTask.Race(Array.Empty<ScheduledTask<int>>(), TestCancellation));
     }
 
-    /// <summary>当主机取消时终止的延迟, 且不会自动过期 。</summary>
+    /// <summary>宿主取消时以取消状态结束、否则不会到期的延迟操作。</summary>
     private static async ValueTask<DurableTaskResponse> PendingDelay(CancellationToken cancellationToken)
     {
         await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
@@ -468,8 +468,8 @@ public class DurableTaskRaceTests
         => host.GetEntry(TaskId.Parse(id)).WaitAsync(TestCancellation).AsTask().WaitAsync(WaitTimeout, TestCancellation);
 
     /// <summary>
-    /// 定义一个任务,直到请求永久取消时为止,报告请求的理由,并一次
-    /// 调用<see cref="Settle"/> ,返回原因或结束取消。
+    /// 定义一个任务：运行直至收到持久化取消请求，报告请求的原因，并在
+    /// 调用 <see cref="Settle"/> 后返回原因或以取消状态结束。
     /// </summary>
     private sealed class Holder(bool returnsReason)
     {

@@ -1,16 +1,16 @@
 <a id="microsoft-orleans-persistence-for-redis"></a>
 
-# Microsoft Orleans 持久性 Redis
+# Microsoft Orleans Redis 持久化提供程序
 
 <a id="introduction"></a>
 
 ## 简介
-Microsoft Orleans 持久性 Redis 提供 grain 持久性或持久性 Microsoft Orleans 使用 Redis。这样可以让您 grains 坚持自己在 Redis 当他们被重新装填的时候,他们能用它来加以利用。 Redis用于快速存取的记忆数据存储
+Microsoft Orleans Redis 持久化提供程序使用 Redis 为 Microsoft Orleans 提供 Grain 持久化功能，使 Grain 能够将状态持久化到 Redis 并在重新激活时重新加载状态，利用 Redis 的内存数据存储实现快速访问。
 
 <a id="getting-started"></a>
 
 ## 入门
-要使用此软件包, 请通过 NuGet安装 :
+要使用此包，请通过 NuGet 安装：
 
 ```shell
 dotnet add package Microsoft.Orleans.Persistence.Redis
@@ -18,7 +18,7 @@ dotnet add package Microsoft.Orleans.Persistence.Redis
 
 <a id="example---configuring-redis-persistence"></a>
 
-## 示例 - 配置 Redis 持久性
+## 示例 - 配置 Redis 持久化
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Orleans.Configuration;
@@ -47,7 +47,7 @@ await builder.RunAsync();
 
 <a id="example---using-grain-storage-in-a-grain"></a>
 
-## 实例 - 使用 Grain 储存在 Grain
+## 示例 - 在 Grain 中使用 Grain 存储
 ```csharp
 // Define grain state class
 
@@ -83,11 +83,11 @@ public class MyGrain : Grain, IMyGrain, IGrainWithStringKey
 
 <a id="configuration-via-microsoftextensionsconfiguration"></a>
 
-## 通过 Microsoft.Extensions.Configuration配置配置
+## 通过 Microsoft.Extensions.Configuration 配置
 
-您可以配置 Orleans Redis 使用 `Microsoft.Extensions.Configuration` (例如 `appsettings.json`而不是将其配置为代码。当使用此方法时, Orleans 将自动读取配置 `Orleans` 节内
+可以使用 `Microsoft.Extensions.Configuration`（例如 `appsettings.json`）配置 Orleans Redis 持久化，而不必在代码中配置。采用这种方式时，Orleans 会自动从 `Orleans` 节读取配置。
 
-> **注**:您可以使用 `"ProviderType": "Redis"` 或 `"ProviderType": "AzureRedisCache"` ----两者都得到支持,功能等同。
+> **注意**：可以使用 `"ProviderType": "Redis"` 或 `"ProviderType": "AzureRedisCache"`，二者均受支持且功能等效。
 
 <a id="example---appsettingsjson"></a>
 
@@ -112,13 +112,13 @@ public class MyGrain : Grain, IMyGrain, IGrainWithStringKey
 
 <a id="net-aspire-integration"></a>
 
-### .NET 委托整合
+### .NET Aspire 集成
 
-用于 .NET 参考,考虑使用 [.NET 委托 Redis 整合](https://learn.microsoft.com/dotnet/aspire/caching/stackexchange-redis-integration) 简化 Redis 自动服务配置、自动服务发现、健康检查和遥测。 Orleans 可以通过配置系统消耗。
+对于使用 .NET Aspire 的应用程序，可以考虑使用 [.NET Aspire Redis 集成](https://learn.microsoft.com/dotnet/aspire/caching/stackexchange-redis-integration)，它提供简化的 Redis 配置、自动服务发现、健康检查及遥测功能。Aspire 集成会自动配置连接字符串，Orleans 可以通过配置系统使用这些连接字符串。
 
 <a id="example---programcs-with-aspire-redis-integration"></a>
 
-#### 示例 - Program.cs 与委托 Redis 整合
+#### 示例 - 集成 Aspire Redis 的 Program.cs
 ```csharp
 using Microsoft.Extensions.Hosting;
 using Orleans.Hosting;
@@ -148,7 +148,7 @@ Console.WriteLine($"Grain data: {data}");
 await host.WaitForShutdownAsync();
 ```
 
-本示例假设您的 AppHost 项目已经像这样配置了 Redis :
+本示例假定 AppHost 项目已按以下方式配置 Redis：
 ```csharp
 // In your AppHost/Program.cs
 var builder = DistributedApplication.CreateBuilder(args);
@@ -166,17 +166,17 @@ builder.Build().Run();
 
 <a id="documentation"></a>
 
-## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
-关于更全面的文件,请参见:
+## 文档
+有关更全面的文档，请参阅：
 - [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
-- [Grain 持久性](https://dotnet.github.io/orleans/docs/grains/grain-persistence/)
+- [Grain 持久化](https://dotnet.github.io/orleans/docs/grains/grain-persistence/)
 - [Redis 文档](https://redis.io/documentation)
 
 <a id="feedback--contributing"></a>
 
-## 反馈和贡献
-- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
-- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
-- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
-- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证
+## 反馈与贡献
+- 如果遇到问题或希望提供反馈，请[在 GitHub 上创建 Issue](https://github.com/dotnet/orleans/issues)
+- 加入我们的 [Discord](https://aka.ms/orleans-discord) 社区
+- 关注 Twitter 上的 [@msftorleans](https://twitter.com/msftorleans) 账号，获取 Orleans 公告
+- 欢迎贡献！请阅读我们的[贡献指南](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 本项目采用 [MIT 许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)

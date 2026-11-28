@@ -13,8 +13,8 @@ using Orleans.TestingHost;
 namespace Orleans.Testing.Reminders;
 
 /// <summary>
-/// 适应处理中集束, <see cref="ReminderTestClock"/>,
-/// <see cref="ReminderDiagnosticObserver"/> 向共享服务生命周期合规赛跑者提供。
+/// 将进程内集群、<see cref="ReminderTestClock"/> 和
+/// <see cref="ReminderDiagnosticObserver"/> 适配到共享服务生命周期契约符合性测试运行器。
 /// </summary>
 public sealed class ReminderServiceLifecycleHarness
     : IReminderServiceLifecycleHarness, IReminderServiceLifecycleRegistrationTarget
@@ -24,7 +24,7 @@ public sealed class ReminderServiceLifecycleHarness
     private readonly ReminderTestClock _clock;
     private readonly ReminderDiagnosticObserver _observer;
 
-    /// <summary>初始化带纹。</summary>
+    /// <summary>初始化测试工具。</summary>
     public ReminderServiceLifecycleHarness(
         InProcessTestCluster cluster,
         ReminderTestClock clock,

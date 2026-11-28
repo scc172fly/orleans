@@ -68,7 +68,7 @@ public sealed class ReferenceTypeExceptionTests
         _ => throw new InvalidOperationException($"Unexpected exception type {exception.GetType()}."),
     };
 
-#pragma warning disable SYSLIB0050, SYSLIB0051 // The compatibility regression exercises the existing SerializationInfo contract.
+#pragma warning disable SYSLIB0050, SYSLIB0051 // 此兼容性回归测试验证现有 SerializationInfo 契约。
     private static SerializationInfo GetMetadata(SerializerException exception)
     {
         var info = new SerializationInfo(exception.GetType(), new FormatterConverter());

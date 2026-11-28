@@ -8,7 +8,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="IPAddress"/>的序列器。
+    /// <see cref="IPAddress"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class IPAddressCodec : IFieldCodec<IPAddress>, IDerivedTypeCodec
@@ -17,12 +17,12 @@ namespace Orleans.Serialization.Codecs
         IPAddress IFieldCodec<IPAddress>.ReadValue<TInput>(ref Buffers.Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static IPAddress ReadValue<TInput>(ref Buffers.Reader<TInput> reader, Field field)
         {
@@ -38,7 +38,7 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 读取原始长度前缀IP地址值。
+        /// 读取带长度前缀的原始 IP 地址值。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IPAddress ReadRaw<TInput>(ref Buffers.Reader<TInput> reader)
@@ -63,12 +63,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Buffers.Writer<TBufferWriter> writer, uint fieldIdDelta, IPAddress value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -82,7 +82,7 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入原始长度前缀IP地址值。
+        /// 写入带长度前缀的原始 IP 地址值。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteRaw<TBufferWriter>(ref Buffers.Writer<TBufferWriter> writer, IPAddress value) where TBufferWriter : IBufferWriter<byte>
@@ -92,7 +92,7 @@ namespace Orleans.Serialization.Codecs
             writer.EnsureContiguous(1 + 16);
             var span = writer.WritableSpan;
             if (!value.TryWriteBytes(span[1..], out var length)) ThrowNotSupported();
-            span[0] = (byte)(length * 2 + 1); // VarInt 长度
+            span[0] = (byte)(length * 2 + 1); // VarInt 编码的长度。
             writer.AdvanceSpan(1 + length);
         }
 

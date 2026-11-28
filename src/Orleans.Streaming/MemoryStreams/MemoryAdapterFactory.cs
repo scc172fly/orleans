@@ -19,9 +19,9 @@ using Orleans.Streams;
 namespace Orleans.Providers
 {
     /// <summary>
-    /// 内存流供应商的适应器工厂
-    /// 该工厂作为适配器和适配器厂。 事件存放在一模 grain 内 
-    /// 以事件队列行为, 此服务供应商调整器主要用于测试
+    /// 内存流提供程序的适配器工厂。
+    /// 此工厂同时充当适配器和适配器工厂。事件存储在内存中的 Grain 内，
+    /// 该 Grain 充当事件队列。此提供程序适配器主要用于测试。
     /// </summary>
     public partial class MemoryAdapterFactory<TSerializer> : IQueueAdapterFactory, IQueueAdapter, IQueueAdapterCache
         where TSerializer : class, IMemoryMessageBodySerializer
@@ -36,12 +36,12 @@ namespace Orleans.Providers
         private readonly TSerializer serializer;
         private readonly OrleansInstruments orleansInstruments;
         private readonly ulong _nameHash;
-        private IStreamQueueMapper streamQueueMapper = null!; // Init () 使用前设置时设置 。
-        private ConcurrentDictionary<QueueId, IMemoryStreamQueueGrain> queueGrains = null!; // Init () 使用前设置时设置 。
+        private IStreamQueueMapper streamQueueMapper = null!; // 在使用之前由 Init() 设置。
+        private ConcurrentDictionary<QueueId, IMemoryStreamQueueGrain> queueGrains = null!; // 在使用之前由 Init() 设置。
         private IObjectPool<FixedSizeBuffer>? bufferPool;
-        private BlockPoolMonitorDimensions blockPoolMonitorDimensions = null!; // 使用前设置 bufferPool 。
+        private BlockPoolMonitorDimensions blockPoolMonitorDimensions = null!; // 在使用之前随 bufferPool 一同设置。
         private IStreamFailureHandler? streamFailureHandler;
-        private TimePurgePredicate purgePredicate = null!; // Init () 使用前设置时设置 。
+        private TimePurgePredicate purgePredicate = null!; // 在使用之前由 Init() 设置。
 
         /// <inheritdoc />
         public string Name { get; }
@@ -53,38 +53,38 @@ namespace Orleans.Providers
         public StreamProviderDirection Direction => StreamProviderDirection.ReadWrite;
 
         /// <summary>
-        /// 为分区创建失败处理程序 。
+        /// 创建分区的故障处理程序。
         /// </summary>
         protected Func<string, Task<IStreamFailureHandler>>? StreamFailureHandlerFactory { get; set; }
 
         /// <summary>
-        /// 创建一个缓存监视器, 以报告缓存相关度
-        /// 返回 a ICacheMonitor
+        /// 创建缓存监视器以报告缓存相关指标。
+        /// 返回 ICacheMonitor。
         /// </summary>
         protected Func<CacheMonitorDimensions, ICacheMonitor>? CacheMonitorFactory;
 
         /// <summary>
-        /// 创建块块池监测器,以监测块块池相关计量
-        /// 返回 a IBlockPoolMonitor
+        /// 创建内存块池监视器以监控内存块池相关指标。
+        /// 返回 IBlockPoolMonitor。
         /// </summary>
         protected Func<BlockPoolMonitorDimensions, IBlockPoolMonitor>? BlockPoolMonitorFactory;
 
         /// <summary>
-        /// 创建监测器以监测 QueueAdapterReceiver 相关计量
-        /// 返回 a IQueueAdapterReceiverMonitor
+        /// 创建监视器以监控 QueueAdapterReceiver 相关指标。
+        /// 返回 IQueueAdapterReceiverMonitor。
         /// </summary>
         protected Func<ReceiverMonitorDimensions, IQueueAdapterReceiverMonitor>? ReceiverMonitorFactory;
 
         /// <summary>
         /// 初始化 <see cref="MemoryAdapterFactory{TSerializer}"/> 类的新实例。
         /// </summary>
-        /// <param name="providerName">流体提供者名称。</param>
-        /// <param name="cacheOptions">溪流缓冲驱逐选项。</param>
+        /// <param name="providerName">流提供程序名称。</param>
+        /// <param name="cacheOptions">流缓存逐出选项。</param>
         /// <param name="statisticOptions">流统计选项。</param>
-        /// <param name="queueMapperOptions">队列映像仪选项。</param>
-        /// <param name="serviceProvider">服务供应商。</param>
-        /// <param name="grainFactory">下 grain 工厂。</param>
-        /// <param name="loggerFactory">伐木厂</param>
+        /// <param name="queueMapperOptions">队列映射器选项。</param>
+        /// <param name="serviceProvider">服务提供程序。</param>
+        /// <param name="grainFactory">Grain 工厂。</param>
+        /// <param name="loggerFactory">日志记录器工厂。</param>
         public MemoryAdapterFactory(
             string providerName,
             StreamCacheEvictionOptions cacheOptions,
@@ -110,7 +110,7 @@ namespace Orleans.Providers
         }
 
         /// <summary>
-        /// 初始化了这个实例。
+        /// 初始化此实例。
         /// </summary>
         [MemberNotNull(nameof(CacheMonitorFactory), nameof(BlockPoolMonitorFactory), nameof(ReceiverMonitorFactory))]
         public void Init()
@@ -131,10 +131,10 @@ namespace Orleans.Providers
         {
             if (this.bufferPool == null)
             {
-                // 1兆克区块大小池
+                // 使用 1 MB 内存块的池。
                 this.blockPoolMonitorDimensions = new BlockPoolMonitorDimensions($"BlockPool-{Guid.NewGuid()}");
                 var oneMb = 1 << 20;
-                var blockPoolMonitorFactory = this.BlockPoolMonitorFactory!; // Init () 期间设置 。
+                var blockPoolMonitorFactory = this.BlockPoolMonitorFactory!; // 在 Init() 中设置。
                 var objectPoolMonitor = new ObjectPoolMonitorBridge(blockPoolMonitorFactory(blockPoolMonitorDimensions), oneMb);
                 this.bufferPool = new ObjectPool<FixedSizeBuffer>(() => new FixedSizeBuffer(oneMb), objectPoolMonitor, this.statisticOptions.StatisticMonitorWriteInterval);
             }
@@ -163,7 +163,7 @@ namespace Orleans.Providers
         {
             var dimensions = new ReceiverMonitorDimensions(queueId.ToString());
             var receiverLogger = this.loggerFactory.CreateLogger($"{typeof(MemoryAdapterReceiver<TSerializer>).FullName}.{this.Name}.{queueId}");
-            var receiverMonitorFactory = this.ReceiverMonitorFactory!; // Init () 期间设置 。
+            var receiverMonitorFactory = this.ReceiverMonitorFactory!; // 在 Init() 中设置。
             var receiverMonitor = receiverMonitorFactory(dimensions);
             IQueueAdapterReceiver receiver = new MemoryAdapterReceiver<TSerializer>(GetQueueGrain(queueId), receiverLogger, this.serializer, receiverMonitor);
             return receiver;
@@ -190,10 +190,10 @@ namespace Orleans.Providers
         /// <inheritdoc />
         public IQueueCache CreateQueueCache(QueueId queueId)
         {
-            //将块状池创建从 Init 方法移到这里, 以避免在流提供商初始化时在客户端启动不必要的块状集合创建 。 
+            // 将内存块池的创建从初始化方法移到这里，避免在客户端初始化流提供程序时创建不必要的内存块池。
             CreateBufferPoolIfNotCreatedYet();
             var logger = this.loggerFactory.CreateLogger($"{typeof(MemoryPooledCache<TSerializer>).FullName}.{this.Name}.{queueId}");
-            var cacheMonitorFactory = this.CacheMonitorFactory!; // Init () 期间设置 。
+            var cacheMonitorFactory = this.CacheMonitorFactory!; // 在 Init() 中设置。
             var monitor = cacheMonitorFactory(new CacheMonitorDimensions(queueId.ToString(), this.blockPoolMonitorDimensions.BlockPoolId));
             return new MemoryPooledCache<TSerializer>(bufferPool, purgePredicate, logger, this.serializer, monitor, this.statisticOptions.StatisticMonitorWriteInterval, this.cacheOptions.MetadataMinTimeInCache, this.memoryCacheOptions.MaxAddCount);
         }
@@ -205,7 +205,7 @@ namespace Orleans.Providers
         }
 
         /// <summary>
-        /// 生成一个来自队列Id的定点指南。 
+        /// 根据队列 ID 生成确定性的 Guid。
         /// </summary>
         private Guid GenerateDeterministicGuid(QueueId queueId)
         {
@@ -217,7 +217,7 @@ namespace Orleans.Providers
         }
 
         /// <summary>
-        /// 以队列编号取得 MemoryStreamQueueGrain 实例。 
+        /// 根据队列 ID 获取 MemoryStreamQueueGrain 实例。
         /// </summary>
         private IMemoryStreamQueueGrain GetQueueGrain(QueueId queueId)
         {
@@ -227,9 +227,9 @@ namespace Orleans.Providers
         /// <summary>
         /// 创建新的 <see cref="MemoryAdapterFactory{TSerializer}"/> 实例。
         /// </summary>
-        /// <param name="services">服务。</param>
-        /// <param name="name">提供者名称。</param>
-        /// <returns>一个 mew <see cref="MemoryAdapterFactory{TSerializer}"/> 实例。</returns>
+        /// <param name="services">服务提供程序。</param>
+        /// <param name="name">提供程序名称。</param>
+        /// <returns>新的 <see cref="MemoryAdapterFactory{TSerializer}"/> 实例。</returns>
         public static MemoryAdapterFactory<TSerializer> Create(IServiceProvider services, string name)
         {
             var cachePurgeOptions = services.GetOptionsByName<StreamCacheEvictionOptions>(name);

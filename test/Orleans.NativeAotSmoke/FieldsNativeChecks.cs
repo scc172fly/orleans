@@ -23,7 +23,7 @@ internal static class NativeFieldAccessChecks
             .AddSingleton<IDeepCopier<int>>(new ShallowCopier<int>())
             .BuildServiceProvider();
 
-        // 使用带框的显像器进行生成的编码器,而不与组装发现无关。
+        // 使用范围受限的清单，以独立于程序集发现机制验证生成的编解码器。
         var options = Options.Create(new TypeManifestOptions());
         var provider = new CodecProvider(services, options);
         var typeCodec = new TypeCodec(new TypeConverter([], [], [], options, new CachedTypeResolver()));

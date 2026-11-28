@@ -5,7 +5,7 @@ using System.Threading;
 namespace Orleans.Threading
 {
     /// <summary>
-    /// 轻量级循环锁
+    /// 轻量级递归锁。
     /// </summary>
     internal sealed class RecursiveInterlockedExchangeLock
     {
@@ -31,7 +31,7 @@ namespace Orleans.Threading
         }
 
         /// <summary>
-        /// 锁上锁,必要时堵住线
+        /// 获取锁，必要时阻塞线程。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Get()

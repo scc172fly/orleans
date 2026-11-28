@@ -13,7 +13,7 @@ using Benchmarks.Serialization.Utilities;
 namespace Benchmarks.Serialization;
 
 /// <summary>
-/// 具有数十万件物品的大型物体图的基准 Orleans 序列化性能。
+/// 对 Orleans 序列化包含数十万个元素的超大型对象图的性能进行基准测试。
 /// </summary>
 [Trait("Category", "Benchmark")]
 [TestSuite("Benchmark")]
@@ -54,7 +54,7 @@ public class MegaGraphBenchmark
     {
         Session.Reset();
         var instance = Serializer.Deserialize(Input, Session);
-        return instance!; // 设置时输入的初始化来自序列图。
+        return instance!; // 初始化期间，使用序列化后的对象图初始化输入。
     }
 
     [Benchmark]

@@ -16,21 +16,21 @@ using System.Threading;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 共同属性为 <see cref="GrainReference"/> 同一 <see cref="GrainType"/> 和 <see cref="GrainInterfaceType"/>.
+    /// <see cref="GrainReference"/> 实例共有的属性，适用于具有相同 <see cref="GrainType"/> 和 <see cref="GrainInterfaceType"/> 的实例。
     /// </summary>
     public class GrainReferenceShared
     {
         /// <summary>
         /// 初始化 <see cref="GrainReferenceShared"/> 类的新实例。
         /// </summary>
-        /// <param name="grainType"> grain 类型。</param>
-        /// <param name="grainInterfaceType"> grain 接口类型。</param>
-        /// <param name="interfaceVersion"> grain 接口版本。</param>
-        /// <param name="runtime">参考 grain 时间。</param>
-        /// <param name="invokeMethodOptions">通用的援引选项。</param>
-        /// <param name="codecProvider">序列编码提供商</param>
-        /// <param name="copyContextPool">序列复制背景池。</param>
-        /// <param name="serviceProvider">服务供应商。</param>
+        /// <param name="grainType">Grain 类型。</param>
+        /// <param name="grainInterfaceType">Grain 接口类型。</param>
+        /// <param name="interfaceVersion">Grain 接口版本。</param>
+        /// <param name="runtime">Grain 引用运行时。</param>
+        /// <param name="invokeMethodOptions">通用调用选项。</param>
+        /// <param name="codecProvider">序列化编解码器提供程序。</param>
+        /// <param name="copyContextPool">序列化复制上下文池。</param>
+        /// <param name="serviceProvider">服务提供程序。</param>
         public GrainReferenceShared(
             GrainType grainType,
             GrainInterfaceType grainInterfaceType,
@@ -52,37 +52,37 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取 grain 引用运行时间。
+        /// 获取 Grain 引用运行时。
         /// </summary>
         public IGrainReferenceRuntime Runtime { get; }
 
         /// <summary>
-        /// 获取 grain 类型。
+        /// 获取 Grain 类型。
         /// </summary>
         public GrainType GrainType { get; }
 
         /// <summary>
-        /// 获得接口类型。
+        /// 获取接口类型。
         /// </summary>
         public GrainInterfaceType InterfaceType { get; }
 
         /// <summary>
-        /// 获得通用的援引选项。
+        /// 获取通用调用选项。
         /// </summary>
         public InvokeMethodOptions InvokeMethodOptions { get; }
 
         /// <summary>
-        /// 获得序列编码提供商。
+        /// 获取序列化编解码器提供程序。
         /// </summary>
         public CodecProvider CodecProvider { get; }
 
         /// <summary>
-        /// 获得序列复制背景库。
+        /// 获取序列化复制上下文池。
         /// </summary>
         public CopyContextPool CopyContextPool { get; }
 
         /// <summary>
-        /// 得到了服务供应商。
+        /// 获取服务提供程序。
         /// </summary>
         public IServiceProvider ServiceProvider { get; }
 
@@ -93,7 +93,7 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// 序列化和取消 <see cref="GrainReference"/> 和衍生类型功能。
+    /// 提供对 <see cref="GrainReference"/> 及其派生类型进行序列化和反序列化的功能。
     /// </summary>
     [RegisterSerializer]
     internal class GrainReferenceCodec : GeneralizedReferenceTypeSurrogateCodec<IAddressable, GrainReferenceSurrogate>
@@ -103,8 +103,8 @@ namespace Orleans.Runtime
         /// <summary>
         /// 初始化 <see cref="GrainReferenceCodec"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">下 grain 工厂。</param>
-        /// <param name="surrogateSerializer">本类使用的代用类型序列器的序列器。</param>
+        /// <param name="grainFactory">Grain 工厂。</param>
+        /// <param name="surrogateSerializer">此类所使用的代理类型的序列化器。</param>
         public GrainReferenceCodec(IGrainFactory grainFactory, IValueSerializer<GrainReferenceSurrogate> surrogateSerializer)
             : base(surrogateSerializer)
         {
@@ -130,12 +130,12 @@ namespace Orleans.Runtime
     internal sealed class GrainReferenceCopier : ShallowCopier<GrainReference>, IDerivedTypeCopier { }
 
     /// <summary>
-    /// 提供 grain 参考类型的专门复印机实例。
+    /// 为 Grain 引用类型提供专用复制器实例。
     /// </summary>
     internal class GrainReferenceCopierProvider : ISpecializableCopier
     {
         /// <inheritdoc/>
-        // ! Activator.CreateInstance 不会因这些论点而返回无效。
+        // ! 使用这些参数调用 Activator.CreateInstance 不会返回 null。
         public IDeepCopier GetSpecializedCopier(Type type) => (IDeepCopier)Activator.CreateInstance(typeof(TypedGrainReferenceCopier<>).MakeGenericType(type))!;
 
         /// <inheritdoc/>
@@ -143,9 +143,9 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// grain 参考实例的强型复印机。
+    /// 用于 Grain 引用实例的强类型复制器。
     /// </summary>
-    /// <typeparam name="TInterface"> grain 接口类型。</typeparam>
+    /// <typeparam name="TInterface">Grain 接口类型。</typeparam>
     internal class TypedGrainReferenceCopier<TInterface> : IDeepCopier<TInterface>
     {
         /// <inheritdoc/>
@@ -166,7 +166,7 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// 为 grain 参考类型提供专门的编码实例。
+    /// 为 Grain 引用类型提供专用编解码器实例。
     /// </summary>
     internal class GrainReferenceCodecProvider : ISpecializableCodec
     {
@@ -175,7 +175,7 @@ namespace Orleans.Runtime
         /// <summary>
         /// 初始化 <see cref="GrainReferenceCodecProvider"/> 类的新实例。
         /// </summary>
-        /// <param name="serviceProvider">服务供应商。</param>
+        /// <param name="serviceProvider">服务提供程序。</param>
         public GrainReferenceCodecProvider(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
 
         /// <inheritdoc/>
@@ -185,17 +185,17 @@ namespace Orleans.Runtime
         public bool IsSupportedType(Type type) => typeof(IAddressable).IsAssignableFrom(type);
 
         /// <summary>
-        /// 丢弃一个例外, 显示参数类型不支持 。
+        /// 抛出异常，指示不支持某个参数类型。
         /// </summary>
-        /// <param name="observer">观察员</param>
+        /// <param name="observer">观察者。</param>
         internal static void ThrowGrainObserverInvalidException(IGrainObserver observer)
             => throw new NotSupportedException($"IGrainObserver parameters must be GrainReference or Grain and cannot be type {observer.GetType()}. Did you forget to CreateObjectReference?");
     }
 
     /// <summary>
-    /// grain 参考实例的强型编码器。
+    /// 用于 Grain 引用实例的强类型编解码器。
     /// </summary>
-    /// <typeparam name="T">下 grain 参考界面类型。</typeparam>
+    /// <typeparam name="T">Grain 引用的接口类型。</typeparam>
     internal class TypedGrainReferenceCodec<T> : GeneralizedReferenceTypeSurrogateCodec<T, GrainReferenceSurrogate>
         where T : class, IAddressable
     {
@@ -204,8 +204,8 @@ namespace Orleans.Runtime
         /// <summary>
         /// 初始化 <see cref="TypedGrainReferenceCodec{T}"/> 类的新实例。
         /// </summary>
-        /// <param name="grainFactory">下 grain 工厂。</param>
-        /// <param name="surrogateSerializer">代孕序列器</param>
+        /// <param name="grainFactory">Grain 工厂。</param>
+        /// <param name="surrogateSerializer">代理类型序列化器。</param>
         public TypedGrainReferenceCodec(IGrainFactory grainFactory, IValueSerializer<GrainReferenceSurrogate> surrogateSerializer) : base(surrogateSerializer)
         {
             _grainFactory = grainFactory;
@@ -220,7 +220,7 @@ namespace Orleans.Runtime
         /// <inheritdoc/>
         public override void ConvertToSurrogate(T value, ref GrainReferenceSurrogate surrogate)
         {
-            // 在进行费用更高的接口检查前先检查典型的错误案件是否是假的
+            // 先检查通常为 false 的条件，再执行开销更大的接口检查。
             if (value is not GrainReference refValue)
             {
                 if (value is IGrainObserver observer)
@@ -237,26 +237,26 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// 代表 <see cref="GrainReference"/> 履行序列化的替代物。
+    /// 序列化时用于表示 <see cref="GrainReference"/> 实现的代理类型。
     /// </summary>
     [GenerateSerializer]
     internal struct GrainReferenceSurrogate
     {
         /// <summary>
-        /// 获取或设置 grain id。
+        /// 获取或设置 Grain ID。
         /// </summary>
         [Id(0)]
         public GrainId GrainId;
 
         /// <summary>
-        /// 获取或设置 grain 接口类型。
+        /// 获取或设置 Grain 接口类型。
         /// </summary>
         [Id(1)]
         public GrainInterfaceType GrainInterfaceType;
     }
 
     /// <summary>
-    /// 这是所有 grain 引用的基准类。
+    /// 这是所有 Grain 引用的基类。
     /// </summary>
     [Alias("GrainRef")]
     [DefaultInvokableBaseType(typeof(ValueTask<>), typeof(Request<>))]
@@ -268,53 +268,53 @@ namespace Orleans.Runtime
     public class GrainReference : IAddressable, IEquatable<GrainReference>, ISpanFormattable
     {
         /// <summary>
-        /// 下 grain 由所有人共享的参考功能 grain 指定类型的引用。
+        /// 给定类型的所有 Grain 引用共享的功能。
         /// </summary>
         [NonSerialized]
         private readonly GrainReferenceShared _shared;
 
         /// <summary>
-        /// 底部 grain id 密钥。
+        /// 底层 Grain ID 的键。
         /// </summary>
         [NonSerialized]
         private readonly IdSpan _key;
 
         /// <summary>
-        /// 得到 grain 由所有人共享的参考功能 grain 指定类型的引用。
+        /// 获取给定类型的所有 Grain 引用共享的功能。
         /// </summary>
         internal GrainReferenceShared Shared => _shared ?? throw new GrainReferenceNotBoundException(this);
 
         /// <summary>
-        /// 获取 grain 引用运行时间。
+        /// 获取 Grain 引用运行时。
         /// </summary>
         internal IGrainReferenceRuntime Runtime => Shared.Runtime;
 
         /// <summary>
-        /// 获取 grain id。
+        /// 获取 Grain ID。
         /// </summary>
         public GrainId GrainId => GrainId.Create(_shared.GrainType, _key);
 
         /// <summary>
-        /// 获得接口类型。
+        /// 获取接口类型。
         /// </summary>
         public GrainInterfaceType InterfaceType => _shared.InterfaceType;
 
         /// <summary>
-        /// 获得序列复制背景库。
+        /// 获取序列化复制上下文池。
         /// </summary>
         protected CopyContextPool CopyContextPool => _shared.CopyContextPool;
 
         /// <summary>
-        /// 获得序列编码提供商。
+        /// 获取序列化编解码器提供程序。
         /// </summary>
         protected CodecProvider CodecProvider => _shared.CodecProvider;
 
-        /// <summary>初始化一个 <see cref="GrainReference"/> 类的新实例。</summary>
+        /// <summary>初始化 <see cref="GrainReference"/> 类的新实例。</summary>
         /// <param name="shared">
-        /// 下 grain 由所有人共享的参考功能 grain 指定类型的引用。
+        /// 给定类型的所有 Grain 引用共享的功能。
         /// </param>
         /// <param name="key">
-        /// grain id 的密钥部分。
+        /// Grain ID 的键部分。
         /// </param>
         protected GrainReference(GrainReferenceShared shared, IdSpan key)
         {
@@ -323,27 +323,27 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 创建新 <see cref="GrainReference"/> 指定 <paramref name="grainId"/>.
+        /// 创建新的 <see cref="GrainReference"/> 实例，用于指定的 <paramref name="grainId"/>。
         /// </summary>
         internal static GrainReference FromGrainId(GrainReferenceShared shared, GrainId grainId) => new(shared, grainId.Key);
 
         /// <summary>
-        /// 创建新的 grain 引用,以实施指定的 grain 接口。
+        /// 创建一个实现指定 Grain 接口的新 Grain 引用。
         /// </summary>
         /// <typeparam name="TGrainInterface">
-        /// grain 接口类型。
+        /// Grain 接口类型。
         /// </typeparam>
-        /// <returns>一个新的 grain 参考,用于执行指定的接口类型。</returns>
+        /// <returns>实现指定接口类型的新 Grain 引用。</returns>
         public virtual TGrainInterface Cast<TGrainInterface>()
             where TGrainInterface : IAddressable
             => (TGrainInterface)_shared.Runtime.Cast(this, typeof(TGrainInterface));
 
         /// <summary>
-        /// 测试此引用是否等于其它对象。
-        /// 两 grain 参考文献如果都指同一种 grain,则相等。
+        /// 检查此引用是否与另一个对象相等。
+        /// 如果两个 Grain 引用指向同一个 Grain，则这两个引用相等。
         /// </summary>
-        /// <param name="obj">对照此参考测试平等性的目标。</param>
-        /// <returns><c>true</c> 。</returns>
+        /// <param name="obj">要与此引用进行相等性比较的对象。</param>
+        /// <returns><c>true</c> 表示该对象与此引用相等。</returns>
         public override bool Equals(object? obj)
         {
             return Equals(obj as GrainReference);
@@ -356,24 +356,24 @@ namespace Orleans.Runtime
         public override int GetHashCode() => this.GrainId.GetHashCode();
 
         /// <summary>
-        /// 获取此 grain 引用的统一散列代码。
+        /// 获取此 Grain 引用的均匀哈希码。
         /// </summary>
         /// <returns>
-        /// 统一的大麻代号
+        /// 均匀哈希码。
         /// </returns>
         public uint GetUniformHashCode()
         {
-            // GrainId 已经包括通用参数的散列类型代码。
+            // GrainId 已包含泛型实参对应的哈希类型码。
             return GrainId.GetUniformHashCode();
         }
 
         /// <summary>
-        /// 将平等的两个参考文献进行比较。
-        /// 两 grain 参考文献如果都指同一种 grain,则相等。
+        /// 比较两个引用是否相等。
+        /// 如果两个 Grain 引用指向同一个 Grain，则这两个引用相等。
         /// </summary>
-        /// <param name="reference1">第一次 grain 引用比较。</param>
-        /// <param name="reference2">第二届 grain 比较引用。</param>
-        /// <returns><c>true</c> 如果两者兼有, grain 参考引用 grain (按 grain identifier).</returns>
+        /// <param name="reference1">要比较的第一个 Grain 引用。</param>
+        /// <param name="reference2">要比较的第二个 Grain 引用。</param>
+        /// <returns><c>true</c> 表示两个 Grain 引用指向同一 Grain（依据 Grain 标识符）。</returns>
         public static bool operator ==(GrainReference? reference1, GrainReference? reference2)
         {
             if (reference1 is null) return reference2 is null;
@@ -382,12 +382,12 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 将不平等的两处参考比对。
-        /// 两 grain 参考文献如果都指同一种 grain,则相等。
+        /// 比较两个引用是否不相等。
+        /// 如果两个 Grain 引用指向同一个 Grain，则这两个引用相等。
         /// </summary>
-        /// <param name="reference1">第一次 grain 引用比较。</param>
-        /// <param name="reference2">第二届 grain 比较引用。</param>
-        /// <returns><c>false</c> 如果两者兼有, grain 解决到相同的引用 grain (按 grain identifier).</returns>
+        /// <param name="reference1">要比较的第一个 Grain 引用。</param>
+        /// <param name="reference2">要比较的第二个 Grain 引用。</param>
+        /// <returns><c>false</c> 表示两个 Grain 引用解析到同一 Grain（依据 Grain 标识符）。</returns>
         public static bool operator !=(GrainReference? reference1, GrainReference? reference2)
         {
             if (reference1 is null) return !(reference2 is null);
@@ -414,19 +414,19 @@ namespace Orleans.Runtime
             => destination.TryWrite($"GrainReference:{GrainId}:{InterfaceType}", out charsWritten);
 
         /// <summary>
-        /// 获取或创建可引用的请求实例。
+        /// 获取或创建一个可调用请求实例。
         /// </summary>
-        /// <typeparam name="TInvokable">可置疑的请求类型。</typeparam>
-        /// <returns>一个可援引的请求实例。</returns>
+        /// <typeparam name="TInvokable">可调用请求的类型。</typeparam>
+        /// <returns>可调用请求实例。</returns>
         protected TInvokable GetInvokable<TInvokable>() => ActivatorUtilities.GetServiceOrCreateInstance<TInvokable>(Shared.ServiceProvider);
 
         /// <summary>
-        /// 启用提供的方法。
+        /// 调用指定的方法。
         /// </summary>
-        /// <typeparam name="T">基本方法返回类型。</typeparam>
-        /// <param name="methodDescription">方法说明。</param>
-        /// <returns>援引的结果。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="methodDescription"/> 是 <see langword="null"/>.</exception>
+        /// <typeparam name="T">底层方法的返回类型。</typeparam>
+        /// <param name="methodDescription">方法描述。</param>
+        /// <returns>调用结果。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="methodDescription"/> 为 <see langword="null"/>。</exception>
         protected ValueTask<T?> InvokeAsync<T>(IRequest methodDescription)
         {
             ArgumentNullException.ThrowIfNull(methodDescription);
@@ -434,11 +434,11 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 启用提供的方法。
+        /// 调用指定的方法。
         /// </summary>
-        /// <param name="methodDescription">方法说明。</param>
-        /// <returns>A <see cref="ValueTask"/> 代表操作。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="methodDescription"/> 是 <see langword="null"/>.</exception>
+        /// <param name="methodDescription">方法描述。</param>
+        /// <returns>表示该操作的 <see cref="ValueTask"/>。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="methodDescription"/> 为 <see langword="null"/>。</exception>
         protected ValueTask InvokeAsync(IRequest methodDescription)
         {
             ArgumentNullException.ThrowIfNull(methodDescription);
@@ -446,10 +446,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 启用提供的方法。
+        /// 调用指定的方法。
         /// </summary>
-        /// <param name="methodDescription">方法说明。</param>
-        /// <exception cref="ArgumentNullException"><paramref name="methodDescription"/> 是 <see langword="null"/>.</exception>
+        /// <param name="methodDescription">方法描述。</param>
+        /// <exception cref="ArgumentNullException"><paramref name="methodDescription"/> 为 <see langword="null"/>。</exception>
         protected void Invoke(IRequest methodDescription)
         {
             ArgumentNullException.ThrowIfNull(methodDescription);
@@ -458,17 +458,17 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// 代表对 grain.采用某一方法的请求。
+    /// 表示调用 Grain 上某个方法的请求。
     /// </summary>
     public interface IRequest : IInvokable
     {
         /// <summary>
-        /// 获得援引选项。
+        /// 获取调用选项。
         /// </summary>
         InvokeMethodOptions Options { get; }
 
         /// <summary>
-        /// 纳入了所提供的调用选项。
+        /// 合并提供的调用选项。
         /// </summary>
         /// <param name="options">
         /// 选项。
@@ -476,10 +476,10 @@ namespace Orleans.Runtime
         void AddInvokeMethodOptions(InvokeMethodOptions options);
 
         /// <summary>
-        /// 返回请求的字符串表示。
+        /// 返回请求的字符串表示形式。
         /// </summary>
-        /// <returns>请求的字符串表示。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> 是 <see langword="null"/>.</exception>
+        /// <returns>请求的字符串表示形式。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> 为 <see langword="null"/>。</exception>
         public static string ToString(IRequest request)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -530,10 +530,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 返回请求的字符串表示。
+        /// 返回请求的字符串表示形式。
         /// </summary>
-        /// <returns>请求的字符串表示。</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> 是 <see langword="null"/>.</exception>
+        /// <returns>请求的字符串表示形式。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> 为 <see langword="null"/>。</exception>
         public static string ToMethodCallString(IRequest request)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -559,14 +559,14 @@ namespace Orleans.Runtime
     }
 
     /// <summary>
-    /// 用于方法请求的基础类型。
+    /// 方法请求所使用的基类型。
     /// </summary>
     [SuppressReferenceTracking]
     [SerializerTransparent]
     public abstract class RequestBase : IRequest
     {
         /// <summary>
-        /// 获得援引选项。
+        /// 获取调用选项。
         /// </summary>
         [field: NonSerialized]
         public InvokeMethodOptions Options { get; protected set; }
@@ -575,7 +575,7 @@ namespace Orleans.Runtime
         public virtual int GetArgumentCount() => 0;
 
         /// <summary>
-        /// 纳入了所提供的调用选项。
+        /// 合并提供的调用选项。
         /// </summary>
         /// <param name="options">
         /// 选项。
@@ -634,18 +634,18 @@ namespace Orleans.Runtime
         public virtual bool IsCancellable => false;
 
         /// <summary>
-        /// 获得一个数值,以表明关于这一请求的任何论点是否为 <see cref="GrainCancellationToken"/>。
+        /// 获取一个值，指示此请求的参数中是否可能包含 <see cref="GrainCancellationToken"/>。
         /// </summary>
         /// <remarks>
-        /// 当 <see langword="false"/>时,运行时间不检查 <see cref="GrainCancellationToken"/> 实例的参数,
-        /// ,通过 <see cref="GetArgument(int)"/>避免框框价值类型参数。
-        /// 默认值为 <see langword="true"/> ,这样总是会检查不高于此属性的请求。
+        /// 当值为 <see langword="false"/> 时，运行时不会检查参数中是否存在 <see cref="GrainCancellationToken"/> 实例，
+        /// 从而避免通过 <see cref="GetArgument(int)"/> 对值类型参数执行装箱操作。
+        /// 默认值为 <see langword="true"/>，以便未重写此属性的请求始终接受检查。
         /// </remarks>
         public virtual bool MayHaveGrainCancellationToken => true;
     }
 
     /// <summary>
-    /// 返回方法请求的基础类别 <see cref="ValueTask"/>。
+    /// 返回 <see cref="ValueTask"/> 的方法所对应请求的基类。
     /// </summary>
     [SerializerTransparent]
     public abstract class Request : RequestBase
@@ -688,17 +688,17 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 向目标发出请求
+        /// 针对目标执行该请求。
         /// </summary>
-        /// <returns>代表援引的值任务。</returns>
+        /// <returns>表示调用操作的值任务。</returns>
         protected abstract ValueTask InvokeInner();
     }
 
     /// <summary>
-    /// 返回方法请求的基础类别 <see cref="ValueTask{TResult}"/>。
+    /// 返回 <see cref="ValueTask{TResult}"/> 的方法所对应请求的基类。
     /// </summary>
     /// <typeparam name="TResult">
-    /// 基本结果类型。
+    /// 底层结果类型。
     /// </typeparam>
     [SerializerTransparent]
     public abstract class Request<TResult> : RequestBase
@@ -736,17 +736,17 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 向目标发出请求
+        /// 针对目标执行该请求。
         /// </summary>
         /// <returns>调用结果。</returns>
         protected abstract ValueTask<TResult> InvokeInner();
     }
 
     /// <summary>
-    /// 返回方法请求的基础类别 <see cref="Task{TResult}"/>。
+    /// 返回 <see cref="Task{TResult}"/> 的方法所对应请求的基类。
     /// </summary>
     /// <typeparam name="TResult">
-    /// 基本结果类型。
+    /// 底层结果类型。
     /// </typeparam>
     [SerializerTransparent]
     public abstract class TaskRequest<TResult> : RequestBase
@@ -784,14 +784,14 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 向目标发出请求
+        /// 针对目标执行该请求。
         /// </summary>
         /// <returns>调用结果。</returns>
         protected abstract Task<TResult> InvokeInner();
     }
 
     /// <summary>
-    /// 返回方法请求的基础类别 <see cref="ValueTask"/>。
+    /// 返回 <see cref="ValueTask"/> 的方法所对应请求的基类。
     /// </summary>
     [SerializerTransparent]
     public abstract class TaskRequest : RequestBase
@@ -834,14 +834,14 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 向目标发出请求
+        /// 针对目标执行该请求。
         /// </summary>
         /// <returns>调用结果。</returns>
         protected abstract Task InvokeInner();
     }
 
     /// <summary>
-    /// 要求无效返回方法的基级。
+    /// 返回 void 的方法所对应请求的基类。
     /// </summary>
     [SerializerTransparent]
     public abstract class VoidRequest : RequestBase
@@ -851,7 +851,7 @@ namespace Orleans.Runtime
         /// </summary>
         protected VoidRequest()
         {
-            // 所有无效的请求都是单向的。
+            // 所有返回 void 的请求本质上都是单向请求。
             Options = InvokeMethodOptions.OneWay;
         }
 
@@ -870,7 +870,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 向目标发出请求
+        /// 针对目标执行该请求。
         /// </summary>
         protected abstract void InvokeInner();
     }

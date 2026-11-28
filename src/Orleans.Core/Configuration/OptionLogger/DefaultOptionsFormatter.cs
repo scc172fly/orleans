@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace Orleans
 {
     /// <summary>
-    /// <see cref="IOptionFormatter{T}"/>的默认执行。
+    /// <see cref="IOptionFormatter{T}"/> 的默认实现。
     /// </summary>
     /// <typeparam name="T">选项类型。</typeparam>
     internal sealed class DefaultOptionsFormatter<T> : IOptionFormatter<T> where T : class
@@ -41,7 +41,7 @@ namespace Orleans
         public string Name { get; }
 
         /// <summary>
-        /// 用于
+        /// For
         /// </summary>
         /// <returns></returns>
         public IEnumerable<string> Format()
@@ -91,7 +91,7 @@ namespace Orleans
             var value = property.GetValue(options);
             var redactAttribute = property.GetCustomAttribute<RedactAttribute>(inherit: true);
 
-            // 如果指定了编辑, 则让属性执行来完成工作
+            // 如果指定了敏感信息隐去特性，则交由该特性的实现处理。
             if (redactAttribute != null)
             {
                 yield return OptionFormattingUtilities.Format(name, redactAttribute.Redact(value));
@@ -100,7 +100,7 @@ namespace Orleans
             {
                 if (value is IDictionary dict)
                 {
-                    // 如果是字典 - > 每个项目一行
+                    // 如果是字典，则每个条目占一行。
                     var enumerator = dict.GetEnumerator();
                     while (enumerator.MoveNext())
                     {
@@ -110,7 +110,7 @@ namespace Orleans
                 }
                 else if (value is ICollection coll)
                 {
-                    // 如果是简单收藏 - > 每个项目一行
+                    // 如果是简单集合，则每个条目占一行。
                     if (coll.Count > 0)
                     {
                         var index = 0;
@@ -123,7 +123,7 @@ namespace Orleans
                 }
                 else
                 {
-                    // 简单案件
+                    // 简单情况。
                     yield return OptionFormattingUtilities.Format(name, value);
                 }
             }

@@ -9,8 +9,8 @@ using System.Text;
 namespace Orleans.Serialization.TypeSystem;
 
 /// <summary>
-/// 格式化 <see cref="Type"/> 和 <see cref="TypeInfo"/> 实例的实用方法,其格式化方式可以由
-/// <see cref="Type.GetType(string)"/>.
+/// 用于格式化 <see cref="Type"/> 和 <see cref="TypeInfo"/> 实例的实用方法，格式化结果可由
+/// <see cref="Type.GetType(string)"/> 解析。
 /// </summary>
 public static class RuntimeTypeNameFormatter
 {
@@ -19,11 +19,11 @@ public static class RuntimeTypeNameFormatter
     private static readonly ConcurrentDictionary<Type, string> Cache = new();
 
     /// <summary>
-    /// 返回 <see cref="string"/> 形式的 <paramref name="type"/> ,该 <see cref="Type.GetType(string)"/>可以进行解析。
+    /// 返回 <see cref="string"/> 形式的 <paramref name="type"/>，该形式可由 <see cref="Type.GetType(string)"/> 解析。
     /// </summary>
-    /// <param name="type">格式的类型。</param>
+    /// <param name="type">要格式化的类型。</param>
     /// <returns>
-    /// 一种 <see cref="string"/> 形式 <paramref name="type"/> ,可以由 <see cref="Type.GetType(string)"/>加以分析。
+    /// <see cref="string"/> 形式的 <paramref name="type"/>，该形式可由 <see cref="Type.GetType(string)"/> 解析。
     /// </returns>
     public static string Format(Type type)
     {
@@ -58,7 +58,7 @@ public static class RuntimeTypeNameFormatter
         {
             if (alias.Components[^1] is string str && ulong.TryParse(str, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var result))
             {
-                // 对于数字化的别名, 任意选择最低值的
+                // 对于数字别名，任选其中数值最小的别名。
                 if (candidate is null || result < candidateValue)
                 {
                     candidate = alias;
@@ -67,7 +67,7 @@ public static class RuntimeTypeNameFormatter
             }
             else
             {
-                // 如果值不是数字,则更倾向于使用这个别名而不是任何数字。
+                // 如果该值不是数字，则优先使用此别名，而不是任何数字别名。
                 return alias;
             }
         }
@@ -84,13 +84,13 @@ public static class RuntimeTypeNameFormatter
             return;
         }
 
-        // 阵列、指针和副反射类型都是元素类型,需要以其自身装饰的形式格式化。
+        // 数组、指针和按引用传递的类型都是元素类型，需要按照各自的修饰符进行格式化。
         if (type.HasElementType)
         {
             // 格式化元素类型。
             Format(builder, type.GetElementType()!, isElementType: true, allowAliases: allowAliases);
 
-            // 格式化此类型对元素类型的装饰。
+            // 在元素类型上格式化此类型的修饰符。
             AddArrayRank(builder, type);
             AddPointerSymbol(builder, type);
             AddByRefSymbol(builder, type);
@@ -102,8 +102,8 @@ public static class RuntimeTypeNameFormatter
             AddGenericParameters(builder, type, allowAliases);
         }
 
-        // 用作元素的类型不使用组装名称格式化,因为此类型添加在
-        // 元素类型装饰。
+        // 作为元素使用的类型在格式化时不包含其程序集名称，因为程序集名称将在
+        // 元素类型的修饰符之后添加。
         if (!isElementType)
         {
             AddAssembly(builder, type);
@@ -112,7 +112,7 @@ public static class RuntimeTypeNameFormatter
 
     private static void AddCompoundTypeAlias(StringBuilder builder, Type type, object[] components, bool allowAliases)
     {
-        // 开始
+        // 开始。
         builder.Append('(');
         for (var i = 0; i < components.Length; ++i)
         {
@@ -122,7 +122,7 @@ public static class RuntimeTypeNameFormatter
                 builder.Append(',');
             }
 
-            // 附加组件
+            // 追加组成部分。
             if (component is string s)
             {
                 builder.Append($"\"{s}\"");
@@ -144,7 +144,7 @@ public static class RuntimeTypeNameFormatter
             }
         }
 
-        // 结束
+        // 结束。
         builder.Append(')');
         if (type.IsGenericType)
         {
@@ -182,14 +182,14 @@ public static class RuntimeTypeNameFormatter
         var index = name.IndexOfAny("`*[&");
         _ = builder.Append(index > 0 ? name[..index] : name);
 
-        // 格式化此类型的一般正数 。
+        // 格式化此类型的泛型参数个数。
         AddGenericArity(builder, type);
     }
 
     private static void AddGenericParameters(StringBuilder builder, Type type, bool allowAliases = true)
     {
-        // 通用类型定义(例如,清单* *}没有参数)和非基因类型不包括任何
-        // 格式化参数。
+        // 泛型类型定义（例如不带类型实参的 List<>）及非泛型类型，格式化结果中不包含
+        // 任何类型实参。
         if (!type.IsConstructedGenericType)
         {
             return;
@@ -218,12 +218,12 @@ public static class RuntimeTypeNameFormatter
             return;
         }
 
-        // 均匀性是指在申报类型中通用参数数减去通用参数数。
+        // 泛型参数个数为泛型参数总数减去所有声明类型的泛型参数数目。
         var baseTypeParameterCount =
             type.IsNested ? type.DeclaringType!.GetGenericArguments().Length : 0;
         var arity = type.GetGenericArguments().Length - baseTypeParameterCount;
 
-        // 如果所有通用参数都属于申报类型,则这种类型的参数本身没有。
+        // 如果所有泛型参数都位于声明类型中，则此类型没有自己的泛型参数。
         if (arity == 0)
         {
             return;
@@ -267,7 +267,7 @@ public static class RuntimeTypeNameFormatter
 
     private static void AddAssembly(StringBuilder builder, Type type)
     {
-        // 不包括系统组装的组装名称。
+        // 不包含系统程序集的程序集名称。
         var assembly = type.Assembly;
         if (SystemAssembly.Equals(assembly))
         {

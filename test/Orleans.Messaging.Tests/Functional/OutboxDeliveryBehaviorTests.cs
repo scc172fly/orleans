@@ -21,8 +21,8 @@ public sealed class OutboxDeliveryBehaviorTests : MessagingBehaviorTestBase
     [Fact]
     public async Task HandlerFailureAfterAnOutboxSend_DiscardsTheSendThroughRecovery()
     {
-        // 处理器在无结果的情况下结束, 启动失败, 所以从日记回收后会丢弃寄出 。
-        // 每一次追偿都收费中断的尝试, 而第二封则用死字字母来写信息。
+        // 处理程序在没有结果的情况下结束会使激活实例失败，因此从日志恢复时会丢弃其发送操作。
+        // 每次恢复都计入被中断的尝试，第二次恢复将消息转为死信。
         var receiver = NewGrain();
         var target = NewGrain();
         var activationId = (await receiver.GetSnapshotAsync()).ActivationId;

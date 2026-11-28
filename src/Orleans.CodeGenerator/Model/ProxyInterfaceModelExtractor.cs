@@ -11,9 +11,9 @@ namespace Orleans.CodeGenerator;
 internal static class ProxyInterfaceModelExtractor
 {
     /// <summary>
-    /// 摘录a <see cref="ProxyInterfaceModel"/> a 发自 <see cref="GeneratorAttributeSyntaxContext"/>
-    /// 提供 <c>ForAttributeWithMetadataName</c> 逐步递进的编进中步骤
-    /// <c>[GenerateMethodSerializers]</c>-- -- 附加说明的接口。
+    /// 提取 <see cref="ProxyInterfaceModel"/>，其来源为 <see cref="GeneratorAttributeSyntaxContext"/>
+    /// （该对象由 <c>ForAttributeWithMetadataName</c> 增量管道步骤提供），用于
+    /// 使用 <c>[GenerateMethodSerializers]</c> 标注的接口。
     /// </summary>
     internal static ProxyInterfaceModel? ExtractProxyInterfaceFromAttributeContext(
         GeneratorAttributeSyntaxContext context,
@@ -302,7 +302,7 @@ internal static class ProxyInterfaceModelExtractor
     {
         var generatedMethodId = GeneratedCodeUtilities.CreateHashedMethodId(originalMethod);
 
-        // 确定方法 ID，优先使用显式 ID，其次使用别名，最后使用生成的哈希值。
+        // 确定方法 ID：显式 ID → 别名 → 生成的哈希。
         var methodId = GeneratedCodeUtilities.GetMethodId(libraryTypes, originalMethod) ?? generatedMethodId;
         var claimedGeneratedMethodId = GeneratedCodeUtilities.GetClaimedGeneratedMethodId(
             libraryTypes,
@@ -314,7 +314,7 @@ internal static class ProxyInterfaceModelExtractor
         var typeParameters = ExtractMethodTypeParameters(method);
         var returnType = new TypeRef(method.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
 
-        // 反应超时
+        // 响应超时。
         long? responseTimeoutTicks = null;
         var timeoutAttr = originalMethod.GetAttribute(libraryTypes.ResponseTimeoutAttribute);
         if (timeoutAttr is not null

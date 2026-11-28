@@ -6,10 +6,10 @@ using Orleans.Serialization.Cloning;
 namespace Orleans.Serialization;
 
 /// <summary>
-/// <see cref="MapField{TKey, TValue}"/>的复印机。
+/// <see cref="MapField{TKey, TValue}"/> 的深拷贝器。
 /// </summary>
-/// <typeparam name="TKey">t 密钥的类型。</typeparam>
-/// <typeparam name="TValue">t 值的类型。</typeparam>
+/// <typeparam name="TKey">键的类型。</typeparam>
+/// <typeparam name="TValue">值的类型。</typeparam>
 [RegisterCopier]
 public sealed class MapFieldCopier<TKey, TValue> : IDeepCopier<MapField<TKey, TValue>>, IBaseCopier<MapField<TKey, TValue>>
 {
@@ -19,8 +19,8 @@ public sealed class MapFieldCopier<TKey, TValue> : IDeepCopier<MapField<TKey, TV
     /// <summary>
     /// 初始化 <see cref="MapFieldCopier{TKey, TValue}"/> 类的新实例。
     /// </summary>
-    /// <param name="keyCopier">钥匙复印机。</param>
-    /// <param name="valueCopier">价值复印机。</param>
+    /// <param name="keyCopier">键深拷贝器。</param>
+    /// <param name="valueCopier">值深拷贝器。</param>
     public MapFieldCopier(IDeepCopier<TKey> keyCopier, IDeepCopier<TValue> valueCopier)
     {
         _keyCopier = keyCopier;

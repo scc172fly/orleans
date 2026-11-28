@@ -300,16 +300,16 @@ namespace Orleans.Serialization.UnitTests
             {
                 bufferWriter.ReplenishBuffers(buffers);
 
-                // 模拟从插座读取 。
+                // 模拟从套接字读取数据。
                 Read(ref socket, readSize, buffers);
                 MaintainBufferList(buffers, readSize);
                 bufferWriter.AdvanceWriter(readSize);
 
-                // 为检验确定的目的,在清单中添加新分配的页数。
+                // 将新分配的页加入列表，以便进行测试断言。
                 using var peeked = bufferWriter.PeekSlice(bufferWriter.UnconsumedLength);
                 pages.AddRange(peeked.Pages.Where(p => !pages.Contains(p)));
 
-                // 模拟使用套接字数据 。
+                // 模拟消耗套接字数据。
                 while (bufferWriter.UnconsumedLength > messageReadSizes[messageReadIndex % messageReadSizes.Length])
                 {
                     consumed.Add(bufferWriter.ConsumeSlice(messageReadSizes[messageReadIndex++ % messageReadSizes.Length]));
@@ -336,7 +336,7 @@ namespace Orleans.Serialization.UnitTests
 
             bufferWriter.Dispose();
 
-            // 检查所有页面是否都释放了
+            // 检查所有页是否都已释放。
             foreach (var page in pages)
             {
                 Assert.Equal(0, page.ReferenceCount);
@@ -348,13 +348,13 @@ namespace Orleans.Serialization.UnitTests
                 {
                     if (buffers[0].Count <= readSize)
                     {
-                        // 完全拆除缓冲器
+                        // 完全消耗缓冲区中的数据。
                         readSize -= buffers[0].Count;
                         buffers.RemoveAt(0);
                     }
                     else
                     {
-                        // 部分吞没缓冲
+                        // 消耗缓冲区中的部分数据。
                         buffers[0] = new(buffers[0].Array!, buffers[0].Offset + readSize, buffers[0].Count - readSize);
                         break;
                     }
@@ -385,7 +385,7 @@ namespace Orleans.Serialization.UnitTests
             Random.NextBytes(data);
             buffer.Write(data);
 
-            // 发货
+            // 验证
             Assert.Equal(data.Length, buffer.UnconsumedLength);
         }
 
@@ -399,7 +399,7 @@ namespace Orleans.Serialization.UnitTests
 
             using var peeked = buffer.PeekSlice(512);
 
-            // 发货
+            // 验证
             Assert.Equal(data.AsSpan(0, 512).ToArray(), peeked.ToArray());
         }
 
@@ -414,7 +414,7 @@ namespace Orleans.Serialization.UnitTests
             using var slice = buffer.ConsumeSlice(512);
             using var subSlice = slice.Slice(256, 256);
 
-            // 发货
+            // 验证
             Assert.Equal(data.AsSpan(0, 512).ToArray(), slice.ToArray());
             Assert.Equal(data.AsSpan(256, 256).ToArray(), subSlice.ToArray());
             Assert.Equal(data.Length - slice.Length, buffer.UnconsumedLength);
@@ -450,7 +450,7 @@ namespace Orleans.Serialization.UnitTests
             var slice = buffer.ConsumeSlice(512);
             slice.Unpin();
 
-            // 发货
+            // 验证
             Assert.Throws<InvalidOperationException>(() => slice.ToArray());
         }
 
@@ -465,7 +465,7 @@ namespace Orleans.Serialization.UnitTests
             var slice = buffer.ConsumeSlice(512);
             slice.Unpin();
 
-            // 发货
+            // 验证
             Assert.Throws<InvalidOperationException>(() => slice.Unpin());
 
             Assert.Equal(512, buffer.UnconsumedLength);
@@ -480,7 +480,7 @@ namespace Orleans.Serialization.UnitTests
         {
             using var buffer = new ArcBufferWriter();
 
-            // 发货
+            // 验证
             Assert.Equal(0, buffer.UnconsumedLength);
         }
 
@@ -492,7 +492,7 @@ namespace Orleans.Serialization.UnitTests
             Random.NextBytes(data);
             buffer.Write(data);
 
-            // 发货
+            // 验证
             Assert.Equal(0, buffer.UnconsumedLength);
         }
 
@@ -513,7 +513,7 @@ namespace Orleans.Serialization.UnitTests
             Assert.Empty(subSlice.ArraySegments);
             Assert.Empty(subSlice.MemorySegments);
 
-            // 发货
+            // 验证
             Assert.Equal(0, peeked.Length);
             Assert.Throws<ArgumentOutOfRangeException>(() => buffer.PeekSlice(1));
         }
@@ -537,7 +537,7 @@ namespace Orleans.Serialization.UnitTests
             Assert.Empty(subSlice.MemorySegments);
             Assert.Equal(0, subSlice.AsReadOnlySequence().Length);
 
-            // 发货
+            // 验证
             Assert.Equal(0, slice.Length);
             Assert.Equal(0, buffer.UnconsumedLength);
             Assert.Throws<ArgumentOutOfRangeException>(() => buffer.PeekSlice(1));
@@ -558,10 +558,10 @@ namespace Orleans.Serialization.UnitTests
             var initialVersions = pages.Select(p => p.Version).ToList();
             slice.Dispose();
 
-            // 发货
+            // 验证
             foreach (var page in pages.Zip(initialVersions))
             {
-                // 检查版本是否已经加增。
+                // 检查版本号是否已递增。
                 Assert.True(page.First.Version > page.Second);
             }
         }

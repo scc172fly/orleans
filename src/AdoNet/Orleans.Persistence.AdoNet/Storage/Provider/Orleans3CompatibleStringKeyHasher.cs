@@ -5,7 +5,7 @@ using System.Text;
 namespace Orleans.Storage
 {
     /// <summary>
-    /// Orleans v3 兼容的散列执行只对字符串 grain 金钥代号 。
+    /// 与 Orleans v3 兼容的哈希算法实现，适用于纯字符串类型的 Grain 键 ID。
     /// </summary>
     internal class Orleans3CompatibleStringKeyHasher : IHasher
     {
@@ -28,15 +28,15 @@ namespace Orleans.Storage
         /// </summary>
         public int Hash(byte[] data)
         {
-            // Orleans v3 将只用字符串键作为扩展名的整数键(AdoGrainKey.IsLongKey =真),
-            // 因此数据必须扩展至只使用字符串 grain 键。
-            // 但 AdoNetGrainStorage 执行也使用这种代码:
+            // Orleans v3 将纯字符串键视为带扩展的整数键（AdoGrainKey.IsLongKey == true），
+            // 因此必须对纯字符串 Grain 键的数据进行扩展。
+            // 但 AdoNetGrainStorage 实现还使用以下代码：
             //    ...
             //    var grainIdHash = HashPicker.PickHasher(serviceId, this.name, baseGrainType, grainReference, grainState).Hash(grainId.GetHashBytes());
             //    var grainTypeHash = HashPicker.PickHasher(serviceId, this.name, baseGrainType, grainReference, grainState).Hash(Encoding.UTF8.GetBytes(baseGrainType));
             //    ...
-            // 两个调用都具有相同的PickHasher 参数,因此我们需要分析数据内容以区分这些情况。
-            // 字符串键是否等于 grain 类型名称, 它不字词, 但我们认为这个边缘大小写非常罕见 。
+            // 两次调用的 PickHasher 参数相同，因此需要分析数据内容以区分这两种情况。
+            // 如果字符串键等于 Grain 类型名称，此方式将不起作用，但我们认为这种边界情况极其罕见，可以忽略。
 
             if (IsGrainTypeName(data))
                 return _innerHasher.Hash(data);
@@ -46,7 +46,7 @@ namespace Orleans.Storage
             const int maxOnStack = 256;
             byte[]? rentedBuffer = null;
 
-            // 假设以下代码从不扔,所以呼叫 ArrayPool.Return 而不尝试/最后阻止 JIT 优化
+            // 假定下面的代码不会抛出异常，因此为了 JIT 优化，在不使用 try/finally 块的情况下调用 ArrayPool.Return。
 
             var buffer = extendedLength > maxOnStack
                 ? (rentedBuffer = ArrayPool<byte>.Shared.Rent(extendedLength)).AsSpan()
@@ -55,7 +55,7 @@ namespace Orleans.Storage
             buffer = buffer[..extendedLength];
 
             data.AsSpan().CopyTo(buffer);
-            // 缓冲区中可能含有任意数据, 在“ 扩展” 段设置零
+            // 缓冲区可能包含任意数据，因此将“extension”段设置为零。
             buffer[data.Length..].Clear();
 
             var hash = _innerHasher.Hash(buffer);
@@ -68,7 +68,7 @@ namespace Orleans.Storage
 
         private bool IsGrainTypeName(byte[] data)
         {
-            // 字节/ 每字符至少 1 字节
+            // 每个字符至少占用 1 字节。
             if (data.Length < _grainType.Length)
                 return false;
 
@@ -79,7 +79,7 @@ namespace Orleans.Storage
             const int maxOnStack = 256;
             byte[]? rentedBuffer = null;
 
-            // 假设以下代码从不扔,所以呼叫 ArrayPool.Return 而不尝试/最后阻止 JIT 优化
+            // 假定下面的代码不会抛出异常，因此为了 JIT 优化，在不使用 try/finally 块的情况下调用 ArrayPool.Return。
 
             var buffer = grainTypeByteCount > maxOnStack
                 ? (rentedBuffer = ArrayPool<byte>.Shared.Rent(grainTypeByteCount)).AsSpan()

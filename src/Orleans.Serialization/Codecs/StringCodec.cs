@@ -9,7 +9,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="string"/>的序列器。
+    /// <see cref="string"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class StringCodec : IFieldCodec<string>
@@ -19,12 +19,12 @@ namespace Orleans.Serialization.Codecs
         string IFieldCodec<string>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static string ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -43,10 +43,10 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 读取原始字符串内容。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
-        /// <param name="numBytes">以字节表示的编码字符串长度。</param>
-        /// <returns>解码字符串。</returns>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
+        /// <param name="numBytes">编码后的字符串长度（字节）。</param>
+        /// <returns>解码后的字符串。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string ReadRaw<TInput>(ref Reader<TInput> reader, uint numBytes)
         {
@@ -86,12 +86,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] string value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -109,10 +109,10 @@ namespace Orleans.Serialization.Codecs
         /// <summary>
         /// 写入原始字符串内容。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="value">字符串要编码</param>
-        /// <param name="numBytes">以字节表示的编码字符串长度。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="value">要编码的字符串。</param>
+        /// <param name="numBytes">编码后的字符串长度（字节）。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteRaw<TBufferWriter>(ref Writer<TBufferWriter> writer, string value, int numBytes) where TBufferWriter : IBufferWriter<byte>
         {
@@ -123,8 +123,8 @@ namespace Orleans.Serialization.Codecs
 
             var currentSpan = writer.WritableSpan;
 
-            // 如果当前范围内有足够的空间 用于编码数据
-            // 然后直接编码到输出缓冲。
+            // 如果当前跨度（Span）有足够空间容纳编码后的数据，
+            // 则直接将数据编码到输出缓冲区中。
             if (numBytes <= currentSpan.Length)
             {
                 writer.AdvanceSpan(Encoding.UTF8.GetBytes(value, currentSpan));

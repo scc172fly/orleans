@@ -15,13 +15,13 @@ var clusteringTableName = AzureTableServiceClientFactory.GetRequiredValue(
     builder.Configuration,
     "Orleans:ClusteringTableName");
 
-// 增加集装箱服务。
+// 向容器添加服务。
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddWebAppApplicationInsights("Minimal API Client");
 builder.Logging.SetMinimumLevel(LogLevel.Warning).AddJsonConsole();
 
-// 如果调试, 请在连接前等待后端服务启动
+// 在调试时，先等待后端服务启动，再建立连接。
 if(Debugger.IsAttached)
 {
     Console.WriteLine("Waiting 5 seconds for the Orleans cluster to start.");
@@ -45,21 +45,21 @@ builder.UseOrleansClient(clientBuilder =>
 
 var app = builder.Build();
 
-// 配置 HTTP 请求管道 。
+// 配置 HTTP 请求管道。
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// 组群的 grain 工厂
+// 引用该集群的 Grain 工厂。
 var clusterClient = app.Services.GetRequiredService<IClusterClient>();
 
 // -------------------
-// 地图 API 方法
+// 映射 API 方法。
 // -------------------
 
-// 服务器已上
+// 服务器已启动。
 app.MapGet("/", () => "The Orleans client is running.")
    .Produces<string>(StatusCodes.Status200OK)
    .WithName("Status");
@@ -67,7 +67,7 @@ app.MapGet("/health/startup", () => Results.Ok());
 app.MapGet("/health/ready", () => Results.Ok());
 app.MapGet("/health/live", () => Results.Ok());
 
-// 获得组内活动 Orleans grains 列表
+// 获取集群中处于激活状态的 Orleans Grain 列表。
 app.MapGet("/grains", async () =>
 {
     var managementGrain = clusterClient.GetGrain<IManagementGrain>(0);
@@ -78,7 +78,7 @@ app.MapGet("/grains", async () =>
 }).Produces<GrainSummary[]>(StatusCodes.Status200OK)
   .WithName("Grains");
 
-// 系统内部的问讯列表 grains
+// 获取系统中的 Hello Grain 列表。
 app.MapGet("/providers", async () =>
 {
     var managementGrain = clusterClient.GetGrain<IManagementGrain>(0);
@@ -87,7 +87,7 @@ app.MapGet("/providers", async () =>
     return Results.Ok(grains);
 }).Produces<long[]>(StatusCodes.Status200OK).WithName("GetHelloProviders");
 
-// 从 grain获得打招呼信息
+// 从 Grain 获取问候消息。
 app.MapGet("/hello/{grain:int}", async (int grain) => {
     if (grain is < 0 or > 255)
     {
@@ -107,8 +107,8 @@ app.MapGet("/hello/{grain:int}", async (int grain) => {
 
 await app.RunAsync();
 
-// 显示分组摘要的
+// 用于展示集群摘要的记录类型。
 public record GrainSummary(string GrainType, int Count, string Host);
 
-// 显示 grain电文的列表
+// 用于展示 Grain 消息的记录类型。
 public record WelcomeMessage(string GrainType);

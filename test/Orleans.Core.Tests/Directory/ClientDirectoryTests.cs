@@ -139,7 +139,7 @@ namespace NonSilo.Tests.Directory
             var previous = _clusterMembershipService.Target.CurrentSnapshot;
             var pruned = new ClusterMembershipSnapshot(previous.Members.Remove(retired), new MembershipVersion(previous.Version.Value + 1));
             _clusterMembershipService.PublishSnapshot(pruned);
-            // 未知本身不是客户路线的死亡证据。
+            // Unknown 状态本身不构成客户端路由已死亡的证据。
             Assert.True(_directory.TryLocalLookup(retiredClient, out _));
             var retiredView = new ClusterMembershipSnapshot(pruned.Members, pruned.Version,
                 useRecentDeathHistory ? 0 : 11,
@@ -251,12 +251,12 @@ namespace NonSilo.Tests.Directory
         }
 
         /// <summary>
-        /// 测试 <see cref="ClientDirectory.TryLocalLookup(GrainId, out List{ActivationAddress})"/> 的基本功能。
+        /// 测试 <see cref="ClientDirectory.TryLocalLookup(GrainId, out List{ActivationAddress})>)"/> 的基本功能。
         /// </summary>
         [Fact]
         public void TryLocalLookupTests()
         {
-            // 本地不存在未知客户。
+            // 未知客户端在本地不存在。
             var fakeClientId = Client("mr. snrub");
             Assert.False(_directory.TryLocalLookup(fakeClientId, out var lookupResult));
             Assert.Null(lookupResult);
@@ -267,7 +267,7 @@ namespace NonSilo.Tests.Directory
             var singleResult = Assert.Single(lookupResult);
             Assert.Equal(Gateway.GetClientActivationAddress(hostedClientId, _localSilo), singleResult);
 
-            // 添加客户端并检查是否成功添加 。
+            // 添加客户端并检查是否添加成功。
             var clientsVersion = SetLocalClients(new List<GrainId> { fakeClientId });
             Assert.True(_directory.TryLocalLookup(fakeClientId, out lookupResult));
             Assert.NotNull(lookupResult);
@@ -275,13 +275,13 @@ namespace NonSilo.Tests.Directory
             Assert.Equal(Gateway.GetClientActivationAddress(fakeClientId, _localSilo), singleResult);
             Assert.Equal(clientsVersion, _testAccessor.ObservedConnectedClientsVersion);
 
-            // 删除客户端, 检查它是否已经找不到 。
+            // 移除客户端并检查是否无法再找到它。
             clientsVersion = SetLocalClients(new List<GrainId>(0));
             Assert.False(_directory.TryLocalLookup(fakeClientId, out lookupResult));
             Assert.Null(lookupResult);
             Assert.Equal(clientsVersion, _testAccessor.ObservedConnectedClientsVersion);
 
-            // 添加一个新的 silo ,并确保其主机客户端立即可见。
+            // 添加新的 Silo，确保其托管客户端立即可见。
             var remoteSilo = Silo("127.0.0.1:222@100");
             var hostedClientId2 = HostedClient.CreateHostedClientGrainId(remoteSilo).GrainId;
             _clusterMembershipService.UpdateSiloStatus(remoteSilo, SiloStatus.Active, "remoteSilo");
@@ -291,12 +291,12 @@ namespace NonSilo.Tests.Directory
         }
 
         /// <summary>
-        /// <see cref="ClientDirectory.Lookup(GrainId)"/>基本功能测试
+        /// 测试 <see cref="ClientDirectory.Lookup(GrainId)"/> 的基本功能。
         /// </summary>
         [Fact]
         public async Task LocalLookupTests()
         {
-            // 本地不存在未知客户端
+            // 未知客户端在本地不存在。
             var fakeClientId = Client("mr. snrub");
             var lookupResult = await _directory.Lookup(fakeClientId);
             Assert.Empty(lookupResult);
@@ -307,7 +307,7 @@ namespace NonSilo.Tests.Directory
             var singleResult = Assert.Single(lookupResult);
             Assert.Equal(Gateway.GetClientActivationAddress(hostedClientId, _localSilo), singleResult);
 
-            // 添加客户端并检查它是否成功添加
+            // 添加客户端并检查是否添加成功。
             var clientsVersion = SetLocalClients(new List<GrainId> { fakeClientId });
             lookupResult = await _directory.Lookup(fakeClientId);
             Assert.NotNull(lookupResult);
@@ -315,7 +315,7 @@ namespace NonSilo.Tests.Directory
             Assert.Equal(Gateway.GetClientActivationAddress(fakeClientId, _localSilo), singleResult);
             Assert.Equal(clientsVersion, _testAccessor.ObservedConnectedClientsVersion);
 
-            // 删除客户端, 检查是否已找不到
+            // 移除客户端并检查是否无法再找到它。
             clientsVersion = SetLocalClients(new List<GrainId>(0));
             lookupResult = await _directory.Lookup(fakeClientId);
             Assert.Empty(lookupResult);
@@ -323,9 +323,9 @@ namespace NonSilo.Tests.Directory
         }
 
         /// <summary>
-        /// 测试 <see cref="ClientDirectory.Lookup(GrainId)"/> 将成功切达远程 silo ,以查找客户路径
-        /// 此外,任何其他返回路线都存放在本地,以便以后不再查找
-        /// 需要。
+        /// 测试本地没有客户端路由时，<see cref="ClientDirectory.Lookup(GrainId)"/> 能成功访问远程 Silo 来查找路由。
+        /// 此外，其他返回的路由也会存储在本地，从而无需后续
+        /// 查找。
         /// </summary>
         [Fact]
         public async Task RemoteLookupSuccessTests()
@@ -334,7 +334,7 @@ namespace NonSilo.Tests.Directory
             var remoteClientId2 = Client("remote2");
             var remoteSilo = Silo("127.0.0.1:222@100");
 
-            // 验证 silo 将询问远程 silo 
+            // 验证 Silo 会查询远程 Silo。
             _clusterMembershipService.UpdateSiloStatus(remoteSilo, SiloStatus.Active, "remoteSilo");
             var remoteDirectory = _remoteDirectories.GetOrAdd(remoteSilo, Substitute.For<IRemoteClientDirectory>());
             remoteDirectory.GetClientRoutes(default!, Arg.Any<CancellationToken>()).ReturnsForAnyArgs(info =>
@@ -356,31 +356,31 @@ namespace NonSilo.Tests.Directory
             var result = Assert.Single(await resultTask);
             Assert.Equal(Gateway.GetClientActivationAddress(remoteClientId, remoteSilo), result);
 
-            // 在找到第一个客户时, silo 应了解另一个客户的情况
+            // 在找到第一个客户端时，Silo 应已获知另一个客户端的信息。
             resultTask = _directory.Lookup(remoteClientId2);
             result = Assert.Single(await resultTask);
             Assert.Equal(Gateway.GetClientActivationAddress(remoteClientId2, remoteSilo), result);
 
-            // 远程 silo 不应该第二次被询问。
+            // 不应再次查询远程 Silo。
             _ = remoteDirectory.Received(1).GetClientRoutes(
                 Arg.Any<ImmutableDictionary<SiloAddress, long>>(),
                 Arg.Any<CancellationToken>());
 
-            // 信号显示远程 silo 正在关闭。 两个客户端都应该同时消失 。
+            // 发出远程 Silo 正在关闭的信号。两个客户端应随之消失。
             _clusterMembershipService.UpdateSiloStatus(remoteSilo, SiloStatus.ShuttingDown, "remoteSilo");
             resultTask = _directory.Lookup(remoteClientId);
             Assert.Empty(await resultTask);
             resultTask = _directory.Lookup(remoteClientId2);
             Assert.Empty(await resultTask);
 
-            // 由于没有其他目录,因此不应再拨打其他远程电话。
+            // 由于没有其他目录，不应发出额外的远程调用。
             _ = remoteDirectory.Received(1).GetClientRoutes(
                 Arg.Any<ImmutableDictionary<SiloAddress, long>>(),
                 Arg.Any<CancellationToken>());
         }
 
         /// <summary>
-        /// 测试 <see cref="ClientDirectory.Lookup(GrainId)"/> 尽管未能与远程 silo进行接触,但将继续。
+        /// 测试 <see cref="ClientDirectory.Lookup(GrainId)"/> 在访问远程 Silo 失败后仍会继续。
         /// </summary>
         [Fact]
         public async Task RemoteLookupFailureTests()
@@ -415,13 +415,13 @@ namespace NonSilo.Tests.Directory
             _clusterMembershipService.UpdateSiloStatus(remoteSilo, SiloStatus.Active, "remoteSilo");
             _clusterMembershipService.UpdateSiloStatus(remoteSilo2, SiloStatus.Active, "remoteSilo2");
 
-            // 校验一个 silo 即使在失败后也会询问一个远程 silo
+            // 验证即使发生故障，Silo 仍会查询远程 Silo。
             var resultTask = _directory.Lookup(remoteClientId);
             var result = Assert.Single(await resultTask);
             Assert.Equal(Gateway.GetClientActivationAddress(remoteClientId, remoteSilo), result);
 
-            // silo 本应该发出两次呼吁:一次失败,一次成功。
-            // 每次呼叫本应该降落在不同的 silo上。
+            // Silo 应发出两次调用：一次失败，一次成功。
+            // 每次调用应到达不同的 Silo。
             foreach (var remoteDirectory in _remoteDirectories.Values)
             {
                 _ = remoteDirectory.Received(1).GetClientRoutes(
@@ -433,9 +433,9 @@ namespace NonSilo.Tests.Directory
         [Fact]
         public async Task PublishChangesSuccessTests()
         {
-#pragma warning disable xUnit1031 // Do not use blocking task operations in test method
+#pragma warning disable xUnit1031 // 不要在测试方法中使用阻塞式任务操作。
             _testAccessor.SchedulePublishUpdate = () => _testAccessor.PublishUpdates().GetAwaiter().GetResult();
-#pragma warning restore xUnit1031 // Do not use blocking task operations in test method
+#pragma warning restore xUnit1031 // 不要在测试方法中使用阻塞式任务操作。
 
             var remoteClientId = Client("remote1");
             var remoteClientId2 = Client("remote2");

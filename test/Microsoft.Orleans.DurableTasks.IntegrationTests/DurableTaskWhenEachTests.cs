@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests;
 
-/// <summary>证明工作流程 <c>WhenEach</c> 在每个激活中都产生相同的完成顺序。</summary>
+/// <summary>验证工作流的 <c>WhenEach</c> 在每次激活中均产生相同的完成顺序。</summary>
 public abstract class DurableTaskWhenEachTests(string journalFormatKey) : IAsyncLifetime
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
@@ -26,21 +26,21 @@ public abstract class DurableTaskWhenEachTests(string journalFormatKey) : IAsync
         var workflow = await grain.CollectInCompletionOrderAsync(yieldKey).WithId("each").ScheduleAsync(cancellationToken);
         await started.WaitAsync(Timeout, cancellationToken);
 
-        // 输入 2 先完成, 然后启动被解除 。
+        // 输入 2 首先完成，然后该激活被停用。
         await SignalAsync(grain, taskId, "2", cancellationToken);
         await _fixture.MessagingProbe.WaitForStartedAsync(yieldKey, 1).WaitAsync(Timeout, cancellationToken);
         await grain.DeactivateAsync();
 
-        // 下一次激活重播输入 2的完成, 然后按此顺序观察输入 0和1 完成 。
+        // 下一次激活重放输入 2 的完成，然后依次观察到输入 0 和输入 1 完成。
         await SignalAsync(grain, taskId, "0", cancellationToken);
         await _fixture.MessagingProbe.WaitForStartedAsync(yieldKey, 3).WaitAsync(Timeout, cancellationToken);
         await SignalAsync(grain, taskId, "1", cancellationToken);
 
-        // 查点结束后,企图记录其命令
+        // 枚举结束后，执行尝试记录其观察到的顺序。
         await _fixture.MessagingProbe.WaitForStartedAsync(yieldKey, 5).WaitAsync(Timeout, cancellationToken);
         await grain.DeactivateAsync();
 
-        // 上次激活时, 以每个输入完整内容重放点数 。
+        // 最后一次激活在所有输入均已完成的情况下重放枚举。
         await SignalAsync(grain, taskId, "done", cancellationToken);
 
         var response = await workflow.GetResponseAsync(cancellationToken).WaitAsync(Timeout, cancellationToken);
@@ -53,14 +53,14 @@ public abstract class DurableTaskWhenEachTests(string journalFormatKey) : IAsync
         grain.SignalDurableTaskAsync(taskId, DurableTaskWhenEachGrain.Item.For(item), item, cancellationToken);
 }
 
-/// <summary>运行运行 <c>WhenEach</c> 默认存储任务状态的覆盖 JSON 日记格式。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行 <c>WhenEach</c> 相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskWhenEachTests() : DurableTaskWhenEachTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行运行 <c>WhenEach</c> 任务状态包含在 Orleans 双进制日记格式。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行 <c>WhenEach</c> 相关测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -79,7 +79,7 @@ public sealed class DurableTaskWhenEachGrain(DurableTaskMessagingProbe probe) : 
 {
     public static readonly DurableSignal<string> Item = new("item");
 
-    /// <summary>获得每次完成查点的尝试的顺序,按 grain 键进行。</summary>
+    /// <summary>按 Grain 键获取每次完成枚举的执行尝试所观察到的顺序。</summary>
     public static ConcurrentDictionary<Guid, ConcurrentQueue<string>> Orders { get; } = [];
 
     public async DurableTask<string> CollectInCompletionOrderAsync(Guid yieldKey)

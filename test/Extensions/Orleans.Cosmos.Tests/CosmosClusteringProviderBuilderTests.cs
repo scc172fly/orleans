@@ -106,7 +106,7 @@ public class CosmosClusteringProviderBuilderTests
         AssertBlankValueContract(() => services.GetRequiredService<IOptions<CosmosClusteringOptions>>().Value, key, blankValue, expectedType);
     }
 
-    // 配置绑定源生成器将空值视为不存在,拒绝只使用空白空间的值。
+    // 配置绑定源生成器将空值视为缺失，并拒绝仅包含空白字符的值。
     private static void AssertBlankValueContract(Func<CosmosClusteringOptions> getOptions, string key, string blankValue, Type expectedType)
     {
         if (blankValue.Length == 0)

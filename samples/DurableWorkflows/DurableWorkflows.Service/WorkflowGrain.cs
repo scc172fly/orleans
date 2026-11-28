@@ -4,10 +4,10 @@ using Orleans.Runtime;
 
 namespace DurableWorkflows;
 
-// 每种工作流程方法都是一项持久的任务。 呼叫者将它排在根身份识别线下, 如“ 批准- {id} ” 和每个孩子
-// 等待那等待它等待的, WithId 根根底下有一个稳定的ID。 silo 失败, 运行时间
-// 从一开始就重放方法:完成儿童返回记录的结果,所以工作流程在以下地点恢复
-// 停止了,它停下来。
+// 每个工作流方法都是一个持久化任务。调用者使用根 ID（例如 "approval-{id}"）进行调度，通过 WithId 等待的每个子任务
+// 都有隶属于该根 ID 的稳定 ID。发生停用或 Silo 故障后，运行时
+// 从头重放该方法：已完成的子任务返回记录的结果，因此工作流从
+// 先前停止的位置继续运行。
 public sealed class WorkflowGrain(ILocalSiloDetails localSiloDetails) : DurableGrain, IWorkflowGrain
 {
     private readonly Guid _activationId = Guid.NewGuid();
@@ -27,8 +27,8 @@ public sealed class WorkflowGrain(ILocalSiloDetails localSiloDetails) : DurableG
         return new(workflowId, stored.Output);
     }
 
-    // 以儿童分会/0, 分会/1等形式同时每个项目运行一个活动, 然后返回
-    // 每一事务组完成项目顺序的结果。
+    // 为每个项目并发运行一个活动，子任务分别为 branches/0、branches/1 等，并在
+    // 每个分支都完成后，按输入项顺序返回结果。
     public async DurableTask<FanOutWorkflowResult> RunFanOutAsync(string[] items)
     {
         ArgumentNullException.ThrowIfNull(items);
@@ -41,8 +41,8 @@ public sealed class WorkflowGrain(ILocalSiloDetails localSiloDetails) : DurableG
         return new(workflowId, branches);
     }
 
-    // 等待审查者的决定直至请求超时结束。截止时间来自工作流程
-    // 耐久时钟,所以重播等待相同的最后期限,任务记录收到的第一项决定。
+    // 等待审核人的决策，直至请求超时。截止时间来自工作流的
+    // 持久化时钟，因此重放会等待相同的截止时间，且任务记录接收到的第一个决策。
     public async DurableTask<ApprovalWorkflowResult> RunApprovalAsync(ApprovalRequest request)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Subject);
@@ -57,8 +57,8 @@ public sealed class WorkflowGrain(ILocalSiloDetails localSiloDetails) : DurableG
         return new(WorkflowId, request.Subject, decision.Approved, decision.Reason, runtime.SiloAddress, runtime.ActivationId);
     }
 
-    // 在此期间提出的取消请求释放了
-    // 保留并记录请求的理由;运行时间一直持续,因此重播也遵循同样的路径。
+    // 预留库存并保持至预留期结束。期间收到取消请求时，释放
+    // 库存预留并记录请求原因；运行时持久化该请求，使重放走相同的路径。
     public async DurableTask<CancellationWorkflowResult> RunCancellationAsync(TimeSpan holdPeriod)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(holdPeriod, TimeSpan.Zero);
@@ -77,7 +77,7 @@ public sealed class WorkflowGrain(ILocalSiloDetails localSiloDetails) : DurableG
         {
             if (reservation.Status is DurableTaskStatus.CompletedSuccessfully)
             {
-                // 保护儿童运行到完成, 尽管工作流程被取消了 。
+                // 即使工作流已被取消，受取消屏蔽保护的子任务仍会运行至完成。
                 await inventory.ReleaseAsync($"{workflowId}:release").WithId("release").Shielded();
             }
 
@@ -85,10 +85,10 @@ public sealed class WorkflowGrain(ILocalSiloDetails localSiloDetails) : DurableG
         }
     }
 
-    // 保留库存和收费同时支付,然后是船舶。当一个步骤失败时,那堆子将完全推翻这些步骤
-    // 。每个参与者使用操作编号一次,所以重放或重复的剧目不会改变任何变化。
-    // 工作流程 grain 是顺序的 grain:请求中列出 grain键所识别的顺序,所以是长
-    // 其作用按同一顺序保留。
+    // 并发预留库存和扣款，然后发货。某一步骤失败时，Saga 仅补偿那些
+    // 已成功的步骤。每个参与者对相同操作 ID 只应用一次，因此重放或重复执行 Saga 不会再次产生变更。
+    // 工作流 Grain 即订单 Grain：请求指定的订单与 Grain 的键标识的订单相同，因此 Saga
+    // 及其参与者的副作用记录均保留在同一订单下。
     public async DurableTask<OrderWorkflowResult> RunOrderSagaAsync(OrderRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -101,13 +101,13 @@ public sealed class WorkflowGrain(ILocalSiloDetails localSiloDetails) : DurableG
         var inventory = GrainFactory.GetGrain<IInventoryGrain>(orderId);
         var payment = GrainFactory.GetGrain<IPaymentGrain>(orderId);
 
-        // WhenAllCompleted 等待两步后返回他们的手柄,
+        // WhenAllCompleted 等待两个步骤，并返回它们的句柄，每个句柄都包含自己的结果。
         var prepared = await DurableTask.WhenAllCompleted(
             [inventory.ReserveAsync($"{orderId}:reserve"), payment.ChargeAsync($"{orderId}:charge")])
             .WithId("prepare");
         var (reserve, charge) = (prepared[0], prepared[1]);
 
-        // 结果命名失败的步骤;每个步骤的任务保留诊断的例外。
+        // 结果标明失败的步骤；每个步骤的任务都保留其异常以供诊断。
         var failedStep = reserve.Exception is not null ? "reserve" : charge.Exception is not null ? "charge" : null;
         if (failedStep is null)
         {

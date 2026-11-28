@@ -5,8 +5,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Orleans.CodeGenerator.Tests;
 
 /// <summary>
-/// 生成可引用的可引用值的测试选择退出运行时 <c>GrainCancellationToken</c> 参数扫描
-/// 只有当他们的论点都无法持有 <c>GrainCancellationToken</c>时,才有。
+/// 测试生成的可调用类型能否仅在以下条件下跳过运行时的 <c>GrainCancellationToken</c> 参数扫描：
+/// 所有参数均无法容纳 <c>GrainCancellationToken</c>。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]

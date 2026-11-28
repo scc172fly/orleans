@@ -3,7 +3,7 @@ name: Generate API Diffs
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 16 * * *' # 8时PST(世界协调时下午16:00)
+    - cron: '0 16 * * *' # 太平洋标准时间 08:00（UTC 16:00）
 
 permissions:
   contents: write

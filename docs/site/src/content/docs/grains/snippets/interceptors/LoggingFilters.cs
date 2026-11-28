@@ -32,8 +32,8 @@ public class LoggingCallFilter : IIncomingGrainCallFilter
                 context.Grain.GetType(),
                 context.MethodName);
 
-            // 如果这一例外不重新提出,则视为
-            // 由此过滤器处理 。
+            // 如果未重新抛出此异常，则认为它已被
+            // 当前筛选器处理。
             throw;
         }
     }
@@ -70,8 +70,8 @@ public class OutgoingLoggingCallFilter : IOutgoingGrainCallFilter
                 context.Grain.GetType(),
                 context.MethodName);
 
-            // 如果这一例外不重新提出,则视为
-            // 由此过滤器处理 。
+            // 如果未重新抛出此异常，则认为它已被
+            // 当前筛选器处理。
             throw;
         }
     }

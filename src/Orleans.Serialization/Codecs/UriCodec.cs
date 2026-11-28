@@ -8,7 +8,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="Uri"/>的序列器。
+    /// <see cref="Uri"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class UriCodec : IFieldCodec<Uri>, IDerivedTypeCodec
@@ -17,7 +17,7 @@ namespace Orleans.Serialization.Codecs
         Uri IFieldCodec<Uri>.ReadValue<TInput>(ref Buffers.Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static Uri ReadValue<TInput>(ref Buffers.Reader<TInput> reader, Field field)
@@ -50,7 +50,7 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Buffers.Writer<TBufferWriter> writer, uint fieldIdDelta, Uri value) where TBufferWriter : IBufferWriter<byte>

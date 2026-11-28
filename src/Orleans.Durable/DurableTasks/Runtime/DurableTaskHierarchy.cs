@@ -6,20 +6,20 @@ using System.Runtime.InteropServices;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// 将存储任务的身份识别特征按等级顺序索引,这样就发现任务中最接近的存储子孙
-/// 扫描每个任务
+/// 按层次结构对已存储任务的标识符建立索引，以便查找任务最近的已存储后代而无需
+/// 扫描所有任务。
 /// </summary>
 /// <remarks>
-/// 储存的或存有后代的所有识别资料都与父母的子女组合联系在一起。
-/// 任务与最接近存储的子孙之间,例如组合器操作识别符号之间,有链接
-/// 增加或删除任务成本,其时间与深度成比例,指数有一个孩子
-/// 与相关儿童一起设定每个标识符。
+/// 每个已存储或具有已存储后代的标识都链接到其父节点的子节点集合。位于任务
+/// 与最近的已存储后代之间的标识（例如组合器的操作标识）会建立链接，
+/// 但不会被存储。添加或删除任务的耗时与其深度成正比，索引为每个具有已链接子节点的
+/// 标识保留一个子节点集合。
 /// </remarks>
 internal sealed class DurableTaskHierarchy
 {
     private readonly Dictionary<TaskId, HashSet<TaskId>> _children = [];
 
-    /// <summary>创建 <paramref name="taskIds"/>的索引。</summary>
+    /// <summary>创建 <paramref name="taskIds"/> 的索引。</summary>
     public static DurableTaskHierarchy Create(IEnumerable<TaskId> taskIds)
     {
         var result = new DurableTaskHierarchy();
@@ -42,7 +42,7 @@ internal sealed class DurableTaskHierarchy
                 return;
             }
 
-            // 与相关儿童的身份识别符本身就相连,所以步行结束于第一个。
+            // 拥有已链接子节点的标识符本身已链接，因此遍历在遇到第一个此类标识符时停止。
             ref var children = ref CollectionsMarshal.GetValueRefOrAddDefault(_children, parent, out var parentLinked);
             children ??= [];
             if (!children.Add(child) || parentLinked)
@@ -54,9 +54,9 @@ internal sealed class DurableTaskHierarchy
         }
     }
 
-    /// <summary>取消不再储存的任务的链接,在它存留后代时保持其连接。</summary>
-    /// <param name="taskId">任务已删除。</param>
-    /// <param name="isStored">返回是否存储了标识符。</param>
+    /// <summary>解除不再存储的任务的链接；若它仍有已存储的后代，则保持链接。</summary>
+    /// <param name="taskId">被移除的任务。</param>
+    /// <param name="isStored">返回标识符是否已存储。</param>
     public void Remove(TaskId taskId, Func<TaskId, bool> isStored)
     {
         for (var child = taskId; !_children.ContainsKey(child);)
@@ -85,12 +85,12 @@ internal sealed class DurableTaskHierarchy
         }
     }
 
-    /// <summary>删除每一项任务。</summary>
+    /// <summary>移除所有任务。</summary>
     public void Clear() => _children.Clear();
 
-    /// <summary>获取储藏最接近的祖先 <paramref name="taskId"/>的存储任务。</summary>
-    /// <param name="taskId">祖先的传说</param>
-    /// <param name="isStored">返回是否存储了标识符。</param>
+    /// <summary>获取最近的已存储祖先为 <paramref name="taskId"/> 的已存储任务。</summary>
+    /// <param name="taskId">祖先任务。</param>
+    /// <param name="isStored">返回标识符是否已存储。</param>
     public IEnumerable<TaskId> GetNearestStoredDescendants(TaskId taskId, Func<TaskId, bool> isStored)
     {
         if (!_children.TryGetValue(taskId, out var children))

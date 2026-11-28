@@ -29,7 +29,7 @@ using Orleans.Transactions.DynamoDB;
 namespace Orleans.Transactions.DynamoDB.TransactionalState;
 
 /// <summary>
-/// 创建 DynamoDB- 支持的交易状态存储实例。
+/// 创建由 DynamoDB 支持的事务状态存储实例。
 /// </summary>
 public partial class DynamoDBTransactionalStateStorageFactory : ITransactionalStateStorageFactory, ILifecycleParticipant<ISiloLifecycle>
 {
@@ -43,11 +43,11 @@ public partial class DynamoDBTransactionalStateStorageFactory : ITransactionalSt
     /// <summary>
     /// 初始化 <see cref="DynamoDBTransactionalStateStorageFactory"/> 类的新实例。
     /// </summary>
-    /// <param name="name">提供者名称。</param>
-    /// <param name="options">供应商选项。</param>
-    /// <param name="clusterOptions">组合组合选项。</param>
-    /// <param name="services">服务供应商。</param>
-    /// <param name="loggerFactory">伐木厂</param>
+    /// <param name="name">提供程序名称。</param>
+    /// <param name="options">提供程序选项。</param>
+    /// <param name="clusterOptions">集群选项。</param>
+    /// <param name="services">服务提供程序。</param>
+    /// <param name="loggerFactory">日志记录器工厂。</param>
     public DynamoDBTransactionalStateStorageFactory(
         string name,
         DynamoDBTransactionalStorageOptions options,
@@ -62,11 +62,11 @@ public partial class DynamoDBTransactionalStateStorageFactory : ITransactionalSt
     }
 
     /// <summary>
-    /// 建立一个交易性的国家储藏厂。
+    /// 创建事务状态存储工厂。
     /// </summary>
-    /// <param name="services">服务供应商。</param>
-    /// <param name="name">提供者名称。</param>
-    /// <returns>交易性国家储藏厂</returns>
+    /// <param name="services">服务提供程序。</param>
+    /// <param name="name">提供程序名称。</param>
+    /// <returns>事务状态存储工厂。</returns>
     public static ITransactionalStateStorageFactory Create(IServiceProvider services, string name)
     {
         var optionsMonitor = services.GetRequiredService<IOptionsMonitor<DynamoDBTransactionalStorageOptions>>();

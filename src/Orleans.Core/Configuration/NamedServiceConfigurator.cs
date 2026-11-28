@@ -7,24 +7,24 @@ using Orleans.Runtime;
 namespace Orleans.Hosting
 {
     /// <summary>
-    /// 配置指定服务的职能性。
+    /// 用于配置命名服务的功能。
     /// </summary>
     public interface INamedServiceConfigurator
     {
         /// <summary>
-        /// 获得服务名称。
+        /// 获取服务名称。
         /// </summary>
         string Name { get; }
 
         /// <summary>
-        /// 获取代表用来配置服务。
+        /// 获取用于配置服务的委托。
         /// </summary>
         Action<Action<IServiceCollection>> ConfigureDelegate { get; }
     }
 
     /// <summary>
-    /// 地名服务配置器基本基级
-    /// 此功能将任何配置或子组件连接到与配置的服务同名的配置或子部件
+    /// 命名服务的组件配置器基类。
+    /// 将任何配置或子组件与正在配置的服务关联，并使用相同的名称。
     /// </summary>
     public class NamedServiceConfigurator : INamedServiceConfigurator
     {
@@ -38,10 +38,10 @@ namespace Orleans.Hosting
         /// 初始化 <see cref="NamedServiceConfigurator"/> 类的新实例。
         /// </summary>
         /// <param name="name">
-        /// 名字 名字 名字 名字 The name.
+        /// 名称。
         /// </param>
         /// <param name="configureDelegate">
-        /// 组合代表
+        /// 配置委托。
         /// </param>
         public NamedServiceConfigurator(string name, Action<Action<IServiceCollection>> configureDelegate)
         {
@@ -51,21 +51,21 @@ namespace Orleans.Hosting
     }
 
     /// <summary>
-    /// 与 <see cref="INamedServiceConfigurator"/>合作的延长期。
+    /// 用于操作 <see cref="INamedServiceConfigurator"/> 的扩展方法。
     /// </summary>
     public static class NamedServiceConfiguratorExtensions
     {
         /// <summary>
-        /// 配置指定服务的选项。
+        /// 配置命名服务的选项。
         /// </summary>
         /// <param name="configurator">
-        /// 命名服务配置器
+        /// 命名服务配置器。
         /// </param>
         /// <param name="configureOptions">
-        /// 选项配置代表 。
+        /// 选项配置委托。
         /// </param>
         /// <typeparam name="TOptions">
-        /// 基本选项类型。
+        /// 底层选项类型。
         /// </typeparam>
         public static void Configure<TOptions>(this INamedServiceConfigurator configurator, Action<OptionsBuilder<TOptions>>? configureOptions)
             where TOptions : class, new()
@@ -80,13 +80,13 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 将单吨组件添加到指定服务中,并为指定服务配置选项。
+        /// 向命名服务添加单例组件并配置该服务的选项。
         /// </summary>
         /// <typeparam name="TOptions">正在配置的选项类型。</typeparam>
         /// <typeparam name="TComponent">正在注册的组件服务类型。</typeparam>
-        /// <param name="configurator">组件和选项的配置将为此配置的名称配置。</param>
-        /// <param name="factory">工厂用来为命名服务创建组件。</param>
-        /// <param name="configureOptions">代表用来配置指定服务的选项。</param>
+        /// <param name="configurator">用于配置组件和选项的命名配置器。</param>
+        /// <param name="factory">用于为命名服务创建组件的工厂。</param>
+        /// <param name="configureOptions">用于配置命名服务选项的委托。</param>
         public static void ConfigureComponent<TOptions, TComponent>(this INamedServiceConfigurator configurator, Func<IServiceProvider, string, TComponent> factory, Action<OptionsBuilder<TOptions>>? configureOptions = null)
             where TOptions : class, new()
             where TComponent : class
@@ -99,11 +99,11 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 将单吨元件添加到指定服务中。
+        /// 向命名服务添加单例组件。
         /// </summary>
-        /// <typeparam name="TComponent">构成部分服务类型。</typeparam>
-        /// <param name="configurator">组件要配置的命名配置器。</param>
-        /// <param name="factory">工厂用来为命名服务创建组件。</param>
+        /// <typeparam name="TComponent">组件服务类型。</typeparam>
+        /// <param name="configurator">用于配置组件的命名配置器。</param>
+        /// <param name="factory">用于为命名服务创建组件的工厂。</param>
         public static void ConfigureComponent<TComponent>(this INamedServiceConfigurator configurator, Func<IServiceProvider, string, TComponent> factory)
            where TComponent : class
         {
@@ -117,9 +117,9 @@ namespace Orleans.Hosting
         }
 
         /// <summary>
-        /// 提供命名服务的生命周期配置点。
+        /// 为命名服务提供生命周期配置点。
         /// </summary>
-        /// <typeparam name="T">生命周期主题类型。</typeparam>
+        /// <typeparam name="T">生命周期主体类型。</typeparam>
         /// <param name="configurator">命名服务配置器。</param>
         public static void ConfigureLifecycle<T>(this INamedServiceConfigurator configurator) where T : ILifecycleSubject
         {

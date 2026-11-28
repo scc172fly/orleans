@@ -9,7 +9,7 @@ using Orleans.Configuration;
 
 namespace Orleans.Runtime.Placement;
 
-// 见: https://www.ledjonbehluli.com/posts/orleans_resource_placement_kalman/
+// 参见：https://www.ledjonbehluli.com/posts/orleans_resource_placement_kalman/
 internal sealed class ResourceOptimizedPlacementDirector : IPlacementDirector, ISiloStatisticsChangeListener
 {
     private const int FourKiloByte = 4096;
@@ -68,9 +68,9 @@ internal sealed class ResourceOptimizedPlacementDirector : IPlacementDirector, I
             return Task.FromResult(compatibleSilos[Random.Shared.Next(compatibleSilos.Length)]);
         }
 
-        // 将不超过1[KB]的金额分配给堆叠
-        // 以增加 ValueTuple<int, ResourceStatistics> =24字字字节的大小
-        // 4[KB]的限值,我们可以堆叠4096/24+170 silos 一组。
+        // 通常建议在栈上分配的内存不超过 1 KB，
+        // 但 ValueTuple<int, ResourceStatistics> 的大小为 24 字节，将
+        // 上限提高到 4 KB 后，可使用 stackalloc 容纳集群中最多约 4096 / 24 ≈ 170 个 Silo。
         (int Index, float Score, float? LocalSiloScore) pick;
         int compatibleSilosCount = compatibleSilos.Length;
         if (compatibleSilosCount * Unsafe.SizeOf<(int, ResourceStatistics)>() <= FourKiloByte)
@@ -95,7 +95,7 @@ internal sealed class ResourceOptimizedPlacementDirector : IPlacementDirector, I
 
         (int PickIndex, float PickScore, float? LocalSiloScore) MakePick(scoped Span<(int, ResourceStatistics)> relevantSilos)
         {
-            // 获取所有未超载的兼容 silos
+            // 获取所有兼容且未过载的 Silo。
             int relevantSilosCount = 0;
             float maxMaxAvailableMemory = 0;
             int maxActivationCount = 0;
@@ -127,12 +127,12 @@ internal sealed class ResourceOptimizedPlacementDirector : IPlacementDirector, I
                 }
             }
 
-            // 增加候选人人数限制。
+            // 限制为已添加的候选项数量。
             relevantSilos = relevantSilos[0..relevantSilosCount];
             Debug.Assert(relevantSilos.Length == relevantSilosCount);
 
-            // 选取 K silos 相容列表中的 silos,其中 K等于数字的平方根。 silos.
-            // e,从10 silos中,我们从4中选择。
+            // 从兼容 Silo 列表中选择 K 个 Silo，其中 K 等于 Silo 数量的平方根。
+            // 例如，10 个 Silo 中选择 4 个作为候选。
             int candidateCount = (int)Math.Ceiling(Math.Sqrt(relevantSilosCount));
             ShufflePrefix(relevantSilos, candidateCount);
             var candidates = relevantSilos[0..candidateCount];
@@ -143,8 +143,8 @@ internal sealed class ResourceOptimizedPlacementDirector : IPlacementDirector, I
             {
                 float score = CalculateScore(in statistics, maxMaxAvailableMemory, maxActivationCount);
 
-                // 不太可能,但可能超过1个 silo 得分相同
-                // 所以我们用一些乱七八糟的来避免 选入第一排名单
+                // 虽然可能性很小，但仍可能有多个 Silo 具有相同的评分，
+                // 因此引入少量随机扰动，避免总是选中候选列表中的第一个。
                 float scoreJitter = Random.Shared.NextSingle() / 100_000f;
 
                 if (score + scoreJitter < pick.Score)
@@ -163,9 +163,9 @@ internal sealed class ResourceOptimizedPlacementDirector : IPlacementDirector, I
             return (pick.Index, pick.Score, localSiloScore);
         }
 
-        // 现代渔业-Yates打牌的变式,在打乱第一个 `prefixLength` 要素后停止,
-        // 它们是我们唯一感兴趣的因素。
-        // 见: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+        // 现代 Fisher-Yates 洗牌算法的一种变体，在完成前 prefixLength 个元素的洗牌步骤后即停止，
+        // 因为只需要关注这些元素。
+        // 参见：https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
         static void ShufflePrefix(Span<(int SiloIndex, ResourceStatistics SiloStatistics)> values, int prefixLength)
         {
             Debug.Assert(prefixLength >= 0 && prefixLength <= values.Length);

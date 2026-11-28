@@ -5,62 +5,62 @@ products:
 - dotnet
 - dotnet-orleans
 page_type: sample
-name: "Orleans TicTacToe web-based game"
+name: "Orleans TicTacToe 网页游戏"
 urlFragment: "orleans-tictactoe-web-based-game"
-description: "网基游戏 Orleans 样本 TicTacToe"
+description: "Orleans TicTacToe 网页游戏示例。"
 ---
 
 <a id="orleans-tictactoe-web-based-game"></a>
 
-# Orleans TicTacToe 网基游戏
+# Orleans TicTacToe 网页游戏
 
-本样本展示了基于网络的 [Tic-tac-toe](https://en.wikipedia.org/wiki/Tic-tac-toe) 游戏。
+本示例演示基于 Web 的[井字棋](https://en.wikipedia.org/wiki/Tic-tac-toe)游戏。
 
-游戏作为单一项目执行, `TicTacToe.csproj`,该 [.NET 通用主机](https://docs.microsoft.com/dotnet/core/extensions/generic-host) 将 ASP.NET 核心MVC应用软件与 Orleans.
+游戏在单个项目 `TicTacToe.csproj` 中实现，使用 [.NET 通用主机](https://docs.microsoft.com/dotnet/core/extensions/generic-host) 同时托管 ASP.NET Core MVC 应用与 Orleans。
 
-游戏的客户端是用于测试 MVC 更新应用程序的 JavaScript 应用程序。 MVC 控制器将请求转发到 grains。 应用程序有三种 grains:
+游戏客户端是 JavaScript 应用，通过轮询 MVC 应用获取更新。MVC 控制器将请求转发给 Grain。应用具有三种 Grain 类型：
 
-* `PlayerGrain` 代表一个玩家, 让调用者可以加入和退出游戏, 更新属性, 并检索过去和现在游戏的概览 。
-* `GameGrain` 代表单个游戏会话和相应的游戏逻辑。 `GameGrain` 允许客户进行移动并查看当前游戏板状态。
-* `PairingGrain` ,它持有一份其他玩家可以加入的现有游戏列表。
+* `PlayerGrain` 表示玩家，允许调用方加入和离开游戏、更新属性，并获取历史及当前游戏的概览。
+* `GameGrain` 表示单个游戏会话及相应的游戏逻辑。`GameGrain` 允许客户端落子并查看当前棋盘状态。
+* `PairingGrain` 保存当前可供其他玩家加入的游戏列表。
 
-电话流量如下:
+调用流程如下：
 
-![显示应用程序中通话的图表](dataflow.png)
+![展示应用中调用关系的示意图](dataflow.png)
 
 <a id="sample-prerequisites"></a>
 
-## 抽样的前提条件
+## 示例先决条件
 
-本样本以C##和目标 .NET 10 来写,要求有 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或以后的。
+本示例使用 C# 编写，目标框架为 .NET 10。需要 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本。
 
 <a id="building-the-sample"></a>
 
-## 建立样本
+## 构建示例
 
-下载和运行样本时,请遵循以下步骤:
+按照以下步骤下载并运行示例：
 
-1. 下载并解开样本的平面
-2. 视觉演播室(2022年或以后):
-    1. 在菜单栏上,选择 **文件** > **打开** > **项目/解决方案**。
-    2. 打开解压后的示例目录，再打开其中的 C# 项目文件（`.csproj`）。
-    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 直接运行。
-3. 从命令行 :
-   1. 导航到持有未设偏移样本代码的文件夹 。
-   2. 在命令行,类型 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
+1. 下载并解压示例。
+2. 在 Visual Studio（2022 或更高版本）中：
+    1. 在菜单栏中选择 **文件** > **打开** > **项目/解决方案**。
+    2. 导航到存放已解压示例代码的文件夹，并打开 C# 项目（.csproj）文件。
+    3. 按 <kbd>F5</kbd> 调试运行，或按 <kbd>Ctrl</kbd>+<kbd>F5</kbd> 在不调试的情况下运行项目。
+3. 从命令行运行：
+   1. 导航到存放已解压示例代码的文件夹。
+   2. 在命令行输入 [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run)。
 
-打开终端窗口,并在命令提示时执行以下内容:
+打开终端窗口，在命令提示符下执行以下命令：
 
 ```bash
 dotnet run
 ```
 
-游戏服务器将启动, 您可以打开一个浏览器到 `https://localhost:5000/` 与游戏互动 。
+游戏服务端将启动，你可以在浏览器中访问 `https://localhost:5000/` 与游戏交互。
 
-如果您愿意, 您可以开始更多关于主机的实例来查看它们组成一个集。 如果您可以这样做, 请在命令行中添加 `InstanceId` 选项来区分它们。 生产应用程序将使用除此应用程序所使用的“ 本地主机组合” 以外的其它东西( 参见 _Program.cs_ , 因为组合是通过 `UseLocalhostClustering`配置的) , 因此不需要这个 `InstanceId` 选项 。
+如果希望观察它们如何形成集群，也可以启动更多宿主实例。此时应在命令行中添加 `InstanceId` 选项来区分各实例。生产应用会使用不同于本应用的“本地主机集群”方式（参见 _Program.cs_ 中通过 `UseLocalhostClustering` 配置集群的位置），因此无需该 `InstanceId` 选项。
 
 ```bash
 dotnet run -- --InstanceId 1
 ```
 
-由于游戏使用 cookie 来识别玩家, 您需要另外的浏览器会话才能与自己相对打并体验游戏 。
+由于游戏使用 Cookie 标识玩家，若要与自己对弈并体验游戏，需要使用独立的浏览器会话。

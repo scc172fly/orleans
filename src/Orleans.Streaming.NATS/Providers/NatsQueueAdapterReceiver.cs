@@ -48,7 +48,7 @@ internal sealed partial class NatsQueueAdapterReceiver : IQueueAdapterReceiver
 
     public async Task Initialize(TimeSpan timeout)
     {
-        // 如果它是无效的,那么我们关闭
+        // 若为 null，则表示正在关闭。
         if (this._nats is null) return;
 
         using var cts = new CancellationTokenSource(timeout);
@@ -98,7 +98,7 @@ internal sealed partial class NatsQueueAdapterReceiver : IQueueAdapterReceiver
             for (var i = 0; i < messageCount; i++)
             {
                 var natsMessage = messages[i];
-                // 该接收器处理的NATS流信息总是包含一个分批序列式容器。
+                // 此接收器处理的 NATS 流消息始终包含已序列化的批容器。
                 var container = this._serializer.Deserialize<NatsBatchContainer>(natsMessage.Payload)!;
                 container.SequenceToken = new EventSequenceTokenV2((long)natsMessage.Sequence);
                 container.ReplyTo = natsMessage.ReplyTo;

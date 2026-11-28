@@ -15,10 +15,10 @@ using Xunit;
 namespace UnitTests.ActivationsLifeCycleTests;
 
 /// <summary>
-/// 工作环所处 <c>StatelessWorkerGrainContext</c> 赛场回归测试
-/// 可能制造一个“幽灵”工人,
-/// 目录,允许大于配置的 <see cref="StatelessWorkerAttribute.MaxLocalWorkers"/>
-/// 激活以在单 silo 相同 grain id. 数据。
+/// 针对 <c>StatelessWorkerGrainContext</c> 中竞争条件的回归测试：工作循环
+/// 可能在已从 Catalog 注销的上下文上创建一个“幽灵”工作者，
+/// 使同一个 Grain ID 在单个 Silo 上同时存在超过配置的 <see cref="StatelessWorkerAttribute.MaxLocalWorkers"/>
+/// 数量的激活。
 /// </summary>
 public class StatelessWorkerSingleActivationRaceTests(StatelessWorkerSingleActivationRaceTests.Fixture fixture)
         : IClassFixture<StatelessWorkerSingleActivationRaceTests.Fixture>
@@ -51,9 +51,9 @@ public class StatelessWorkerSingleActivationRaceTests(StatelessWorkerSingleActiv
     private InProcessSiloHandle PrimarySilo => (InProcessSiloHandle)_fixture.HostedCluster.Primary!;
 
     /// <summary>
-    /// 确定性地核实,一旦无国籍工人中最后一名工人
-    /// 销毁,上下文标记结束,从激活目录中删除
-    /// 并发货迟到,以至于送新包装物,而不复生工人。
+    /// 以确定性方式验证：当无状态工作者上下文的最后一个工作者
+    /// 被销毁时，上下文被标记为已终止，从激活目录移除，
+    /// 并将迟到的消息转发至新的包装器，而不是重新创建工作者。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -90,10 +90,10 @@ public class StatelessWorkerSingleActivationRaceTests(StatelessWorkerSingleActiv
     }
 
     /// <summary>
-    /// 将迟交的结合到
-    /// 带新包装的孤儿 grain 通过目录呼叫。 两种操作
-    /// 必须使用相同的替换激活, 以便 <c>maxLocalWorkers: 1</c> 是
-    /// 即使当终止的包装件收到另一则消息时, 也仍然保存 。
+    /// 通过将迟到的消息投递至孤立包装器与经由目录的新 Grain 调用相结合，
+    /// 以确定性方式复现原竞争条件。这两个操作
+    /// 必须使用同一个替代激活，以确保遵守 <c>maxLocalWorkers: 1</c> 限制，
+    /// 即使已终止的包装器再次收到消息也是如此。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -143,7 +143,7 @@ public class StatelessWorkerSingleActivationRaceTests(StatelessWorkerSingleActiv
         var messageFactory = services.GetRequiredService<MessageFactory>();
         var localSiloDetails = services.GetRequiredService<ILocalSiloDetails>();
 
-        // 仅当地信息含有 ILocalRequest,接收发送结果。
+        // 仅限本地的消息携带 ILocalRequest，由其接收投递结果。
         var message = messageFactory.CreateMessage(request, InvokeMethodOptions.OneWay);
         message.SetInfiniteTimeToLive();
         message.IsLocalOnly = true;

@@ -69,8 +69,8 @@ namespace OrleansCodeGen.Orleans.Serialization.UnitTests.TaggedUnions
         [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public global::Orleans.Serialization.UnitTests.TaggedUnions.ImmutableCallbackPet ReadValue<TReaderInput>(ref global::Orleans.Serialization.Buffers.Reader<TReaderInput> reader, global::Orleans.Serialization.WireProtocol.Field field)
         {
-            // 编码其运行时间类型的数字参考和数值,被解读为案件值,因此,为封闭型而写的有效载荷
-            // 具有相同情况,包括在该等级之前所写有效载荷的等级结构使用案件识别符号,是可以读取的。
+            // Null references and values which encode their runtime type are read as case values, so payloads written for a closed type
+            // hierarchy with the same cases, including payloads written before that hierarchy used case identifiers, are readable.
             if (field.IsReference)
                 return ReadCaseValue(ref reader, ref field);
 

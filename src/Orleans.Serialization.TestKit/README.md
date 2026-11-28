@@ -1,26 +1,26 @@
 <a id="microsoft-orleans-serialization-test-kit"></a>
 
-# Microsoft Orleans 序列化测试箱
+# Microsoft Orleans 序列化测试工具包
 
 <a id="introduction"></a>
 
 ## 简介
-Microsoft Orleans 序列测试工具箱提供工具和工具,帮助测试 Orleans 应用程序中的序列功能。该软件包简化了书面测试,以正确核实自定义类型工作的序列和取消序列。
+Microsoft Orleans 序列化测试工具包提供用于测试 Orleans 应用程序序列化功能的工具和实用程序。此包可以简化验证自定义类型的序列化与反序列化是否正常工作的测试编写过程。
 
 <a id="getting-started"></a>
 
 ## 入门
-要使用此软件包, 请通过 NuGet安装 :
+要使用此包，请通过 NuGet 安装：
 
 ```shell
 dotnet add package Microsoft.Orleans.Serialization.TestKit
 ```
 
-你通常会把这个包添加到测试项目里
+通常应将此包添加到测试项目中。
 
 <a id="example---testing-serialization"></a>
 
-## 实例 - 试验序列化 
+## 示例 - 测试序列化
 ```csharp
 using Orleans.Serialization.TestKit;
 using Xunit.Abstractions;
@@ -70,8 +70,8 @@ public class DateTimeOffsetCopierTests(ITestOutputHelper output) : CopierTester<
 
 <a id="additional-testing-features"></a>
 
-## 附加测试功能
-TestKit 提供若干功能,用于测试序列,并允许你侧重于测试具体的序列组件:
+## 其他测试功能
+TestKit 提供多种用于测试序列化的实用程序，使你能够专注于测试特定的序列化组件：
 
 ```csharp
 // Using a specific serializer
@@ -82,17 +82,17 @@ var deserialized = specificSerializer.Deserialize(bytes);
 
 <a id="documentation"></a>
 
-## 文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件文件
-关于更全面的文件,请参见:
+## 文档
+有关更全面的文档，请参阅：
 - [Microsoft Orleans 文档](https://dotnet.github.io/orleans/docs/)
-- [Orleans 序号](https://dotnet.github.io/orleans/docs/host/configuration-guide/serialization/)
-- [测试 Orleans 应用](https://dotnet.github.io/orleans/docs/implementation/testing/)
+- [Orleans 序列化](https://dotnet.github.io/orleans/docs/host/configuration-guide/serialization/)
+- [测试 Orleans 应用程序](https://dotnet.github.io/orleans/docs/implementation/testing/)
 
 <a id="feedback--contributing"></a>
 
-## 反馈和贡献
-- 如果有任何问题或希望提供反馈,请 [GitHub上的开关](https://github.com/dotnet/orleans/issues)
-- 加入我们社区 [不一致](https://aka.ms/orleans-discord)
-- 跟随 [@msftorleans 地图上写着:](https://twitter.com/msftorleans) 推特账户发布 Orleans 通知
-- 请审查我们的 [会费捐款准则](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
-- 该项目在 [麻省理工学院许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)下获得许可证
+## 反馈与贡献
+- 如果遇到问题或希望提供反馈，请[在 GitHub 上创建 Issue](https://github.com/dotnet/orleans/issues)
+- 加入我们的 [Discord](https://aka.ms/orleans-discord) 社区
+- 关注 Twitter 上的 [@msftorleans](https://twitter.com/msftorleans) 账号，获取 Orleans 公告
+- 欢迎贡献！请阅读我们的[贡献指南](https://github.com/dotnet/orleans/blob/main/CONTRIBUTING.md)
+- 本项目采用 [MIT 许可证](https://github.com/dotnet/orleans/blob/main/LICENSE)

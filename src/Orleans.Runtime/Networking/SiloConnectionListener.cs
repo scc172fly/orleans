@@ -58,7 +58,7 @@ namespace Orleans.Runtime.Messaging
         {
             await BindAsync(ct);
 
-            // 立即开始接受连接 。
+            // 立即开始接受连接。
             Start();
         }, ct);
 

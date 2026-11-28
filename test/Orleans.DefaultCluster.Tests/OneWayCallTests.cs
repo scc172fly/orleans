@@ -6,10 +6,10 @@ namespace DefaultCluster.Tests.General
 {
     /// <summary>
     /// Orleans 单向方法调用测试。
-    /// 单向方法为 grain 方法,可立即返回呼叫者
-    /// 等待方法执行完成。 这个火和忘记
-    /// 用于通知、记录和其他情况,
-    /// 打电话的人不需要确认完成或结果
+    /// 单向方法是立即返回给调用方的 Grain 方法，
+    /// 无需等待方法执行完成。这种即发即忘
+    /// 模式适用于通知、日志记录及其他调用方
+    /// 无需确认完成状态或结果的场景。
     /// </summary>
     [TestCategory("BVT"), TestCategory("OneWay")]
     [TestSuite("BVT")]
@@ -20,11 +20,11 @@ namespace DefaultCluster.Tests.General
         public OneWayCallTests(DefaultClusterFixture fixture) : base(fixture) { }
 
         /// <summary>
-        /// 测试单向方法在客户打电话时同步返回。
-        /// 证明:
-        /// - 任务/ValueTask 在不等待执行的情况下立即完成,而不等待执行
-        /// - grain (通过副作用可观察到)仍在执行的方法
-        /// - 单程方法的例外不会向打电话者传播
+        /// 测试从客户端调用单向方法时是否同步返回。
+        /// 验证以下情况：
+        /// - Task 或 ValueTask 立即完成，无需等待执行
+        /// - 方法仍会在 Grain 上执行（可通过副作用观察）
+        /// - 单向方法中的异常不会传播至调用方
         /// </summary>
         [Fact]
         public async Task OneWayMethodsReturnSynchronously_ViaClient()
@@ -39,16 +39,16 @@ namespace DefaultCluster.Tests.General
             var count = await grain.GetCount();
             Assert.Equal(expectedCount, count);
 
-            // 这不应该扔。
+            // 此处不应引发异常。
             task = grain.ThrowsOneWay();
             Assert.True(task.Status == TaskStatus.RanToCompletion, "Task should be synchronously completed.");
         }
 
         /// <summary>
-        /// 测试单向方法从另一个调用时同步返回 grain。
-        /// 证明 grain至grain 单向电话也立即完成,
-        /// 允许调用 grain 继续处理而不阻塞
-        /// 目标 grain的处决。
+        /// 测试从另一个 Grain 调用单向方法时是否同步返回。
+        /// 验证 Grain 间单向调用也会立即完成，
+        /// 使调用方 Grain 可以继续处理，而不会因等待
+        /// 目标 Grain 执行完毕而阻塞。
         /// </summary>
         [Fact]
         public async Task OneWayMethodReturnSynchronously_ViaGrain()
@@ -66,10 +66,10 @@ namespace DefaultCluster.Tests.General
         }
 
         /// <summary>
-        /// 测试返回 ValueTask 而不是任务单向方法。
-        /// 证明: ValueTask- 以单向方法为基础的单向方法行为相同
-        /// 任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务任务
-        /// 方法逻辑对目标的逻辑不同步 grain。
+        /// 测试返回 ValueTask 而非 Task 的单向方法。
+        /// 验证基于 ValueTask 的单向方法与基于 Task 的单向方法行为完全一致，
+        /// 同步完成调用，同时仍在目标 Grain 上
+        /// 异步执行方法逻辑。
         /// </summary>
         [Fact]
         public async Task OneWayMethodsReturnSynchronously_ViaClient_ValueTask()
@@ -84,15 +84,15 @@ namespace DefaultCluster.Tests.General
             var count = await grain.GetCount();
             Assert.Equal(expectedCount, count);
 
-            // 这不应该扔。
+            // 此处不应引发异常。
             task = grain.ThrowsOneWayValueTask();
             Assert.True(task.IsCompleted, "Task should be synchronously completed.");
         }
 
         /// <summary>
-        /// 测试 ValueTask- 从另一个角度调用单向方法 grain。
-        /// 确保单程方法的 ValueTask 变式保持
-        /// 在 grain-至grain 通信中,使用同样的火力和断开语义。
+        /// 测试从另一个 Grain 调用基于 ValueTask 的单向方法。
+        /// 确保单向方法的 ValueTask 版本在 Grain 间通信中保持
+        /// 相同的即发即忘语义。
         /// </summary>
         [Fact]
         public async Task OneWayMethodReturnSynchronously_ViaGrain_ValueTask()

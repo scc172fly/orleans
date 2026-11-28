@@ -9,37 +9,37 @@ using Orleans.Serialization;
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// 下 grain 其它 grains 以此交换耐用信息 grain.
+/// 其他 Grain 通过此 Grain 扩展与当前 Grain 交换持久化消息。
 /// </summary>
 [Alias("Orleans.Durable.Messaging.IMessagingExtension")]
 public interface IMessagingExtension : IGrainExtension
 {
     /// <summary>
-    /// 向此 grain的收件箱发送消息 。
+    /// 将消息投递到此 Grain 的收件箱。
     /// </summary>
-    /// <param name="message">收到的命令具有所要求的身份和有效载荷;其接收器是 grain。</param>
-    /// <param name="cancellationToken">取消呼叫者等待交货的时间。</param>
+    /// <param name="message">接收的命令，必须包含标识和有效载荷；其接收方为此 Grain。</param>
+    /// <param name="cancellationToken">取消调用方对投递结果的等待。</param>
     /// <remarks>
-    /// 直接接收共享有效载荷阵列、页眉字典和根据不可改变的出版合同的标头值阵列。
-    /// RPC 复制和取消序列化,使用普通 Orleans 序号分离有效载荷阵列、标题词典和页头值阵列。
-    /// 成功的结果意味着信箱可以持久地接受信息,或者已经处理过。
-    /// 调用器重新尝试发送, 重复使用信件的 <see cref="InboxMessage.SentAt"/>。
+    /// 直接准入按照不可变发布契约共享有效载荷数组、标头字典及标头值数组。
+    /// RPC 拷贝与反序列化通过普通 Orleans 序列化机制隔离有效载荷数组、标头字典及标头值数组。
+    /// 成功结果表示收件箱已持久化接纳消息，或已处理过该消息。
+    /// 重试投递的调用方复用消息的 <see cref="InboxMessage.SentAt"/>。
     /// <para>
-    /// 交付货物与 grain的其他请求发生间断。交付货物没有操作者:它能验证、能分解、能处理、能处理、能处理、能处理、能处理、能处理、能处理、能处理、能处理、能处理、能处理、能处理、能处理、能处理
-    /// 同步控制信件的接收, 然后等待日记写作, 并且发送信息泵运行
-    /// 处理器稍后再处理。 信箱信息汇槽在发送时同步运行, 这样它就可以在请求被发送时运行
-    /// 处理人可以等待暂停等候。 插入让同时交付的分期日记写, 并让
-    /// 正在运行的请求会等待信件的 grain 。
+    /// 投递与 Grain 的其他请求交错执行。投递不会运行处理器：它同步验证、去重，
+    /// 并暂存消息接纳操作，随后等待该次日志写入完成，由消息泵稍后运行处理器。
+    /// 收件箱消息接收器在投递内部同步运行，因此它与处理器一样，可以在其他请求
+    /// 因 await 而挂起时运行。交错执行使并发投递能够共享日志写入，也使消息能够
+    /// 到达正在运行请求且该请求等待此消息的 Grain。
     /// </para>
     /// </remarks>
-    /// <returns>显示交付/处理状况的结果。</returns>
+    /// <returns>指示投递或处理状态的结果。</returns>
     /// <exception cref="ArgumentException">
-    /// <paramref name="message"/> 具有未设置的电文代号,超过身份识别允许限,或有效载荷或信头无效。
-    /// 其合同消耗的任择标准元数据得到验证。
+    /// <paramref name="message"/> 的消息 ID 未设置、超出标识准入限制，或者有效载荷或标头无效。
+    /// 在使用可选标准元数据的契约处对其进行验证。
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// 信件的 <see cref="InboxMessage.SentAt"/> 晚于接收器的时钟加上 <c>DeduplicationWindow</c>,
-    /// 信息没有被跟踪,位于录取层以上。信箱没有为此进行任何步骤。
+    /// 消息的 <see cref="InboxMessage.SentAt"/> 晚于接收方时钟加上 <c>DeduplicationWindow</c>，
+    /// 且该消息未被跟踪并高于准入下限。收件箱不会为其暂存任何变更。
     /// </exception>
     [Alias("DeliverAsync")]
     [AlwaysInterleave]

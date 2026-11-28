@@ -13,12 +13,12 @@ using Xunit;
 namespace Orleans.Durable.Analyzers.Tests;
 
 /// <summary>
-/// 运行耐久任务分析器, 源对每个预期诊断结果 <c>{|ORLEANS0200:text|}</c>,和
-/// 校验代码来修正它们
+/// 对源码运行持久化任务分析器，源码将每个预期诊断标记为 <c>{|ORLEANS0200:text|}</c>，并
+/// 验证相应的代码修复。
 /// </summary>
 /// <remarks>
-/// 源代码根据所装运的耐久任务抽象 Orleans和本测试所用的日记集会汇编
-/// 组装引用, 所以分析器会绑定真正的超载和[ 修改, 从而禁用规则的 API 更改 测试失败 。
+/// 源码使用此测试程序集引用的已发布持久化任务抽象、Orleans 及日志持久化程序集进行编译，
+/// 因此分析器绑定真实的重载；若 API 变更导致某条规则失效，测试将失败。
 /// </remarks>
 internal static partial class AnalyzerVerifier
 {
@@ -58,7 +58,7 @@ internal static partial class AnalyzerVerifier
         new DurableTaskStateMutationAnalyzer(),
     ];
 
-    /// <summary>证明分析员准确报告 <paramref name="source"/>中标记的诊断。</summary>
+    /// <summary>验证分析器是否准确报告 <paramref name="source"/> 中标记的所有诊断，且没有其他诊断。</summary>
     public static async Task VerifyAsync(string source)
     {
         var (text, expected) = ParseMarkers(Usings + source);
@@ -76,8 +76,8 @@ internal static partial class AnalyzerVerifier
     }
 
     /// <summary>
-    /// 验证 <paramref name="source"/>中标记的诊断,修正所有 <paramref name="fixer"/> 中确定的所有诊断
-    /// 并在文件中核实结果为 <paramref name="fixedSource"/>,该结果只有标记的诊断。
+    /// 验证 <paramref name="source"/> 中标记的诊断，修复文档中所有可由 <paramref name="fixer"/> 修复的诊断，
+    /// 并验证结果为 <paramref name="fixedSource"/>，其中仅包含已标记的诊断。
     /// </summary>
     public static async Task VerifyCodeFixAsync(CodeFixProvider fixer, string source, string fixedSource)
     {
@@ -167,7 +167,7 @@ internal static partial class AnalyzerVerifier
     [GeneratedRegex(@"\{\|(?<id>ORLEANS\d{4}):(?<text>.*?)\|\}", RegexOptions.Singleline)]
     private static partial Regex MarkerPattern();
 
-    /// <summary>提供诊断服务,以修复所有固定手术。</summary>
+    /// <summary>提供“全部修复”操作所修复的诊断。</summary>
     private sealed class FixedDiagnosticProvider(ImmutableArray<Diagnostic> diagnostics) : FixAllContext.DiagnosticProvider
     {
         public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken) =>

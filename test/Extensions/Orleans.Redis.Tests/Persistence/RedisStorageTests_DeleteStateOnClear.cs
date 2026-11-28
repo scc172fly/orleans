@@ -8,7 +8,7 @@ using Xunit;
 namespace Tester.Redis.Persistence
 {
     /// <summary>
-    /// 启用删除状态对清选项的 Redis grain 存储提供者测试。
+    /// 测试启用清除状态时删除数据选项的 Redis Grain 存储提供程序。
     /// </summary>
     [TestCategory("Redis"), TestCategory("Persistence"), TestCategory("Functional")]
     [Collection(TestEnvironmentFixture.DefaultCollection)]

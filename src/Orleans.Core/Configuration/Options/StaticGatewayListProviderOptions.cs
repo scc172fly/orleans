@@ -5,10 +5,10 @@ using Orleans.Hosting;
 namespace Orleans.Configuration
 {
     /// <summary>
-    /// 配置网关静态列表的选项 。
+    /// 用于配置静态网关列表的选项。
     /// </summary>
     /// <remarks>>
-    /// 更多信息见 <see cref="ClientBuilderExtensions.UseStaticClustering(IClientBuilder, System.Net.IPEndPoint[])"/> 。
+    /// 有关详细信息，请参阅 <see cref="ClientBuilderExtensions.UseStaticClustering(IClientBuilder, System.Net.IPEndPoint[])"/>。
     /// </remarks>
     public class StaticGatewayListProviderOptions
     {

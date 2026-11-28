@@ -11,20 +11,20 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests.FaultInjection;
 
 /// <summary>
-/// 主持一个在编集的集群,其日记存储、发箱交付、收信箱参与者和短信提醒唤醒活动
-/// 通过 a <see cref="DurableTaskFaultInjector"/>,通过注入缺陷驱动工作流程完成。
+/// 托管进程内集群，其日志存储、发件箱投递、收件箱参与者及消息传递唤醒均经过
+/// <see cref="DurableTaskFaultInjector"/>，并在注入故障的情况下驱动工作流完成。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 持久就业时钟是领导 grains时钟时间 <see cref="JobClockLead"/>以持续的工作再试,
-/// 排 grains时间, 时间一有安排就到期。 工作流程的延迟和超时最后
-/// <see cref="WorkflowDelay"/>,所以一旦实时通过它们就到期。
-/// <see cref="RetryInterval"/>绳子在等待时不能提前
+/// Durable Jobs 的时钟比 Grain 的时钟提前 <see cref="JobClockLead"/>，因此遵循
+/// Grain 时钟的 Durable Jobs 重试一经调度即到期。工作流的延迟和超时持续
+/// <see cref="WorkflowDelay"/>，因此实际时间经过这段时长即到期。发件箱重试遵循
+/// <see cref="RetryInterval"/>。测试工具在等待期间不推进时钟。
 /// </para>
 /// <para>
-/// 利用功能只能同步地进行事件: 通过客户等待其回应完成任务,
-/// 通过 grains信息提醒的持久就业活动而缺乏能力;见 <see cref="SettleAsync"/>。
-/// <see cref="RunTimeout"/> 将每个等待的值限制为检测一个摊位。
+/// 测试工具仅通过事件同步：通过客户端等待任务响应来同步任务完成，并通过
+/// Grain 消息传递唤醒所对应的 Durable Jobs 活动来同步静止状态；参见 <see cref="SettleAsync"/>。
+/// <see cref="RunTimeout"/> 限定每次等待的时长，以检测停滞。
 /// </para>
 /// </remarks>
 internal sealed class DurableTaskFaultHarness : IAsyncLifetime
@@ -36,7 +36,7 @@ internal sealed class DurableTaskFaultHarness : IAsyncLifetime
     private const int MaxClientAttempts = 20;
     private readonly MessagingWakeupTracker _wakeups = new();
 
-    // 上次发生故障的 silo 崩溃, 以及下次崩溃开始时取消的标记 。
+    // 记录上一次由故障触发的 Silo 崩溃，以及一个在下一次崩溃开始时被取消的令牌。
     private readonly object _crashLock = new();
     private Task _crash = Task.CompletedTask;
     private CancellationTokenSource _crashing = new();
@@ -61,14 +61,14 @@ internal sealed class DurableTaskFaultHarness : IAsyncLifetime
     public IClusterClient Client => Fixture.Client;
 
     /// <summary>
-    /// 获取上次发生故障的 silo 崩溃, 一旦集群宣布它已死亡, 就会完成该崩溃 。
+    /// 获取上一次由故障触发的 Silo 崩溃操作；当集群宣告该 Silo 已失效时，此操作完成。
     /// </summary>
     /// <remarks>
-    /// 崩溃开始时客户端的通话在飞行中, 因为坠机 silo 可能永远无法回答: a
-    /// 客户端失败了一个调用, 只有在调用响应超时过后, 客户端才会回答不 silo 的调用。
-    /// 长以 <see cref="RunTimeout"/>。当坠机事故结束后,会重新查寻那些同时失败的电话和通话。
-    /// 崩溃时的组合 silos 设置可持久的工作 <c>ShardCheckInterval</c> 短,所以剩下的 silo 通过
-    /// 崩溃 silo的提醒迅速恢复 。
+    /// 崩溃开始时客户端正在进行的调用会结束，因为崩溃的 Silo 可能永远不回复：
+    /// 只有调用的响应超时到期时，客户端才会使没有任何 Silo 回复的调用失败；默认时长与
+    /// <see cref="RunTimeout"/> 相同。这些调用以及期间失败的调用均在崩溃处理完成后重试。对于
+    /// 会使 Silo 崩溃的集群，将 Durable Jobs 的 <c>ShardCheckInterval</c> 设为较短间隔，使剩余的 Silo 能及时接管
+    /// 已崩溃 Silo 的唤醒操作。
     /// </remarks>
     public Task Crash
     {
@@ -95,11 +95,11 @@ internal sealed class DurableTaskFaultHarness : IAsyncLifetime
         _wakeups.Dispose();
     }
 
-    /// <summary>安排根任务,等待其终端响应。</summary>
+    /// <summary>调度根任务并等待其终态响应。</summary>
     /// <remarks>
-    /// 当基础设施故障使其失效时,例如当 grain's
-    /// 激活无法读取日记、 写入失败, 或者客户端等待时停止使用。 任务编号
-    /// 使时间表变得复杂,结果只是任务的反应。
+    /// 当基础设施故障导致客户端调用失败时，会立即重试，例如 Grain
+    /// 激活时读取日志失败、写入失败，或在客户端等待期间停用。任务 ID
+    /// 用于调度去重，只有任务响应才是最终结果。
     /// </remarks>
     public async Task<DurableTaskResponse> RunAsync<T>(
         IAddressable grain,
@@ -126,13 +126,13 @@ internal sealed class DurableTaskFaultHarness : IAsyncLifetime
         }
     }
 
-    /// <summary>等到 <paramref name="grains"/> 信息工作无效 。</summary>
+    /// <summary>等待 <paramref name="grains"/> 中每个 Grain 都不再持有消息传递工作。</summary>
     /// <remarks>
-    /// A grain 保存信息工作,而其收件箱、发件箱或持久任务运行时间的工作源报告
-    /// 无法执行的处决,确实。 grain的日记写前的电讯提醒
-    /// 等待完成的工作可以持久,只有在没有剩余工作时,提醒工作才能完成。 grain 因此,保留
-    /// 预定的每个提醒工作一旦完成,就立即进行。
-    /// grains最后的工作,例如他们的信息所产生的结果。
+    /// 当 Grain 的收件箱、发件箱或持久化任务运行时的工作源（后者报告
+    /// 可运行的执行实例）持有工作时，Grain 就持有消息传递工作。收件箱在使
+    /// 工作进入待处理状态的日志写入变为持久状态之前，调度 Grain 的消息传递唤醒；唤醒作业仅在没有任何工作剩余时完成。因此，当为 Grain 调度的
+    /// 每个唤醒作业均已完成时，Grain 不再持有工作。应在某个发生于 Grain
+    /// 最后一项工作之后的结果（例如由其消息产生的结果）出现后调用此方法。
     /// </remarks>
     public async Task SettleAsync(IEnumerable<GrainId> grains, CancellationToken cancellationToken)
     {
@@ -151,7 +151,7 @@ internal sealed class DurableTaskFaultHarness : IAsyncLifetime
         }
     }
 
-    /// <summary>呼叫 grain ,直到呼唤成功,同时重新尝试基础设施故障。</summary>
+    /// <summary>调用 Grain 直至调用成功，发生基础设施故障时立即重试。</summary>
     public async Task<TResult> CallAsync<TResult>(Func<CancellationToken, Task<TResult>> call, CancellationToken cancellationToken)
     {
         var failures = new List<string>();
@@ -164,9 +164,9 @@ internal sealed class DurableTaskFaultHarness : IAsyncLifetime
     {
         for (var attempt = 1; ; attempt++)
         {
-            // 尝试开始于 silo 撞车事故等待到集群组宣布它死亡,所以它到达
-            // grain的下一次激活; 当崩溃开始时正在飞行中的, 因为坠机 silo 可能永远不会
-            // 客户在响应超时后才会拒绝接听。
+            // Silo 崩溃期间开始的尝试会等待集群宣告其失效，然后到达
+            // Grain 的下一次激活；崩溃开始时正在进行的尝试会结束，因为崩溃的 Silo 可能永远不
+            // 回复，且客户端只有在响应超时到期时才会使这类调用失败。
             Task crash;
             CancellationToken crashing;
             lock (_crashLock)
@@ -208,17 +208,17 @@ internal sealed class DurableTaskFaultHarness : IAsyncLifetime
     }
 
     /// <summary>
-    /// 通过 " 持久工作 " 活动,跟踪每个 grain都拥有的 " 持久工作 " 信息提醒工作。
+    /// 通过 Durable Jobs 活动跟踪其为每个 Grain 持有的消息传递唤醒作业。
     /// </summary>
     /// <remarks>
-    /// 一项工作从安排活动结束直至完成该工作结束,一直未完成。
-    /// 删除: 已完成、 没有重试失败或取消。 重新排定和重新审阅运行会保持未完成 。
-    /// 即时到期的工作可在预定的活动结束之前运行和结束,所以结束的工作
-    /// 永不记念,
+    /// 从调度作业的活动结束起，直至某次执行结束且作业被移除，作业始终处于未完成状态；
+    /// 移除的原因包括完成、失败且不重试或取消。重新调度及重试的运行仍保持未完成状态。若作业
+    /// 立即到期，它可能在调度活动结束前就已运行并结束，因此已结束的作业会被
+    /// 记录，且永远不会被标记为未完成。
     /// </remarks>
     private sealed class MessagingWakeupTracker : IDisposable
     {
-        // 追踪者所读到的“持久工作”活动和标签的名称。
+        // 跟踪器读取的 Durable Jobs 活动及标记名称。
         private const string ScheduleActivity = "schedule durable job";
         private const string ExecuteActivity = "execute durable job";
         private const string JobIdTag = "orleans.durable_job.id";
@@ -277,7 +277,7 @@ internal sealed class DurableTaskFaultHarness : IAsyncLifetime
                     _transitions[jobId] = transitions = [];
                 }
 
-                // 摊位的诊断书描述了每个杰出的工作活动
+                // 停滞诊断会描述每个未完成作业的活动。
                 transitions.Add(
                     $"{activity.OperationName} due {activity.GetTagItem(DueTimeTag)} ended {activity.StartTimeUtc + activity.Duration:O}: "
                     + $"{activity.GetTagItem(StatusTag) ?? activity.Status.ToString()}");

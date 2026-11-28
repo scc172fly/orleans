@@ -5,8 +5,8 @@ using UnitTests.GrainInterfaces;
 namespace UnitTests.Grains;
 
 /// <summary>
-/// 无国籍工人的(未停止)启动(尚未停止)运行轨道 grains 测试可以进行
-/// 在整个停用赛事中,每个silo 配置的同时激活限值从未超过。
+/// 跟踪无状态工作者 Grain 仍存活（尚未停用）的激活实例，使测试能够断言
+/// 停用竞争过程中始终不会超过配置的每 Silo 并发激活数量上限。
 /// </summary>
 public sealed class StatelessWorkerSingleActivationTracker
 {

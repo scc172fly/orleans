@@ -4,16 +4,16 @@ using System;
 namespace Orleans
 {
     /// <summary>
-    /// 当应用到选项类别上的属性时, 此属性将防止通过符合 <see cref="IOptionFormatter"/> 实例的格式格式化属性值。
+    /// 将此特性应用于选项类的属性时，符合此约定的 <see cref="IOptionFormatter"/> 实例不会直接格式化该属性的值。
     /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public class RedactAttribute : Attribute
     {
         /// <summary>
-        /// 重编所提供的值 。
+        /// 隐去所提供值中的敏感信息。
         /// </summary>
-        /// <param name="value">数值。</param>
-        /// <returns>修改的值。</returns>
+        /// <param name="value">值。</param>
+        /// <returns>隐去敏感信息后的值。</returns>
         public virtual string Redact(object? value)
         {
             return "REDACTED";
@@ -21,16 +21,16 @@ namespace Orleans
     }
 
     /// <summary>
-    /// 当应用到选项类上的连接字符串属性时, 此属性将防止属性值通过符合 <see cref="IOptionFormatter"/> 实例的格式格式化。
+    /// 将此特性应用于选项类的连接字符串属性时，符合此约定的 <see cref="IOptionFormatter"/> 实例不会直接格式化该属性的值。
     /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public class RedactConnectionStringAttribute : RedactAttribute
     {
         /// <summary>
-        /// 重编所提供的值 。
+        /// 隐去所提供值中的敏感信息。
         /// </summary>
-        /// <param name="value">数值。</param>
-        /// <returns>修改的值。</returns>
+        /// <param name="value">值。</param>
+        /// <returns>隐去敏感信息后的值。</returns>
         public override string Redact(object? value)
         {
             return ConfigUtilities.RedactConnectionStringInfo(value as string);

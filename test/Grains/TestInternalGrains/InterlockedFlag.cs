@@ -16,7 +16,7 @@ namespace UnitTests.TestHelper
 
         public bool TrySet()
         {
-            // 试图设定_value;如果我们是第一个尝试这样做的人,请返回真实的;
+            // 尝试设置 _value；如果我们是第一个尝试设置它的调用者，则返回 true；
             return 0 == Interlocked.CompareExchange(ref _value, 1, 0);
         }
 

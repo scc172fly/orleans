@@ -10,7 +10,7 @@ using Xunit;
 namespace Orleans.Transactions.AzureStorage.Tests
 {
     /// <summary>
-    /// 交易后收回交易的检验 silo 失败 Azure 储存集群。
+    /// 测试使用 Azure Storage 集群成员资格管理时 Silo 故障后的事务恢复。
     /// </summary>
     [TestCategory("AzureStorage"), TestCategory("Transactions"), TestCategory("Functional")]
     [TestSuite("Functional")]

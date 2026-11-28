@@ -10,7 +10,7 @@ using Orleans.Serialization.WireProtocol;
 namespace Orleans.Serialization.Codecs
 {
     /// <summary>
-    /// <see cref="bool"/>的序列器。
+    /// <see cref="bool"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class BoolCodec : IFieldCodec<bool>
@@ -23,12 +23,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, bool value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -42,12 +42,12 @@ namespace Orleans.Serialization.Codecs
         bool IFieldCodec<bool>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static bool ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -58,7 +58,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="char"/>的序列器。
+    /// <see cref="char"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class CharCodec : IFieldCodec<char>
@@ -71,12 +71,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, char value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -90,12 +90,12 @@ namespace Orleans.Serialization.Codecs
         char IFieldCodec<char>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static char ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -106,7 +106,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="byte"/>的序列器。
+    /// <see cref="byte"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class ByteCodec : IFieldCodec<byte>
@@ -119,12 +119,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, byte value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -134,13 +134,13 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写一个字段。
+        /// 写入一个字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="expectedType">预想的类型。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="expectedType">预期类型。</param>
+        /// <param name="value">值。</param>
         /// <param name="actualType">实际类型。</param>
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] byte value, Type actualType) where TBufferWriter : IBufferWriter<byte>
             => UInt16Codec.WriteField(ref writer, fieldIdDelta, expectedType, value, actualType);
@@ -150,12 +150,12 @@ namespace Orleans.Serialization.Codecs
         byte IFieldCodec<byte>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static byte ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -166,7 +166,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="sbyte"/>的序列器。
+    /// <see cref="sbyte"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class SByteCodec : IFieldCodec<sbyte>
@@ -179,12 +179,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, sbyte value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -194,13 +194,13 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写一个字段。
+        /// 写入一个字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="expectedType">预想的类型。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="expectedType">预期类型。</param>
+        /// <param name="value">值。</param>
         /// <param name="actualType">实际类型。</param>
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] sbyte value, Type actualType) where TBufferWriter : IBufferWriter<byte>
             => Int16Codec.WriteField(ref writer, fieldIdDelta, expectedType, value, actualType);
@@ -210,12 +210,12 @@ namespace Orleans.Serialization.Codecs
         sbyte IFieldCodec<sbyte>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static sbyte ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -226,7 +226,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="ushort"/>的序列器。
+    /// <see cref="ushort"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class UInt16Codec : IFieldCodec<ushort>
@@ -236,12 +236,12 @@ namespace Orleans.Serialization.Codecs
         ushort IFieldCodec<ushort>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static ushort ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -258,12 +258,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, ushort value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -273,13 +273,13 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写一个字段。
+        /// 写入一个字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="expectedType">预想的类型。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="expectedType">预期类型。</param>
+        /// <param name="value">值。</param>
         /// <param name="actualType">实际类型。</param>
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] ushort value, Type actualType) where TBufferWriter : IBufferWriter<byte>
         {
@@ -290,7 +290,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="short"/>的序列器。
+    /// <see cref="short"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class Int16Codec : IFieldCodec<short>
@@ -303,12 +303,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, short value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -318,13 +318,13 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写一个字段。
+        /// 写入一个字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="expectedType">预想的类型。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="expectedType">预期类型。</param>
+        /// <param name="value">值。</param>
         /// <param name="actualType">实际类型。</param>
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] short value, Type actualType) where TBufferWriter : IBufferWriter<byte>
         {
@@ -338,12 +338,12 @@ namespace Orleans.Serialization.Codecs
         short IFieldCodec<short>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static short ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -354,7 +354,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="uint"/>的序列带。
+    /// <see cref="uint"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class UInt32Codec : IFieldCodec<uint>
@@ -369,12 +369,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, uint value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -386,13 +386,13 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写一个字段。
+        /// 写入一个字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="expectedType">预想的类型。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="expectedType">预期类型。</param>
+        /// <param name="value">值。</param>
         /// <param name="actualType">实际类型。</param>
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] uint value, Type actualType) where TBufferWriter : IBufferWriter<byte>
         {
@@ -408,12 +408,12 @@ namespace Orleans.Serialization.Codecs
         uint IFieldCodec<uint>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static uint ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -424,7 +424,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="int"/>的序列器。
+    /// <see cref="int"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class Int32Codec : IFieldCodec<int>
@@ -440,12 +440,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, int value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -458,13 +458,13 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写一个字段。
+        /// 写入一个字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="expectedType">预想的类型。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="expectedType">预期类型。</param>
+        /// <param name="value">值。</param>
         /// <param name="actualType">实际类型。</param>
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] int value, Type actualType) where TBufferWriter : IBufferWriter<byte>
         {
@@ -481,12 +481,12 @@ namespace Orleans.Serialization.Codecs
         int IFieldCodec<int>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static int ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -497,7 +497,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="long"/>的序列器。
+    /// <see cref="long"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class Int64Codec : IFieldCodec<long>
@@ -520,12 +520,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, long value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -545,13 +545,13 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写一个字段。
+        /// 写入一个字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="expectedType">预想的类型。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="expectedType">预期类型。</param>
+        /// <param name="value">值。</param>
         /// <param name="actualType">实际类型。</param>
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] long value, Type actualType) where TBufferWriter : IBufferWriter<byte>
         {
@@ -575,12 +575,12 @@ namespace Orleans.Serialization.Codecs
         long IFieldCodec<long>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static long ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -591,7 +591,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="long"/>的序列器。
+    /// <see cref="long"/> 的序列化器。（译注：此编解码器实际支持 ulong。）
     /// </summary>
     [RegisterSerializer]
     public sealed class UInt64Codec : IFieldCodec<ulong>
@@ -614,12 +614,12 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, ulong value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -639,13 +639,13 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 写一个字段。
+        /// 写入一个字段。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="expectedType">预想的类型。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="expectedType">预期类型。</param>
+        /// <param name="value">值。</param>
         /// <param name="actualType">实际类型。</param>
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] ulong value, Type actualType) where TBufferWriter : IBufferWriter<byte>
         {
@@ -669,12 +669,12 @@ namespace Orleans.Serialization.Codecs
         ulong IFieldCodec<ulong>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static ulong ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -686,7 +686,7 @@ namespace Orleans.Serialization.Codecs
 
 #if NET7_0_OR_GREATER
     /// <summary>
-    /// <see cref="Int128"/>的序列器。
+    /// <see cref="Int128"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class Int128Codec : IFieldCodec<Int128>
@@ -695,12 +695,12 @@ namespace Orleans.Serialization.Codecs
         void IFieldCodec<Int128>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] Int128 value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Int128 value) where TBufferWriter : IBufferWriter<byte>
             => WriteField(ref writer, fieldIdDelta, typeof(Int128), value);
@@ -736,12 +736,12 @@ namespace Orleans.Serialization.Codecs
         Int128 IFieldCodec<Int128>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static Int128 ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -756,11 +756,11 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 阅读一个没有协议框架的值。
+        /// 读取不含协议帧结构的值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
-        /// <returns>数值。</returns>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
+        /// <returns>值。</returns>
         internal static Int128 ReadRaw<TInput>(ref Reader<TInput> reader)
         {
             var byteCount = reader.ReadVarUInt32();
@@ -782,7 +782,7 @@ namespace Orleans.Serialization.Codecs
     }
 
     /// <summary>
-    /// <see cref="UInt128"/>的序列器。
+    /// <see cref="UInt128"/> 的序列化器。
     /// </summary>
     [RegisterSerializer]
     public sealed class UInt128Codec : IFieldCodec<UInt128>
@@ -791,12 +791,12 @@ namespace Orleans.Serialization.Codecs
         void IFieldCodec<UInt128>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, [System.Diagnostics.CodeAnalysis.AllowNull] Type expectedType, [System.Diagnostics.CodeAnalysis.AllowNull] UInt128 value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
 
         /// <summary>
-        /// 写入没有类型信息( 期待的类型为静态) 的字段。
+        /// 写入字段而不写入类型信息（预期类型已静态确定）。
         /// </summary>
-        /// <typeparam name="TBufferWriter">缓冲写作类型。</typeparam>
-        /// <param name="writer">作家。</param>
-        /// <param name="fieldIdDelta">字段识别符号三角形。</param>
-        /// <param name="value">数值。</param>
+        /// <typeparam name="TBufferWriter">缓冲区写入器类型。</typeparam>
+        /// <param name="writer">写入器。</param>
+        /// <param name="fieldIdDelta">字段标识符增量。</param>
+        /// <param name="value">值。</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, UInt128 value) where TBufferWriter : IBufferWriter<byte>
             => WriteField(ref writer, fieldIdDelta, typeof(UInt128), value);
@@ -832,12 +832,12 @@ namespace Orleans.Serialization.Codecs
         UInt128 IFieldCodec<UInt128>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         /// <summary>
-        /// 读取值 。
+        /// 读取一个值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
         /// <param name="field">字段。</param>
-        /// <returns>数值。</returns>
+        /// <returns>值。</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static UInt128 ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -852,11 +852,11 @@ namespace Orleans.Serialization.Codecs
         }
 
         /// <summary>
-        /// 阅读一个没有协议框架的值。
+        /// 读取不含协议帧结构的值。
         /// </summary>
-        /// <typeparam name="TInput">读者输入类型。</typeparam>
-        /// <param name="reader">读者</param>
-        /// <returns>数值。</returns>
+        /// <typeparam name="TInput">读取器的输入类型。</typeparam>
+        /// <param name="reader">读取器。</param>
+        /// <returns>值。</returns>
         internal static UInt128 ReadRaw<TInput>(ref Reader<TInput> reader)
         {
             var byteCount = reader.ReadVarUInt32();

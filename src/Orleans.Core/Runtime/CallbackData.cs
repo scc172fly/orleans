@@ -16,8 +16,8 @@ namespace Orleans.Runtime
         private readonly SharedCallbackData shared;
         private readonly IResponseCompletionSource context;
 
-        // 请求的引用描述其取消和响应超时。 信件在发送后, 身体会发生变化 :
-        // 重新审阅的信件保留其序列体,一旦重试发送后即予以释放。
+        // 请求的调用对象描述其取消方式和响应超时。消息体可能在发送后发生变化：
+        // 重试消息持有已序列化的消息体，消息体会在重试发送后释放。
         private readonly IInvokable? _invokable;
         private readonly long _startTimestamp;
         private int _state;
@@ -36,7 +36,7 @@ namespace Orleans.Runtime
             _startTimestamp = shared.TimeProvider.GetTimestamp();
         }
 
-        public Message Message { get; } // 可能持有应急管道使用的元数据
+        public Message Message { get; } // 可能包含响应管道使用的元数据。
 
         public bool IsCompleted => (Volatile.Read(ref _state) & StateCompleted) != 0;
 
@@ -90,9 +90,9 @@ namespace Orleans.Runtime
 
         private void SignalCancellation()
         {
-            // 只取消荣誉取消标记的请求 。
-            // 并非所有目标支持 IGrainCallCancellationExtension,因此在这种情况下发送取消通知可能导致错误。
-            // 如果目标方法不支持取消,则有可能取消基础设施层的要求。
+            // 仅取消遵循取消令牌的请求。
+            // 并非所有目标都支持 IGrainCallCancellationExtension，因此在这些情况下发送取消消息可能导致错误。
+            // 基础设施层本可以取消某些请求，但如果目标方法不支持取消，此处就不会利用这些机会。
             if (_invokable is { IsCancellable: true })
             {
                 shared.CancellationManager?.SignalCancellation(Message.TargetSilo, Message.TargetGrain, Message.SendingGrain, Message.Id);
@@ -105,18 +105,18 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 将此呼叫的目标移动到 silo 之后,该申请即为所有者 silo 已经接受了
+        /// 在新的 Silo 接受请求后，将此调用的目标移至现在拥有该请求的 Silo。
         /// </summary>
-        /// <param name="targetSilo">下 silo 请求所在的当前主机。</param>
-        /// <param name="forwardCount">请求的前方数 <paramref name="targetSilo"/>,命令重新瞄准同一呼叫。</param>
-        /// <param name="isDeadSilo">确定一个 silo 是否被宣布为已死亡。如果 <paramref name="targetSilo"/> 已经死亡,该呼叫失败。</param>
-        /// <returns><see langword="true"/> 如果调用目标重新瞄准; <see langword="false"/> 如果重用目标被取代。</returns>
+        /// <param name="targetSilo">当前承载请求的 Silo。</param>
+        /// <param name="forwardCount">请求在 <paramref name="targetSilo"/> 处的转发次数，用于确定同一调用的多次目标变更顺序。</param>
+        /// <param name="isDeadSilo">确定 Silo 是否已被声明死亡。如果 <paramref name="targetSilo"/> 已死亡，则调用失败。</param>
+        /// <returns><see langword="true"/> 表示已变更调用目标；<see langword="false"/> 表示该次目标变更已被后续变更取代。</returns>
         /// <remarks>
-        /// 重新瞄准完成的比赛对呼叫结果没有影响, 它只会向新目标宣传取消请求。
+        /// 与调用完成发生竞争的目标变更不会影响调用结果。它只会将已请求的取消传播到新目标。
         /// </remarks>
         public bool TryRetarget(SiloAddress targetSilo, int forwardCount, Func<SiloAddress, bool> isDeadSilo)
         {
-            // 电话拥有它的信息, 只有这个类才锁定它, 所以信息可以作为锁, 而不给每个待拨的电话添加字段 。
+            // 此调用拥有其消息，且只有此类会锁定该消息，因此可将消息本身用作锁，避免为每个待完成调用添加字段。
             lock (Message)
             {
                 if (forwardCount <= Message.ForwardCount)
@@ -128,15 +128,15 @@ namespace Orleans.Runtime
                 Message.TargetSilo = targetSilo;
             }
 
-            // 在观测取消前先公布新目标,这样,要么这个目标,要么 OnCancellation 表示新目标。
+            // 在观察取消状态之前发布新目标，使此处或 OnCancellation 中至少有一方通知新目标。
             Interlocked.MemoryBarrier();
             if ((Volatile.Read(ref _state) & StateCancellationRequested) != 0)
             {
                 SignalCancellation();
             }
 
-            // 新目标的失灵扫描只完成它观察到的针对 silo的通话。
-            // 成员 silo 搜索之前死前打扫, 所以扫瞄观察这个目标重瞄准 或者检查观察死亡。
+            // 新目标的故障清理只会完成它观察到的、以该 Silo 为目标的调用。
+            // 成员资格管理先将 Silo 标记为死亡，再清理其调用，因此清理要么观察到此次目标变更，要么此处的检查观察到其死亡。
             if (isDeadSilo(targetSilo))
             {
                 OnTargetSiloFail(targetSilo);
@@ -174,16 +174,16 @@ namespace Orleans.Runtime
         {
             Interlocked.Or(ref _state, StateCancellationRequested);
 
-            // 如果启用等待确认功能, 只需向远程 grain 信号即取消
-            // 请求并返回。
+            // 如果启用了等待确认，则只需向远程 Grain 发出取消请求信号，
+            // 然后返回。
             if (shared.WaitForCancellationAcknowledgement)
             {
                 SignalCancellation();
                 return;
             }
 
-            // 否则,立即取消请求,不等待被传唤人确认
-            // 请求取消。 仍然会发出被调用者的信号 。
+            // 否则立即取消请求，无需等待被调用方确认
+            // 取消请求。仍然会向被调用方发出取消信号。
             if (!TryComplete())
             {
                 return;
@@ -208,7 +208,7 @@ namespace Orleans.Runtime
             RecordElapsedTime();
             if (shared.CancelRequestOnTimeout)
             {
-                // 在发出信号前先记录请求,这样同时重新瞄准的目标也表示其新目标。
+                // 在发出信号之前记录取消请求，以便并发发生的目标变更也能向新目标发出信号。
                 Interlocked.Or(ref _state, StateCancellationRequested);
                 SignalCancellation();
             }
@@ -219,7 +219,7 @@ namespace Orleans.Runtime
 
             OrleansCallBackDataEvent.Instance.OnTimeout(this.Message);
 
-            var msg = this.Message; // 当地工作本
+            var msg = this.Message; // 本地工作副本。
 
             var statusMessage = lastKnownStatus is StatusResponse status ? $"Last known status is {status}. " : string.Empty;
             var timeout = GetResponseTimeout();
@@ -230,11 +230,11 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 调用失败,原因是 <paramref name="failedSilo"/> 无法接听,除非调用目标已改为另一个 silo。
+        /// 因 <paramref name="failedSilo"/> 变得不可用而使调用失败，除非调用此后已改为指向另一个 Silo。
         /// </summary>
         public void OnTargetSiloFail(SiloAddress failedSilo)
         {
-            // 重新瞄准目标时改变此锁定下的目标, 所以只有当仍然针对失败的 silo时呼叫才会失败 。
+            // 在此锁的保护下变更调用目标，因此只有仍以故障 Silo 为目标的调用才会失败。
             lock (Message)
             {
                 if (!failedSilo.Equals(Message.TargetSilo) || !TryComplete())
@@ -283,7 +283,7 @@ namespace Orleans.Runtime
             RecordElapsedTime();
             DisposeCancellationRegistration();
 
-            // 将您调回 CallbackData 锁外。 只是没有为此不相关的操作锁定好的做法 。
+            // 在 CallbackData 锁外执行回调。为这个无关的操作持有锁并不是良好实践。
             ResponseCallback(response, this.context);
         }
 
@@ -300,7 +300,7 @@ namespace Orleans.Runtime
 
         private void DisposeCancellationRegistration()
         {
-            // 如果登记仍有待办理,其出版商将观察完成并处理。
+            // 如果注册仍未完成，则发布该注册的一方会观察到调用完成，并释放该注册。
             if ((Volatile.Read(ref _state) & StateCancellationRegistrationPublished) != 0)
             {
                 _cancellationTokenRegistration.Dispose();
@@ -323,7 +323,7 @@ namespace Orleans.Runtime
             }
             catch (Exception exc)
             {
-                // 抓住例外,然后用它来打破承诺。
+                // 捕获异常，并用该异常使异步结果进入失败状态。
                 context.Complete(Response.FromException(exc));
             }
 

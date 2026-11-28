@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 唯一能识别 grain 激活的标识 。
+    /// 唯一标识一个 Grain 激活实例。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     [JsonConverter(typeof(ActivationIdConverter))]
@@ -23,25 +23,25 @@ namespace Orleans.Runtime
         /// <summary>
         /// 初始化 <see cref="ActivationId"/> 结构的新实例。
         /// </summary>
-        /// <param name="key">激活代号。</param>
+        /// <param name="key">激活实例 ID。</param>
         public ActivationId(Guid key) => Key = key;
 
         /// <summary>
-        /// 获得一个值,以显示此实例是否为默认实例。
+        /// 获取一个值，指示此实例是否为默认实例。
         /// </summary>
         public bool IsDefault => Key == default;
 
         /// <summary>
-        /// 返回新的随机激活代号。
+        /// 返回一个新的随机激活实例 ID。
         /// </summary>
-        /// <returns>一个新的随机激活代号。</returns>
+        /// <returns>新的随机激活实例 ID。</returns>
         public static ActivationId NewId() => new(Guid.NewGuid());
 
         /// <summary>
-        /// 返回从所提供的 grain id中确定和可复制的激活代号。
+        /// 返回根据提供的 Grain ID 以确定性、可复现的方式计算出的激活实例 ID。
         /// </summary>
-        /// <param name="grain">下 grain id. 数据。</param>
-        /// <returns>启动代号,该代号是从提供 grain id中确定和可复制计算的。</returns>
+        /// <param name="grain">Grain ID。</param>
+        /// <returns>根据提供的 Grain ID 以确定性、可复现的方式计算出的激活实例 ID。</returns>
         public static ActivationId GetDeterministic(GrainId grain)
         {
             Span<byte> temp = stackalloc byte[16];
@@ -69,16 +69,16 @@ namespace Orleans.Runtime
             => destination.TryWrite($"@{Key:N}", out charsWritten);
 
         /// <summary>
-        /// 返回此激活代号的字符串表示,该代号可以由 <see cref="FromParsableString"/>解析。
+        /// 返回此激活实例 ID 的字符串表示形式，可由 <see cref="FromParsableString"/> 解析。
         /// </summary>
-        /// <returns>此激活代号的字符串表示, 可由 <see cref="FromParsableString"/>解析 。</returns>
+        /// <returns>此激活实例 ID 的字符串表示形式，可由 <see cref="FromParsableString"/> 解析。</returns>
         public string ToParsableString() => ToString();
 
         /// <summary>
-        /// 分析使用 <see cref="ToParsableString"/>创建的激活代号的字符串表示。
+        /// 解析使用 <see cref="ToParsableString"/> 创建的激活实例 ID 的字符串表示形式。
         /// </summary>
-        /// <param name="activationId">激活id的字符串表示。</param>
-        /// <returns>激活代号。</returns>
+        /// <param name="activationId">激活实例 ID 的字符串表示形式。</param>
+        /// <returns>激活实例 ID。</returns>
         public static ActivationId FromParsableString(string activationId)
         {
             var span = activationId.AsSpan();
@@ -86,24 +86,24 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 与所提供的平等目标相比较。
+        /// 比较提供的操作数是否相等。
         /// </summary>
-        /// <param name="left">左侧操作。</param>
-        /// <param name="right">右侧操作。</param>
-        /// <returns><see langword="true"/> 如果规定的数值相等,否则 <see langword="false"/>。</returns>
+        /// <param name="left">左操作数。</param>
+        /// <param name="right">右操作数。</param>
+        /// <returns>如果提供的值相等，则返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
         public static bool operator ==(ActivationId left, ActivationId right) => left.Equals(right);
 
         /// <summary>
-        /// 比较所提供的不平等域。
+        /// 比较提供的操作数是否不相等。
         /// </summary>
-        /// <param name="left">左侧操作。</param>
-        /// <param name="right">右侧操作。</param>
-        /// <returns><see langword="true"/> 如果所提供的数值不相等,否则 <see langword="false"/>.</returns>
+        /// <param name="left">左操作数。</param>
+        /// <param name="right">右操作数。</param>
+        /// <returns>如果提供的值不相等，则返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
         public static bool operator !=(ActivationId left, ActivationId right) => !(left == right);
     }
 
     /// <summary>
-    /// 换算功能 <see cref="ActivationId"/> 与从这些天起 JSON 代表。
+    /// 提供 <see cref="ActivationId"/> 实例与其 JSON 表示形式之间的转换功能。
     /// </summary>
     public sealed class ActivationIdConverter : JsonConverter<ActivationId>
     {

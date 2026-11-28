@@ -199,7 +199,7 @@ public sealed class ShutdownMigrationGrain : Grain, IShutdownMigrationGrain, IGr
                 await ShutdownMigrationTestCoordinator.WaitForDirectoryHandoff(cancellationToken);
             }
 
-            // 移民决不能满足一个针对关闭源的提示 silo。
+            // 迁移不得遵循指向正在关闭的源 Silo 的提示。
             GrainContext.Migrate(new()
             {
                 [IPlacementDirector.PlacementHintKey] = GrainContext.Address.SiloAddress!
@@ -280,14 +280,14 @@ internal sealed class DelayedMembershipManager(MembershipTableManager inner) : I
     {
         if (status is SiloStatus.ShuttingDown)
         {
-            // 以会员提供商为模范,它需要足够长的时间来揭露同时出现的停产回扣回扣。
+            // 模拟一个耗时足够长的成员资格提供程序，以暴露并发关闭回调。
             try
             {
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // 迅速终止人为拖延,但让真正的经理公布所要求的状况。
+                // 立即结束人为延迟，但让真实的管理器发布所请求的状态。
             }
         }
 

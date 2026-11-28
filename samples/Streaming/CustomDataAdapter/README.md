@@ -1,5 +1,5 @@
 <a id="streaming-custom-data-adapter"></a>
 
-# 串流: 自定义数据适应器
+# 流：自定义数据适配器
 
-本样本示范如何使用 Orleans 与非-Orleans 出版商。外部出版商将一个流向 grain 以一个 *自定义数据调整器* 显示 Orleans 如何解释流信息 。
+本示例演示如何将 Orleans Streams 与非 Orleans 发布者一起使用。外部发布者将消息推送到流中，Grain 借助*自定义数据适配器*消费该流；适配器告知 Orleans 如何解释流消息。

@@ -8,12 +8,12 @@ using Orleans.Runtime;
 namespace Orleans.Streaming.EventHubs
 {
     /// <summary>
-    /// 存储 EventHub EventData的流件信件缓存界面
+    /// 存储 Event Hub EventData 的流消息缓存接口。
     /// </summary>
     public interface IEventHubQueueCache : IQueueFlowController, IDisposable
     {
         /// <summary>
-        /// 向缓存添加 EventHub EventData 列表。
+        /// 将 Event Hub EventData 列表添加到缓存。
         /// </summary>
         /// <param name="message"></param>
         /// <param name="dequeueTimeUtc"></param>
@@ -21,31 +21,31 @@ namespace Orleans.Streaming.EventHubs
         List<StreamPosition> Add(List<EventData> message, DateTime dequeueTimeUtc);
 
         /// <summary>
-        /// 将光标带入缓存,从流读事件。
+        /// 获取缓存游标，用于读取某个流中的事件。
         /// </summary>
-        /// <param name="streamId">流体识别符号。</param>
-        /// <param name="sequenceToken">开始阅读的位置 。</param>
-        /// <returns>获得的缓存光标。</returns>
+        /// <param name="streamId">流标识符。</param>
+        /// <param name="sequenceToken">开始读取的位置。</param>
+        /// <returns>已获取的缓存游标。</returns>
         /// <exception cref="QueueCacheMissException">
-        /// 请求的符名比缓存保存的信件要旧 。
+        /// 请求的流序列令牌早于缓存所保留的消息。
         /// </exception>
         [Obsolete("Use TryGetCursor instead.")]
         object GetCursor(StreamId streamId, StreamSequenceToken? sequenceToken);
 
         /// <summary>
-        /// 试图将光标获取到缓存以读取流中的事件 。
+        /// 尝试获取缓存游标，用于读取某个流中的事件。
         /// </summary>
-        /// <param name="streamId">流体识别符号。</param>
-        /// <param name="sequenceToken">开始阅读的位置 。</param>
+        /// <param name="streamId">流标识符。</param>
+        /// <param name="sequenceToken">开始读取的位置。</param>
         /// <returns>
-        /// 包含获得的光标的成功结果,或含有
-        /// 无法获取位置和当前缓存边框 。
+        /// 包含已获取游标的成功结果，或包含不可用位置及当前缓存边界的
+        /// 缓存未命中结果。
         /// </returns>
         QueueCacheCursorResult<object> TryGetCursor(StreamId streamId, StreamSequenceToken? sequenceToken)
         {
             try
             {
-#pragma warning disable CS0618 // Required for compatibility with providers which only implement the legacy method.
+#pragma warning disable CS0618 // 用于与仅实现旧版方法的提供程序保持兼容。
                 return QueueCacheCursorResult<object>.FromCursor(GetCursor(streamId, sequenceToken));
 #pragma warning restore CS0618
             }
@@ -57,18 +57,18 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 试图在指定订阅启动位置将光标获取到缓存 。
+        /// 尝试在指定订阅起始位置获取缓存游标。
         /// </summary>
-        /// <param name="streamId">流体识别符号。</param>
+        /// <param name="streamId">流标识符。</param>
         /// <param name="startPosition">初始订阅位置。</param>
         /// <returns>
-        /// 包含获得光标的成功结果, 含有无法的缓存错误结果
-        /// 和当前缓存边框,或 <see cref="QueueCacheCursorResultKind.NotSupported"/>。
+        /// 包含已获取游标的成功结果、包含不可用位置及当前缓存边界的
+        /// 缓存未命中结果，或 <see cref="QueueCacheCursorResultKind.NotSupported"/>。
         /// </returns>
         /// <remarks>
-        /// 默认执行使用 <see cref="TryGetCursor"/>获取最新的光标
-        /// 供应商通过采用这种方法支持尽早定位
-        /// 并返回一个光标,位置包含在流中最古老的预留信息处。
+        /// 默认实现使用 <see cref="TryGetCursor"/>
+        /// 并传入 null 令牌来获取最新游标。提供程序通过实现此方法来支持最早位置定位，
+        /// 并返回定位于该流所保留的最早消息（包含该消息）的游标。
         /// </remarks>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="startPosition"/> 未定义。</exception>
         QueueCacheCursorResult<object> TryGetCursorAtPosition(
@@ -89,38 +89,38 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 以所提供的序列符号刷新非活动光标。
+        /// 将非活动游标刷新到提供的序列令牌位置。
         /// </summary>
-        /// <param name="cursor">光标要刷新。</param>
-        /// <param name="sequenceToken">将光标定位在位置上的序列符号。</param>
+        /// <param name="cursor">要刷新的游标。</param>
+        /// <param name="sequenceToken">游标要定位到的序列令牌。</param>
         void Refresh(object cursor, StreamSequenceToken? sequenceToken) { }
 
         /// <summary>
-        /// 尝试在提供的光标的缓存中获取下一个消息 。
+        /// 尝试获取缓存中给定游标对应的下一条消息。
         /// </summary>
-        /// <param name="cursorObj">缓存光标。</param>
-        /// <param name="message">下一条消息可用时的下一个消息。</param>
-        /// <returns><see langword="true"/> 电文被退回时;否则, <see langword="false"/>。</returns>
+        /// <param name="cursorObj">缓存游标。</param>
+        /// <param name="message">下一条可用消息。</param>
+        /// <returns><see langword="true"/> 表示返回了消息；否则为 <see langword="false"/>。</returns>
         /// <exception cref="QueueCacheMissException">
-        /// 光标位置比缓存保存的信件要老。
+        /// 游标位置早于缓存所保留的消息。
         /// </exception>
         [Obsolete("Use TryGetNextMessageWithResult instead.")]
         bool TryGetNextMessage(object cursorObj, [NotNullWhen(true)] out IBatchContainer? message);
 
         /// <summary>
-        /// 试图获取所提供光标缓存中的下一个消息 。
+        /// 尝试获取缓存中给定游标对应的下一条消息。
         /// </summary>
-        /// <param name="cursorObj">缓存光标。</param>
-        /// <param name="message">下一条消息可用时的下一个消息。</param>
+        /// <param name="cursorObj">缓存游标。</param>
+        /// <param name="message">下一条可用消息。</param>
         /// <returns>
-        /// 无中点 <paramref name="message"/>、 <see cref="QueueCacheCursorMoveResultKind.NoData"/>的成功结果
-        /// 带有无效信息,或含有无效信息的缓存遗漏结果。
+        /// 包含非 null <paramref name="message"/> 的成功结果、包含 null 消息的 <see cref="QueueCacheCursorMoveResultKind.NoData"/>，
+        /// 或包含 null 消息的缓存未命中结果。
         /// </returns>
         QueueCacheCursorMoveResult TryGetNextMessageWithResult(object cursorObj, out IBatchContainer? message)
         {
             try
             {
-#pragma warning disable CS0618 // Required for compatibility with providers which only implement the legacy method.
+#pragma warning disable CS0618 // 用于与仅实现旧版方法的提供程序保持兼容。
                 if (TryGetNextMessage(cursorObj, out message))
                 {
                     return QueueCacheCursorMoveResult.Success;
@@ -139,13 +139,13 @@ namespace Orleans.Streaming.EventHubs
         }
 
         /// <summary>
-        /// 添加缓存压力监视器到缓存后压算法
+        /// 将缓存压力监视器添加到缓存的背压算法。
         /// </summary>
         /// <param name="monitor"></param>
         void AddCachePressureMonitor(ICachePressureMonitor monitor);
 
         /// <summary>
-        /// 向缓存发送清除信号, 缓存将对其缓存信件进行基于时间的清理
+        /// 向缓存发送清除信号，缓存将对已缓存消息执行基于时间的清除。
         /// </summary>
         void SignalPurge();
     }

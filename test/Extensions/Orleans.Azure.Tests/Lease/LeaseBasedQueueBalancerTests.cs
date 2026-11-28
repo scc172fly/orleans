@@ -12,7 +12,7 @@ using Xunit;
 namespace Tester.AzureUtils.Lease
 {
     /// <summary>
-    /// 存储 Azure 中基于租赁的队列平衡器功能测试,包括自动缩放和节点故障假想。
+    /// 测试 Azure Storage 中基于租约的队列负载均衡器功能，包括自动扩缩容及节点故障场景。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("AzureStorage")]
@@ -24,7 +24,7 @@ namespace Tester.AzureUtils.Lease
         private static readonly int totalQueueCount = 6;
         private static readonly short siloCount = 4;
 
-        // Azure 组合租赁必须至少15秒,以便保持超时时间,以备租期到期。
+        // Azure Blob 租约至少为 15 秒，因此应为租约到期场景保留足够长的超时时间。
         public static readonly TimeSpan TimeOut = TimeSpan.FromMinutes(2);
 
         protected override void ConfigureTestCluster(TestClusterBuilder builder)
@@ -65,14 +65,14 @@ namespace Tester.AzureUtils.Lease
         {
             var mgmtGrain = this.GrainFactory.GetGrain<IManagementGrain>(0);
             using var queueChanges = new StreamProviderQueueChangeSignal(StreamProviderName);
-            //6队列和4 silo,然后每个代理经理应拥有[1、2] 范围范围内的队列/试剂
+            //6 个队列、4 个 Silo，每个代理管理器应负责 [1, 2] 个队列/代理
             await WaitUntilAgentManagersOwnCorrectAmountOfAgents(
                 1,
                 2,
                 mgmtGrain,
                 queueChanges,
                 TestContext.Current.CancellationToken);
-            //中左一 silo、 6 队列、 3 silo, 然后每个代理经理应该拥有 2 个队列 
+            //停止一个 Silo 后有 6 个队列、3 个 Silo，每个代理管理器应负责 2 个队列
             await this.HostedCluster.StopSiloAsync(
                 this.HostedCluster.SecondarySilos[0],
                 TestContext.Current.CancellationToken);
@@ -82,7 +82,7 @@ namespace Tester.AzureUtils.Lease
                 mgmtGrain,
                 queueChanges,
                 TestContext.Current.CancellationToken);
-            //另停 silo、 6 队列、 2 silo, 然后每个代理经理应该拥有 3 个队列
+            //再停止一个 Silo 后有 6 个队列、2 个 Silo，每个代理管理器应负责 3 个队列
             await this.HostedCluster.StopSiloAsync(
                 this.HostedCluster.SecondarySilos[0],
                 TestContext.Current.CancellationToken);
@@ -92,7 +92,7 @@ namespace Tester.AzureUtils.Lease
                 mgmtGrain,
                 queueChanges,
                 TestContext.Current.CancellationToken);
-            //开始 silo、 6 队列、 3 silo, 然后每个代理管理器应拥有 2个队列
+            //启动一个 Silo 后有 6 个队列、3 个 Silo，每个代理管理器应负责 2 个队列
             this.HostedCluster.StartAdditionalSilo(true);
             await WaitUntilAgentManagersOwnCorrectAmountOfAgents(
                 2,
@@ -107,14 +107,14 @@ namespace Tester.AzureUtils.Lease
         {
             var mgmtGrain = this.GrainFactory.GetGrain<IManagementGrain>(0);
             using var queueChanges = new StreamProviderQueueChangeSignal(StreamProviderName);
-            //6队列和4 silo,然后每个代理经理应拥有[1、2] 范围范围内的队列/试剂
+            //6 个队列、4 个 Silo，每个代理管理器应负责 [1, 2] 个队列/代理
             await WaitUntilAgentManagersOwnCorrectAmountOfAgents(
                 1,
                 2,
                 mgmtGrain,
                 queueChanges,
                 TestContext.Current.CancellationToken);
-            //中左一 silo、 6 队列、 3 silo, 然后每个代理经理应该拥有 2 个队列 
+            //停止一个 Silo 后有 6 个队列、3 个 Silo，每个代理管理器应负责 2 个队列
             await KillSiloAndWaitForFailureDetection(
                 this.HostedCluster.SecondarySilos[0],
                 TestContext.Current.CancellationToken);
@@ -124,7 +124,7 @@ namespace Tester.AzureUtils.Lease
                 mgmtGrain,
                 queueChanges,
                 TestContext.Current.CancellationToken);
-            //另停 silo、 6 队列、 2 silo, 然后每个代理经理应该拥有 3 个队列
+            //再停止一个 Silo 后有 6 个队列、2 个 Silo，每个代理管理器应负责 3 个队列
             await KillSiloAndWaitForFailureDetection(
                 this.HostedCluster.SecondarySilos[0],
                 TestContext.Current.CancellationToken);
@@ -134,7 +134,7 @@ namespace Tester.AzureUtils.Lease
                 mgmtGrain,
                 queueChanges,
                 TestContext.Current.CancellationToken);
-            //开始 silo、 6 队列、 3 silo, 然后每个代理管理器应拥有 2个队列
+            //启动一个 Silo 后有 6 个队列、3 个 Silo，每个代理管理器应负责 2 个队列
             this.HostedCluster.StartAdditionalSilo(true);
             await WaitUntilAgentManagersOwnCorrectAmountOfAgents(
                 2,

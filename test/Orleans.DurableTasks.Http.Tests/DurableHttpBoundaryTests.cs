@@ -15,8 +15,8 @@ using Xunit;
 namespace Orleans.Durable.Http.Tests;
 
 /// <summary>
-/// 运行键、回回调地址和重定向,并记录
-/// 反应、重试间隔和终点公约。
+/// 在不使用集群的情况下验证此包的边界行为：操作键、回调地址和重定向、已记录的
+/// 响应、重试间隔，以及端点约定。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -28,7 +28,7 @@ public sealed class DurableHttpBoundaryTests
     [Fact]
     public void OperationKeysAreInjective()
     {
-        // 部分脱去的字符的小字母表, 使得输入可能相等和碰撞。
+        // 采用由各段需要转义的字符组成的小字符集，使相等输入与冲突输入更容易出现。
         var segment = Gen.String[Gen.Char["a:@/%"], 1, 3];
         var input = Gen.Select(segment.Array[1, 3], segment.Null(), segment);
         Gen.Select(input, input).Sample(pair =>
@@ -118,13 +118,13 @@ public sealed class DurableHttpBoundaryTests
     [Fact]
     public void CallbackClientWhosePrimaryHandlerCantBeConstrainedFailsToBuild()
     {
-        // 连接 HttpClientHandler 没有回调, 无法应用地址检查 。
+        // HttpClientHandler 在不使用回调的情况下建立连接，因此无法应用地址检查。
         using (var services = CreateCallbackServices(options => { }, builder => builder.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler())))
         {
             Assert.Throws<InvalidOperationException>(() => BuildPrimaryHandler(services));
         }
 
-        // 另一种操作器类型无法避免被重定向, 即使连接被保留在它上。
+        // 即使连接由另一类型的处理器自行负责，也无法阻止该处理器跟随重定向。
         using (var services = CreateCallbackServices(options => options.AllowAddress = null, builder => builder.ConfigurePrimaryHttpMessageHandler(() => new ForwardingHandler())))
         {
             Assert.Throws<InvalidOperationException>(() => BuildPrimaryHandler(services));
@@ -149,7 +149,7 @@ public sealed class DurableHttpBoundaryTests
 
         var id = callback.GetCallbackId();
 
-        // 旋转的证书到达同一中继 所以网钩识别码稳定
+        // 轮换后的凭据到达同一个中继，因此 webhook-id 保持稳定。
         Assert.Equal(id, (callback with { Headers = new Dictionary<string, string> { ["authorization"] = "protected-2" } }).GetCallbackId());
         Assert.NotEqual(id, (callback with { Url = new Uri("https://receiver.example/other") }).GetCallbackId());
         Assert.Equal(43, id.Length);
@@ -168,7 +168,7 @@ public sealed class DurableHttpBoundaryTests
 
         var delay = DurableCallbackRelayGrain.GetRetryDelay(retryAfter, TimeSpan.FromSeconds(backoffSeconds), max, "callback", attemptNumber: 3);
 
-        // 吉特加起来高达四分之一, 并且来自回击和尝试, 所以每次重播都等待同样的延迟。
+        // 抖动最多增加四分之一的延迟，且根据回调和执行尝试派生，因此每次重放等待相同时间。
         var expected = TimeSpan.FromSeconds(expectedSeconds);
         Assert.InRange(delay, expected, expected * 1.25);
         Assert.Equal(delay, DurableCallbackRelayGrain.GetRetryDelay(retryAfter, TimeSpan.FromSeconds(backoffSeconds), max, "callback", attemptNumber: 3));
@@ -242,7 +242,7 @@ public sealed class DurableHttpBoundaryTests
         var task = TaskId.CreateRoot("k");
         var run = new DurableOperationWork(DurableOperationWorkKind.Run, grain, "Place", task);
 
-        // 请求描述了任务尚未完成之前的呼叫,而从未开始的工作没有任务。
+        // 请求在对应任务尚未存在时描述一次调用；从未启动的工作没有对应的任务。
         Assert.True(run.IsSameWorkAs(run with { TaskId = null }));
         Assert.True(run.IsSameWorkAs(run with { Kind = DurableOperationWorkKind.NotStarted, TaskId = null }));
         Assert.False(run.IsSameWorkAs(run with { Method = "Cancel" }));
@@ -270,7 +270,7 @@ public sealed class DurableHttpBoundaryTests
             _ => new DurableTaskDeliveryException(taskId, grain, "The outbox retry timeout elapsed."),
         };
 
-        // 未经证实的开始可能已经运行, 所以它从不读安全 在新的钥匙下重新开始。
+        // 未确认的启动可能已经执行，因此绝不能将其解释为可以安全地使用新键再次启动。
         var start = DurableOperationStartException.FromScheduleFailure(exception);
         var error = DurableOperationResponses.GetError(DurableTaskResponse.FromException(start!), Options);
 
@@ -333,7 +333,7 @@ public sealed class DurableHttpBoundaryTests
 
         return handler;
     }
-    /// <summary>一种回击交付无法约束的类型的主要处理器。</summary>
+    /// <summary>回调投递无法约束其行为的某种类型的主处理器。</summary>
     private sealed class ForwardingHandler : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>

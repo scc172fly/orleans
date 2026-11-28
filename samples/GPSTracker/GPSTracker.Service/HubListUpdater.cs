@@ -6,7 +6,7 @@ using Orleans.Runtime;
 namespace GPSTracker;
 
 /// <summary>
-/// 定期更新 <see cref="IHubListGrain"/> 执行情况,并参照当地 <see cref="RemoteLocationHub"/>。
+/// 定期更新 <see cref="IHubListGrain"/> 实现，使用本地 <see cref="RemoteLocationHub"/> 的引用。
 /// </summary>
 [Reentrant]
 internal sealed class HubListUpdater : BackgroundService
@@ -34,9 +34,9 @@ internal sealed class HubListUpdater : BackgroundService
         SiloAddress localSiloAddress = _localSiloDetails.SiloAddress;
         IRemoteLocationHub selfReference = _grainFactory.CreateObjectReference<IRemoteLocationHub>(_locationBroadcaster);
 
-        // 循环运行是因为 HubListGrain 不使用任何形式的持久性,所以如果
-        // 停止时激活的主机, 然后会失去任何内部状态 。
-        // 如果修改 HubListGrain 以使用持久性,则此循环可以安全地去除。
+        // 此处循环执行是因为 HubListGrain 不使用任何形式的持久化，所以如果
+        // 托管其激活实例的宿主停止，它将丢失全部内部状态。
+        // 如果将 HubListGrain 改为使用持久化存储，则可以安全地移除此循环。
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -56,7 +56,7 @@ internal sealed class HubListUpdater : BackgroundService
                 }
                 catch
                 {
-                    // 忽略取消的例外, 因为注销由外部环处理 。
+                    // 忽略取消异常，因为外层循环负责处理取消。
                 }
             }
         }

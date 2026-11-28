@@ -5,19 +5,19 @@ using System.Runtime.CompilerServices;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 交付承诺从一名日报国家经理改为其观察者。
+/// 将一个日志状态管理器的已提交变更投递给其观察者。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 管理员在状态首次被监视时最多创建一个枢纽。 监视器由国家机器键制
-/// 以“用户”的版本标记每个修改
-/// 将记录它。 每个确认的书写都公布一个水印,
-/// 以等或低版本标记的修改,观察者只提供承诺的更改。
+/// 每个管理器最多创建一个中心，在首次观察其状态时创建。观察者以状态机
+/// 实例为键，因此无人观察的状态不会发布任何内容。每次变更都带有将捕获它的
+/// 日志写入的版本标记。每次已确认写入发布一个水位标记，提交所有
+/// 标记版本不高于该版本的变更，观察者只投递已提交变更。
 /// </para>
 /// <para>
-/// 中心站及其观察者仅限于建立中心的调度器: 启动自控的调度器,
-/// 代码 grain 、 经理的工作环和观察点数轮流。 因此, 他们的状况使用普通字段 。
-/// <see cref="StateWatcher.Signal"/> 是唯一一个其他线条从取消回调中呼叫的成员。
+/// 中心及其观察者局限于创建该中心的调度器，即所属激活实例的调度器；
+/// Grain 代码、管理器的工作循环和观察枚举在其上轮流执行，因此其状态使用普通字段。
+/// 其他线程仅从取消回调调用 <see cref="StateWatcher.Signal"/> 这一个成员。
 /// </para>
 /// </remarks>
 internal sealed class JournaledStateObservers
@@ -41,7 +41,7 @@ internal sealed class JournaledStateObservers
         Debug.Assert(TaskScheduler.Current == _scheduler, "Observation state is confined to the scheduler which created it.");
 
     /// <summary>
-    /// 吸引观察者 <paramref name="state"/>,如果它被监视。
+    /// 获取 <paramref name="state"/> 的观察者（如果它正在被观察）。
     /// </summary>
     public bool TryGetTopic(IStateMachine state, [NotNullWhen(true)] out StateTopic? topic)
     {
@@ -107,7 +107,7 @@ internal sealed class JournaledStateObservers
 }
 
 /// <summary>
-/// 观察一个州立机器事件的人
+/// 单个状态机实例的观察者。
 /// </summary>
 internal sealed class StateTopic(JournaledStateObservers hub)
 {
@@ -116,15 +116,15 @@ internal sealed class StateTopic(JournaledStateObservers hub)
     public bool IsEmpty => _watchers.Count == 0;
 
     /// <summary>
-    /// 显示一个变化, 下一期日记一旦确认该写作后, 就会写入抓取 。
+    /// 在捕获某项变更的下一次日志写入得到确认后，投递该变更。
     /// </summary>
     public void PublishStaged<TChange>(TChange change) => Publish(change, hub.Manager.StagingWriteVersion);
 
     /// <summary>
-    /// 带来反映持久状态的改变,如被恢复或删除状态。
+    /// 投递反映持久化状态的变更，例如已恢复或已删除的状态。
     /// </summary>
     /// <remarks>
-    /// 持久变化公布,而没有记录下来的文字等待确认,因此就承诺了。
+    /// 持久化变更在没有已捕获写入等待确认时发布，因此它们已提交。
     /// </remarks>
     public void PublishDurable<TChange>(TChange change)
     {
@@ -142,7 +142,7 @@ internal sealed class StateTopic(JournaledStateObservers hub)
     }
 
     /// <summary>
-    /// 所有的观察者都直接读国家
+    /// 唤醒每个直接读取状态的观察者。
     /// </summary>
     public void SignalAll()
     {
@@ -154,7 +154,7 @@ internal sealed class StateTopic(JournaledStateObservers hub)
     }
 
     /// <summary>
-    /// 直接读出国家并传达不稳定的内容草案的观察者们都惊醒了。
+    /// 唤醒直接读取状态并投递易失性草稿内容的观察者。
     /// </summary>
     public void SignalDraftReaders()
     {
@@ -190,7 +190,7 @@ internal sealed class StateTopic(JournaledStateObservers hub)
 }
 
 /// <summary>
-/// 接收发布到 <see cref="StateTopic"/>的更改。
+/// 接收发布到 <see cref="StateTopic"/> 的变更。
 /// </summary>
 internal interface IChangeSink<TChange>
 {
@@ -198,9 +198,9 @@ internal interface IChangeSink<TChange>
 }
 
 /// <summary>
-/// 一位看电视的州立机器的读者
+/// 被观察状态机的一个读取方。
 /// </summary>
-/// <remarks>成员以外的成员国 <see cref="Signal"/> 限于中心调度器内。</remarks>
+/// <remarks>除 <see cref="Signal"/> 以外的成员均局限于中心的调度器。</remarks>
 internal abstract class StateWatcher(JournaledStateObservers hub, IStateMachine state)
 {
     private readonly SingleWaiterAutoResetEvent _signal = new() { RunContinuationsAsynchronously = true };
@@ -212,7 +212,7 @@ internal abstract class StateWatcher(JournaledStateObservers hub, IStateMachine 
     public IStateMachine State { get; } = state;
 
     /// <summary>
-    /// 获得一个值, 显示观察者是否提供不稳定的内容草稿 。
+    /// 获取一个值，指示观察者是否投递易失性草稿内容。
     /// </summary>
     public virtual bool IncludesDrafts => false;
 
@@ -223,7 +223,7 @@ internal abstract class StateWatcher(JournaledStateObservers hub, IStateMachine 
     public ValueTask WaitAsync() => _signal.WaitAsync();
 
     /// <summary>
-    /// 当中心站完成后返回 <see langword="true"/> ;如果失败完成,则丢弃。
+    /// 中心完成时返回 <see langword="true"/>；若中心因失败而完成，则抛出异常。
     /// </summary>
     public bool CheckCompleted()
     {
@@ -268,18 +268,18 @@ internal abstract class StateWatcher(JournaledStateObservers hub, IStateMachine 
 }
 
 /// <summary>
-/// 提供类型 <typeparamref name="TEvent"/>的事件的监视器。
+/// 投递 <typeparamref name="TEvent"/> 类型事件的观察者。
 /// </summary>
 internal abstract class StateWatcher<TEvent>(JournaledStateObservers hub, IStateMachine state) : StateWatcher(hub, state)
 {
     /// <summary>
-    /// 阅读下个交付品事件。
+    /// 读取下一个可投递事件。
     /// </summary>
     public abstract bool TryRead(out TEvent value);
 }
 
 /// <summary>
-/// 持有价值表的最新承诺值,最多保留两个等待确认的值。
+/// 持有值观察的最新已提交值，最多保留两个等待确认的值。
 /// </summary>
 internal sealed class ValueWatcher<T> : StateWatcher<ValueChange<T>>, IChangeSink<T>
 {
@@ -287,8 +287,8 @@ internal sealed class ValueWatcher<T> : StateWatcher<ValueChange<T>>, IChangeSin
     private long _version;
     private bool _hasUnreadValue;
 
-    // 等待他们写作确认的值。 信件被确认为有序, 一次捕获, 所以
-    // 待处理值最多包括飞行中版本和下一版本。
+    // 等待各自写入确认的值。写入按顺序逐一捕获、逐一确认，因此
+    // 待提交值最多跨越在途版本和下一版本。
     private T? _pendingValue0;
     private long _pendingVersion0;
     private T? _pendingValue1;
@@ -314,7 +314,7 @@ internal sealed class ValueWatcher<T> : StateWatcher<ValueChange<T>>, IChangeSin
     {
         if (version <= CommittedVersion)
         {
-            // 持久价值取代等待确认的价值。
+            // 已持久化值取代等待确认的值。
             _pendingCount = 0;
             (_pendingValue0, _pendingValue1) = (default, default);
             SetLatest(value, version);
@@ -385,12 +385,12 @@ internal sealed class ValueWatcher<T> : StateWatcher<ValueChange<T>>, IChangeSin
 }
 
 /// <summary>
-/// 将国家执行与管理人员的观察员中心连接。
+/// 将持久化状态实现连接到所属管理器的观察者中心。
 /// </summary>
 internal static class DurableStateObservation
 {
     /// <summary>
-    /// 获取 <paramref name="state"/>的监视者。返回 <see langword="false"/> ,在未观察时不分配。
+    /// 获取 <paramref name="state"/> 的观察者。未被观察时返回 <see langword="false"/>，且不分配内存。
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryGetTopic(JournaledStateManager? manager, IStateMachine state, [NotNullWhen(true)] out StateTopic? topic)
@@ -416,8 +416,8 @@ internal static class DurableStateObservation
             state,
             static (hub, state) =>
             {
-                // 下一篇作品捕捉到肮脏价值, 飞行中记录的价值一旦被持久
-                // 已经确认写作。 否则, 无论是否在运行中, 该值已经是耐久的了 。
+                // 脏值由下一次写入捕获；在途写入捕获的值在该次
+                // 写入确认后持久化。除此之外，该值已经持久化，无论是否有不相关的在途写入。
                 var manager = hub.Manager;
                 var initialVersion = state.IsDirty
                     ? manager.StagingWriteVersion
@@ -427,7 +427,7 @@ internal static class DurableStateObservation
             cancellationToken);
 
     /// <summary>
-    /// 当查点开始并交付其活动时, 创建一个监视器, 直到中心完成或标记取消 。
+    /// 在枚举开始时创建观察者，并投递其事件，直到中心完成或令牌取消。
     /// </summary>
     public static async IAsyncEnumerable<TEvent> WatchAsync<TArg, TEvent>(
         JournaledStateManager manager,

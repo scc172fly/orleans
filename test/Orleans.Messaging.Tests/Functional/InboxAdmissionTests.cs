@@ -90,7 +90,7 @@ public sealed class InboxAdmissionTests : MessagingBehaviorTestBase
         var failure = await Assert.ThrowsAsync<IOException>(() => queued);
         Assert.Same(failure, await attempt.Grain.DeactivationFailure.Task);
         await attempt.Context.Deactivated.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
-        // 失败的泵停止了退役激活的收件箱; 后来的呼叫器被改道为新激活。
+        // 消息泵失败会停止已退出的激活实例的收件箱；后续调用方会被重新路由至新的激活实例。
         await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             await extension.DeliverAsync(attempt.Envelope, TestContext.Current.CancellationToken));
         Assert.Equal(writes + 1, Fixture.Storage.GetSuccessfulWriteCount(attempt.JournalId));
@@ -146,7 +146,7 @@ public sealed class InboxAdmissionTests : MessagingBehaviorTestBase
         _ = await receiver.GetSnapshotAsync();
         var context = Fixture.GetGrainContext(receiver);
 
-        // 泵与 grain 电话同时运行,所以握住种子的处理器,在收件箱中保持等待。
+        // 消息泵与 Grain 调用并发推进，因此阻塞初始消息的处理程序会使消息在收件箱中保持挂起。
         using var handler = Fixture.HandlerProbe.Arm(receiver.GetGrainId(), "messages/cutoff");
         IMessagingExtension extension = context.ActivationServices.GetRequiredService<Inbox>();
         Task<DeliveryResult> initial = null!;

@@ -11,10 +11,10 @@ on:
     types:
       - checks_requested
   schedule:
-    - cron: '0 6 * * 1'  # 每周在星期一6: 00世界协调时运行
+    - cron: '0 6 * * 1'  # 每周一 UTC 06:00 运行。
 
 jobs:
-  # Keep the final job id as "analyze" so CodeQL matches its analysis_key to the configuration on main.
+  # 将最终作业 ID 保持为 "analyze"，以便 CodeQL 将其 analysis_key 与 main 上的配置匹配。
   generate:
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest

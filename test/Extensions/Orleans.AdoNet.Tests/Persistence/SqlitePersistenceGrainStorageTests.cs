@@ -250,7 +250,7 @@ namespace Tester.AdoNet.Persistence
         }
 
         /// <summary>
-        /// 写入一个状态并返回行的 <c>GrainTypeString</c> 所在行的关键列
+        /// 写入一个状态并返回以下行的键列：该行的 <c>GrainTypeString</c> 为
         /// <paramref name="expectedGrainTypeString"/>.
         /// </summary>
         private async Task<(string GrainTypeString, long N0, long N1, string? Extension)> WriteAndReadKeyColumnsAsync(

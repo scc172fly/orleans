@@ -6,7 +6,7 @@ using BenchmarkGrainInterfaces.GrainStorage;
 namespace Benchmarks.GrainStorage;
 
 /// <summary>
-/// 基准 grain 储存提供者,衡量对不同储存后端的读/写操作。
+/// 通过测量不同存储后端的读写操作，对 Grain 存储提供程序进行基准测试。
 /// </summary>
 public class GrainStorageBenchmark : IDisposable
 {
@@ -90,7 +90,7 @@ public class GrainStorageBenchmark : IDisposable
         {
             hostBuilder.AddAdoNetGrainStorageAsDefault(options =>
             {
-                options.ConnectionString = TestDefaultConfiguration.DataConnectionString!; // 基准要求配置的 ADO.NET 测试连接。
+                options.ConnectionString = TestDefaultConfiguration.DataConnectionString!; // 该基准测试需要已配置的 ADO.NET 测试连接。
             });
         }
     }
@@ -121,8 +121,8 @@ public class GrainStorageBenchmark : IDisposable
 
     public async Task<List<Report>> RunAsync(int instance, Func<bool> running)
     {
-        var persistentGrain = this.host.Client!.GetGrain<IPersistentGrain>(Guid.NewGuid()); // 基准设置安排了客户的部署。
-        // 激活 grain
+        var persistentGrain = this.host.Client!.GetGrain<IPersistentGrain>(Guid.NewGuid()); // 基准测试的初始化过程会部署客户端。
+        // 激活 Grain
         await persistentGrain.Init(payloadSize);
         var iteration = instance % payloadSize;
         var reports = new List<Report>(5000);

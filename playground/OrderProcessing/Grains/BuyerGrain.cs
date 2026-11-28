@@ -8,7 +8,7 @@ public interface IBuyerGrain : IGrainWithStringKey
     Task<OrderSummary[]> GetOrdersAsync();
 }
 
-// 每位买方都投递订单状况信息,用于买方的订单清单。
+// 按买家维护的订单状态消息投影，用于提供买家的订单列表。
 public sealed class BuyerGrain : DurableGrain, IBuyerGrain
 {
     private readonly IDurableDictionary<Guid, OrderSummary> _orders;
@@ -24,7 +24,7 @@ public sealed class BuyerGrain : DurableGrain, IBuyerGrain
 
     private void HandleStatusChanged(OrderSummary summary, IInboxHandlerContext context)
     {
-        // 状态信息可按顺序发送;最高版本为最新版本。
+        // 状态消息可能乱序到达；版本号最高的消息是最新的。
         if (!_orders.TryGetValue(summary.OrderId, out var current) || current.Version < summary.Version)
         {
             _orders[summary.OrderId] = summary;

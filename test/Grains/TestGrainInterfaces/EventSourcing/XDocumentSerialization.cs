@@ -8,7 +8,7 @@ using Orleans.Serialization.Serializers;
 namespace TestGrainInterfaces;
 
 /// <summary>
-/// 用于测试的XML文件序列和深底复制。
+/// 为测试序列化并深拷贝 XML 文档。
 /// </summary>
 [RegisterSerializer]
 [RegisterCopier]

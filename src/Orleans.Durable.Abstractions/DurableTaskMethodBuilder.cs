@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace Orleans.Durable.Tasks;
 
-/// <summary>构建返回 <see cref="DurableTask"/>的编译器低调的非同步方法。</summary>
+/// <summary>构建经编译器降级转换、返回 <see cref="DurableTask"/> 的异步方法。</summary>
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Compiler method builders are mutable protocol values without an equality contract.")]
 public struct DurableTaskMethodBuilder
 {
@@ -13,13 +13,13 @@ public struct DurableTaskMethodBuilder
     private readonly VoidDurableTaskMethodInvocation Invocation
         => _invocation ?? throw new InvalidOperationException("The durable task builder has not started.");
 
-    /// <summary>获得推迟的持久任务定义。</summary>
+    /// <summary>获取延迟执行的持久化任务定义。</summary>
     public readonly DurableTask Task => Invocation;
 
-    /// <summary>创建一个构建器。</summary>
+    /// <summary>创建构建器。</summary>
     public static DurableTaskMethodBuilder Create() => new();
 
-    /// <summary>捕获 <paramref name="stateMachine"/> 而不执行。</summary>
+    /// <summary>捕获 <paramref name="stateMachine"/> 而不执行它。</summary>
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
     {
         var invocation = new VoidDurableTaskMethodInvocation<TStateMachine>();
@@ -34,13 +34,13 @@ public struct DurableTaskMethodBuilder
         Debug.Fail("The durable task builder stores its own boxed state machine.");
     }
 
-    /// <summary>完成定义,但有例外。</summary>
+    /// <summary>使定义以异常完成。</summary>
     public readonly void SetException(Exception exception) => Invocation.SetException(exception);
 
-    /// <summary>成功完成定义。</summary>
+    /// <summary>使定义成功完成。</summary>
     public readonly void SetResult() => Invocation.SetResult();
 
-    /// <summary>登记下一个州机器步骤,并配备一名安全的等待者。</summary>
+    /// <summary>通过安全等待器注册状态机的下一步。</summary>
     public readonly void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
         where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine
     {
@@ -49,7 +49,7 @@ public struct DurableTaskMethodBuilder
         awaiter.OnCompleted(invocation.MoveNextAction);
     }
 
-    /// <summary>与一位关键等待者登记下一个州机器步骤。</summary>
+    /// <summary>通过关键等待器注册状态机的下一步。</summary>
     public readonly void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
         where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine
     {
@@ -59,7 +59,7 @@ public struct DurableTaskMethodBuilder
     }
 }
 
-/// <summary>构建返回 <see cref="DurableTask{TResult}"/>的编译器低调的非同步方法。</summary>
+/// <summary>构建经编译器降级转换、返回 <see cref="DurableTask{TResult}"/> 的异步方法。</summary>
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Compiler method builders are mutable protocol values without an equality contract.")]
 public struct DurableTaskMethodBuilder<TResult>
 {
@@ -68,13 +68,13 @@ public struct DurableTaskMethodBuilder<TResult>
     private readonly DurableTaskMethodInvocation<TResult> Invocation
         => _invocation ?? throw new InvalidOperationException("The durable task builder has not started.");
 
-    /// <summary>获得推迟的持久任务定义。</summary>
+    /// <summary>获取延迟执行的持久化任务定义。</summary>
     public readonly DurableTask<TResult> Task => Invocation;
 
-    /// <summary>创建一个构建器。</summary>
+    /// <summary>创建构建器。</summary>
     public static DurableTaskMethodBuilder<TResult> Create() => new();
 
-    /// <summary>捕获 <paramref name="stateMachine"/> 而不执行。</summary>
+    /// <summary>捕获 <paramref name="stateMachine"/> 而不执行它。</summary>
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
     {
         var invocation = new DurableTaskMethodInvocation<TResult, TStateMachine>();
@@ -89,13 +89,13 @@ public struct DurableTaskMethodBuilder<TResult>
         Debug.Fail("The durable task builder stores its own boxed state machine.");
     }
 
-    /// <summary>完成定义,但有例外。</summary>
+    /// <summary>使定义以异常完成。</summary>
     public readonly void SetException(Exception exception) => Invocation.SetException(exception);
 
-    /// <summary>成功完成定义,使用 <paramref name="result"/>。</summary>
+    /// <summary>使用 <paramref name="result"/> 使定义成功完成。</summary>
     public readonly void SetResult(TResult result) => Invocation.SetResult(result);
 
-    /// <summary>登记下一个州机器步骤,并配备一名安全的等待者。</summary>
+    /// <summary>通过安全等待器注册状态机的下一步。</summary>
     public readonly void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
         where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine
     {
@@ -104,7 +104,7 @@ public struct DurableTaskMethodBuilder<TResult>
         awaiter.OnCompleted(invocation.MoveNextAction);
     }
 
-    /// <summary>与一位关键等待者登记下一个州机器步骤。</summary>
+    /// <summary>通过关键等待器注册状态机的下一步。</summary>
     public readonly void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
         where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine
     {

@@ -3,40 +3,40 @@ using System;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// 负责监测接收方的业绩计量。
+    /// 负责监控接收器性能指标。
     /// </summary>
     public interface IQueueAdapterReceiverMonitor
     {
         /// <summary>
-        /// 启动接收器的音轨尝试 。
+        /// 跟踪初始化接收器的尝试。
         /// </summary>
-        /// <param name="success">读取成功为 True, 如果读取失败为假 。</param>
-        /// <param name="callTime">启用时间。</param>
-        /// <param name="exception">启动失败时的例外。</param>
+        /// <param name="success">读取成功为 true，读取失败为 false。</param>
+        /// <param name="callTime">初始化操作耗时。</param>
+        /// <param name="exception">初始化失败时捕获的异常。</param>
         void TrackInitialization(bool success, TimeSpan callTime, Exception? exception);
 
         /// <summary>
-        /// 从分区读取音轨。 跟踪每个分区读取操作 。
+        /// 跟踪从分区读取数据的尝试，每次分区读取操作均进行跟踪。
         /// </summary>
-        /// <param name="success">读取成功为 True, 如果读取失败为假 。</param>
-        /// <param name="callTime">阅读操作所用时间。</param>
-        /// <param name="exception">读取失败时抓获的例外。</param>
+        /// <param name="success">读取成功为 true，读取失败为 false。</param>
+        /// <param name="callTime">读取操作耗时。</param>
+        /// <param name="exception">读取失败时捕获的异常。</param>
         void TrackRead(bool success, TimeSpan callTime, Exception? exception);
 
         /// <summary>
-        /// 音轨信件每读一次并使用时间, 都会被成功读取。 跟踪每个成功分区的读取操作 。
+        /// 跟踪每次成功读取的消息及耗时；每次成功的分区读取操作均进行跟踪。
         /// </summary>
-        /// <param name="count">信件已读。</param>
-        /// <param name="oldestMessageEnqueueTimeUtc">最老的电文在收件时间( UTC) 。</param>
-        /// <param name="newestMessageEnqueueTimeUtc">最新信件的收件时间( UTC)。</param>
+        /// <param name="count">读取的消息数量。</param>
+        /// <param name="oldestMessageEnqueueTimeUtc">最早消息的入队时间（UTC）。</param>
+        /// <param name="newestMessageEnqueueTimeUtc">最新消息的入队时间（UTC）。</param>
         void TrackMessagesReceived(long count, DateTime? oldestMessageEnqueueTimeUtc, DateTime? newestMessageEnqueueTimeUtc);
 
         /// <summary>
-        /// 试图关闭接收器的音轨 。
+        /// 跟踪关闭接收器的尝试。
         /// </summary>
-        /// <param name="success">读取成功为 True, 如果读取失败为假 。</param>
-        /// <param name="callTime">关闭操作时间。</param>
-        /// <param name="exception">关闭失败时被扣入例外。</param>
+        /// <param name="success">读取成功为 true，读取失败为 false。</param>
+        /// <param name="callTime">关闭操作耗时。</param>
+        /// <param name="exception">关闭失败时捕获的异常。</param>
         void TrackShutdown(bool success, TimeSpan callTime, Exception? exception);
     }
 }

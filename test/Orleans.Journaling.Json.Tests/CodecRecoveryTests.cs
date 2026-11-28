@@ -14,7 +14,7 @@ using Xunit;
 namespace Orleans.Durable.Journaling.Json.Tests;
 
 /// <summary>
-/// 测试用于核实 JSON 日记和 Orleans 二进制兼容基准的相同格式恢复情况。
+/// 测试 JSON 日志持久化及 Orleans 二进制兼容性基线的同格式恢复行为。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -22,15 +22,15 @@ namespace Orleans.Durable.Journaling.Json.Tests;
 public class CodecRecoveryTests : JournalingTestBase
 {
     /// <summary>
-    /// 用 Orleans 二进制编码器写入数据,然后读回它。
-    /// 这是基线后向兼容性测试。
+    /// 使用 Orleans 二进制编解码器写入数据，然后读回数据。
+    /// 这是向后兼容性的基准测试。
     /// </summary>
     [Fact]
     public async Task OrleansBinaryCodec_WriteAndRecover()
     {
         var storage = CreateStorage();
 
-        // 编写阶段
+        // 写入阶段。
         var sut = CreateTestSystem(storage);
         var keyCodec = CodecProvider.GetCodec<string>();
         var valueCodec = CodecProvider.GetCodec<int>();
@@ -42,7 +42,7 @@ public class CodecRecoveryTests : JournalingTestBase
         dict.Add("gamma", 3);
         await sut.Manager.WriteStateAsync(CancellationToken.None);
 
-        // 恢复阶段——新的经理,同一仓库
+        // 恢复阶段：使用新的管理器，但存储保持不变
         var sut2 = CreateTestSystem(storage);
         var keyCodec2 = CodecProvider.GetCodec<string>();
         var valueCodec2 = CodecProvider.GetCodec<int>();
@@ -56,8 +56,8 @@ public class CodecRecoveryTests : JournalingTestBase
     }
 
     /// <summary>
-    /// 用 JSON 代码编码写入数据,然后读回它。
-    /// 正确验证 JSON 格式的圆形路径。
+    /// 使用 JSON 编解码器写入数据，然后读回数据。
+    /// 验证 JSON 格式能否正确往返转换。
     /// </summary>
     [Fact]
     public async Task JsonCodec_WriteAndRecover()
@@ -65,7 +65,7 @@ public class CodecRecoveryTests : JournalingTestBase
         var storage = CreateJsonStorage();
         var jsonOptions = CreateJsonOptions();
 
-        // 编写阶段
+        // 写入阶段。
         var sut = CreateTestSystemWithJsonCodec(storage, jsonOptions);
         var dict = new DurableDictionary<string, int>("dict", sut.Manager, new JsonDurableDictionaryCommandCodec<string, int>(jsonOptions));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
@@ -91,7 +91,7 @@ public class CodecRecoveryTests : JournalingTestBase
     }
 
     /// <summary>
-    /// 使用 JSON 编码写入数据,然后核查 DurableList 圆柱。
+    /// 使用 JSON 编解码器写入数据，然后验证 DurableList 的往返转换。
     /// </summary>
     [Fact]
     public async Task JsonCodec_DurableList_WriteAndRecover()
@@ -99,7 +99,7 @@ public class CodecRecoveryTests : JournalingTestBase
         var storage = CreateJsonStorage();
         var jsonOptions = CreateJsonOptions();
 
-        // 编写阶段
+        // 写入阶段。
         var sut = CreateTestSystemWithJsonCodec(storage, jsonOptions);
         var list = new DurableList<string>("list", sut.Manager, new JsonDurableListCommandCodec<string>(jsonOptions));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
@@ -121,7 +121,7 @@ public class CodecRecoveryTests : JournalingTestBase
     }
 
     /// <summary>
-    /// 使用 JSON 编码写入数据,然后核查 DurableValue 圆柱。
+    /// 使用 JSON 编解码器写入数据，然后验证 DurableValue 的往返转换。
     /// </summary>
     [Fact]
     public async Task JsonCodec_DurableValue_WriteAndRecover()
@@ -129,7 +129,7 @@ public class CodecRecoveryTests : JournalingTestBase
         var storage = CreateJsonStorage();
         var jsonOptions = CreateJsonOptions();
 
-        // 编写阶段
+        // 写入阶段。
         var sut = CreateTestSystemWithJsonCodec(storage, jsonOptions);
         var value = new DurableValue<int>("val", sut.Manager, new JsonDurableValueCommandCodec<int>(jsonOptions));
         await sut.Lifecycle.OnStart(TestContext.Current.CancellationToken);
@@ -485,7 +485,7 @@ public class CodecRecoveryTests : JournalingTestBase
         {
             ArgumentNullException.ThrowIfNull(consumer);
 
-            // 内存也读,这确定了其写作的先决条件。
+            // 内部存储同样会读取，从而建立其写入前置条件。
             await inner.ReadForWriteAsync();
             var metadata = storedJournalFormatKey is null
                 ? JournalMetadata.Empty

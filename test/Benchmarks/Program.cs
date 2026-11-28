@@ -121,7 +121,7 @@ internal class Program
             }
             GC.Collect();
             {
-                // 所有电话都是交叉的silo 这是因为召唤 silo 没有任何 grain 课类。
+                // 所有调用均为跨 Silo 调用，因为发起调用的 Silo 中没有 Grain 类。
                 Console.WriteLine("## Silo to Silo ##");
                 var test = new PingBenchmark(numSilos: 2, startClient: false, grainsOnSecondariesOnly: true);
                 test.PingConcurrentHostedClient(blocksPerWorker: 10).GetAwaiter().GetResult();
@@ -215,7 +215,7 @@ internal class Program
         },
         ["AdaptivePing"] = _ =>
         {
-            // 默认: HostedClient 模式, 带有山坡调制货币
+            // 默认：HostedClient 模式，采用爬山算法调整并发度
             var benchmark = new AdaptivePingBenchmark(AdaptivePingBenchmark.BenchmarkMode.HostedClient);
             benchmark.RunAsync().GetAwaiter().GetResult();
             benchmark.ShutdownAsync().GetAwaiter().GetResult();
@@ -384,7 +384,7 @@ internal class Program
         }
     };
 
-    // 要求将基准名称或“所有”字作为第一个参数
+    // 第一个参数必须为基准测试名称或字符串 'All'
     public static void Main(string[] args)
     {
         if (args is ["--ignore-exit-code", "8", var command, ..]

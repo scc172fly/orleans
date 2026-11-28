@@ -5,10 +5,10 @@ using System.Text.Json.Serialization;
 
 namespace Orleans.Durable.Tasks;
 
-/// <summary>确定一个等级制度内的一项持久任务。</summary>
+/// <summary>标识层次结构中的持久化任务。</summary>
 /// <remarks>
-/// 每个部分都是非空的、完善的 UTF-16 文本, 所以每个标识编码, 如 UTF-8 和 JSON,
-/// System.Text.Json 将识别符号序列成其逃脱的等级路径,通过
+/// 每个段均为非空且格式正确的 UTF-16 文本，因此标识符的各种编码（如 UTF-8 和 JSON）
+/// 都能进行无损往返转换。System.Text.Json 将标识符序列化为经过转义的层次路径，使用的转换器为
 /// <see cref="TaskIdJsonConverter"/>.
 /// </remarks>
 [JsonConverter(typeof(TaskIdJsonConverter))]
@@ -22,18 +22,18 @@ public readonly struct TaskId : IEquatable<TaskId>, IParsable<TaskId>, ISpanPars
     /// <summary>获取空标识符。</summary>
     public static TaskId None => default;
 
-    /// <summary>获得一个值, 显示该标识符是否为空。</summary>
+    /// <summary>获取一个值，指示此标识符是否为空。</summary>
     public bool IsDefault => _key is null;
 
-    /// <summary>从一个逻辑段创建根标识符。</summary>
+    /// <summary>使用一个逻辑段创建根标识符。</summary>
     /// <exception cref="ArgumentException">
-    /// <paramref name="rootSegment"/> 是 <see langword="null"/>, 空的, 或含有未受影响的 UTF-16 替代方 。
+    /// <paramref name="rootSegment"/> 为 <see langword="null"/>、空字符串，或包含未配对的 UTF-16 代理项。
     /// </exception>
     public static TaskId CreateRoot(string rootSegment) => new(HierarchicalKey.FromSegment(rootSegment));
 
-    /// <summary>通过附加一个逻辑段创建子标识符。</summary>
+    /// <summary>通过追加一个逻辑段创建子标识符。</summary>
     /// <exception cref="ArgumentException">
-    /// <paramref name="segment"/> 是 <see langword="null"/>, 空的, 或含有未受影响的 UTF-16 替代方 。
+    /// <paramref name="segment"/> 为 <see langword="null"/>、空字符串，或包含未配对的 UTF-16 代理项。
     /// </exception>
     public TaskId Child(string segment)
     {
@@ -45,47 +45,47 @@ public readonly struct TaskId : IEquatable<TaskId>, IParsable<TaskId>, ISpanPars
         return new(_key.AppendSegment(segment));
     }
 
-    /// <summary>获得树根的父标识符或 <see cref="None"/> 。</summary>
+    /// <summary>获取父标识符；若为根标识符，则返回 <see cref="None"/>。</summary>
     public TaskId Parent() => _key?.Parent is { } parent ? new(parent) : None;
 
-    /// <summary>获取此标识符的未覆盖末段。</summary>
+    /// <summary>获取此标识符未经转义的最后一个段。</summary>
     internal string LastSegment => _key?.LastSegment ?? throw new InvalidOperationException("An empty task identifier has no segments.");
 
     /// <summary>
-    /// 返回是否返回该非空身份识别特征符是
-    /// <paramref name="other"/>. <see cref="None"/> 不属于等级和返回的层次
+    /// 返回此非空标识符是否是以下标识符的祖先或与其相等：
+    /// <paramref name="other"/>。<see cref="None"/> 位于层次结构之外，因此返回
     /// <see langword="false"/>.
     /// </summary>
     public bool IsAncestorOf(TaskId other) => _key?.IsAncestorOf(other._key) is true;
 
     /// <summary>
-    /// 返回是否返回,不论该非空白标识符是
-    /// <paramref name="other"/>. <see cref="None"/> 不属于等级和返回的层次
+    /// 返回此非空标识符是否是以下标识符的后代或与其相等：
+    /// <paramref name="other"/>。<see cref="None"/> 位于层次结构之外，因此返回
     /// <see langword="false"/>.
     /// </summary>
     public bool IsDescendantOf(TaskId other) => other.IsAncestorOf(this);
 
-    /// <summary>返回是否该标识符是 <paramref name="other"/>的母。</summary>
+    /// <summary>返回此标识符是否是 <paramref name="other"/> 的父标识符。</summary>
     public bool IsParentOf(TaskId other) => _key?.IsParentOf(other._key) is true;
 
-    /// <summary>返回是否该标识符是 <paramref name="other"/>的子。</summary>
+    /// <summary>返回此标识符是否是 <paramref name="other"/> 的子标识符。</summary>
     public bool IsChildOf(TaskId other) => other.IsParentOf(this);
 
-    /// <summary>解析一条逃逸的等级路径。</summary>
+    /// <summary>解析已转义的层次结构路径。</summary>
     public static TaskId Parse(string s) => Parse(s, provider: null);
 
-    /// <summary>解析一条逃逸的等级路径。</summary>
+    /// <summary>解析已转义的层次结构路径。</summary>
     public static TaskId Parse(string s, IFormatProvider? provider)
     {
         ArgumentNullException.ThrowIfNull(s);
         return s.Length == 0 ? None : new(HierarchicalKey.Parse(s));
     }
 
-    /// <summary>试图分析一条逃脱的等级道路</summary>
+    /// <summary>尝试解析已转义的层次结构路径。</summary>
     public static bool TryParse([NotNullWhen(true)] string? s, out TaskId result)
         => TryParse(s, provider: null, out result);
 
-    /// <summary>试图分析一条逃脱的等级道路</summary>
+    /// <summary>尝试解析已转义的层次结构路径。</summary>
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out TaskId result)
     {
         if (s is null)
@@ -110,18 +110,18 @@ public readonly struct TaskId : IEquatable<TaskId>, IParsable<TaskId>, ISpanPars
         return false;
     }
 
-    /// <summary>解析一条逃逸的等级路径。</summary>
+    /// <summary>解析已转义的层次结构路径。</summary>
     public static TaskId Parse(ReadOnlySpan<char> s) => Parse(s, provider: null);
 
-    /// <summary>解析一条逃逸的等级路径。</summary>
+    /// <summary>解析已转义的层次结构路径。</summary>
     public static TaskId Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
         => s.IsEmpty ? None : new(HierarchicalKey.Parse(s));
 
-    /// <summary>试图分析一条逃脱的等级道路</summary>
+    /// <summary>尝试解析已转义的层次结构路径。</summary>
     public static bool TryParse(ReadOnlySpan<char> s, out TaskId result)
         => TryParse(s, provider: null, out result);
 
-    /// <summary>试图分析一条逃脱的等级道路</summary>
+    /// <summary>尝试解析已转义的层次结构路径。</summary>
     public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out TaskId result)
     {
         if (s.IsEmpty)
@@ -140,13 +140,13 @@ public readonly struct TaskId : IEquatable<TaskId>, IParsable<TaskId>, ISpanPars
         return false;
     }
 
-    /// <summary>将此标识符格式为逃避的等级路径。</summary>
+    /// <summary>将此标识符格式化为经过转义的层次路径。</summary>
     public override string ToString() => _key?.ToString() ?? string.Empty;
 
-    /// <summary>将此标识符格式为逃避的等级路径。</summary>
+    /// <summary>将此标识符格式化为经过转义的层次路径。</summary>
     public string ToString(string? format, IFormatProvider? formatProvider) => ToString();
 
-    /// <summary>试图将此标识符格式化为 <paramref name="destination"/>。</summary>
+    /// <summary>尝试将此标识符格式化并写入 <paramref name="destination"/>。</summary>
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
         if (_key is null)
@@ -167,16 +167,16 @@ public readonly struct TaskId : IEquatable<TaskId>, IParsable<TaskId>, ISpanPars
     /// <inheritdoc />
     public override int GetHashCode() => _key?.GetHashCode() ?? 0;
 
-    /// <summary>返回两个识别符是否相等。</summary>
+    /// <summary>返回两个标识符是否相等。</summary>
     public static bool operator ==(TaskId left, TaskId right) => left.Equals(right);
 
-    /// <summary>返回两个识别符是否不同。</summary>
+    /// <summary>返回两个标识符是否不同。</summary>
     public static bool operator !=(TaskId left, TaskId right) => !left.Equals(right);
 
-    /// <summary>将识别符格式化为逃避的等级路径。</summary>
+    /// <summary>将标识符格式化为经过转义的层次路径。</summary>
     public static explicit operator string(TaskId value) => value.ToString();
 
-    /// <summary>解析一条逃逸的等级路径。</summary>
+    /// <summary>解析已转义的层次结构路径。</summary>
     [SuppressMessage("Usage", "CA2225:Operator overloads have named alternates", Justification = "TaskId implements IParsable and exposes Parse and TryParse as the named alternatives.")]
     public static explicit operator TaskId(string value) => Parse(value);
 }
@@ -206,8 +206,8 @@ internal sealed class HierarchicalKey : IEquatable<HierarchicalKey>
     }
 
     /// <summary>
-    /// 校验一个段段: 它不是空的、完善格式好的 UTF-16 文本, 所以每个 UTF-8 或 JSON 标识符编码
-    /// 而不是用U+FFFD替代未受控制代孕,并合并不同的识别资料。
+    /// 验证一个段：它必须是非空且格式正确的 UTF-16 文本，这样标识符的每种 UTF-8 或 JSON 编码
+    /// 都能进行无损往返转换，而不是将未配对代理项替换为 U+FFFD，进而合并不同的标识符。
     /// </summary>
     private static void ValidateSegment(string segment, [CallerArgumentExpression(nameof(segment))] string? paramName = null)
     {
@@ -218,7 +218,7 @@ internal sealed class HierarchicalKey : IEquatable<HierarchicalKey>
         }
     }
 
-    /// <summary>返回 <paramref name="value"/> 中每个替代方是否都是高低对数的一部分。</summary>
+    /// <summary>返回 <paramref name="value"/> 中每个代理项是否都属于一个高位和低位代理项组成的配对。</summary>
     private static bool IsWellFormedUtf16(ReadOnlySpan<char> value)
     {
         for (var index = 0; index < value.Length; index++)
@@ -266,7 +266,7 @@ internal sealed class HierarchicalKey : IEquatable<HierarchicalKey>
     {
         result = null;
 
-        // 逃跑者是ASCII,所以路径是完善的UTF-16, 正好是每个部分都一样。
+        // 转义符是 ASCII 字符，因此当且仅当路径中的每个段均为格式正确的 UTF-16 文本时，该路径才是格式正确的 UTF-16 文本。
         if (value.IsEmpty || !IsWellFormedUtf16(value))
         {
             return false;

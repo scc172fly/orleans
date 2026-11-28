@@ -11,23 +11,23 @@ using Orleans.Runtime;
 namespace Orleans.Durable.Tasks.Runtime;
 
 /// <summary>
-/// 各个阶段的耐用 grain RPC 信件,包括延迟恢复通过 grain发件箱进行。
+/// 通过 Grain 发件箱暂存持久化 Grain RPC 消息，包括延迟恢复消息。
 /// </summary>
 /// <remarks>
-/// 发件箱首先使用后就解决了,这样,不发送信息的启动不需要信息状态。
-/// 每种电文的身份来自其发送者、接收者、任务和主题,因此重放发送器与
-/// 发送者执行时指定节点的电文
-/// 树,如附子或订户,用覆盖跑的化身的线条识别符号命名它。
-/// (见 <see cref="CallerScope"/>),所以每个运行根任务编号的根任务ID都发送带有自己身份的信息。
-/// 通讯的消散与前一次运行分开。 补全和引用是参考发送: 补全和引用
-/// 运行时提供任务存储结果的完成时间,并使用其日记表的待发
-/// 引用,作为 <see cref="IOutboxMessageSource"/>,每个有效载荷都作一次日记,发件箱报告
-/// 一个人退休后将返回运行时间。延迟恢复是 grain 给自己发的信息
-/// 与 <see cref="Envelope.DeliverAt"/> 设置为延迟的到期时间, grain延迟时间的收件箱
-/// 日记写; 其身份还包含延迟的内化、 生成和适当时间。 信号的身份也包含
-/// 名称、价值和发送运行的化身。
-/// 用户的完成身份也包含签名任务,所以每个订阅任务都有自己的
-/// 运行时间从日记状态中获取准备状态, 因此重复和废旧的恢复不会发生任何变化 。
+/// 发件箱在首次使用时才解析，因此从不发送消息的激活实例不需要消息传递状态。
+/// 每条消息的标识由其发送方、接收方、任务和主题派生，因此重放发送操作会与
+/// 待处理消息合并，而接收方对重新投递进行去重。消息中所引用的发送方执行实例
+/// 任务树中的节点（例如附接子任务或订阅者）使用传输标识符标识，该标识符包含本次运行的世代标识
+/// （参见 <see cref="CallerScope"/>），因此同一根任务 ID 的每次运行都发送具有各自标识的消息，
+/// Messaging 的去重机制将这些消息与之前运行的消息区分开来。完成通知与调用属于引用发送：
+/// 运行时根据任务存储的结果提供完成通知，并根据其日志化的待处理
+/// 调用表提供调用，作为 <see cref="IOutboxMessageSource"/>，因此每个有效载荷只写入日志一次，发件箱也将各自的
+/// 退役通知给运行时。延迟恢复消息是 Grain 向自身发送的消息，
+/// 其 <see cref="Envelope.DeliverAt"/> 设置为延迟的到期时间，Grain 自己的收件箱在该延迟的
+/// 日志写入中接受此消息；其标识还包含延迟的运行世代标识、世代编号及到期时间。信号的标识还
+/// 包含其名称、值和发送方运行的世代标识。订阅、取消订阅以及
+/// 发给订阅者的完成通知的标识还包含订阅任务，因此对任务的每次订阅都有自己专属的
+/// 消息。运行时根据日志化状态确定就绪情况，因此重复和过时的恢复消息不会产生影响。
 /// </remarks>
 internal sealed class DurableTaskMessageTransport(
     Lazy<IOutbox> outbox,
@@ -46,8 +46,8 @@ internal sealed class DurableTaskMessageTransport(
             deliverAt: null);
 
     /// <remarks>
-    /// 订户的援引日身份也涵盖订阅者,因此每次开始相同记录的记录都包含订阅者。
-    /// 独立任务订阅它。
+    /// 带有订阅者的调用的标识还包含该订阅者，因此启动同一个
+    /// 分离任务的每条记录都会订阅该任务。
     /// </remarks>
     public OutboxMessage CreateDetachedInvocation(
         GrainId sender,
@@ -86,9 +86,9 @@ internal sealed class DurableTaskMessageTransport(
     public void Send(MessageId messageId) => outbox.Value.Send(messageId);
 
     /// <remarks>
-    /// 任务与 <paramref name="taskId"/> 不同用户的完成身份也包含以下内容:
-    /// 任务,所以每次订阅一项任务,包括完成这项任务之后的
-    /// grain,自行完成。
+    /// 当订阅者的任务不同于 <paramref name="taskId"/> 时，发给该订阅者的完成通知的标识还包含该
+    /// 任务，因此对同一任务的每次订阅都能收到自己的完成通知，即使之前已向同一
+    /// Grain 投递过该任务的完成通知。
     /// </remarks>
     public MessageId GetCompletionMessageId(GrainId sender, DurableTaskSubscriber destination, TaskId taskId) =>
         CreateMessageId(
@@ -110,8 +110,8 @@ internal sealed class DurableTaskMessageTransport(
             CreateCompletion(sender, destination, taskId, response));
 
     /// <remarks>
-    /// 电文在其体中带有 <paramref name="response"/> 。
-    /// 同一订阅者,每次订阅最多收到一次这样的回复。
+    /// 消息正文携带 <paramref name="response"/>。其标识不同于发给同一订阅者的引用式完成通知的
+    /// 标识，而且每次订阅至多收到一次此类响应。
     /// </remarks>
     public void SendResponse(GrainId sender, DurableTaskSubscriber destination, TaskId taskId, DurableTaskResponse response) =>
         Send(
@@ -145,7 +145,7 @@ internal sealed class DurableTaskMessageTransport(
         };
 
     /// <remarks>
-    /// 用户的身份包括订阅者,因此不同于援引任务和其他订阅。
+    /// 标识包含订阅者，因此不同于任务的调用，也不同于其他订阅。
     /// </remarks>
     public void SendSubscription(GrainId sender, GrainId target, TaskId taskId, TaskId subscriberId) =>
         Send(
@@ -158,7 +158,7 @@ internal sealed class DurableTaskMessageTransport(
             deliverAt: null);
 
     /// <remarks>
-    /// 用户身份包括订阅者,因此不同于取消任务和其他订阅。
+    /// 标识包含订阅者，因此不同于任务的取消，也不同于其他订阅。
     /// </remarks>
     public void SendUnsubscription(GrainId sender, GrainId target, TaskId taskId, TaskId subscriberId) =>
         Send(
@@ -174,9 +174,9 @@ internal sealed class DurableTaskMessageTransport(
         subscriberId.IsDefault ? throw new ArgumentException("The subscriber id must not be empty.", nameof(subscriberId)) : subscriberId;
 
     /// <remarks>
-    /// 信件中含有取消的 <paramref name="reason"/>,如果有的话。
-    /// 目标、任务和主题:第一次取消请求确定原因,所以每次发送任务都随
-    /// 同一个
+    /// 消息携带取消的 <paramref name="reason"/>（若有）。其标识仅包含发送方、
+    /// 目标、任务及主题：第一次取消请求决定原因，因此针对同一任务的每次发送都携带
+    /// 相同的原因。
     /// </remarks>
     public void SendCancellation(GrainId sender, GrainId target, TaskId taskId, string? reason = null) =>
         Send(
@@ -187,8 +187,8 @@ internal sealed class DurableTaskMessageTransport(
             new DurableTaskCancellationMessage { TaskId = taskId, Sender = sender, CancellationReason = reason });
 
     /// <remarks>
-    /// 中止是一个带有其原因的取消信件。 它的身份与任务取消不同, 所以中止
-    /// 取消后,交货而不是对其拆卸。
+    /// 中止是带有中止原因的取消消息。它的标识与任务的取消消息不同，因此在取消之后发出的中止
+    /// 会被投递，而不会因与取消消息重复而被去重。
     /// </remarks>
     public void SendAbort(GrainId sender, GrainId target, TaskId taskId, string reason) =>
         Send(
@@ -215,12 +215,12 @@ internal sealed class DurableTaskMessageTransport(
             dueTime);
     }
 
-    /// <summary>创建一个延迟恢复的标识。</summary>
+    /// <summary>创建一次延迟恢复的标识。</summary>
     /// <remarks>
-    /// 延迟的演化、代与期时间是稳定的, 每一个重播都稳定下来, 所以重放的复合。覆盖
-    /// 当延迟的树后面一棵树记录同一任务出现延误时,内装保持了身份特性的区别。
-    /// 身份识别和生成,并涵盖适当时间,如果在清除延迟的工作标识被重新使用时,则该标识与该标识保持了区别。
-    /// 先前的恢复仍作为处理文件记录。
+    /// 延迟的运行世代标识、世代编号及到期时间在重放之间保持稳定，因此重放的恢复消息会合并。包含
+    /// 运行世代标识可确保延迟所属执行树在后续运行中记录具有相同任务
+    /// ID 和世代编号的延迟时，消息标识仍然不同；包含到期时间可确保已删除的延迟的任务 ID 被复用时，若其
+    /// 之前的恢复消息仍被记录为已处理，新消息的标识仍然不同。
     /// </remarks>
     internal static MessageId CreateResumeMessageId(
         GrainId grainId,
@@ -254,12 +254,12 @@ internal sealed class DurableTaskMessageTransport(
             CreateSignalMessageId(sender, target, taskId, name, payloadFingerprint, incarnation),
             deliverAt: null);
 
-    /// <summary>创建一个执行树运行发送的信号值的身份。</summary>
+    /// <summary>创建执行树的一次运行所发送的某个信号值的标识。</summary>
     /// <remarks>
-    /// 重放相同价值的组合发送, 接收器将其再交付复制。 包含此值
-    /// 给一个自发的信号, 并覆盖发送运行
-    /// <paramref name="incarnation"/> 给送出树的每一运行量给它自己的信息。指纹和指纹
-    /// 内衣有固定的长度, 所以它们明确先于名字。
+    /// 相同值的重放发送会合并，接收方会对其重新投递进行去重。标识包含该值，
+    /// 因此冲突值会拥有自己的消息（由接收方拒绝）；标识还包含发送方运行的
+    /// <paramref name="incarnation"/>，因此发送方执行树的每次运行都拥有自己的消息。指纹和
+    /// 运行世代标识的长度固定，因此置于名称前面时不会产生歧义。
     /// </remarks>
     internal static MessageId CreateSignalMessageId(
         GrainId sender,
@@ -297,8 +297,8 @@ internal sealed class DurableTaskMessageTransport(
         MessageId messageId,
         DateTimeOffset? deliverAt)
     {
-        // 在对正文进行序列排序之前验证任务id: TaskId 代变换器拒绝默认 TaskId
-        // 例外情形较不具体。
+        // 在序列化正文前验证任务 ID：TaskId 代理类型转换器会拒绝默认 TaskId，
+        // 但抛出的异常不够具体。
         if (taskId.IsDefault)
         {
             throw new ArgumentException("The task id must not be empty.", nameof(taskId));

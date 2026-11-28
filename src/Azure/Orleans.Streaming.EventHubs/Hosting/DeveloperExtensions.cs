@@ -3,17 +3,17 @@ using System;
 namespace Orleans.Hosting.Developer
 {
     /// <summary>
-    /// 配置生成事件枢纽流的扩展方法 Orleans silo。
+    /// 用于在 Orleans Silo 上配置生成式 Event Hubs 流的扩展方法。
     /// </summary>
     public static class SiloBuilderExtensions
     {
         /// <summary>
-        /// 添加一个名为流提供商的流,生成事件枢纽数据,用于开发和测试。
+        /// 添加用于开发和测试、可生成 Event Hubs 数据的命名流提供程序。
         /// </summary>
-        /// <param name="builder">下 silo 建筑商</param>
-        /// <param name="name">流体提供者名称。</param>
-        /// <param name="configure">用于配置流提供方的代表。</param>
-        /// <returns>下 silo 建筑商</returns>
+        /// <param name="builder">Silo 构建器。</param>
+        /// <param name="name">流提供程序名称。</param>
+        /// <param name="configure">用于配置流提供程序的委托。</param>
+        /// <returns>Silo 构建器。</returns>
         public static ISiloBuilder AddEventDataGeneratorStreams(
             this ISiloBuilder builder,
             string name,

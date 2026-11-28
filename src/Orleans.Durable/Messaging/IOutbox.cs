@@ -3,100 +3,100 @@ using System;
 namespace Orleans.Durable.Messaging;
 
 /// <summary>
-/// 与 grain日记商业状态相伴的不透明耐久信息阶段。
+/// 将不透明的持久化消息与 Grain 的日志化业务状态一同暂存。
 /// </summary>
 /// <remarks>
-/// 发件箱国家机器的无同步写作准备 建立了持久的自我觉醒 在捕捉之前。
-/// 其写作完成回馈使所捕捉的信息有资格发送。
-/// 每次提醒后都检查 grain的信件及其重新输入截止时间。信件一直等待到目的地
-/// 承认接受的持久性,确认重复,或报告最终交付结果。
-/// 发件人发送的发件日记 <see cref="InboxMessage.SentAt"/>;每次尝试、后压和回收再利用
-/// 之后再重新输入 <c>OutboxRetryTimeout</c> 。应用使用 <see cref="Send(MessageId)"/> 和
-/// <see cref="IOutboxMessageSource.OnRetired"/> 以分阶段对
-/// 与退休时一样写。
-/// 应用程序命名空间命令身份,并在其协议中定义顺序。
+/// 发件箱状态机的异步写入准备会在捕获状态前建立持久化的自唤醒机制。
+/// 写入完成回调使已捕获的消息具备分派资格。
+/// 每次唤醒都会检查 Grain 的消息及其重试截止时间。消息保持待处理状态，直到目标
+/// 确认已持久化接受、识别出重复消息，或报告终态投递结果。
+/// 发件箱将每次发送的 <see cref="InboxMessage.SentAt"/> 写入日志；每次尝试、背压和恢复都复用
+/// 此值，重试在其后的 <c>OutboxRetryTimeout</c> 时结束。应用使用 <see cref="Send(MessageId)"/> 和
+/// <see cref="IOutboxMessageSource.OnRetired"/> 将能够在崩溃后恢复的终态响应暂存到
+/// 与消息终结相同的日志写入中。
+/// 应用为命令标识划分命名空间，并在其协议中定义顺序。
 /// </remarks>
 public interface IOutbox
 {
     /// <summary>
-    /// 同步执行 grain下一份日记的离线命令 。
+    /// 同步暂存发出命令，以供 Grain 下一次日志写入。
     /// </summary>
-    /// <param name="message">完全构建的发送信件和所需接收器。</param>
+    /// <param name="message">已完整构造的发出消息及必需的接收方。</param>
     /// <remarks>
-    /// 直接发送共享有效载荷数组、信头字典和信头值数组。 在发布后保持这些对象不变 。
-    /// 等同的重复身份保留了原始电文和信头;有效载荷,可选主题,
-    /// 选项 <see cref="Envelope.DeliverAt"/>和目的地必须匹配。 在目标平等之前, 自定义信头不会更改。 冲突明显失败 。
-    /// 收件箱处理器 正在将
-    /// 调用 <see cref="IInboxHandlerContext.Complete"/>
+    /// 直接发送共享有效载荷数组、标头字典及标头值数组。发布后保持这些对象不变。
+    /// 等价的重复标识保留原始消息及标头；有效载荷、可选主题、
+    /// 可选的 <see cref="Envelope.DeliverAt"/> 和目标必须匹配。自定义标头不影响待处理意图的相等性判定。冲突会明确失败。
+    /// 收件箱处理程序在同步结束代码块中暂存发出的
+    /// 消息，然后调用 <see cref="IInboxHandlerContext.Complete"/>
     /// 或 <see cref="IInboxHandlerContext.Fail"/>。
-    /// 普通的来电者利用他们所日记的国家经理,坚持提供预告信息。
-    /// 明确写入重试保留了等待业务变动和时间安排失败后的信息。
-    /// 发送 grain 时发出的信息绕过发件箱: grain自己的收件箱阶段接受该信息
-    /// 使用 Inbox 身份规则, 完成的 ID 是重复和不同的
-    /// 正在等待的ID冲突命令。 信箱接受这样的信息, 不论它的能力和处理者如何
-    /// 注册时发送失败 <see cref="IInboxMessageSink"/> 提交报告的报告
-    /// 来做它<see cref="DeliveryResult.Backpressured"/>
+    /// 普通调用方通过其日志化状态管理器持久化暂存的消息。
+    /// 显式写入重试会在调度失败后保留待处理业务变更和消息。
+    /// 发给发送方 Grain 自身的消息绕过发件箱：该 Grain 自己的收件箱为同一次日志写入暂存消息的接受操作，
+    /// 并应用收件箱的标识规则，因此已完成的 ID 属于重复项，而使用相同 ID 的不同
+    /// 待处理命令会发生冲突。无论收件箱容量及处理程序
+    /// 注册情况如何，收件箱均允许此类消息准入；当 <see cref="IInboxMessageSink"/> 报告
+    /// <see cref="DeliveryResult.Backpressured"/> 时，发送失败。
     /// </remarks>
-    /// <exception cref="ArgumentException">信封有未定身份、无效主体或目的地,或超过身份/对象限制。</exception>
+    /// <exception cref="ArgumentException">信封标识未设置、主题或目标无效，或超出标识/主题限制。</exception>
     /// <exception cref="InvalidOperationException">
-    /// 身份冲突、 收件箱槽后压发送 grain或发件箱
-    /// 没有。
+    /// 标识发生冲突，收件箱接收器对发送给 Grain 自身的消息施加了背压，或发件箱
+    /// 不可用。
     /// </exception>
     void Send(OutboxMessage message);
 
     /// <summary>
-    /// 同步阶段, 对于 grain下一期日记的同步阶段, 即已注册的信件
-    /// <see cref="IOutboxMessageSource"/> 提供。
+    /// 同步暂存由已注册的
+    /// <see cref="IOutboxMessageSource"/> 提供的消息，以供 Grain 下一次日志写入。
     /// </summary>
-    /// <param name="messageId">注册源提供的电文 ID。</param>
+    /// <param name="messageId">消息 ID；已注册的消息源提供该 ID 对应的消息。</param>
     /// <remarks>
-    /// 发件箱日记显示电文识别和发送状态,而源头持有有效载荷和接收器,以及
-    /// 发送像一个通过 <see cref="Send(OutboxMessage)"/>的阶梯一样的信息。 在源代码中进行
-    /// 发件箱在此呼叫前声明: 发件箱现在解决源代码, 读取并验证其信息, 当无消息时失败
-    /// 提供此服务; 源的例外, 源的传播和没有进行任何操作。 在发送后, 发送失败的源
-    /// 提供有效的信息,以给条目提供无效的邮件,而不是用倒信来替换条目;见 <see cref="IOutboxMessageSource"/>。发送
-    /// 正在等待的 ID 再次与待定信件连接。 源地址
-    /// 拒绝发送 grain ;通过 <see cref="Send(OutboxMessage)"/>发送,在 grain中进行阶段
-    /// 自己的收件箱。
-    /// 重新尝试超时或 <see cref="DeliveryResult.Expired"/> 报告
-    /// <see cref="OutboxMessageRetirement.DeadLettered"/> 至源;接收器的早期结果不详,
-    /// 应用程序在启动新发送前对齐。
+    /// 发件箱记录消息 ID 和投递状态，而消息源持有有效载荷和接收方；
+    /// 消息的投递方式与通过 <see cref="Send(OutboxMessage)"/> 暂存的消息相同。在调用此方法前，先将消息暂存到消息源的
+    /// 状态中：发件箱此时解析消息源、读取并验证其消息；若无消息源提供该消息，则失败。
+    /// 消息源抛出的异常会传播，不会暂存任何变更。发送之后，如果消息源不能
+    /// 提供有效消息，则该条目转为死信；参见 <see cref="IOutboxMessageSource"/>。再次发送一个
+    /// 待处理 ID 会与待处理消息合并。若消息源将消息发送给
+    /// 发送方 Grain 自身，则拒绝该消息；请通过 <see cref="Send(OutboxMessage)"/> 发送，由它将消息暂存到 Grain
+    /// 自己的收件箱中。
+    /// 重试超时或 <see cref="DeliveryResult.Expired"/> 会向消息源报告
+    /// <see cref="OutboxMessageRetirement.DeadLettered"/>；接收方此前的处理结果未知，
+    /// 因此应用应在发起新的发送之前对该结果进行核对处理。
     /// </remarks>
     /// <exception cref="ArgumentException">
-    /// ID未设定或过长,或者源代码的邮件无效或发送地址 grain。
+    /// ID 未设置或过长，或消息源的消息无效或发给发送方 Grain 自身。
     /// </exception>
     /// <exception cref="InvalidOperationException">
-    /// 身份证明作为普通信息等待处理,没有注册来源提供,源返回了不同的身份证明
-    /// 或者发件箱无法使用 。
+    /// 该 ID 作为普通消息处于待处理状态，没有已注册的消息源提供该消息，或消息源返回了不同的 ID，
+    /// 或发件箱不可用。
     /// </exception>
     void Send(MessageId messageId);
 
     /// <summary>
-    /// 同步阶段,对于 grain下一期日记的同步阶段,删除已登记的未处理邮件
-    /// <see cref="IOutboxMessageSource"/> 提供。
+    /// 同步暂存移除由已注册的
+    /// <see cref="IOutboxMessageSource"/> 提供的待处理消息的操作，以供 Grain 下一次日志写入。
     /// </summary>
-    /// <param name="messageId">发来的信息的 ID <see cref="Send(MessageId)"/>.</param>
+    /// <param name="messageId">通过 <see cref="Send(MessageId)"/> 发送的消息 ID。</param>
     /// <returns>
-    /// <see langword="true"/> 当发件箱进行清除时; <see langword="false"/> 当没有这种电文待发时。
+    /// <see langword="true"/> 表示发件箱已暂存移除操作；<see langword="false"/> 表示没有此类待处理消息。
     /// </returns>
     /// <remarks>
-    /// 发件箱没有再试图发送
-    /// 而不呼唤 <see cref="IOutboxMessageSource.OnRetired"/>。已经飞行的尝试仍然可以提供
-    /// 仍然读取有效载荷数阵列、页头词典和页头值矩阵,
-    /// <see cref="IOutboxMessageSource.TryGetMessage"/> 返回,所以通过略去引用而不是
-    /// 重新使用它们。
+    /// 在同一次日志写入中暂存消息源释放有效载荷的操作。发件箱不会再尝试投递，
+    /// 也不会调用 <see cref="IOutboxMessageSource.OnRetired"/>。已经在进行的尝试仍可能投递该
+    /// 消息，并继续读取有效载荷数组、标头字典及标头值数组，这些对象由
+    /// <see cref="IOutboxMessageSource.TryGetMessage"/> 返回。因此，应通过丢弃引用来释放这些对象，而不是
+    /// 复用它们。
     /// </remarks>
     /// <exception cref="InvalidOperationException">
-    /// 身份证明作为普通信息正在等待,或者发件箱无法使用。
+    /// 该 ID 作为普通消息处于待处理状态，或者发件箱不可用。
     /// </exception>
     bool Withdraw(MessageId messageId);
 
-    /// <summary>注册一个源,提供通过 <see cref="Send(MessageId)"/>.</summary>
-    /// <param name="source">源。</param>
-    /// <returns>这个发件箱。</returns>
+    /// <summary>注册一个提供通过 <see cref="Send(MessageId)"/> 发送的消息的消息源。</summary>
+    /// <param name="source">消息源。</param>
+    /// <returns>此发件箱。</returns>
     /// <remarks>
-    /// 在建造或启动安装期间,在日记账恢复之前登记来源;见
-    /// <see cref="IOutboxMessageSource"/>.
+    /// 在日志恢复之前，于构造或激活准备期间注册消息源；参见
+    /// <see cref="IOutboxMessageSource"/>。
     /// </remarks>
     IOutbox Register(IOutboxMessageSource source);
 }

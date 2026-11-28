@@ -150,7 +150,7 @@ try
 catch (OperationCanceledException)
     when (cancellation.IsCancellationRequested)
 {
-    // 呼叫者请求取消 。
+    // 调用方请求取消。
 }
             // </cancel_grain_call>
         }

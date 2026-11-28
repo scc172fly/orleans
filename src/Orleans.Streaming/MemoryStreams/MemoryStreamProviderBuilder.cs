@@ -12,12 +12,12 @@ internal sealed class MemoryStreamProviderBuilder : IProviderBuilder<ISiloBuilde
 {
     public void Configure(ISiloBuilder builder, string? name, IConfigurationSection configurationSection)
     {
-        // 流动提供者根据指定的小节配置。
+        // 流提供程序通过命名配置子节进行配置。
         builder.AddMemoryStreams(name!, stream => stream.ConfigureCache(options => options.Bind(configurationSection)));
     }
 
     public void Configure(IClientBuilder builder, string? name, IConfigurationSection configurationSection)
     {
-        builder.AddMemoryStreams(name!); // 流动提供者根据指定的小节配置。
+        builder.AddMemoryStreams(name!); // 流提供程序通过命名配置子节进行配置。
     }
 }

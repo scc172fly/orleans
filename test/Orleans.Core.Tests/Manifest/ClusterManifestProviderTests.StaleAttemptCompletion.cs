@@ -11,11 +11,11 @@ using Xunit;
 namespace UnitTests.Manifest;
 
 /// <summary>
-/// 运行橡胶棒/联合审查对点网/orleans#11438的确定结果:直接显示提取
-/// 其尝试完成时仍在运行(e.g.),因为同行修理填补了每一个其他缺失的 silo
-/// ) 没有取消, 所以可以在新的尝试已经开始后完成。 在修正之前,
-/// <see cref="ClusterManifestProvider"/>的完成处理程序人无条件适用了这种完成,
-/// 腐蚀了新尝试的诊断 与国家属于被取代的状态。
+/// 测试针对 dotnet/orleans#11438 上橡皮鸭式审查/Copilot 审查所发现问题的修复：如果一次尝试结束时，某个直接清单获取操作
+/// 仍在运行（例如，对等修复先填补了所有其他缺失的 Silo），
+/// 它不会被取消，因此可能在较新的尝试已开始后才完成。修复之前，
+/// <see cref="ClusterManifestProvider"/> 的完成处理程序会无条件应用此类完成结果，
+/// 从而以已被取代的尝试的状态破坏较新尝试的诊断信息。
 /// </summary>
 public partial class ClusterManifestProviderTests
 {
@@ -26,7 +26,7 @@ public partial class ClusterManifestProviderTests
         var localSilo = CreateSiloAddress(11111, 1);
         var peer = CreateSiloAddress(11112, 1);
 
-        // 第一次尝试: 没有丢失 silos, 所以它标记并立即完成对第一次尝试的诊断。
+        // 第一次尝试：没有缺失的 Silo，因此记录并立即结束尝试 1 的诊断。
         var emptySnapshot = CreateActiveMembershipSnapshot(1, localSilo, []);
         using var membership = new TestClusterMembershipService(emptySnapshot);
         var grainFactory = Substitute.For<IInternalGrainFactory>();
@@ -37,9 +37,9 @@ public partial class ClusterManifestProviderTests
 
         var firstAttemptId = provider.LastAttemptDiagnostics!.AttemptId;
 
-        // 第二次尝试:现在缺少一个对等点, 其提取从来无法单靠自己完成( 模拟直接
-        // 端端端口修理后左接左接接左接接, 提供每个缺失 silo 用于 *下个* 尝试,所以 UpdateManifest
-        // 运行时不等待完成,它将仍然未定。
+        // 第二次尝试：现在缺失一个对等节点，且其获取操作永远不会自行完成（模拟对等修复已为
+        // *本次*尝试提供每个缺失 Silo 的清单后仍在运行的直接获取操作，因此 UpdateManifest
+        // 从不等待它）。运行时不等待其完成，它会保持挂起。
         var secondSnapshot = CreateActiveMembershipSnapshot(2, localSilo, [peer]);
         var pendingFetch = new TaskCompletionSource<GrainManifest>(TaskCreationOptions.RunContinuationsAsynchronously);
         var target = Substitute.For<ISiloManifestSystemTarget>();
@@ -53,8 +53,8 @@ public partial class ClusterManifestProviderTests
         Assert.Contains(peer, secondAttempt.PendingSilos);
         Assert.Null(secondAttempt.LastFailedSilo);
 
-        // 带有第一次(现为后被)尝试的 ID 的完成不能变换第二次尝试的
-        // 尽管其目标相同 silo ,但第二次尝试确实在等待。
+        // 携带第一次（现已被取代的）尝试 ID 的完成操作不得修改第二次尝试的
+        // 诊断信息，即使它的目标是第二次尝试确实正在等待的同一个 Silo。
         var staleFailure = new InvalidOperationException("stale fetch failure from a superseded attempt");
         MarkManifestFetchComplete(provider, firstAttemptId, peer, staleFailure);
 
@@ -65,7 +65,7 @@ public partial class ClusterManifestProviderTests
         Assert.Null(afterStaleCompletion.LastFailedSilo);
         Assert.Null(afterStaleCompletion.LastFailureMessage);
 
-        // 实际完成时,如带有当前尝试的ID,通常适用。
+        // 携带当前尝试 ID 的实际完成操作按正常方式应用。
         pendingFetch.SetResult(CreateGrainManifest());
         Assert.True(await secondUpdate);
         var final = provider.LastAttemptDiagnostics;

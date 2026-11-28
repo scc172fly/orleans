@@ -6,12 +6,12 @@ using Orleans.Diagnostics;
 namespace Orleans.Durable.Jobs;
 
 /// <summary>
-/// 帮助创造持久就业的分布式跟踪活动。
+/// 用于创建持久化作业分布式跟踪 Activity 的辅助方法。
 /// </summary>
 internal static class DurableJobsDiagnostics
 {
     /// <summary>
-    /// 用于持久工作的活动来源跨度。
+    /// 持久化作业跟踪跨度使用的 ActivitySource。
     /// </summary>
     public static ActivitySource Source { get; } = new(ActivitySources.DurableJobsActivitySourceName, "1.0.0");
 
@@ -24,7 +24,7 @@ internal static class DurableJobsDiagnostics
     private const int MaxBatchLinks = 128;
 
     /// <summary>
-    /// 返回所提供活动的 W3C <c>traceparent</c>/<c>tracestate</c> ,或者当没有 W3C活动可用时,返回两个 <see langword="null"/> 。
+    /// 返回指定 Activity 的 W3C <c>traceparent</c>/<c>tracestate</c> 值；如果没有可用的 W3C Activity，则两者均为 <see langword="null"/>。
     /// </summary>
     public static (string? TraceParent, string? TraceState) CaptureTraceContext(Activity? activity)
     {
@@ -37,7 +37,7 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// 尝试将一个长期存在的 W3C 跟踪上下文解析成 <see cref="ActivityContext"/>。
+    /// 尝试将已持久化的 W3C 跟踪上下文解析为 <see cref="ActivityContext"/>。
     /// </summary>
     public static bool TryParseTraceContext(string? traceParent, string? traceState, out ActivityContext context)
     {
@@ -51,7 +51,7 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// 启动生产者活动,以申请日程安排,并在分配工作标识符后标有工作属性。
+    /// 为调度请求启动 Producer Activity，并在分配作业 ID 后添加作业属性标签。
     /// </summary>
     public static Activity? StartScheduleActivity(in ScheduleJobRequest request)
     {
@@ -67,7 +67,7 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// 将长期存在/分配的工作身份标记附在日程安排活动之后。
+    /// 将已持久化或已分配的作业标识标签附加到调度 Activity。
     /// </summary>
     public static void SetScheduledJobTags(Activity? activity, DurableJob job)
     {
@@ -81,7 +81,7 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// 启动一项消费者活动,以开展一项持久的工作,可选择继续跟踪在安排该工作时记录的情况。
+    /// 为持久化作业的执行启动 Consumer Activity，并可选择延续调度作业时记录的跟踪。
     /// </summary>
     public static Activity? StartExecuteActivity(DurableJob job, int dequeueCount, string? runId)
     {
@@ -115,7 +115,7 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// 启动一项内部活动,涵盖执行职务时处理人的调用部分。
+    /// 启动一个覆盖作业执行中处理程序调用阶段的内部 Activity。
     /// </summary>
     public static Activity? StartHandlerActivity(DurableJob job, int dequeueCount, string? runId)
     {
@@ -138,7 +138,7 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// 记录使用 OpenTelemetry 语义-公约标记的活动的例外。
+    /// 使用 OpenTelemetry 语义约定标签将异常记录到 Activity。
     /// </summary>
     public static void SetError(Activity? activity, Exception exception)
     {
@@ -158,11 +158,11 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// 启动内部活动,将分批的持久性包装成一个工作碎片。第一个非默认
-    /// 后被捕获的上下文成为父;随后不同的上下文以 <see cref="ActivityLink"/>s记录
-    /// 以便从每个捐款时间表的追踪中 达到相应的范围
+    /// 启动一个封装作业分片批量持久化写入的内部 Activity。第一个非默认的
+    /// 捕获上下文作为父上下文；后续不同的上下文记录为 <see cref="ActivityLink"/>，
+    /// 使每个参与该批次的调度跟踪都能够关联到生成的跟踪跨度。
     /// </summary>
-    /// <typeparam name="T">待定操作类型( 必须暴露被俘的 <see cref="ActivityContext"/>).</typeparam>
+    /// <typeparam name="T">待处理操作的类型（必须公开捕获的 <see cref="ActivityContext"/>）。</typeparam>
     public static Activity? StartPersistBatchActivity<T>(IReadOnlyList<T> operations, string shardId)
         where T : class
     {
@@ -225,8 +225,8 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// 启动一个内部活动,以包住“硬状态”删除。使用后产生的存储间隔是
-    /// 与原删除请求的相同。
+    /// 启动一个封装分片状态删除操作的内部 Activity，使生成的存储跟踪跨度属于
+    /// 发起删除请求的同一条跟踪链路。
     /// </summary>
     public static Activity? StartDeleteShardActivity(ActivityContext parent, string shardId)
     {
@@ -244,8 +244,8 @@ internal static class DurableJobsDiagnostics
 
     private static ActivityContext GetCapturedContext(object operation)
     {
-        // PendingOperation 生活在内心 JournaledJobShard向公众进行宣传 CapturedContext 以无反射鸭形形式
-        // 使用专用界面将辅助器与私人类型脱钩。
+        // PendingOperation 位于 JournaledJobShard 内部。通过专用接口以无需反射的鸭子类型方式访问公开的 CapturedContext 属性，
+        // 从而使该辅助方法与私有类型解耦。
         if (operation is IHasCapturedContext capturing)
         {
             return capturing.CapturedContext;
@@ -255,8 +255,8 @@ internal static class DurableJobsDiagnostics
     }
 
     /// <summary>
-    /// 使用在后排时间捕捉到的 <see cref="ActivityContext"/> 类型执行,以便存储能够
-    /// 后作为原活动(或与原活动有关)的子孙而创建。
+    /// 由携带入队时捕获的 <see cref="ActivityContext"/> 的类型实现，以便稍后创建存储跟踪跨度，
+    /// 作为原始 Activity 的子跨度或通过链接关联到原始 Activity。
     /// </summary>
     public interface IHasCapturedContext
     {

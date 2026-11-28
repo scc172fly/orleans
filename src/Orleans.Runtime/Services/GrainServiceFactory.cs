@@ -3,17 +3,17 @@ using Orleans.Services;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 与 grain 服务互动的功能。
+    /// 提供与 Grain 服务交互的功能。
     /// </summary>
     public interface IGrainServiceFactory
     {
         /// <summary>
-        /// 输入 grain 中输入的 grain 服务引用。
-        /// 使用 grain 索引。
+        /// 将 Grain 引用转换为带类型的 Grain 服务引用。
+        /// 供 Grain 索引使用。
         /// </summary>
-        /// <typeparam name="T">下 grain 服务接口。</typeparam>
-        /// <param name="grainReference">下 grain 参考。</param>
-        /// <returns>指定 grain 服务的参考。</returns>
+        /// <typeparam name="T">Grain 服务接口。</typeparam>
+        /// <param name="grainReference">Grain 引用。</param>
+        /// <returns>指定 Grain 服务的引用。</returns>
         T CastToGrainServiceReference<T>(GrainReference grainReference) where T : IGrainService;
     }
 

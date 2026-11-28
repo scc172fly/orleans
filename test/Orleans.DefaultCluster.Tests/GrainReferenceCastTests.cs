@@ -9,10 +9,10 @@ namespace DefaultCluster.Tests
     using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
-    /// Orleans' grain 参考铸造能力的测试。
-    /// 验证 grain 引用可在兼容的接口之间安全投放,
-    /// 包括向基界面更新,在多个已安装的接口之间进行选择,
-    /// 以及无效投影的适当错误处理。测试激活前和启动后两种情景。
+    /// Orleans Grain 引用转换能力的测试。
+    /// 验证 Grain 引用可以在兼容接口之间安全转换，
+    /// 包括向上转换为基接口、在多个已实现接口之间转换，
+    /// 以及对无效转换的正确错误处理。测试激活前和激活后两种场景。
     /// </summary>
     [TestSuite("BVT")]
     [TestProvider("None")]
@@ -28,9 +28,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试基本 grain 引用投影到相同的界面类型。
-        /// 校验正确打印 grain 引用其自接口类型工作
-        /// 返回可指定给预期类型的引用。
+        /// 测试将 Grain 引用转换为相同接口类型的基本操作。
+        /// 验证将 Grain 引用转换为其自身的接口类型能够正常工作，
+        /// 并返回可赋给预期类型的引用。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public void CastGrainRefCastFromMyType()
@@ -42,9 +42,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 由同一 grain执行的多个接口之间进行切换试验。
-        /// 验证一个 grain 执行的多界面可在
-        /// 这些界面在保持适当类型关系的同时,保持适当的类型关系。
+        /// 测试同一 Grain 实现的多个接口之间的转换。
+        /// 验证实现多个接口的 Grain 可以在这些接口之间转换，
+        /// 并保持正确的类型关系。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public void CastGrainRefCastFromMyTypePolymorphic()
@@ -65,9 +65,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试在多面 grain上读者与作家界面之间的切换。
-        /// 验证能够访问实施多个相关接口的 grains
-        /// 通过不同互动观点,同时保持国家一致性。
+        /// 测试具有多种功能的 Grain 的读取器与写入器接口之间的转换。
+        /// 验证实现多个相关接口的 Grain 可通过不同的接口视图访问，
+        /// 同时保持状态一致性。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public async Task CastMultifacetRWReference()
@@ -75,7 +75,7 @@ namespace DefaultCluster.Tests
             int newValue = 3;
 
             IMultifacetWriter writer = this.GrainFactory.GetGrain<IMultifacetWriter>(1);
-            // 试验箱里不准等待
+            // 此测试用例中没有 Wait
 
             IMultifacetReader reader = writer.AsReference<IMultifacetReader>();
 
@@ -88,9 +88,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试在有清晰 grain 分辨率的界面之间进行切换。
-        /// 当 grain 引用解析时验证接口立件行为
-        /// 在铸造前,确保适当的接口兼容性检查。
+        /// 测试显式解析 Grain 后的接口转换。
+        /// 验证转换前已解析 Grain 引用时的接口转换行为，
+        /// 确保正确检查接口兼容性。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public async Task CastMultifacetRWReferenceWaitForResolve()
@@ -109,9 +109,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 无效的试镜尝试会给人适当的例外
-        /// 验证试图投出 grain 所指的非grain 类型
-        /// 产生 ArgumentException。
+        /// 测试无效转换尝试是否引发适当的异常。
+        /// 验证尝试将 Grain 引用转换为非 Grain 类型
+        /// （例如 bool）时会引发 ArgumentException。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public void CastFailInternalCastFromBadType()
@@ -120,21 +120,21 @@ namespace DefaultCluster.Tests
                 Random.Shared.Next(),
                 SimpleGrain.SimpleGrainNamePrefix);
 
-            // 试图将 grain 投入非grain 类型时失败 。
+            // 尝试将 Grain 转换为非 Grain 类型应当失败。
             Assert.Throws<ArgumentException>(() => this.internalGrainFactory.Cast(grain, typeof(bool)));
         }
 
         /// <summary>
-        /// 测试同类铸造的内置铸造机制。
-        /// 验证将 grain 投入其界面类型时是否优化
-        /// ,返回同一引用对象。
+        /// 测试相同类型转换的内部转换机制。
+        /// 验证将 Grain 转换为其自身接口类型会优化为
+        /// 空操作，返回同一引用对象。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public void CastInternalCastFromMyType()
         {
             GrainReference grain = (GrainReference)this.GrainFactory.GetGrain<ISimpleGrain>(Random.Shared.Next(), SimpleGrain.SimpleGrainNamePrefix);
 
-            // 这块石膏应该是无操作的 因为接口与最初引用的完全吻合
+            // 此转换应为空操作，因为该接口与初始引用的接口完全匹配。
             IAddressable cast = grain.Cast<ISimpleGrain>();
 
             Assert.Same(grain, cast);
@@ -142,16 +142,16 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 从源代码向基 grain 接口上调测试。
-        /// 校验从导出接口可投出 grain 引用
-        /// 遵循正常继承规则,与基本接口接轨。
+        /// 测试从派生 Grain 接口向上转换为基接口。
+        /// 验证 Grain 引用可遵循正常继承规则，从派生接口
+        /// 转换为其基接口。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public void CastInternalCastUpFromChild()
         {
             GrainReference grain = (GrainReference)this.GrainFactory.GetGrain<IGeneratorTestDerivedGrain1>(GetRandomGrainId());
 
-            // 该投影应不选,因为界面由初始参考界面执行。
+            // 此转换应为空操作，因为初始引用的接口实现了此接口。
             IAddressable cast = grain.Cast<IGeneratorTestGrain>();
 
             Assert.Same(grain, cast);
@@ -159,9 +159,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试 grain 引用通过 AsReference 方法上调预报的方法。
-        /// 校验导出 grain 引用可上向基界面
-        /// 使用 AsReference API ,同时保持类型兼容性。
+        /// 测试通过 AsReference 方法向上转换 Grain 引用。
+        /// 验证派生 Grain 引用可以使用 AsReference API 向上转换为基接口，
+        /// 并保持类型兼容性。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public void CastGrainRefUpCastFromChild()
@@ -173,9 +173,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试在 grain 分辨率后, sibling界面之间的侧投显示失败 。
-        /// 试图在不相关的界面(
-        /// 抛(下定数) InvalidCastException 时 grain 已经解决了 。
+        /// 测试 Grain 解析后同级接口之间的横向转换是否失败。
+        /// 验证当 Grain 已解析时，尝试在不相关接口（层次结构中的同级接口）
+        /// 之间转换会引发 InvalidCastException。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public async Task FailSideCastAfterResolve()
@@ -189,26 +189,26 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 测试操作在无效的侧向播放尝试后失败 。
-        /// 校验错误投出 grain 参 [ 引用上的调用方法
-        /// 扔弃 InvalidCastException 实际时间 grain 无法执行接口
+        /// 测试无效横向转换尝试后的操作是否失败。
+        /// 验证当实际 Grain 未实现相应接口时，在错误转换的 Grain 引用上
+        /// 调用方法会引发 InvalidCastException。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public async Task FailOperationAfterSideCast()
         {
             IGeneratorTestDerivedGrain1 grain = this.GrainFactory.GetGrain<IGeneratorTestDerivedGrain1>(GetRandomGrainId());
 
-            // 尚未解决 grain 参考值时, 种子工程乐观地进行
+            // Grain 引用尚未解析时，转换以乐观方式成功
             IGeneratorTestDerivedGrain2 cast = grain.AsReference<IGeneratorTestDerivedGrain2>();
 
-            // 完全解决 grain 引用时操作失败
+            // Grain 引用完全解析后，操作失败
             await Assert.ThrowsAsync<InvalidCastException>(() => cast.StringConcat("a", "b", "c"));
         }
 
         /// <summary>
-        /// 测试复杂的铸造假想,并使用连续链。
-        /// 证明无效抛射在同步持续情况下不合格,
-        /// 共同接口的有效操作继续工作。
+        /// 测试带延续操作链的复杂转换场景。
+        /// 验证在异步延续操作上下文中，无效转换能够适当地失败，
+        /// 而共同接口上的有效操作仍然正常工作。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public async Task FailSideCastAfterContinueWith()
@@ -223,14 +223,14 @@ namespace DefaultCluster.Tests
                     {
                         Assert.False(t.IsFaulted);
 
-                        // 总是允许进行种化,因此这应该成功。
+                        // 始终允许进行转换，因此此处应成功。
                         cast = grain.AsReference<IGeneratorTestDerivedGrain2>();
                     },
                     cancellationToken)
                 .ContinueWith(
                     t =>
                     {
-                        // 调用 grain 没有执行的方法,导致抛射失败。
+                        // 调用 Grain 未实现的方法，导致转换失败。
                         Assert.True(t.IsCompletedSuccessfully);
                         return cast!.StringConcat("a", "b", "c");
                     },
@@ -239,24 +239,24 @@ namespace DefaultCluster.Tests
                 .ContinueWith(
                     t =>
                     {
-                        // 在通用接口上调用一个方法,由 grain 执行。
-                        // 这不应该扔。
+                        // 调用 Grain 已实现的共同接口上的方法。
+                        // 此处不应引发异常。
                         Assert.True(t.IsFaulted);
                         return cast!.StringIsNullOrEmpty();
                     },
                     cancellationToken)
                 .Unwrap();
 
-            // 确保最后一项任务不会被丢弃。
+            // 确保最后一个任务未引发异常。
             var av2Result = await av2;
             Assert.True(av2Result);
         }
 
         /// <summary>
-        /// 测试通过多个层次的接口继承进行更新。
-        /// 校验可从孙子女界面中投出 grain 参考文献
-        /// 父母和祖父母的接口,并进行适当的类型检查
-        /// 防止无效的跨等级铸造。
+        /// 测试经过多级接口继承向上转换。
+        /// 验证 Grain 引用能够从孙级接口转换
+        /// 为父接口和祖父接口，并进行正确的类型检查，
+        /// 以防止跨层次结构的无效转换。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public void CastGrainRefUpCastFromGrandchild()
@@ -264,28 +264,28 @@ namespace DefaultCluster.Tests
             GrainReference cast;
             GrainReference grain = (GrainReference)this.GrainFactory.GetGrain<IGeneratorTestDerivedDerivedGrain>(GetRandomGrainId());
 
-            // 父母
+            // 父接口
             cast = (GrainReference)grain.AsReference<IGeneratorTestDerivedGrain2>();
             Assert.IsAssignableFrom<IGeneratorTestDerivedDerivedGrain>(cast);
             Assert.IsAssignableFrom<IGeneratorTestDerivedGrain2>(cast);
             Assert.IsAssignableFrom<IGeneratorTestGrain>(cast);
 
-            // 继承等级制度之外交叉广播不应奏效
+            // 跨继承层次结构之外的转换不应成功
             Assert.False(cast is IGeneratorTestDerivedGrain1);
 
-            // 祖父母
+            // 祖父接口
             cast = (GrainReference)grain.AsReference<IGeneratorTestGrain>();
             Assert.IsAssignableFrom<IGeneratorTestDerivedDerivedGrain>(cast);
             Assert.IsAssignableFrom<IGeneratorTestGrain>(cast);
 
-            // 继承等级制度之外交叉广播不应奏效
+            // 跨继承层次结构之外的转换不应成功
             Assert.False(cast is IGeneratorTestDerivedGrain1);
         }
 
         /// <summary>
-        /// 测试从深嵌巢衍生界面上进行检测。
-        /// 从接口中选择时验证适当类型关系
-        /// 继承等级制度深层的多个层次。
+        /// 测试从深层嵌套派生接口向上转换。
+        /// 验证从继承层次结构中深达多级的接口进行转换时，
+        /// 类型关系正确。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public void CastGrainRefUpCastFromDerivedDerivedChild()
@@ -299,9 +299,9 @@ namespace DefaultCluster.Tests
         }
 
         /// <summary>
-        /// 自播 grain 引用时测试同步操作。
-        /// 验证 grain 方法在铸完后正确调用
-        /// a grain 指其自己的接口类型。
+        /// 测试对转换为自身接口的 Grain 引用执行异步操作。
+        /// 验证将 Grain 引用转换为其自身接口类型之后，
+        /// Grain 方法调用仍能正常工作。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public async Task CastAsyncGrainRefCastFromSelf()
@@ -314,14 +314,14 @@ namespace DefaultCluster.Tests
             Assert.Equal(TaskStatus.RanToCompletion, successfulCallPromise.Status);
         }
 
-        // 待办: 执行 白框访问
+        // todo: 实现白盒访问
 #if TODO
         [Fact]
         public void CastAsyncGrainRefUpCastFromChild()
         {
-            // GeneratorTestDerivedGrain1Reference 源自 GeneratorTestGrainReference
-            // GeneratorTestDerivedGrain2Reference 源自 GeneratorTestGrainReference
-            // GeneratorTestDerivedDerivedGrainReference 源自 GeneratorTestDerivedGrain2Reference
+            // GeneratorTestDerivedGrain1Reference 派生自 GeneratorTestGrainReference。
+            // GeneratorTestDerivedGrain2Reference 派生自 GeneratorTestGrainReference。
+            // GeneratorTestDerivedDerivedGrainReference 派生自 GeneratorTestDerivedGrain2Reference。
 
             //GrainReference grain = GeneratorTestDerivedGrain1Reference.GetGrain(GetRandomGrainId());
             var lookupPromise = GrainReference.CreateGrain(
@@ -331,11 +331,11 @@ namespace DefaultCluster.Tests
 
             GrainReference cast = (GrainReference) GeneratorTestGrainFactory.Cast(grain);
             Assert.NotNull(cast);
-            //Assert.Same(类型[IGeneratorTestGrain], cast.GetType());
+            //Assert.Same(typeof(IGeneratorTestGrain), cast.GetType());
 
             if (!cast.IsResolved)
             {
-                cast.Wait(100);  // 解决 grain 参 号
+                cast.Wait(100);  // 解析 Grain 引用
             }
 
             Assert.True(cast.IsResolved);
@@ -345,9 +345,9 @@ namespace DefaultCluster.Tests
         [Fact]
         public void CastAsyncGrainRefUpCastFromGrandchild()
         {
-            // GeneratorTestDerivedGrain1Reference 源自 GeneratorTestGrainReference
-            // GeneratorTestDerivedGrain2Reference 源自 GeneratorTestGrainReference
-            // GeneratorTestDerivedDerivedGrainReference 源自 GeneratorTestDerivedGrain2Reference
+            // GeneratorTestDerivedGrain1Reference 派生自 GeneratorTestGrainReference。
+            // GeneratorTestDerivedGrain2Reference 派生自 GeneratorTestGrainReference。
+            // GeneratorTestDerivedDerivedGrainReference 派生自 GeneratorTestDerivedGrain2Reference。
 
             //GrainReference grain = GeneratorTestDerivedDerivedGrainReference.GetGrain(GetRandomGrainId());
             var lookupPromise = GrainReference.CreateGrain(
@@ -358,11 +358,11 @@ namespace DefaultCluster.Tests
 
             GrainReference cast = (GrainReference) GeneratorTestGrainFactory.Cast(grain);
             Assert.NotNull(cast);
-            //Assert.Same(类型[IGeneratorTestGrain], cast.GetType());
+            //Assert.Same(typeof(IGeneratorTestGrain), cast.GetType());
 
             if (!cast.IsResolved)
             {
-                cast.Wait(100);  // 解决 grain 参 号
+                cast.Wait(100);  // 解析 Grain 引用
             }
 
             Assert.True(cast.IsResolved);
@@ -373,9 +373,9 @@ namespace DefaultCluster.Tests
         [ExpectedExceptionAttribute(typeof(InvalidCastException))]
         public void CastAsyncGrainRefFailSideCastToPeer()
         {
-            // GeneratorTestDerivedGrain1Reference 源自 GeneratorTestGrainReference
-            // GeneratorTestDerivedGrain2Reference 源自 GeneratorTestGrainReference
-            // GeneratorTestDerivedDerivedGrainReference 源自 GeneratorTestDerivedGrain2Reference
+            // GeneratorTestDerivedGrain1Reference 派生自 GeneratorTestGrainReference。
+            // GeneratorTestDerivedGrain2Reference 派生自 GeneratorTestGrainReference。
+            // GeneratorTestDerivedDerivedGrainReference 派生自 GeneratorTestDerivedGrain2Reference。
 
             //GrainReference grain = GeneratorTestDerivedGrain1Reference.GetGrain(GetRandomGrainId());
             var lookupPromise = GrainReference.CreateGrain(
@@ -387,7 +387,7 @@ namespace DefaultCluster.Tests
             GrainReference cast = (GrainReference) GeneratorTestDerivedGrain2Factory.Cast(grain);
             if (!cast.IsResolved)
             {
-                cast.Wait(100);  // 解决 grain 参 号
+                cast.Wait(100);  // 解析 Grain 引用
             }
 
             Assert.True(false, "Exception should have been raised");
@@ -397,9 +397,9 @@ namespace DefaultCluster.Tests
         [ExpectedExceptionAttribute(typeof(InvalidCastException))]
         public void CastAsyncGrainRefFailDownCastToChild()
         {
-            // GeneratorTestDerivedGrain1Reference 源自 GeneratorTestGrainReference
-            // GeneratorTestDerivedGrain2Reference 源自 GeneratorTestGrainReference
-            // GeneratorTestDerivedDerivedGrainReference 源自 GeneratorTestDerivedGrain2Reference
+            // GeneratorTestDerivedGrain1Reference 派生自 GeneratorTestGrainReference。
+            // GeneratorTestDerivedGrain2Reference 派生自 GeneratorTestGrainReference。
+            // GeneratorTestDerivedDerivedGrainReference 派生自 GeneratorTestDerivedGrain2Reference。
 
             //GrainReference grain = GeneratorTestGrainReference.GetGrain(GetRandomGrainId());
             var lookupPromise = GrainReference.CreateGrain(
@@ -410,7 +410,7 @@ namespace DefaultCluster.Tests
             GrainReference cast = (GrainReference) GeneratorTestDerivedGrain1Factory.Cast(grain);
             if (!cast.IsResolved)
             {
-                cast.Wait(100);  // 解决 grain 参 号
+                cast.Wait(100);  // 解析 Grain 引用
             }
 
             Assert.True(false, "Exception should have been raised");
@@ -420,9 +420,9 @@ namespace DefaultCluster.Tests
         [ExpectedExceptionAttribute(typeof(InvalidCastException))]
         public void CastAsyncGrainRefFailDownCastToGrandchild()
         {
-            // GeneratorTestDerivedGrain1Reference 源自 GeneratorTestGrainReference
-            // GeneratorTestDerivedGrain2Reference 源自 GeneratorTestGrainReference
-            // GeneratorTestDerivedDerivedGrainReference 源自 GeneratorTestDerivedGrain2Reference
+            // GeneratorTestDerivedGrain1Reference 派生自 GeneratorTestGrainReference。
+            // GeneratorTestDerivedGrain2Reference 派生自 GeneratorTestGrainReference。
+            // GeneratorTestDerivedDerivedGrainReference 派生自 GeneratorTestDerivedGrain2Reference。
 
             //GrainReference grain = GeneratorTestGrainReference.GetGrain(GetRandomGrainId());
             var lookupPromise = GrainReference.CreateGrain(
@@ -433,16 +433,16 @@ namespace DefaultCluster.Tests
             GrainReference cast = (GrainReference) GeneratorTestDerivedDerivedGrainFactory.Cast(grain);
             if (!cast.IsResolved)
             {
-                cast.Wait(100);  // 解决 grain 参 号
+                cast.Wait(100);  // 解析 Grain 引用
             }
 
             Assert.True(false, "Exception should have been raised");
         }
 #endif
         /// <summary>
-        /// 测试铸造后从基界面继承的呼叫方法。
-        /// 验证基础接口中界定的方法仍然可以使用
-        /// 当使用衍生 grain 参考文献和铸造作业后的工作时。
+        /// 测试转换后调用从基接口继承的方法。
+        /// 验证基接口中定义的方法在使用派生 Grain 引用及执行转换后，
+        /// 仍然可以访问。
         /// </summary>
         [Fact, TestCategory("BVT"), TestCategory("Cast")]
         public async Task CastCallMethodInheritedFromBaseClass()

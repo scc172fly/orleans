@@ -16,7 +16,7 @@ using Benchmarks.Serialization.Utilities;
 namespace Benchmarks.Serialization.Comparison;
 
 /// <summary>
-/// 将 Orleans 的解序性能与其他各类流行的连续制导器进行比较。
+/// 比较 Orleans 与其他常用序列化器对类类型的反序列化性能。
 /// </summary>
 [Trait("Category", "Benchmark")]
 [TestSuite("Benchmark")]
@@ -24,7 +24,7 @@ namespace Benchmarks.Serialization.Comparison;
 [TestArea("Serialization")]
 [Config(typeof(BenchmarkConfig))]
 [BenchmarkCategory("Serialization")]
-//DisassemblyDiagnoser(recursiveDepth:2, printSource:真
+//[DisassemblyDiagnoser(recursiveDepth: 2, printSource: true)]
 //[EtwProfiler]
 public class ClassDeserializeBenchmark
 {
@@ -111,7 +111,7 @@ public class ClassDeserializeBenchmark
     {
         Session.Reset();
         var instance = Serializer.Deserialize(Input, Session);
-        return SumResult(instance!); // 基准输入是按序序号 IntClass。
+        return SumResult(instance!); // 基准测试的输入是序列化后的 IntClass。
     }
 
     [Benchmark]

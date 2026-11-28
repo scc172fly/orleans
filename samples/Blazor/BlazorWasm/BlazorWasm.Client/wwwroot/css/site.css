@@ -129,7 +129,7 @@ app {
     }
 
     .sidebar .collapse {
-        /* 永远不要为宽屏幕而折叠侧边栏 */
+        /* 宽屏下始终保持侧边栏展开。 */
         display: block;
     }
 }

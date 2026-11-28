@@ -41,7 +41,7 @@ namespace Orleans.Streams
         public bool IsRewindable => isRewindable;
         public string ProviderName => streamId.ProviderName;
 
-        // Orleans 序列化的构造器,否则 initLock 无效
+        // Orleans 序列化使用的构造函数，否则 initLock 为 null。
         public StreamImpl()
         {
         }
@@ -93,14 +93,14 @@ namespace Orleans.Streams
 
         public async Task Cleanup(bool cleanupProducers, bool cleanupConsumers)
         {
-            // 清洁清洁生产者
+            // 清理生产者。
             if (cleanupProducers && producerInterface != null)
             {
                 await producerInterface.Cleanup();
                 producerInterface = null;
             }
 
-            // 清洁消费者
+            // 清理消费者。
             if (cleanupConsumers && consumerInterface != null)
             {
                 await consumerInterface.Cleanup();
@@ -162,7 +162,7 @@ namespace Orleans.Streams
 
             lock (initLock)
             {
-#pragma warning disable CA1508 // Another caller can publish the producer while this caller waits for initLock.
+#pragma warning disable CA1508 // 当前调用方等待 initLock 时，其他调用方可能已发布生产者实例。
                 if (producerInterface != null)
 #pragma warning restore CA1508
                     return producerInterface;
@@ -181,7 +181,7 @@ namespace Orleans.Streams
             {
                 lock (initLock)
                 {
-#pragma warning disable CA1508 // Another caller can publish the consumer while this caller waits for initLock.
+#pragma warning disable CA1508 // 当前调用方等待 initLock 时，其他调用方可能已发布消费者实例。
                     if (consumerInterface == null)
 #pragma warning restore CA1508
                     {

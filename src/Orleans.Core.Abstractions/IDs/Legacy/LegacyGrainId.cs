@@ -9,7 +9,7 @@ using System.Text;
 namespace Orleans.Runtime
 {
     /// <summary>
-    /// 使用遗留 Orleans grain 身份编码代表标识符。
+    /// 表示使用 Orleans 旧版 Grain 标识编码的标识符。
     /// </summary>
     [Serializable, GenerateSerializer, Immutable]
     public sealed class LegacyGrainId : IEquatable<LegacyGrainId>, IComparable<LegacyGrainId>
@@ -25,22 +25,22 @@ namespace Orleans.Runtime
         internal readonly UniqueKey Key;
 
         /// <summary>
-        /// 获取此标识符编码的分类。
+        /// 获取此标识符中编码的类别。
         /// </summary>
         public UniqueKey.Category Category => Key.IdCategory;
 
         /// <summary>
-        /// 获得一个值, 显示此标识符是否代表系统目标 。
+        /// 获取一个值，指示此标识符是否表示系统目标。
         /// </summary>
         public bool IsSystemTarget => Key.IsSystemTargetKey;
 
         /// <summary>
-        /// 获得一个值,以显示该标识符是否代表 grain。
+        /// 获取一个值，指示此标识符是否表示 Grain。
         /// </summary>
         public bool IsGrain => Category == UniqueKey.Category.Grain || Category == UniqueKey.Category.KeyExtGrain;
 
         /// <summary>
-        /// 获得一个值, 显示此标识符是否代表客户端 。
+        /// 获取一个值，指示此标识符是否表示客户端。
         /// </summary>
         public bool IsClient => Category == UniqueKey.Category.Client;
 
@@ -50,25 +50,25 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 将遗留 grain 标识符转换为 <see cref="GrainId"/> 表示。
+        /// 将旧版 Grain 标识符转换为其 <see cref="GrainId"/> 表示形式。
         /// </summary>
-        /// <param name="legacy">要转换的遗留 grain 标识符 。</param>
-        /// <returns>等同 <see cref="GrainId"/>.</returns>
+        /// <param name="legacy">要转换的旧版 Grain 标识符。</param>
+        /// <returns>等效的 <see cref="GrainId"/>。</returns>
         public static implicit operator GrainId(LegacyGrainId legacy) => legacy.ToGrainId();
 
         /// <summary>
-        /// 创建 grain 标识符,并随机生成主密钥。
+        /// 创建具有随机生成的主键的 Grain 标识符。
         /// </summary>
-        /// <returns>新遗留 grain 标识符。</returns>
+        /// <returns>新的旧版 Grain 标识符。</returns>
         public static LegacyGrainId NewId()
         {
             return FindOrCreateGrainId(UniqueKey.NewKey(Guid.NewGuid(), UniqueKey.Category.Grain));
         }
 
         /// <summary>
-        /// 创建客户端标识符,并随机生成主密钥。
+        /// 创建具有随机生成的主键的客户端标识符。
         /// </summary>
-        /// <returns>一个新的遗留客户端识别符号。</returns>
+        /// <returns>新的旧版客户端标识符。</returns>
         public static LegacyGrainId NewClientId()
         {
             return NewClientId(Guid.NewGuid());
@@ -84,7 +84,7 @@ namespace Orleans.Runtime
             return FindOrCreateGrainId(key);
         }
 
-        // 仅用于测试。
+        // 仅供测试使用。
         internal static LegacyGrainId GetGrainIdForTesting(Guid guid)
         {
             return FindOrCreateGrainId(UniqueKey.NewKey(guid));
@@ -134,7 +134,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取 GUID 主密钥 。
+        /// 获取 GUID 主键。
         /// </summary>
         public Guid PrimaryKey
         {
@@ -142,7 +142,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获得整数主键。
+        /// 获取整数主键。
         /// </summary>
         public long PrimaryKeyLong
         {
@@ -150,7 +150,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取字符串主密钥扩展名,或者如果此标识符没有密钥扩展名,则获得空字符串。
+        /// 获取字符串主键扩展；如果此标识符没有键扩展，则返回空字符串。
         /// </summary>
         public string PrimaryKeyString
         {
@@ -158,7 +158,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取此标识符的详细字符串代表。
+        /// 获取此标识符的详细字符串表示形式。
         /// </summary>
         public string IdentityString
         {
@@ -166,7 +166,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获得一个值,显示主密钥是否编码为 <see cref="long"/>。
+        /// 获取一个值，指示主键是否编码为 <see cref="long"/>。
         /// </summary>
         public bool IsLongKey
         {
@@ -174,10 +174,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取整数主键及其可选的密钥扩展。
+        /// 获取整数主键及其可选的键扩展。
         /// </summary>
-        /// <param name="keyExt">当此方法返回时, 此方法包含密钥扩展名, 或没有关键扩展名的 <see langword="null"/> 。</param>
-        /// <returns>主键整数。</returns>
+        /// <param name="keyExt">此方法返回时，包含键扩展；若不存在，则为 <see langword="null"/>。</param>
+        /// <returns>整数主键。</returns>
         public long GetPrimaryKeyLong(out string? keyExt)
         {
             return Key.PrimaryKeyToLong(out keyExt);
@@ -189,10 +189,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取 GUID 主密钥及其可选密钥扩展名。
+        /// 获取 GUID 主键及其可选的键扩展。
         /// </summary>
-        /// <param name="keyExt">当此方法返回时, 此方法包含密钥扩展名, 或没有关键扩展名的 <see langword="null"/> 。</param>
-        /// <returns>图形用户界面数据主键。</returns>
+        /// <param name="keyExt">此方法返回时，包含键扩展；若不存在，则为 <see langword="null"/>。</param>
+        /// <returns>GUID 主键。</returns>
         public Guid GetPrimaryKey(out string? keyExt)
         {
             return Key.PrimaryKeyToGuid(out keyExt);
@@ -210,7 +210,7 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 获取遗留 grain 类型代码。
+        /// 获取旧版 Grain 类型码。
         /// </summary>
         public int TypeCode => Key.BaseTypeCode;
 
@@ -237,20 +237,20 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 创建 <see cref="GrainType"/> 代表遗产 grain 代码 。
+        /// 创建旧版 Grain 类型码的 <see cref="GrainType"/> 表示形式。
         /// </summary>
-        /// <param name="typeCode">遗留 grain 类型代码。</param>
-        /// <returns>对应对应 grain 类型。</returns>
+        /// <param name="typeCode">旧版 Grain 类型码。</param>
+        /// <returns>对应的 Grain 类型。</returns>
         public static GrainType CreateGrainTypeForGrain(int typeCode)
         {
             return new GrainType(CreateGrainType(GrainTypePrefix.LegacyGrainPrefixBytes, (ulong)typeCode));
         }
 
         /// <summary>
-        /// 创建遗留系统目标型号的 <see cref="GrainType"/> 表示方式。
+        /// 创建旧版系统目标类型码的 <see cref="GrainType"/> 表示形式。
         /// </summary>
-        /// <param name="typeCode">遗留系统目标类型代码。</param>
-        /// <returns>对应对应 grain 类型。</returns>
+        /// <param name="typeCode">旧版系统目标类型码。</param>
+        /// <returns>对应的 Grain 类型。</returns>
         public static GrainType CreateGrainTypeForSystemTarget(int typeCode)
         {
             return new GrainType(CreateGrainType(GrainTypePrefix.SystemTargetPrefixBytes, (ulong)typeCode));
@@ -262,20 +262,20 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 将此遗留标识符转换为 <see cref="GrainId"/> 表示 。
+        /// 将此旧版标识符转换为其 <see cref="GrainId"/> 表示形式。
         /// </summary>
-        /// <returns>等同 <see cref="GrainId"/>.</returns>
+        /// <returns>等效的 <see cref="GrainId"/>。</returns>
         public GrainId ToGrainId()
         {
             return new GrainId(GetGrainType(Key), this.GetGrainKey());
         }
 
         /// <summary>
-        /// 试图转换 <see cref="GrainId"/> 使用遗留 grain 标识符编码。
+        /// 尝试转换使用旧版 Grain 标识符编码的 <see cref="GrainId"/>。
         /// </summary>
-        /// <param name="id">要转换的 grain 标识符。</param>
-        /// <param name="legacyId">当此方法返回 <see langword="true"/>时, 包含转换成的遗留标识符。</param>
-        /// <returns><see langword="true"/> 如果 <paramref name="id"/> 使用遗留编码;否则, <see langword="false"/>。</returns>
+        /// <param name="id">要转换的 Grain 标识符。</param>
+        /// <param name="legacyId">此方法返回 <see langword="true"/> 时，包含转换后的旧版标识符。</param>
+        /// <returns>返回 <see langword="true"/> 表示 <paramref name="id"/> 使用旧版编码；否则返回 <see langword="false"/>。</returns>
         public static bool TryConvertFromGrainId(GrainId id, [NotNullWhen(true)] out LegacyGrainId? legacyId)
         {
             legacyId = FromGrainIdInternal(id);
@@ -283,10 +283,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 转换 <see cref="GrainId"/> 使用遗留 grain 标识符编码。
+        /// 转换使用旧版 Grain 标识符编码的 <see cref="GrainId"/>。
         /// </summary>
-        /// <param name="id">要转换的 grain 标识符。</param>
-        /// <returns>转换的遗留标识符。</returns>
+        /// <param name="id">要转换的 Grain 标识符。</param>
+        /// <returns>转换后的旧版标识符。</returns>
         public static LegacyGrainId FromGrainId(GrainId id)
         {
             return FromGrainIdInternal(id) ?? ThrowNotLegacyGrainId(id);
@@ -346,7 +346,7 @@ namespace Orleans.Runtime
             return o != null && Key.Equals(o.Key);
         }
 
-        // 保持汇编器的快乐状态 - 它不喜欢没有 GetHashCode() 方法而有等(...) 的类
+        // 避免编译器警告：类实现 Equals(...) 时不应缺少 GetHashCode() 方法。
         /// <inheritdoc />
         public override int GetHashCode()
         {
@@ -354,10 +354,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 根据詹金斯·哈希函数,获得此 grain的分布统一的散列数代码值。
-        /// 注:散数代码值可以是正值或非正值。
+        /// 基于 Jenkins 哈希函数获取此 Grain 的均匀分布哈希码。
+        /// 注意：哈希码可能为正数或负数。
         /// </summary>
-        /// <returns>这个 LegacyGrainId[ 的散数代码</returns>
+        /// <returns>此 LegacyGrainId 的哈希码。</returns>
         public uint GetUniformHashCode()
         {
             return Key.GetUniformHashCode();
@@ -369,19 +369,19 @@ namespace Orleans.Runtime
             return ToStringImpl(false);
         }
 
-        // 与 ToString相同,仅完全主键和型号代码
+        // 与 ToString 相同，但包含完整的主键和类型码。
         internal string ToDetailedString()
         {
             return ToStringImpl(true);
         }
 
-        // 与 ToString相同,仅完全主键和型号代码
+        // 与 ToString 相同，但包含完整的主键和类型码。
         private string ToStringImpl(bool detailed)
         {
-            // TODO 获取系统/目标 grain + grain 类型名称的系统/目标的名称
+            // TODO 获取系统/目标 Grain 的名称及 Grain 类型的名称。
 
             var keyString = Key.ToString();
-            // 它将抓住n1中最小的半个 N1, 并用密钥扩展名将其后缀。
+            // 此处应取得 n1 的低有效半部分，并附加键扩展作为后缀。
             string idString = keyString;
             if (!detailed)
             {
@@ -418,10 +418,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 确定类型是否使用遗留 grain 密钥界面。
+        /// 判断类型是否使用某个旧版 Grain 键接口。
         /// </summary>
-        /// <param name="type">检查的类型。</param>
-        /// <returns><see langword="true"/> 如果类型执行遗留的 grain 密钥界面; 否则, <see langword="false"/>.</returns>
+        /// <param name="type">要检查的类型。</param>
+        /// <returns>如果类型实现旧版 Grain 键接口，则返回 <see langword="true"/>；否则返回 <see langword="false"/>。</returns>
         public static bool IsLegacyGrainType(Type type)
         {
             return typeof(IGrainWithGuidKey).IsAssignableFrom(type)
@@ -432,10 +432,10 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 确定类型是否使用遗留化合物 grain 密钥界面。
+        /// 判断类型是否使用旧版复合 Grain 键接口。
         /// </summary>
-        /// <param name="type">检查的类型。</param>
-        /// <returns><see langword="true"/> 如果类型安装了遗留化合物 grain 密钥接口;否则, <see langword="false"/>。</returns>
+        /// <param name="type">要检查的类型。</param>
+        /// <returns>如果类型实现旧版复合 Grain 键接口，则返回 <see langword="true"/>；否则返回 <see langword="false"/>。</returns>
         public static bool IsLegacyKeyExtGrainType(Type type)
         {
             return typeof(IGrainWithGuidCompoundKey).IsAssignableFrom(type)
@@ -443,56 +443,56 @@ namespace Orleans.Runtime
         }
 
         /// <summary>
-        /// 将此 LegacyGrainId 以标准字符串形式返回,适合以后使用 <c>FromParsableString</c> 方法。
+        /// 以标准字符串形式返回此 LegacyGrainId，以便之后由 <c>FromParsableString</c> 方法使用。
         /// </summary>
-        /// <returns>LegacyGrainId 以标准字符串格式。</returns>
+        /// <returns>采用标准字符串格式的 LegacyGrainId。</returns>
         internal string ToParsableString()
         {
-            // 注:此函数必须是 FromParsableString的“反向”,数据必须可靠地圆行。
+            // 注意：此函数必须是 FromParsableString 的逆操作，并且数据必须能够可靠地往返转换。
 
             return Key.ToHexString();
         }
 
         /// <summary>
-        /// 以标准格式解析字符串创建新的 LegacyGrainId 对象,该格式从 <c>ToParsableString</c> 方法返回。
+        /// 通过解析由 <c>ToParsableString</c> 方法返回的标准格式字符串创建新的 LegacyGrainId 对象。
         /// </summary>
-        /// <param name="grainId">字符串中含有要解析的 LegacyGrainId 信息。</param>
-        /// <returns>新建输入数据创建的 LegacyGrainId 对象。</returns>
+        /// <param name="grainId">包含要解析的 LegacyGrainId 信息的字符串。</param>
+        /// <returns>根据输入数据创建的新 LegacyGrainId 对象。</returns>
         internal static LegacyGrainId FromParsableString(string grainId)
         {
             return FromParsableString(grainId.AsSpan());
         }
 
         /// <summary>
-        /// 以标准格式解析字符串创建新的 LegacyGrainId 对象,该格式从 <c>ToParsableString</c> 方法返回。
+        /// 通过解析由 <c>ToParsableString</c> 方法返回的标准格式字符串创建新的 LegacyGrainId 对象。
         /// </summary>
-        /// <param name="grainId">字符串中含有要解析的 LegacyGrainId 信息。</param>
-        /// <returns>新建输入数据创建的 LegacyGrainId 对象。</returns>
+        /// <param name="grainId">包含要解析的 LegacyGrainId 信息的字符串。</param>
+        /// <returns>根据输入数据创建的新 LegacyGrainId 对象。</returns>
         internal static LegacyGrainId FromParsableString(ReadOnlySpan<char> grainId)
         {
-            // 注:此函数必须是 ToParsableString的“反向”,数据必须可靠地圆行。
+            // 注意：此函数必须是 ToParsableString 的逆操作，并且数据必须能够可靠地往返转换。
 
             var key = UniqueKey.Parse(grainId);
             return FindOrCreateGrainId(key);
         }
 
         /// <summary>
-        /// 获得非负性的散列代码,减少指定值的模末。
+        /// 获取按指定值取模后的非负哈希码。
         /// </summary>
-        /// <param name="umod">模量。</param>
-        /// <returns>散列代码在零至 <paramref name="umod"/> 减一之间。</returns>
+        /// <param name="umod">模数。</param>
+        /// <returns>取值范围从 0 到 <paramref name="umod"/> 减 1 的哈希码。</returns>
         public uint GetHashCode_Modulo(uint umod)
         {
             int key = Key.GetHashCode();
             int mod = (int)umod;
-            key = ((key % mod) + mod) % mod; // 键应该为正。所以要用选中的来表示正确 。
+            key = ((key % mod) + mod) % mod; // 此时键应该为非负值，因此使用 checked 进行检查。
             return checked((uint)key);
         }
 
         /// <inheritdoc />
         public int CompareTo(LegacyGrainId? other)
         {
-            if (other is null) return 1; // 内无小于任何非null 实例
+            if (other is null) return 1; // null 小于任何非 null 实例。
             return Key.CompareTo(other.Key);
         }
     }

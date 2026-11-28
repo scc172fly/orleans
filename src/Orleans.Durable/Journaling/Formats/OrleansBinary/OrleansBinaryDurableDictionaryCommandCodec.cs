@@ -6,7 +6,7 @@ using Orleans.Serialization.Session;
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 耐用词典日记条目的二进制编码,保存遗留的双行线格式 Orleans 。
+/// 用于持久化字典日志条目的二进制编解码器，保留旧版 Orleans 的二进制传输格式。
 /// </summary>
 internal sealed class OrleansBinaryDurableDictionaryCommandCodec<TKey, TValue>(
     IFieldCodec<TKey> keyCodec,

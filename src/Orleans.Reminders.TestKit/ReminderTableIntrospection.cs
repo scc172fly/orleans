@@ -10,7 +10,7 @@ using Orleans.Runtime;
 namespace Orleans.Reminders.TestKit;
 
 /// <summary>
-/// 指定 <see cref="IReminderTable"/> 观察的 <see cref="IdealizedReminderTable"/>.
+/// 标识一项 <see cref="IReminderTable"/> 操作，该操作由 <see cref="IdealizedReminderTable"/> 观测到。
 /// </summary>
 public enum ReminderTableOperationKind
 {
@@ -40,7 +40,7 @@ public enum ReminderTableOperationKind
 }
 
 /// <summary>
-/// 当表格标记无法模拟存储中断时被 <see cref="IdealizedReminderTable"/> 扔出 。
+/// 当表已被标记为不可用以模拟存储中断时，由 <see cref="IdealizedReminderTable"/> 抛出。
 /// </summary>
 [Serializable]
 [GenerateSerializer]
@@ -56,7 +56,7 @@ public sealed class ReminderTableUnavailableException : Exception
     /// <summary>
     /// 初始化 <see cref="ReminderTableUnavailableException"/> 类的新实例。
     /// </summary>
-    /// <param name="message">电文。</param>
+    /// <param name="message">消息。</param>
     public ReminderTableUnavailableException(string message) : base(message)
     {
     }
@@ -68,15 +68,15 @@ public sealed class ReminderTableUnavailableException : Exception
 }
 
 /// <summary>
-/// 通过 <see cref="IdealizedReminderTable.Snapshot"/>观察到的耐久提醒记录。
+/// 通过 <see cref="IdealizedReminderTable.Snapshot"/> 观测到的持久化提醒器记录。
 /// </summary>
-/// <param name="GrainId"> grain 标识符。</param>
-/// <param name="ReminderName">提醒的名称。</param>
-/// <param name="StartAt">持续启动时间。</param>
-/// <param name="Period">持续时间。</param>
-/// <param name="ETag">当前的ETag。</param>
-/// <param name="PreviousETag">以最新文章取代了ETag。</param>
-/// <param name="Version">本记录单声道增加的版本。</param>
+/// <param name="GrainId">Grain 标识符。</param>
+/// <param name="ReminderName">提醒器名称。</param>
+/// <param name="StartAt">持久化的开始时间。</param>
+/// <param name="Period">持久化的周期。</param>
+/// <param name="ETag">当前 ETag。</param>
+/// <param name="PreviousETag">最近一次写入替换的 ETag（如果有）。</param>
+/// <param name="Version">此记录单调递增的版本。</param>
 public sealed record ReminderTableRecord(
     GrainId GrainId,
     string ReminderName,
@@ -87,7 +87,7 @@ public sealed record ReminderTableRecord(
     long Version)
 {
     /// <summary>
-    /// 获得统一的散列代码,确定范围所有权。
+    /// 获取决定范围所有权的均匀哈希码。
     /// </summary>
     public uint UniformHashCode => GrainId.GetUniformHashCode();
 
@@ -97,7 +97,7 @@ public sealed record ReminderTableRecord(
 }
 
 /// <summary>
-/// 记录到 <see cref="IdealizedReminderTable"/>的一个操作。
+/// 由 <see cref="IdealizedReminderTable"/> 记录的一项操作。
 /// </summary>
 public sealed class ReminderTableOperation
 {
@@ -127,38 +127,38 @@ public sealed class ReminderTableOperation
         Failure = failure;
     }
 
-    /// <summary>获得单声道增加的操作序列号。</summary>
+    /// <summary>获取单调递增的操作序列号。</summary>
     public long Sequence { get; }
 
-    /// <summary>获得操作类型。</summary>
+    /// <summary>获取操作类型。</summary>
     public ReminderTableOperationKind Kind { get; }
 
-    /// <summary>当操作目标为一时, 获得 grain 识别符号。</summary>
+    /// <summary>当操作针对某个 Grain 时，获取其标识。</summary>
     public GrainId? GrainId { get; }
 
-    /// <summary>当操作目标为一时, 获得提醒名称。</summary>
+    /// <summary>当操作针对某个提醒器时，获取其名称。</summary>
     public string? ReminderName { get; }
 
-    /// <summary>获得排他性下限, 范围读作。</summary>
+    /// <summary>对于范围读取，获取不含边界的下界。</summary>
     public uint? Begin { get; }
 
-    /// <summary>获得包含性的上约束,范围为。</summary>
+    /// <summary>对于范围读取，获取包含边界的上界。</summary>
     public uint? End { get; }
 
-    /// <summary>获得电话提供ETAG,有条件操作。</summary>
+    /// <summary>对于条件操作，获取调用方提供的 ETag。</summary>
     public string? SuppliedETag { get; }
 
-    /// <summary>找回来电者,写作</summary>
+    /// <summary>获取写入操作返回给调用方的 ETag。</summary>
     public string? ResultETag { get; }
 
-    /// <summary>获得一个数值,表明是否未投掷就完成了操作,并且
-    /// <see cref="ReminderTableOperationKind.RemoveRow"/>,删除一行。</summary>
+    /// <summary>获取一个值，指示操作是否在未抛出异常的情况下完成，并且对于
+    /// <see cref="ReminderTableOperationKind.RemoveRow"/>，是否移除了一条记录。</summary>
     public bool Succeeded { get; }
 
-    /// <summary>获取回送提醒函的数, 读作 。</summary>
+    /// <summary>对于读取操作，获取返回的提醒器数量。</summary>
     public int ResultCount { get; }
 
-    /// <summary>选择在任务丢弃时失败类型名称。</summary>
+    /// <summary>当操作抛出异常时，获取失败类型名称。</summary>
     public string? Failure { get; }
 
     /// <inheritdoc />
@@ -175,7 +175,7 @@ public sealed class ReminderTableOperation
 }
 
 /// <summary>
-/// 等待的大门 阻断下一个匹配操作 直到它被释放
+/// 可等待的门控对象，阻塞下一次匹配的操作，直至门控被释放。
 /// </summary>
 public sealed class ReminderTableOperationGate : IAsyncDisposable
 {
@@ -191,19 +191,19 @@ public sealed class ReminderTableOperationGate : IAsyncDisposable
     }
 
     /// <summary>
-    /// 得到的操作类型 这样的门挡。
+    /// 获取此门控阻塞的操作类型。
     /// </summary>
     public ReminderTableOperationKind Kind { get; }
 
     /// <summary>
-    /// 等待匹配操作到达大门
+    /// 等待匹配的操作到达门控。
     /// </summary>
-    /// <param name="cancellationToken">取消的符号。</param>
-    /// <returns>任务在操作被阻断时完成。</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>操作被阻塞时完成的任务。</returns>
     public Task WaitUntilBlockedAsync(CancellationToken cancellationToken = default) => _blocked.Task.WaitAsync(cancellationToken);
 
     /// <summary>
-    /// 释放被封存的操作。
+    /// 释放被阻塞的操作。
     /// </summary>
     public void Release() => _release.TrySetResult();
 

@@ -3,12 +3,12 @@ using System.Collections.Generic;
 namespace Orleans.Streams
 {
     /// <summary>
-    /// 一组队列信件( 见 IBatchContainer 批量内容说明)
+    /// 一批队列消息（有关批次内容的说明，参见 IBatchContainer）。
     /// </summary>
     public interface IBatchContainerBatch : IBatchContainer
     {
         /// <summary>
-        /// 获得构成这批货物的批装集装箱
+        /// 获取组成此批次的批次容器。
         /// </summary>
         List<IBatchContainer> BatchContainers { get; }
     }

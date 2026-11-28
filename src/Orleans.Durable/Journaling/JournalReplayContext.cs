@@ -1,7 +1,7 @@
 namespace Orleans.Durable.Journaling;
 
 /// <summary>
-/// 提供期刊刊出的国家在重播时使用的服务。
+/// 提供日志状态在重放期间使用的服务。
 /// </summary>
 public readonly struct JournalReplayContext
 {
@@ -15,34 +15,34 @@ public readonly struct JournalReplayContext
         field ?? throw new InvalidOperationException("The journal replay context is not initialized.");
 
     /// <summary>
-    /// 获取配置的写日记格式密钥。
+    /// 获取配置的写入日志格式键。
     /// </summary>
     public string WriteJournalFormatKey => Manager.WriteJournalFormatKey;
 
     /// <summary>
-    /// 获得拥有权经理用来解决日记服务问题的服务提供者。
+    /// 获取所属管理器用于解析日志服务的服务提供程序。
     /// </summary>
     /// <remarks>
-    /// 对于启动所有者来说,这是激活的服务提供者。
-    /// 独立管理人员使用主机共享日记服务。
-    /// 国家机器建造时依赖范围的国家机器依赖。
+    /// 对于激活实例拥有的管理器，这是激活实例的服务提供程序。
+    /// 独立管理器使用宿主共享的日志服务。其调用方在构造状态机时提供任何
+    /// 依赖作用域的状态机依赖项。
     /// </remarks>
     public IServiceProvider ServiceProvider => Manager.ServiceProvider;
 
     /// <summary>
-    /// 确定 <paramref name="streamId"/>的国家机器。
+    /// 解析 <paramref name="streamId"/> 对应的状态机。
     /// </summary>
-    /// <param name="streamId">持续日记流代号 。</param>
-    /// <returns>流的状态机器。</returns>
+    /// <param name="streamId">已持久化的日志流 ID。</param>
+    /// <returns>该流对应的状态机。</returns>
     public IStateMachine ResolveStateMachine(JournalStreamId streamId) => Manager.ResolveStateMachine(streamId);
 
     /// <summary>
-    /// 获取 <paramref name="entryFormatKey"/>的命令代码码。
+    /// 获取 <paramref name="entryFormatKey"/> 对应的命令编解码器。
     /// </summary>
-    /// <typeparam name="TCodec">命令编码服务类型。</typeparam>
-    /// <param name="entryFormatKey">重播条目的日记格式密钥。</param>
-    /// <param name="writeCommandCodec">配置的写日记日记格式的命令编码。</param>
-    /// <returns> <paramref name="entryFormatKey"/>的指令编码器。</returns>
+    /// <typeparam name="TCodec">命令编解码器服务类型。</typeparam>
+    /// <param name="entryFormatKey">正在重放的条目的日志格式键。</param>
+    /// <param name="writeCommandCodec">配置的写入日志格式对应的命令编解码器。</param>
+    /// <returns><paramref name="entryFormatKey"/> 对应的命令编解码器。</returns>
     public TCodec GetRequiredCommandCodec<TCodec>(string entryFormatKey, TCodec writeCommandCodec)
         where TCodec : notnull
     {

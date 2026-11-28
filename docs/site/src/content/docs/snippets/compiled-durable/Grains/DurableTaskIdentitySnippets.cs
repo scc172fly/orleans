@@ -27,7 +27,7 @@ public interface IArchiveGrain : IGrainWithStringKey
 }
 // </durable_tasks_identity_contracts>
 
-// 树上显示生成的识别符号,即$Child-2,这是一个未命名的单独任务根号ID的来源。
+// 任务树显示生成的标识符 $child-2，未命名分离任务的根 ID 由此派生。
 #pragma warning disable ORLEANS0220
 // <durable_tasks_identity_tree>
 public sealed class ReportGrain(IDurableTaskManager tasks) : DurableGrain, IReportGrain
@@ -38,39 +38,39 @@ public sealed class ReportGrain(IDurableTaskManager tasks) : DurableGrain, IRepo
 
     public static string PublishTaskId(string reportId) => $"publish-{reportId}";
 
-    // 调用者在“ 发布 - {reportId}” 根号ID下启动此项任务, 由 DurableTask.Current.Id 报告。
+    // 调用方以根 ID "publish-{reportId}" 启动此任务，DurableTask.Current.Id 返回此 ID。
     public async DurableTask<PublishReceipt> PublishAsync(string[] sections)
     {
-        // {reportId}/version,一个有名的录音效果,作为 WithId(“转换”) ,指一个步骤。
+        // publish-{reportId}/version 是具名的已记录效果，类似 WithId("version") 为步骤命名。
         var version = DurableTask.RunInline("version", () => DateTimeOffset.UtcNow.ToUnixTimeSeconds());
 
-        // 发布 -{reportId以1美元为单位的死刑执行
+        // publish-{reportId}/$child-1，即该执行实例的第一个未命名操作。
         var draftId = DurableTask.RunInline(Guid.NewGuid);
 
-        // {reportId}/render/0, imecury/1 等: 命名的组合器输入, 按输入顺序排列。
-        // 将调用电话存储在调用范围下,$caller/{reportGrainId}/{incarnation}/publish-{reportId}/render/{i},
-        // 此处的{incarnation} 标明此期出版 -{reportId} 。
+        // publish-{reportId}/render/0、render/1 等是具名组合器按输入顺序排列的输入。每个渲染器
+        // 在调用方作用域 $caller/{reportGrainId}/{incarnation}/publish-{reportId}/render/{i} 下存储其调用，
+        // 其中 {incarnation} 标识 publish-{reportId} 的本次运行。
         await sections.Select(section => Renderer(section).RenderAsync(section)).WhenAll().WithId("render");
 
-        // {reportId}/ check, 然后检查2美元, 3美元等等: 此运行重复的一名称 。
+        // publish-{reportId}/check，随后是 check$2、check$3 等：本次运行反复使用的同一个名称。
         foreach (var section in sections)
         {
             await Check(section, draftId).WithId("check");
         }
 
-        // {reportId}/$ignal: 批准, 信号记录在引用的任务之下 。
+        // publish-{reportId}/$signal:approved 是被调用任务下的信号记录。
         if (!await Approved.WaitAsync())
         {
             return new(DurableTask.Current.Id, default, default, default);
         }
 
-        // 命名的分离任务: 根“ 存档 - {reportId档案上 grain。执行记录起始为
-        // {reportId}/ $detach:{{archiveGrainId}}: 存档{reportId}},这是处理器的 Id 报告。
+        // 具名分离任务：归档 Grain 上的根任务 "archive-{reportId}"。执行实例将启动记录为
+        // publish-{reportId}/$detach:{archiveGrainId}:archive-{reportId}，由句柄的 Id 返回。
         var archive = await Archive().ArchiveAsync(ReportId, (int)version).Detached($"archive-{ReportId}")
             .ScheduleAsync();
 
-        // 一项未命名的独立任务:其根代号来自此 grain、此任务和下一个未命名的行动,
-        // "{reportGrainId/出版 -{reportId$Child -2" 钱
+        // 未命名的分离任务：根 ID 派生自当前 Grain、当前任务以及下一个未命名操作，
+        // 即 "{reportGrainId}/publish-{reportId}:$child-2"。
         var copy = Archive().ArchiveAsync($"{ReportId}-copy", (int)version).Detached().Post();
 
         return new(DurableTask.Current.Id, archive.TargetTaskId, copy.TargetTaskId, archive.Id);
@@ -93,13 +93,13 @@ internal static class ReportClient
     // <durable_tasks_identity_client>
     public static async Task<PublishReceipt> PublishAsync(IClusterClient client, string reportId, string[] sections)
     {
-        // 根的ID来自报告的身份 所以重新审理的请求 达到同样的任务
+        // 根 ID 来自报表的标识，因此重试的请求会到达同一个任务。
         ScheduledTask<PublishReceipt> publish = await client.GetGrain<IReportGrain>(reportId)
             .PublishAsync(sections)
             .WithId(ReportGrain.PublishTaskId(reportId))
             .ScheduleAsync();
 
-        // 外部的持久任务,把手的代号与 TargetTaskId 是根身份。
+        // 在持久化任务之外，句柄的 Id 和 TargetTaskId 都是根 ID。
         Console.WriteLine($"{publish.Id} {publish.TargetTaskId}");
         return await publish;
     }
@@ -108,7 +108,7 @@ internal static class ReportClient
     // <durable_tasks_identity_lookup>
     public static async Task<DurableTaskStatus> GetArchiveStatusAsync(IClusterClient client, string reportId)
     {
-        // 命名的根用其 grain 及其名称来标出,每个当事方都源于报告的身份。
+        // 通过其 Grain 和名称寻址具名根任务，各方均从报表标识派生该名称。
         var archive = client.GetGrain<IArchiveGrain>("archive").GetDurableTask<bool>($"archive-{reportId}");
         return await archive.GetStatusAsync(new PollingOptions { PollTimeout = TimeSpan.Zero });
     }
@@ -135,25 +135,25 @@ public sealed class PublisherGrain : DurableGrain, IPublisherGrain
 
     public async DurableTask HandOffAsync(string reportId)
     {
-        // 独立任务是归档 grain的根, 因此它的处理有一个地址 。
+        // 分离任务是归档 Grain 上的根任务，因此其句柄具有地址。
         var archive = await GrainFactory.GetGrain<IArchiveGrain>("archive")
             .ArchiveAsync(reportId, version: 1)
             .Detached()
             .ScheduleAsync();
         archive.TryGetAddress(out var address);
 
-        // 同步尾巴: 地址与任务结果连接 。
+        // 末尾的同步代码：地址与当前任务的结果一同提交。
         _archive.Value = address;
     }
 
-    // 持久任务订阅存储的任务,而订阅则记录重播。
+    // 持久化任务订阅已存储的任务，并记录该订阅以供重放使用。
     public async DurableTask<bool> AwaitArchiveAsync()
     {
         var archive = DurableTask.RunInline("archive", () => _archive.Value);
         return archive is { } address && await GrainFactory.GetDurableTask<bool>(address).WithId("archived");
     }
 
-    // 普通方法调查或通过同一地址取消存储的任务。
+    // 普通方法通过相同地址轮询或取消已存储的任务。
     public async Task<DurableTaskStatus?> GetArchiveStatusAsync() =>
         _archive.Value is { } address
             ? await GrainFactory.GetDurableTask<bool>(address).GetStatusAsync(new PollingOptions { PollTimeout = TimeSpan.Zero })
@@ -172,7 +172,7 @@ public sealed class PublisherGrain : DurableGrain, IPublisherGrain
 internal static class ReportApi
 {
     // <durable_tasks_identity_send>
-    // 返回 HTTP 呼叫器的地址: System.Text.Json 写 {"Target":"报告/q3","Id":"Publish-q3"}。
+    // 将地址返回给 HTTP 调用方：System.Text.Json 写入 {"Target":"report/q3","Id":"publish-q3"}。
     public static async Task<DurableTaskAddress> StartPublishAsync(IClusterClient client, string reportId, string[] sections)
     {
         var publish = await client.GetGrain<IReportGrain>(reportId)
@@ -183,7 +183,7 @@ internal static class ReportApi
         return address;
     }
 
-    // 以后的请求又将地址回送,发出信号、等待或取消任务。
+    // 后续请求携带此地址，并向任务发送信号、等待或取消任务。
     public static async Task<DurableSignalResult> ApproveAsync(IClusterClient client, DurableTaskAddress publish, bool approved) =>
         await client.GetGrain(publish.Target).TrySignalDurableTaskAsync(publish.Id, ReportGrain.Approved, approved);
 

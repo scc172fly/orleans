@@ -1,13 +1,13 @@
 namespace Orleans.Placement.Repartitioning;
 
 /// <summary>
-/// 代表控制数量之间不平衡程度的规则 grain 任何一对(可允许的) silos 正在交换激活。
+/// 表示一条规则，用于控制任意两个 Silo 交换激活实例时，可容忍的 Grain 激活实例数量不均衡程度。
 /// </summary>
 public interface IImbalanceToleranceRule
 {
     /// <summary>
-    /// 检查是否满足 <paramref name="imbalance"/>。
+    /// 检查 <paramref name="imbalance"/> 是否满足此规则。
     /// </summary>
-    /// <param name="imbalance">交换之间不平衡 silo 如果要返回此方法的话, 配对将是 <see langword="true"/></param>
+    /// <param name="imbalance">如果此方法返回 <see langword="true"/>，则两个交换方 Silo 之间将出现的预期不均衡程度。</param>
     bool IsSatisfiedBy(uint imbalance);
 }

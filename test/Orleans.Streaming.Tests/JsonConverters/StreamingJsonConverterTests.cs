@@ -374,7 +374,7 @@ public class StreamingJsonConverterTests
         var value = new QualifiedStreamId("fake", streamId);
         Assert.Throws<ArgumentNullException>("info", () => value.GetObjectData(null!, default));
 
-#pragma warning disable SYSLIB0050 // Exercise the existing ISerializable metadata contract, not formatter serialization.
+#pragma warning disable SYSLIB0050 // 验证现有的 ISerializable 元数据契约，而非格式化程序序列化。
         var info = new SerializationInfo(typeof(QualifiedStreamId), new FormatterConverter());
 #pragma warning restore SYSLIB0050
         value.GetObjectData(info, default);
@@ -649,7 +649,7 @@ public class StreamingJsonConverterTests
         var value = StreamId.Create("orders", "order-42");
         Assert.Throws<ArgumentNullException>("info", () => value.GetObjectData(null!, default));
 
-#pragma warning disable SYSLIB0050 // Exercise the existing ISerializable metadata contract, not formatter serialization.
+#pragma warning disable SYSLIB0050 // 验证现有的 ISerializable 元数据契约，而非格式化程序序列化。
         var info = new SerializationInfo(typeof(StreamId), new FormatterConverter());
 #pragma warning restore SYSLIB0050
         value.GetObjectData(info, default);

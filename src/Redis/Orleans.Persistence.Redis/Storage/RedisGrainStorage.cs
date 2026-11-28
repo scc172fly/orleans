@@ -19,7 +19,7 @@ using static System.FormattableString;
 namespace Orleans.Persistence
 {
     /// <summary>
-    /// Redis- 以 grain 为基础的储存提供者
+    /// 基于 Redis 的 Grain 存储提供程序。
     /// </summary>
     public partial class RedisGrainStorage : IGrainStorage, ILifecycleParticipant<ISiloLifecycle>, IDisposable, IAsyncDisposable
     {
@@ -178,7 +178,7 @@ namespace Orleans.Persistence
         }
 
         /// <summary>
-        /// <see cref="RedisStorageOptions.GetStorageKey"/> 的默认执行,该默认执行返回一个相当于 <c>{ServiceId}/state/{grainId}/{grainType}</c>的键
+        /// <see cref="RedisStorageOptions.GetStorageKey"/> 的默认实现，返回等效于 <c>{ServiceId}/state/{grainId}/{grainType}</c> 的键。
         /// </summary>
         private RedisKey DefaultGetStorageKey(string grainType, GrainId grainId)
         {

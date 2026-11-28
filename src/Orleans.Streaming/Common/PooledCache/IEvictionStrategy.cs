@@ -3,60 +3,60 @@ using System;
 namespace Orleans.Providers.Streams.Common
 {
     /// <summary>
-    /// PooledQueueCache驱逐战略
+    /// PooledQueueCache 的逐出策略。
     /// </summary>
     public interface IEvictionStrategy
     {
         /// <summary>
-        /// 获取 <see cref="IPurgeObservable"/>,由缓存执行,以采取与清除有关的行动,并被驱逐战略所援引。
+        /// 获取 <see cref="IPurgeObservable"/>；它由缓存实现以执行清除相关操作，并由逐出策略调用。
         /// </summary>
         IPurgeObservable PurgeObservable { set; }
 
         /// <summary>
-        /// 获取或设置清洗完成后要使用的方法 。
+        /// 获取或设置清除完成后要调用的方法。
         /// </summary>
         Action<CachedMessage?, CachedMessage?>? OnPurged { get; set; }
 
         /// <summary>
-        /// 当拉动代理器试图对缓存进行清除时应该使用的方法
+        /// 当拉取代理尝试清除缓存时应调用的方法。
         /// </summary>
-        /// <param name="utcNow">当前时间( UTC)</param>
+        /// <param name="utcNow">当前时间（UTC）。</param>
         void PerformPurge(DateTime utcNow);
 
         /// <summary>
-        /// 当数据适配器分配新块时应该调用的方法
+        /// 数据适配器分配新块时应调用的方法。
         /// </summary>
         /// <param name="newBlock">新块。</param>
         void OnBlockAllocated(FixedSizeBuffer newBlock);
     }
 
     /// <summary>
-    /// 与清除行动有关的功能。
+    /// 提供清除相关操作的功能。
     /// </summary>
     public interface IPurgeObservable
     {
         /// <summary>
-        /// 删除缓存中最老的信件 。
+        /// 移除缓存中最早的消息。
         /// </summary>
         void RemoveOldestMessage();
 
         /// <summary>
-        /// 获取缓存中的最新消息 。
+        /// 获取缓存中最新的消息。
         /// </summary>
         CachedMessage? Newest { get; }
 
         /// <summary>
-        /// 获取缓存中最古老的信息 。
+        /// 获取缓存中最早的消息。
         /// </summary>
         CachedMessage? Oldest { get; }
 
         /// <summary>
-        /// 获得信息计数。
+        /// 获取消息数量。
         /// </summary>
         int ItemCount { get; }
 
         /// <summary>
-        /// 获得一个值,以显示此实例是否为空。
+        /// 获取一个值，指示此实例是否为空。
         /// </summary>
         bool IsEmpty { get; }
     }

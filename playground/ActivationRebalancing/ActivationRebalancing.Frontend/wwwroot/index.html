@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orleans Activation Load Balancing</title>
+  <title>Orleans 激活实例负载均衡</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
     :root {
@@ -206,7 +206,7 @@
     .legend-color-3 { background-color: #45b7d1; }
     .legend-color-4 { background-color: #f9ca24; }
     .legend-color-5 { background-color: #dda0dd; }
-    /* Grid styling for the density matrix */
+    /* 密度矩阵的网格样式 */
     rect {
       transition: var(--transition);
       stroke: rgba(255, 255, 255, 0.1);
@@ -219,7 +219,7 @@
       filter: brightness(1.1);
     }
 
-    /* Axis styling */
+    /* 坐标轴样式 */
     .axis text {
       font-size: 12px;
       fill: var(--text-light);
@@ -240,7 +240,7 @@
       fill: var(--text-light);
     }
 
-    /* Modern scrollbar */
+    /* 现代样式的滚动条 */
     ::-webkit-scrollbar {
       width: 8px;
       height: 8px;
@@ -261,7 +261,7 @@
       background: rgba(255, 255, 255, 0.5);
     }
 
-    /* Loading animation */
+    /* 加载动画 */
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.7; transform: scale(1.1); }
@@ -280,20 +280,20 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>Orleans Activation Load Balancing</h1>
-      <p class="subtitle">Real-time monitoring and visualization of grain activation distribution across silos</p>
+      <h1>Orleans 激活实例负载均衡</h1>
+      <p class="subtitle">实时监视并可视化 Grain 激活实例在各个 Silo 之间的分布</p>
     </div>
 
     <div class="dashboard-grid">
       <div class="unified-chart-section">
         <div class="charts-container">
           <div class="line-chart-area">
-            <div class="chart-subtitle">Timeline</div>
+            <div class="chart-subtitle">时间变化</div>
             <div id="line-chart" class="line-chart"></div>
           </div>
 
           <div class="bar-chart-area">
-            <div class="chart-subtitle">Current Distribution</div>
+            <div class="chart-subtitle">当前分布</div>
             <div id="bar-charts" class="bar-chart"></div>
           </div>
         </div>
@@ -325,16 +325,16 @@
   </div>
 
   <script>
-    // Calculate dimensions based on available space
+    // 根据可用空间计算尺寸
     const headerHeight = document.querySelector('.header').offsetHeight;
-    const availableHeight = window.innerHeight - headerHeight - 60; // Account for padding and margins
-    const availableWidth = window.innerWidth - 60; // Account for padding
+    const availableHeight = window.innerHeight - headerHeight - 60; // 计入内边距和外边距
+    const availableWidth = window.innerWidth - 60; // 计入内边距
 
-    // For the line chart (takes up 80% of width)
-    const lineChartWidth = availableWidth * 0.75; // Accounting for grid gap
+    // 折线图（占宽度的 80%）
+    const lineChartWidth = availableWidth * 0.75; // 计入网格间距
     const lineChartHeight = availableHeight * 0.85;
 
-    // For the bar charts (20% of width)
+    // 条形图（占宽度的 20%）
     const barChartWidth = 50;
     const barChartContainerHeight = availableHeight * 0.85;
 
@@ -374,7 +374,7 @@
       .attr("y", barChartContainerHeight + 20)
       .text(d => "0");
 
-    // Add max scale label at the top
+    // 在顶部添加最大刻度标签
     svgBarCharts.append("text")
       .attr("class", "max-scale-label")
       .attr("x", 0)
@@ -411,7 +411,7 @@
       .attr("transform", `translate(50, 0)`)
       .call(yAxis);
 
-    // Add axis labels
+    // 添加坐标轴标签
     svgLineChart.append("text")
       .attr("class", "axis-title")
       .attr("transform", "rotate(-90)")
@@ -427,7 +427,7 @@
       .style("text-anchor", "middle")
       .text("Time (Data Points)");
 
-    // Create a clipping path to constrain the line chart area
+    // 创建裁剪路径，将折线图限制在指定区域内
     svgLineChart.append("defs")
       .append("clipPath")
       .attr("id", "chart-clip")
@@ -437,7 +437,7 @@
       .attr("x", 0)
       .attr("y", 0);
 
-    // Create a container group for the lines that will be clipped
+    // 为将被裁剪的折线创建容器组
     const linesContainer = svgLineChart.append("g")
       .attr("transform", "translate(50, 0)")
       .attr("clip-path", "url(#chart-clip)");
@@ -472,11 +472,11 @@
           return;
         }
 
-        // Calculate the maximum activation count across all silos for scaling
+        // 计算所有 Silo 中的最大激活实例数，用于设置比例尺
         const maxActivations = Math.max(...data.map(silo => silo.activations));
         const barScale = d3.scaleLinear()
           .domain([0, maxActivations])
-          .range([0, barChartContainerHeight - 30]); // Leave some space for labels
+          .range([0, barChartContainerHeight - 30]); // 为标签留出一些空间
 
         svgBarCharts.each(function (d, i) {
           const barChart = d3.select(this);
@@ -493,7 +493,7 @@
             .attr("width", barChartWidth - 20)
             .attr("height", d => barScale(d))
             .attr("fill", colors[i])
-            .attr("rx", 4) // Rounded corners
+            .attr("rx", 4) // 圆角
             .attr("ry", 4);
 
           bars.exit().remove();
@@ -501,7 +501,7 @@
           barChart.select(".bar-label")
             .text(data[i].activations);
 
-          // Update the max scale label
+          // 更新最大刻度标签
           barChart.select(".max-scale-label")
             .text(maxActivations);
         });
@@ -509,31 +509,31 @@
         data.forEach((silo, i) => {
           activationsHistory[i].push(silo.activations);
 
-          // Keep only the most recent maxDataPoints for smooth scrolling
+          // 仅保留最近的 maxDataPoints 个数据点，以实现平滑滚动
           if (activationsHistory[i].length > maxDataPoints) {
             activationsHistory[i].shift();
           }
         });
 
-        // Update line chart scale based on current maximum across all visible history
+        // 根据所有可见历史数据中的当前最大值更新折线图比例尺
         const allHistoryValues = activationsHistory.flat();
         const maxHistoryValue = allHistoryValues.length > 0 ? Math.max(...allHistoryValues) : 750;
         const rawMaxValue = Math.max(maxHistoryValue, maxActivations);
 
-        // Add 20% buffer above the maximum value for comfortable spacing
+        // 在最大值上方增加 20% 的余量，留出适当空间
         const newMaxValue = rawMaxValue * 1.2;
 
-        // Update Y scale domain if needed
+        // 根据需要更新 Y 轴比例尺的定义域
         yScale.domain([0, newMaxValue]);
         yAxis = d3.axisLeft(yScale).ticks(5);
 
-        // Update Y axis
+        // 更新 Y 轴
         svgLineChart.select(".y-axis")
           .transition()
           .duration(300)
           .call(yAxis);
 
-        // Update line generators with new scale
+        // 使用新的比例尺更新折线生成器
         const updatedLineGenerators = colors.map(() => d3.line()
           .x((d, i) => xScale(i))
           .y(d => yScale(d)));
@@ -566,17 +566,17 @@
     setInterval(fetchData, 500);
     fetchData();
 
-    // Handle window resize for responsiveness
+    // 处理窗口大小变化以适应不同尺寸
     let resizeTimeout;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
-        // Reload on any significant resize since we're using viewport-based dimensions
+        // 由于尺寸以视口为基准，在窗口大小明显变化时重新加载
         location.reload();
       }, 250);
     });
 
-    // Add keyboard shortcuts for better UX
+    // 添加键盘快捷键以改善用户体验
     document.addEventListener('keydown', (e) => {
       if (e.key === 'r' || e.key === 'R') {
         if (e.ctrlKey || e.metaKey) {

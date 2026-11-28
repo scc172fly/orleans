@@ -1,23 +1,23 @@
 // Copyright (c) Microsoft. All rights reserved.
-// 持麻省理工学院执照
+// Licensed under the MIT License.
 
 using Orleans.Core;
 
 namespace Orleans.ShoppingCart.Grains;
 
 /// <summary>
-/// 辅助类,该类包扎 grain 国家实例并确保在任何时间的任何时候只有一个未完成的写作操作。
+/// 一个包装 Grain 状态实例的辅助类，确保任意时刻只有一个尚未完成的写入操作。
 /// </summary>
-/// <param name="state">下 grain 状态。</param>
+/// <param name="state">Grain 状态。</param>
 internal sealed class StateManager(IStorage state)
 {
     /// <summary>
-    /// 允许在背景中进行状态写入 。
+    /// 允许在后台写入状态。
     /// </summary>
     private Task? _pendingOperation;
 
-    // 当Reentrant grain 正在做 WriteStateAsync时,由于同时写作,有可能出现侵权行为。
-    // 解决问题的方法就是进行序列化和批量写作,确保在任何时候只收到一份单封未完成的书。
+    // 可重入 Grain 执行 WriteStateAsync 时，并发写入可能导致 ETag 冲突。
+    // 解决办法是将写入串行化并批量合并，确保任意时刻只有一个尚未完成的写入操作。
     public async ValueTask WriteStateAsync()
     {
         await PerformOperationAsync(static state => state.WriteStateAsync());
@@ -32,12 +32,12 @@ internal sealed class StateManager(IStorage state)
     {
         if (_pendingOperation is Task currentWriteStateOperation)
         {
-            // 等待着未完成的写作, 但忽略它, 因为其中不包括我们的更改
+            // 等待尚未完成的写入，但忽略其结果，因为它不包含本次请求的变更。
             await currentWriteStateOperation.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext);
             if (_pendingOperation == currentWriteStateOperation)
             {
-                // 唯一能取消未完成行动 条件是它和我们期待的一样 否则
-                // 另一项请求可能已经提出。
+                // 仅当当前尚未完成的操作与我们刚等待的操作相同时，才将其置为 null，否则
+                // 另一个请求可能已经完成了这一操作。
                 _pendingOperation = null;
             }
         }
@@ -45,15 +45,15 @@ internal sealed class StateManager(IStorage state)
         Task operation;
         if (_pendingOperation is null)
         {
-            // 如果在初始写作完成后,没有其他请求启动新的写作操作,请立即进行。
+            // 如果初始写入完成后，没有其他请求发起新的写入操作，则现在发起写入。
             operation = performOperation(state);
             _pendingOperation = operation;
         }
         else
         {
-            // 如果有许多要求被排在了持续状态的呼声中,就没有理由写新书
-            // 每个操作的操作, 因为任何写作( 之前我们期待的首部) 都将累积
-            // 包括我们打电话者要求的更改。 等待新的未写 。
+            // 如果已有多个持久化状态的请求排队，则无需为每个请求都安排新的写入
+            // 操作，因为初始写入（我们已经等待过）之后的任何写入都会包含累积的
+            // 变更，包括本次调用者请求的变更。只需等待新的尚未完成的写入即可。
             operation = _pendingOperation;
         }
 
@@ -65,8 +65,8 @@ internal sealed class StateManager(IStorage state)
         {
             if (_pendingOperation == operation)
             {
-                // 唯一能取消未完成行动 条件是它和我们期待的一样 否则
-                // 另一项请求可能已经提出。
+                // 仅当当前尚未完成的操作与我们刚等待的操作相同时，才将其置为 null，否则
+                // 另一个请求可能已经完成了这一操作。
                 _pendingOperation = null;
             }
         }

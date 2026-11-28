@@ -6,7 +6,7 @@ using Xunit;
 namespace Consul.Tests
 {
     /// <summary>
-    /// 使用领事作为成员提供者测试 Orleans 群集实时功能。
+    /// 使用 Consul 作为成员资格提供程序，测试 Orleans 集群的存活机制。
     /// </summary>
     [TestCategory("Membership"), TestCategory("Consul")]
     [TestSuite("Functional")]

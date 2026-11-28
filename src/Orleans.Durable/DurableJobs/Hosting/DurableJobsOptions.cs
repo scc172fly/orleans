@@ -11,151 +11,151 @@ using Orleans.Providers;
 namespace Orleans.Hosting;
 
 /// <summary>
-/// 耐久工作功能配置选项 。
+/// 持久化作业功能的配置选项。
 /// </summary>
 public sealed class DurableJobsOptions
 {
     /// <summary>
-    /// 获取或设置用于创建新工作碎片的活跃日记提供者。
+    /// 获取或设置用于创建新作业分片的活动日志提供程序。
     /// 默认为 <see cref="ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME"/>。
     /// </summary>
     public string ActiveProviderName { get; set; } = ProviderConstants.DEFAULT_STORAGE_PROVIDER_NAME;
 
     /// <summary>
-    /// 获取更多名称的日记提供者,其现有碎片被发现并被排干。
-    /// 现有工作保留了提供再试、取消和清理服务的人。
-    /// 当 silo 启动时, 提供者的选择将被固定。
+    /// 获取其他命名日志提供程序，用于发现并处理完其中的现有分片。
+    /// 现有作业在重试、取消和清理时继续使用原提供程序。
+    /// 提供程序的选择在 Silo 启动时确定。
     /// </summary>
     public List<string> DrainingProviderNames { get; } = [];
 
     /// <summary>
-    /// 查找或设置每份工作的时间长度。 较小值会减少潜伏, 但增加管理费 。
-    /// 与小时边界的最佳一致,选择平均分配60分钟的长度
-    /// (e.g, 1、2、3、4、5、6、10、12、15、20、23、30或60分钟),以避免桶漂流过小时。
-    /// 默认时间:1小时。
+    /// 获取或设置每个作业分片的时间跨度。较小的值可降低延迟，但会增加开销。
+    /// 为了与整点边界最佳对齐，请选择能整除 60 分钟的时间跨度
+    /// （例如 1、2、3、4、5、6、10、12、15、20、30 或 60 分钟），避免时间桶跨小时发生偏移。
+    /// 默认值：1 小时。
     /// </summary>
     public TimeSpan ShardDuration { get; set; } = TimeSpan.FromHours(1);
 
     /// <summary>
-    /// 获取或设定( 在碎片开始时间之前) 预置该碎片的距离
-    /// 开始处理。 这样可以防止长期持有闲置的碎片 。
-    /// 默认时间:5分钟。
+    /// 获取或设置分片应在其开始时间之前提前多久
+    /// 开始处理，以避免长时间持有空闲分片。
+    /// 默认值：5 分钟。
     /// </summary>
     public TimeSpan ShardActivationBufferPeriod { get; set; } = TimeSpan.FromMinutes(5);
 
     /// <summary>
-    /// 获取或设定离当前时间还远得多的碎片发现会装载符合条件的碎片。
-    /// 零值发现在目前或之前开始的碎片。
-    /// 由此得出的发现地平线以 <see cref="DateTimeOffset.MaxValue"/>上限。
-    /// 必须是非负向的。默认时间:10分钟。
+    /// 获取或设置分片发现操作从当前时间向未来加载符合条件分片的时间范围。
+    /// 值为零时，仅发现开始时间不晚于当前时间的分片。
+    /// 最终的发现时间范围以 <see cref="DateTimeOffset.MaxValue"/> 为上限。
+    /// 必须为非负值。默认值：10 分钟。
     /// </summary>
     public TimeSpan ShardLoadLookaheadPeriod { get; set; } = TimeSpan.FromMinutes(10);
 
     /// <summary>
-    /// 获取或设置定期硬化发现和可写硬化清理检查之间的间隔。
-    /// A silo 加入或离开活动集,或被宣布死亡,也引发新的发现扫描,
-    /// 且采用已死 silo碎片。
-    /// 必须在 1 至 4294967294 毫秒之间, 包括。 默认值: 5分钟 。
+    /// 获取或设置定期发现分片与检查可写分片清理的时间间隔。
+    /// Silo 加入或离开活动成员集合，或者被宣告死亡时，也会触发新一轮发现扫描，
+    /// 以接管已死亡 Silo 的分片。
+    /// 必须在 1 至 4294967294 毫秒之间（含两端）。默认值：5 分钟。
     /// </summary>
     public TimeSpan ShardCheckInterval { get; set; } = TimeSpan.FromMinutes(5);
 
     /// <summary>
-    /// 获取或设置每个破烂时间桶使用的可写碎片数量。
-    /// 增加这一价值,就可把同一个应享时桶的工作分配给多个散乱的期刊。
-    /// 默认值: 1.
+    /// 获取或设置每个分片时间桶使用的可写分片数量。
+    /// 增大此值可将具有相同到期时间桶的作业分散到多个分片日志中。
+    /// 默认值：1。
     /// </summary>
     public int ShardStripeCount { get; set; } = 1;
 
     /// <summary>
-    /// 重新找到或设置在投票前的拖延,
-    /// 这份工作在接受民意调查期间继续保留其货币汇兑额。
-    /// 默认时间:1秒。
+    /// 获取或设置再次轮询异步持久化作业处理程序前的延迟。
+    /// 轮询期间，作业仍占用其并发槽位。
+    /// 默认值：1 秒。
     /// </summary>
     public TimeSpan JobStatusPollInterval { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
-    /// 设置或设定在单 silo上同时执行的最多工作数量。
-    /// 默认值: 10,000 × 处理器计数 。
+    /// 获取或设置单个 Silo 上可同时执行的最大作业数。
+    /// 默认值：10,000 × 处理器数量。
     /// </summary>
     public int MaxConcurrentJobsPerSilo { get; set; } = 10_000 * Environment.ProcessorCount;
 
     /// <summary>
-    /// 当主机超载时, 获取或设置过重检查之间的延迟 。
-    /// 工作批次处理将在此期间暂停, 然后重新检查过重状态 。
-    /// 默认:5秒。
+    /// 获取或设置宿主过载时两次过载检查之间的延迟。
+    /// 作业批处理将暂停此时长，然后再次检查过载状态。
+    /// 默认值：5 秒。
     /// </summary>
     public TimeSpan OverloadBackoffDelay { get; set; } = TimeSpan.FromSeconds(5);
 
     /// <summary>
-    /// 是否启用同时工作缓慢启动, 获取或设置 。
-    /// 启动时,如果能够,工作同值货币逐渐增加,以避免饥饿
-    /// 问题可能发生在缓存、连接池和线池的细小化之前,
-    /// 货币货币从 <see cref="SlowStartInitialConcurrency"/> 开始,每翻一番
-    /// <see cref="SlowStartInterval"/> 直到 <see cref="MaxConcurrentJobsPerSilo"/> 达到。
-    /// 默认: <see langword="true"/>。
+    /// 获取或设置是否启用并发作业的慢启动机制。
+    /// 启用后，启动期间逐步提高作业并发度，以避免
+    /// 缓存、连接池及线程池规模尚未充分预热时可能出现的资源饥饿问题。
+    /// 并发度从 <see cref="SlowStartInitialConcurrency"/> 开始，每隔
+    /// <see cref="SlowStartInterval"/> 翻倍，直到达到 <see cref="MaxConcurrentJobsPerSilo"/>。
+    /// 默认值：<see langword="true"/>。
     /// </summary>
     public bool ConcurrencySlowStartEnabled { get; set; } = true;
 
     /// <summary>
-    /// 启用慢启动时, 获取或设置允许每个 silo 的并行工作初始数 。
-    /// 货币将从这一数值成倍增长,直至达到 <see cref="MaxConcurrentJobsPerSilo"/> 。
-    /// 默认: <see cref="Environment.ProcessorCount"/>。
+    /// 获取或设置启用慢启动时每个 Silo 允许的初始并发作业数。
+    /// 并发度从此值开始按指数增长，直至达到 <see cref="MaxConcurrentJobsPerSilo"/>。
+    /// 默认值：<see cref="Environment.ProcessorCount"/>。
     /// </summary>
     public int SlowStartInitialConcurrency { get; set; } = Environment.ProcessorCount;
 
     /// <summary>
-    /// 获取或设置在缓慢启动加速时货币加倍的间隔。
-    /// 默认:10秒。
+    /// 获取或设置慢启动逐步提高并发度期间，并发度翻倍的时间间隔。
+    /// 默认值：10 秒。
     /// </summary>
     public TimeSpan SlowStartInterval { get; set; } = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// 获取或设置函数,以决定是否应该重新调查失败的工作以及何时重审。
-    /// 函数接收工作环境以及导致失败的例外和返回
-    /// 工作应重新审理的时间,或如果工作不应重新审理,则 <see langword="null"/> 。
-    /// 默认值: 以指数后退数( 2°n 秒) 重试最多5次 。
+    /// 获取或设置确定失败作业是否重试以及何时重试的函数。
+    /// 此函数接收作业上下文和导致失败的异常，并返回
+    /// 作业应重试的时间；如果不应重试，则返回 <see langword="null"/>。
+    /// 默认值：最多重试 5 次，采用指数退避（2 的 n 次方秒）。
     /// </summary>
     public Func<IJobRunContext, Exception, DateTimeOffset?> ShouldRetry { get; set; } = DefaultShouldRetry;
 
     /// <summary>
-    /// 获取或设定软化操作处理器等待的最大时间
-    /// 第一批飞航中生物抵达后加入飞行中的一组生物的突变。
+    /// 获取或设置分片操作处理器在收到第一项变更后，等待
+    /// 其他变更加入正在处理的批次的最长时间。
     /// </summary>
     /// <remarks>
-    /// 当设置为正值时,运行处理程序在
-    /// 使随后的突变有机会被结合
-    /// 将第一个请求的延迟加长
-    /// 相对于较大批量规模的每批在爆炸/中度负荷下装载的细小批次,默认为
-    /// <see cref="TimeSpan.Zero"/> (无残留,行为不变)
+    /// 设置为正值时，操作处理器在
+    /// 第一项变更出队后最多等待此时长，使后续变更有机会合并到
+    /// 同一次日志写入中。这是在每个批次首个请求的有限延迟增量
+    /// 与突发或中等负载下更大的批次规模之间进行权衡。默认为
+    /// <see cref="TimeSpan.Zero"/>（不额外等待，行为不变）。
     /// </remarks>
     public TimeSpan ShardBatchLingerDelay { get; set; } = TimeSpan.Zero;
 
     /// <summary>
-    /// 获取或设定在使用碎片之前从死主人处被采用的最大次数
-    /// 标记为中毒。反复导致 silos 崩溃的碎片将超过此值
-    /// 由所有者之间弹跳的门槛值。 当下次通过时, 将引起被采纳的计数
-    /// 超过此值,则该碎片被视为中毒,不再划入任何 silo。
-    /// 默认: 3.
+    /// 获取或设置分片在被标记为有毒分片之前，允许从已死亡的所有者处接管的最大次数。
+    /// 反复导致 Silo 崩溃的分片在不同所有者之间转移时，会超过此
+    /// 阈值。当下一次接管将使接管次数
+    /// 超过该值时，分片将被视为有毒分片，不再分配给任何 Silo。
+    /// 默认值：3。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 只有在从死者身上取去碎片 silo (i.e)时,才加注通过的数字。
-    /// 自动加号时,该值不会增加。 silo 优雅的关闭和释放所有权。
+    /// 仅在从已死亡的 Silo 接管分片（即此前的所有者已
+    /// 崩溃）时增加接管计数。Silo 优雅关闭并释放所有权时，不增加此计数。
     /// </para>
     /// <para>
-    /// 当碎片成功完成( 所有处理的工作) 时, 被采纳的计数将被重置为 0 。
+    /// 分片成功完成（所有作业均已处理）后，接管计数重置为 0。
     /// </para>
     /// </remarks>
     public int MaxAdoptedCount { get; set; } = 3;
 
     /// <summary>
-    /// 获取或设定最多数量的孤儿碎片 silo 可立即要求
-    /// 启动后,累积预算从这个数值直线增长到
-    /// <see cref="ShardClaimMaxBudget"/> 超过 <see cref="ShardClaimRampUpDuration"/>,
-    /// 之后,限制被完全取消。
-    /// 这使新开始的 silo 无法通过声称所有孤儿碎片而压倒自己
-    /// 在灾后恢复设想期间,应同时进行。
-    /// 默认值: 2.
+    /// 获取或设置 Silo 启动后立即可以认领的无主分片的最大数量。
+    /// 累计认领预算从此值开始线性增长，
+    /// 增长至 <see cref="ShardClaimMaxBudget"/>，增长期为 <see cref="ShardClaimRampUpDuration"/>，
+    /// 此后完全解除限制。
+    /// 这样可防止新启动的 Silo 在灾难恢复场景中因一次性认领所有无主分片
+    /// 而导致自身过载。
+    /// 默认值：2。
     /// </summary>
     /// <example>
     /// <code>
@@ -165,11 +165,11 @@ public sealed class DurableJobsOptions
     public int ShardClaimInitialBudget { get; set; } = 2;
 
     /// <summary>
-    /// 获取或设定允许 silo 声称的孤儿碎片总数
-    /// 以平整索赔加速期结束时为准。累计预算为线性
-    /// 启动时插插 <see cref="ShardClaimInitialBudget"/> 与此值之间
-    /// 年 <see cref="ShardClaimRampUpDuration"/>.
-    /// 默认:20。
+    /// 获取或设置分片认领逐步放量期结束时，Silo 累计允许认领的
+    /// 无主分片总数。累计预算通过线性插值计算，
+    /// 从启动时的 <see cref="ShardClaimInitialBudget"/> 增长至此值，
+    /// 在 <see cref="ShardClaimRampUpDuration"/> 结束时达到该值。
+    /// 默认值：20。
     /// </summary>
     /// <example>
     /// <code>
@@ -179,12 +179,12 @@ public sealed class DurableJobsOptions
     public int ShardClaimMaxBudget { get; set; } = 20;
 
     /// <summary>
-    /// 获取或设置启动 silo 后 硬体索赔的加速期。
-    /// 虽然 silo 运行时间少于这一期限,但孤儿碎片的数量
-    /// 其可能声称受线性增长预算的限制。
-    /// silo 要求无限制地使用所有可用的孤儿碎片。
-    /// 设置为 <see cref="TimeSpan.Zero"/> 完全禁用 hard- Claim 斜坡 。
-    /// 默认时间:5分钟。
+    /// 获取或设置 Silo 激活后分片认领逐步放量期的持续时间。
+    /// 当 Silo 的运行时长小于该值时，
+    /// 它可认领的无主分片数量受线性增长的预算限制。此期间结束后，
+    /// Silo 可以无限制地认领所有可用的无主分片。
+    /// 设置为 <see cref="TimeSpan.Zero"/> 可完全禁用分片认领逐步放量机制。
+    /// 默认值：5 分钟。
     /// </summary>
     /// <example>
     /// <code>
@@ -195,7 +195,7 @@ public sealed class DurableJobsOptions
 
     private static DateTimeOffset? DefaultShouldRetry(IJobRunContext jobContext, Exception ex)
     {
-        // 默认重试逻辑: 以指数回落最多重试5次
+        // 默认重试逻辑：最多重试 5 次，采用指数退避。
         if (jobContext.DequeueCount >= 5)
         {
             return null;
@@ -206,7 +206,7 @@ public sealed class DurableJobsOptions
 }
 
 /// <summary>
-/// 验证值 <see cref="DurableJobsOptions"/> 期间 silo 配置。
+/// 在 Silo 配置期间验证 <see cref="DurableJobsOptions"/>。
 /// </summary>
 public sealed partial class DurableJobsOptionsValidator : IConfigurationValidator
 {
@@ -216,8 +216,8 @@ public sealed partial class DurableJobsOptionsValidator : IConfigurationValidato
     /// <summary>
     /// 初始化 <see cref="DurableJobsOptionsValidator"/> 类的新实例。
     /// </summary>
-    /// <param name="logger">日志器。</param>
-    /// <param name="options">持久工作配置选项。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="options">持久化作业配置选项。</param>
     public DurableJobsOptionsValidator(ILogger<DurableJobsOptionsValidator> logger, IOptions<DurableJobsOptions> options)
     {
         _logger = logger;

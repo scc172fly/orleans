@@ -2,132 +2,132 @@ using Orleans.Durable.Tasks;
 namespace Orleans.Durable.Http;
 
 /// <summary>
-/// 发送 HTTP 请求并运行 HTTP 操作,作为耐久任务的步骤, 因此任务重写和重放到达
-/// 服务器侧面工作相同。
+/// 将 HTTP 请求和 HTTP 操作作为持久化任务的步骤执行，使任务的重试和重放到达
+/// 服务器端的同一工作。
 /// </summary>
 /// <remarks>
 /// <para>
-/// 返回持久任务记录的方法,每一方法都作为调用任务的步骤,作为调用任务:重放读取
-/// 记录了未再发送请求请求而没有再次发送的回复,以及故障或中断中断中断发送的一步
-/// 请求中再次提出了与确定该步骤的同一 <c>Idempotency-Key</c>相同的请求。
-/// <c>GET</c>使用这些方法,可以从耐用处决中(例如:可耐用死刑)使用。 grain 方法, 内 silos.
+/// 每个返回持久化任务的方法均将其响应记录为调用任务的步骤：重放读取
+/// 已记录的响应，无需重新发送请求；如果步骤因故障或停用而中断，则使用
+/// 相同的 <c>Idempotency-Key</c> 重新发送请求，该键用于标识步骤。使用安全方法的请求，例如
+/// <c>GET</c> 不携带键。应从 Silo 中的持久化执行实例（例如持久化 Grain 方法）调用这些方法。
 /// </para>
 /// <para>
-/// 业务遵循本一揽子方案持久运作终点服务的各项公约,这些公约与
-/// Azure 长期运行业务: <c>202 Accepted</c> 答复将业务状况监测器定位为
-/// <c>Operation-Location</c>,其中 <c>POST {status monitor}:cancel</c> 取消和
-/// <c>POST {status monitor}/signals/{name}</c> 信号。 <see cref="WaitForOperationAsync{TResult}"/> 也等待
-/// 运行的 Azure 服务操作和服务器,回答 <c>202 Accepted</c> ,位置为 <c>Location</c>。
+/// 操作遵循本包持久化操作端点所提供的约定，该约定与
+/// Azure 长时间运行操作兼容：<c>202 Accepted</c> 响应通过
+/// <c>Operation-Location</c> 指定操作状态监视器的位置；<c>POST {status monitor}:cancel</c> 取消操作，
+/// <c>POST {status monitor}/signals/{name}</c> 向操作发送信号。<see cref="WaitForOperationAsync{TResult}"/> 也可以等待
+/// Azure 服务所运行的操作，以及返回 <c>202 Accepted</c> 且带有 <c>Location</c> 的服务器所运行的操作。
 /// </para>
 /// <para>
-/// 以 <c>AddDurableHttpClient</c>注册一个客户端,该客户端将返回其 <see cref="HttpClient"/>的构建者,并且
-/// 以客户名作为密钥服务注入
+/// 使用 <c>AddDurableHttpClient</c> 注册客户端，该方法返回其 <see cref="HttpClient"/> 的构建器，并
+/// 以客户端名称作为键注入该键控服务。
 /// </para>
 /// </remarks>
 public interface IDurableHttpClient
 {
-    /// <summary>发送 <paramref name="createRequest"/> 创建的请求,作为调用任务的一个步骤。</summary>
-    /// <param name="createRequest">创建请求;它运行每个步骤的尝试。</param>
-    /// <returns>一项持久任务, 以记录的答复( 以其状态代码为准) 返回所记录的答复。</returns>
+    /// <summary>将 <paramref name="createRequest"/> 创建的请求作为调用任务的步骤发送。</summary>
+    /// <param name="createRequest">创建请求；在步骤的每次尝试中运行。</param>
+    /// <returns>返回已记录响应的持久化任务，不受响应状态码限制。</returns>
     DurableTask<DurableHttpResponse> SendAsync(Func<HttpRequestMessage> createRequest);
 
-    /// <summary>发送启动操作的请求,作为调用任务的一个步骤,并返回操作。</summary>
-    /// <param name="createRequest">创建请求;它运行每个步骤的尝试。</param>
-    /// <returns>一项持久任务, 返回运行, 启动响应可能已经完成的操作 。</returns>
+    /// <summary>将启动操作的请求作为调用任务的步骤发送，并返回该操作。</summary>
+    /// <param name="createRequest">创建请求；在步骤的每次尝试中运行。</param>
+    /// <returns>返回操作的持久化任务，该操作可能已由启动响应完成。</returns>
     /// <exception cref="HttpRequestException">
-    /// 答复既不报告一项行动,也不报告结果,或在未说明行动地点的情况下接受请求。
+    /// 响应既未报告操作也未报告结果，或接受请求但未给出操作位置。
     /// </exception>
     DurableTask<DurableHttpOperation> StartOperationAsync(Func<HttpRequestMessage> createRequest);
 
-    /// <summary>易腐性等待操作结果。</summary>
-    /// <typeparam name="TResult">操作类型 JSON 后的结果使该结果的消散状态降低。</typeparam>
-    /// <param name="operation">操作 <see cref="StartOperationAsync"/> 返回。</param>
-    /// <param name="options">配置默认值的等待或 <see langword="null"/> 。</param>
-    /// <returns>返回操作结果的持久任务。</returns>
+    /// <summary>以持久化方式等待操作结果。</summary>
+    /// <typeparam name="TResult">操作的 JSON 结果反序列化后得到的类型。</typeparam>
+    /// <param name="operation"><see cref="StartOperationAsync"/> 返回的操作。</param>
+    /// <param name="options">配置等待；为 <see langword="null"/> 时使用默认配置。</param>
+    /// <returns>返回操作结果的持久化任务。</returns>
     /// <remarks>
     /// <para>
-    /// 启动回复, <see cref="DurableHttpOperation.IsCompleted"/> 报告产生结果,
-    /// <c>204 No Content</c> 响应请假 <see langword="default"/>,或,与 <c>424 Failed Dependency</c>状态, 状态
-    /// 状态监测报告 <c>status</c> ,一旦它结束,
-    /// <c>result</c> 或 <c>error</c>; a <c>Location</c> 答解答复 <c>202 Accepted</c> 运行和运行时
-    /// 一旦成功,结果就会产生。
+    /// 若 <see cref="DurableHttpOperation.IsCompleted"/> 表明启动响应已完成操作，则该响应携带结果；其中
+    /// <c>204 No Content</c> 响应的结果为 <see langword="default"/>，或者 <c>424 Failed Dependency</c> 响应携带失败或取消操作的状态
+    /// 监视器。状态监视器报告 <c>status</c>，并在进入终态后报告
+    /// <c>result</c> 或 <c>error</c>；通过 <c>Location</c> 指定的地址在操作运行期间响应 <c>202 Accepted</c>，并在操作
+    /// 成功后返回结果。
     /// </para>
     /// <para>
-    /// 民意调查的间隔 <c>Retry-After</c> 广告,或 <see cref="DurableHttpOperationOptions.PollInterval"/>,
-    /// 每次民意调查记录了延误和一步,任务删除后删除了这一段,因此倾向于间隔。
-    /// 适合操作预期时间或 <see cref="DurableHttpWaitMode.Events"/>。
+    /// 轮询等待 <c>Retry-After</c> 声明的间隔或 <see cref="DurableHttpOperationOptions.PollInterval"/>，
+    /// 采用持久化延迟。每次轮询记录一个延迟和一个步骤，删除任务时会删除这些记录，因此优先选择
+    /// 适合操作预期时长的间隔，或使用 <see cref="DurableHttpWaitMode.Events"/>。
     /// </para>
     /// </remarks>
-    /// <exception cref="DurableHttpOperationException">操作失败或取消。</exception>
-    /// <exception cref="HttpRequestException">答复中既无状况代码,也无结果报告。</exception>
+    /// <exception cref="DurableHttpOperationException">操作失败或被取消。</exception>
+    /// <exception cref="HttpRequestException">响应状态码既未报告状态也未报告结果。</exception>
     DurableTask<TResult> WaitForOperationAsync<TResult>(DurableHttpOperation operation, DurableHttpOperationOptions? options = null);
 
-    /// <summary>读取操作状态监视器 作为调用任务的一个步骤</summary>
-    /// <param name="operationLocation">运行状态监视器的 URL。</param>
-    /// <returns>持久任务, 返回操作状态及其在结束时的结果或错误。</returns>
-    /// <exception cref="HttpRequestException">响应没有成功状态代码。</exception>
+    /// <summary>将读取操作状态监视器作为调用任务的步骤。</summary>
+    /// <param name="operationLocation">操作的状态监视器 URL。</param>
+    /// <returns>返回操作状态的持久化任务；操作进入终态后还返回结果或错误。</returns>
+    /// <exception cref="HttpRequestException">响应的状态码不是成功状态码。</exception>
     DurableTask<DurableOperation> GetOperationAsync(Uri operationLocation);
 
-    /// <summary>要求取消 <c>POST {status monitor}:cancel</c>以作为任务的一个步骤</summary>
-    /// <param name="operationLocation">运行状态监视器的 URL。</param>
-    /// <param name="reason">操作任务为何读作,或 <see langword="null"/> 没有。</param>
+    /// <summary>将通过 <c>POST {status monitor}:cancel</c> 请求取消操作作为调用任务的步骤。</summary>
+    /// <param name="operationLocation">操作的状态监视器 URL。</param>
+    /// <param name="reason">操作任务读取的取消原因；无原因时为 <see langword="null"/>。</param>
     /// <returns>
-    /// 一项持久的任务, 返回运行状态: 在取消收益时运行, 或者在终端 。
+    /// 返回操作状态的持久化任务：取消正在进行时可能仍为运行状态，或者已进入终态。
     /// </returns>
-    /// <exception cref="HttpRequestException">响应没有成功状态代码。</exception>
+    /// <exception cref="HttpRequestException">响应的状态码不是成功状态码。</exception>
     DurableTask<DurableOperation> CancelOperationAsync(Uri operationLocation, string? reason = null);
 
     /// <summary>
-    /// 发送信号 JSON 与 <c>POST {status monitor}/signals/{name}</c>,作为
-    /// 任务
+    /// 将通过 <c>POST {status monitor}/signals/{name}</c> 向操作传递带 JSON 值的信号作为
+    /// 调用任务的步骤。
     /// </summary>
-    /// <typeparam name="T">信号值类型。</typeparam>
-    /// <param name="operationLocation">运行状态监视器的 URL。</param>
+    /// <typeparam name="T">信号的值类型。</typeparam>
+    /// <param name="operationLocation">操作的状态监视器 URL。</param>
     /// <param name="signalName">信号的名称。</param>
-    /// <param name="value">信号值。</param>
-    /// <returns>耐久任务,一旦操作持有信号即完成。</returns>
+    /// <param name="value">信号的值。</param>
+    /// <returns>操作保存信号后即完成的持久化任务。</returns>
     /// <exception cref="HttpRequestException">
-    /// 反应没有成功状态代码,例如 <c>409 Conflict</c> 用于进行一项具有另一
-    /// 值或完成时没有信号。
+    /// 响应状态码不是成功状态码，例如 <c>409 Conflict</c> 表示操作已保存另一个
+    /// 值，或操作完成时未收到该信号。
     /// </exception>
     DurableTask SignalOperationAsync<T>(Uri operationLocation, string signalName, T value);
 
     /// <summary>
-    /// 将操作状态从 <c>{status monitor}/events</c> 服务器上的事件中流出到运行前的运行状态
-    /// 是终端。
+    /// 从 <c>{status monitor}/events</c> 的服务器发送事件中以流式方式读取操作状态，直至操作
+    /// 进入终态。
     /// </summary>
-    /// <param name="operationLocation">运行状态监视器的 URL。</param>
-    /// <param name="cancellationToken">停止流。</param>
-    /// <returns>运行状态,以其终端状态结束。</returns>
+    /// <param name="operationLocation">操作的状态监视器 URL。</param>
+    /// <param name="cancellationToken">停止事件流。</param>
+    /// <returns>操作的状态序列，以终态结束。</returns>
     /// <remarks>
     /// <para>
-    /// 结束状态之前结束或下降的流流,或者无法连接到的服务器,在
-    /// 服务器广告的间隔, 以及最后一个事件标识符, 作为 <c>EventSource</c> 连接
-    /// 运行报告当前状态, 并重复最后状态 。
+    /// 若流在终态前结束或断开，或者服务器不可达，则等待服务器声明的间隔后
+    /// 携带最后一个事件的标识符进行重连，与 <c>EventSource</c> 的行为相同。重连会
+    /// 报告操作当前状态，该状态可能与最后一个状态相同。
     /// </para>
     /// <para>
-    /// 流流不是一个持久的步骤:在可持久处决之外阅读,例如请求处理者或
-    /// 步骤, <see cref="DurableHttpWaitMode.Events"/> 做。
+    /// 此流不是持久化步骤：应在持久化执行实例之外读取，例如在请求处理程序中，或在
+    /// 一个步骤中读取（<see cref="DurableHttpWaitMode.Events"/> 即采用这种方式）。
     /// </para>
     /// </remarks>
-    /// <exception cref="HttpRequestException">响应没有成功状态代码。</exception>
+    /// <exception cref="HttpRequestException">响应状态码不是成功状态码。</exception>
     IAsyncEnumerable<DurableOperation> WatchOperationAsync(Uri operationLocation, CancellationToken cancellationToken = default);
 }
 
-/// <summary>包含一个 <see cref="IDurableHttpClient"/>的操作。</summary>
+/// <summary>组合 <see cref="IDurableHttpClient"/> 的操作。</summary>
 public static class DurableHttpClientExtensions
 {
     /// <summary>
-    /// 以 <paramref name="createRequest"/> 创建的请求启动操作,并长期等待
+    /// 使用 <paramref name="createRequest"/> 创建的请求启动操作，并以持久化方式等待其
     /// 结果。
     /// </summary>
-    /// <typeparam name="TResult">操作类型 JSON 后的结果使该结果的消散状态降低。</typeparam>
-    /// <param name="client">客户。</param>
-    /// <param name="createRequest">创建启动操作的请求;它运行为每次尝试的启动。</param>
-    /// <param name="options">配置默认值的等待或 <see langword="null"/> 。</param>
-    /// <returns>返回操作结果的持久任务。</returns>
-    /// <exception cref="DurableHttpOperationException">操作失败或取消。</exception>
-    /// <exception cref="HttpRequestException">答复既不报告一项行动,也不报告结果。</exception>
+    /// <typeparam name="TResult">操作的 JSON 结果反序列化后得到的类型。</typeparam>
+    /// <param name="client">客户端。</param>
+    /// <param name="createRequest">创建启动操作的请求；在每次启动尝试中运行。</param>
+    /// <param name="options">配置等待；为 <see langword="null"/> 时使用默认配置。</param>
+    /// <returns>返回操作结果的持久化任务。</returns>
+    /// <exception cref="DurableHttpOperationException">操作失败或被取消。</exception>
+    /// <exception cref="HttpRequestException">响应既未报告操作也未报告结果。</exception>
     public static DurableTask<TResult> RunOperationAsync<TResult>(
         this IDurableHttpClient client,
         Func<HttpRequestMessage> createRequest,

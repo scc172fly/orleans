@@ -1,117 +1,117 @@
 ---
-title: "观察日记状态和流汇草稿"
-description: "观察 Orleans 日志值,读取仅附于附件的耐久日志,并向读者流出波动性草稿。"
+title: 观察日志化状态并流式传输草稿
+description: 观察 Orleans Journaling 中的值，读取仅追加的持久化日志，并向读取方流式传输尚未持久化的草稿。
 ms.date: 11/20/2026
 ms.topic: how-to
 ---
 
 <a id="observe-journaled-state-and-stream-drafts"></a>
 
-# 观察日记状态和流汇草稿
+# 观察日志化状态并流式传输草稿
 
-监视流将承诺的更改传送到 grain日记状态。一个 grain 以 <xref:System.Collections.Generic.IAsyncEnumerable`1> 方法将它们暴露在呼叫者面前。 <xref:Orleans.Durable.Journaling.IDurableLog`1> 添加了一个仅附加日志,其读者从序列号中恢复使用该日志,并起草出在其耐久条目存在之前流动挥发性内容(如模型输出)的草稿。
+观察流传递 Grain 日志化状态中已提交的更改。Grain 通过返回 <xref:System.Collections.Generic.IAsyncEnumerable`1> 的方法向调用方公开观察流。<xref:Orleans.Durable.Journaling.IDurableLog`1> 还提供仅追加的日志，读取方可以从指定序号恢复读取；它也提供草稿，使模型输出等尚未持久化的内容能在相应持久化条目生成之前以流的形式传输。
 
-配置 [使用耐久状态](durable-state.md)中所描述的配置日记 。
+按照[使用持久化状态](durable-state.md)中的说明配置 Journaling。
 
 <a id="expose-a-watch-from-a-grain"></a>
 
-## 向一个 grain展示一只表
+## 从 Grain 公开观察流
 
-本 grain 记录在耐用日志中的谈话,并通过草稿将每个答复流出:
+此 Grain 将会话记录在持久化日志中，并通过草稿流式传输每次响应：
 
 :::code language="csharp" source="../../snippets/compiled-durable/Grains/JournalingObservationSnippets.cs" id="conversation_grain_interface":::
 
 :::code language="csharp" source="../../snippets/compiled-durable/Grains/JournalingObservationSnippets.cs" id="conversation_grain":::
 
-Orleans 通过互换电话列出了 grain的 `IAsyncEnumerable<T>` 结果, 所以在 `Ask` 流响应时要注意继续交付。 在自定义激活执行背景中点出一个表, 正如 grain 方法一样 。 `End` 封存日志, 以结束每只手表的运行 。
+Orleans 通过交错执行的调用枚举 Grain 的 `IAsyncEnumerable<T>` 结果，因此在 `Ask` 流式传输响应的同时，观察流仍可持续传递数据。应当像 Grain 方法一样，在所属激活实例的执行上下文中枚举观察流。`End` 会封存日志，从而终止该日志的所有观察流。
 
 <a id="committed-delivery"></a>
 
-## 交付承付款项
+## 传递已提交的更改
 
-观察流只提供持久性状态。 每个变化都用激活本地写入版本标记: 以该日记的版本来记录它。 每个写入捕捉每个州, 保存它所捕获的东西, 然后将一个水印作为版本发布给每个观察者, 后者提供能够实现可持久写作的变化。 在写取其条目后又换个转弯, 等待以下文字, 所以读者永远不会提前遵守。 同样的规则制约着其他确认 : 一个持久任务完成源的任务在记录结果的写作之后完成 。
+观察流只传递已持久化的状态。每项更改都带有激活实例内部的写入版本标记，即捕获该更改的日志写入版本。每次写入捕获所有状态，将捕获的内容持久化，然后向每个观察者发布该版本的一个水位标记；观察者据此传递本次写入所持久化的更改。如果另一个执行轮次在本次写入捕获条目之后暂存了更改，该更改必须等待下一次写入，因此读取方不会提前观察到它。其他确认也遵循相同规则：持久化任务完成源的任务在捕获其结果的写入完成之后才完成。
 
-永久状态将获得对通过它的价值、项目和条目的所有权, 日记记录每次修改时都会发生变化。 要更改一个、 指定或附加一个新实例。 观察流会提供同样的事例, 所以观察到的改变与其存储的文字相符 。
+持久化状态取得传入的值、项和条目的所有权，日志在每次更改发生时记录它。要修改其中一项，应赋予或追加一个新实例。观察流传递的是这些相同的实例，因此观察到的更改与对应写入所存储的内容一致。
 
 <a id="watch-a-value"></a>
 
-## 观察值
+## 观察一个值
 
-<xref:Orleans.Durable.Journaling.DurableStateWatchExtensions.WatchAsync*> 手表 <xref:Orleans.Durable.Journaling.IDurableValue`1>。流从当前值开始,一旦它持久,就会开始于当值值,所以在下一个写作后,在数值被阶梯时开始的手表会收到它,然后在每个修改它的文章之后提供最新值。每个 <xref:Orleans.Durable.Journaling.ValueChange`1> 都包含该值和使它耐久的写法。一个读器速度慢的读者会接收最新的值并跳过中间值,因此一个值表不会积压。
+<xref:Orleans.Durable.Journaling.DurableStateWatchExtensions.WatchAsync*> 用于观察 <xref:Orleans.Durable.Journaling.IDurableValue`1>。流从当前值开始，但前提是该值已持久化；因此，在值已暂存但尚未持久化时开始的观察流会在下一次写入后收到它，之后每次写入更改了该值时，流都会传递最新值。每个 <xref:Orleans.Durable.Journaling.ValueChange`1> 都包含该值以及使它持久化的写入版本。读取较慢时，读取方只接收最新值并跳过中间值，因此值观察流不会积压数据。
 
-无人观看的价值不会公布任何信息,也不会分配任何观察资料。 经理在第一流开始时创建了观察员状态,一旦恢复了状态。
+如果一个值无人观察，就不会为观察而发布任何数据或分配任何资源。管理器在恢复状态后，于第一个观察流启动时创建其观察者状态。
 
 <a id="read-a-durable-log"></a>
 
-## 读取经久日志
+## 读取持久化日志
 
-<xref:Orleans.Durable.Journaling.IDurableLog`1>,以 <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddLog*>创建,为每个附加条目指定耐久、单倍增长序列号的下一个值:
+通过 <xref:Orleans.Durable.Journaling.DurableStateManagerExtensions.GetOrAddLog*> 创建的 <xref:Orleans.Durable.Journaling.IDurableLog`1> 为每个追加的条目分配下一个持久化且单调递增的序号：
 
-- <xref:Orleans.Durable.Journaling.IDurableLog`1.Append*> 步进一个条目并返回其序列号。
-- <xref:Orleans.Durable.Journaling.IDurableLog`1.FirstSequence>、 <xref:Orleans.Durable.Journaling.IDurableLog`1.NextSequence>和 <xref:Orleans.Durable.Journaling.IDurableLog`1.CommittedSequence> 描述保留、附加和耐久条目。在 `CommittedSequence`之前的条目上贴页历史。
-- <xref:Orleans.Durable.Journaling.IDurableLog`1.TrimBefore*> 抛弃旧条目,将其保留为约束性保留。保留条目仍然有效。
-- <xref:Orleans.Durable.Journaling.IDurableLog`1.Clear*> 丢弃每个条目以替换它们, 例如用压缩摘要。 一个清晰的序列数需要一个序列号, 所以序列数在历史中永远不被再利用 。
-- <xref:Orleans.Durable.Journaling.IDurableLog`1.Epoch> 标识历史。在日志创建后,或在删除 grain日记之后,第一次更改以新的随机时段开始历史,并随此时间进行日志的日志日志日志。删除日记将新历史中的序列号从零重现。
-- <xref:Orleans.Durable.Journaling.IDurableLog`1.Seal*> 永久结束日志。 `Append`, `Clear`,和 `BeginDraft`,放弃开放的草稿,还可以剪短。只删除日记,不封上它。
+- <xref:Orleans.Durable.Journaling.IDurableLog`1.Append*> 暂存一个条目并返回其序号。
+- <xref:Orleans.Durable.Journaling.IDurableLog`1.FirstSequence>、<xref:Orleans.Durable.Journaling.IDurableLog`1.NextSequence> 和 <xref:Orleans.Durable.Journaling.IDurableLog`1.CommittedSequence> 分别描述保留的、已追加的和已持久化的条目范围。提供分页历史记录时，应读取 `CommittedSequence` 之前的条目。
+- <xref:Orleans.Durable.Journaling.IDurableLog`1.TrimBefore*> 丢弃旧条目以限制保留范围。保留的条目仍然有效。
+- <xref:Orleans.Durable.Journaling.IDurableLog`1.Clear*> 丢弃全部条目，以便用其他内容替换，例如压实后的摘要。清空操作消耗一个序号，因此同一段历史中的序号绝不会重复使用。
+- <xref:Orleans.Durable.Journaling.IDurableLog`1.Epoch> 标识一段历史。创建日志或删除 Grain 的日志之后的首次更改会开启一段具有新随机纪元的历史，该纪元随更改一起记录到日志中。删除日志会使新历史的序号从零重新开始。
+- <xref:Orleans.Durable.Journaling.IDurableLog`1.Seal*> 持久化地终止日志。已封存的日志拒绝 `Append`、`Clear` 和 `BeginDraft`，放弃尚未关闭的草稿，但仍允许截除旧条目。只有删除日志才能解除封存。
 
-<xref:Orleans.Durable.Journaling.IDurableLog`1.ReadAsync*> 读取保留条目的位置,然后等待新的条目。读者在位置上重新阅读日志中的条目,而不是缓冲它们,因此慢速的读者不保留条目。一个位置是一个时段和一个序列编号。每个事件都带有 <xref:Orleans.Durable.Journaling.LogEvent`1.Epoch>的历史时代,因此一个时段和序列号形成完整的重放检查站。作为读取当前历史历史的时代,通过零进行重播。除了条目外,流还传递这些 <xref:Orleans.Durable.Journaling.LogEventKind> 事件:
+<xref:Orleans.Durable.Journaling.IDurableLog`1.ReadAsync*> 从指定位置读取保留的条目，然后等待新条目。读取方会从日志中的当前位置重新读取条目，而不是将条目缓存在读取方，因此读取较慢也不会在读取方保留条目。一个位置由纪元和序号组成。每个事件都在 <xref:Orleans.Durable.Journaling.LogEvent`1.Epoch> 中携带所属历史的纪元，因此纪元与序号共同构成完整的重放检查点。传入零作为纪元可读取当前历史。除了条目，流还会传递以下 <xref:Orleans.Durable.Journaling.LogEventKind> 事件：
 
-| 活动活动 | 意义的含义含义 |
+| 事件 | 含义 |
 | --- | --- |
-| `Trimmed` | `TrimBefore` 在 `Sequence`之前丢弃条目。 每一个活动读者都收到它, 包括阅读了每个条目的读者。 `Sequence` 之前的位置的读者继续离开它 。 |
-| `Reset` | 读者所观察到的条目被替换: `Clear` 丢弃了它们, 日记被删除, 读器又以另一个历史时代恢复了, 或者读者的位置会跟随日志的结尾。 丢弃在它之前阅读的条目。 流从 `Sequence` 所查明的历史中 `Epoch`. |
-| `CaughtUp` | 河流已经传送了所有当读开始时的输入, 它曾经发送过一次 。 |
-| `Sealed` | 日志在 `Sequence`之前结束。 这是流的终极事件 。 |
+| `Trimmed` | `TrimBefore` 已丢弃 `Sequence` 之前的条目。所有活动读取方都会收到此事件，包括已读取全部条目的读取方。位于 `Sequence` 之前的读取方从该序号继续读取。 |
+| `Reset` | 读取方已经观察到的条目被替换：`Clear` 丢弃了它们，日志被删除，读取方使用另一段历史的纪元恢复读取，或者读取方的位置超出了日志末尾。丢弃收到此事件之前读取的条目。流从 `Epoch` 标识的历史中的 `Sequence` 继续。 |
+| `CaughtUp` | 流已经传递读取开始时所有已提交的条目。该事件只传递一次。 |
+| `Sealed` | 日志在 `Sequence` 之前已结束。这是流的最后一个事件。 |
 
-第一个保留条目之前的流开始于 `Trimmed`。以另一个历史时代开始,或以一个清除序列编号开始或在此之前开始于 `Reset`,包括恢复 grain 之后;而从清除后开始的流则没有。在附加、剪辑、清查或封存等内容时,流将接收条目、 `Trimmed`、 `Reset`和 `Sealed` ,因此每个读者收到的条目都是有效的复选点。位于未确认的曲目已经丢弃的条目等待曲目写作的读者。要恢复,通过最近事件的历史和收到的最新条目之后的位置。
+从第一个保留条目之前开始的流以 `Trimmed` 事件起始。使用其他历史的纪元，或从已清空的序号及其之前的位置开始的流，以 `Reset` 事件起始，即使 Grain 已重新激活也是如此；而从清空位置之后开始的流不会收到该初始事件。追加、截除、清空或封存操作持久化后，流才收到条目、`Trimmed`、`Reset` 和 `Sealed`，所以读取方收到的每个条目都是有效的恢复位置。如果读取方处于尚未提交的截除操作已丢弃的条目范围内，它将等待该截除操作的写入。恢复读取时，应传入最近一次事件的纪元，以及最近收到的条目之后的位置。
 
-`Sealed` 区分了从停止的激活中结束的日志。 当激活停止时, 流将结束, 没有它 。
+`Sealed` 用于区分日志已结束与激活实例已停止。激活实例停止时，流不会收到此事件便结束。
 
 <a id="stream-drafts"></a>
 
-## 串流草稿
+## 流式传输草稿
 
-<xref:Orleans.Durable.Journaling.IDurableLog`1.BeginDraft*> 打开一个 <xref:Orleans.Durable.Journaling.IDurableLogDraft`1>:
+<xref:Orleans.Durable.Journaling.IDurableLog`1.BeginDraft*> 打开一个 <xref:Orleans.Durable.Journaling.IDurableLogDraft`1>：
 
-- `Write` 将一个挥发性项目立即送到包括草稿在内的流中:通过 `includeDrafts: true` 到 `ReadAsync`。草案只在打开时将其项目保存在记忆中。
-- `Commit` 关闭草稿,并附加零或更多条目以替换其项目。条目组成一个日记项,因此写一个条目就能使所有条目都持久,而无法编码的条目可以在不附上任何条目的情况下将草稿打开。读者会收到 `DraftCommitted`,其 `Sequence` 和 `Count` 给出承诺条目的范围,然后是条目。没有条目的 `Commit` 将干净地关闭草稿。
-- `Abandon` 将草稿关闭,不输入条目和报告 `DraftAbandoned` ,不使用所有者 `Message`。处理开放式草稿会放弃它,因此失败的操作,例如中度反应失败的样板流,就会释放其草稿。
+- `Write` 将尚未持久化的项立即传递给包含草稿的流：向 `ReadAsync` 传入 `includeDrafts: true`。草稿仅在打开期间将其项保存在内存中。
+- `Commit` 关闭草稿，并追加零个或多个条目以替换草稿中的项。这些条目组成一个日志记录，因此一次写入即可将它们全部持久化；如果有条目无法编码，则保持草稿打开且不追加任何条目。读取方会收到 `DraftCommitted`，其 `Sequence` 和 `Count` 指示已提交条目的范围，随后收到这些条目。不带任何条目的 `Commit` 会正常关闭草稿。
+- `Abandon` 关闭草稿而不追加条目，并报告带有所有者 `Message` 的 `DraftAbandoned` 事件。释放尚未关闭的草稿会放弃它，因此失败的操作（例如在响应传输中途失败的模型输出流）会释放其草稿。
 
-A 流报告 `DraftCommitted` 一旦承诺条目被永久化, 包含草稿并开始于打开草稿时的流流从零点位置接收草案的项目。 当草稿关闭时, 其项目就会发布: 一个尚未读取每个项目的读者 `DraftCommitted` 或 `DraftAbandoned` 下一条内容, 并且从未收到剩余项目。 承诺的条目包含最终内容 。
+流在已提交条目完成持久化后报告 `DraftCommitted`。如果包含草稿的流在草稿尚未关闭时启动，它会从位置零开始接收草稿中的项。草稿关闭后，其项会被释放；尚未读完全部项的读取方接下来会收到 `DraftCommitted` 或 `DraftAbandoned`，而不会再收到剩余项。已提交的条目包含最终内容。
 
-`DraftAbandoned` 含有 <xref:Orleans.Durable.Journaling.LogDraftAbandonReason>:
+`DraftAbandoned` 携带一个 <xref:Orleans.Durable.Journaling.LogDraftAbandonReason>：
 
-| 原因理由原因 | 原因原因原因 |
+| 原因 | 说明 |
 | --- | --- |
-| `Abandoned` | 业主打电话 `Abandon`。 |
-| `Disposed` | 车主把开口的草稿处理掉了 |
-| `JournalDeleted` | 日志的日记被删除了 |
-| `Sealed` | 记录是在草案开放时密封的。 |
-| `PreviousActivation` | 另一起启动开启了草稿,日志保留不承诺,因此内容丢失。 |
-| `Unknown` | 启动程序既未保留草案承诺,也未记录为何要关闭。 |
+| `Abandoned` | 所有者调用了 `Abandon`。 |
+| `Disposed` | 所有者释放了尚未关闭的草稿。 |
+| `JournalDeleted` | 该日志的底层持久化日志已删除。 |
+| `Sealed` | 草稿尚未关闭时，日志已被封存。 |
+| `PreviousActivation` | 另一个激活实例打开了该草稿，日志没有保留它的提交记录，因此其内容已丢失。 |
+| `Unknown` | 当前激活实例既未保留该草稿的提交记录，也未记录其关闭原因。 |
 
-当日志被删除或日记被密封时,日志将关闭草稿。 日志所有人随后持有一份封闭草稿, 其中 `Write` 和 `Commit` 投出一个 <xref:System.InvalidOperationException> ,其中说明为何关闭。 请先检查 `IsOpen` ,然后才能承诺完成日志可以关闭的草稿 。
+删除底层日志或封存日志时，日志会关闭草稿。此时所有者持有的是已关闭的草稿，对其调用 `Write` 和 `Commit` 会引发 <xref:System.InvalidOperationException>，并说明关闭原因。提交可能被日志关闭的草稿之前，应检查 `IsOpen`。
 
-每个 <xref:Orleans.Durable.Journaling.LogDraftId> 都包含对日志实例的识别符号,因此包括打开草稿的激活。重新连接的读者通过它的位置和它正在查看的草稿。如果该草稿仍然开放,则流体从零位置重复其项目。日志将一个带有承诺条目的识别符号及其记录,所以在进行草案时,流体报告 `DraftCommitted` ,以任何激活中取代它的范围取代它,而日志保留了第一个条目。如果启动时放弃了草稿,流体报告 `DraftAbandoned` ,并以此为由;每个日志记录16个最近放弃的草稿的原因,旧的草稿和报告 `Unknown` 。以前开启过并且从未承诺过的草稿作为 `PreviousActivation`加以报告;将其内容从最后承诺条目中重新生成。
+每个 <xref:Orleans.Durable.Journaling.LogDraftId> 都包含打开该草稿的日志实例标识符，因而也标识了对应的激活实例。重新连接的读取方传入其位置以及之前正在查看的草稿。如果该草稿仍然打开，流会从位置零重新传递其中的项。日志将草稿标识符与其已提交条目一起记录，因此如果草稿已经提交，只要日志仍保留这些条目中的第一项，无论在哪个激活实例中，流都会报告 `DraftCommitted`，并附带替换该草稿的条目范围。如果当前激活实例放弃了草稿，流会报告 `DraftAbandoned` 及其原因；每个日志记录最近放弃的 16 个草稿的原因，对于更早的草稿则报告 `Unknown`。由先前的激活实例打开且从未提交的草稿会被报告为 `PreviousActivation`；应从最后一个已提交条目重新生成其内容。
 
-客户提供历史和进展中草稿,并跟踪其恢复位置:
+此客户端呈现已提交的历史和正在进行的草稿，并跟踪恢复读取的位置：
 
 :::code language="csharp" source="../../snippets/compiled-durable/Grains/JournalingObservationSnippets.cs" id="conversation_client":::
 
 <a id="failure-and-shutdown"></a>
 
-## 故障和停机
+## 故障与关闭
 
-日记写失败, 无法将管理器围成围栏并要求停止 grain 。 观察流后会发生 <xref:System.InvalidOperationException> 内部例外的存储失败, 读者从未收到错误写入内容包含的修改。 阅读器重新连接到新激活上, 从而恢复耐久状态 。 当管理器正常停止时, 流就会完成。 取消流的符号结束该流 。
+日志写入失败会隔离管理器并请求停用 Grain。随后观察流会因 <xref:System.InvalidOperationException> 而失败，其内部异常为存储故障，读取方不会收到此次失败写入所包含的更改。读取方重新连接到新的激活实例，由该实例恢复持久化状态。管理器正常停止时，流正常完成。取消流的令牌会终止该流。
 
-删除 grain日记时记时记时记时值的默认值,或者对观察条目并放弃打开草稿的日志阅读器来说,将默认值投递到值表,或者对记录阅读器来说,将 `Reset` 发送到“ 注意观察条目并放弃打开草稿”。在草案中承诺删除后,读者会收到 `DraftAbandoned` 和 `JournalDeleted`。
+删除 Grain 的日志会向值观察流传递默认值，或向已观察过条目的日志读取方传递 `Reset`，同时放弃尚未关闭的草稿。如果某个读取方正在跟踪草稿，而删除操作丢弃了该草稿的已提交条目，则该读取方会收到带有 `JournalDeleted` 原因的 `DraftAbandoned`。
 
 <a id="test-code-which-uses-a-log"></a>
 
-## 使用日志的测试代码
+## 测试使用日志的代码
 
-测试测试 grains 使用耐久状态对真实的日记国家管理人员。 <xref:Orleans.TestingHost.InProcessTestCluster> 配置时带有变化不定的日记存储功能, 将日记保存在 silo 内存,和 <xref:Orleans.TestingHost.InProcessTestCluster.DeactivateAsync*> 在新激活中恢复练习 。 将日记格式配置为制作 silos 或,如本试验一样,使用反射法 JSON 元数据:
+应使用真实的日志化状态管理器测试使用持久化状态的 Grain。配置了易失性日志存储的 <xref:Orleans.TestingHost.InProcessTestCluster> 将日志保留在 Silo 内存中，<xref:Orleans.TestingHost.InProcessTestCluster.DeactivateAsync*> 可验证在新的激活实例中的恢复过程。可按照生产 Silo 的方式配置日志格式，也可像此测试一样使用基于反射的 JSON 元数据：
 
 :::code language="csharp" source="../../snippets/compiled-durable/Grains/JournalingObservationSnippets.cs" id="journaling_test_cluster":::
 
-需要 `IDurableLog<T>` 试验中 grain 以同样的方式测试它。 `IDurableLog<T>` 替代不会复制耐久性、草稿或阅读流。
+将接受 `IDurableLog<T>` 的代码托管在测试 Grain 中，以同样的方式进行测试。手写的 `IDurableLog<T>` 替代实现无法复现持久性、草稿或读取流的行为。

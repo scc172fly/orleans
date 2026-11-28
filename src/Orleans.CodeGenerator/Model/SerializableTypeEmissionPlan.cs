@@ -10,8 +10,8 @@ using static Orleans.CodeGenerator.SerializerGenerator;
 
 namespace Orleans.CodeGenerator.Model;
 
-// 排放计划含有完整的拼写C#碎片,由作者散发:类型、名称和表达方式。
-// 他们没有符号或语法,记录也赋予他们价值平等。
+// 生成计划保存其写入器将输出的完整 C# 代码文本片段：类型、名称及表达式。
+// 它们不持有符号或语法对象，并通过记录类型提供值相等性。
 
 internal sealed record EmissionLibraryTypes(
     string SystemType,
@@ -49,7 +49,7 @@ internal sealed record GenericParameterEmissionPlan(string Name, EquatableArray<
             .Select(static parameter => new GenericParameterEmissionPlan(parameter.Name, parameter.Constraints.ToImmutableArray()))
             .ToImmutableArray();
 
-    /// <summary>附录 <c>&lt;T1, T2&gt;</c>,或者没有用于非基因声明。</summary>
+    /// <summary>追加 <c>&lt;T1, T2&gt;</c>；非泛型声明不追加任何内容。</summary>
     public static void AppendParameterList(StringBuilder builder, EquatableArray<GenericParameterEmissionPlan> parameters)
     {
         if (parameters.Count == 0)
@@ -71,7 +71,7 @@ internal sealed record GenericParameterEmissionPlan(string Name, EquatableArray<
         builder.Append('>');
     }
 
-    /// <summary>在同一条线上写下声明行,并附以限制条款。</summary>
+    /// <summary>写入声明行，并在同一行追加其约束子句。</summary>
     public static void WriteDeclarationLine(SourceWriter writer, StringBuilder declaration, EquatableArray<GenericParameterEmissionPlan> parameters)
     {
         foreach (var parameter in parameters)
@@ -146,7 +146,7 @@ internal sealed record SerializableTypeEmissionPlan(
             GenericParameterEmissionPlan.Create(type.TypeParameters), callbacks.ToImmutable(), library.EmissionTypes);
     }
 
-    // 每个描述创建三个构建表格中的一个; 将选定的表格拼写在计划类型文字中。
+    // 每个描述创建三种构造形式之一；使用计划中的类型文本生成所选形式的代码。
     private static string GetObjectCreation(ISerializableTypeDescription type, string typeText) => type.GetObjectCreationExpression() switch
     {
         DefaultExpressionSyntax => $"default({typeText})",
@@ -156,7 +156,7 @@ internal sealed record SerializableTypeEmissionPlan(
         var expression => throw new InvalidOperationException($"Unsupported object creation expression '{expression}'."),
     };
 
-    /// <summary>附加该类型声明的类型参数列表。</summary>
+    /// <summary>为此类型的生成声明追加类型参数列表。</summary>
     public void AppendTypeParameterList(StringBuilder builder) => GenericParameterEmissionPlan.AppendParameterList(builder, TypeParameters);
 }
 
@@ -196,18 +196,18 @@ internal sealed record FieldEmissionPlan(
 
 internal enum MemberAccessKind
 {
-    /// <summary><c>instance.Target</c>直接指定。</summary>
+    /// <summary><c>instance.Target</c>，直接赋值。</summary>
     Member,
 
-    /// <summary><c>Target(instance)</c> 读作; <c>Target(instance, value)</c> 写。</summary>
+    /// <summary><c>Target(instance)</c> 用于读取；<c>Target(instance, value)</c> 用于写入。</summary>
     Invoke,
 
-    /// <summary><c>Target(instance)</c> 返回一个已读取或指定字段引用。</summary>
+    /// <summary><c>Target(instance)</c> 返回可读取或赋值的字段引用。</summary>
     FieldReference,
 }
 
 /// <summary>
-/// 访问实例表达式的成员。 <see cref="Target"/> 是拼写成成员名称或存取表达式的表示式。
+/// 访问实例表达式的成员。<see cref="Target"/> 是成员名称或访问器表达式的代码文本。
 /// </summary>
 internal sealed record MemberAccessPlan(MemberAccessKind Kind, string Target, bool RefInstance = false)
 {
@@ -227,13 +227,13 @@ internal sealed record MemberAccessPlan(MemberAccessKind Kind, string Target, bo
 
 internal enum MemberCopyKind
 {
-    /// <summary>该值为浅可读,以读方式指定。</summary>
+    /// <summary>该值可浅复制，直接将读取到的值赋值。</summary>
     Value,
 
-    /// <summary><c>context.DeepCopy(value)</c>.</summary>
+    /// <summary><c>context.DeepCopy(value)</c>。</summary>
     Context,
 
-    /// <summary><c>Copier.DeepCopy(value, context)</c>,可选投成员类型。</summary>
+    /// <summary><c>Copier.DeepCopy(value, context)</c>，可选地转换为成员类型。</summary>
     Copier,
 }
 
@@ -296,7 +296,7 @@ internal sealed record CopierEmissionPlan(
     EquatableArray<MemberEmissionPlan> Members,
     EquatableArray<UnionCaseCopierPlan>? UnionCases = null);
 
-// 项目共享建筑数据,但不保留符号带服务区。
+// 投影共享构造数据，不保留含有符号的服务字段。
 internal sealed record ConstructionEmissionPlan(
     bool HasBaseContract,
     EquatableArray<ConstructorParameterEmissionPlan> Parameters)
@@ -305,7 +305,7 @@ internal sealed record ConstructionEmissionPlan(
         => new(construction.HasBaseContract, construction.Parameters.Select(static parameter =>
             new ConstructorParameterEmissionPlan(CodeText.Type(parameter.Type), CodeText.Identifier(parameter.Name))).ToImmutableArray());
 
-    /// <summary>附加 <c>Type name, ...</c> 用于构建器参数列表。</summary>
+    /// <summary>为构造函数参数列表追加 <c>Type name, ...</c>。</summary>
     public void AppendParameters(StringBuilder builder)
     {
         for (var i = 0; i < Parameters.Count; i++)

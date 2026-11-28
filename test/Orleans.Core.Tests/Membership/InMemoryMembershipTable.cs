@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 namespace NonSilo.Tests.Membership
 {
     /// <summary>
-    /// 为测试目的在模拟实施 <see cref="IMembershipTable"/> 。
+    /// 用于测试的 <see cref="IMembershipTable"/> 内存实现。
     /// </summary>
     public class InMemoryMembershipTable : IMembershipTable
     {

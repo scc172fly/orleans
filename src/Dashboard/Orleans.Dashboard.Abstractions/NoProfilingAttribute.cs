@@ -3,15 +3,15 @@ using System;
 namespace Orleans.Dashboard;
 
 /// <summary>
-/// 以 grain 类或方法进行禁止性特征分析,防止 Orleans 戴斯板剖面图仪跟踪这些特征分析。
-/// 应用此属性将特定 grains 或方法排除在性能衡量收集之外。
+/// 禁止对指定 Grain 类或方法进行性能分析，使 Orleans Dashboard 分析器不再跟踪它们。
+/// 应用此特性可将指定 Grain 或方法排除在性能指标采集范围之外。
 /// </summary>
 /// <example>
 /// <code>
 /// [NoProfiling]
 /// public class MyInternalGrain : Grain
 /// {
-///     // 这个 Grain 不会被分析
+///     // 不对整个 Grain 进行性能分析
 /// }
 ///
 /// public class MyGrain : Grain
@@ -19,7 +19,7 @@ namespace Orleans.Dashboard;
 ///     [NoProfiling]
 ///     public Task InternalMethod()
 ///     {
-///         // 此方法不会被分析
+///         // 不对这个特定方法进行性能分析
 ///     }
 /// }
 /// </code>

@@ -1,25 +1,25 @@
 ---
-title: "ORLEANS0228:分离耐 grain 调用"
-description: "理解 ORLEANS0228, 其中报告在一步上脱钩、 一种同步 DurableTask 方法或组合器上出现断层, 无法作为根任务运行, 并通过解开耐用 grain 调用或启动附加的工作来修正它 。"
+title: "ORLEANS0228: 分离持久化 Grain 调用"
+description: 了解 ORLEANS0228，它报告对无法作为根任务运行的步骤、异步 DurableTask 方法或组合器使用 Detached 的情况，并介绍如何分离持久化 Grain 调用，或以附属方式启动工作。
 ms.date: 10/19/2026
 ms.topic: reference
 ---
 
 <a id="orleans0228-detach-durable-grain-calls"></a>
 
-# ORLEANS0228:分离耐 grain 调用
+# ORLEANS0228: 分离持久化 Grain 调用
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 严重性 | 错误错误 |
-| 类别类 | 用法 |
-| 代码修正 | 无无无无 |
+| 严重性 | 错误 |
+| 类别 | 用法 |
+| 代码修复 | 无 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-耐久任务代码在作为开始执行的一部分而运行的定义上调用 `Detached()` 或 `Detached(rootId)` :一个 `DurableTask.Run` 步骤、一个 `async DurableTask` 方法,或一个组合器,如 `DurableTask.WhenAll`:
+持久化任务代码对只能作为启动它的执行实例的一部分运行的定义调用 `Detached()` 或 `Detached(rootId)`，例如 `DurableTask.Run` 步骤、`async DurableTask` 方法或 `DurableTask.WhenAll` 等组合器：
 
 :::code source="snippets/durable-tasks/Orleans0228.cs" id="orleans0228_violation" language="csharp":::
 
@@ -27,26 +27,26 @@ ms.topic: reference
 
 ## 规则说明
 
-独立任务是一个独立的根任务。 其主机将任务存储并自行运行, 在开始执行完成后和开始执行后树树被删除后, 所以它的定义是, 主机开始作为根任务, 比如耐用 grain 调用 grain请求提供东道商店。
+分离任务是独立的根任务。宿主存储该任务，并在启动它的执行实例完成及该执行实例的执行树被删除之后仍独立运行该任务。因此，其定义必须能够由宿主作为根任务启动，例如持久化 Grain 调用，Grain 的宿主会将其存储为请求。
 
-一步、 `async DurableTask` 方法和组合器是开始执行的代码:执行的重播可以重新生成它们,其他东西也无从创建。在开始之前先启动一个分离投出 `InvalidOperationException`,然后才采集执行的识别符号。
+步骤、`async DurableTask` 方法和组合器是启动它们的执行实例中的代码：只有该执行实例的重放能够重新创建它们。以分离方式启动此类操作会抛出 `InvalidOperationException`，且发生在启动操作从执行实例获取操作标识符之前。
 
-附加启动和分离启动,见 [开始和观察任务](../grains/durable-tasks.md#starting-and-observing-tasks)。
+有关附属和分离启动，请参阅[启动和观察任务](../grains/durable-tasks.md#starting-and-observing-tasks)。
 
 <a id="how-to-fix-violations"></a>
 
-## 如何纠正违反情况
+## 如何修复违规
 
-**调出一个耐久 grain 呼叫。** 将工作移入一个耐久的 grain方法,并拆开该呼叫。 grain 将它作为根任务运行:
+**分离持久化 Grain 调用。** 将工作移入 Grain 的持久化方法，并分离该调用。Grain 将其作为根任务运行：
 
 :::code source="snippets/durable-tasks/Orleans0228.cs" id="orleans0228_fix_grain" language="csharp":::
 
-**开始附加的工作。** 当执行过程可以等待、等待或安排并观察其操作时:
+**以附属方式启动工作。** 如果执行实例可以等待该工作，则直接等待它，或调度它并观察其句柄：
 
 :::code source="snippets/durable-tasks/Orleans0228.cs" id="orleans0228_fix_attached" language="csharp":::
 
 <a id="when-to-suppress"></a>
 
-## 何时压缩
+## 何时抑制诊断
 
-保持诊断功能: 启动时抛出 。
+请保持此诊断启用：此类启动操作会在运行时抛出异常。

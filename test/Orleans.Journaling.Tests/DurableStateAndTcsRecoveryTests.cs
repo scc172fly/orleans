@@ -142,7 +142,7 @@ public sealed class DurableStateAndTcsRecoveryTests : JournalingTestBase
             (manager, state, other) = await CreateAsync();
         }
 
-        // 读取无效状态初始化, 下一期日记记录初始化值 。
+        // 读取 null 状态会初始化该状态，下一次日志写入将记录初始化后的值。
         var initialized = state.State;
         Assert.Empty(initialized);
         Assert.Same(initialized, state.State);

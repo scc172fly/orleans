@@ -8,21 +8,21 @@ using Xunit;
 namespace Microsoft.Orleans.DurableTasks.IntegrationTests.FaultInjection;
 
 /// <summary>
-/// 证明a grain 其一处决是可操作的,而执行的是地方一步,而不是地方一步
-/// 而不是等待消息, 恢复处决而不发出这样的呼吁 grain:它持久的觉醒,重新激活了它。
+/// 验证 Grain 在某个执行实例可运行、正在运行本地步骤而非
+/// 等待消息时失去激活实例，能够无需对该 Grain 进行调用便恢复执行：持久化唤醒会重新激活它。
 /// </summary>
 /// <remarks>
-/// 工作流程呼叫伴侣的大门,等待测试打开的门。当伴侣被激活时,该伴侣的启动结束
-/// 步数运行: 它停止使用, silo 关闭或崩溃, 或者日记写失败。 只有客户对
-/// 工作流程 grain。
+/// 工作流调用伙伴 Grain 的门控步骤，该步骤等待测试打开门。在步骤
+/// 运行时，伙伴 Grain 的激活结束：它被停用、其 Silo 关闭或崩溃，或其日志写入失败。只有客户端轮询
+/// 工作流所在的 Grain。
 /// </remarks>
 public abstract class DurableTaskRunnableWakeupTests(string journalFormatKey) : IAsyncLifetime
 {
     private const int Value = 5;
 
 
-    // 永久工作会采用崩溃 silo的碎片, 将崩溃启动的提醒屏住, 并用周期碎片将其固定在
-    // 检查:在崩溃 silo 被宣布为死亡之前,会籍变更触发的扫描程序将运行。
+    // Durable Jobs 在定期分片检查中接管崩溃 Silo 的分片，其中包含已崩溃激活的唤醒操作：
+    // 成员资格变更所触发的扫描在崩溃的 Silo 被宣告失效之前运行。
     private InjectedFault? _wakeups;
     private readonly DurableTaskFaultHarness _harness = new(
         journalFormatKey,
@@ -39,8 +39,8 @@ public abstract class DurableTaskRunnableWakeupTests(string journalFormatKey) : 
         var (workflow, partnerKey, partner) = await StartGatedStepAsync();
         Assert.True(_harness.Fixture.Cluster.TryGetGrainContext(partner.GetGrainId(), out var activation));
 
-        // 阶梯段的段段保持非返回伙伴,就像 grain 方法一样,因此从
-        // 分离的弃鱼停止了 部分完成后 就会自动激活并完成
+        // 与 Grain 方法一样，该步骤的执行片段独占不可重入的伙伴 Grain，因此停用在
+        // 激活自身上启动，并在该执行片段结束后完成；停止过程会丢弃执行片段的结果。
         activation.Deactivate(new(DeactivationReasonCode.ApplicationRequested, "The test deactivates the partner."), CancellationToken);
         _harness.Gates.Open(partnerKey);
         await activation.Deactivated.WaitAsync(DurableTaskFaultHarness.RunTimeout, CancellationToken);
@@ -73,14 +73,14 @@ public abstract class DurableTaskRunnableWakeupTests(string journalFormatKey) : 
         await AssertCompletesAsync(workflow, partner);
     }
 
-    /// <summary>步骤的写作失败, 在它持久之前或之后, 它围住合伙人的日记并停止使用。</summary>
+    /// <summary>步骤的写入在持久化之前或之后失败，导致伙伴 Grain 的日志被隔离并使其停用。</summary>
     [Theory]
     [InlineData(FaultPoint.JournalWriteBeforeDurable)]
     [InlineData(FaultPoint.JournalWriteAfterDurable)]
     public async Task FailedWriteWhileAStepRunsResumesTheStep(FaultPoint point)
     {
         var (workflow, partnerKey, partner) = await StartGatedStepAsync();
-        // 步骤开始于记录该步骤的写作完成后, 所以合伙人接下来的写作记录了结果。
+        // 记录步骤的写入完成后，该步骤即开始执行，因此伙伴 Grain 的下一次写入记录其结果。
         var fault = _harness.Injector.Arm(point, partner.GetGrainId(), 0);
 
         _harness.Gates.Open(partnerKey);
@@ -89,7 +89,7 @@ public abstract class DurableTaskRunnableWakeupTests(string journalFormatKey) : 
         Assert.True(fault.HasFired, $"{fault} didn't fire.");
     }
 
-    /// <summary>启动工作流量呼叫到伴侣的门阶,并等待步骤运行。</summary>
+    /// <summary>启动工作流对伙伴 Grain 门控步骤的调用，并等待该步骤运行。</summary>
     private async Task<(IFaultWorkflowGrain Workflow, Guid PartnerKey, IFaultPartnerGrain Partner)> StartGatedStepAsync()
     {
         _harness.Injector.Reset();
@@ -103,7 +103,7 @@ public abstract class DurableTaskRunnableWakeupTests(string journalFormatKey) : 
     }
 
 
-    /// <summary>得到 silo 伙伴的激活所在所在方; 组群的另外 silo 遗体。</summary>
+    /// <summary>获取托管伙伴 Grain 激活的 Silo；集群中的另一个 Silo 保持运行。</summary>
     private InProcessSiloHandle GetSilo(IFaultPartnerGrain partner)
     {
         Assert.True(_harness.Fixture.Cluster.TryGetGrainContext(partner.GetGrainId(), out var context));
@@ -136,14 +136,14 @@ public abstract class DurableTaskRunnableWakeupTests(string journalFormatKey) : 
     }
 }
 
-/// <summary>运行可运行执行的运行状态提醒覆盖,任务状态以默认 JSON 日记格式存储。</summary>
+/// <summary>使用默认 JSON 日志格式存储任务状态，运行可运行任务执行的唤醒覆盖测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]
 [TestArea("DurableTasks")]
 public sealed class JsonDurableTaskRunnableWakeupTests() : DurableTaskRunnableWakeupTests(DurableTaskRecoveryFixture.Json);
 
-/// <summary>运行可运行执行的运行强制提醒覆盖,任务状态以 Orleans 二进制日记格式存储。</summary>
+/// <summary>使用 Orleans 二进制日志格式存储任务状态，运行可运行任务执行的唤醒覆盖测试。</summary>
 [Collection(DurableTaskRecoveryCollection.Name)]
 [TestSuite("BVT")]
 [TestProvider("None")]

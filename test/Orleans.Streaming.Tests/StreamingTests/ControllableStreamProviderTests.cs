@@ -10,7 +10,7 @@ using Xunit;
 namespace UnitTests.StreamingTests
 {
     /// <summary>
-    /// 测试可控流供应商适配器,通过适配器和工厂界面验证回声指令。
+    /// 测试可控流提供程序适配器，验证通过适配器和工厂接口发送的回显命令。
     /// </summary>
     [TestSuite("Functional")]
     [TestProvider("None")]

@@ -1,25 +1,25 @@
 ---
-title: "ORLEANS0222:交回一项不同步工作任务的通行证代表"
-description: "理解 ORLEANS0222,而据报告,Async无效的代表通过 DurableTask.Run 和 DurableTask.RunInline,并用返回任务或同步代表来调整它们。 DurableTask 方法。"
+title: "ORLEANS0222: 为异步工作传入返回任务的委托"
+description: 了解 ORLEANS0222，它报告传给 DurableTask.Run 和 DurableTask.RunInline 的 async void 委托，并介绍如何使用返回任务的委托或异步 DurableTask 方法修复。
 ms.date: 10/19/2026
 ms.topic: reference
 ---
 
 <a id="orleans0222-pass-delegates-which-return-a-task-for-asynchronous-work"></a>
 
-# ORLEANS0222:交回一项不同步工作任务的通行证代表
+# ORLEANS0222: 为异步工作传入返回任务的委托
 
-| 财产 | 价值值值 |
+| 属性 | 值 |
 | --- | --- |
-| 严重性 | 错误错误 |
-| 类别类 | 用法 |
-| 代码修正 | 无无无无 |
+| 严重性 | 错误 |
+| 类别 | 用法 |
+| 代码修复 | 无 |
 
 <a id="cause"></a>
 
-## 原因原因原因
+## 原因
 
-`DurableTask.Run` 或 `DurableTask.RunInline` 接收代表,该代表返回 `void` 并约束一个 `async` 函数:一个 `async` 羊羔转换成 `Action` 或 `Action<CancellationToken>`,一种 `async void` 方法,或持有以下功能的当地人:
+`DurableTask.Run` 或 `DurableTask.RunInline` 接收返回 `void` 的委托，该委托绑定到 `async` 函数：例如将 `async` Lambda 表达式转换为 `Action` 或 `Action<CancellationToken>`，使用 `async void` 方法，或使用持有这种委托的局部变量：
 
 :::code source="snippets/durable-tasks/Orleans0222.cs" id="orleans0222_violation" language="csharp":::
 
@@ -27,32 +27,32 @@ ms.topic: reference
 
 ## 规则说明
 
-`async void` 代表返回到第一个未完全的 `await`。 `DurableTask.Run` 和 `DurableTask.RunInline` 代表返回时记录代表完成的工作,因此记录先于 `await`之后的工作:
+`async void` 委托在遇到第一个尚未完成的 `await` 时就返回调用方。`DurableTask.Run` 和 `DurableTask.RunInline` 在委托返回时记录其完成，因此该记录早于 `await` 之后的工作：
 
-- 步骤或效果完成,身体继续,而工作仍在进行。
-- 重放返回记录时不运行代表, 因此工作只在第一时间进行 。
-- 工作在 `await` 后丢弃的例外,是跳出任务而不是失败步骤或效果。
+- 工作仍在运行时，步骤或效果就已经完成，主体也继续执行。
+- 重放直接返回记录而不运行委托，因此工作只在首次运行中执行。
+- 工作在 `await` 之后抛出的异常会传播到任务之外，而不会使步骤或效果失败。
 
-例如,电子邮件发送前该步骤就已完成,发送失败后该步骤的记录就会成功。
+在示例中，步骤在电子邮件发送之前就已完成，即使发送失败，该步骤的记录仍显示成功。
 
-步骤和效果见 [效果和步骤](../grains/durable-tasks.md#effects-and-steps)。
+有关步骤和效果，请参阅[效果与步骤](../grains/durable-tasks.md#effects-and-steps)。
 
 <a id="how-to-fix-violations"></a>
 
-## 如何纠正违反情况
+## 如何修复违规
 
-**返回任务。** `DurableTask.Run` 与一个代表一起返回 `Task` ,在任务完成后完成该步骤,并记录任务结果:
+**返回任务。** 使用 `DurableTask.Run` 并传入返回 `Task` 的委托，步骤会在任务完成时完成，并记录任务的结果：
 
 :::code source="snippets/durable-tasks/Orleans0222.cs" id="orleans0222_fix_task" language="csharp":::
 
-**以 `async DurableTask` 方法运行工作。** 该方法是身体等待的一个步骤:
+**在 `async DurableTask` 方法中运行工作。** 该方法是主体等待的一个步骤：
 
 :::code source="snippets/durable-tasks/Orleans0222.cs" id="orleans0222_fix_durable_method" language="csharp":::
 
-`DurableTask.RunInline` 仅运行同步工作。 同步工作作为一步运行 。
+`DurableTask.RunInline` 仅运行同步工作。异步工作应作为步骤运行。
 
 <a id="when-to-suppress"></a>
 
-## 何时压缩
+## 何时抑制诊断
 
-仅因火灾和遗忘工作而抑制诊断,而这项任务既未记录也未等待,代表自己处理其失败。
+仅当工作是任务既不记录也不等待的即发即弃工作，且其失败由委托自行处理时，才可抑制此诊断。

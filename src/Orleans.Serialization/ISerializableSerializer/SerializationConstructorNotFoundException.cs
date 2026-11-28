@@ -6,7 +6,7 @@ using Orleans.Serialization.Codecs;
 namespace Orleans.Serialization
 {
     /// <summary>
-    /// 当一种类型没有序列构建器时扔。
+    /// 当类型没有序列化构造函数时抛出。
     /// </summary>
     [Serializable]
     public class SerializationConstructorNotFoundException : Exception
@@ -23,7 +23,7 @@ namespace Orleans.Serialization
         /// <summary>
         /// 初始化 <see cref="SerializationConstructorNotFoundException" /> 类的新实例。
         /// </summary>
-        /// <param name="info">序列资料</param>
+        /// <param name="info">序列化信息。</param>
         /// <param name="context">上下文。</param>
         [SecurityCritical]
 #if NET8_0_OR_GREATER

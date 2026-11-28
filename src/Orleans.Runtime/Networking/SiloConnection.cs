@@ -65,7 +65,7 @@ namespace Orleans.Runtime.Messaging
 
         protected internal override void OnReceivedMessage(Message msg)
         {
-            // 看着它是一个平音留言,如果是的话,短路
+            // 检查是否为 Ping 消息；如果是，则短路处理。
             if (msg.IsPing())
             {
                 try
@@ -80,10 +80,10 @@ namespace Orleans.Runtime.Messaging
                 return;
             }
 
-            // 嗅闻目录缓存管理信件信头
+            // 检查消息标头，以进行目录缓存管理。
             this.messageCenter.SniffIncomingMessage?.Invoke(msg);
 
-            // 不要处理已经超时的消息
+            // 不处理已经超时的消息。
             if (msg.IsExpired)
             {
                 this.MessagingTrace.OnDropExpiredMessage(msg, MessagingInstruments.Phase.Receive);
@@ -91,8 +91,8 @@ namespace Orleans.Runtime.Messaging
                 return;
             }
 
-            // 拒绝申请时,在停机期间将目标缓存失效。
-            // 请注意,如果我们确定或添加其他 grains 需要适当停止,我们需要对待他们,就像对待会员国一样 grain 这里
+            // 关闭期间拒绝应用程序请求，并附带针对目标的缓存失效信息。
+            // 注意：如果识别或添加了正常停止所必需的其他 Grain，则需要按此处处理成员表 Grain 的方式处理它们。
             if (messageCenter.IsBlockingApplicationMessages && !msg.IsSystemMessage)
             {
                 if (msg.Direction != Message.Directions.Request)
@@ -111,8 +111,8 @@ namespace Orleans.Runtime.Messaging
                 return;
             }
 
-            // 注意某些控制信件可能没有目标
-            // 信息,所以一无所有的目标 silo 是确定。
+            // 确保消息以当前 Silo 为目标。注意，部分控制消息可能没有目标
+            // 信息，因此目标 Silo 为 null 是允许的。
             if (msg.TargetSilo == null || msg.TargetSilo.Matches(this.LocalSiloAddress))
             {
                 messageCenter.ReceiveMessage(msg);
@@ -121,14 +121,14 @@ namespace Orleans.Runtime.Messaging
 
             if (!msg.TargetSilo.Endpoint.Equals(this.LocalSiloAddress.Endpoint))
             {
-                // 如果该信息是给其他人的 silo 全部,然后我们需要把它推进。
+                // 如果消息实际以其他 Silo 为目标，则需要转发它。
                 LogTraceForwardingMessage(this.Log, msg.Id, msg.SendingSilo!, msg.TargetSilo);
                 messageCenter.SendMessage(msg);
                 return;
             }
 
-            // 如果信息是针对此端点, 但是一个旧时代, 那么拒绝该信息
-            // (如果是请求),或将其放在会场上,如果是回应或单向。
+            // 如果消息针对当前终结点的较早世代，则拒绝该消息
+            // （如果是请求）；如果是响应或单向消息，则直接丢弃。
             if (msg.Direction == Message.Directions.Request)
             {
                 MessagingMetrics.OnRejectedMessage(msg);
@@ -137,7 +137,7 @@ namespace Orleans.Runtime.Messaging
                     Message.RejectionTypes.Transient,
                     $"The target silo is no longer active: target was {msg.TargetSilo}, but this silo is {LocalSiloAddress}. The rejected message is {msg}.");
 
-                // 取消远程呼叫器激活缓存条目的无效性 。
+                // 使远程调用方的激活实例缓存条目失效。
                 if (msg.TargetSilo != null)
                 {
                     rejection.AddToCacheInvalidationHeader(new GrainAddress { GrainId = msg.TargetGrain, SiloAddress = msg.TargetSilo }, validAddress: null);
@@ -165,7 +165,7 @@ namespace Orleans.Runtime.Messaging
 
             if (!this.LocalSiloAddress.Equals(msg.TargetSilo))
             {
-                // 得到的球不是命中注定要给我的 比如,我老化了
+                // 收到了并非发给当前 Silo 的 ping，例如发给当前 Silo 较早世代的 ping。
                 MessagingMetrics.OnRejectedMessage(msg);
                 Message rejection = this.MessageFactory.CreateRejectionResponse(msg, Message.RejectionTypes.Unrecoverable,
                     $"The target silo is no longer active: target was {msg.TargetSilo}, but this silo is {LocalSiloAddress}. The rejected ping message is {msg}.");
@@ -189,7 +189,7 @@ namespace Orleans.Runtime.Messaging
                 cancellationToken.ThrowIfCancellationRequested();
                 if (this.RemoteSiloAddress is not null)
                 {
-                    // 当地序言后公布,
+                    // 在本地协议前导信息发送后发布连接，以便消息写入遵循协议顺序。
                     this.connectionManager.OnConnected(this.RemoteSiloAddress, this);
                 }
 
@@ -243,7 +243,7 @@ namespace Orleans.Runtime.Messaging
 
         protected override bool PrepareMessageForSend(Message msg)
         {
-            // 不要发送已经超时的信息
+            // 不要发送已超时的消息。
             if (msg.IsExpired)
             {
                 this.MessagingTrace.OnDropExpiredMessage(msg, MessagingInstruments.Phase.Send);
@@ -257,7 +257,7 @@ namespace Orleans.Runtime.Messaging
                 return false;
             }
 
-            // 如果尚未设置, 请用我们的 silo 地址填入发出信件
+            // 如果出站消息尚未设置 Silo 地址，则填入本地 Silo 地址。
             msg.SendingSilo ??= this.LocalSiloAddress;
 
             if (msg.IsPing())
@@ -285,7 +285,7 @@ namespace Orleans.Runtime.Messaging
             {
                 LogDebugSiloRejectingMessage(this.Log, this.LocalSiloAddress, msg, reason);
 
-                // 重试完成后, 将错误寄回
+                // 重试已结束，改为返回错误。
                 this.messageCenter.SendRejection(
                     msg,
                     Message.RejectionTypes.Transient,

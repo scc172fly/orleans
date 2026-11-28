@@ -9,7 +9,7 @@ using static Orleans.Durable.Journaling.Tests.ObservationTestHelpers;
 namespace Orleans.Durable.Journaling.Json.Tests;
 
 /// <summary>
-/// 测试 JSON 耐久日志编码和观察 JSON- 已检查状态。
+/// 测试 JSON 持久化日志编解码器及对 JSON 日志所记录状态的观察。
 /// </summary>
 [TestSuite("BVT")]
 [TestProvider("None")]
@@ -93,7 +93,7 @@ public class JsonDurableLogTests
         Assert.Equal(LogEventKind.DraftCommitted, (await read.NextAsync()).Kind);
         Assert.Equal((LogEventKind.Entry, "Hello"), ToTuple(await read.NextAsync()));
         Assert.Equal(new ValueChange<int> { Value = 1, Version = 1 }, await watch.NextAsync());
-        // 承诺开始了日志的历史, 因此它被作为带有时代的快照条目 进行日记。
+        // 此次提交开启了日志的历史，因此将其记录为一个携带纪元的快照条目。
         Assert.Contains($"""["snapshot",{log.Epoch},0,0,false,["Hello"],[["{draft.Id}",0,1]]]""", Encoding.UTF8.GetString(storage.Segments.Single()));
 
         log.TrimBefore(1);
